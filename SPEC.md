@@ -488,7 +488,9 @@ Referencia de alcance: funciones de la imagen «Foto 1.jpg», incorporadas el 12
 - No prometer resultados de conversión, rentabilidad, seguridad total, rendimiento ni disponibilidad sin medición.
 - Aprobar antes de ejecutar cambios persistidos o infraestructura según el alcance y autorización vigente. La aprobación documental inicial permite trabajar en la implementación autorizada, pero no es autorización de producción.
 
-## Decisiones propuestas y decisiones de negocio pendientes
+## Decisiones del titular (DEC)
+
+Todas las decisiones de esta tabla están tomadas. Lo que queda abierto dentro de alguna (por ejemplo DEC-02, DEC-04 y DEC-06) se sigue en «Por decidir» del tablero de `PLAN.md`. Las notas de construcción («en local», «en `main`») son de su fecha; el estado vigente de cada entrega está en `PLAN.md`.
 
 | ID | Decisión | Tratamiento |
 |---|---|---|

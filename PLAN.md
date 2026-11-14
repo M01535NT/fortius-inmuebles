@@ -20,6 +20,10 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 - **En `feat/integracion`, sin publicar:** TRA-01, Trámites con la cancelación de hipoteca (pantalla `/admin/tramites` aprobada por el titular, base y servidor con la migración `20261114211000_tramites`, comprobantes solo privados y sin borrar la prueba de un paso cerrado) y su registro de privacidad; LV-09, el panel desde cero (menú lateral, encabezado claro con el riel de etapas y paleta nueva); la paleta del sitio público aprobada por el titular (borgoña presionado `#74112B`, ámbar para lo pendiente y bermellón para errores; las bandas `#0B1828` siguen); las correcciones de Hoy, Contactos y Herramientas de UI/UX; las dependencias con los 18 avisos de GitHub corregidos, ninguno llegaba a producción; y la separación de este plan en `PLAN.md` y `SPEC.md`. Los 8 pasos de TRA-01 siguen fuentes oficiales (Retys BC-DRPPC-014 y 011, gob.mx FOVISSSTE-00-012-A): con Infonavit o Fovissste la cancelación va directo al Registro, sin notario; con banco, ante notario. Se confirma con el primer caso real que el Registro acepte la carta de Infonavit tal cual y su validación previa.
 - **Bloque 0, estado (13/11/2026):** REC-01 con copia diaria funcionando desde el 13/11, esquema 5 con las preferencias de cada usuario; solo falta repetir el ensayo con volumen real después de cargar el inventario. BAS-01 aceptada y CI-01 terminada. ENV-01 espera la decisión c), el backend de pruebas. AUT-01 en revisión: la parte de la base ya está en producción, pero no protege a nadie hasta que el titular active su app de códigos en fortiusinmuebles.com/admin y pruebe una entrada; después Seguridad confirma el factor en la base. OBS-01 activa en producción; Seguridad repite la prueba de Sentry desde producción. PRV-01 espera al abogado. Limpieza diaria de archivos retirados: `CRON_SECRET` puesta y ruta protegida; su primera ejecución es el 14/11 a las 03:30 de Tijuana y Seguridad revisa el resultado. Detalle en `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
 
+**Construidas y en `main`, falta tu visto bueno:** SIM-04, SIM-05, SIM-06, SIM-07, SIM-10, NAV-13, LV-01, LV-02, LV-04, DOC-14, UX-05, SIM-16, SIM-18. Sus filas de estado están en el [historial §24](docs/erp-crm/historial-del-plan.md); al aceptarlas pasan a «terminada».
+
+**Por decidir (titular):** el recorrido propio de la renta (DEC-02); el vocabulario de papeles de una persona al diseñar REL-01 (DEC-04); custodia y retención de las copias (DEC-06); el backend de pruebas, decisión c) de ENV-01. El texto de cada decisión está en `SPEC.md`.
+
 **Qué sigue, en orden.**
 
 1. El titular activa los dos pasos del director en el sitio publicado (AUT-01).
@@ -63,7 +67,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 7. **Escala, instalación, soporte y piloto:** PAG-01, ESC-01; PWA-01, PWA-02, PWA-03 y NAV-14; SOP-01; PIL-01, con todos sus requisitos (incluido el bloque 0); después, operación real de Fortius durante un buen tiempo. EXT-02, EXT-03, EXT-04 y EXT-07 entran solo por decisión de negocio o necesidad demostrada.
 8. **Etapa posterior** (en pausa): solo cuando el titular la abra.
 
-## Simplificación de la interfaz (SIM) — paquete listo para implementar, 17/10/2026
+## Simplificación de la interfaz (SIM) — paquete del 17/10/2026 (el estado de cada entrega está en «Estado y dependencias»)
 
 **Origen:** revisión crítica del titular y del agente sobre capturas reales del panel (15 pantallas, 1440 y 390 px, datos simulados, sin tocar la base). El titular aprobó **las 32 correcciones** el 17/10/2026. **Estado al 11/11/2026:** 19 correcciones de las tres revisiones están resueltas y en `main` (su texto pasó al historial); el estado de cada entrega está en «Entregas del paquete SIM» y en la matriz «Estado y dependencias de cada entrega».
 
@@ -99,9 +103,6 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | C07 | Un buscador en la barra lateral y otro en cada página, con el mismo aspecto. | El de la barra: «Buscar en todo (Ctrl+K)» y se abre con el atajo (UX-03). Los de las páginas: «Filtrar esta lista», con aspecto de filtro. (`workspace/search.tsx` y listas) |
 
 **B. Hoy** (`workspace/hoy.tsx`, `src/lib/admin/today.ts`)
-
-| # | Hoy | Corrección |
-|---|---|---|
 
 **C. Operaciones** (`components/admin/operation/`, `src/lib/admin/operation-view.ts`, `SALE_PROCESS` en `src/lib/formatos/operation-workflow.ts`)
 
@@ -151,9 +152,6 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 **Lo que más pesa:** conviven dos sistemas de componentes. El nuevo (`kit.tsx`) está en Hoy, Operaciones, la operación, Nueva operación, Contactos, la lista de Inmuebles, Agenda y Herramientas; el anterior (`ui.tsx`, `panel.module.css`) sigue en las fichas de persona, la tarea, editar y seguimiento del inmueble, cada herramienta, Reportes, Equipo, Sitio web, Historial, Configuración, Perfil y Notas. El asesor cruza esa frontera cada pocos clics. Lo segundo es la repetición: el mismo pendiente aparece hasta tres veces en una pantalla.
 
 **Fallas visibles (horas de trabajo, van primero):**
-
-| # | Hoy | Corrección |
-|---|---|---|
 
 **Duplicados, guinda y textos:**
 
@@ -217,18 +215,11 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 
 | ID | Correcciones | Alcance | Aceptación |
 |---|---|---|---|
-| SIM-04 | C12, C13, C22 | Alta rápida dentro de Nueva operación; nombres de fase y etapa unificados | Lo que queda tras el boceto C: «Alta directa» dentro de Nueva operación; mismos nombres de fase y etapa en Reportes y en todo el panel; `?etapa=<slug>` sigue funcionando. |
-| SIM-05 | C14–C17 | Quitar números de formato de la vista principal | Lo que queda tras el boceto C: sin números de formato en la vista principal (C15); «Marcar como revisado» pide la misma evidencia; el servidor rechaza lo mismo que antes. |
-| SIM-06 | C18–C21 | Celular, columna lateral y menú «⋯» | Lo que queda tras el boceto C: Llamar y WhatsApp en el encabezado en celular (C19); «¿Qué significa?» como enlace (C20); pestaña Ajustes retirada sin perder ninguna acción (C21). |
-| SIM-07 | C23 | Ficha de persona (prospecto y cliente) | Mismo marco que la operación; una acción principal; sin «lead» ni «Seguimiento conectado»; fechas humanas; conversión técnica y eliminación con sus protecciones actuales; «Cliente» solo con contrato firmado (RP-92, COR-10). **Construida el 11/11/2026 en la rama `feat/seo-integral`, en local y sin commit (C23, C41, C58):** las dos fichas comparten piezas (`src/components/admin/contacts/person.tsx`): encabezado con nombre, etapa, Llamar y WhatsApp; «Siguiente paso» con una sola acción principal (continuar la entrevista o preparar la operación en el prospecto; abrir la operación en el cliente, C40); línea de tiempo «Lo que viene» y «Lo que ya pasó» con notas, citas, tareas y registros, y fechas con palabras; datos y etapa a un lado. «Convertir en cliente» y «Eliminar» van en «Más opciones»; «Agendar» abre su formulario; las operaciones del cliente se nombran por lo que son y no por folio. El prospecto muestra tres etapas (DEC-46). Sin cambios de base, rutas ni reglas: la nota conserva su versión, las capturas a medias bloquean convertir y abrir operación. **Queda fuera:** «Cliente» calculado del contrato firmado (COR-10) y eliminar con «Deshacer» (RP-16). Comprobado: lint, tipos, `test:admin` (405 pruebas) y capturas a 1440 y 390 px, claro y oscuro, sin desbordamiento. |
-| SIM-10 | C27, C28 | Inmuebles y Herramientas | Cada inmueble dice qué le falta; catálogo en tres grupos sin filtros; «Documentos sueltos». |
 | SIM-15 | C42, C45, C46 | Inmuebles, Herramientas, Administración y limpieza | Precio en una línea y dos chips por inmueble; Herramientas sin filtros y con enlace a Administración; sin el enlace a `/admin/sistema` ni la preferencia de densidad; Historial, Notas, editar y seguimiento del inmueble y cada herramienta con el kit nuevo. C41 se hace dentro de SIM-07 y C43 dentro de SIM-09. **Primera parte construida el 02/11/2026; en `main` (PR #66):** cada inmueble lleva dos pastillas (operación y estado), la estrella como ícono y el precio en una línea; el código pasa a «⋯» y «Demo» a la palabra «Ejemplo» junto al precio; «Preparación» dice qué piezas faltan. Herramientas queda en grupos sin buscador, filtros, contador ni estrellas, con «Notas del equipo» y, para el administrador, «Administración». Configuración ya no enlaza `/admin/sistema` y Mi perfil ya no ofrece la densidad (se retiró también de la barra del panel y de `panel.module.css`). Comprobado: lint, tipos, `test:admin` (394 pruebas) y capturas a 1440 y 390 px sin desbordamiento con la API simulada. Pendiente de SIM-15: retirar la pestaña «Documentos», el nombre «Más»/«Herramientas», «Documentos sueltos» (SIM-10), formularios cerrados en editar y seguimiento, Historial, Notas y cada herramienta con el kit nuevo; la prueba de navegador de Mi perfil y Herramientas se ajustó y no se ha corrido. **Segunda parte, en local el 12/11/2026:** Herramientas es solo el catálogo (se retiró la pestaña «Documentos»; `/admin/documentos` lleva a `/admin/herramientas`; un folio se busca con el buscador del panel); «Documentos sin expediente» se llama «Documentos sueltos» en pantalla (el `slug` no cambia); Notas («Notas del equipo») e Historial pasan al kit con estados vacíos que enseñan. Historial nombra cada registro por su título o nombre, dice «Tú», «Otra persona del equipo» o «Formulario del sitio o el sistema» en lugar del identificador del usuario, ya no muestra «Versión» y pliega los datos cambiados. Las formas cerradas de editar y seguimiento quedaron con SIM-19. Cada herramienta pasó al kit en local el mismo día: el marco común (`apps/workspace.tsx`, `apps.module.css`) usa tarjetas, botones y avisos del kit, dice «Guardado · fecha» en lugar del número de versión y regresa a «Herramientas»; la acción del editor (Calcular, Generar…) es la guinda hasta que hay un resultado, y entonces «Guardar» toma ese lugar. Los nombres cruzados de C56 también quedaron en local ese día. |
-| SIM-16 | C47 | Hoy en tres bloques | Hoy muestra «Lo siguiente» (una sola cola por urgencia con pastilla de tipo), «Hoy» (tareas y citas) y «Esta semana»; ningún pendiente aparece en dos bloques (prueba de `today.ts`); sin «Operaciones en curso» ni línea de resumen; en celular cabe en unas tres pantallas con los datos de ensayo; las reglas de volumen de LV-07 siguen cumpliéndose. **Construida el 11/11/2026 en la rama `feat/seo-integral`, en local y sin commit:** `workspace/hoy.tsx` en tres bloques; la cola única sale de `sortQueue` y `queueFrom*` en `src/lib/admin/today.ts` (operaciones, contactos, prospectos nuevos, entrevistas, contratos y licencias, informes, llaves y avisos; lo vencido primero y después por tipo); la portada no se repite; las 4 siguientes con foto, lista corta y «Ver N más» que despliega el resto en la misma pantalla; «Hoy» en una tarjeta con citas y tareas (casilla para completar); «Esta semana» con las siete casillas. Se retiraron «Operaciones en curso» (`stageCounts`), la línea de resumen y las siete secciones aparte. La guía de Hoy explica los tres bloques. Comprobado: lint, tipos, `test:admin` (402 pruebas) y capturas a 1440 y 390 px en claro y oscuro sin desbordamiento (1 455 px en computadora, 2 257 px en celular con los datos de ensayo; antes 1 755 y 3 019). La prueba de navegador `admin-workspace.spec.ts` se ajustó a los tres bloques y no se ha corrido. |
-| SIM-18 | C52, C53 | Operación en tres partes | Pestañas Etapa · Documentos · Actividad; el «⋯» del panel azul trae ruta, situación, inmueble, contraparte, corregir etapa (con motivo) y eliminar (recuperable); «Decisión del encargo» en la etapa 6; un problema se lee una sola vez además de su requisito; `?tab=documentos`, `?tab=tareas`, `?tab=ajustes` y `?documento=` siguen funcionando (las antiguas redirigen a la parte nueva); candados, 409 y pruebas de navegador conservados. **Construida el 11/11/2026 en la rama `feat/seo-integral`, en local y sin commit:** la operación tiene tres partes, Etapa · Documentos (con el selector «Del expediente / Del cliente») · Actividad (tareas e historial juntos). La pestaña Ajustes se retiró (DEC-38): «Más opciones» del panel azul trae «Datos de la operación» (se abren en un panel lateral con la decisión del encargo, ruta, situación, inmueble, fecha objetivo, contraparte y corregir etapa), «Corregir etapa» y «Eliminar operación»; los pendientes de la etapa que antes decían «Ir a Ajustes» abren ese panel. Las direcciones anteriores siguen funcionando (`?tab=cliente`, `?tab=tareas`, `?tab=historial`, `?tab=ajustes`, `?documento=`). El problema de un requisito ya no se repite en la barra flotante y «Próxima tarea» es blanca con la fecha vencida en rojo (C52). Sin cambios de reglas, candados ni 409; cerrar el panel con cambios sin guardar pide confirmación. **Queda fuera:** la decisión del encargo no se movió a la etapa 6 como pieza propia (se abre desde ahí con un botón, pero se captura en el panel de datos), y en Documentos siguen «Nuevo documento» con códigos de formato y la tarjeta «Entrevista inicial» (resto de C53). Comprobado: lint, tipos, `test:admin` (406 pruebas) y capturas a 1440 y 390 px sin desbordamiento. Las pruebas de navegador `expediente-deletion.spec.ts` y `process-corrections.spec.ts` se ajustaron y no se han corrido.  **12/11/2026 (titular):** «Crear y abrir» y su lista de códigos se retiraron: duplicaban el inicio desde la etapa y creaban borradores repetidos. En su lugar, «Agregar documento» arriba de Documentos (en las dos vistas) sube escrituras, predial, identificaciones o certificados desde la computadora o el celular a los documentos del cliente, el mismo repositorio privado. Los formatos que se repiten se agregan desde su renglón en la etapa («Registrar otra visita», «Nuevo reporte», «Otra propuesta», «Otro presupuesto»); el presupuesto de rehabilitación (19) se ofrece, sin detener, en el levantamiento. Se quitó la tarjeta «Entrevista inicial» de Documentos (ya está en la etapa) y la nota técnica del 03 y el 09; el control comercial sigue en Reportes. |
 
 **En `main` y retiradas de esta tabla el 13/11/2026:** SIM-02, SIM-03, SIM-08, SIM-13 y SIM-14 (historial, §20: [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md)).
 
-## Navegación y productividad (NAV) — paquete listo para implementar, 17/10/2026
+## Navegación y productividad (NAV) — paquete del 17/10/2026 (el estado de cada entrega está en «Estado y dependencias»)
 
 **Origen:** investigación de CRM inmobiliarios (Follow Up Boss, Lofty, EasyBroker, Tokko Broker, SkySlope) y de paneles de referencia (HubSpot, Attio), filtrada con criterio crítico. El titular aprobó **las 25 mejoras (N01–N25)** y las cinco restricciones (RP-65 a RP-69) el 17/10/2026. **Estado: pendiente; no hay código escrito.**
 
@@ -302,10 +293,9 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | NAV-10 | N18, N19 | DOC-11, PUB-01 | Cámara desde el requisito, imagen privada sin ubicación; «Ver como cliente» con datos públicos únicamente. |
 | NAV-11 | N20 | Decisión del titular | Aviso de edición simultánea sin reemplazar el control de versión. |
 | NAV-12 | N21, N22 | Migración autorizada (N21), PRV-01 (N22) | Citas con duración y arrastre con alternativa de teclado; suscripción de solo lectura, revocable y con datos mínimos. |
-| NAV-13 | N23, N24 | SIM-01 | Papelera única que restaura con las reglas de cada tipo; «Primeros pasos» del asesor que desaparece al completarse. |
 | NAV-14 | N25 | PWA-03 | En espera hasta que existan avisos fuera del panel. |
 
-## Lenguaje visual (LV) — paquete listo para implementar, 17/10/2026
+## Lenguaje visual (LV) — paquete del 17/10/2026 (el estado de cada entrega está en «Estado y dependencias»)
 
 **Origen:** propuesta del agente aprobada por el titular el 17/10/2026 (V01–V10). **Estado al 11/11/2026:** LV-01 a LV-04 siguen pendientes; LV-05 a LV-08 están construidas y en `main`. Se trabaja igual que SIM y NAV: capturas antes y después a 390 y 1440 px en claro y oscuro, revisión de contraste AA con axe, pruebas afectadas y registro en este plan. Sin dependencias nuevas: íconos con `lucide-react` y animaciones con `motion`, ya instalados.
 
@@ -354,16 +344,13 @@ Ocho reglas para todas las pantallas (del artboard de diagnóstico): cada dato u
 
 | ID | Mejoras | Depende de | Aceptación |
 |---|---|---|---|
-| LV-01 | V02, V10 | Se hace junto con SIM-01 | Tokens `--success` e `--info` en claro y oscuro con contraste AA; ningún color de estado fuera de los cinco roles; solo los tamaños de la escala de `docs/brand.md` en todo el panel; axe sin fallas. |
-| LV-02 | V01, V03, V04, V05, V09 | LV-01, SIM-05 | Catálogo único de íconos usado en todas las pantallas; cada estado con forma, color y palabra; anillo de avance con texto; insignias de documento; avatar neutro del asesor. |
 | LV-03 | V06 | LV-02, UX-04 | Animaciones de confirmación de 300 ms o menos, sin bucles; con «reducir movimiento» no hay transiciones; los mensajes de guardado siguen apareciendo. |
-| LV-04 | V07, V08 | LV-01, SIM-12 | «?» de una línea donde hay dudas; punto «Empieza aquí» que late tres veces y se recuerda por usuario; ilustraciones en todos los estados vacíos, en claro y oscuro. |
 
 **En `main` y retiradas de esta tabla el 13/11/2026:** LV-06, LV-07 y LV-08 (historial, §20).
 
 **LV-09 · Panel desde cero (titular, 14/11/2026):** reemplaza dos piezas aprobadas antes. El menú lateral sustituye la barra superior de LV-08; Trámites sigue en el menú. El encabezado claro de la operación, con el riel de las diez etapas (también en la lista de Operaciones), sustituye el panel azul de LV-06 (boceto D). Hoy pasa a «Tu día». Paleta nueva del panel: grises con tinte azul; estados con superficie y borde; oscuro en tres capas `#060C14`, `#0C1724` y `#1A2331`; borgoña presionado `#74112B`. Se retiran del panel `#A2223F` y `#0B1828`; en el sitio público `#0B1828` sigue igual. Construido por Sistema visual en `claude/tipografia-3bad50` e integrado en `feat/integracion` (547ccbd); el titular dijo que no se parecía a los bocetos, se corrigió pantalla por pantalla (4bea223) y lo aprobó en localhost el 14/11/2026, sin publicar. Diferencias con el boceto que se dejaron a propósito: filas del menú de 44 px por el mínimo táctil; Hoy conserva «Preparar tu espacio», el aviso al equipo y las casillas de tareas; Operaciones conserva los filtros por etapa; la operación conserva las pestañas Etapa, Documentos y Actividad. Pendiente: la paleta del sitio público y el folleto «Paleta Fortius».
 
-## Proceso, captura y documentos — paquete listo para implementar, 17/10/2026
+## Proceso, captura y documentos — paquete del 17/10/2026 (el estado de cada entrega está en «Estado y dependencias»)
 
 **Origen:** el titular describió su proceso real (llamada → cita → entrevista → lista de documentos → levantamiento → recepción de documentos → dictamen → opinión de valor → contrato) y pidió capturar una vez, descargar aunque falten datos y procesos distintos por tipo de operación. El agente revisó el código y propuso este paquete; el titular lo aprobó completo el 17/10/2026. **Estado: pendiente; no hay código escrito.**
 
@@ -376,9 +363,6 @@ Ocho reglas para todas las pantallas (del artboard de diagnóstico): cada dato u
 ### Correcciones inmediatas (fallas encontradas)
 
 COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a partir de revisiones externas (Grok y ChatGPT) verificadas en el código de `main` y en capturas del panel actual; COR-10, el 18/10/2026, por la regla del titular sobre prospecto y cliente (RP-90 a RP-92).
-
-| ID | Falla | Corrección | Aceptación |
-|---|---|---|---|
 
 **Hechas y en `main`, retiradas de esta tabla el 13/11/2026:** COR-01 a COR-04, COR-06, COR-08, COR-09, COR-11 a COR-13 y COR-15 (historial, §20). COR-16 está en el apartado E.
 
@@ -512,9 +496,6 @@ COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a p
 
 **Correcciones de los casos (02/11/2026):**
 
-| ID | Falla | Corrección | Aceptación |
-|---|---|---|---|
-
 **En `main` y retiradas de esta tabla el 13/11/2026:** COR-18 a COR-22 (historial, §21).
 
 ### G. Operación diaria, papeles del equipo y herramientas (02/11/2026)
@@ -610,7 +591,7 @@ Las 17 abren sin error con datos simulados (solo «Enlaces y QR» cayó por un d
 
 **DEC-44 decidida y en `main`** (captura por lista en el celular, commit `7e35678`); el párrafo de la propuesta está en el historial (§21).
 
-## Herramientas para trabajo suelto (HER) — paquete listo para implementar, 17/10/2026
+## Herramientas para trabajo suelto (HER) — paquete del 17/10/2026 (el estado de cada entrega está en «Estado y dependencias»)
 
 **Origen:** indicación del titular del 17/10/2026. Hay clientes que solo piden el machote del contrato para revisarlo, solo una opinión de valor con datos básicos o solo el cálculo del ISR. Para eso no se abre una operación: se va a Herramientas, se hace el documento o el cálculo y se descarga. También pidió quitar de Herramientas lo que no sirve. **Estado: pendiente; no hay código escrito.** El titular **confirmó el catálogo el 18/10/2026**, con el cambio de la ficha comercial.
 
@@ -691,9 +672,7 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 
 | ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
 |---|---|---|---|---|
-| BAS-01 P0/I | Separar base Git, cambios locales y estado publicado; consolidar correcciones preparadas | `ROADMAP.md`, diff actual, workflow/tests/HTTP/contratos | Ninguna; 1–2d | Lista exacta de cambios revisados; verificaciones repetidas; no incluir secretos/test-results/copias. |
 | REC-01 P0/I | Recuperación completa y objetivos RPO/RTO | backup/export/restore-current, `docs/fortius-inmuebles-backup-restore.md`, Auth y Storage | DEC-06/10; 2–4d más acceso | Snapshot aislado consistente, archivos/hashes/referencias reconciliados; tiempos medidos; incluir qué NO se pudo restaurar. |
-| CI-01 P0/I | Evitar publicación con checks fallidos | `.github/workflows/verify.yml`, GitHub/Vercel | BAS-01, DEC-10; 1–2d | Una PR controlada fallida no puede llegar a producción por el flujo aprobado; rollback de aplicación probado. |
 | AUT-01 P0/I | Recuperación/invitación y MFA acordados | `backend/auth.ts`, Auth config, pantalla de acceso | DEC-03/10; 1–3d | Cuenta de prueba recibe y completa flujo; recuperación de segundo factor ensayada antes de exigirlo. |
 | OBS-01 P1/I | Detectar y seguir incidentes sin PII | `backend/http.ts`, health, configuración de logs | BAS-01, DEC-10; 1–2d | 5xx controlado correlacionado por requestId; alerta/retención comprobadas; no cuerpo/secretos en logs. |
 | ENV-01 P0/I | Confirmar aislamiento y retirar ambigüedades de despliegue | ámbitos Vercel, Supabase, proyecto antiguo | DEC-09/10; 1–2d | Preview usa datos/credenciales acordados; no retirar proyecto antiguo antes de comprobar dominios/Auth/tráfico. |
@@ -736,10 +715,7 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 | DOC-11 P1/C | Carga de varios archivos con requisito propuesto (RP-36) | carga de archivos, requisitos de la operación | DOC-01; 2–3d | Se arrastran varios archivos; se propone el requisito por tipo y nombre y la persona confirma; ningún archivo queda revisado por cargarse. La propuesta por contenido llega con EXT-11. |
 | DOC-12 P2/C | Pedir un documento al cliente por liga segura (RP-37) | ruta pública acotada, Storage privado, requisitos | DOC-01, SEG-01, PRV-01; 3–5d | Liga con vencimiento y revocable que solo permite subir a ese requisito; lo recibido queda «Lo tengo»; la liga no da acceso a ningún otro dato. |
 | DOC-13 P1/C | Tablero de vencimientos de Fortius (RP-38) | «Pendientes documentales», requisitos con vigencia | DOC-01; 1–3d | Lista por fecha y responsable que enlaza a cada requisito; respeta permisos. |
-| DOC-14 P1/C | Formatos de contrato nuevos a partir de los modelos del titular: compraventa a plazos, compraventa con reserva de dominio, arrendamiento e intermediación para renta (RP-97) (el cotejo de la promesa 15 no aplica: el titular no tiene modelo propio, 13/11/2026) | catálogo de formatos, captura en ventana, PDF y Word | Modelos del titular; 2–4d por formato | Cada formato reproduce su plantilla, se captura en el sistema y se descarga en PDF y Word. |
 | FIR-01 P1/C | **Firma electrónica propia, sin proveedor de pago** (titular, 17/10/2026): liga personal enviada por WhatsApp o correo; el firmante ve el contrato completo, confirma su identidad con un código enviado a su correo o teléfono y firma con el dedo o escribiendo su nombre; el sistema guarda fecha y hora, código verificado, dirección de conexión y huella SHA-256 del PDF, y agrega al PDF una hoja de evidencia. La firma así registrada cumple la prueba de RP-97. Uso previsto: intermediación y acuse del aviso; promesa y arrendamiento si el abogado lo confirma; nunca la compraventa definitiva, que va ante notario. La constancia NOM-151 queda opcional. | ruta pública acotada, Storage privado, formatos, firma registrada (COR-10) | COR-10, DOC-01, PRV-01, DEC-30; 4–6d | Un firmante sin el código no puede firmar; cualquier cambio al PDF después de firmar se detecta con la huella; la hoja de evidencia acompaña al PDF; la liga vence y se puede revocar. |
-| IA-01 P0/I | **La IA lee los documentos del cliente (titular, 17/10/2026, rehecho el 29/10/2026; entrega 3):** al subir un archivo, o con «Leer con IA», el servidor envía el PDF o la imagen a la API de Claude con una estructura fija de respuesta (los datos de DAT-EXP que encontró, con página, frase citada y confianza), validada con zod. Lo leído entra **por confirmar** con su fuente en «Datos del expediente»; nada llega a un formato sin confirmación. **Regla del titular (29/10/2026): en pantalla nada dice «propuesto» ni que algo fue propuesto o creado por la IA** (lo leído se muestra «Por confirmar», el botón es «Leer datos» y los errores hablan del «servicio de lectura»); una prueba del panel lo comprueba. Estado por archivo: pendiente, leyendo, leído o con error. La clave `ANTHROPIC_API_KEY` vive solo en el servidor. | Storage privado, DAT-EXP, ruta `/api/admin/archivos-cliente/[id]/leer`, migración `20261029140000_expediente_lecturas_ia.sql` | **Hecha; en `main` (PR #57 y #63), sin activar:** falta la clave de API del titular y el visto bueno del abogado antes de usarla con documentos reales; migración sin aplicar | Con respuestas simuladas, los datos salen con su fuente, una respuesta mal formada se rechaza y sin clave el resto funciona igual. |
-| IA-02 P1/I | **Controles de la IA (entrega 4):** tope mensual de lecturas en «Ajustes» (al llegar, se pausa y avisa), registro de cada lectura (archivo, fecha, quién, costo aproximado), anotación del proveedor como encargado en `docs/erp-crm/privacy/data-processing-register.md` y en la política de acceso. **En `main`:** el tope (variable `IA_TOPE_MENSUAL_USD`, 20 USD si no se configura), el registro `fortius_inmuebles_ia_lecturas` y la anotación en el registro de tratamiento. **Falta:** cambiar el tope y ver el gasto del mes desde «Ajustes». | Ajustes, tabla de uso, documentación de privacidad | IA-01; 1d | Al llegar al tope no se lee más y se avisa; cada lectura queda registrada. |
 | DOC-15 P1/I | **Biblioteca de listas de documentos por situación** (titular, 17/10/2026, L-01): el director captura y edita listas por caso (propietario de casa, terreno o nave; comprador; arrendatario; y otras), con vista previa y descarga en PDF. Cada operación toma su lista de la biblioteca; ahí solo se marca «No aplica» o se agrega un documento. | configuración, lista de documentos (COR-06), formatos | COR-06; 2–4d | Cambiar una lista en la biblioteca cambia las operaciones nuevas, no las ya abiertas; la vista previa coincide con el PDF. |
 
 **Retiradas de esta tabla el 13/11/2026** por estar en `main` o descartadas: COR-01 y COR-02, SUB-01 (descartada), DOC-EXP y DAT-EXP (historial, §20).
@@ -770,7 +746,6 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 | SIM-01 a SIM-12 P1/I | Simplificación de la interfaz: las 32 correcciones C01–C32 aprobadas el 17/10/2026 (RP-50 a RP-57) | ver la sección «Simplificación de la interfaz (SIM)» | UX-01; SIM-01 primero; 1–3d por entrega | La aceptación de cada entrega está en su tabla; ninguna cambia reglas del servidor, permisos ni datos. |
 | NAV-01 a NAV-14 P1/C | Navegación y productividad: las 25 mejoras N01–N25 aprobadas el 17/10/2026 (RP-58 a RP-69) | ver la sección «Navegación y productividad (NAV)» | dependencias por entrega en su tabla; 1–4d por entrega | La aceptación de cada entrega está en su tabla; NAV-12 lleva migración y NAV-14 espera PWA-03. |
 | LV-01 a LV-04 P1/C | Lenguaje visual: las 10 mejoras V01–V10 aprobadas el 17/10/2026 (RP-70 a RP-74) | ver la sección «Lenguaje visual (LV)» | LV-01 junto con SIM-01; 1–3d por entrega | La aceptación de cada entrega está en su tabla; sin dependencias nuevas. |
-| UX-05 P1/C | Bandeja «Para ti» en Hoy (RP-20) | Hoy, notas e historial, tareas; las aprobaciones se suman cuando exista APR-01 | UX-04; 2–4d (usa los permisos actuales y se ajusta con SEG-01) | Una mención avisa solo a quien puede ver el registro; el contador del menú suma la bandeja; marcar como leído; sin campana. |
 | TRA-01 P1/O | **Trámites con pasos (titular, 13/11/2026):** la cancelación de hipoteca como primer trámite, dentro de una venta (frena la firma si el vendedor tiene hipoteca) o suelto para un cliente: saldo para liquidar, pago, carta de liquidación o instrucción de cancelación, firma ante notario cuando aplique, inscripción en el Registro Público y certificado de libertad de gravamen nuevo; cada paso con responsable, fecha y aviso en Hoy si se atrasa. El mismo modelo sirve después para escrituración, regularización e intestados. | operación, Hoy, documentos del cliente; Metodología diseña y Bloques construye | Boceto aprobado por el titular; pasos confirmados para Baja California | El trámite se sigue paso a paso; en una venta, la firma no avanza sin la cancelación inscrita o la decisión del titular; nada se marca hecho sin su evidencia. |
 | PWA-01 P1/I | Instalación y apertura del panel | manifiesto específico admin/layout/iconos | AUT-01/UX-01; 2–4d | Identidad/start_url/scope probados; inicia admin; acceso normal tras actualización; matriz real iOS/Android/iPad/Windows/macOS. |
 | PWA-02 P2/C | Conectividad y captura de campo limitada | formularios, capa de conexión; SW solo alcance aprobado | PWA-01, DEC-08; 3–6d | Sin cache de API/Auth/PDF privados; caducidad/cierre de sesión; reintento no duplica. Offline de datos sensibles requiere diseño y aprobación adicionales. |
@@ -867,11 +842,6 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | APR-01 | 3 | pendiente | SEG-01, FIN-02, UX-05 |
 | TAB-05 | 3 | pendiente | TAB-01, DEC-17 |
 | FIS-01 | 3 | pendiente | BAS-01; revisión fiscal |
-| SIM-04 | 4 | en_main | C12, C13 y C22 hechas; Reportes usa el mismo cálculo de etapa que Operaciones, también en registros sin tipo (defb62e, `feat/integracion`, 13/11/2026); en `main` con el PR #75 (13/11/2026) |
-| SIM-05 | 4 | en_main | la etapa nombra sus documentos sin número de formato; los números siguen en Documentos (ad53e35, `feat/integracion`, 13/11/2026); en `main` con el PR #75 (13/11/2026) |
-| SIM-06 | 4 | en_main | C19, C20 y C21 hechas (Ajustes retirada con SIM-18); barra única del celular (C59) comprobada a 390 px (13/11/2026); en `main` con el PR #75 (13/11/2026) |
-| SIM-07 | 4 | en_main | fichas de prospecto y cliente (C23, C41, C58), en `main` desde el PR #73; falta el visto bueno del titular |
-| SIM-10 | 4 | en_main | C27 (sin aviso amarillo, abdc6b8) y C28 («Documentos sueltos») hechas, en `feat/integracion` (13/11/2026); en `main` con el PR #75 (13/11/2026) |
 | NAV-01 | 4 | pendiente | SIM-02, UX-02 |
 | NAV-02 | 4 | pendiente | UX-03 |
 | NAV-03 | 4 | pendiente | SIM-01, SIM-08 |
@@ -884,13 +854,8 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | NAV-10 | 4 | pendiente | DOC-11, PUB-01 |
 | NAV-11 | 4 | pendiente | Decisión del titular |
 | NAV-12 | 4 | pendiente | Migración autorizada, PRV-01 |
-| NAV-13 | 4 | en_main | papelera «Eliminados» (N23) y «Tu primer día» con foto, WhatsApp, cita y operación, que desaparece al completarse (N24, 8d7bb05); en `feat/integracion` (13/11/2026); en `main` con el PR #75 (13/11/2026) |
 | NAV-14 | 4 | pendiente | PWA-03 |
-| LV-01 | 4 | en_main | cinco roles de color con superficie y borde, AA en claro y oscuro; axe sin fallas en 24 pantallas; escala de `docs/brand.md` (13/11/2026, `feat/integracion`); en `main` con el PR #75 (13/11/2026) |
-| LV-02 | 4 | en_main | íconos por etapa y documento, estados con forma, anillo de avance y avatar único (8b1d265, `feat/integracion`, 13/11/2026; boceto aprobado por el titular); «Aprobado» y «Revisado» aún no tienen dato de documento detrás: hoy solo se muestran Borrador y Firmado (09 y 21 con firma registrada); en `main` con el PR #75 (13/11/2026) |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
-| LV-04 | 4 | en_main | ayuda «?» de una línea, punto «Empieza aquí» sobre «Nuevo» e ilustración en los estados vacíos (d4acc7d, `feat/integracion`, 13/11/2026; boceto aprobado por el titular); en `main` con el PR #75 (13/11/2026) |
-| DOC-14 | 2 | en_main | formatos 20 a 24 (arrendamiento, intermediación para renta, solicitud de arrendamiento, inventario de la renta y compraventa a plazos con reserva de dominio) en `feat/integracion`; el cotejo de la promesa 15 no aplica porque el titular no tiene modelo propio (13/11/2026); falta la revisión del abogado; en `main` con el PR #75 (13/11/2026) |
 | FIR-01 | 6 | pendiente | COR-10, DOC-01, PRV-01, DEC-30 |
 | IA-01 (proveedores) | 1 | en_revision | Claude Haiku 5.5 activo en local con clave de prueba (31/10/2026, 7 datos de un PDF ficticio); adaptador Grok listo pero su clave no la acepta xAI; PDF por páginas con pdfjs-dist |
 | DOC-15 | 2 | pendiente | COR-06 |
@@ -915,7 +880,6 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | HER-04 | 2 | pendiente | FCH-01 |
 | UX-03 | 4 | parcial | barra de comandos Ctrl/⌘K que busca y actúa según el rol, «Recientes» (NAV-02) por usuario y atajos «/» y «?» desactivables (6a07d62, `feat/integracion`, 13/11/2026); acciones masivas con resultado por registro y «Reintentar» (RP-12) y edición en la fila con control de versión (RP-13) en Tareas y Contactos, con boceto aprobado por el titular (b41ae84); exportar contactos solo el administrador y CSV sin fórmulas; el director reasigna operaciones desde la lista con motivo (M-04, deb2326) |
 | UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); siluetas de carga (RP-18; 7d3dfe6) y «Deshacer» al completar una tarea, solo tras confirmar el servidor (RP-16; aa98fba); falta el conflicto en operaciones y formatos; la reversión optimista con motivo (RP-18) no aplica mientras el panel no tenga cambios optimistas |
-| UX-05 | 4 | en_main | bandeja «Para ti» en Hoy: menciones, tareas asignadas y comentarios ajenos de los últimos 30 días, solo de lo que el usuario puede ver; lo leído se guarda en el servidor (89bc643, `feat/integracion`, 13/11/2026; tabla de preferencias por usuario, migración 20261114100000); las aprobaciones llegan con APR-01; en `main` con el PR #75 (13/11/2026) |
 | TRA-01 | 4 | en_local | pantalla aprobada por el titular (13/11/2026); pasos según fuentes oficiales, sin esperar al notario |
 | SOP-01 | 5 | pendiente | OBS-01 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
@@ -927,8 +891,6 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | SAAS-06 | posterior | en_pausa | SAAS-01, DEC-18 |
 | PIL-02 | posterior | en_pausa | SAAS-01 a SAAS-03, SAAS-05, PIL-01, REC-01, OBS-01 |
 | SIM-15 | 4 | parcial | primera parte en `main` (PR #66); segunda en local el 12/11/2026 (Herramientas sin «Documentos», «Documentos sueltos», Notas e Historial con el kit); cada herramienta con el kit, C56 y C57, también en local; C54 y C55 con SIM-19 |
-| SIM-16 | 4 | en_main | Hoy en tres bloques (C47), en `main` desde el PR #73; falta el visto bueno del titular |
-| SIM-18 | 4 | en_main | operación en tres partes en `main` (PR #73); la decisión del encargo es su propia tarjeta en la etapa 6 desde 0da635a, con prueba en operation-screen; en `main` con el PR #75 (13/11/2026) |
 | COR-25 | 1 | pendiente | DAT-01 |
 | COR-26 | 4 | parcial | PR #66: guía de cada pantalla; en local: «Tu primer día» y manual en `/admin/ayuda`; faltan capturas del manual y prueba de uso |
 | USO-02 | 4 | pendiente | USO-01 |
@@ -981,7 +943,6 @@ Paquetes de fase 6: EXT-01, EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11 están solic
 | EXT-09 — Mapas, comparables, zonas y rutas | Solicitados; DEC-11 y REL-01/TEC-01/VIS-01/SEG-01 | Fuentes/precisión/cobertura, uso permitido, motor/costo, capas autorizadas y recorrido sintético de visitas. **Titular, 17/10/2026:** sin Google Maps por costo; propuesta: MapLibre con mapas de OpenStreetMap, o el nivel gratuito de Mapbox o MapTiler. Primer uso: inventario por zona; ubicación aproximada en público (H-05). |
 | EXT-10 — Portal privado de clientes | Solicitado; DEC-13 y REL-01/OPS-01/DOC-01/SEG-01/AUT-01/PRV-01 | Identidad externa, información compartida, solicitudes, permisos efectivos, revocación y uso móvil. DOC-12 es su primera pieza. |
 | EXT-11 — Asistente IA operativo | Solicitado el 17/10/2026 (RP-44); DEC-14, EXT-06, SEG-01 | Resumen de operación, lectura de INE y escritura con confirmación campo por campo, descripción de anuncio y sugerencia de siguiente paso; citas, permisos, evaluación, costo y abstención. Nunca cambia estados ni envía nada por sí solo. **Titular, 17/10/2026:** se programa sin atarse a un proveedor; el titular solo carga la clave de la API y elige proveedor y modelo (Claude, DeepSeek u otro). Antes de elegir: precio vigente, prueba con documentos reales y lugar donde se procesan los datos (transferencia a revisar en el aviso de privacidad). La IA propone y una persona confirma; tope de gasto mensual (H-03). |
-| EXT-12 — Captura sobre el documento en vivo | **Aprobada por el titular el 27/10/2026 (DEC-31) para todos los formatos.** Construida para todos los formatos y en `main` (PR #57). Usa el membrete común; FCH-01 y FCH-05 la mejoran después; relacionada con FCH-10, DOC-10 y F09 | Revisión del 04B por el titular en localhost; después, los formatos por etapa en el orden por grupos de «EXT-12» (ese orden y su estado pasaron al historial, §20). |
 | EXT-13 — Conexión a servicios de IA con tope mensual | **Idea del titular, 26/10/2026; no aprobada.** Base común de EXT-11, IA-01, EXT-06 y EXT-12; DEC-14, SEG-01 y PRV-01 | Elegir proveedor inicial y tope, confirmar precios vigentes y probar con documentos sintéticos; ver «EXT-13» abajo. |
 
 ### EXT-12 — captura con vista previa del documento
@@ -1093,24 +1054,6 @@ Un usuario autorizado podrá buscar en los documentos de su ámbito y obtener re
 ## Tareas detalladas de continuidad
 
 Ventana propuesta: 8–14 días de ingeniería. Una tarea en implementación. El acceso a GitHub/Vercel, la revisión de tratamiento de datos y un destino aislado condicionan parte de esta iteración.
-
-### BAS-01 — base y correcciones pendientes
-
-**Archivos:** leer diff actual, `ROADMAP.md`; revisar archivos listados allí. Evidencia existente: `ROADMAP.md`, con integración y resultados del commit validado.
-
-**Consume:** commit base, estado de trabajo y registro de correcciones. **Produce:** matriz archivo → cambio → prueba → commit/estado remoto, sin valores secretos.
-
-- [x] Leer `git status --short --branch`, `git diff --stat`, `git diff --check` y diff por archivo; separar corrección anterior de necesidad ERP.
-- [x] Volver a comprobar lectura de GitHub/Supabase/Vercel requerida con autenticación disponible. Registrar alcance de acceso, no credenciales. No concluir falta de credenciales por una variable ausente.
-- [x] Crear rama de consolidación cuando el trabajo de implementación esté aprobado. Los cambios existentes no se descartan ni se copian ciegamente.
-- [x] Revisar exportación de 18 tablas, paginación compatible de expedientes, extracción de contratos y HTTP con requestId. No repetir cambios que ya existan.
-- [x] Ejecutar `node --test tests/tools/*.test.mjs` y los tests actuales de SQL/rutas/observabilidad: `npm run test:backend -- tests/backend/database.test.ts tests/backend/formatos-expedientes-route.test.ts tests/backend/http-observability.test.ts`.
-- [x] Corregir solo fallos reproducidos; repetir la comprobación afectada. Registrar número de pruebas ejecutadas y condiciones.
-- [x] Ejecutar `npm run verify` para el candidato revisable. Resultado esperado: lint, TypeScript, suites configuradas y build finalizados; cero pruebas ejecutadas no significa aprobado.
-- [x] Revisar la regresión de navegador pertinente en configuración sintética: `npm run test:admin:browser -- tests/admin/browser/admin-workspace.spec.ts`. Si faltan navegador o dependencias, resolver entorno con mecanismo autorizado; no instalar silenciosamente.
-- [x] Preparar commit de archivos explícitos y evidencia, cuando esté autorizado. No incluir documentos/fixtures ajenos solo porque estén untracked.
-
-**Aceptación:** matriz de cambios y resultados vinculada al commit candidato; no atribuir pruebas históricas a una ejecución nueva. **Reversión:** revertir solo el commit propio; los cambios remotos previos se registran y no se deshacen por descartar la rama.
 
 ### REC-01 — ensayo de recuperación completo
 
