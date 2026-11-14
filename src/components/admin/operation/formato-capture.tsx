@@ -133,6 +133,8 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
     });
   }
   const closing = React.useRef(false);
+  // Un dato aceptado en la captura en vivo se guarda antes de aceptar otro: así el segundo no sale con la versión vieja.
+  const accepting = React.useRef(false);
   async function close() {
     if (busy || closing.current) return;
     closing.current = true;
@@ -222,9 +224,11 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
         : live ? <DocumentoEnVivo definition={definition} documentId={doc.id} expedienteId={doc.expediente_id || undefined} values={data} missing={missing} disabled={!!busy} onDraft={onLiveDraft}
           onAccept={async patch => {
             // Se integra al documento y se guarda con la versión del borrador (un conflicto 409 deja la captura abierta con el aviso).
+            if (accepting.current) throw new Error("Espera a que termine de guardarse el dato anterior.");
+            accepting.current = true;
             const next = { ...values, ...patch };
             setValues(next); setError(""); setNotice("");
-            await persist(next);
+            try { await persist(next); } finally { accepting.current = false; }
           }}
           // Al confirmar datos del expediente desde la ventana, el servidor ya llenó este borrador: se vuelve a leer para no pisarlo con una versión vieja.
           onExpedienteSaved={async () => {
