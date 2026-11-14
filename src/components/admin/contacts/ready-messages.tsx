@@ -28,8 +28,10 @@ export function ReadyMessages({ lead, today, onSent }: { lead: Lead; today: stri
   const origin = React.useSyncExternalStore(noSubscribe, () => window.location.origin, () => "");
 
   const property = propiedades.find(p => p.slug === lead.propiedadSlug) ?? null;
-  const visit = eventos.filter(e => e.leadId === lead.id && e.tipo === "visita" && e.fecha >= today).sort((a, b) => `${a.fecha}${a.hora ?? ""}`.localeCompare(`${b.fecha}${b.hora ?? ""}`))[0];
-  const visited = eventos.some(e => e.leadId === lead.id && e.tipo === "visita" && e.fecha < today) || contactAttempts(lead).some(n => n.contacto === "visito");
+  // C-61: solo cuentan las visitas al inmueble del que trata el mensaje, no las de otro inmueble.
+  const sameProperty = (e: { propiedadSlug?: string }) => !lead.propiedadSlug || e.propiedadSlug === lead.propiedadSlug;
+  const visit = eventos.filter(e => e.leadId === lead.id && e.tipo === "visita" && sameProperty(e) && e.fecha >= today).sort((a, b) => `${a.fecha}${a.hora ?? ""}`.localeCompare(`${b.fecha}${b.hora ?? ""}`))[0];
+  const visited = eventos.some(e => e.leadId === lead.id && e.tipo === "visita" && sameProperty(e) && e.fecha < today) || contactAttempts(lead).some(n => n.contacto === "visito");
   const messages = messagesFor({
     // Sin asesor asignado (lo común en «Sin atender»), firma quien escribe desde su sesión.
     nombre: lead.nombre, asesor: asesores.find(a => a.id === lead.asesorId)?.nombre ?? session?.name?.trim(), zona: lead.zona, property, origin,
