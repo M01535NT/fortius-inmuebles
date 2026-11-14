@@ -55,7 +55,7 @@ export function VisitPlanner({ slug, codigo, titulo, asesor, channels }: Props) 
         <span><strong>{asesor.nombre}</strong><span>{asesor.cargo}, responde en horario de oficina</span></span>
       </div> : <p className="fe-visit-title">Agenda una visita.</p>}
 
-      <p className="fe-visit-lead"><CalendarDays size={16} aria-hidden="true" />Propón un día; el asesor lo confirma contigo</p>
+      <p className="fe-visit-lead"><CalendarDays size={16} aria-hidden="true" />Propón un día y te lo confirmamos</p>
       <div className="fe-visit-days" role="group" aria-label="Día propuesto para la visita">
         {days.length ? days.map(day => (
           <button key={day.id} type="button" aria-pressed={chosen?.id === day.id} aria-label={day.label} onClick={() => setSelected(day.id)}>

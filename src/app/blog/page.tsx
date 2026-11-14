@@ -37,7 +37,8 @@ export default async function BlogPage({ searchParams }: Props = {}) {
   // Keep a selected older article on the first page without repeating it on later pages.
   const ordered = selected ? [selected, ...filtered.filter((post) => post.id !== selected.id)] : filtered;
   const visible = ordered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).filter((post) => post.id !== featured?.id);
-  const guides = posts.filter((post) => postFormat(post) === "guia").slice(0, 3);
+  const shown = new Set([featured?.id, ...visible.map((post) => post.id)]);
+  const guides = posts.filter((post) => postFormat(post) === "guia" && !shown.has(post.id)).slice(0, 3);
   return (
     <main className="pg-page">
       <div className="pg-container pg-section-last">

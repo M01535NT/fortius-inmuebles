@@ -194,6 +194,6 @@ test("blog articles offer a relevant next action and related reading", async ({ 
   const article = page.locator('a[href^="/blog/"]').first();
   await expect(article).toBeVisible();
   await article.click();
-  await expect(page.getByText('Siguiente paso', { exact: true })).toBeVisible();
+  await expect(page.locator('main a.ba-next')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Lecturas relacionadas' })).toBeVisible();
 });

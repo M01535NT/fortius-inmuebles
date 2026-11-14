@@ -82,7 +82,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
       <JsonLd data={[blogPostingLd(post, cover?.src), breadcrumbLd([{ name: "Inicio", path: "/" }, { name: "Blog", path: "/blog" }, { name: post.titulo, path: `/blog/${post.slug}` }])]} />
       <section className="pg-hero ba-hero">
         <div className="pg-container pg-hero-body">
-          <Link href="/blog" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Volver al Blog</Link>
+          <Link href="/blog" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Volver al blog</Link>
           <header style={{ marginTop: 32 }}>
             <p className="pg-pills" style={{ marginBottom: 20 }}>
               <span className="pg-chip">{postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}</span>
@@ -100,7 +100,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
 
       <div className="pg-container">
         {cover && <figure className="ba-cover">
-          <Image src={cover.src} width={cover.width} height={cover.height} alt={cover.alt} priority sizes="(max-width: 1320px) calc(100vw - 40px), 1256px" />
+          <Image src={cover.src} width={cover.width} height={cover.height} alt={cover.alt} preload sizes="(max-width: 1320px) calc(100vw - 40px), 1256px" />
           {cover.credit && <figcaption className="ba-credit"><BlogCoverCredit cover={cover} linked /></figcaption>}
         </figure>}
         <div className="ba-layout">
@@ -119,7 +119,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             </aside>}
             <Link href={nextAction.href} className="ba-next">
               <span className="ba-next-media" aria-hidden="true"><ArrowUpRight size={28} /></span>
-              <span><span className="pg-eyebrow pg-eyebrow-ink">Siguiente paso</span><strong>{nextAction.label}</strong></span>
+              <span><strong>{nextAction.label}</strong></span>
               <ArrowUpRight size={22} aria-hidden="true" style={{ color: "var(--primary-text, #8a1634)" }} />
             </Link>
             <div className="ba-author">
