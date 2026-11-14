@@ -5,7 +5,7 @@ import { Button, Hint, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/com
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
-import { directorReview, exceptionAllowed, exceptionCovers, ownerProcess, requirementFormato, requirementPhase, reviewComplete, stageLabel, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { directorNotApplicable, directorReview, exceptionAllowed, exceptionCovers, ownerProcess, requirementFormato, requirementPhase, reviewComplete, stageLabel, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { allowsNotApplicable, encodeProblem, hasValidity, problemOf, requirementDetail, reviewState } from "@/lib/admin/operation-view";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { useIsDirector } from "@/lib/admin/staff-scope";
@@ -64,7 +64,9 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   const detail = excepted ? `Con excepción autorizada: ${review?.excepcion?.motivo}` : expired ? (appraisalEnd && appraisalEnd < today ? `El avalúo venció el ${shortDate(appraisalEnd)}. Registra uno actualizado o haz la opinión de valor.`
     : review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado.")
     : problem ? problem.title : state === "recibido" ? reserved ? "Listo · falta que lo revise el director" : "Ya tienes el documento · falta revisarlo" : requirementDetail(flow, requirement) || (state === "pendiente" ? "Pendiente" : "");
-  const options = STATES.filter(st => (st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica") && (!reserved || st === state || (st !== "revisado" && st !== "no_aplica")));
+  // M-06: «No aplica» en una renta sin depósito ni garantía lo marca el director; la marca que ya existe se conserva.
+  const notApplicableReserved = !director && directorNotApplicable(requirement) && state !== "no_aplica";
+  const options = STATES.filter(st => (st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica") && (st !== "no_aplica" || !notApplicableReserved) && (!reserved || st === state || (st !== "revisado" && st !== "no_aplica")));
   const disabled = busy || locked;
   function exception() { setMore(false); onSheet({ key: requirement, kind: "excepcion" }); }
   function choose(st: ReviewStateKey) {
