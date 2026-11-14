@@ -1,12 +1,30 @@
 # Fortius — especificación del ERP/CRM
 
-**Actualizado:** 14 de noviembre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá.
+**Actualizado:** 14 de noviembre de 2026. **Responsable de negocio:** Moisés Núñez Tonalá.
 
-Este archivo dice **cómo debe funcionar el sistema**: etapas por ruta, matriz de reglas, dirección del producto y reglas vigentes (RP), proceso de comercialización, alcance, restricciones, decisiones (DEC), criterios de terminado, mapa de módulos e indicadores. Solo cambia cuando el titular decide algo. **Qué falta hacer y cómo va** está en [`PLAN.md`](PLAN.md); lo terminado, en [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md).
+Este archivo dice **cómo debe funcionar el sistema**. Solo cambia cuando el titular decide algo, y solo lo edita la sesión central. **Qué falta hacer y cómo va** está en [`PLAN.md`](PLAN.md); lo terminado, en el [historial](docs/erp-crm/historial-del-plan.md). Si el titular aprueba algo que contradice una regla, la regla anterior se reescribe en su lugar y se anota en «Reglas reemplazadas».
 
-**Origen:** se separó de `ROADMAP.md` el 14/11/2026, a pedido del titular, sin cambiar el texto de ninguna regla. Donde una sección dice «este plan», se refiere al conjunto de este archivo y `PLAN.md`. Solo la sesión central lo edita. Si el titular aprueba algo que contradice una regla, la regla anterior se reescribe en su lugar y se anota en «Reglas reemplazadas».
+## Las reglas que más pesan
 
-**Cómo leerlo:** primero «Etapas por ruta» y «Matriz de reglas por ruta»; luego «Dirección del producto y reglas vigentes» (reglas RP); después el proceso de comercialización, el alcance, las restricciones, las decisiones y los criterios.
+- **Nada frena, solo avisa** (RP-100, 14/11/2026): ningún requisito detiene guardar, avanzar, publicar ni firmar; lo que falta se avisa y quien sigue adelante queda anotado. Se construye en FLX-03; hasta entonces siguen los frenos actuales.
+- **Guardar primero, ordenar después** (RP-101, RP-102): un documento puede existir sin operación y un inmueble sin propietario.
+- **Prospecto hasta firmar** (RP-90 a RP-92): una persona es cliente cuando firma su contrato; un inmueble está captado cuando el propietario firma la intermediación.
+- **Compradores y arrendatarios también son clientes** desde que firman su contrato, con su papel en cada operación (RP-93, 14/11/2026).
+- **Un dato faltante nunca detiene** (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85).
+- **Guardar no es publicar**, y el sitio solo muestra campos autorizados (regla de `AGENTS.md`).
+- **ERP exclusivo de Fortius** (RP-01); la adaptación para otras inmobiliarias está en pausa.
+
+## Índice
+
+1. [Etapas por ruta](#etapas-por-ruta-qué-ve-el-asesor-y-qué-cierra-cada-etapa-referencia-vigente-18102026): qué ve el asesor en cada etapa. Con FLX-03 pasa a ser la guía «Venta» y las demás guías.
+2. [Matriz de reglas por ruta](#matriz-de-reglas-por-ruta-mrp-01--aprobada-por-el-titular-el-26102026-dec-26): venta, renta, inversión y seguimiento del comprador.
+3. [Reglas de producto vigentes (RP)](#reglas-de-producto-vigentes-rp) y [reglas reemplazadas](#reglas-reemplazadas).
+4. [Proceso de comercialización](#proceso-de-comercialización-de-un-inmueble--definición-del-titular-15102026).
+5. [Alcance](#alcance-del-sistema) y [restricciones](#restricciones-globales).
+6. [Decisiones del titular (DEC)](#decisiones-del-titular-dec).
+7. [Criterios de terminado](#criterios-de-producto-terminado-para-la-primera-versión-operativa), [mapa de módulos](#mapa-de-módulos-y-archivos) e [indicadores](#finanzas-y-diccionario-mínimo-de-indicadores).
+
+**Origen:** se separó de `ROADMAP.md` el 14/11/2026 sin cambiar el texto de ninguna regla. Donde una sección dice «este plan», se refiere al conjunto de este archivo y `PLAN.md`.
 
 ## Etapas por ruta: qué ve el asesor y qué cierra cada etapa (referencia vigente, 18/10/2026)
 

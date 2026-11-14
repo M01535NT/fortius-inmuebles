@@ -1682,3 +1682,34 @@ El wrapper de creación inicial cubre venta; el endpoint mantiene los tipos ya a
 - [ ] Ajustar rangos y capacidad con duración observada, sin atribuir al agente plazos garantizados ni conversiones comerciales.
 
 Las tareas de continuidad marcadas corresponden a la evidencia anterior; las tareas de captación permanecen pendientes. Cada nueva ejecución debe registrar su resultado, revisión y límites en este mismo plan.
+
+## 26. Tablero del 14/11/2026 antes de reescribirlo para que se siga fácil
+
+El titular pidió un plan fácil de seguir. El tablero pasó a tres bloques (se está haciendo, te toca a ti, qué sigue); este es el texto anterior, sin cambios.
+
+Esta sección es la única que hay que leer para saber cómo va el trabajo. Se reescribe al cerrar cada entrega; lo que deja de ser actual pasa a [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md) (el tablero del 12/11/2026 está en su §17).
+
+**Dónde está el código.**
+
+- **En `main`:** todo hasta el PR #76 (merge `52e1f9a`, 14/11/2026): TRA-01, Trámites con la cancelación de hipoteca y el freno de la firma en la base; LV-09, el panel desde cero; la paleta del sitio público aprobada por el titular; las correcciones de UI/UX de Hoy, Contactos y Herramientas; las dependencias con los 18 avisos de GitHub corregidos; y la separación del plan en `PLAN.md` y `SPEC.md`. Verify, Vercel y la prueba de salud de fortiusinmuebles.com pasaron (51 solicitudes, mediana 205 ms). Supabase aplicó `20261114211000_tramites`, `20261114212000_freno_firma_hipoteca` y `20261114300000_restaurar_contactos`. Antes del merge se corrigieron los tres hallazgos de la revisión automática (64323ce) y las pruebas de navegador del menú lateral (3d4b7a3). Lo del PR #75: [historial §23](docs/erp-crm/historial-del-plan.md). Los 8 pasos de TRA-01 siguen fuentes oficiales (Retys BC-DRPPC-014 y 011, gob.mx FOVISSSTE-00-012-A); se confirma con el primer caso real que el Registro acepte la carta de Infonavit tal cual y su validación previa.
+- **En `feat/integracion`, sin publicar:** las reglas y el paquete del panel flexible (FLX, DEC-50; b96524f). FLX-01 se construye en la rama `claude/flexible-admin-panel-5d2030`.
+- **Bloque 0, estado (13/11/2026):** REC-01 con copia diaria funcionando desde el 13/11, esquema 5 con las preferencias de cada usuario; solo falta repetir el ensayo con volumen real después de cargar el inventario. BAS-01 aceptada y CI-01 terminada. ENV-01 espera la decisión c), el backend de pruebas. AUT-01 en revisión: la parte de la base ya está en producción, pero no protege a nadie hasta que el titular active su app de códigos en fortiusinmuebles.com/admin y pruebe una entrada; después Seguridad confirma el factor en la base. OBS-01 activa en producción; Seguridad repite la prueba de Sentry desde producción. PRV-01 espera al abogado. Limpieza diaria de archivos retirados: `CRON_SECRET` puesta y ruta protegida; su primera ejecución es el 14/11 a las 03:30 de Tijuana y Seguridad revisa el resultado. Detalle en `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
+
+**Construidas y en `main`, falta tu visto bueno:** SIM-04, SIM-05, SIM-06, SIM-07, SIM-10, NAV-13, LV-01, LV-02, LV-04, DOC-14, UX-05, SIM-16, SIM-18. Sus filas de estado están en el [historial §24](docs/erp-crm/historial-del-plan.md); al aceptarlas pasan a «terminada». SIM-16 (Hoy) y SIM-18 (una operación) ya los reemplazó LV-09: en localhost se revisa la versión nueva.
+
+**Por decidir (titular):** el recorrido propio de la renta (DEC-02); el vocabulario de papeles de una persona al diseñar REL-01 (DEC-04); custodia y retención de las copias (DEC-06); el backend de pruebas, decisión c) de ENV-01. El texto de cada decisión está en `SPEC.md`.
+
+**Qué sigue, en orden.**
+
+1. El titular activa los dos pasos del director en el sitio publicado (AUT-01).
+2. TRA-01 y LV-09: publicados en `main` con el PR #76; falta tu visto bueno en fortiusinmuebles.com/admin para darlos por terminados.
+3. Abogado: formatos 20 al 24, el umbral de 10,000 UMA para la escritura pública del 24 y la conservación de 10 años del expediente LFPIORPI.
+4. Publicar lo siguiente de `feat/integracion` cuando el titular lo pida (PR en borrador, verificación completa al marcarlo listo). Queda fuera, anotado: `npm audit` marca 3 avisos altos de una sola cadena de desarrollo (zod 3 dentro de lighthouse); corregirla pide subir lighthouse de versión mayor.
+5. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
+6. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
+7. **Panel flexible (FLX, DEC-50):** la sesión «Panel flexible» construye FLX-01, Bandeja y documentos sin operación; las demás etapas siguen en orden.
+8. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
+
+**Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **compradores y arrendatarios son clientes de Fortius desde que firman su contrato, con su papel en cada operación** (RP-93, 14/11/2026); **nada frena, solo avisa, y queda anotado en el historial** (RP-100, cuando se construya FLX-03).
+
+**Preguntas abiertas para el titular:** [`docs/erp-crm/CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md). Cada respuesta se integra en `SPEC.md` como regla o decisión.
