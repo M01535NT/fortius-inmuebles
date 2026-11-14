@@ -38,7 +38,7 @@ test("Fortius Inmuebles mark remains visible through email login and top bar", a
   await page.getByLabel("Correo").fill("staff@example.com");
   await page.getByLabel("Contraseña", { exact: true }).fill("local-fixture-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Hoy", exact: true })).toBeVisible();
   const sidebarMark = page.getByRole("banner").getByRole("link", { name: /Fortius Inmuebles/ });
   await expect(sidebarMark).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("fortius-inmuebles-sidebar.png"), fullPage: true });
@@ -50,7 +50,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/admin");
       await expect(
-        page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ }),
+        page.getByRole("heading", { level: 1, name: "Hoy", exact: true }),
       ).toBeVisible();
       if (width < 768) {
         const tabs = page.getByRole("navigation", { name: "Secciones principales" });
@@ -118,7 +118,7 @@ test("failed initial load is explicit and does not render an empty-success dashb
     "Servidor temporalmente no disponible",
   );
   await expect(
-    page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ }),
+    page.getByRole("heading", { level: 1, name: "Hoy", exact: true }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Reintentar carga" }),
@@ -175,5 +175,5 @@ test("la dirección anterior del tablero de notas lleva a Hoy (DEC-42)", async (
   // DEC-42 (12/11/2026): se retiró el tablero de notas sueltas; las notas viven en el inmueble y la operación.
   await page.goto("/admin/notas");
   await expect(page).toHaveURL(/\/admin\/?$/);
-  await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Hoy", exact: true })).toBeVisible();
 });

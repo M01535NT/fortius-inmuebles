@@ -1,9 +1,9 @@
-/* Hoy en dos columnas (rediseño del 14/11/2026). Prefijo :global(.admin-root): ver kit.module.css. */
+/* Hoy según el boceto «desde cero» (14/11/2026). Prefijo :global(.admin-root): ver kit.module.css. */
 
 /*
   Celular: una columna; las dos columnas se «abren» (display: contents) y el orden es
-  saludo, avisos, tu día, hoy y semana.
-  Desde 1100 px: el trabajo a la izquierda y el tiempo a la derecha.
+  título, avisos, tu día, agenda, próximos 7 días y cartera.
+  Desde 1100 px: el trabajo a la izquierda, el tiempo a la derecha y la cartera abajo a todo lo ancho.
 */
 :global(.admin-root) .page { display: flex; flex-direction: column; gap: 1rem; }
 :global(.admin-root) .main, :global(.admin-root) .side { display: contents; }
@@ -12,115 +12,143 @@
 :global(.admin-root) .nextBox { order: 2; }
 :global(.admin-root) .todayBox { order: 3; }
 :global(.admin-root) .weekBox { order: 4; }
+:global(.admin-root) .cartera { order: 5; }
 :global(.admin-root) .notices { display: flex; flex-direction: column; gap: 1rem; }
 :global(.admin-root) .notices:empty { display: none; }
 @media (min-width: 1100px) {
-  :global(.admin-root) .page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem); gap: 1.25rem; align-items: start; }
-  :global(.admin-root) .top { grid-column: 1 / -1; }
+  :global(.admin-root) .page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(18rem, 18.5rem); gap: 1.25rem; align-items: start; }
+  :global(.admin-root) .top, :global(.admin-root) .cartera { grid-column: 1 / -1; }
   :global(.admin-root) .main, :global(.admin-root) .side { display: flex; min-width: 0; flex-direction: column; gap: 1.25rem; }
 }
 
-/* Saludo y hallazgo del día */
-:global(.admin-root) .top { display: flex; flex-direction: column; align-items: flex-start; gap: .375rem; padding: .25rem .25rem 0; }
-:global(.admin-root) .date { font-size: var(--admin-text-interfaz); color: var(--muted-foreground); }
-:global(.admin-root) .helloTitle { margin: 0; font-size: var(--admin-text-pantalla); line-height: 1.1; font-weight: 620; letter-spacing: -.025em; text-wrap: balance; }
-:global(.admin-root) .finding { max-width: 70ch; margin: 0 0 .25rem; font-size: var(--admin-text-cuerpo, 1rem); color: var(--muted-foreground); text-wrap: pretty; }
+/* Título y hallazgo del día; «+ Nuevo» a la derecha. */
+:global(.admin-root) .top { display: flex; flex-direction: column; gap: .75rem; }
+:global(.admin-root) .titleRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+:global(.admin-root) .titleText { display: flex; min-width: 0; flex-direction: column; gap: .375rem; }
+:global(.admin-root) .titleAction { position: relative; flex: none; }
+/* En el celular «+ Nuevo» vive en la barra inferior. */
+@media (max-width: 767px) { :global(.admin-root) .titleAction { display: none; } }
+:global(.admin-root) .helloTitle { margin: 0; font-size: 1.75rem; line-height: 1.15; font-weight: 620; letter-spacing: -.02em; text-wrap: balance; }
+:global(.admin-root) .finding { max-width: 72ch; margin: 0; font-size: .9375rem; line-height: 1.5; color: var(--muted-foreground); text-wrap: pretty; }
 :global(.admin-root) .finding b { font-weight: 600; }
 
 /* Tarjetas de bloque: el título va dentro, como en el boceto. */
-:global(.admin-root) .panel { display: flex; min-width: 0; flex-direction: column; gap: .5rem; padding: 1rem 1rem .75rem; border-radius: var(--radius-card); background: var(--card); border: 1px solid var(--card-edge); }
-@media (min-width: 640px) { :global(.admin-root) .panel { padding: 1.125rem 1.25rem .875rem; } }
-:global(.admin-root) .head { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
-:global(.admin-root) .nextSection, :global(.admin-root) .queueSection { display: flex; min-width: 0; flex-direction: column; gap: .5rem; }
-:global(.admin-root) .queueSection { border-top: 1px solid var(--border); margin-top: .25rem; padding-top: .25rem; }
-
-/* Lo siguiente: una fila destacada, sin foto a sangre. */
-:global(.admin-root) .lead { display: flex; align-items: center; gap: 1rem; padding: .75rem; margin-inline: -.75rem; border-radius: var(--radius-control); color: var(--foreground); text-decoration: none; }
-:global(.admin-root) .lead:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
-:global(.admin-root) .leadBody { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .25rem; }
-:global(.admin-root) .leadTags { display: flex; flex-wrap: wrap; gap: .25rem; }
-:global(.admin-root) .leadTitle { font-size: var(--admin-text-grupo); line-height: 1.25; font-weight: 620; letter-spacing: -.015em; text-wrap: balance; overflow-wrap: anywhere; }
-:global(.admin-root) .leadGo { display: inline-flex; flex: none; align-items: center; gap: .375rem; min-height: 2.75rem; padding: 0 1rem; border-radius: var(--radius-control); background: var(--primary); color: var(--primary-foreground, #fff); font-weight: 540; }
-:global(.admin-root) .lead:hover .leadGo { background: var(--primary-hover); }
-@media (max-width: 639px) {
-  :global(.admin-root) .lead { flex-wrap: wrap; }
-  :global(.admin-root) .leadGo { flex-basis: 100%; justify-content: center; }
-}
-@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .lead, :global(.admin-root) .leadGo { transition: background-color 150ms; } }
+:global(.admin-root) .panel { display: flex; min-width: 0; flex-direction: column; gap: .25rem; padding: 1.125rem 1.25rem .875rem; border-radius: var(--radius-card); background: var(--card); border: 1px solid var(--card-edge); }
+:global(.admin-root) .head { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin-bottom: .375rem; }
+:global(.admin-root) .nextSection { display: flex; min-width: 0; flex-direction: column; }
 :global(.admin-root) .empty { display: flex; flex-direction: column; gap: .375rem; padding: .5rem 0 .75rem; }
-:global(.admin-root) .contactLine { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+:global(.admin-root) .emptyTitle { font-weight: 600; }
+@media (max-width: 639px) {
+  /* En el celular «Tu día» es una lista sin tarjeta. */
+  :global(.admin-root) .nextBox { padding: 0; border: 0; background: transparent; }
+}
 
-/* Grupos de la cola: «Vencido» en rojo, «Por atender» en gris. */
-:global(.admin-root) .group { display: flex; gap: .375rem; margin: .75rem 0 0; font-size: var(--admin-text-detalle); font-weight: 600; color: var(--muted-foreground); }
+/* Grupos: «Vencido» en rojo, «Hoy» en gris. */
+:global(.admin-root) .group { display: flex; gap: .375rem; margin: .5rem 0 .25rem; font-size: var(--admin-text-detalle); font-weight: 600; color: var(--muted-foreground); }
 :global(.admin-root) .group span { font-weight: 400; }
 :global(.admin-root) .groupLate { color: var(--alert); }
 
-/* Títulos de sección */
-:global(.admin-root) .title { display: flex; align-items: baseline; gap: .5rem; margin: 0; font-size: var(--admin-text-grupo); font-weight: 600; letter-spacing: -.015em; }
+/* Títulos de sección: el h2 hereda la medida del título para no tomar la del panel. */
+:global(.admin-root) .h2 { margin: 0; font: inherit; letter-spacing: inherit; }
+:global(.admin-root) .title { display: flex; align-items: baseline; gap: .5rem; margin: 0; font-size: 1.0625rem; font-weight: 600; letter-spacing: -.01em; }
 :global(.admin-root) .count { font-size: var(--admin-text-detalle); font-weight: 400; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 :global(.admin-root) .more { flex: none; font-size: var(--admin-text-detalle); font-weight: 540; color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
-:global(.admin-root) .more:hover { text-decoration: underline; text-underline-offset: 4px; }
-:global(.admin-root) .meta { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
-:global(.admin-root) .lateText { color: var(--alert); font-weight: 600; }
+:global(.admin-root) .more:hover { text-underline-offset: 4px; }
+:global(.admin-root) .meta { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+:global(.admin-root) .lateText { color: var(--alert); }
+:global(.admin-root) .infoText { color: var(--info); }
+:global(.admin-root) .warnText { color: var(--warning); }
 :global(.admin-root) .note { padding: .5rem 0 .75rem; font-size: var(--admin-text-interfaz); color: var(--muted-foreground); }
 
-/* Pendientes: una fila por operación, con foto, lo más urgente y cuántos más tiene. */
+/* Tu día: filas parejas con ícono de estado, qué hacer, cuándo y la acción. */
 :global(.admin-root) .list { margin: 0; padding: 0; list-style: none; }
-:global(.admin-root) .list > li + li { border-top: 1px solid var(--border); }
-:global(.admin-root) .row { display: flex; align-items: center; gap: .875rem; padding: .625rem .75rem; margin-inline: -.75rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
-:global(.admin-root) .row:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
-@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .row { transition: background-color 150ms; } }
-:global(.admin-root) .rowBody { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .125rem; }
-:global(.admin-root) .rowTitle { font-weight: 540; overflow-wrap: anywhere; }
-:global(.admin-root) .rowDetail { font-weight: 400; color: var(--muted-foreground); }
-:global(.admin-root) .rowText { font-size: var(--admin-text-detalle); color: var(--muted-foreground); overflow-wrap: anywhere; }
-:global(.admin-root) .rowEnd { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: .25rem; }
-:global(.admin-root) .rowPills { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem; }
-:global(.admin-root) .rowWithAction { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding-right: .5rem; }
-:global(.admin-root) .rowWithAction > a { min-width: 0; flex: 1 1 20rem; }
+:global(.admin-root) .list > li + li, :global(.admin-root) .nextSection + .list > li:first-child, :global(.admin-root) .nextSection + h3 + * { border-top: 1px solid var(--border); }
+:global(.admin-root) .qrow { display: flex; align-items: center; gap: .75rem; }
+:global(.admin-root) .row { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto auto; align-items: center; gap: .25rem 1rem; min-width: 0; flex: 1; padding: .75rem .5rem; margin-inline: -.5rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .row:hover { background: color-mix(in srgb, var(--foreground) 3%, transparent); }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .row, :global(.admin-root) .rowGo { transition: background-color 150ms, border-color 150ms; } }
+:global(.admin-root) .si { display: flex; color: var(--muted-foreground); }
+:global(.admin-root) .siWarn { color: var(--warning); }
+:global(.admin-root) .siInfo { color: var(--info); }
+:global(.admin-root) .rowBody { display: flex; min-width: 0; flex-direction: column; gap: .125rem; }
+:global(.admin-root) .rowTitle { font-size: .9375rem; font-weight: 540; line-height: 1.4; overflow-wrap: anywhere; }
+:global(.admin-root) .rowText { font-size: var(--admin-text-detalle); line-height: 1.45; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .when { font-size: var(--admin-text-detalle); color: var(--muted-foreground); white-space: nowrap; text-align: right; }
+:global(.admin-root) .rowGo { display: inline-flex; align-items: center; justify-content: center; min-width: 8rem; min-height: 2.25rem; padding: 0 .875rem; border: 1px solid var(--input); border-radius: var(--radius-control); background: var(--card); font-size: var(--admin-text-detalle); font-weight: 600; white-space: nowrap; }
+:global(.admin-root) .row:hover .rowGo { border-color: var(--foreground); }
+:global(.admin-root) .rowChevron { display: none; color: var(--muted-foreground); }
+/* La fila de un prospecto nuevo lleva su botón «Registrar contacto» fuera del enlace. */
+:global(.admin-root) .qrowLead .row { grid-template-columns: 1.5rem minmax(0, 1fr) auto; }
 :global(.admin-root) .rowAction { flex: none; }
 @media (max-width: 639px) {
-  :global(.admin-root) .row { flex-wrap: wrap; }
-  :global(.admin-root) .rowEnd { flex-basis: 100%; flex-direction: row; align-items: center; justify-content: space-between; padding-left: calc(40px + .875rem); }
-  :global(.admin-root) .rowWithAction { padding: 0 0 .625rem; }
-  :global(.admin-root) .rowWithAction > a { padding-inline: 0; margin-inline: 0; }
-  :global(.admin-root) .rowAction { margin-left: calc(40px + .875rem); }
+  /* Celular: cuándo va bajo el contexto y una flecha sustituye al botón. */
+  :global(.admin-root) .row { grid-template-columns: 1.5rem minmax(0, 1fr) auto; grid-template-areas: "icon body chev" "icon when chev"; align-items: start; gap: .125rem .75rem; }
+  :global(.admin-root) .si { grid-area: icon; padding-top: .125rem; }
+  :global(.admin-root) .rowBody { grid-area: body; }
+  :global(.admin-root) .when { grid-area: when; text-align: left; white-space: normal; }
+  :global(.admin-root) .rowGo { display: none; }
+  :global(.admin-root) .rowChevron { display: block; grid-area: chev; align-self: center; }
+  :global(.admin-root) .qrowLead { flex-wrap: wrap; padding-bottom: .625rem; }
+  :global(.admin-root) .qrowLead .row { grid-template-columns: 1.5rem minmax(0, 1fr); grid-template-areas: "icon body" "icon when"; }
+  :global(.admin-root) .qrowLead .row { flex-basis: 100%; }
+  :global(.admin-root) .qrowLead .rowChevron { display: none; }
+  :global(.admin-root) .qrowLead .rowAction { margin-left: 2.25rem; }
 }
 
-/* Hoy: citas arriba y tareas debajo, en una sola tarjeta (en la columna angosta no caben lado a lado). */
+/* Agenda de hoy: línea de tiempo con la raya de «Ahora»; las tareas del día debajo. */
 :global(.admin-root) .todayCard { display: flex; flex-direction: column; }
-:global(.admin-root) .tasksAfterAgenda { border-top: 1px solid var(--border); margin-top: .375rem; padding-top: .375rem; }
-:global(.admin-root) .todayFoot { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin-inline: -.75rem; }
-/* Tareas */
-:global(.admin-root) .task { display: flex; align-items: flex-start; gap: .875rem; padding: .625rem 0; border-radius: var(--radius-thumb); }
-:global(.admin-root) .task a { color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .agenda { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .event { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: .625rem 0; border-top: 1px solid var(--border); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .event:hover .eventTitle { text-decoration: underline; text-underline-offset: 3px; }
+:global(.admin-root) .agenda > li:first-child .event { border-top: 0; }
+:global(.admin-root) .time { font-size: var(--admin-text-detalle); font-weight: 540; color: var(--foreground); font-variant-numeric: tabular-nums; padding-top: .0625rem; }
+:global(.admin-root) .visit .time { color: var(--info); }
+:global(.admin-root) .eventTitle { font-size: .9375rem; font-weight: 540; overflow-wrap: anywhere; }
+:global(.admin-root) .nowRow { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; padding: .5rem 0; }
+:global(.admin-root) .nowTime { font-size: var(--admin-text-pastilla); font-weight: 600; color: var(--alert); }
+:global(.admin-root) .nowLine { height: 1px; background: var(--alert); }
+:global(.admin-root) .nowRow + li .event { border-top: 0; }
+:global(.admin-root) .agendaEmpty { display: flex; flex-direction: column; gap: .25rem; }
+:global(.admin-root) .nextEvent { display: flex; align-items: center; gap: .875rem; padding: .625rem; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .tasksAfterAgenda { border-top: 1px solid var(--border); margin-top: .25rem; padding-top: .5rem; }
+:global(.admin-root) .tasksHead { display: flex; align-items: baseline; justify-content: space-between; margin: 0; font-size: var(--admin-text-detalle); font-weight: 600; }
+:global(.admin-root) .task { display: flex; align-items: flex-start; gap: .75rem; padding: .5rem 0; }
+:global(.admin-root) .task a { color: var(--foreground); text-decoration: none; font-size: .9375rem; }
 :global(.admin-root) .task a:hover { text-decoration: underline; text-underline-offset: 3px; }
-:global(.admin-root) .check { flex: none; width: 1.375rem; height: 1.375rem; margin-top: .125rem; accent-color: var(--primary); cursor: pointer; }
+:global(.admin-root) .check { flex: none; width: 1.25rem; height: 1.25rem; margin-top: .125rem; accent-color: var(--foreground); cursor: pointer; }
 :global(.admin-root) .doneText { color: var(--muted-foreground) !important; text-decoration: line-through !important; }
-:global(.admin-root) .add { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 .75rem; border-radius: var(--radius-control); color: var(--foreground); font-size: var(--admin-text-interfaz); font-weight: 600; text-decoration: none; }
+:global(.admin-root) .todayFoot { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin-inline: -.75rem; }
+:global(.admin-root) .add { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 .75rem; border-radius: var(--radius-control); color: var(--foreground); font-size: var(--admin-text-detalle); font-weight: 600; text-decoration: none; }
 :global(.admin-root) .add:hover { background: var(--secondary); }
 
-/* Citas de hoy: horas a la izquierda; las visitas llevan su color. */
-:global(.admin-root) .agenda { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
-:global(.admin-root) .event { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: .625rem 0; border-top: 1px solid var(--border); border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
-:global(.admin-root) .event:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
-:global(.admin-root) .agenda > li:first-child .event { border-top: 0; }
-:global(.admin-root) .time { font-size: var(--admin-text-interfaz); font-weight: 540; color: var(--foreground); font-variant-numeric: tabular-nums; padding-top: .0625rem; }
-:global(.admin-root) .visit .time { color: var(--info); font-weight: 600; }
-:global(.admin-root) .visitTag { display: inline-flex; align-self: flex-start; align-items: center; gap: .25rem; padding: .0625rem .5rem; border-radius: var(--radius-pill); background: var(--info-surface); color: var(--info); font-size: var(--admin-text-minimo); font-weight: 600; }
-:global(.admin-root) .agendaEmpty { display: flex; flex-direction: column; gap: .25rem; padding: .375rem; }
-:global(.admin-root) .nextEvent { display: flex; align-items: center; gap: .875rem; margin: 0 .375rem; padding: .625rem; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--foreground); text-decoration: none; }
-
-/* Esta semana: una lista por día, solo los días que tienen algo. */
+/* Próximos 7 días: día a la izquierda, solo en la primera fila de cada día. */
 :global(.admin-root) .week { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-:global(.admin-root) .day { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); gap: .75rem; align-items: start; padding: .5rem 0; }
+:global(.admin-root) .day { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); gap: .75rem; align-items: start; padding: .375rem 0; }
 :global(.admin-root) .day + .day { border-top: 1px solid var(--border); }
-:global(.admin-root) .dayBadge { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 2.75rem; line-height: 1.1; }
+:global(.admin-root) .dayBadge { display: flex; flex-direction: column; align-items: center; padding-top: .375rem; line-height: 1.1; }
 :global(.admin-root) .dayName { font-size: var(--admin-text-minimo); color: var(--muted-foreground); }
-:global(.admin-root) .dayNum { font-size: var(--admin-text-grupo); font-weight: 640; font-variant-numeric: tabular-nums; }
-:global(.admin-root) .dayItems { display: flex; min-width: 0; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-:global(.admin-root) .dayItem { display: flex; flex-direction: column; justify-content: center; gap: .125rem; min-height: 2.75rem; padding: .25rem .5rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
-:global(.admin-root) .dayItem:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
-:global(.admin-root) .dayText { font-weight: 540; overflow-wrap: anywhere; }
-:global(.admin-root) .dayVisit { color: var(--info); font-weight: 600; }
+:global(.admin-root) .dayNum { font-size: 1.0625rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .dayItem { display: flex; flex-direction: column; justify-content: center; gap: .125rem; min-height: 2.75rem; padding: .25rem 0; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .dayItem:hover .dayText { text-decoration: underline; text-underline-offset: 3px; }
+:global(.admin-root) .dayText { font-size: .9375rem; font-weight: 540; overflow-wrap: anywhere; }
+:global(.admin-root) .dayVisit { color: var(--info); }
 :global(.admin-root) .dayMeta { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); overflow-wrap: anywhere; }
+
+/* Tu cartera por etapa: diez columnas con su número y, debajo, las cuatro fases. */
+:global(.admin-root) .pipe { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: .375rem; margin: .5rem 0 0; padding: 0; list-style: none; }
+:global(.admin-root) .pcol { display: flex; min-width: 0; flex-direction: column; gap: .375rem; }
+:global(.admin-root) .pnum { font-size: 1.125rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .pzero { font-weight: 400; color: var(--muted-foreground); }
+:global(.admin-root) .pbar { display: flex; align-items: flex-end; height: 1.75rem; border-radius: .375rem; background: var(--secondary); overflow: hidden; }
+:global(.admin-root) .pbar i { display: block; width: 100%; background: var(--foreground); }
+:global(.admin-root) .pname { display: flex; gap: .25rem; font-size: var(--admin-text-pastilla); line-height: 1.3; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .pname svg { flex: none; margin-top: .125rem; }
+:global(.admin-root) .pphases { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: .375rem; margin-top: .75rem; }
+:global(.admin-root) .pphases span { padding-top: .5rem; border-top: 1px solid var(--edge-soft, var(--border)); font-size: var(--admin-text-pastilla); font-weight: 600; color: var(--muted-foreground); }
+@media (max-width: 899px) {
+  /* En pantallas angostas, cada etapa en una línea: nombre y número. */
+  :global(.admin-root) .pipe { grid-template-columns: 1fr; gap: 0; }
+  :global(.admin-root) .pcol { flex-direction: row-reverse; justify-content: space-between; align-items: center; padding: .5rem 0; border-top: 1px solid var(--border); }
+  :global(.admin-root) .pcol:first-child { border-top: 0; }
+  :global(.admin-root) .pbar, :global(.admin-root) .pphases { display: none; }
+}
