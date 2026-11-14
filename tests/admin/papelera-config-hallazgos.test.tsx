@@ -67,9 +67,10 @@ test("el asesor puede abrir Eliminados para restaurar sus operaciones", async ()
 test("Eliminados distingue por nombre dos inmuebles borrados", async () => {
   nav.pathname = "/admin/papelera";
   extra = url => url.startsWith("/api/admin/historial") ? {
+    // Seguridad (48e02a8) devuelve el título de la foto del registro en cada entrada.
     entries: [
-      { id: "h1", collection: "propiedades", record_id: "casa-norte", created_at: "2026-11-12T18:00:00.000Z", actor_id: "u-yo" },
-      { id: "h2", collection: "propiedades", record_id: "casa-sur", created_at: "2026-11-12T19:00:00.000Z", actor_id: "u-yo" },
+      { id: "h1", collection: "propiedades", record_id: "casa-norte", created_at: "2026-11-12T18:00:00.000Z", actor_id: "u-yo", titulo: "Casa Norte de ensayo" },
+      { id: "h2", collection: "propiedades", record_id: "casa-sur", created_at: "2026-11-12T19:00:00.000Z", actor_id: "u-yo", titulo: "Casa Sur de ensayo" },
     ], hasMore: false,
   } : undefined;
   await isLoggedIn();

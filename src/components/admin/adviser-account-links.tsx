@@ -49,7 +49,7 @@ export function AdviserAccountLinks({ isAdmin, advisers }: { isAdmin: boolean; a
     {!loadError && !error && !editors.length && <p className="mt-4 text-sm text-muted-foreground">Todavía no hay cuentas de asesor activas. Cuando invites a alguien, aparecerá aquí para ligarlo con su ficha.</p>}
     <div className="mt-4 space-y-3">{editors.map((account) => <form key={account.user_id} onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); void link(account.user_id, String(data.get("asesorId"))); }} className="flex flex-wrap items-end gap-3 rounded-[var(--radius-control)] border border-[var(--card-edge)] p-3">
       <div className="min-w-[190px] flex-1"><strong className="block break-words text-sm">{account.email || "Cuenta sin correo"}</strong></div>
-      <label className="min-w-[190px] flex-1 text-sm">Asesor<select name="asesorId" required defaultValue={account.asesor_id ?? ""} className={selectClass}><option value="">Sin vincular</option>{advisers.filter((item) => item.activo).map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label>
+      <label className="min-w-[190px] flex-1 text-sm">Asesor<select name="asesorId" required defaultValue={account.asesor_id ?? ""} className={selectClass}><option value="">Sin vincular</option>{advisers.filter((item) => item.activo || item.id === account.asesor_id).map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label>
       <Button type="submit" disabled={saving === account.user_id}>{saving === account.user_id ? "Guardando…" : "Guardar vínculo"}</Button>
     </form>)}</div>
   </section>;
