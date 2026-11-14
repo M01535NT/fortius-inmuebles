@@ -122,15 +122,40 @@ it('withdraws the listing when the intermediation contract ends (M-01)',async()=
   expect(await dataOf('m01-terminado')).toEqual(before);
  });
 });
-it('withdraws the listing when the signed contract is corrected and awaits review again (M-01)',async()=>{
+// Titular, 14/11/2026: una corrección no retira el inmueble; la terminación sí.
+it('keeps the listing when the signed contract is corrected and awaits review again (M-01)',async()=>{
  await asUser(own,async()=>{
   const id=await publishedOperation('m01-corregido');
-  const before=await dataOf('m01-corregido');
   const flujo=await flowOf(id);
   await update(id,'negociacion',{...flujo,firmaContrato:{...flujo.firmaContrato,fecha:'2026-11-11'}});
   expect((await flowOf(id)).firmaContrato.revisada).toBe(false);
-  expect(await published('m01-corregido')).toBe(false);
-  expect(await dataOf('m01-corregido')).toEqual(before);
+  expect(await published('m01-corregido')).toBe(true);
+ });
+});
+it('keeps the listing when a corrected intermediation contract is issued (M-07)',async()=>{
+ const issue=async(id:string,d:string)=>{
+  const m=crypto.randomUUID();
+  await db.exec('reset role');
+  const v=(await db.query<{v:number}>('select version v from public.fortius_inmuebles_formato_drafts where id=$1',[d])).rows[0].v;
+  await db.query("insert into public.fortius_inmuebles_formato_emissions(id,draft_id,draft_version,snapshot,sha256,path,created_by) values($1,$2,$3,'{}',$4,$5,$6)",[m,d,v,'b'.repeat(64),`${id}/${m}.pdf`,own]);
+  await db.exec('set role authenticated');
+  return {m,v};
+ };
+ await asUser(own,async()=>{
+  const id=await publishedOperation('m07-correccion');
+  await db.exec('reset role');
+  const d=crypto.randomUUID();
+  await db.query("insert into public.fortius_inmuebles_formato_drafts(id,expediente_id,formato_id,data) values($1,$2,'09','{}')",[d,id]);
+  await db.exec('set role authenticated');
+  const first=await issue(id,d);
+  const flujo=await flowOf(id) as Record<string,unknown>&{requisitos:Record<string,unknown>};
+  await actAs(admin);
+  await update(id,'negociacion',{...flujo,requisitos:{...flujo.requisitos,intermediacion:{estado:'revisado',soporte:'Contrato 09 revisado',evidencia:{tipo:'emision',referencia:first.m,version:first.v}}}});
+  await actAs(own);
+  await db.exec('reset role');await db.query("update public.fortius_inmuebles_formato_drafts set version=version+1,data='{\"cambio\":true}' where id=$1",[d]);await db.exec('set role authenticated');
+  await issue(id,d);
+  expect(((await flowOf(id)) as unknown as {requisitos:Record<string,{estado:string}>}).requisitos.intermediacion.estado).toBe('recibido');
+  expect(await published('m07-correccion')).toBe(true);
  });
 });
 it('withdraws the listing when the operation goes back before publication (M-02)',async()=>{
