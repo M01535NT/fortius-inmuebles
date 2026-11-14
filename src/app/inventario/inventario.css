@@ -13,13 +13,13 @@
 .inv-bar { display: flex; align-items: center; gap: var(--space-corto); margin: var(--space-normal) -3px 0; padding: var(--space-junto); overflow-x: auto; scrollbar-width: none; }
 .inv-bar::-webkit-scrollbar { display: none; }
 .inv-segment { display: inline-flex; flex: none; border: 1px solid var(--border); border-radius: var(--corner-pulsable); }
-.inv-segment button { min-height: 42px; padding: 0 var(--space-normal); color: var(--muted-foreground); font-size: var(--type-detalle); font-weight: 600; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+.inv-segment button { min-height: 44px; padding: 0 var(--space-normal); color: var(--muted-foreground); font-size: var(--type-detalle); font-weight: 600; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
 .inv-segment button:hover { color: var(--foreground); }
 .inv-segment button[aria-pressed="true"] { background: var(--foreground); color: var(--background); font-weight: 600; }
 .inv-select:focus-within { outline: 2px solid var(--primary-text, #8a1634); outline-offset: 2px; }
 .inv-toggle { display: inline-flex; flex: none; align-items: center; gap: var(--space-corto); min-height: 44px; padding: 0 var(--space-cerca); border: 1px solid var(--border); border-radius: var(--corner-pulsable); background: transparent; color: var(--foreground); font-size: var(--type-detalle); font-weight: 600; cursor: pointer; transition: border-color 0.2s; }
 .inv-views { display: inline-flex; flex: none; margin-left: auto; border: 1px solid var(--border); border-radius: var(--corner-pulsable); }
-.inv-views button { display: grid; place-items: center; width: 44px; height: 42px; color: var(--muted-foreground); cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+.inv-views button { display: grid; place-items: center; width: 44px; height: 44px; color: var(--muted-foreground); cursor: pointer; transition: background-color 0.2s, color 0.2s; }
 .inv-views button:hover { color: var(--foreground); }
 .inv-views button[aria-pressed="true"] { background: color-mix(in srgb, var(--foreground) 8%, transparent); color: var(--foreground); }
 .inv-note { grid-column: 1 / -1; margin: 0; color: var(--muted-foreground); font-size: var(--type-etiqueta); line-height: 1.6; }
