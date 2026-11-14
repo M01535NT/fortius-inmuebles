@@ -99,7 +99,7 @@
 .editorial-journeys h2 { max-width: none; font-size: var(--type-seccion); }
 .editorial-journey-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(32px, 5vw, 64px); margin-top: var(--space-bloque); }
 .editorial-journey { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-normal); border-top: 1px solid color-mix(in srgb, var(--block-foreground) 30%, transparent); padding-block: var(--space-bloque) var(--space-junto); }
-.editorial-journey-number { padding-top: var(--space-corto); font-family: var(--font-mono); font-size: var(--type-etiqueta); color: var(--block-muted); }
+.editorial-journey-number { padding-top: var(--space-corto); font-variant-numeric: tabular-nums; font-size: var(--type-etiqueta); color: var(--block-muted); }
 .editorial-journey h3 { font-family: var(--editorial-serif); font-size: var(--type-seccion); line-height: var(--leading-seccion); letter-spacing: var(--tracking-seccion); font-weight: 400; }
 .editorial-journey p { margin-top: var(--space-normal); max-width: 39ch; font-size: var(--type-interfaz); }
 .editorial-journey-action { display: flex; align-items: center; justify-content: space-between; gap: var(--space-amplio); margin-top: var(--space-amplio); min-height: 44px; font-size: var(--type-detalle); font-weight: 600; }

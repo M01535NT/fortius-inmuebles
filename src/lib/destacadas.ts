@@ -59,7 +59,7 @@ export function datosDestacada(property: Property): string[] {
   const { recamaras, banos, construccionM2, terrenoM2 } = property.ficha;
   return [
     recamaras ? `${recamaras} rec.` : null,
-    banos ? `${banos} baños` : null,
+    banos ? `${banos} ${banos === 1 ? "baño" : "baños"}` : null,
     construccionM2 ? `${construccionM2} m² const.` : terrenoM2 ? `${terrenoM2} m² terreno` : null,
   ].filter((dato): dato is string => Boolean(dato));
 }

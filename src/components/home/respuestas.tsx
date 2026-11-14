@@ -10,18 +10,20 @@ import { Reveal } from "@/components/gsap/reveal";
 import { SplitHeading } from "@/components/gsap/split-heading";
 
 /* En el inicio entran deslizando; en la página de preguntas se muestran quietas. */
-export function PreguntaItem({ item, index, animated = true }: { item: Pregunta; index: number; animated?: boolean }) {
+/* `headingLevel`: 4 en el inicio (sección › grupo › pregunta); 3 en la página de preguntas, donde el grupo es h2. */
+export function PreguntaItem({ item, index, animated = true, headingLevel = 4 }: { item: Pregunta; index: number; animated?: boolean; headingLevel?: 3 | 4 }) {
+  const Titulo = headingLevel === 3 ? "h3" : "h4";
   const [open, setOpen] = React.useState(false);
   const panelId = `respuesta-${item.id}`;
   const buttonId = `${panelId}-button`;
   const row = (
     <div className="border-b border-border">
-      <h4><button id={buttonId} type="button" aria-expanded={open} aria-controls={panelId}
+      <Titulo><button id={buttonId} type="button" aria-expanded={open} aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
         className="flex w-full cursor-pointer items-center justify-between gap-6 py-6 text-left">
         <span className="display-soft text-entrada text-foreground">{item.q}</span>
         <Plus aria-hidden="true" className={`h-5 w-5 shrink-0 text-primary-ink transition-transform duration-300${open ? " rotate-45" : ""}`} strokeWidth={1.5} />
-      </button></h4>
+      </button></Titulo>
       <div id={panelId} role="region" aria-labelledby={buttonId} aria-hidden={!open} inert={!open}
         className={`editorial-faq-answer${open ? " is-open" : ""}`}>
         <div className="min-h-0 overflow-hidden">

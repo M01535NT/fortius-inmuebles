@@ -6,6 +6,21 @@ function phoneDigits(value: string) {
   return digits.length >= 7 && digits.length <= 15 && !/0{7}$/.test(digits) ? digits : "";
 }
 
+/*
+  Un número mexicano de 10 dígitos guardado sin lada de país («6642212991») se marcaba como
+  tel:+6642212991, que el teléfono lee como +66 (Tailandia). Se completa con 52 para llamar y
+  para wa.me, que también exige la lada de país (13/11/2026).
+*/
+function internationalDigits(digits: string) {
+  return digits.length === 10 ? `52${digits}` : digits;
+}
+
+/* «+52 664 221 2991»: legible y fácil de dictar. Otros formatos se muestran como se capturaron. */
+function displayNumber(digits: string, fallback: string) {
+  const mx = /^52(\d{3})(\d{3})(\d{4})$/.exec(internationalDigits(digits));
+  return mx ? `+52 ${mx[1]} ${mx[2]} ${mx[3]}` : fallback;
+}
+
 function messagingNumber(value: string) {
   if (!value) return "";
   if (/^https:\/\//i.test(value)) {
@@ -36,15 +51,15 @@ export function publicContact(settings?: SiteSettings | null, message?: string) 
   const digits = phoneDigits(phone);
   const whatsapp = settings?.whatsapp.trim() ?? "";
   const whatsappDigits = messagingNumber(whatsapp);
-  const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}${message ? `?text=${encodeURIComponent(message)}` : ""}` : "";
+  const whatsappHref = whatsappDigits ? `https://wa.me/${internationalDigits(whatsappDigits)}${message ? `?text=${encodeURIComponent(message)}` : ""}` : "";
   const email = settings?.email.trim() ?? "";
   const emailHref = email ? `mailto:${email}${message ? `?subject=${encodeURIComponent("Consulta a Fortius Inmuebles")}&body=${encodeURIComponent(message)}` : ""}` : "";
   return {
     emailHref,
-    phone: digits ? phone : "por confirmar",
-    phoneHref: digits ? `tel:+${digits}` : "",
+    phone: digits ? displayNumber(digits, phone) : "por confirmar",
+    phoneHref: digits ? `tel:+${internationalDigits(digits)}` : "",
     whatsapp: whatsappHref,
-    whatsappLabel: whatsappHref ? whatsapp : "por confirmar",
+    whatsappLabel: whatsappHref ? displayNumber(whatsappDigits, whatsapp) : "por confirmar",
     email,
     messenger: messengerLink(settings?.facebook ?? ""),
   };
