@@ -33,6 +33,10 @@ export async function PUT(request: Request) {
     const membership = await privileged.from("fortius_inmuebles_staff").select("role,active").eq("user_id", data.userId).maybeSingle();
     if (membership.error) databaseError(membership.error);
     if (!membership.data?.active || membership.data.role !== "editor") throw new ApiError(400, "La cuenta debe ser de un asesor editor activo");
+    // C-86: la ficha también debe estar activa; el filtro de la pantalla no basta.
+    const ficha = await client.from("fortius_inmuebles_records").select("data").eq("collection", "asesores").eq("id", data.asesorId).maybeSingle();
+    if (ficha.error) databaseError(ficha.error);
+    if ((ficha.data?.data as { activo?: unknown } | undefined)?.activo !== true) throw new ApiError(400, "Elige un asesor activo del equipo");
     const result = await client.from("fortius_inmuebles_adviser_accounts").upsert({ user_id: data.userId, asesor_id: data.asesorId }, { onConflict: "user_id" }).select("user_id,asesor_id").single();
     if (result.error) databaseError(result.error);
     return { cuenta: result.data };

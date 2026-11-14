@@ -22,7 +22,8 @@ export async function GET(request: Request) {
     let query = client
       .from("fortius_inmuebles_record_history")
       .select(
-        "id,collection,record_id,action,actor_id,version,changed_fields,created_at,restored_at",
+        // C-81: solo el título de lo guardado, para nombrar lo eliminado; nada más del contenido.
+        "id,collection,record_id,action,actor_id,version,changed_fields,created_at,restored_at,titulo:snapshot->>titulo",
       )
       .order("created_at", { ascending: false })
       .order("id")
