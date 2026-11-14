@@ -41,7 +41,7 @@
 .admin-root .admin-badge { border-radius: var(--radius-pill); padding-inline: .625rem; border-color: transparent; }
 
 /* Avatares anteriores */
-.admin-root .admin-avatar { border-radius: var(--radius-pill); border: 0; background: #dbe4f0; color: #061f3f; }
+.admin-root .admin-avatar { border-radius: var(--radius-pill); border: 0; background: var(--secondary); color: var(--foreground); }
 .dark .admin-root .admin-avatar { background: var(--secondary); color: var(--foreground); }
 
 /* Logotipo en modo oscuro, sin placa: letras blancas; el portal conserva su azul marino y su guinda (decisión del titular, 18/10/2026). */

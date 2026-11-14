@@ -52,7 +52,7 @@
 /* Fotos, iniciales y teclas */
 :global(.admin-root) .thumb { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; overflow: hidden; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--muted-foreground); }
 :global(.admin-root) .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-:global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: #dbe4f0; color: #061f3f; font-size: var(--admin-text-minimo); font-weight: 620; letter-spacing: .02em; overflow: hidden; }
+:global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: var(--secondary); color: var(--foreground); font-size: var(--admin-text-minimo); font-weight: 620; letter-spacing: .02em; overflow: hidden; }
 :global(.dark) :global(.admin-root) .avatar { background: var(--secondary); color: var(--foreground); }
 :global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: #f8f8ff; }
 :global(.admin-root) .avatar { position: relative; }
