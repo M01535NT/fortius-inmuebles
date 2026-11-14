@@ -85,11 +85,11 @@ function useDismiss(open: boolean, close: () => void, container: React.RefObject
 export function SideNav({ pathname, role, user, onLogout, search }: { pathname: string; role: string; user: User; onLogout: () => Promise<void>; search: React.ReactNode }) {
   const pending = usePendingCount();
   const link = (item: NavItem, count = 0) => <Link key={item.href} href={item.href} className={s.navi} title={item.label} aria-current={isNavActive(pathname, item) ? "page" : undefined}>
-    <item.icon size={18} aria-hidden={true} /><span className={s.naviLabel}>{item.label}</span>{count > 0 && <Count value={count} />}
+    <item.icon size={18} aria-hidden={true} /><span className={s.naviLabel}>{item.label}</span>{count > 0 && <Count value={count} />}{item === ADMIN_ENTRY && <ChevronRight size={14} aria-hidden={true} className={s.naviMore} />}
   </Link>;
   return <header className={s.side} aria-label="Barra del panel">
     <Link href="/admin" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className={s.logoFull} /><BrandMark variant="symbol" className={s.logoCompact} /></Link>
-    <div className={s.sideTools}>{search}<NewMenu /></div>
+    <div className={s.sideTools}>{search}</div>
     <nav aria-label="Módulos del panel" data-tour="nav" className={s.navlist}>
       {MAIN_NAV.map(item => link(item, item.href === "/admin" ? pending : 0))}
       <span className={s.navsep} aria-hidden="true" />
@@ -103,8 +103,11 @@ export function SideNav({ pathname, role, user, onLogout, search }: { pathname: 
   </header>;
 }
 
-/** «+ Nuevo»: las cinco altas en un menú; atender a alguien va primero. En el celular, el «+» abre el mismo menú hacia arriba. */
-function NewMenu({ mobile = false }: { mobile?: boolean }) {
+/**
+  «+ Nuevo»: las cinco altas en un menú; atender a alguien va primero. En la computadora va como botón
+  principal en el encabezado de Hoy (boceto del 14/11/2026); en el celular, el «+» abre el mismo menú hacia arriba.
+*/
+export function NewMenu({ mobile = false }: { mobile?: boolean }) {
   const [open, setOpen] = React.useState(false);
   // LV-04: «Empieza aquí» sobre «Nuevo» la primera vez de cada persona; se recuerda por su id.
   const userId = useSession()?.id;
@@ -112,10 +115,10 @@ function NewMenu({ mobile = false }: { mobile?: boolean }) {
   const close = React.useCallback(() => setOpen(false), []);
   useDismiss(open, close, wrap);
   return <div ref={wrap} className={s.menuWrap}>
-    <StartHere storageKey={userId ? `fortius.empieza-aqui.v1:${userId}` : undefined} above={mobile} side={!mobile}>{mobile
+    <StartHere storageKey={userId ? `fortius.empieza-aqui.v1:${userId}` : undefined} above={mobile}>{mobile
       ? <button type="button" data-tour="nuevo" className={s.plus} aria-label="Nuevo" aria-expanded={open} aria-controls="admin-new-menu-movil" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={24} aria-hidden="true" /></button>
-      : <button type="button" data-tour="nuevo" className={s.newButton} title="Nuevo" aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" /><span className={s.naviLabel}>Nuevo</span></button>}</StartHere>
-    {open && <div id={mobile ? "admin-new-menu-movil" : "admin-new-menu"} role="menu" aria-label="Qué quieres crear" className={cn(s.pop, mobile && s.popUp)}>
+      : <button type="button" data-tour="nuevo" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={16} aria-hidden="true" />Nuevo</button>}</StartHere>
+    {open && <div id={mobile ? "admin-new-menu-movil" : "admin-new-menu"} role="menu" aria-label="Qué quieres crear" className={cn(s.pop, mobile ? s.popUp : s.popRight)}>
       {QUICK_CREATE.map(item => <Link key={item.href} role="menuitem" href={item.href} className={cn(s.link, s.sub)} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action })); }}><item.icon size={18} aria-hidden={true} />{item.label}</Link>)}
     </div>}
   </div>;

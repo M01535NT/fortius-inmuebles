@@ -11,14 +11,14 @@ vi.mock("@/lib/admin/operational-date", () => ({ operationalDate: () => "2026-10
 // COR-05: el número del menú es el largo de la cola de Hoy; aquí se fija para probar cómo se muestra.
 const { pending } = vi.hoisted(() => ({ pending: { value: 0 } }));
 vi.mock("@/components/admin/workspace/use-today-queue", () => ({ usePendingCount: () => pending.value }));
-import { SideNav, MobileTabBar, isNavActive, MAIN_NAV, MORE_NAV } from "@/components/admin/workspace/guided-nav";
+import { SideNav, MobileTabBar, NewMenu, isNavActive, MAIN_NAV, MORE_NAV } from "@/components/admin/workspace/guided-nav";
 
 const user = { name: "Mariana Ruiz", email: "mariana@example.invalid", initials: "MR" };
 const sidenav = (role: string, pathname = "/admin") => render(<SideNav pathname={pathname} role={role} user={user} onLogout={async () => {}} search={<button type="button">Buscar</button>} />);
 beforeEach(() => { tasks.length = 0; leads.length = 0; clients.length = 0; pending.value = 0; });
 afterEach(cleanup);
 
-test("el menú lateral lleva los seis módulos y Herramientas, el buscador, «Nuevo» y la cuenta; sin Administración a la vista del asesor", () => {
+test("el menú lateral lleva los seis módulos y Herramientas, el buscador y la cuenta; sin Administración a la vista del asesor", () => {
   sidenav("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
   expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Trámites", "Agenda y tareas", "Herramientas"]);
@@ -35,7 +35,8 @@ test("el menú lateral lleva los seis módulos y Herramientas, el buscador, «Nu
 });
 
 test("«+ Nuevo» abre las cinco altas, la operación primero, y avisa a la pantalla destino", () => {
-  sidenav("editor");
+  // Desde el 14/11/2026 «+ Nuevo» va en el encabezado de Hoy, no en el menú lateral.
+  render(<NewMenu />);
   const heard: string[] = [];
   window.addEventListener("fortius:quick-create", event => heard.push((event as CustomEvent<string>).detail));
   const trigger = screen.getByRole("button", { name: "Nuevo" });
