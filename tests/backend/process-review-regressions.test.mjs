@@ -42,7 +42,9 @@ it('does not retain sale publication on the strength of a different rent authori
  const rent=await complete((await start('arrendar',{tipo:'cliente',id:done.cliente_id})).id,{...answers,propiedadExistente:done.propiedad_slug});await authorize(rent.expediente_id);
  let sale=await row(done.expediente_id);sale.flujo.resolucion={...sale.flujo.resolucion,tipo:'pausada',motivo:'Suspender la venta',siguienteAccion:'Atender pausa'};await update(sale.id,sale.flujo);
  expect(await ready(rent.expediente_id)).toBe(true);expect(await ready(sale.id)).toBe(false);
- expect((await prop(done.propiedad_slug)).data.publicada).toBe(false);
+ // M-02b (titular, 14/11/2026): pausar avisa que se retire; la autorización de la renta no lo evita.
+ expect((await prop(done.propiedad_slug)).data.publicada).toBe(true);
+ expect(await q("select 1 from public.fortius_inmuebles_records where collection='tareas' and data->>'expedienteId'=$1 and data->>'titulo' like 'Retirar del sitio%'",[sale.id])).toHaveLength(1);
 });
 it('requires initial origin and dated followup in API and SQL while allowing corrections without a new initial task',async()=>{
  const contact={tipo:'nuevo',nombre:'Sin seguimiento',telefono:'6643344556',email:'',asesorId:'critic-adviser',telefonoCompartido:true};
