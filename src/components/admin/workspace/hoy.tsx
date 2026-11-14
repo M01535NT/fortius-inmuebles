@@ -24,28 +24,38 @@ import { askNextAfter, type NextRef } from "@/lib/admin/next-step-task";
 import s from "./hoy.module.css";
 
 /*
-  Hoy en tres bloques (SIM-16, 11/11/2026; conserva las reglas de LV-07 y LV-08):
-  1. «Lo siguiente»: la portada con lo más urgente y, debajo, una sola cola con todo lo demás que
-     espera algo del usuario (operaciones, contactos, prospectos nuevos, entrevistas, contratos,
-     informes, llaves y avisos), de lo más urgente a lo menos. Las 4 siguientes con foto, después
-     una lista corta y «Ver las N» para el resto. Cada tipo se distingue por su pastilla.
-  2. «Hoy»: las citas y las tareas del día en una sola tarjeta; las tareas se marcan aquí.
-  3. «Esta semana»: los siete días que siguen.
-  Sin inventario (las operaciones en curso viven en Operaciones) y sin línea de resumen: nada se
-  cuenta dos veces. Todo se calcula con datos que el panel ya carga; nada se inventa.
+  Hoy en dos columnas (13/11/2026, boceto aprobado por el titular; conserva LV-07, LV-08 y SIM-16):
+  - Arriba, el saludo y un resumen de tres cifras: lo vencido (filtra la cola), lo de hoy y lo de la
+    semana (llevan a su bloque). Cada cifra cuenta una cosa distinta; nada se suma dos veces.
+  - Izquierda, el trabajo: «Lo siguiente» en grande y, debajo, los pendientes agrupados por persona
+    (una fila por cliente o prospecto con lo más urgente y cuántos más tiene).
+  - Derecha, el tiempo: «Hoy» (citas y tareas, que se marcan aquí) y «Esta semana» como lista por día.
+  En celular va todo en una columna: resumen, lo siguiente, hoy, pendientes y semana.
+  Todo se calcula con datos que el panel ya carga; nada se inventa.
 */
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const PHOTO_CARDS = 4, LIST_ROWS = 6, TASK_ROWS = 5;
+const LIST_ROWS = 6, TASK_ROWS = 5;
 /** Tono de la pastilla por tipo; lo vencido siempre en rojo. */
 function queuePill(item: QueueItem): { text: string; tone: PillTone } {
   if (item.late) return { text: item.kind === "seguimiento" ? "Atrasado" : QUEUE_LABEL[item.kind], tone: "alert" };
   const tone: PillTone = item.kind === "revisar" || item.kind === "entrevista" || item.kind === "nuevo" ? "brand" : item.kind === "decidir" || item.kind === "contrato" || item.kind === "licencia" || item.kind === "informe" ? "warn" : item.kind === "agendar" ? "muted" : "info";
   return { text: QUEUE_LABEL[item.kind], tone };
 }
+/** Los pendientes de una misma persona van juntos; el primero (el más urgente) da la fila. */
+function byPerson(items: QueueItem[]) {
+  const groups = new Map<string, QueueItem[]>();
+  for (const item of items) {
+    // Contrato, informe y requisitos no siempre traen folio ni inmueble; el nombre (antes del primer «·») sí.
+    const key = item.who.split(" · ")[0].trim().toLocaleLowerCase("es-MX") || item.id;
+    const group = groups.get(key);
+    if (group) group.push(item); else groups.set(key, [item]);
+  }
+  return [...groups.values()];
+}
 
 function Section({ title, count, action, children, id, className }: { title: string; count?: number; action?: React.ReactNode; children: React.ReactNode; id: string; className?: string }) {
-  return <section aria-labelledby={id} className={cn("flex min-w-0 flex-col gap-3", className)}>
+  return <section id={id + "-bloque"} aria-labelledby={id} className={cn("flex min-w-0 flex-col gap-3", className)}>
     <div className="flex items-baseline justify-between gap-3 px-1">
       {/* El número va fuera del h2 para que el nombre de la sección sea solo el título. */}
       <span className={s.title}><h2 id={id} className="m-0 text-[length:inherit] font-[inherit]">{title}</h2>{!!count && <span className={s.count}>{count}</span>}</span>
@@ -64,6 +74,7 @@ export function HoyScreen() {
   const conditions = useConditions();
   const [hour, setHour] = React.useState<number | null>(null);
   const [showAll, setShowAll] = React.useState(false);
+  const [lateOnly, setLateOnly] = React.useState(false);
   React.useEffect(() => {
     // La hora se toma en el navegador para no saludar con la hora del servidor.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -82,18 +93,19 @@ export function HoyScreen() {
   const upcoming = upcomingItems({ tasks, dossiers: dossiers ?? [], reports, names, today });
   const firstName = session?.name?.trim().split(/\s+/)[0];
   const weekItems = (day: string) => [
-    ...events.filter(e => e.fecha === day).map(e => ({ id: `evento:${e.id}`, text: `${e.hora ? `${e.hora} · ` : ""}${e.titulo}`, href: `/admin/agenda?fecha=${day}&evento=${encodeURIComponent(e.id)}`, visit: e.tipo === "visita" })),
-    ...upcoming.filter(item => item.date === day).map(item => ({ id: item.id, text: item.text, href: item.href, visit: false })),
-    ...expiring.filter(item => item.date === day).map(item => ({ id: item.id, text: item.kind === "Contrato" ? "Vence el contrato de servicio" : "Vence la licencia estatal", href: item.href, visit: false })),
+    ...events.filter(e => e.fecha === day).sort((a, b) => (a.hora ?? "99").localeCompare(b.hora ?? "99")).map(e => ({ id: `evento:${e.id}`, text: e.titulo, time: e.hora, meta: e.tipo === "visita" ? "Visita" : "Cita", href: `/admin/agenda?fecha=${day}&evento=${encodeURIComponent(e.id)}`, visit: e.tipo === "visita" })),
+    ...upcoming.filter(item => item.date === day).map(item => ({ id: item.id, text: item.text, time: undefined, meta: item.meta, href: item.href, visit: false })),
+    ...expiring.filter(item => item.date === day).map(item => ({ id: item.id, text: item.kind === "Contrato" ? "Vence el contrato de servicio" : "Vence la licencia estatal", time: undefined, meta: item.meta, href: item.href, visit: false })),
   ];
-  const weekCount = week.reduce((sum, day) => sum + weekItems(day).length, 0);
-  // La portada no se repite abajo; con foto del inmueble van en tarjeta, las personas sin foto en la lista (C34).
+  const weekList = week.map(day => ({ day, items: weekItems(day) })).filter(entry => entry.items.length > 0);
+  const weekCount = weekList.reduce((sum, entry) => sum + entry.items.length, 0);
+  const todayCount = agenda.length + dayTasks.filter(isTaskOpen).length;
+  const lateCount = queue.filter(item => item.late).length;
+  // La portada no se repite abajo; lo demás, agrupado por persona (13/11/2026).
   const rest = queue.slice(1);
-  const withPhoto = (item: QueueItem) => !!item.propertySlug && !!photo(item.propertySlug);
-  const photoCards = rest.filter(withPhoto).slice(0, PHOTO_CARDS);
-  const listAll = rest.filter(item => !photoCards.includes(item));
-  const listRows = showAll ? listAll : listAll.slice(0, LIST_ROWS);
-  const hidden = listAll.length - listRows.length;
+  const groups = byPerson(lateOnly ? rest.filter(item => item.late) : rest);
+  const listRows = showAll ? groups : groups.slice(0, LIST_ROWS);
+  const hidden = groups.length - listRows.length;
   const failures = [dossiers === null && "las operaciones", interviews === null && "las entrevistas", contracts === null && "los contratos de servicio", reports === null && "los informes al propietario"].filter((x): x is string => !!x);
   // COR-14: la situación y la condición de la llamada, como chip en cada operación.
   const tagsOf = (item: QueueItem) => { const d = item.folio ? dossiers?.find(x => x.folio === item.folio) : undefined; return d ? operationTags(d, conditions.ofOperation(d.id)) : []; };
@@ -103,79 +115,86 @@ export function HoyScreen() {
   const thumb = (item: QueueItem, size: number) => item.folio || item.propertySlug ? <Thumb src={photo(item.propertySlug)} size={size} icon={<Building2 size={size > 44 ? 24 : 20} aria-hidden="true" />} /> : <Avatar name={item.who} size={size} />;
 
   return <Surface className={s.page}>
-    {/* Bloque 1, «Lo siguiente»: saludo, portada y la cola; la región lleva el título oculto porque la portada ya lo dice. */}
-    <section aria-labelledby="hoy-cola" className={s.queueBox}>
-      <h2 id="hoy-cola" className="sr-only">Lo siguiente</h2>
-      <header className={s.top}>
+    <header className={s.top}>
+      <div className={s.hello}>
         <p className={s.date}><time dateTime={today}>{longDate(today)}</time></p>
-        <h1 className={s.hello}>{hour === null ? "Hola" : greeting(hour)}{firstName ? `, ${firstName}` : ""}.</h1>
-      </header>
-      <SectionBoundary what="«Preparar tu espacio»"><SetupChecklist className={s.full} /></SectionBoundary>
-      <SectionBoundary what="«Tu primer día»"><FirstDay operations={dossiers} className={s.full} /></SectionBoundary>
-      <SectionBoundary what="«Avisos»"><Announcements className={s.full} /></SectionBoundary>
-      <SectionBoundary what="«Para ti»"><Inbox className={s.full} /></SectionBoundary>
+        <h1 className={s.helloTitle}>{hour === null ? "Hola" : greeting(hour)}{firstName ? `, ${firstName}` : ""}.</h1>
+        <SectionBoundary what="«Preparar tu espacio»"><SetupChecklist compact /></SectionBoundary>
+      </div>
+      {/* Resumen: lo vencido filtra la cola; hoy y la semana llevan a su bloque. */}
+      <div role="group" aria-label="Resumen del día" className={s.stats}>
+        <button type="button" className={cn(s.stat, lateCount > 0 && s.statLate)} aria-pressed={lateOnly} disabled={!lateCount && !lateOnly} onClick={() => { setLateOnly(on => !on); setShowAll(false); }}>
+          <strong>{lateCount}</strong><span>{lateCount === 1 ? "Vencido" : "Vencidos"}</span>
+        </button>
+        <a href="#hoy-hoy-bloque" className={s.stat}><strong>{todayCount}</strong><span>Para hoy</span></a>
+        <a href="#hoy-semana-bloque" className={s.stat}><strong>{weekCount}</strong><span>Esta semana</span></a>
+      </div>
+    </header>
 
-      <div data-tour="hoy-siguiente" className={cn(s.next, next && photo(next.propertySlug) && s.nextWithPhoto)}>
-        {dossiers === undefined ? <p role="status" className={s.nextNote}>Consultando operaciones…</p>
-          : next ? <Link href={next.href} className={s.nextLink} aria-label={`Lo siguiente: ${next.text} ${next.who}`}>
-            {photo(next.propertySlug) && <Image unoptimized fill sizes="(max-width: 899px) 100vw, 60vw" src={photo(next.propertySlug)!} alt="" className={s.nextPhoto} />}
-            <span className={s.nextScrim} aria-hidden="true" />
-            <span className={s.nextBody}>
-              <span className={s.nextTags}>{next.late && <Pill tone="alert">{next.when || QUEUE_LABEL[next.kind]}</Pill>}<Pill tone="onDark">{next.late && next.kind !== "vencida" ? QUEUE_LABEL[next.kind] : "Lo siguiente"}</Pill>{tagsOf(next).map(tag => <Pill key={tag} tone="onDark">{tag}</Pill>)}</span>
-              <strong className={s.nextTitle}>{next.text}</strong>
-              <span className={s.nextFoot}><span className={s.nextWho}>{next.who}{next.detail ? ` · ${next.detail}` : ""}</span><span className={s.nextGo}>Continuar<ArrowRight size={18} aria-hidden="true" /></span></span>
-            </span>
-          </Link>
-          : <div className={s.nextEmpty}><strong className={s.nextTitle}>Nada espera por ti.</strong><span className={s.nextWho}>{inProgress.length ? "Cada operación tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: la operación se crea al terminarla."}</span>{!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nueva operación</ButtonLink>}</div>}
+    <div className={s.main}>
+      <div className={s.notices}>
+        <SectionBoundary what="«Tu primer día»"><FirstDay operations={dossiers} /></SectionBoundary>
+        <SectionBoundary what="«Avisos»"><Announcements /></SectionBoundary>
+        <SectionBoundary what="«Para ti»"><Inbox /></SectionBoundary>
       </div>
 
-      {nextLead && <div className={cn(s.contactLine, s.full)}>
-        <span className={s.meta}>¿Ya hablaste con {nextLead.nombre}?</span>
-        <FirstContactButton lead={nextLead} />
-      </div>}
-      {failures.map(what => <div key={what} className={s.full}>{failed(what)}</div>)}
-      {dossiers !== undefined && rest.length > 0 && <div className={cn(s.queueHead, s.full)}>
-        <span className={s.meta}>{plural(queue.length, "pendiente en total", "pendientes en total")}</span>
-        {hidden > 0 && <Button variant="ghost" className={s.more} onClick={() => setShowAll(true)}>{hidden === 1 ? "Ver 1 más" : `Ver ${hidden} más`}</Button>}
-      </div>}
-      {dossiers !== undefined && rest.length > 0 && <>
-        {photoCards.length > 0 && <ul className={cn(s.cards, s.full)}>{photoCards.map(item => {
-          const pill = queuePill(item);
-          return <li key={item.id}><article className={s.photoCard}><Link href={item.href} className={s.photoLink} aria-label={`Continuar con ${item.who}`}>
-            <span className={s.cardPhoto}><Image unoptimized fill sizes="(max-width: 899px) 50vw, 25vw" src={photo(item.propertySlug)!} alt="" /></span>
-            <span className={s.cardBody}>
-              <span className={s.cardTags}>{item.kind !== "vencida" && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}{tagsOf(item).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}{item.when && <span className={cn(s.meta, item.late && s.lateText)}>{item.when}</span>}</span>
-              <strong className={s.cardWho}>{item.who}</strong>
-              <span className={s.cardText}>{item.text}{item.detail ? ` · ${item.detail}` : ""}</span>
-            </span>
-          </Link></article></li>;
-        })}</ul>}
-        {listRows.length > 0 && <Card as="ul" className={cn(s.list, s.full)} aria-label="Más pendientes">{listRows.map(item => {
-          const pill = queuePill(item);
-          const lead = leadOf(item);
+      {/* «Lo siguiente»: la región lleva el título oculto porque la portada ya lo dice. */}
+      <section aria-labelledby="hoy-cola" className={s.nextBox}>
+        <h2 id="hoy-cola" className="sr-only">Lo siguiente</h2>
+        <div data-tour="hoy-siguiente" className={cn(s.next, next && photo(next.propertySlug) && s.nextWithPhoto)}>
+          {dossiers === undefined ? <p role="status" className={s.nextNote}>Consultando operaciones…</p>
+            : next ? <Link href={next.href} className={s.nextLink} aria-label={`Lo siguiente: ${next.text} ${next.who}`}>
+              {photo(next.propertySlug) && <Image unoptimized fill sizes="(max-width: 1099px) 100vw, 60vw" src={photo(next.propertySlug)!} alt="" className={s.nextPhoto} />}
+              <span className={s.nextScrim} aria-hidden="true" />
+              <span className={s.nextBody}>
+                <span className={s.nextTags}>{next.late && <Pill tone="alert">{next.when || QUEUE_LABEL[next.kind]}</Pill>}<Pill tone="onDark">{next.late && next.kind !== "vencida" ? QUEUE_LABEL[next.kind] : "Lo siguiente"}</Pill>{tagsOf(next).map(tag => <Pill key={tag} tone="onDark">{tag}</Pill>)}</span>
+                <strong className={s.nextTitle}>{next.text}</strong>
+                <span className={s.nextFoot}><span className={s.nextWho}>{next.who}{next.detail ? ` · ${next.detail}` : ""}</span><span className={s.nextGo}>Continuar<ArrowRight size={18} aria-hidden="true" /></span></span>
+              </span>
+            </Link>
+            : <div className={s.nextEmpty}><strong className={s.nextTitle}>Nada espera por ti.</strong><span className={s.nextWho}>{inProgress.length ? "Cada operación tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: la operación se crea al terminarla."}</span>{!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nueva operación</ButtonLink>}</div>}
+        </div>
+        {nextLead && <div className={s.contactLine}>
+          <span className={s.meta}>¿Ya hablaste con {nextLead.nombre}?</span>
+          <FirstContactButton lead={nextLead} />
+        </div>}
+        {failures.map(what => <div key={what}>{failed(what)}</div>)}
+        {dossiers !== undefined && next && rest.length === 0 && <p className={s.note}>Nada más espera por ti.</p>}
+      </section>
+
+      {dossiers !== undefined && rest.length > 0 && <Section id="hoy-pendientes" title={lateOnly ? "Pendientes vencidos" : "Pendientes"} className={s.queueBox}
+        action={lateOnly ? <Button variant="ghost" className={s.more} onClick={() => setLateOnly(false)}>Ver todos</Button> : <span className={s.meta}>{plural(rest.length, "pendiente", "pendientes")}</span>}>
+        {listRows.length > 0 ? <Card as="ul" className={s.list} aria-label="Más pendientes">{listRows.map(group => {
+          const item = group[0], pill = queuePill(item), lead = leadOf(item), others = group.length - 1;
           return <li key={item.id}><article className={cn(lead && s.rowWithAction)}><Link href={item.href} className={s.row} aria-label={`Continuar con ${item.who}`}>
-            {thumb(item, 44)}
-            <span className={s.rowBody}><span className={s.rowTitle}>{item.who}</span><span className={s.rowText}>{item.text}{item.detail ? ` · ${item.detail}` : ""}</span></span>
-            <span className={s.rowEnd}>{tagsOf(item).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}{item.kind !== "vencida" && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}{item.when && <span className={cn(s.meta, item.late && s.lateText)}>{item.when}</span>}</span>
+            {thumb(item, 48)}
+            <span className={s.rowBody}><span className={s.rowTitle}>{item.who}{item.detail && <span className={s.rowDetail}> · {item.detail}</span>}</span><span className={s.rowText}>{item.text}</span></span>
+            <span className={s.rowEnd}>
+              <span className={s.rowPills}>{tagsOf(item).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}{item.kind !== "vencida" && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}</span>
+              <span className={s.meta}>{item.when && <span className={cn(item.late && s.lateText)}>{item.when}</span>}{item.when && others > 0 && " · "}{others > 0 && `${others} más`}</span>
+            </span>
           </Link>{lead && <FirstContactButton lead={lead} className={s.rowAction} />}</article></li>;
-        })}</Card>}
-      </>}
-      {dossiers !== undefined && next && rest.length === 0 && <p className={cn(s.note, s.full)}>Nada más espera por ti.</p>}
-    </section>
+        })}</Card> : <p className={s.note}>Nada más está vencido.</p>}
+        {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>{hidden === 1 ? "Ver 1 fila más" : `Ver ${hidden} filas más`}</Button>}
+      </Section>}
+    </div>
 
-    <TodayBlock tasks={dayTasks} agenda={agenda} today={today} nextEvent={nextEvent} names={names} leads={leads} photo={photo} />
+    <div className={s.side}>
+      <TodayBlock tasks={dayTasks} agenda={agenda} today={today} nextEvent={nextEvent} names={names} leads={leads} photo={photo} />
 
-    <Section id="hoy-semana" title="Esta semana" className={s.weekBox} action={<span className={s.meta}>{weekCount ? plural(weekCount, "pendiente", "pendientes") : "Nada vence"}</span>}>
-      <Card as="ul" className={s.week} aria-label="Esta semana, por día">{week.map(day => {
-        const items = weekItems(day), shown = items.slice(0, 2);
-        return <li key={day} className={s.day} data-busy={items.length > 0 || undefined}>
-          <span className={s.dayName}>{weekdayDate(day).slice(0, 3)}</span>
-          <span className={s.dayNum}>{Number(day.slice(8))}</span>
-          <ul className={s.dayItems}>{shown.map(item => <li key={item.id}><Link href={item.href} className={cn(s.dayItem, item.visit && s.dayVisit)}>{item.text}</Link></li>)}
-            {items.length > shown.length && <li className={s.dayMore}>+{items.length - shown.length}</li>}</ul>
-        </li>;
-      })}</Card>
-    </Section>
+      <Section id="hoy-semana" title="Esta semana" className={s.weekBox} action={more("/admin/agenda", "Ver agenda")}>
+        <Card as="div" className={s.list}>
+          {weekList.length ? <ul className={s.week} aria-label="Esta semana, por día">{weekList.map(({ day, items }) => <li key={day} className={s.day}>
+            <span className={s.dayBadge} aria-hidden="true"><span className={s.dayName}>{weekdayDate(day).slice(0, 3)}</span><span className={s.dayNum}>{Number(day.slice(8))}</span></span>
+            <span className="sr-only">{weekdayDate(day)}</span>
+            <ul className={s.dayItems}>{items.map(item => <li key={item.id}><Link href={item.href} className={s.dayItem}>
+              <span className={cn(s.dayText, item.visit && s.dayVisit)}>{item.time ? `${item.time} · ` : ""}{item.text}</span>
+              {item.meta && <small className={s.dayMeta}>{item.meta}</small>}
+            </Link></li>)}</ul>
+          </li>)}</ul> : <p className={s.note}>Nada vence en los próximos siete días.</p>}
+        </Card>
+      </Section>
+    </div>
   </Surface>;
 }
 
@@ -215,7 +234,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
           <span className="flex min-w-0 flex-col gap-0.5"><small className="text-muted-foreground">La siguiente: {weekdayDate(nextEvent.fecha)}{nextEvent.hora ? ` · ${nextEvent.hora}` : ""}{nextEvent.tipo === "visita" ? " · Visita" : ""}</small><strong className="[overflow-wrap:anywhere]">{nextEvent.titulo}</strong></span>
         </Link>}
       </div> : <>
-        {agenda.length > 0 && <ul className={cn(s.agenda, !tasks.length && s.full)} aria-label="Citas de hoy">{agenda.map(event => {
+        {agenda.length > 0 && <ul className={s.agenda} aria-label="Citas de hoy">{agenda.map(event => {
           const visit = event.tipo === "visita";
           const context = [names.client(event.clienteId) ?? leads.find(l => l.id === event.leadId)?.nombre, names.property(event.propiedadSlug)].filter(text => text && text !== event.titulo).join(" · ");
           return <li key={event.id} className="contents"><Link href={`/admin/agenda?fecha=${today}&evento=${encodeURIComponent(event.id)}`} className={cn(s.event, visit && s.visit)}>
@@ -223,7 +242,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
             <span className="flex min-w-0 flex-col gap-0.5">{visit && <span className={s.visitTag}><MapPin size={12} aria-hidden="true" />Visita</span>}<strong className="[overflow-wrap:anywhere]">{event.titulo}</strong>{context && <small className="text-muted-foreground">{visit ? `Con ${context}` : context}</small>}</span>
           </Link></li>;
         })}</ul>}
-        {tasks.length > 0 && <div className={cn(s.tasks, agenda.length > 0 ? s.tasksAfterAgenda : s.full)}>
+        {tasks.length > 0 && <div className={cn(s.tasks, agenda.length > 0 && s.tasksAfterAgenda)}>
           <p className={cn(s.meta, "px-3 pt-2")}>{done} de {tasks.length} hechas</p>
           <ul className="flex flex-col" aria-label="Tareas de hoy">{shown.map(task => {
             const isOpen = isTaskOpen(task);

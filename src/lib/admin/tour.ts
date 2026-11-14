@@ -22,7 +22,7 @@ const BAR: TourStep[] = [
 
 export const TOUR_SCREENS: TourScreen[] = [
   { id: "hoy", title: "Hoy", match: pathname => pathname === "/admin", steps: [
-    { target: "hoy-siguiente", title: "Lo siguiente", text: "Lo más urgente de tu día, en grande. Debajo, todo lo demás que espera algo de ti, de lo más urgente a lo menos; la pastilla dice de qué se trata." },
+    { target: "hoy-siguiente", title: "Lo siguiente", text: "Lo más urgente de tu día, en grande. Debajo, lo demás que espera algo de ti, una fila por persona y de lo más urgente a lo menos; la pastilla dice de qué se trata." },
     { target: "css:[aria-labelledby=\"hoy-hoy\"]", title: "Hoy", text: "Tus citas y tus tareas de hoy en una sola lista. Marca la casilla cuando termines una tarea." },
     { target: "css:[aria-labelledby=\"hoy-semana\"]", title: "Esta semana", text: "Lo que vence en los próximos siete días, para verlo antes de que sea urgente." },
     ...BAR,
