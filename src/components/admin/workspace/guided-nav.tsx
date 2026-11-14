@@ -31,8 +31,9 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/admin/operaciones", label: "Operaciones", icon: Columns3, match: ["/admin/operaciones"] },
   { href: "/admin/contactos", label: "Contactos", icon: Contact, match: ["/admin/contactos", "/admin/leads", "/admin/clientes"] },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin/propiedades"] },
+  // Boceto «desde cero» (14/11/2026): «Agenda» y después Trámites, justo antes de Herramientas.
+  { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
   { href: "/admin/tramites", label: "Trámites", icon: Route, match: ["/admin/tramites"] },
-  { href: "/admin/agenda", label: "Agenda y tareas", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
 ];
 /** Herramientas: un solo acceso a las 17. «/admin/notas» lleva a Hoy (DEC-42). */
 export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas"] };
@@ -175,7 +176,7 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
 }
 
 export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: User; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
-  const [, , , inmuebles, tramites, agenda] = MAIN_NAV;
+  const [, , , inmuebles, agenda, tramites] = MAIN_NAV;
   const helpPending = useHelpPending();
   const events = useCollection(db.eventos);
   const today = operationalDate();
@@ -188,8 +189,8 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
     <div className="flex items-center gap-3 px-1"><Avatar name={user.name} src={user.avatar} size={40} /><span className="flex min-w-0 flex-col"><span className="truncate font-semibold">{user.name}</span><span className="text-sm text-muted-foreground">{roleLabel(role)}</span></span></div>
     <div className={s.menuGroup}>
       {row(inmuebles.href, inmuebles.label, <inmuebles.icon size={20} aria-hidden={true} />, isNavActive(pathname, inmuebles))}
-      {row(tramites.href, tramites.label, <tramites.icon size={20} aria-hidden={true} />, isNavActive(pathname, tramites))}
       {row(agenda.href, agenda.label, <agenda.icon size={20} aria-hidden={true} />, isNavActive(pathname, agenda), visits ? `${visits} ${visits === 1 ? "visita" : "visitas"} hoy` : undefined)}
+      {row(tramites.href, tramites.label, <tramites.icon size={20} aria-hidden={true} />, isNavActive(pathname, tramites))}
       {row(TOOLS_NAV.href, TOOLS_NAV.label, <TOOLS_NAV.icon size={20} aria-hidden={true} />, isNavActive(pathname, TOOLS_NAV))}
     </div>
     {role === "admin" && <div className={s.menuGroup}>

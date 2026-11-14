@@ -21,7 +21,7 @@ afterEach(cleanup);
 test("el menú lateral lleva los seis módulos y Herramientas, el buscador y la cuenta; sin Administración a la vista del asesor", () => {
   sidenav("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
-  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Trámites", "Agenda y tareas", "Herramientas"]);
+  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"]);
   expect(within(nav).getByRole("link", { name: "Herramientas" }).getAttribute("href")).toBe("/admin/herramientas");
   expect(screen.getByRole("button", { name: "Buscar" })).toBeTruthy();
   const account = screen.getByRole("button", { name: /Mariana Ruiz, Asesor/ });
@@ -69,7 +69,7 @@ test("el administrador encuentra Administración en el menú lateral y en su cue
 });
 
 test("la sección activa incluye sus fichas de detalle y las direcciones anteriores", () => {
-  const [hoy, operaciones, contactos, , , agenda] = MAIN_NAV;
+  const [hoy, operaciones, contactos, , agenda] = MAIN_NAV;
   expect(isNavActive("/admin", hoy)).toBe(true);
   expect(isNavActive("/admin/operaciones", hoy)).toBe(false);
   expect(isNavActive("/admin/operaciones/nueva", operaciones)).toBe(true);
