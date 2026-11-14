@@ -5,8 +5,9 @@
 :global(.admin-root) .search svg { position: absolute; left: .875rem; color: var(--muted-foreground); pointer-events: none; }
 :global(.admin-root) .search input { padding-left: 2.5rem; width: 100%; background: var(--card); border-color: var(--edge-soft); }
 @media (min-width: 1024px) { :global(.admin-root) .search input { width: 17.5rem; } }
-:global(.admin-root) .tabsRow { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: .75rem; }
-:global(.admin-root) .tabsRow > :first-child { flex: 1 1 auto; min-width: 0; }
+:global(.admin-root) .tabsRow { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+:global(.admin-root) .tabsRow > :first-child { margin-right: auto; min-width: 0; }
+:global(.admin-root) .findingInfo { font-weight: 600; color: var(--info); }
 :global(.admin-root) .filter select { min-width: 12rem; background: var(--card); border-color: var(--edge-soft); }
 
 /* Lista a la izquierda y vista previa de la persona a la derecha (computadora ancha). */
@@ -59,9 +60,11 @@
 :global(.admin-root) .meter > i { position: absolute; top: -3px; bottom: -3px; left: 50%; width: 2px; background: var(--foreground); opacity: .45; }
 
 /* Filtros de etapa en una sola lista de personas (DEC-36) */
-:global(.admin-root) .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
-:global(.admin-root) .chipBtn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-weight: 540; cursor: pointer; }
-:global(.admin-root) .chipBtn:hover { background: var(--secondary); }
-:global(.admin-root) .chipBtn[aria-pressed=true] { background: var(--foreground); color: var(--background); }
-:global(.dark) :global(.admin-root) .chipBtn[aria-pressed=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+/* Selector segmentado como en el boceto «desde cero»: riel gris y la opción elegida en blanco. */
+:global(.admin-root) .chips { display: flex; gap: 2px; max-width: 100%; padding: 4px; border-radius: var(--radius-control); background: var(--track); overflow-x: auto; scrollbar-width: none; }
+:global(.admin-root) .chipBtn { flex: none; display: inline-flex; align-items: center; gap: .375rem; min-height: 2.5rem; padding: 0 .75rem; border: 0; border-radius: 7px; background: none; color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-detalle); font-weight: 540; cursor: pointer; white-space: nowrap; }
+:global(.admin-root) .chipBtn[aria-pressed=false] { background: none; box-shadow: none; }
+:global(.admin-root) .chipBtn:hover { color: var(--foreground); }
+:global(.admin-root) .chipBtn[aria-pressed=true] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px rgba(6, 31, 63, .1); }
+:global(.dark) :global(.admin-root) .chipBtn[aria-pressed=true] { background: var(--card); color: var(--foreground); box-shadow: inset 0 0 0 1px var(--edge-soft, var(--border)); }
 :global(.admin-root) .chipCount { font-size: var(--admin-text-pastilla); font-weight: 600; opacity: .7; }

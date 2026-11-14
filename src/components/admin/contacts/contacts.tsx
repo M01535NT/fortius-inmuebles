@@ -137,8 +137,14 @@ export function ContactsScreen() {
 
   const searchField = <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar nombre o teléfono</span><input ref={searchInput} type="search" className={inputClass} placeholder="Buscar nombre o teléfono" value={query} onChange={e => setQuery(e.target.value)} /></label>;
 
-  return <GuidedPage title="Contactos" subtitle={<span className="hidden sm:inline">Las personas con las que hablamos y lo que buscan.</span>} actions={<>
-    <div className="hidden lg:block">{searchField}</div>
+  // Boceto «desde cero» (14/11/2026): bajo el título, quién espera respuesta y cuántos seguimientos vencieron.
+  const firstWaiting = groups.find(group => group.id === "sin-atender")?.rows[0];
+  const lateCount = ordered.filter(row => row.late).length;
+  const lateText = lateCount ? `${lateCount === 1 ? "1 seguimiento está vencido" : `${lateCount} seguimientos están vencidos`}.` : "";
+  const finding = firstWaiting ? <><b className={s.findingInfo}>{firstWaiting.name} espera respuesta</b>{lateText ? `; ${lateText.charAt(0).toLowerCase()}${lateText.slice(1)}` : "."}</>
+    : lateText || "Las personas con las que hablamos y lo que buscan.";
+
+  return <GuidedPage title="Contactos" subtitle={<span className="hidden sm:inline">{finding}</span>} actions={<>
     <div className="flex gap-2 lg:hidden">
       <Button iconOnly variant="ghost" aria-label={searching ? "Cerrar búsqueda" : "Buscar"} aria-expanded={searching} onClick={() => { setSearching(v => !v); if (searching) setQuery(""); }}>{searching ? <X size={20} aria-hidden="true" /> : <Search size={20} aria-hidden="true" />}</Button>
       {filter === "clientes" ? <Button iconOnly data-tour="contactos-agregar" aria-label="Agregar cliente" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
@@ -156,9 +162,11 @@ export function ContactsScreen() {
       </div>
       <ClienteEditor key="nuevo" title={false} onDone={() => setAdding(false)} />
     </section>}
+    {/* Filtros como selector a la izquierda; seleccionar y buscar a la derecha. */}
     <div className={s.tabsRow}>
-      {rows.length > 0 && <div className="ml-auto"><SelectToggle selection={selection} noun="contactos" /></div>}
       <div className={s.chips} role="group" aria-label="Mostrar personas" data-tour="contactos-filtros">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
+      {rows.length > 0 && <SelectToggle selection={selection} noun="contactos" />}
+      <div className="hidden lg:block">{searchField}</div>
     </div>
     <div className="mt-5 min-w-0">
       {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
