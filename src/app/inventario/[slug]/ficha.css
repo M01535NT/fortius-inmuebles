@@ -6,9 +6,8 @@
 .fe-page { --fe-ease: cubic-bezier(0.25, 1, 0.5, 1); overflow-x: clip; }
 .fe-page :is(#descripcion, #caracteristicas, #beneficios, #ubicacion, #ficha-tecnica, #documentos, #costos, #preguntas, #interes) { scroll-margin-top: 152px; } /* barra 72 + índice pegado 72 + 8: el índice ya no se oculta (titular, 13/11/2026) */
 
-/* Banda de cabecera: crema en claro, noche con resplandor vino en oscuro */
+/* Banda de cabecera: blanco azulado en claro y azul noche en oscuro, sin resplandor (13/11/2026). */
 .fe-hero { background: var(--ns-bg); }
-.dark .fe-hero { background: radial-gradient(900px 420px at 80% 100%, rgba(138, 22, 52, 0.35), transparent 70%), #060c14; }
 .fe-hero::before { display: none; }
 .fe-hero-body { padding-top: clamp(20px, 3vw, 32px); padding-bottom: clamp(28px, 4vw, 48px); }
 .fe-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-junto) var(--space-cerca); color: color-mix(in srgb, var(--ns-ink) 60%, transparent); font-size: var(--type-detalle); }

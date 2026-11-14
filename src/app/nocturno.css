@@ -2,7 +2,7 @@
   Inicio · dirección «Nocturno» (LV-05, elegida por el titular el 18/10/2026).
   Boceto: lienzo «Rediseño sitio público Fortius», artboard C.
   Desde el 25/10/2026 las secciones siguen el tema (titular): en claro son
-  blancas y crema sin degradados; en oscuro, la noche original. La portada
+  blancas y blanco azulado sin degradados; en oscuro, noche y azul noche (13/11). La portada
   conserva su foto con velo en ambos temas. Colores --ns-* en publico.css.
 */
 .nx-container { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: clamp(20px, 4.2vw, 60px); }
@@ -67,7 +67,6 @@
 .nx-stage.is-active p { color: rgba(255, 255, 255, 0.88); }
 .nx-stage.is-active .nx-stage-step { color: var(--ns-accent); }
 .nx-stage.is-past { filter: saturate(0.7); }
-.dark .nx-stage::before { background: linear-gradient(160deg, #8a1634 0%, #4a0c1d 100%); }
 .dark .nx-stage.is-active { box-shadow: 0 40px 80px -30px rgba(138, 22, 52, 0.9); }
 .dark .nx-stage.is-past { filter: brightness(0.6) saturate(0.7); }
 

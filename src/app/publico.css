@@ -18,7 +18,8 @@
   --ns-invert: #061f3f; --ns-invert-ink: #f8f8ff; --ns-invert-accent: #f8f8ff; --ns-invert-hover: #0b2b55;
 }
 .dark {
-  --ns-bg: #060c14; --ns-page: #060c14; --ns-card: #0c1622; --ns-deep: #060c14; --ns-form: #f8f8ff;
+  /* --ns-bg: «azul noche» (13/11/2026), un paso arriba de la página para que las bandas se distingan como en claro. */
+  --ns-bg: #0b1828; --ns-page: #060c14; --ns-card: #0c1622; --ns-deep: #060c14; --ns-form: #f8f8ff;
   --ns-ink: #f8f8ff; --ns-strong: #fff; --ns-accent: #f8f8ff; --ns-fill: #a2223f; --ns-warn: #ffd236;
   --ns-invert: #f8f8ff; --ns-invert-ink: #061f3f; --ns-invert-accent: #8a1634; --ns-invert-hover: #fff;
 }
@@ -29,10 +30,8 @@
 .pg-container { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: clamp(20px, 4vw, 32px); }
 .pg-narrow { max-width: 980px; }
 
-/* Cabecera de página: crema en claro, noche con resplandor vino en oscuro */
+/* Cabecera de página: banda blanco azulado en claro y azul noche en oscuro, sin resplandor (13/11/2026). */
 .pg-hero { position: relative; isolation: isolate; overflow: hidden; border-bottom: 1px solid color-mix(in srgb, var(--ns-ink) 8%, transparent); background: var(--ns-bg); color: var(--ns-ink); }
-.pg-hero::before { display: none; content: ""; position: absolute; inset: auto -10% -45% 35%; z-index: -1; height: 75%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.42), transparent 70%); pointer-events: none; }
-.dark .pg-hero::before { display: block; }
 .pg-hero .pg-eyebrow { color: var(--ns-accent); }
 .pg-hero-media { position: absolute; inset: 0; z-index: -2; }
 .pg-hero-media img { object-fit: cover; }
