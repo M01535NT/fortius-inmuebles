@@ -15,9 +15,10 @@ type Row = { id: string; data: Tramite; version: number };
 const put = (id: string, data: unknown, version: number | null) =>
   db.query<{ r: Row }>("select public.fortius_inmuebles_put_record('tramites',$1,$2::jsonb,$3) r", [id, JSON.stringify(data), version]).then(x => x.rows[0].r);
 const del = (collection: string, id: string, version: number) => db.query("select public.fortius_inmuebles_delete_record($1,$2,$3)", [collection, id, version]);
-const archivo = (id: string, tramiteId: string, pasoClave: string, clienteId = "cli-ana") => db.query(
+const archivo = (id: string, tramiteId: string, pasoClave: string, clienteId = "cli-ana", extra: Record<string, string> = {}) => db.query(
   "insert into public.fortius_inmuebles_records(collection,id,data) values('archivos',$1,$2::jsonb)",
-  [id, JSON.stringify({ id, nombre: "doc.pdf", url: "/api/admin/files?path=x", tipo: "pdf", clienteId, tramiteId, pasoClave, visibility: "private" })]);
+  [id, JSON.stringify({ id, nombre: "doc.pdf", url: "/api/admin/files?path=x", tipo: "pdf", clienteId, tramiteId, pasoClave, visibility: "private", ...extra })]);
+const tareasDe = (tramiteId: string) => db.query<{ id: string; data: Record<string, string> }>("select id,data from public.fortius_inmuebles_records where collection='tareas' and data->>'tramiteId'=$1", [tramiteId]).then(x => x.rows);
 const base = (id: string) => nuevoTramite({ id, acreedor: "infonavit", titulo: "Casa en Otay", clienteId: "cli-ana", asesorId: "ase-ana" });
 const marcar = (t: Tramite, i: number) => ({ ...t, pasos: t.pasos.map((p, k) => k === i ? { ...p, pendientes: p.pendientes.map(x => ({ ...x, hecho: true })) } : p) });
 
@@ -49,7 +50,11 @@ test("cada asesor ve solo los trámites de sus clientes; reasignar o borrar es d
   await as(beto, async () => {
     expect((await db.query("select id from public.fortius_inmuebles_records where collection='tramites'")).rows).toEqual([]);
     await expect(put("tr-x", { ...base("tr-x"), clienteId: "cli-ana", asesorId: "ase-beto" }, null)).rejects.toMatchObject({ code: "PT403" });
+    // Tampoco edita ni borra el trámite de un cliente ajeno.
+    await expect(put("tr-1", { ...t.data, titulo: "Cambiado por otro asesor" }, t.version)).rejects.toBeTruthy();
+    await expect(del("tramites", "tr-1", t.version)).rejects.toBeTruthy();
   });
+  expect((await db.query<{ t: string }>("select data->>'titulo' t from public.fortius_inmuebles_records where collection='tramites' and id='tr-1'")).rows[0].t).toBe("Casa en Otay");
   await as(ana, async () => {
     await expect(put("tr-1", { ...t.data, asesorId: "ase-beto" }, t.version)).rejects.toMatchObject({ code: "PT403" });
     await expect(put("tr-1", { ...t.data, clienteId: "cli-beto" }, t.version)).rejects.toMatchObject({ code: "PT403" });
@@ -74,8 +79,14 @@ test("los pasos se cierran en orden, con sus pendientes y su documento", async (
   await as(ana, async () => {
     t = await put("tr-2", { ...marcar(t.data, 1), pasoActual: 2 }, t.version);
     expect(t.data.pasoActual).toBe(2);
+    // La prueba de un paso cerrado no se borra ni se desliga mientras el paso siga cerrado.
+    const doc = (await db.query<{ version: number; data: Record<string, string> }>("select version,data from public.fortius_inmuebles_records where collection='archivos' and id='doc-saldo'")).rows[0];
+    await expect(del("archivos", "doc-saldo", doc.version)).rejects.toMatchObject({ code: "PT409", message: expect.stringMatching(/reabre el paso/) });
+    await expect(db.query("select public.fortius_inmuebles_put_record('archivos','doc-saldo',$1::jsonb,$2)", [JSON.stringify({ ...doc.data, pasoClave: "" }), doc.version])).rejects.toMatchObject({ code: "PT409" });
     // Deshacer: regresar un paso reabre el paso y lo deja anotado.
     t = await put("tr-2", { ...t.data, pasoActual: 1 }, t.version);
+    // Con el paso reabierto ya se puede quitar.
+    await del("archivos", "doc-saldo", doc.version);
     expect(t.data.pasos[1].cerradoEl).toBeUndefined();
     expect(t.data.notas[t.data.notas.length - 1].texto).toMatch(/reabrió/);
     await expect(put("tr-2", { ...t.data, estado: "terminado" }, t.version)).rejects.toMatchObject({ code: "PT400" });
@@ -86,6 +97,10 @@ test("un documento solo se liga a un trámite del mismo cliente", async () => {
   await as(ana, () => put("tr-3", base("tr-3"), null));
   await expect(archivo("doc-ajeno", "tr-3", "carta", "cli-beto")).rejects.toMatchObject({ code: "PT400" });
   await expect(archivo("doc-sin", "tr-no-existe", "carta")).rejects.toMatchObject({ code: "PT400" });
+  // Los comprobantes van al almacenamiento privado, nunca al público.
+  await expect(archivo("doc-publico", "tr-3", "liquidado", "cli-ana", { visibility: "public" })).rejects.toMatchObject({ code: "PT400", message: expect.stringMatching(/privado/) });
+  await expect(archivo("doc-bucket", "tr-3", "liquidado", "cli-ana", { bucket: "fortius-inmuebles-public" })).rejects.toMatchObject({ code: "PT400" });
+  await expect(archivo("doc-url", "tr-3", "liquidado", "cli-ana", { url: "https://x.supabase.co/storage/v1/object/public/fortius-inmuebles-public/a.pdf" })).rejects.toMatchObject({ code: "PT400" });
 });
 
 test("las notas las sella la base y no se cambian las ajenas", async () => {
@@ -112,7 +127,11 @@ test("quedar en espera crea la tarea de volver a preguntar, una sola vez", async
   await as(ana, async () => {
     t = await put("tr-5", { ...t.data, espera: { quien: "Infonavit", desde: "2026-11-14", volver: "2026-11-21" } }, t.version);
     t = await put("tr-5", { ...t.data, credito: { numero: "123" } }, t.version);
-    const tareas = (await db.query<{ id: string; data: Record<string, string> }>("select id,data from public.fortius_inmuebles_records where collection='tareas' and data->>'tramiteId'='tr-5'")).rows;
+    // Guardar dos veces, o quitar y volver a poner la espera el mismo día, no duplica la tarea.
+    t = await put("tr-5", { ...t.data }, t.version);
+    t = await put("tr-5", { ...t.data, espera: null }, t.version);
+    t = await put("tr-5", { ...t.data, espera: { quien: "Infonavit", desde: "2026-11-14", volver: "2026-11-21" } }, t.version);
+    const tareas = await tareasDe("tr-5");
     expect(tareas).toHaveLength(1);
     expect(tareas[0].data).toMatchObject({ vence: "2026-11-21", clienteId: "cli-ana", asesorId: "ase-ana", estado: "pendiente", categoria: "documentacion" });
     expect(tareas[0].data.titulo).toMatch(/Infonavit/);
@@ -128,4 +147,14 @@ test("enviar el avance queda registrado con la fecha de la base", async () => {
     expect(t.data.ultimoAvance?.fecha).not.toBe("2001-01-01");
     expect(t.data.notas.some(n => n.tipo === "evento" && /avance/.test(n.texto))).toBe(true);
   });
+});
+
+test("la migración se puede volver a correr sin cambiar nada", async () => {
+  const sql = await readFile(new URL("../../supabase/migrations/20261114211000_tramites.sql", import.meta.url), "utf8");
+  const firma = () => db.query<{ d: string }>("select string_agg(pg_get_functiondef(p.oid), '' order by p.proname) d from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('fortius_inmuebles_validate_record','fortius_inmuebles_delete_record','fortius_inmuebles_record_visible','fortius_inmuebles_guard_private_record')").then(x => x.rows[0].d);
+  const antes = await firma();
+  await db.exec(sql);
+  expect(await firma()).toBe(antes);
+  const t = await as(ana, () => put("tr-7", base("tr-7"), null));
+  expect(t.version).toBe(1);
 });

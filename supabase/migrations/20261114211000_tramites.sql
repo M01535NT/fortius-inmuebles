@@ -98,11 +98,27 @@ declare actor uuid:=auth.uid(); admin boolean; stamp text:=to_char(clock_timesta
  prev jsonb:='{}'::jsonb; antes integer:=0; ahora integer; pasos jsonb:='[]'::jsonb; p jsonb; op jsonb; i integer;
  notas jsonb:='[]'::jsonb; vieja jsonb; n jsonb; eventos text[]:='{}'; texto text; k integer:=0; espera_id text; nombre text;
 begin
+ -- La prueba de un paso cerrado no se quita (borrar o desligar) mientras sea la única: primero se reabre el paso.
+ if tg_op<>'INSERT' and old.collection='archivos' and coalesce(old.data->>'tramiteId','')<>'' and coalesce(old.data->>'pasoClave','')<>''
+   and (tg_op='DELETE' or new.data->>'tramiteId' is distinct from old.data->>'tramiteId' or new.data->>'pasoClave' is distinct from old.data->>'pasoClave')
+   and exists(select 1 from public.fortius_inmuebles_records t where t.collection='tramites' and t.id=old.data->>'tramiteId'
+     and (t.data->>'pasoActual')::int > coalesce(array_position(array['datos','liquidado','carta','notario','firma','registro','certificado','entrega'],old.data->>'pasoClave'),99)-1)
+   and not exists(select 1 from public.fortius_inmuebles_records a where a.collection='archivos' and a.id<>old.id
+     and a.data->>'tramiteId'=old.data->>'tramiteId' and a.data->>'pasoClave'=old.data->>'pasoClave') then
+  raise sqlstate 'PT409' using message='Este documento cerró un paso del trámite; reabre el paso antes de quitarlo';
+ end if;
+ if tg_op='DELETE' and old.collection='archivos' then return old; end if;
  -- Documentos del trámite: solo de un trámite existente del mismo cliente.
  if tg_op<>'DELETE' and new.collection='archivos' then
   if coalesce(new.data->>'tramiteId','')<>'' and not exists(select 1 from public.fortius_inmuebles_records t
     where t.collection='tramites' and t.id=new.data->>'tramiteId' and t.data->>'clienteId'=new.data->>'clienteId') then
    raise sqlstate 'PT400' using message='El documento debe ser de un trámite del mismo cliente';
+  end if;
+  -- Los comprobantes del trámite (saldo, cartas, escrituras) solo viven en el almacenamiento privado.
+  if coalesce(new.data->>'tramiteId','')<>'' and (coalesce(new.data->>'visibility','')<>'private'
+    or coalesce(new.data->>'bucket','fortius-inmuebles-private')<>'fortius-inmuebles-private'
+    or coalesce(new.data->>'url','') ~* '/storage/v1/object/public/') then
+   raise sqlstate 'PT400' using message='Los documentos de un trámite van al archivo privado';
   end if;
   return new;
  end if;
