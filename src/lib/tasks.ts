@@ -12,6 +12,8 @@ export const taskSchema = z.object({
   estado: z.enum(Object.keys(TASK_STATUSES) as [keyof typeof TASK_STATUSES, ...Array<keyof typeof TASK_STATUSES>]),
   prioridad: z.enum(Object.keys(TASK_PRIORITIES) as [keyof typeof TASK_PRIORITIES, ...Array<keyof typeof TASK_PRIORITIES>]),
   vence: calendarDate.or(z.literal("")).optional(), expedienteId: z.uuid().transform((value) => value.toLowerCase()).or(z.literal("")).optional(), asesorId: reference, leadId: reference, clienteId: reference, propiedadSlug: reference,
+  // TRA-01: la tarea de un trámite (p. ej. «Volver a preguntar») lo lleva para abrirlo desde «Hoy».
+  tramiteId: reference,
   // Los renglones del checklist de documentos (COR-06) además pueden no aplicar con motivo, estar por confirmar o ligar un documento del cliente.
   pasos: z.array(z.object({ id, texto: z.string().trim().min(1).max(500), hecho: z.boolean(),
     noAplica: z.string().trim().max(500).optional(), porConfirmar: z.string().trim().max(200).optional(), aplica: z.boolean().optional(), archivoId: z.uuid().optional() })).max(100).default([]),

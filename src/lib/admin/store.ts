@@ -3,6 +3,7 @@
 import * as React from "react";
 import type { Cliente, StaffUser, StoredRecord } from "@/lib/backend/contracts";
 import type { Task } from "@/lib/tasks";
+import type { Tramite } from "@/lib/tramites";
 export type { Cliente } from "@/lib/backend/contracts";
 export * from "@/lib/domain/records";
 import { conflictFields, mergeChoice, type ConflictField, type ConflictSide } from "@/lib/admin/conflict";
@@ -366,6 +367,7 @@ function collection<T extends object>(
 const byId = <T extends { id: string }>(item: T) => item.id;
 export const db = {
   tareas: collection<Task>("tareas", byId),
+  tramites: collection<Tramite>("tramites", byId),
   propiedades: collection<AdminProperty>("propiedades", (item) => item.slug),
   asesores: collection<Asesor>("asesores", byId),
   leads: collection<Lead>("leads", byId),
