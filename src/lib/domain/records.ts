@@ -132,6 +132,8 @@ export type Evento = {
   expedienteId?: string;
   asesorId?: string;
   notas?: string;
+  /** TRA-01: cita de un trámite. */
+  tramiteId?: string;
 };
 
 export type Nota = {
@@ -179,6 +181,10 @@ export type Archivo = {
   bucket?: "fortius-inmuebles-private" | "fortius-inmuebles-public";
   path?: string;
   visibility?: "private" | "public";
+  /** TRA-01: documento privado de un trámite; la base exige el mismo cliente del trámite. */
+  clienteId?: string;
+  tramiteId?: string;
+  pasoClave?: string;
 };
 
 export type PreguntaFrecuente = {

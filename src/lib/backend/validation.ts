@@ -6,6 +6,7 @@ import { leadProfileSchema } from "@/lib/lead-profile";
 import { buyerNoticesSchema, keysSchema, prepSchema, PRIVATE_PROPERTY_FIELDS } from "@/lib/propiedad-seguimiento";
 import { LEAD_CANALES } from "@/lib/domain/records";
 import { taskSchema } from "@/lib/tasks";
+import { tramiteSchema } from "@/lib/tramites";
 import { TEMPLATE_IDS, TEMPLATE_MAX, templateProblems } from "@/lib/admin/message-templates";
 import { TOPE_IA_MAXIMO } from "./ia-tope";
 import { datosFortiusSchema } from "./datos-fortius";
@@ -97,6 +98,7 @@ const recordSchemas = {
   posts: postSchema,
   archivos: z.object({ id, nombre: name, url: safeUrl, tipo: z.enum(["imagen", "pdf", "video", "otro"]), notas: text.optional(), bucket: z.enum(["fortius-inmuebles-private", "fortius-inmuebles-public"]).optional(), path: z.string().max(300).optional(), visibility: z.enum(["private", "public"]).optional() }).passthrough(),
   contenido: contentSchema,
+  tramites: tramiteSchema,
   config: settingsSchema,
 };
 

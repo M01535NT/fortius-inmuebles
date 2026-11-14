@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, Building2, ExternalLink, FileDown, Link2, ShieldCheck, Wallet } from "@/components/admin/icons";
+import { ArrowRight, Building2, ExternalLink, FileDown, Link2, Route, ShieldCheck, Wallet } from "@/components/admin/icons";
 import { SELLER_ISR_RULES } from "@/data/financial-rules";
 import { APP_GROUPS, RETIRED_APPS, activeApps, appHref, type AppDefinition } from "@/lib/apps/catalog";
 import { ButtonLink } from "@/components/admin/kit";
@@ -22,6 +22,8 @@ const SHORTCUTS = [
   { href: "/admin/apps/neto-propietario", title: "ISR y neto", text: "Cuánto le queda al propietario al precio sugerido, con el ISR estimado.", Icon: Wallet },
   // PUB-02 (RP-95): alta de un inmueble de otra inmobiliaria, con su autorización escrita.
   { href: "/admin/propiedades/nueva?origen=compartido", title: "Inmueble compartido", text: "De otra inmobiliaria, con su autorización para publicarlo.", Icon: Link2 },
+  // TRA-01: trámites aparte de la venta, por pasos. El primero: cancelación de hipoteca.
+  { href: "/admin/tramites", title: "Trámites", text: "Cancelación de hipoteca paso a paso, con documentos, notas y el avance para el propietario.", Icon: Route },
 ] as const;
 
 /*
