@@ -1,6 +1,6 @@
 /* Vender (30/10/2026): retícula, bandas crema/blanco/azul y letra en 400/600/700. */
 .vd { --vd-line: color-mix(in srgb, var(--foreground) 14%, transparent); --vd-cream: #f8f8ff; --vd-cream-line: #c9d1dc; }
-.dark .vd { --vd-cream: #0c1622; --vd-cream-line: rgba(248, 248, 255, 0.16); }
+.dark .vd { --vd-cream: #0c1724; --vd-cream-line: rgba(248, 248, 255, 0.16); }
 .vd #pasos, .vd #diagnostico, .vd #entrevista, .vd #precio-y-condiciones { scroll-margin-top: 88px; }
 .vd-section { padding-block: clamp(64px, 8vw, 120px); }
 
