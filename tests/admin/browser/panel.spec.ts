@@ -66,10 +66,10 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         await tabs.getByRole("link", { name: "Contactos" }).click();
       } else {
         const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-        for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Más"])
+        for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"])
           await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
         await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
-        await expect(page.getByRole("link", { name: "Administración", exact: true })).toHaveAttribute("href", "/admin/asesores");
+        await expect(page.locator("#admin-account-menu").getByRole("link", { name: "Administración", exact: true })).toHaveAttribute("href", "/admin/asesores");
         await page.screenshot({ path: testInfo.outputPath("navigation-" + width + ".png"), fullPage: true });
         await page.keyboard.press("Escape");
         await nav.getByRole("link", { name: "Contactos" }).click();
