@@ -44,7 +44,15 @@ describe("promesa 15: pago en efectivo (LFPIORPI art. 32)", () => {
     expect(mostrarCampoPromesa("medioGarantia", garantia)).toBe(true);
     expect(validarPromesa(garantia, false)).toContain(formatoById("15").fields.find(f => f.key === "medioGarantia")!.label);
     expect(bloqueo({ ...garantia, medioGarantia: "transferencia" })).toEqual([]);
-    expect(bloqueo({ ...garantia, medioGarantia: "efectivo" })[0]).toMatch(new RegExp(`^${LIMITE}`));
+    // Con el calendario incompleto, la garantía en efectivo sí se suma al efectivo del precio.
+    expect(bloqueo({ ...garantia, pagosPrecio: [pago(500000, "efectivo")], medioGarantia: "efectivo" })[0]).toMatch(new RegExp(`^${LIMITE}`));
+  });
+
+  it("si el calendario ya cubre el precio, la garantía que se abona al precio no se cuenta dos veces", () => {
+    // Ejemplo de Metodología: garantía de $300,000 en efectivo ya incluida en el calendario; efectivo real $700,000.
+    const abonada = { ...conPagos(pago(300000, "efectivo"), pago(400000, "efectivo"), pago(300000, "transferencia")), garantia: 300000, fechaGarantia: "2026-11-01", medioGarantia: "efectivo", receptorGarantia: promesaSample.vendedor, cuentaGarantia: "Cuenta de muestra", custodioTipo: "parte" };
+    expect(bloqueo(abonada)).toEqual([]);
+    expect(validarPromesa(abonada, false).some(e => e.startsWith(LIMITE))).toBe(false);
   });
 
   it("el medio de la garantía y el tipo de cambio se capturan desde sus cláusulas", () => {

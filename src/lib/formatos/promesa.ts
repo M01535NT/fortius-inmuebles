@@ -63,10 +63,16 @@ export const PROMESA_TABLES = {
 } as const;
 export type PromesaTable = keyof typeof PROMESA_TABLES;
 
-/** Pagos de la operación que revisa la regla del efectivo: los del precio y la garantía, si se pacta. */
+/**
+  Pagos de la operación que revisa la regla del efectivo: los del precio y, si se pacta, la garantía.
+  Metodología (13/11/2026): la garantía se abona al precio por acuerdo escrito; si el calendario ya cubre
+  el precio completo, ese dinero ya está en sus filas y sumarla otra vez bloquearía operaciones legales.
+*/
 export function pagosPromesa(data: Record<string, unknown>): PagoOperacion[] {
   const pagos: PagoOperacion[] = Array.isArray(data.pagosPrecio) ? data.pagosPrecio.filter((row): row is Record<string, unknown> => !!row && typeof row === "object") : [];
-  return typeof data.garantia === "number" && data.garantia > 0 ? [...pagos, { importe: data.garantia, fecha: data.fechaGarantia, medio: data.medioGarantia }] : pagos;
+  if (!(typeof data.garantia === "number" && data.garantia > 0)) return pagos;
+  const cubre = amount(data.precio) && pagos.length > 0 && pagos.every((pago) => amount(pago.importe)) && pagos.reduce((sum, pago) => sum.add(pago.importe as number), new Decimal(0)).equals(data.precio);
+  return cubre ? pagos : [...pagos, { importe: data.garantia, fecha: data.fechaGarantia, medio: data.medioGarantia }];
 }
 
 export function mostrarCampoPromesa(key: string, data: Record<string, unknown>): boolean {
