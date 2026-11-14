@@ -122,6 +122,8 @@ it('asks to withdraw the listing when the intermediation contract ends, without 
   expect(await published('m01-terminado')).toBe(true);
   const tasks=(await db.query<{d:{titulo:string;estado:string;asesorId:string;propiedadSlug:string;prioridad:string}}>("select data d from public.fortius_inmuebles_records where collection='tareas' and data->>'expedienteId'=$1 and data->>'titulo' like 'Retirar del sitio%'",[id])).rows;
   expect(tasks).toHaveLength(1);
+  // Uno por terminación: el id lleva la fecha, por si la operación firma otro contrato y lo vuelve a terminar.
+  expect((await db.query<{id:string}>("select id from public.fortius_inmuebles_records where collection='tareas' and data->>'expedienteId'=$1 and data->>'titulo' like 'Retirar del sitio%'",[id])).rows[0].id).toBe(`retiro-${id}-2026-11-13`);
   expect(tasks[0].d).toMatchObject({estado:'pendiente',asesorId:'own',propiedadSlug:'m01-terminado',prioridad:'urgente'});
   // Otro guardado no repite el aviso.
   await update(id,'negociacion',{...(await flowOf(id)),motivo:'Seguimiento de la terminación'});
