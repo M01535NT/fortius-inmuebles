@@ -234,7 +234,8 @@ test("blog metadata uses the stored title, summary and canonical slug", async ()
     alternates: { canonical: "/blog/guia-de-compra" },
     openGraph: { url: `${siteConfig.url}/blog/guia-de-compra` },
   });
-  expect(await generatePostMetadata({ params: Promise.resolve({ slug: "borrador-interno" }) })).toEqual({});
+  // Un borrador o un artículo inexistente no filtra su título y no se indexa.
+  expect(await generatePostMetadata({ params: Promise.resolve({ slug: "borrador-interno" }) })).toEqual({ title: "Artículo no encontrado", robots: { index: false, follow: true } });
 });
 
 test("sitemap dates come from records while static routes have no fabricated lastModified", async () => {

@@ -163,7 +163,7 @@ export const SITE_COPY: Omit<SiteContent, "homeTexts" | "preguntas" | "testimoni
   heroSubtitulo: "Somos una inmobiliaria en Baja California. Comercializamos inmuebles residenciales, comerciales e industriales con análisis de mercado, revisión documental y seguimiento de la operación.",
   manifiestoTitulo: "Información para decidir.\nUn equipo para coordinar.",
   manifiestoTexto: "Por qué ese precio y con qué se comparó.",
-  seoTitle: "Inmobiliaria en Tijuana, Rosarito, Tecate y Ensenada",
+  seoTitle: "Inmobiliaria en Tijuana, Rosarito, Tecate y Ensenada | Fortius",
   seoDescription: "Te ayudamos a vender o comprar casa en Tijuana, Rosarito, Tecate y Ensenada, con documentos revisados, precio con datos y cada paso por escrito. Escríbenos.",
 };
 
@@ -173,7 +173,7 @@ const LEGACY: Partial<Record<keyof typeof SITE_COPY, string[]>> = {
   heroSubtitulo: ["En Fortius te ayudamos a comparar propiedades, coordinar visitas y negociar las condiciones de tu compra o venta. Tu asesor reúne la información y da seguimiento a la operación para que puedas decidir.", "Trabajamos en Tijuana, Rosarito, Tecate y Ensenada. Revisamos los documentos, proponemos el precio de venta y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.", "Proponemos el precio de venta, revisamos los documentos y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.", "Revisamos la documentación, analizamos el mercado y acordamos contigo cómo presentar la propiedad. Durante la venta, recibes seguimiento por escrito y acompañamiento para evaluar las ofertas.", "Precio con datos, expediente revisado y seguimiento por escrito. De la captación a la firma ante notario, en Tijuana y Baja California."],
   manifiestoTitulo: ["Información para decidir.\nUn asesor para coordinar.", "Cómo proponemos\nel precio de venta.", "Cada decisión,\ncon información.", "No prometemos resultados. Documentamos el proceso.", "No nos limitamos a tomar fotos. Creamos un proceso."],
   manifiestoTexto: ["Por qué ese precio y con qué propiedades se comparó.", "Conoce qué información sustenta la propuesta y qué falta por confirmar.", "Comparamos ubicación, superficie y estado con propiedades similares. Te explicamos las referencias utilizadas y distinguimos precios anunciados de ventas documentadas cuando hay datos disponibles.", "Conoce el precio propuesto, los documentos pendientes y los siguientes pasos. El plan se acuerda contigo y el avance queda por escrito.", "Cada operación sigue el mismo método por escrito, de la captación a la firma. Por eso siempre sabes en qué paso va la tuya, y qué sigue después."],
-  seoTitle: ["Fortius Inmuebles | Venta en Tijuana, Rosarito, Tecate y Ensenada", "MNT Inmuebles | Venta de propiedades en Tijuana", "MNT Inmuebles | Metodología Inmobiliaria", "MNT Inmuebles | Vende tu propiedad en Tijuana con método"],
+  seoTitle: ["Inmobiliaria en Tijuana, Rosarito, Tecate y Ensenada", "Fortius Inmuebles | Venta en Tijuana, Rosarito, Tecate y Ensenada", "MNT Inmuebles | Venta de propiedades en Tijuana", "MNT Inmuebles | Metodología Inmobiliaria", "MNT Inmuebles | Vende tu propiedad en Tijuana con método"],
 };
 
 /** Exact legacy matches only: bespoke staff edits always win, including after rollout. */

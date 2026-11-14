@@ -39,7 +39,8 @@ export const revalidate = 0;
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const property = await getPropertyBySlug(slug);
-  if (!property) return {};
+  // Sin esto, la pestaña del 404 terminaba con el título del inicio.
+  if (!property) return { title: "Propiedad no encontrada", robots: { index: false, follow: true } };
   return propertyShareMetadata(property);
 }
 
