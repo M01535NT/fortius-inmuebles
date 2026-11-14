@@ -4,14 +4,15 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { nuevoTramite, type Tramite } from "@/lib/tramites";
 
 /* TRA-01 · pantalla de Trámites: el paso se cierra solo con sus pendientes y su documento, y cerrar ofrece Deshacer. */
-const data = vi.hoisted(() => ({ tramites: [] as unknown[], archivos: [] as unknown[], upsert: vi.fn() }));
+const data = vi.hoisted(() => ({ tramites: [] as unknown[], archivos: [] as unknown[], upsert: vi.fn(), role: "admin", ventas: [] as unknown[] }));
 vi.mock("@/lib/admin/store", async importOriginal => {
   const actual = await importOriginal<typeof import("@/lib/admin/store")>();
   return {
     ...actual,
     useCollection: (col: unknown) => col === actual.db.tramites ? data.tramites : col === actual.db.archivos ? data.archivos : [],
     useLoadState: () => ({ status: "ready", error: null }),
-    useSession: () => ({ id: "u1", name: "Ana Asesora", email: "ana@example.invalid", role: "admin" }),
+    useSession: () => ({ id: "u1", name: "Ana Asesora", email: "ana@example.invalid", role: data.role }),
+    loadAllDossiers: () => Promise.resolve(data.ventas),
     apiRequest: () => Promise.resolve({ asesorId: "a1" }),
     upsert: (...args: unknown[]) => data.upsert(...args),
   };
@@ -22,7 +23,7 @@ import { TramitesApp } from "@/components/admin/tramites/tramites-app";
 const base = (acreedor: "infonavit" | "banco" = "infonavit") => nuevoTramite({ id: "tr-1", acreedor, titulo: "Casa de ejemplo", clienteId: "cli-1", asesorId: "a1" });
 const withStep = (t: Tramite, paso: number, hechos: boolean[]): Tramite => ({ ...t, pasoActual: paso, pasos: t.pasos.map((p, i) => i !== paso ? p : { ...p, pendientes: p.pendientes.map((x, j) => ({ ...x, hecho: !!hechos[j] })) }) });
 
-beforeEach(() => { data.upsert.mockReset(); data.upsert.mockImplementation((_c: unknown, item: unknown) => Promise.resolve(item)); data.archivos = []; });
+beforeEach(() => { data.upsert.mockReset(); data.upsert.mockImplementation((_c: unknown, item: unknown) => Promise.resolve(item)); data.archivos = []; data.role = "admin"; data.ventas = []; });
 afterEach(cleanup);
 
 test("con pendientes sin marcar no se cierra el paso y marcar uno guarda el cambio", async () => {
@@ -56,4 +57,46 @@ test("un paso con documento no se cierra hasta subirlo, aunque los pendientes es
   data.archivos = [{ id: "ar-1", nombre: "carta.pdf", url: "private/carta.pdf", tipo: "pdf", visibility: "private", clienteId: "cli-1", tramiteId: "tr-1", pasoClave: "carta" }];
   render(<TramitesApp initialId="tr-1" />);
   expect((screen.getByRole("button", { name: /Cerrar el paso/ }) as HTMLButtonElement).disabled).toBe(false);
+});
+
+/* TRA-01 · freno de la firma: solo el director decide firmar la venta sin la cancelación inscrita. */
+const VENTA = "11111111-1111-4111-8111-111111111111";
+const ligado = (extra: Partial<Tramite> = {}): Tramite => ({ ...base(), expedienteId: VENTA, ...extra });
+
+test("el director autoriza firmar sin la cancelación con un motivo de al menos 10 caracteres", async () => {
+  data.ventas = [{ id: VENTA, folio: "OP-0001", operacion: "venta", cliente_id: "cli-1" }];
+  data.tramites = [ligado()];
+  render(<TramitesApp initialId="tr-1" />);
+  expect(await screen.findByRole("link", { name: "Venta OP-0001" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Firmar sin la cancelación" }));
+  const motivo = screen.getByLabelText("Motivo de firmar sin ella");
+  fireEvent.change(motivo, { target: { value: "corto" } });
+  expect((screen.getByRole("button", { name: "Autorizar" }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.change(motivo, { target: { value: "  El comprador paga de contado y acepta  " } });
+  fireEvent.click(screen.getByRole("button", { name: "Autorizar" }));
+  await waitFor(() => expect(data.upsert).toHaveBeenCalledTimes(1));
+  expect((data.upsert.mock.calls[0][1] as Tramite).firmaSinCancelacion).toEqual({ motivo: "El comprador paga de contado y acepta" });
+});
+
+test("la autorización muestra quién y cuándo, y el director la puede quitar", async () => {
+  data.tramites = [ligado({ firmaSinCancelacion: { motivo: "El comprador paga de contado", autorizadoPor: "u1", autorizadoEl: "2026-11-14T18:00:00Z" } })];
+  render(<TramitesApp initialId="tr-1" />);
+  expect(screen.getByText(/Se firma sin la cancelación inscrita/)).toBeTruthy();
+  expect(screen.getByText(/Lo autorizaste tú/)).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Quitar la autorización" }));
+  await waitFor(() => expect(data.upsert).toHaveBeenCalledTimes(1));
+  expect((data.upsert.mock.calls[0][1] as Tramite).firmaSinCancelacion).toBeNull();
+});
+
+test("el asesor ve el estado pero no la acción del director", () => {
+  data.role = "editor";
+  data.tramites = [ligado()];
+  const { unmount } = render(<TramitesApp initialId="tr-1" />);
+  expect(screen.getByText(/La firma de la venta espera/)).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Firmar sin la cancelación" })).toBeNull();
+  unmount();
+  data.tramites = [ligado({ firmaSinCancelacion: { motivo: "El comprador paga de contado", autorizadoPor: "u9", autorizadoEl: "2026-11-14T18:00:00Z" } })];
+  render(<TramitesApp initialId="tr-1" />);
+  expect(screen.getByText(/Lo autorizó el director/)).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Quitar la autorización" })).toBeNull();
 });

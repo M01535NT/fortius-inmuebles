@@ -4,12 +4,15 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Check, ChevronLeft, ChevronRight, FileText, MessageCircle, Phone, Plus, Star, Trash2, Upload, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
 import { Button, Kbd, Notice, Pill, Segmented, Sheet } from "@/components/admin/kit";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
-import { apiRequest, archivoFromUpload, db, errorMessage, resolveFileUrl, uid, upsert, uploadFile, useCollection, useLoadState, useSession } from "@/lib/admin/store";
+import { apiRequest, archivoFromUpload, db, errorMessage, loadAllDossiers, resolveFileUrl, uid, upsert, uploadFile, useCollection, useLoadState, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import type { Archivo, Evento } from "@/lib/domain/records";
 import type { Task } from "@/lib/tasks";
 import { ACREEDORES, PASO_CLAVES, conNotario, TOTAL_PASOS, documentoDelPaso, faltanParaCerrar, nuevoTramite, pasosDe, textoDelAvance, type Acreedor, type Tramite, type TramiteNota } from "@/lib/tramites";
 import { cn } from "@/lib/utils";
+import { useIsDirector } from "@/lib/admin/staff-scope";
+import { operationHref, type OperationRecord } from "@/lib/admin/operation-view";
+import { cancelacionInscrita, MOTIVO_MINIMO } from "@/lib/admin/tramite-firma";
 import s from "./tramites.module.css";
 
 /*
@@ -108,6 +111,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
   const [report, setReport] = React.useState(false);
   const [viewer, setViewer] = React.useState<number | null>(null);
   const noteRef = React.useRef<HTMLTextAreaElement>(null);
+  const director = useIsDirector();
 
   // Guarda con la versión vigente; la base revisa y devuelve el trámite sellado.
   const save = React.useCallback(async (next: Tramite) => {
@@ -295,6 +299,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
             <div className={s.kvRow}><span>Último avance</span><span>{t.ultimoAvance?.fecha ? shortDate(t.ultimoAvance.fecha) : "Sin enviar"}</span></div>
           </div>
         </div>
+        <VentaLigada t={t} busy={busy} director={director} sessionId={sessionId} today={today} save={save} />
         {t.estado === "en_curso" && <Button variant="ghost" disabled={busy} onClick={async () => { const saved = await save({ ...t, estado: "cancelado" }); if (saved) offer({ text: "Trámite cancelado", undo: async () => { const l = db.tramites.list().find(r => r.id === t.id) ?? saved; await upsert(db.tramites, { ...l, estado: "en_curso" }, db.tramites.version(l)); } }); }}>Cancelar el trámite</Button>}
         {me === null && <p className={s.meta}>Como director ves todos los trámites del equipo.</p>}
       </aside>
@@ -312,6 +317,58 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
       onSent={async medio => { await save({ ...t, ultimoAvance: { medio } }); }} />
     {viewer !== null && documentos[viewer] && <Visor docs={documentos} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} />}
   </>;
+}
+
+/*
+  TRA-01 · la venta ligada: el trámite frena su firma hasta inscribir la cancelación en el Registro
+  Público. Solo el director decide firmar sin ella (con su motivo) o retira esa decisión; la base
+  sella quién y cuándo y lo deja en la actividad. El asesor ve el estado, no la acción.
+*/
+function VentaLigada({ t, busy, director, sessionId, today, save }: { t: Tramite; busy: boolean; director: boolean; sessionId: string; today: string; save: (next: Tramite) => Promise<Tramite | null> }) {
+  const [ventas, setVentas] = React.useState<OperationRecord[] | null>(null);
+  const [motivo, setMotivo] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    let alive = true;
+    loadAllDossiers<OperationRecord>().then(all => { if (alive) setVentas(all.filter(o => o.operacion === "venta" && (o.id === t.expedienteId || o.cliente_id === t.clienteId))); }).catch(() => { if (alive) setVentas([]); });
+    return () => { alive = false; };
+  }, [t.expedienteId, t.clienteId]);
+  const venta = ventas?.find(o => o.id === t.expedienteId);
+  const decision = t.firmaSinCancelacion;
+  const limpio = (motivo ?? "").trim();
+  async function autorizar() {
+    if (limpio.length < MOTIVO_MINIMO) return;
+    if (await save({ ...t, firmaSinCancelacion: { motivo: limpio } })) setMotivo(null);
+  }
+  return <div className={s.blk}>
+    <div className={s.blkHead}><h5>Venta ligada</h5></div>
+    {!t.expedienteId
+      ? ventas === null ? <p className={s.meta}>Buscando ventas del propietario…</p>
+        : ventas.length ? <label className={s.kvRow}><span>Ligar a</span>
+            <select className={s.kvInput} disabled={busy} value="" onChange={e => { if (e.target.value) void save({ ...t, expedienteId: e.target.value }); }}>
+              <option value="">Elegir venta</option>{ventas.map(o => <option key={o.id} value={o.id}>{o.folio}{o.unidad ? ` · ${o.unidad}` : ""}</option>)}
+            </select></label>
+        : <p className={s.meta}>El propietario no tiene ventas en el panel.</p>
+      : <div className={s.firma} data-estado={cancelacionInscrita(t) ? "inscrita" : decision ? "autorizada" : "frena"}>
+          <p className={s.firmaVenta}>{venta ? <Link href={operationHref(venta.id)}>Venta {venta.folio}</Link> : "Venta de la operación"}</p>
+          {cancelacionInscrita(t) ? <p>La cancelación quedó inscrita; la firma puede seguir.</p>
+            : decision ? <>
+                <p><b>Se firma sin la cancelación inscrita.</b> {decision.motivo}</p>
+                <p className={s.meta}>{decision.autorizadoPor && decision.autorizadoPor === sessionId ? "Lo autorizaste tú" : "Lo autorizó el director"}{decision.autorizadoEl ? ` · ${shortDate(decision.autorizadoEl)}` : ""}</p>
+                {director && <Button variant="ghost" disabled={busy} onClick={() => void save({ ...t, firmaSinCancelacion: null })}>Quitar la autorización</Button>}
+              </>
+            : <>
+                <p>La firma de la venta espera a que el Registro Público inscriba la cancelación.</p>
+                {director && (motivo === null
+                  ? <Button disabled={busy} onClick={() => setMotivo("")}>Firmar sin la cancelación</Button>
+                  : <div className="grid gap-2">
+                      <label className="grid gap-1 text-sm font-semibold" htmlFor={`motivo-${t.id}`}>Motivo de firmar sin ella</label>
+                      <textarea id={`motivo-${t.id}`} className={s.firmaMotivo} rows={3} maxLength={1000} autoFocus value={motivo} aria-describedby={`motivo-ayuda-${t.id}`} onChange={e => setMotivo(e.target.value)} />
+                      <span id={`motivo-ayuda-${t.id}`} className={s.meta}>{limpio.length < MOTIVO_MINIMO ? `Al menos ${MOTIVO_MINIMO} caracteres (${limpio.length}).` : `Queda en la actividad con tu nombre y la fecha (${shortDate(today)}).`}</span>
+                      <div className="flex flex-wrap gap-2"><Button variant="primary" disabled={busy || limpio.length < MOTIVO_MINIMO} onClick={() => void autorizar()}>Autorizar</Button><Button variant="ghost" disabled={busy} onClick={() => setMotivo(null)}>Cancelar</Button></div>
+                    </div>)}
+              </>}
+        </div>}
+  </div>;
 }
 
 function waNumber(phone: string) { const d = phoneDigits(phone); return d.length === 10 ? `52${d}` : d; }

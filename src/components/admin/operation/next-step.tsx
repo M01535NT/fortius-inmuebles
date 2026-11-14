@@ -30,6 +30,8 @@ import { useIsDirector } from "@/lib/admin/staff-scope";
 import { ContractSignatureCard } from "./contract-signature";
 import { OwnerAppraisalCard } from "./owner-appraisal";
 import { CloseCard } from "./close-card";
+import { MortgageGateNotice } from "./mortgage-gate";
+import { esFrenoDeFirma } from "@/lib/admin/tramite-firma";
 import { EncargoDecisionCard, encargoTomado } from "./encargo-decision";
 import { PriorVisitCard } from "./prior-visit";
 import { moverOferta } from "./offer-link";
@@ -84,6 +86,8 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     return () => { alive = false; };
   }, [op.id, op.version]);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
+  // TRA-01: el servidor frenó la firma por la cancelación de hipoteca; se explica con la liga al trámite.
+  const [mortgageBlocked, setMortgageBlocked] = React.useState(false);
   const [sheet, setSheet] = React.useState<OpenSheet>(null);
   const flow = flowOf(op), owner = isOwnerRoute(flow.ruta);
   const { phase, labels, current } = routeStages(op, today);
@@ -121,7 +125,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     if (!target?.target || blockers.length) return;
     setBusy(true); setError(""); setNotice("");
     try { await onSave({ etapa: target.target }); setNotice(`Listo: la operación pasó a «${target.label}».`); window.scrollTo({ top: 0, behavior: "instant" }); }
-    catch (cause) { setError(`No se pudo avanzar: ${saveError(cause)}`); } finally { setBusy(false); }
+    catch (cause) { const message = saveError(cause); if (esFrenoDeFirma(message)) setMortgageBlocked(true); else setError(`No se pudo avanzar: ${message}`); } finally { setBusy(false); }
   }
   function goToPending(item: Extract<StageItem, { kind: "pendiente" }>) {
     if (item.place === "ajustes") onGoTo("ajustes");
@@ -233,6 +237,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   return <section aria-label="Esta etapa" className={s.grid}>
     {flow.estado !== "activa" && <p className={cn(s.span6, "font-semibold text-[var(--warning)]")}>Operación {flow.estado === "pausada" ? "en pausa" : flow.estado === "regularizacion" ? "en regularización" : "descartada"}{flow.motivo ? `: ${flow.motivo}` : ""}</p>}
     {locked && reviewsGroup.some(i => !i.earlier && CONTRACT_KEYS.includes(i.key)) && <div className={s.span6}><Notice tone="info">Primero dictamen jurídico, opinión de valor y decisión del encargo. Luego, contrato y preparación.</Notice></div>}
+    <MortgageGateNotice className={s.span6} operationId={op.id} operacion={op.operacion} stage={stageOf(op)} next={target?.target ?? null} blocked={mortgageBlocked} />
     {porConfirmar > 0 && <div className={s.span6}><Notice tone="info" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice></div>}
 
     {/* Boceto «desde cero» (14/11/2026): a la izquierda la etapa con lo que hay que confirmar y sus documentos; a la derecha la próxima tarea y el inmueble. */}
