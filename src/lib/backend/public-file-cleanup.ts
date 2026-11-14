@@ -9,9 +9,9 @@ import { createServerClient } from "./auth";
   Para que la eliminación sea recuperable, el archivo no se borra: se mueve al almacenamiento privado
   (`retirados/<ruta>`). Si después la misma dirección vuelve a un inmueble (por ejemplo, al copiar una
   versión anterior), al guardar regresa a su lugar público.
-  Solo se retira lo que estaba en el inmueble antes de guardar, ya no está, y ningún otro registro
-  (otro inmueble, el blog, la configuración, el contenido, un asesor, cualquier otro registro o algo
-  en Eliminados) usa. Si algo falla, el guardado sigue hecho; el archivo queda como estaba.
+  Solo se retira lo que estaba en el inmueble antes de guardar, ya no está, y nada más en la base usa:
+  otro inmueble o sus versiones, el blog, fichas de Herramientas, cartera, formatos, expedientes o algo
+  en Eliminados (función fortius_inmuebles_public_files_in_use). Si algo falla, el guardado sigue hecho; el archivo queda como estaba.
   Ensayo del 13/11/2026 en el Supabase de pruebas: la dirección deja de servir el archivo al momento, pero
   una copia que la caché pública ya tenía puede seguir viéndose hasta una hora (max-age=3600).
 */
@@ -40,7 +40,13 @@ export function removedPaths(from: unknown, to: unknown): string[] {
 
 export const retiredPath = (path: string) => `${RETIRED}${path}`;
 
-type Service = Pick<SupabaseClient, "from" | "storage">;
+/** Cómo puede aparecer la ruta dentro de un texto guardado: tal cual o codificada como en una dirección. */
+export function needles(path: string): string[] {
+  const prefix = `${PUBLIC_BUCKET}/`;
+  return [...new Set([path, encodeURI(path), path.split("/").map(encodeURIComponent).join("/")].map(item => prefix + item))];
+}
+
+type Service = Pick<SupabaseClient, "from" | "storage" | "rpc">;
 /** Cómo estaba el inmueble antes de guardar (data null si es nuevo). null si no se pudo leer: entonces no se toca nada. */
 export type PublicFilesSnapshot = { service: Service; data: unknown } | null;
 
@@ -72,15 +78,12 @@ export async function syncPublicFiles(before: PublicFilesSnapshot, propertyId: s
   const candidates = removedPaths(before.data, after);
   if (!candidates.length) return result;
   try {
-    const { data, error } = await service.from("fortius_inmuebles_records").select("collection,id,data");
-    if (error || !data) return result;
-    // Lo que está en Eliminados vive en el historial; si se restaura, sus fotos deben seguir ahí.
-    const trash = await service.from("fortius_inmuebles_record_history").select("snapshot").eq("action", "DELETE").is("restored_at", null);
-    if (trash.error || !trash.data) return result;
-    const inUse = new Set<string>();
-    for (const row of data as { collection: string; id: string; data: unknown }[])
-      if (!(row.collection === "propiedades" && row.id === propertyId)) publicPaths(row.data, inUse);
-    for (const row of trash.data as { snapshot: unknown }[]) publicPaths(row.snapshot, inUse);
+    // La base revisa todas sus tablas (fichas de Herramientas, cartera, formatos, historial…) de una vez:
+    // leer tabla por tabla desde aquí se corta en 1000 filas (C-59) y olvida tablas (C-60).
+    const byNeedle = new Map(candidates.flatMap(path => needles(path).map(needle => [needle, path] as const)));
+    const { data, error } = await service.rpc("fortius_inmuebles_public_files_in_use", { p_needles: [...byNeedle.keys()], p_property_id: propertyId });
+    if (error || !Array.isArray(data)) return result;
+    const inUse = new Set((data as string[]).map(needle => byNeedle.get(needle)));
     let errors = 0;
     for (const path of candidates.filter(item => !inUse.has(item))) {
       const { error: moveError } = await service.storage.from(PUBLIC_BUCKET).move(path, retiredPath(path), { destinationBucket: PRIVATE_BUCKET });

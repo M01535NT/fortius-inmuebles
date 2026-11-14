@@ -17,16 +17,12 @@ const after = { ...before, galeria: [{ src: url("inmuebles/casa/a.jpg") }], docu
 function service(options: { moveError?: boolean; listError?: boolean; stored?: unknown } = {}) {
   const moves: { bucket: string; from: string; to: string; destination?: string }[] = [];
   const remove = vi.fn();
-  const records = [
-    { collection: "propiedades", id: "casa", data: before },
-    { collection: "propiedades", id: "otra", data: { galeria: [{ src: url("inmuebles/casa/compartida.jpg") }] } },
-  ];
-  const trash = [{ snapshot: { portada: url("inmuebles/casa/en-eliminados.jpg") } }];
+  // La base responde qué rutas siguen en uso: la compartida con otro inmueble y la que está en Eliminados.
+  const inUse = ["fortius-inmuebles-public/inmuebles/casa/compartida.jpg", "fortius-inmuebles-public/inmuebles/casa/en-eliminados.jpg"];
+  const rpc = vi.fn(async (_name: string, args: { p_needles: string[] }) => options.listError ? { data: null, error: { message: "x" } } : { data: args.p_needles.filter(n => inUse.includes(n)), error: null });
   const from = vi.fn((table: string) => {
-    if (table === "fortius_inmuebles_records") return { select: (columns: string) => columns === "data"
-      ? { eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: options.stored === null ? null : { data: options.stored ?? before }, error: null }) }) }) }
-      : Promise.resolve(options.listError ? { data: null, error: { message: "x" } } : { data: records, error: null }) };
-    return { select: () => ({ eq: () => ({ is: async () => ({ data: trash, error: null }) }) }) };
+    if (table !== "fortius_inmuebles_records") throw new Error(table);
+    return { select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: options.stored === null ? null : { data: options.stored ?? before }, error: null }) }) }) }) };
   });
   const storage = { from: (bucket: string) => ({
     remove,
@@ -35,7 +31,7 @@ function service(options: { moveError?: boolean; listError?: boolean; stored?: u
       return { data: null, error: options.moveError || bucket === "fortius-inmuebles-private" && !fromPath.endsWith("vuelve.jpg") ? { message: "Object not found" } : null };
     },
   }) };
-  return { client: { from, storage } as never, moves, remove };
+  return { client: { from, storage, rpc } as never, moves, remove, rpc };
 }
 
 describe("archivos públicos quitados de un inmueble", () => {
