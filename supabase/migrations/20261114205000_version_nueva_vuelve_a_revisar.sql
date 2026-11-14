@@ -35,7 +35,10 @@ begin
  if cardinality(moved)=0 then return null; end if;
  who:=current_setting('request.jwt.claim.sub',true);
  perform set_config('request.jwt.claim.sub',coalesce(auth.uid(),new.created_by)::text,true);
+ -- Una corrección no retira la publicación (titular, 14/11/2026; lo aplica 20261114206000).
+ perform set_config('fortius.version_nueva','1',true);
  update public.fortius_inmuebles_expedientes set flujo=flow,version=version+1 where id=e.id;
+ perform set_config('fortius.version_nueva','',true);
  perform set_config('request.jwt.claim.sub',coalesce(who,''),true);
  insert into public.fortius_inmuebles_expediente_actividad(expediente_id,tipo,descripcion,created_by)
   values(e.id,'nota',left('Se emitió una versión nueva del formato '||d.formato_id||'; vuelve a revisar: '||array_to_string(moved,', '),1000),coalesce(auth.uid(),new.created_by));
