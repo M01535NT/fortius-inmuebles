@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { calendarDayOf } from "@/lib/admin/operational-date";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Check, docIcon, FileDown, FileText, House, PlayCircle, Plus, Trash2 } from "@/components/admin/icons";
 import Image from "next/image";
@@ -560,7 +561,8 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
   const prepared = runs?.filter(run => run.result != null);
   const entregas = [...(flow.entregasInforme ?? [])].sort((a, b) => b.fecha.localeCompare(a.fecha));
   const ultima = entregas[0];
-  const status = prepared || ultima ? ownerReportStatus(lastOwnerReport(flow, prepared?.[0]?.updatedAt), today) : undefined;
+  // C-90: una lista vacía de informes no es un informe; sin ninguno no hay estado que calcular.
+  const status = prepared?.length || ultima ? ownerReportStatus(lastOwnerReport(flow, prepared?.[0]?.updatedAt), today) : undefined;
   const [form, setForm] = React.useState<{ fecha: string; canal: EntregaInforme["canal"] | ""; responsable: string } | null>(null);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
   const abrir = () => { setNotice(""); setError(""); setForm({ fecha: today, canal: "", responsable: advisers.find(a => a.id === op.asesor_id)?.nombre ?? "" }); };
@@ -575,7 +577,8 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
     } catch (cause) { setError(saveError(cause)); } finally { setBusy(false); }
   }
   const lock = disabled || busy;
-  const preparado = prepared?.[0]?.updatedAt;
+  // C-91: el preparado se fecha con el día de Tijuana, no con el de UTC.
+  const preparadoEl = prepared?.[0]?.updatedAt, preparado = preparadoEl ? calendarDayOf(preparadoEl) : undefined;
   return <Card className="flex flex-col gap-2 p-5" aria-label="Informe al propietario">
     <h2 className="m-0 flex items-center gap-2 text-base"><FileText size={18} aria-hidden="true" />Informe mensual al propietario</h2>
     <p className={cn("text-sm", status && status.estado !== "al_dia" && s.lateText)}>{runs === undefined ? "Consultando informes…" : runs === null && !ultima ? "No se pudieron consultar los informes. Recarga la página para reintentar." : !status ? "Todavía no hay un informe preparado para esta operación."
@@ -584,7 +587,7 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
       <dt className="text-muted-foreground">Último preparado</dt><dd>{preparado ? shortDate(preparado) : "Ninguno"}</dd>
       <dt className="text-muted-foreground">Última entrega</dt><dd>{ultima ? `${shortDate(ultima.fecha)} · ${CANALES_INFORME[ultima.canal]} · ${ultima.responsable}` : "Sin registrar"}</dd>
     </dl>
-    {preparado && (!ultima || ultima.fecha < preparado.slice(0, 10)) && !form && <p className="text-sm text-[var(--warning)]">El último informe preparado todavía no se registra como entregado.</p>}
+    {preparado && (!ultima || ultima.fecha < preparado) && !form && <p className="text-sm text-[var(--warning)]">El último informe preparado todavía no se registra como entregado.</p>}
     {form ? <form onSubmit={registrar} className="mt-1 grid gap-2 sm:grid-cols-3" aria-label="Registrar entrega del informe">
       <label className="text-sm">Fecha de entrega<input type="date" className={inputClass} required max={today} value={form.fecha} disabled={lock} onChange={e => setForm({ ...form, fecha: e.target.value })} /></label>
       <label className="text-sm">Canal<select className={selectClass} required value={form.canal} disabled={lock} onChange={e => setForm({ ...form, canal: e.target.value as EntregaInforme["canal"] })}>
