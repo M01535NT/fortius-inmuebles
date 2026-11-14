@@ -1,6 +1,6 @@
 # Fortius — historial del plan de implementación del ERP/CRM
 
-**Qué es este archivo.** Guarda, sin cambios de redacción, las secciones de [`ROADMAP.md`](../../ROADMAP.md) que describen trabajo ya terminado o registros de sesiones pasadas. Se separó del plan el 11/11/2026 a pedido del titular para que el plan quede corto. **No es un plan ni una fuente de reglas:** si algo de aquí contradice al plan, manda el plan. Las referencias a ramas «sin integrar» son de su fecha: al 11/11/2026 todo lo registrado aquí está en `main`. El 13/11/2026 se retiraron del plan más secciones terminadas (§17 a §21); sus referencias a ramas también son de su fecha.
+**Qué es este archivo.** Guarda, sin cambios de redacción, las secciones del plan (hoy [`PLAN.md`](../../PLAN.md) y [`SPEC.md`](../../SPEC.md); antes `ROADMAP.md` y `PLAN_ERP_CRM.md`) que describen trabajo ya terminado o registros de sesiones pasadas. Se separó del plan el 11/11/2026 a pedido del titular para que el plan quede corto. **No es un plan ni una fuente de reglas:** si algo de aquí contradice al plan, manda el plan. Las referencias a ramas «sin integrar» son de su fecha: al 11/11/2026 todo lo registrado aquí está en `main`. El 13/11/2026 se retiraron del plan más secciones terminadas (§17 a §21); sus referencias a ramas también son de su fecha.
 
 **Cómo usarlo.** Consultarlo cuando haga falta saber cómo o por qué se construyó algo (por ejemplo, los candados FLUJO-04a, el encargo de la Fase C o qué se cotejó de cada formato). Al cerrar una entrega, su registro detallado se pasa del plan a este archivo, al final.
 
@@ -1355,3 +1355,330 @@ Después del PR #74 (commit `ff2e09c`) se comprobó en el código de `main` que 
 Viñeta retirada de los pendientes del plan el 13/11/2026, cuando el titular aprobó el PDF del 07:
 
 - **Formato 07:** diseño del cuerpo del PDF igual a la plantilla y fotografías dentro del Excel (portada, croquis y las ocho del reporte). Por confirmar con el titular si la captura sobre el documento (EXT-12) ya lo resolvió.
+
+## 23. Publicaciones del 13/11/2026: PR #74 y PR #75 (retiradas del tablero el 13/11/2026)
+
+### PR #74
+
+- **En `main`:** todo hasta el PR de `feat/integracion` del 13/11/2026, que reunió el trabajo de las siete sesiones en paralelo (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad); antes, el PR #73 (commit `c03504b`). Verificado en local antes de subir: `npm run verify` (lint, tipos, base 1071/1071, panel 521/521 y build), herramientas de respaldo 48/48, activos PDF, navegador público 72 (1 omitida), panel 52/52 y formulario público 5/5.
+- **Migraciones aplicadas en remoto con ese PR** (Seguridad las confirmó una por una en `schema_migrations` y en su contenido, 13/11/2026): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113124000_candado_de_arranque`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
+
+**Qué entró.**
+
+- **Panel:** IA-02 (tope de IA en Configuración); FCH-03 completo: los datos de Fortius se capturan en Configuración y los formatos 01 y 09 los toman de ahí, con el membrete fijo (decisión del titular, 13/11/2026); en Contenido ya no aparecen «Titular (H1)» ni «Subtítulo», que el sitio no usa (C-01, lo guardado se conserva); NAV-13, papelera «Eliminados»; «Lista de documentos» en lugar de «Checklist».
+- **Sistema visual:** escala tipográfica del sitio y del panel; tokens de espacio, botones, esquinas y colores, sin crema ni beige.
+- **Textos:** inicio, Vender y Nosotros; nombres unificados del sitio y del panel.
+- **SEO local:** zona de servicio Tijuana, Rosarito, Tecate y Ensenada; horario de lunes a viernes de 9 a 18 h; sin redes sociales; teléfono +52 664 221 2991.
+- **Seguridad:** cabeceras de seguridad; fotos sin EXIF ni GPS.
+- **Calidad:** hallazgos C-02 a C-26 corregidos, cada uno con su prueba.
+- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; el candado de arranque del propietario también en la base (M2); CSS y fuentes separados entre sitio y panel, y cada página pública carga solo sus estilos; video de portada ligero en celular (aprobado por el titular el 13/11/2026); el expediente completo incluye las copias firmadas.
+
+### PR #75 (commit `7c1d60e`)
+
+- **Lo que entró:** formato 20 (arrendamiento, DOC-14) en el cierre de la renta y en documentos sueltos; índice de la ficha siempre visible (decisión del titular del 13/11/2026, reemplaza I8); bloque 0, primera entrega de Seguridad: la copia diaria se detiene con aviso si la base y el código no tienen las mismas migraciones (causa de la falla del 13/11 a las 07:24), y se retira el permiso de ejecutar `rls_auto_enable` (único hallazgo del asesor de seguridad de Supabase); OBS-01: las fallas del servidor avisan a Sentry solo con la clase de falla, la ruta como plantilla y el número de rastreo, sin mensaje, pila, cuerpo ni datos de clientes (se activa cuando `FORTIUS_SENTRY_DSN` esté en Vercel); formato 21, contrato de intermediación para renta, ya usado en la etapa de contrato de la renta; formato 22, solicitud de arrendamiento con revisión del candidato y consentimiento para datos de ingresos y patrimonio con dos referencias (C-29 corregido); formato 23, inventario de entrega y devolución de la renta (Anexo 2 del 20); la operación ofrece el 22 al elegir arrendatario y el 23 en la entrega (C-28, 0dc5184); formato 24, compraventa a plazos con reserva de dominio (DOC-14, RP-97): calendario de pagos calculado y escritura pública obligatoria por encima de 10,000 UMA o con precio en dólares, umbral que debe confirmar el abogado, ofrecido como opcional en el cierre de la venta después de la promesa 15 (3264576) (los formatos 20 al 24 esperan al abogado; C-27 corregido: en la renta el respaldo sale del 21 y del 22, no de la entrevista); aviso «Cambios guardados» en recuadro verde con palomita, aprobado por el titular; sitio público corregido por la sesión de Correcciones UI/UX con las pruebas de Calidad (C-42, C-44 a C-49): filtros del inventario por URL, video de YouTube o Vimeo en la ficha, mapa por municipio, ficha vendida o rentada con aviso, formularios con avisos útiles y foco, Vender sin perder datos, calculadoras con tipo de cambio de 4 decimales, «Llamar» con +52 y objetivos táctiles de 44 px. Ronda del 13/11 por la tarde: el director reasigna operaciones desde la lista (M-04); la cartera de efectivo de la promesa 15 respeta el límite de la LFPIORPI y el aviso al SAT se lleva fuera del panel (decisión del titular); conservación del expediente de identificación por 10 años en el registro de privacidad, que debe confirmar el abogado; fallas C-50 a C-62, C-67 y la parte de servidor de C-68 corregidas con las pruebas de Calidad (C-63 a C-66, C-69, C-70 y la pantalla de C-68 siguen con Bloques); fechas del panel en el calendario de Tijuana; títulos del sitio con «| Fortius», aprobado por el titular. Después: C-63 a C-94 corregidos con las pruebas de Calidad (el asesor abre Eliminados, el tope de IA ya no se fija solo, un asesor inactivo no se asigna, fechas en el día de Tijuana y el asesor pausa o rechaza un encargo aceptado, DEC-48, y cambiar de pestaña con una tarea a medio escribir pregunta antes de descartarla); de la sesión de Correcciones UI/UX, aprobado por el titular: Hoy en dos columnas con resumen y pendientes por persona, archivos, leyenda de la agenda y operaciones en celular, y prospectos y clientes eliminados que se restauran desde Eliminados; M-06 en pantalla, el asesor ya no ve «No aplica» en depósito y garantías; colores del oscuro con azul noche `#0B1828`. El titular decidió el 13/11/2026 que terminar el contrato no despublica solo: avisa al asesor con una tarea urgente para retirar el inmueble, y retirarlo lo archiva sin borrar (RP-91; migración `20261114208000_terminacion_avisa_retiro`).
+- **Migraciones aplicadas al integrar** (la revisión de Supabase sobre `main` terminó bien; Seguridad confirmó en la base 180000, 100000 y 133000): `20261113150000_formato_20_arrendamiento`, `20261113160000_revocar_rls_auto_enable`, `20261113161000_formato_21_intermediacion_renta`, `20261113170000_formato_22_solicitud_arrendamiento`, `20261113171000_formato_23_inventario_renta`, `20261113172000_formato_24_compraventa_plazos`, `20261113180000_dos_pasos_del_director`, `20261114100000_preferencias_por_usuario`, `20261114110000_trabajos_en_inmueble_ajeno` (C-40: el titular permitió el 13/11/2026 ligar trabajos de Herramientas a cualquier inmueble; el inmueble ajeno sigue sin poder leerse), `20261114120000_captura_publica_sin_pistas` (C-43: el sitio ya no revela inmuebles ocultos ni prospectos registrados, y el teléfono solo admite dígitos y separadores), `20261114130000_trabajos_sin_congelar`, `20261114131000_entrevista_telefono_con_52`, `20261114132000_eliminar_trabajo_apaga_enlace` (eliminar un trabajo de QR apaga su enlace), `20261114133000_archivos_publicos_en_uso` (un archivo público que se quita de un inmueble pasa a una carpeta privada al guardar y se borra a los 30 días con una tarea diaria de Vercel que usa `CRON_SECRET`, ya creada por el titular en producción; decisión del titular), `20261114200000_retiro_al_terminar_contrato` (Metodología M-01 y M-02, aprobadas por el titular el 13/11/2026: el inmueble sale del sitio si el contrato de intermediación termina o vuelve a revisión, o si la operación regresa a captación o documentación, como pide RP-91), `20261114201000_comprador_caido_conserva_propietario` (M-03, aprobada por el titular: si se cae el comprador solo se rehace lo del comprador; cambiar inmueble, cliente, asesor o ruta sigue reiniciando todo), `20261114202000_reasignar_asesor` (M-04: solo el director pasa una operación a otro asesor, con motivo; quién captó el inmueble lo escribe solo la base), `20261114203000_identificacion_lfpiorpi` (M-05: en la compraventa, la identificación del cliente de la LFPIORPI se exige antes de pasar a firma, sin excepción; las operaciones en negociación tendrán que registrarla antes del cierre) y `20261114204000_renta_sin_garantia_director` (M-06: una renta sin depósito ni garantía la aprueba el director), `20261114205000_version_nueva_vuelve_a_revisar` (M-07: al emitir una versión nueva del documento, la revisión que respaldaba vuelve a «Lo tengo»; también funciona con la operación en cierre o firma), `20261114206000_correccion_no_retira` (decisión del titular: corregir la firma o emitir una versión nueva del contrato no retira el inmueble del sitio), `20261114208000_terminacion_avisa_retiro` (registrar la terminación crea una tarea urgente para retirar el inmueble del sitio; ya no lo retira sola), `20261114209000_aviso_retiro_por_terminacion` (un aviso por cada terminación), `20261114210000_pausa_descarte_regreso_avisan` (pausar, descartar, regularizar, pausar o rechazar el encargo o regresar de etapa avisan con una tarea en lugar de retirar solos; decisión del titular) y `20261114300000_restaurar_contactos` (prospectos y clientes eliminados se restauran desde Eliminados; aprobado por el titular).
+
+Estado del bloque 0 antes de publicar el PR #75:
+
+- **Bloque 0, estado (13/11/2026):** REC-01 con copia diaria funcionando desde el 13/11 y conexión verificada con el certificado raíz de Supabase (13/11/2026); el titular descifró una copia con su llave y Seguridad comprobó que está completa y se restaura (13/11/2026); solo falta repetir el ensayo con volumen real después de cargar el inventario. BAS-01 aceptada por el titular y CI-01 terminada (13/11/2026). ENV-01 espera la decisión c), el backend de pruebas. AUT-01 en revisión: verificación en dos pasos del director construida y ensayada con el titular y una cuenta de prueba (alta, entrada con código, pérdida del teléfono; «Tu sesión venció» también pide el código); falta comprobar en producción la parte de la base (migración 180000) al publicar. OBS-01 construida con Sentry gratuito (DEC-19); proyecto `fortius-inmuebles` creado en Sentry y evento de prueba recibido (13/11/2026); `FORTIUS_SENTRY_DSN` puesto en Vercel producción (13/11/2026); se activa con la próxima publicación y Seguridad repite la prueba desde producción. PRV-01 espera al abogado. Detalle en `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
+
+## 24. Limpieza del plan del 14/11/2026 (primera pasada tras separar `PLAN.md` y `SPEC.md`)
+
+### Entregas en `main`, retiradas de la tabla de estados
+
+Construidas e integradas; falta el visto bueno del titular para darlas por terminadas. Se citan en el tablero de `PLAN.md`.
+
+| ID | Fase | Estado registrado | Depende de |
+|---|---|---|---|
+| SIM-04 | 4 | en_main | C12, C13 y C22 hechas; Reportes usa el mismo cálculo de etapa que Operaciones, también en registros sin tipo (defb62e, `feat/integracion`, 13/11/2026); en `main` con el PR #75 (13/11/2026) |
+| SIM-05 | 4 | en_main | la etapa nombra sus documentos sin número de formato; los números siguen en Documentos (ad53e35, `feat/integracion`, 13/11/2026); en `main` con el PR #75 (13/11/2026) |
+| SIM-06 | 4 | en_main | C19, C20 y C21 hechas (Ajustes retirada con SIM-18); barra única del celular (C59) comprobada a 390 px (13/11/2026); en `main` con el PR #75 (13/11/2026) |
+| SIM-07 | 4 | en_main | fichas de prospecto y cliente (C23, C41, C58), en `main` desde el PR #73; falta el visto bueno del titular |
+| SIM-10 | 4 | en_main | C27 (sin aviso amarillo, abdc6b8) y C28 («Documentos sueltos») hechas, en `feat/integracion` (13/11/2026); en `main` con el PR #75 (13/11/2026) |
+| NAV-13 | 4 | en_main | papelera «Eliminados» (N23) y «Tu primer día» con foto, WhatsApp, cita y operación, que desaparece al completarse (N24, 8d7bb05); en `feat/integracion` (13/11/2026); en `main` con el PR #75 (13/11/2026) |
+| LV-01 | 4 | en_main | cinco roles de color con superficie y borde, AA en claro y oscuro; axe sin fallas en 24 pantallas; escala de `docs/brand.md` (13/11/2026, `feat/integracion`); en `main` con el PR #75 (13/11/2026) |
+| LV-02 | 4 | en_main | íconos por etapa y documento, estados con forma, anillo de avance y avatar único (8b1d265, `feat/integracion`, 13/11/2026; boceto aprobado por el titular); «Aprobado» y «Revisado» aún no tienen dato de documento detrás: hoy solo se muestran Borrador y Firmado (09 y 21 con firma registrada); en `main` con el PR #75 (13/11/2026) |
+| LV-04 | 4 | en_main | ayuda «?» de una línea, punto «Empieza aquí» sobre «Nuevo» e ilustración en los estados vacíos (d4acc7d, `feat/integracion`, 13/11/2026; boceto aprobado por el titular); en `main` con el PR #75 (13/11/2026) |
+| DOC-14 | 2 | en_main | formatos 20 a 24 (arrendamiento, intermediación para renta, solicitud de arrendamiento, inventario de la renta y compraventa a plazos con reserva de dominio) en `feat/integracion`; el cotejo de la promesa 15 no aplica porque el titular no tiene modelo propio (13/11/2026); falta la revisión del abogado; en `main` con el PR #75 (13/11/2026) |
+| UX-05 | 4 | en_main | bandeja «Para ti» en Hoy: menciones, tareas asignadas y comentarios ajenos de los últimos 30 días, solo de lo que el usuario puede ver; lo leído se guarda en el servidor (89bc643, `feat/integracion`, 13/11/2026; tabla de preferencias por usuario, migración 20261114100000); las aprobaciones llegan con APR-01; en `main` con el PR #75 (13/11/2026) |
+| SIM-16 | 4 | en_main | Hoy en tres bloques (C47), en `main` desde el PR #73; falta el visto bueno del titular |
+| SIM-18 | 4 | en_main | operación en tres partes en `main` (PR #73); la decisión del encargo es su propia tarjeta en la etapa 6 desde 0da635a, con prueba en operation-screen; en `main` con el PR #75 (13/11/2026) |
+
+### Tareas detalladas ya cumplidas
+
+Secciones de «Tareas detalladas» cuyas casillas estaban todas marcadas.
+
+#### BAS-01 — base y correcciones pendientes
+
+**Archivos:** leer diff actual, `ROADMAP.md`; revisar archivos listados allí. Evidencia existente: `ROADMAP.md`, con integración y resultados del commit validado.
+
+**Consume:** commit base, estado de trabajo y registro de correcciones. **Produce:** matriz archivo → cambio → prueba → commit/estado remoto, sin valores secretos.
+
+- [x] Leer `git status --short --branch`, `git diff --stat`, `git diff --check` y diff por archivo; separar corrección anterior de necesidad ERP.
+- [x] Volver a comprobar lectura de GitHub/Supabase/Vercel requerida con autenticación disponible. Registrar alcance de acceso, no credenciales. No concluir falta de credenciales por una variable ausente.
+- [x] Crear rama de consolidación cuando el trabajo de implementación esté aprobado. Los cambios existentes no se descartan ni se copian ciegamente.
+- [x] Revisar exportación de 18 tablas, paginación compatible de expedientes, extracción de contratos y HTTP con requestId. No repetir cambios que ya existan.
+- [x] Ejecutar `node --test tests/tools/*.test.mjs` y los tests actuales de SQL/rutas/observabilidad: `npm run test:backend -- tests/backend/database.test.ts tests/backend/formatos-expedientes-route.test.ts tests/backend/http-observability.test.ts`.
+- [x] Corregir solo fallos reproducidos; repetir la comprobación afectada. Registrar número de pruebas ejecutadas y condiciones.
+- [x] Ejecutar `npm run verify` para el candidato revisable. Resultado esperado: lint, TypeScript, suites configuradas y build finalizados; cero pruebas ejecutadas no significa aprobado.
+- [x] Revisar la regresión de navegador pertinente en configuración sintética: `npm run test:admin:browser -- tests/admin/browser/admin-workspace.spec.ts`. Si faltan navegador o dependencias, resolver entorno con mecanismo autorizado; no instalar silenciosamente.
+- [x] Preparar commit de archivos explícitos y evidencia, cuando esté autorizado. No incluir documentos/fixtures ajenos solo porque estén untracked.
+
+**Aceptación:** matriz de cambios y resultados vinculada al commit candidato; no atribuir pruebas históricas a una ejecución nueva. **Reversión:** revertir solo el commit propio; los cambios remotos previos se registran y no se deshacen por descartar la rama.
+
+### Definiciones de entregas terminadas o en `main`, retiradas de sus paquetes
+
+Cada fila conserva su texto y el encabezado de la tabla de la que salió.
+
+**De «Entregas del paquete SIM»:**
+
+| ID | Correcciones | Alcance | Aceptación |
+|---|---|---|---|
+| SIM-04 | C12, C13, C22 | Alta rápida dentro de Nueva operación; nombres de fase y etapa unificados | Lo que queda tras el boceto C: «Alta directa» dentro de Nueva operación; mismos nombres de fase y etapa en Reportes y en todo el panel; `?etapa=<slug>` sigue funcionando. |
+| SIM-05 | C14–C17 | Quitar números de formato de la vista principal | Lo que queda tras el boceto C: sin números de formato en la vista principal (C15); «Marcar como revisado» pide la misma evidencia; el servidor rechaza lo mismo que antes. |
+| SIM-06 | C18–C21 | Celular, columna lateral y menú «⋯» | Lo que queda tras el boceto C: Llamar y WhatsApp en el encabezado en celular (C19); «¿Qué significa?» como enlace (C20); pestaña Ajustes retirada sin perder ninguna acción (C21). |
+| SIM-07 | C23 | Ficha de persona (prospecto y cliente) | Mismo marco que la operación; una acción principal; sin «lead» ni «Seguimiento conectado»; fechas humanas; conversión técnica y eliminación con sus protecciones actuales; «Cliente» solo con contrato firmado (RP-92, COR-10). **Construida el 11/11/2026 en la rama `feat/seo-integral`, en local y sin commit (C23, C41, C58):** las dos fichas comparten piezas (`src/components/admin/contacts/person.tsx`): encabezado con nombre, etapa, Llamar y WhatsApp; «Siguiente paso» con una sola acción principal (continuar la entrevista o preparar la operación en el prospecto; abrir la operación en el cliente, C40); línea de tiempo «Lo que viene» y «Lo que ya pasó» con notas, citas, tareas y registros, y fechas con palabras; datos y etapa a un lado. «Convertir en cliente» y «Eliminar» van en «Más opciones»; «Agendar» abre su formulario; las operaciones del cliente se nombran por lo que son y no por folio. El prospecto muestra tres etapas (DEC-46). Sin cambios de base, rutas ni reglas: la nota conserva su versión, las capturas a medias bloquean convertir y abrir operación. **Queda fuera:** «Cliente» calculado del contrato firmado (COR-10) y eliminar con «Deshacer» (RP-16). Comprobado: lint, tipos, `test:admin` (405 pruebas) y capturas a 1440 y 390 px, claro y oscuro, sin desbordamiento. |
+| SIM-10 | C27, C28 | Inmuebles y Herramientas | Cada inmueble dice qué le falta; catálogo en tres grupos sin filtros; «Documentos sueltos». |
+| SIM-16 | C47 | Hoy en tres bloques | Hoy muestra «Lo siguiente» (una sola cola por urgencia con pastilla de tipo), «Hoy» (tareas y citas) y «Esta semana»; ningún pendiente aparece en dos bloques (prueba de `today.ts`); sin «Operaciones en curso» ni línea de resumen; en celular cabe en unas tres pantallas con los datos de ensayo; las reglas de volumen de LV-07 siguen cumpliéndose. **Construida el 11/11/2026 en la rama `feat/seo-integral`, en local y sin commit:** `workspace/hoy.tsx` en tres bloques; la cola única sale de `sortQueue` y `queueFrom*` en `src/lib/admin/today.ts` (operaciones, contactos, prospectos nuevos, entrevistas, contratos y licencias, informes, llaves y avisos; lo vencido primero y después por tipo); la portada no se repite; las 4 siguientes con foto, lista corta y «Ver N más» que despliega el resto en la misma pantalla; «Hoy» en una tarjeta con citas y tareas (casilla para completar); «Esta semana» con las siete casillas. Se retiraron «Operaciones en curso» (`stageCounts`), la línea de resumen y las siete secciones aparte. La guía de Hoy explica los tres bloques. Comprobado: lint, tipos, `test:admin` (402 pruebas) y capturas a 1440 y 390 px en claro y oscuro sin desbordamiento (1 455 px en computadora, 2 257 px en celular con los datos de ensayo; antes 1 755 y 3 019). La prueba de navegador `admin-workspace.spec.ts` se ajustó a los tres bloques y no se ha corrido. |
+| SIM-18 | C52, C53 | Operación en tres partes | Pestañas Etapa · Documentos · Actividad; el «⋯» del panel azul trae ruta, situación, inmueble, contraparte, corregir etapa (con motivo) y eliminar (recuperable); «Decisión del encargo» en la etapa 6; un problema se lee una sola vez además de su requisito; `?tab=documentos`, `?tab=tareas`, `?tab=ajustes` y `?documento=` siguen funcionando (las antiguas redirigen a la parte nueva); candados, 409 y pruebas de navegador conservados. **Construida el 11/11/2026 en la rama `feat/seo-integral`, en local y sin commit:** la operación tiene tres partes, Etapa · Documentos (con el selector «Del expediente / Del cliente») · Actividad (tareas e historial juntos). La pestaña Ajustes se retiró (DEC-38): «Más opciones» del panel azul trae «Datos de la operación» (se abren en un panel lateral con la decisión del encargo, ruta, situación, inmueble, fecha objetivo, contraparte y corregir etapa), «Corregir etapa» y «Eliminar operación»; los pendientes de la etapa que antes decían «Ir a Ajustes» abren ese panel. Las direcciones anteriores siguen funcionando (`?tab=cliente`, `?tab=tareas`, `?tab=historial`, `?tab=ajustes`, `?documento=`). El problema de un requisito ya no se repite en la barra flotante y «Próxima tarea» es blanca con la fecha vencida en rojo (C52). Sin cambios de reglas, candados ni 409; cerrar el panel con cambios sin guardar pide confirmación. **Queda fuera:** la decisión del encargo no se movió a la etapa 6 como pieza propia (se abre desde ahí con un botón, pero se captura en el panel de datos), y en Documentos siguen «Nuevo documento» con códigos de formato y la tarjeta «Entrevista inicial» (resto de C53). Comprobado: lint, tipos, `test:admin` (406 pruebas) y capturas a 1440 y 390 px sin desbordamiento. Las pruebas de navegador `expediente-deletion.spec.ts` y `process-corrections.spec.ts` se ajustaron y no se han corrido.  **12/11/2026 (titular):** «Crear y abrir» y su lista de códigos se retiraron: duplicaban el inicio desde la etapa y creaban borradores repetidos. En su lugar, «Agregar documento» arriba de Documentos (en las dos vistas) sube escrituras, predial, identificaciones o certificados desde la computadora o el celular a los documentos del cliente, el mismo repositorio privado. Los formatos que se repiten se agregan desde su renglón en la etapa («Registrar otra visita», «Nuevo reporte», «Otra propuesta», «Otro presupuesto»); el presupuesto de rehabilitación (19) se ofrece, sin detener, en el levantamiento. Se quitó la tarjeta «Entrevista inicial» de Documentos (ya está en la etapa) y la nota técnica del 03 y el 09; el control comercial sigue en Reportes. |
+
+**De «Entregas del paquete NAV»:**
+
+| ID | Mejoras | Depende de | Aceptación |
+|---|---|---|---|
+| NAV-13 | N23, N24 | SIM-01 | Papelera única que restaura con las reglas de cada tipo; «Primeros pasos» del asesor que desaparece al completarse. |
+
+**De «Entregas del paquete LV»:**
+
+| ID | Mejoras | Depende de | Aceptación |
+|---|---|---|---|
+| LV-01 | V02, V10 | Se hace junto con SIM-01 | Tokens `--success` e `--info` en claro y oscuro con contraste AA; ningún color de estado fuera de los cinco roles; solo los tamaños de la escala de `docs/brand.md` en todo el panel; axe sin fallas. |
+| LV-02 | V01, V03, V04, V05, V09 | LV-01, SIM-05 | Catálogo único de íconos usado en todas las pantallas; cada estado con forma, color y palabra; anillo de avance con texto; insignias de documento; avatar neutro del asesor. |
+| LV-04 | V07, V08 | LV-01, SIM-12 | «?» de una línea donde hay dudas; punto «Empieza aquí» que late tres veces y se recuerda por usuario; ilustraciones en todos los estados vacíos, en claro y oscuro. |
+
+**De «Fase 0 — continuidad»:**
+
+| ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
+|---|---|---|---|---|
+| BAS-01 P0/I | Separar base Git, cambios locales y estado publicado; consolidar correcciones preparadas | `ROADMAP.md`, diff actual, workflow/tests/HTTP/contratos | Ninguna; 1–2d | Lista exacta de cambios revisados; verificaciones repetidas; no incluir secretos/test-results/copias. |
+| CI-01 P0/I | Evitar publicación con checks fallidos | `.github/workflows/verify.yml`, GitHub/Vercel | BAS-01, DEC-10; 1–2d | Una PR controlada fallida no puede llegar a producción por el flujo aprobado; rollback de aplicación probado. |
+
+**De «Fase 2 — operación de venta y revisiones»:**
+
+| ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
+|---|---|---|---|---|
+| DOC-14 P1/C | Formatos de contrato nuevos a partir de los modelos del titular: compraventa a plazos, compraventa con reserva de dominio, arrendamiento e intermediación para renta (RP-97) (el cotejo de la promesa 15 no aplica: el titular no tiene modelo propio, 13/11/2026) | catálogo de formatos, captura en ventana, PDF y Word | Modelos del titular; 2–4d por formato | Cada formato reproduce su plantilla, se captura en el sistema y se descarga en PDF y Word. |
+| IA-01 P0/I | **La IA lee los documentos del cliente (titular, 17/10/2026, rehecho el 29/10/2026; entrega 3):** al subir un archivo, o con «Leer con IA», el servidor envía el PDF o la imagen a la API de Claude con una estructura fija de respuesta (los datos de DAT-EXP que encontró, con página, frase citada y confianza), validada con zod. Lo leído entra **por confirmar** con su fuente en «Datos del expediente»; nada llega a un formato sin confirmación. **Regla del titular (29/10/2026): en pantalla nada dice «propuesto» ni que algo fue propuesto o creado por la IA** (lo leído se muestra «Por confirmar», el botón es «Leer datos» y los errores hablan del «servicio de lectura»); una prueba del panel lo comprueba. Estado por archivo: pendiente, leyendo, leído o con error. La clave `ANTHROPIC_API_KEY` vive solo en el servidor. | Storage privado, DAT-EXP, ruta `/api/admin/archivos-cliente/[id]/leer`, migración `20261029140000_expediente_lecturas_ia.sql` | **Hecha; en `main` (PR #57 y #63), sin activar:** falta la clave de API del titular y el visto bueno del abogado antes de usarla con documentos reales; migración sin aplicar | Con respuestas simuladas, los datos salen con su fuente, una respuesta mal formada se rechaza y sin clave el resto funciona igual. |
+| IA-02 P1/I | **Controles de la IA (entrega 4):** tope mensual de lecturas en «Ajustes» (al llegar, se pausa y avisa), registro de cada lectura (archivo, fecha, quién, costo aproximado), anotación del proveedor como encargado en `docs/erp-crm/privacy/data-processing-register.md` y en la política de acceso. **En `main`:** el tope (variable `IA_TOPE_MENSUAL_USD`, 20 USD si no se configura), el registro `fortius_inmuebles_ia_lecturas` y la anotación en el registro de tratamiento. **Falta:** cambiar el tope y ver el gasto del mes desde «Ajustes». | Ajustes, tabla de uso, documentación de privacidad | IA-01; 1d | Al llegar al tope no se lee más y se avisa; cada lectura queda registrada. |
+
+**De «Fases 4–5 — interfaz, escala y adopción»:**
+
+| ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
+|---|---|---|---|---|
+| UX-05 P1/C | Bandeja «Para ti» en Hoy (RP-20) | Hoy, notas e historial, tareas; las aprobaciones se suman cuando exista APR-01 | UX-04; 2–4d (usa los permisos actuales y se ajusta con SEG-01) | Una mención avisa solo a quien puede ver el registro; el contador del menú suma la bandeja; marcar como leído; sin campana. |
+
+**De «Capacidades adicionales y disparadores»:**
+
+| ID / capacidad | Cuándo evaluarla / dependencias | Resultado de descubrimiento antes de programar |
+|---|---|---|
+| EXT-12 — Captura sobre el documento en vivo | **Aprobada por el titular el 27/10/2026 (DEC-31) para todos los formatos.** Construida para todos los formatos y en `main` (PR #57). Usa el membrete común; FCH-01 y FCH-05 la mejoran después; relacionada con FCH-10, DOC-10 y F09 | Revisión del 04B por el titular en localhost; después, los formatos por etapa en el orden por grupos de «EXT-12» (ese orden y su estado pasaron al historial, §20). |
+
+## 25. Secciones de octubre retiradas del plan el 14/11/2026 (decisión del titular)
+
+El titular decidió sacarlas del plan de trabajo: «Primera fase», «Orden y ventanas orientativas», «Tareas detalladas de captación» y «Cierre de iteración». El orden lo manda «Orden vigente» de `PLAN.md`; las tareas de captación se vuelven a detallar al empezar cada entrega, sobre las pantallas vigentes.
+
+### Primera fase — preparar la base y comprobarla
+
+Corresponde a la fase 0 de continuidad. Sus correcciones de código ya existen; ahora se ordena el área de trabajo y se comprueba la base antes de ampliar el CRM.
+
+- [x] Reunir alcance, tareas y avance en este archivo, sin perder condiciones de los planes originales.
+- [x] Respaldar documentos anteriores, respaldos locales y temporales fuera de la carpeta, con verificación de cada archivo antes de retirarlos.
+- [x] Retirar planes e informes históricos de la carpeta activa y actualizar todos los enlaces afectados.
+- [x] Repetir lint, tipos, pruebas de aplicación y compilación mediante `npm run verify`.
+- [x] Ejecutar `node --test tests/tools/*.test.mjs` y `node tools/verify-pdf-bundle.mjs`.
+- [x] Revisar de forma independiente el plan, la limpieza, la preservación y el resultado real de las comprobaciones.
+
+**Para terminar la preparación local:** un solo plan vigente, copia recuperable comprobada, enlaces válidos, pruebas/build aprobados y revisión independiente. Esto permite continuar desarrollo con datos sintéticos; no acredita todavía las compuertas externas siguientes.
+
+| Entrega de continuidad | Lo disponible | Lo que sigue pendiente |
+|---|---|---|
+| REC-01 | Export de 18 tablas, huellas, referencias, ensayo DB y copia de bytes local. | Custodia y copia periódica efectiva; recuperación completa Auth/Storage en destino aislado; medir RPO/RTO. Objetivos aprobados: copia diaria, RPO 24 h y RTO 8 h. |
+| ENV-01 | Inventario de despliegues y retiro de credenciales productivas de previews documentados. | Backend preview aislado y dependencias del despliegue adicional. |
+| AUT-01 | Auth y recuperación de sesión implementados; URL de retorno corregida según el registro. | Buzón controlado, entrega real de recuperación/invitación y política MFA recuperable. |
+| OBS-01 | Identificador de solicitud y logs sin cuerpos/secretos comprobados en pruebas. | Captura, retención y alertas del proveedor. |
+| PRV-01 | Inventario del tratamiento y propuesta de controles. | Aprobación profesional de finalidad, conservación, solicitudes y responsabilidades. |
+
+El ensayo completo del proveedor no frena el desarrollo funcional inicial con datos sintéticos, conforme a la prioridad ya registrada. Sí es necesario antes de prometer recuperación de información operativa importante. Los pendientes de permisos, privacidad y publicación tampoco se presentan como cerrados por pasar una prueba local.
+
+### Orden y ventanas orientativas
+
+Ventanas expresadas en días de ingeniería: no son días calendario ni promesas del agente. Supuestos: una persona de ingeniería, infraestructura actual, revisión de negocio disponible, datos de prueba y sin nuevas integraciones de pago. Los rangos no se suman automáticamente; hay solapamientos y varias entregas ampliables.
+
+| Fase | Resultado utilizable | Ventana inicial | Criterio para terminar |
+|---|---|---|---|
+| 0 — Continuidad | Base recuperable, publicación controlada, datos clasificados y errores rastreables | 8–14 días | Correcciones consolidadas, restauración aislada, política de datos y controles de producción demostrados; bloqueos externos identificados. |
+| 1 — Núcleo CRM/operación | Equipo administrable, captación completa, partes relacionadas y próxima acción | 12–20 días | Recorrido prospecto/cliente/inmueble/expediente/tarea con permisos, cuentas y trazabilidad. |
+| 2 — Ejecución especializada | Visitas, ofertas, documentos, revisiones y cierre | 12–24 días | Requisitos y excepciones aprobados; oferta y cierre conectados al expediente. |
+| 3 — Finanzas y tableros | Hechos financieros y cuatro vistas con desglose | 15–30 días | Totales reconciliados; cifras sin fuente explícitamente pendientes; acceso por capacidad. |
+| 4 — Producto multidispositivo | Interfaz consistente e instalación del panel | 8–16 días para uso conectado | Pruebas reales por plataforma, teclado, accesibilidad, sesión y conexión. Offline/push aparte. |
+| 5 — Escala y adopción | Consultas por necesidad, continuidad y piloto aceptado | 8–16 días | Carga medida, restauración repetible, manual y recorrido de usuario aceptado. |
+| 6 — Nuevas capacidades | Inversión, mapas, portal de clientes, IA documental y asistente IA; demás extensiones según caso de negocio | Por capacidad; rangos por estimar | Las capacidades solicitadas tienen alcance, costo y aceptación propios. Deben completarse para aceptar el producto ampliado; el núcleo se acepta por separado. |
+| Etapa posterior (en pausa) | Adaptación para otras inmobiliarias: datos separados, marca por empresa, procesos adaptados por empresa, alta de empresas, planes y piloto externo | Por estimar cuando el titular la abra (DEC-15) | Dos o tres inmobiliarias externas operan en piloto con datos separados, recorridos aceptados y tiempos medidos. |
+
+M1: operación de captación utilizable tras fases 0–1. M2: operación de venta de extremo a extremo tras fase 2. M3: dirección con tableros tras fase 3. M4: versión operativa instalable y transferida tras fases 4–5, con pruebas de uso en meta. La venta a otras inmobiliarias no es un hito actual. Se puede adelantar UX y prueba de dispositivos de un módulo desde su primera entrega; UX-03 y UX-04 pueden empezar ya.
+
+Ruta principal (referencia; manda «Orden vigente»): BAS-01 → REL-01/SEG-01 → CRM-01/CRM-02 → OPS-01 → COM-01/DOC-01/LEG-01/TEC-01 → FIN-01 → TAB-01 → PIL-01. El detalle y el orden por bloques están en «Orden vigente». Recuperación REC-01, permisos SEG-01 y controles CI-01 son condiciones para pilotar datos sensibles en producción.
+
+### Tareas detalladas de captación
+
+Ventana propuesta: 12–20 días de ingeniería. Requiere revisión de DEC-02/03/04/05/09 y base estable. Utilizar un caso de venta y datos sintéticos. Las interfaces siguientes concretan la primera porción de REL-01/SEG-01/USR-01/CRM-01/OPS-01; organizaciones y papeles adicionales siguen en REL-01 y se detallan después de aprobar su vocabulario.
+
+#### REL-01 — vínculo persona/inmueble
+
+**Crear:** `src/lib/personas/types.ts`, `src/lib/personas/schema.ts`, `src/lib/personas/server.ts`, `src/app/api/admin/property-parties/route.ts`, `src/components/admin/property-parties-editor.tsx`, migración nueva aditiva en `supabase/migrations/` con fecha real de ejecución.
+
+**Modificar:** `src/components/admin/property-form.tsx`, contexto de clientes/expedientes; añadir relaciones al inventario de backup cuando se creen tablas.
+
+**Tests propuestos:** `tests/backend/property-parties.test.ts`, `tests/backend/property-parties-database.test.ts`, `tests/admin/property-parties-editor.test.tsx`.
+
+**Consume:** `Cliente.id`, slug de `Property`, identidad de personal y versiones existentes. **Produce (propuesto):**
+
+```ts
+type PropertyPartyLink = {
+  id: string; propiedadSlug: string; clienteId: string;
+  papel: "propietario" | "representante";
+  base: "declarado" | "documentado" | "revisado";
+  fuenteRef: string | null; estado: "vigente" | "revocado";
+  version: number; actualizadoEl: string;
+};
+type PropertyPartyInput = Omit<PropertyPartyLink, "id" | "version" | "actualizadoEl">;
+// server.ts: clientes/inmuebles se comprueban con alcance de la sesión.
+export declare function putPropertyParty(client: SupabaseClient, input: PropertyPartyInput,
+  id: string, expectedVersion: number | null): Promise<PropertyPartyLink>;
+```
+
+Las categorías propuestas requieren DEC-04: `revisado` registra un hecho profesional y su evidencia, no permite que un usuario cualquiera valide titularidad. Si la matriz exige separar conclusiones por disciplina, cambiar el contrato antes de programarlo.
+
+- [ ] Confirmar papeles, evidencia y alcance; definir con profesional cómo se registra un representante sin presumir facultades.
+- [ ] Escribir tests de dos propietarios del mismo inmueble, una persona con dos inmuebles, revocación, vínculo repetido, cliente inaccesible y fuente requerida para base revisada.
+- [ ] Ejecutar `npm run test:backend -- tests/backend/property-parties.test.ts`; esperar fallo específico por función inexistente antes de implementación nueva.
+- [ ] Crear esquema/type/servicio y migración con referencias, versiones, historial y RLS. No migrar automáticamente por coincidencia de nombre o texto libre.
+- [ ] Crear API con autenticación, validación, control de origen y respuesta de conflicto; no usar service_role para eludir alcance del usuario.
+- [ ] Añadir editor contextual y tabla de relaciones; múltiples propietarios visibles como vínculos registrados, no porcentajes asumidos.
+- [ ] Añadir tests SQL y UI de alcance/409; un cliente desconocido no debe crear una referencia huérfana.
+- [ ] Ensayar migración y lectura de registros legacy sin nuevos vínculos. Backup/restauración contempla tabla nueva.
+- [ ] Ejecutar tests de REL-01, TypeScript y regresión property-form; registrar aceptación técnica.
+
+**Reversión:** aplicación deja de escribir/mostrar relación nueva, conserva registros y tablas; corrección forward de datos si se necesita. No borrar vínculos reales como mecanismo de rollback.
+
+#### SEG-01 — acceso a contexto operativo
+
+**Crear:** `src/lib/identity/capabilities.ts`, pruebas `tests/backend/operation-access.test.ts`; migración RLS solo si la matriz aprobada exige ampliar el modelo.
+
+**Modificar:** `backend/auth.ts`, rutas de relaciones/operación y descargas; mantener firmas actuales compatibles.
+
+**Consume:** `StaffUser`, vínculo cuenta–asesor, permiso de expediente. **Produce (propuesto):**
+
+```ts
+export declare function requireOperationAccess(expedienteId: string,
+  action: "read" | "write" | "assign"):
+  Promise<{ user: StaffUser; client: SupabaseClient }>;
+```
+
+- [ ] Aprobar matriz de capacidades con ejemplos: asesor A, asesor B, administrador y revisión especializada. No extender roles definitivos sin DEC-03.
+- [ ] Escribir prueba de lectura/escritura/reasignación antes/después y de PDF/adjunto del mismo contexto.
+- [ ] Implementar comprobación de acceso en servidor y RLS; servicio y SQL deben coincidir, no duplicar una política contradictoria.
+- [ ] Probar acceso directo de DB de identidades sintéticas, además de API/UI; servicio privilegiado no es el sujeto de esas pruebas.
+- [ ] Conservar comportamiento de documentos históricos y de cuentas actuales; activar cambios según migración aprobada.
+
+**Aceptación:** una referencia desde dashboard nunca otorga acceso adicional; retirar asignación impide nueva lectura/descarga del ámbito retirado. No prometer retirar bytes ya descargados por un usuario.
+
+#### USR-01 — administración del equipo desde el panel
+
+**Crear:** `src/app/admin/equipo/page.tsx`, `src/app/api/admin/staff/route.ts`, `src/lib/identity/staff-admin.ts`; tests `tests/backend/staff-admin.test.ts` y `tests/admin/staff-admin.test.tsx`.
+
+**Modificar:** navegación del shell y asociación de cuentas/asesores existentes. **Consume:** identidad y capacidades aprobadas; AUT-01. **Produce:** invitación, vínculo cuenta–asesor, activación/desactivación y bitácora. Invitación usa servicio de Supabase del lado servidor únicamente después de autorizar la operación administrativa.
+
+- [ ] Confirmar quién puede invitar/asignar capacidades/desactivar. Mantener perfiles públicos y cuentas Auth como entidades distintas.
+- [ ] Escribir tests: asesor no puede invitar; invitación repetida no crea doble vínculo; desactivar último administrador activo falla; error del proveedor deja estado visible y reintentable.
+- [ ] Implementar API con validación/origen/autorización y credencial privilegiada solo servidor para la acción necesaria; registrar actor/acción sin tokens ni contraseña.
+- [ ] Crear interfaz de equipo que muestre estado de invitación/cuenta/vínculo y acciones permitidas. Una invitación enviada no significa usuario activado.
+- [ ] Probar con cuenta de prueba autorizada y enlazar recuperación/MFA; no enviar invitaciones a terceros sin autorización.
+
+**Aceptación:** Moisés administra equipo desde el panel sin entrar a tablas; impedir bloqueo de administración; API y RLS conservan permisos. **Reversión:** retirar UI/acciones nuevas, conservar usuarios y vínculos existentes; no eliminar cuentas como rollback.
+
+#### CRM-01 — conversión y próxima acción
+
+**Regla vigente (18/10/2026):** la conversión de `leads` a `clientes` es un mecanismo técnico para abrir la operación; no hace cliente a nadie. La condición «Cliente» la da el contrato firmado (RP-90 a RP-92, COR-10).
+
+**Modificar:** `src/lib/backend/lead-conversion.ts`, rutas de conversión, `src/components/admin/convert-lead-button.tsx`, perfiles de lead/cliente, `src/lib/admin/followups.ts`, enlaces RelatedWork.
+
+**Tests existentes:** `tests/backend/lead-conversion-database.test.ts`, `tests/backend/lead-conversion-route.test.ts`, `tests/admin/lead-conversion.test.tsx`. Añadir prueba de recorrido CRM si el escenario completo no existe.
+
+**Consume:** `convertLead(client, id, { version })` existente; REL-01/SEG-01. **Produce:** mismos IDs/contrato de conversión actual, contexto y próxima acción con responsable.
+
+- [ ] Repetir tests actuales para comprobar idempotencia ya implementada; no rehacer RPC sin un fallo demostrado.
+- [ ] Añadir test de respuesta perdida/reintento que conserve clienteId y leadId únicos, y conflicto de versión que conserve captura.
+- [ ] Presentar propietario/comprador y vínculos en contexto; registrar coincidencias como avisos, nunca fusión automática.
+- [ ] Añadir siguiente acción con fecha/responsable o motivo explícito de pendiente, reutilizando tareas/seguimiento. Contacto confirmado se registra, no se infiere de abrir WhatsApp.
+- [ ] Comprobar resultado tras recarga y en alcance del asesor correcto; preservar firstContactedAt y snapshot de lead original.
+
+**Aceptación:** convertir dos veces produce el mismo registro autorizado; perfil y próxima acción permanecen tras recarga; sin venta/income inferida por conversión.
+
+#### OPS-01 — apertura operativa y tareas vinculadas
+
+**Crear:** `src/lib/operaciones/types.ts`, `src/lib/operaciones/schema.ts`, `src/lib/operaciones/server.ts`; test `tests/backend/operation-create.test.ts` y recorrido `tests/admin/browser/crm-operation-journey.spec.ts`.
+
+**Modificar:** `src/app/api/admin/expedientes/route.ts`, `src/lib/formatos/schemas.ts`, `src/app/admin/expedientes/page.tsx`, `src/lib/tasks.ts`, `src/components/admin/task-form.tsx`, referencias SQL existentes, `workspace/related-work.tsx`, `workspace/today.tsx`.
+
+**Consume:** expediente actual, cliente/asesor autorizados y vínculo al inmueble. **Produce (propuesto):**
+
+```ts
+type OpenOperationInput = {
+  clienteId: string; asesorId: string; propiedadSlug?: string;
+  folio: string; operacion: "venta"; unidad?: string; requestId: string;
+};
+type OpenOperationResult = {
+  expediente: { id: string; version: number; folio: string };
+  reused: boolean;
+};
+export declare function openOperation(client: SupabaseClient,
+  input: OpenOperationInput): Promise<OpenOperationResult>;
+```
+
+El wrapper de creación inicial cubre venta; el endpoint mantiene los tipos ya admitidos y compatibilidad con callers antiguos. El requestId nuevo usa UUID, se conserva por intento y no se reutiliza para un negocio distinto. Task añade `expedienteId?: string` UUID: distinto de los IDs de records.
+
+- [ ] Aprobar si expediente sigue siendo la referencia única inicial y qué creación sin inmueble está permitida; cotejar posibles vínculos con inmobiliaria-os antes de agregar segunda operación.
+- [ ] Escribir tests: mismo requestId/mismo payload devuelve mismo expediente; mismo requestId/payload distinto = 409; cliente/asesor incompatibles = denegación; fallo de creación no deja relación inválida.
+- [ ] Ejecutar `npm run test:backend -- tests/backend/operation-create.test.ts`; fallo esperado por función inexistente para caso nuevo.
+- [ ] Implementar apertura transaccional/RPC y persistencia de idempotencia con RLS; conservar creación legacy para clientes existentes de API.
+- [ ] Agregar `expedienteId` a tarea, validación de existencia y alcance, y referencias consistentes. Legacy sin ese campo conserva funcionamiento.
+- [ ] Añadir flujo contextual de apertura, responsable y tarea/visita; si la siguiente creación falla, mostrar expediente creado y permitir reanudar sin duplicarlo.
+- [ ] Mantener las etapas existentes; no activar restricciones de avance hasta aprobar DEC-05. Mostrar recepción distinta de revisión.
+- [ ] Ejecutar recorrido de navegador sintético con recarga, conexión interrumpida y móvil/escritorio. La captura debe terminar con cliente, relación, inmueble, expediente y tarea/visita enlazados.
+- [ ] Revisar RLS SQL, concurrencia, backup, API anterior, formularios y TypeScript/build. Migración en aislado antes de producción autorizada.
+
+**Reversión:** desactivar flujo nuevo por configuración/versionado compatible; conservar expediente y vínculos creados; no borrar operaciones como rollback. **Aceptación de negocio:** Moisés revisa escenario y siguiente acción; no se declara aprobada por test automático.
+
+#### DAT-01 — preparación de datos y migración asistida
+
+**Crear:** utilidades propuestas `tools/erp-crm/validate-import.mjs` y `tests/tools/erp-crm-import.test.mjs`; reporte sección de política de datos en este plan.
+
+**Consume:** reglas aprobadas de REL-01 y PRV-01, IDs y versiones legacy. **Produce:** informe de simulación con conteos y referencias sintéticas; contratos de import/export por capacidad.
+
+- [ ] Definir formato de importación con IDs de origen, versión y tipo de registro; exportaciones solo por capacidad y ámbito. No decidir por defecto qué archivos personales mover.
+- [ ] Escribir prueba de fixture duplicado, referencia huérfana, moneda inválida, fecha inválida y propietario ambiguo; cada caso se rechaza o va a revisión, no se corrige silenciosamente.
+- [ ] Implementar validador sin escrituras; reporte agregado sin imprimir contenido personal. Ejecutar `node --test tests/tools/erp-crm-import.test.mjs`.
+- [ ] Diseñar ejecución aprobada idempotente mediante identificador de lote y correspondencia de origen; probar reintento y reversión de un lote sintético en destino aislado.
+- [ ] Importación real solo tras autorización concreta de fuente/destino y revisión del informe; dejar registros ambiguos fuera y preservados.
+
+**Aceptación:** validación y simulación separadas de la escritura, reintento sin duplicado, acceso/exportación autorizado y evidencia de compatibilidad. **Reversión:** compensar solo el lote propio cuando no existan referencias posteriores; si las hay, corrección controlada hacia delante.
+
+### Cierre de iteración y siguiente detalle
+
+- [ ] Registrar tarea → commit → prueba → criterio → revisión humana; cada pendiente mantiene motivo y responsable.
+- [ ] Marcar `en_revision` al completar comprobación técnica; `aceptada` solo con evidencia del aprobador.
+- [ ] Detallar COM-01/VIS-01/OFE-01/DOC-01 usando entidades finalmente aprobadas; no construirlos con interfaces antiguas supuestas.
+- [ ] Ajustar rangos y capacidad con duración observada, sin atribuir al agente plazos garantizados ni conversiones comerciales.
+
+Las tareas de continuidad marcadas corresponden a la evidencia anterior; las tareas de captación permanecen pendientes. Cada nueva ejecución debe registrar su resultado, revisión y límites en este mismo plan.

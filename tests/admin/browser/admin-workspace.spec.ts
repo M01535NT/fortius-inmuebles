@@ -59,11 +59,11 @@ async function fits(page: Page) {
   ).toBe(true);
 }
 
-test("la barra superior guía por cinco secciones y «Más»; «Nuevo» y la cuenta abren sus menús", async ({ page }) => {
+test("el menú lateral guía por seis secciones y Herramientas; «Nuevo» y la cuenta abren sus menús", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
   const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Más"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
   await expect(nav.getByRole("link", { name: /^Hoy/ })).toHaveAttribute("aria-current", "page");
   for (const gone of ["Organizar módulos", "Abrir aplicaciones"]) await expect(page.getByRole("button", { name: gone, exact: true })).toHaveCount(0);
   await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);
@@ -73,12 +73,13 @@ test("la barra superior guía por cinco secciones y «Más»; «Nuevo» y la cue
   await expect(menu.getByRole("menuitem", { name: "Nueva operación" })).toHaveAttribute("href", "/admin/operaciones/nueva?intencion=vender");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
-  for (const name of ["Mi perfil", "Administración", "Ver sitio"]) await expect(page.getByRole("link", { name, exact: true })).toBeVisible();
+  const cuenta = page.locator("#admin-account-menu");
+  for (const name of ["Mi perfil", "Administración", "Ver sitio"]) await expect(cuenta.getByRole("link", { name, exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
-  await nav.getByRole("link", { name: "Más" }).click();
+  await nav.getByRole("link", { name: "Herramientas" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
-  await expect(page.locator("main h1")).toHaveText("Más");
-  await expect(nav.getByRole("link", { name: "Más" })).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("main h1")).toHaveText("Herramientas");
+  await expect(nav.getByRole("link", { name: "Herramientas" })).toHaveAttribute("aria-current", "page");
   await fits(page);
 });
 
@@ -88,17 +89,18 @@ test("un asesor no ve Administración y conserva las 17 herramientas", async ({ 
   await page.goto("/admin/herramientas");
   await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
   await expect(page.getByRole("link", { name: "Administración", exact: true })).toHaveCount(0);
-  await expect(page.getByText("Asesor", { exact: true })).toBeVisible();
+  await expect(page.locator("#admin-account-menu").getByText("Asesor", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
-  // HER-01 (12/11/2026): catálogo depurado en tres grupos.
-  await expect(page.locator("main article")).toHaveCount(9);
+  // HER-01 (12/11/2026): catálogo depurado en tres grupos; desde el 14/11 en un solo panel, cada herramienta una vez
+  // (las 9 apps más la opinión de valor, Trámites y el inmueble compartido).
+  await expect(page.locator('[data-tour="herramientas-grupos"] li')).toHaveCount(12);
 });
 
 test("en celular la barra inferior y el menú llevan a todas las secciones", async ({ page }) => {
   for (const width of [320, 375]) {
     await page.setViewportSize({ width, height: 812 });
     await page.goto("/admin");
-    await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Hoy" })).toBeVisible();
     const tabs = page.getByRole("navigation", { name: "Secciones principales" });
     for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
     await fits(page);
@@ -112,7 +114,7 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
     const trigger = page.getByRole("button", { name: "Menú del panel" });
     await trigger.click();
     const menu = page.getByRole("navigation", { name: "Módulos móviles" });
-    for (const name of ["Inmuebles", "Agenda y tareas", "Herramientas"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    for (const name of ["Inmuebles", "Agenda", "Trámites", "Herramientas"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
     const admin = menu.getByRole("button", { name: /Administración/ });
     await expect(admin).toHaveAttribute("aria-expanded", "false");
     await admin.click();
@@ -167,9 +169,11 @@ test("form controls have readable contrast in both themes", async ({ page }, inf
   }
 });
 // SIM-17: el buscador solo busca; las altas salen de «+ Nuevo», también repetidas en el mismo módulo.
+// LV-09: en la computadora «Nuevo» vive en el encabezado de Hoy; fuera de Hoy está en el «+» del celular.
 test("quick creation works repeatedly from the current module", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/admin/agenda?tab=tareas");
   for (let i = 0; i < 2; i++) {
     await page.getByRole("button", { name: "Nuevo", exact: true }).click();
@@ -316,12 +320,12 @@ test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días s
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/admin");
-    await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
-    // SIM-16: tres bloques, «Lo siguiente» (portada y cola), «Hoy» (citas y tareas) y «Esta semana».
+    await expect(page.getByRole("heading", { level: 1, name: "Hoy" })).toBeVisible();
+    // Boceto del 14/11/2026: «Tu día», «Agenda de hoy» (citas y tareas) y «Próximos 7 días».
     await expect(page.getByRole("region", { name: "Lo siguiente" })).toBeVisible();
-    for (const name of [/^Hoy/, /^Esta semana/]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
-    for (const name of [/Operaciones en curso/, /Tareas de hoy/, /Agenda de hoy/, /Esperan algo de ti/]) await expect(page.getByRole("heading", { level: 2, name })).toHaveCount(0);
-    const today = page.getByRole("region", { name: "Hoy" });
+    for (const name of [/^Tu día/, /^Agenda de hoy/, /^Próximos 7 días/]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+    for (const name of [/Operaciones en curso/, /Tareas de hoy/, /Esta semana/, /Esperan algo de ti/]) await expect(page.getByRole("heading", { level: 2, name })).toHaveCount(0);
+    const today = page.getByRole("region", { name: "Agenda de hoy" });
     await expect(today.getByRole("checkbox").first()).toBeVisible();
     await expect(today.getByRole("link", { name: "Agregar tarea" })).toHaveAttribute("href", "/admin/agenda?tab=tareas&nueva=1");
     await fits(page);

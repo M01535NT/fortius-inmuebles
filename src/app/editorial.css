@@ -29,7 +29,7 @@
 .editorial-cover-photo { position: absolute; inset: 0; }
 .editorial-cover-photo img { object-position: 45% 50%; }
 @media (hover: hover) {
-  .editorial-cover-actions .editorial-hero-primary:hover { background: #70112a; }
+  .editorial-cover-actions .editorial-hero-primary:hover { background: #74112b; }
   .editorial-cover-actions .editorial-hero-secondary:hover { color: #8a1634; }
   .editorial-hero-secondary:hover > span { border-color: currentColor; }
   .editorial-hero-primary:hover svg { transform: translate(2px, -2px); }

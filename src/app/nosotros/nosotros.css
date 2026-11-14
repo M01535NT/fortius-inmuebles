@@ -18,7 +18,7 @@
 .ab-index a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-normal); border: 1px solid color-mix(in srgb, var(--ns-ink) 22%, transparent); border-radius: var(--corner-pulsable); color: var(--ns-ink); font-size: var(--type-detalle); font-weight: 600; transition: background-color 0.3s, border-color 0.3s; }
 .ab-index a:hover { border-color: color-mix(in srgb, var(--ns-ink) 50%, transparent); background: color-mix(in srgb, var(--ns-ink) 10%, transparent); }
 .ab-portrait { position: relative; align-self: end; margin: 0; }
-.ab-portrait-media { position: relative; aspect-ratio: 4 / 5; max-height: 600px; overflow: hidden; border-radius: var(--corner-tarjeta) var(--corner-tarjeta) 0 0; background: #0c1622; }
+.ab-portrait-media { position: relative; aspect-ratio: 4 / 5; max-height: 600px; overflow: hidden; border-radius: var(--corner-tarjeta) var(--corner-tarjeta) 0 0; background: #0c1724; }
 .ab-portrait-media img, .ab-member-media img { object-fit: cover; }
 .ab-initials { display: grid; place-items: center; width: 100%; height: 100%; color: #f8f8ff; font-size: 96px; font-weight: 700; }
 .ab-portrait-card { position: absolute; right: 20px; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: var(--space-cerca); padding: var(--space-normal) var(--space-amplio); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--corner-tarjeta); background: rgba(6, 12, 20, 0.66); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
@@ -29,7 +29,7 @@
 .ab-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-normal); border: 1px solid rgba(255, 255, 255, 0.28); border-radius: var(--corner-pulsable); color: #fff; font-size: var(--type-etiqueta); font-weight: 600; transition: background-color 0.3s, border-color 0.3s, transform 0.3s var(--ab-ease); }
 .ab-chip:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); }
 .ab-chip-primary { border-color: var(--ab-wine); background: var(--ab-wine); font-weight: 600; }
-.ab-chip-primary:hover { background: #a2223f; border-color: #a2223f; }
+.ab-chip-primary:hover { background: #74112b; border-color: #74112b; }
 .ab-social { display: flex; flex-wrap: wrap; gap: var(--space-corto) var(--space-normal); }
 .ab-social a { display: inline-flex; align-items: center; gap: var(--space-corto); min-height: 32px; font-size: var(--type-etiqueta); color: rgba(248, 248, 255, 0.8); }
 .ab-social a:hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
@@ -45,7 +45,7 @@
 .ab-team { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-amplio); margin: var(--space-grupo) 0 0; padding: 0; list-style: none; }
 .ab-member { overflow: hidden; border: 1px solid var(--border); border-radius: var(--corner-tarjeta); background: var(--card, var(--background)); transition: transform 0.5s var(--ab-ease), box-shadow 0.5s; }
 .ab-member:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -36px rgba(6, 31, 63, 0.45); }
-.ab-member-media { position: relative; aspect-ratio: 4 / 5; background: #0c1622; }
+.ab-member-media { position: relative; aspect-ratio: 4 / 5; background: #0c1724; }
 .ab-member-body { padding: var(--space-amplio) var(--space-amplio) var(--space-amplio); }
 .ab-member-body h3 { font-size: var(--type-subtitulo); font-weight: 700; line-height: var(--leading-subtitulo); letter-spacing: var(--tracking-subtitulo); }
 .ab-member-text { margin: var(--space-cerca) 0 var(--space-normal); color: var(--muted-foreground); font-size: var(--type-interfaz); line-height: 1.6; white-space: pre-line; }

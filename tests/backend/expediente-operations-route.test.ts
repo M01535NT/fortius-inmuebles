@@ -33,6 +33,7 @@ it("actualiza sólo la versión activa y reporta conflicto si ya cambió", async
     global: { fetch: async (url, init) => {
       const target = new URL(String(url));
       if (target.pathname.endsWith("/fortius_inmuebles_expedientes")) return Response.json({ etapa: "contrato", operacion: "venta", flujo: null });
+      if (target.pathname.endsWith("/fortius_inmuebles_tramites_que_frenan_firma")) return Response.json(0);
       calls.push({ url: target, body: JSON.parse(String(init?.body ?? "{}")) });
       return Response.json({code:"PT409",message:"Conflicto"},{status:409});
     } },
@@ -49,7 +50,7 @@ it("rechaza notas vacías", async () => {
 });
 
 it("conserva motivos operativos permitidos sin exponer errores arbitrarios",async()=>{
- for(const [code,message,expected] of [["PT409","Agenda una próxima tarea con fecha y responsable","Agenda una próxima tarea"],["PT403","Contraparte incompatible o fuera de tu alcance","Contraparte incompatible"],["PT409","secret SQL detail","El registro cambió"]]){
+ for(const [code,message,expected] of [["PT409","Agenda una próxima tarea con fecha y responsable","Agenda una próxima tarea"],["PT403","Contraparte incompatible o fuera de tu alcance","Contraparte incompatible"],["PT409","secret SQL detail","El registro cambió"],["PT409","Antes de la firma: la cancelación de hipoteca de esta venta debe quedar inscrita en el Registro Público. Si se firma sin ella, lo decide el director en el trámite, con su motivo.","Antes de la firma"]]){
   requireStaff.mockResolvedValue({client:fakeClient({expediente:{etapa:"documentacion",operacion:"venta",flujo:null}},async()=>({data:null,error:{code,message}})),user:{id:"u"}});
   const response=await PUT(request({version:1,etapa:"documentacion",fechaObjetivo:null,checklist:{}}),context);
   expect(response.status).toBe(Number(code.slice(2)));expect((await response.json()).error).toContain(expected);
@@ -111,4 +112,30 @@ it("el candado no aplica a compradores, inversión ni a quien sigue en captació
 it("responde 404 si el expediente no existe o está eliminado", async () => {
   requireStaff.mockResolvedValue({ client: fakeClient({ expediente: null }), user: { id: "u" } });
   expect((await PUT(request(advance), context)).status).toBe(404);
+});
+
+it("en una venta, una cancelación de hipoteca abierta frena la firma hasta inscribirse o hasta la decisión del director", async () => {
+  const sale = { etapa: "negociacion", operacion: "venta", flujo: null };
+  const rpcWith = (frenan: number) => vi.fn(async (name: unknown) => name === "fortius_inmuebles_tramites_que_frenan_firma" ? { data: frenan, error: null } : { data: { id }, error: null });
+  let rpc = rpcWith(1);
+  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: sale }, rpc), user: { id: "u" } });
+  const blocked = await PUT(request({ ...advance, etapa: "cierre" }), context);
+  expect(blocked.status).toBe(409);
+  expect((await blocked.json()).error).toMatch(/cancelación de hipoteca.*Registro Público.*director/);
+  expect(rpc).not.toHaveBeenCalledWith("fortius_inmuebles_update_operation", expect.anything());
+  // También frena saltar a etapas posteriores desde la firma.
+  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: { ...sale, etapa: "cierre" } }, rpcWith(1)), user: { id: "u" } });
+  expect((await PUT(request({ ...advance, etapa: "entrega" }), context)).status).toBe(409);
+  // Inscrita o con la decisión del director, la base ya no la cuenta y la firma avanza.
+  rpc = rpcWith(0);
+  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: sale }, rpc), user: { id: "u" } });
+  expect((await PUT(request({ ...advance, etapa: "cierre" }), context)).status).toBe(200);
+  expect(rpc).toHaveBeenCalledWith("fortius_inmuebles_tramites_que_frenan_firma", { p_expediente: id });
+  // No aplica a rentas ni a quien sigue antes de la firma.
+  for (const [expediente, etapa] of [[{ ...sale, operacion: "renta" }, "cierre"], [{ ...sale, etapa: "comercializacion" }, "negociacion"]] as const) {
+    const other = rpcWith(1);
+    requireStaff.mockResolvedValue({ client: fakeClient({ expediente }, other), user: { id: "u" } });
+    expect((await PUT(request({ ...advance, etapa }), context)).status).toBe(200);
+    expect(other).toHaveBeenCalledOnce();
+  }
 });

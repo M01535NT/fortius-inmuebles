@@ -162,16 +162,17 @@ function subscribeStart(cb: () => void) {
   window.addEventListener("storage", cb); window.addEventListener(START_EVENT, cb);
   return () => { window.removeEventListener("storage", cb); window.removeEventListener(START_EVENT, cb); };
 }
-export function StartHere({ storageKey, above, children }: { storageKey?: string; above?: boolean; children: React.ReactNode }) {
+/** `side`: en el menú lateral, el aviso sale a la derecha y el botón ocupa todo el ancho. */
+export function StartHere({ storageKey, above, side, children }: { storageKey?: string; above?: boolean; side?: boolean; children: React.ReactNode }) {
   const seen = React.useSyncExternalStore(subscribeStart, () => !storageKey || startSeen(storageKey), () => true);
   const done = () => {
     if (seen || !storageKey) return;
     try { localStorage.setItem(storageKey, "1"); } catch { /* sin almacenamiento */ }
     window.dispatchEvent(new Event(START_EVENT));
   };
-  return <span className={s.startHere} onClickCapture={done}>
+  return <span className={s.startHere} data-side={side || undefined} onClickCapture={done}>
     {children}
-    {!seen && <><span className={s.startDot} aria-hidden="true" /><span className={s.startTip} data-above={above || undefined}>Empieza aquí</span></>}
+    {!seen && <><span className={s.startDot} aria-hidden="true" /><span className={s.startTip} data-above={above || undefined} data-side={side || undefined}>Empieza aquí</span></>}
   </span>;
 }
 

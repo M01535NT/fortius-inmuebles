@@ -15,7 +15,7 @@
 .ip-criteria ul { display: grid; gap: var(--space-cerca); margin: 0; padding: 0; list-style: none; }
 .ip-criteria li { position: relative; padding-left: var(--space-amplio); font-size: var(--type-interfaz); line-height: 1.5; color: color-mix(in srgb, var(--ns-ink) 85%, transparent); }
 .ip-criteria li::before { content: ""; position: absolute; top: 0.6em; left: 0; width: 10px; height: 1px; background: var(--ns-accent); }
-.ip-media { position: relative; margin: 0; aspect-ratio: 4 / 5; max-height: 560px; overflow: hidden; border-radius: var(--corner-tarjeta); background: #0c1622; }
+.ip-media { position: relative; margin: 0; aspect-ratio: 4 / 5; max-height: 560px; overflow: hidden; border-radius: var(--corner-tarjeta); background: #0c1724; }
 .ip-chips { position: absolute; right: 16px; bottom: 16px; left: 16px; display: flex; flex-wrap: wrap; gap: var(--space-corto); }
 .ip-chips span { padding: var(--space-corto) var(--space-cerca); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: var(--corner-pulsable); background: rgba(6, 12, 20, 0.62); color: #f8f8ff; font-size: var(--type-etiqueta); font-weight: 600; backdrop-filter: blur(10px); }
 .ip-aside { justify-self: stretch; }

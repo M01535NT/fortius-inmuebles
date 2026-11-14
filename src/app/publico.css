@@ -14,13 +14,13 @@
 */
 :root {
   --ns-bg: #f8f8ff; --ns-page: #fff; --ns-card: #fff; --ns-deep: #fff; --ns-form: #fff;
-  --ns-ink: #061f3f; --ns-strong: #061f3f; --ns-accent: #8a1634; --ns-fill: #8a1634; --ns-warn: #7a4a00;
+  --ns-ink: #061f3f; --ns-strong: #061f3f; --ns-accent: #8a1634; --ns-fill: #8a1634; --ns-warn: #9c5400;
   --ns-invert: #061f3f; --ns-invert-ink: #f8f8ff; --ns-invert-accent: #f8f8ff; --ns-invert-hover: #0b2b55;
 }
 .dark {
   /* --ns-bg: «azul noche» (13/11/2026), un paso arriba de la página para que las bandas se distingan como en claro. */
-  --ns-bg: #0b1828; --ns-page: #060c14; --ns-card: #0c1622; --ns-deep: #060c14; --ns-form: #f8f8ff;
-  --ns-ink: #f8f8ff; --ns-strong: #fff; --ns-accent: #f8f8ff; --ns-fill: #a2223f; --ns-warn: #ffd236;
+  --ns-bg: #0b1828; --ns-page: #060c14; --ns-card: #0c1724; --ns-deep: #060c14; --ns-form: #f8f8ff;
+  --ns-ink: #f8f8ff; --ns-strong: #fff; --ns-accent: #f8f8ff; --ns-fill: #f8f8ff; --ns-warn: #f4b768;
   --ns-invert: #f8f8ff; --ns-invert-ink: #061f3f; --ns-invert-accent: #8a1634; --ns-invert-hover: #fff;
 }
 /* Superficies oscuras en ambos temas (azul, noche, vino o foto): el acento es crema. */
@@ -51,7 +51,7 @@
 .pg-hero .pg-pill:hover { border-color: color-mix(in srgb, var(--ns-ink) 50%, transparent); background: color-mix(in srgb, var(--ns-ink) 10%, transparent); }
 .pg-hero .pg-pill[aria-current="page"], .pg-hero .pg-pill.is-active { border-color: var(--ns-invert); background: var(--ns-invert); color: var(--ns-invert-ink); }
 .pg-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-cerca); min-height: var(--control-normal); padding: 0 var(--space-amplio); border: 1px solid var(--pg-wine); border-radius: var(--corner-pulsable); background: var(--pg-wine); color: #fff; font-size: var(--type-interfaz); font-weight: 600; cursor: pointer; transition: background-color 0.25s, border-color 0.25s, transform 0.4s var(--pg-ease); }
-.pg-btn:hover { background: #a2223f; border-color: #a2223f; transform: translateY(-2px); }
+.pg-btn:hover { background: #74112b; border-color: #74112b; transform: translateY(-2px); }
 .pg-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
 .pg-btn-ghost { border-color: var(--border); background: transparent; color: var(--foreground); font-weight: 600; }
 .pg-btn-ghost:hover { border-color: #061f3f; background: var(--secondary); }
@@ -71,7 +71,7 @@
 .pg-card { overflow: hidden; border: 1px solid var(--border); border-radius: var(--corner-tarjeta); background: var(--card, var(--background)); transition: transform 0.5s var(--pg-ease), box-shadow 0.5s, border-color 0.4s; }
 .pg-card-hover:hover { transform: translateY(-4px); border-color: rgba(6, 31, 63, 0.3); box-shadow: 0 30px 60px -36px rgba(6, 31, 63, 0.45); }
 .pg-card-pad { padding: clamp(22px, 2.6vw, 32px); }
-.pg-card-dark { border-color: rgba(255, 255, 255, 0.12); background: #0c1622; color: #f8f8ff; }
+.pg-card-dark { border-color: rgba(255, 255, 255, 0.12); background: #0c1724; color: #f8f8ff; }
 .pg-card-dark .pg-muted { color: rgba(248, 248, 255, 0.7); }
 .pg-card-wine { border-color: var(--pg-wine); background: var(--pg-wine); color: #fff; }
 .pg-card-wine .pg-eyebrow { color: var(--ns-accent); }

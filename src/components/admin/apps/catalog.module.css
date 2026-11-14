@@ -1,65 +1,47 @@
 /*
-  Catálogo de herramientas (rediseño del 18/10/2026; sin filtros ni estrellas desde C45): las
-  herramientas agrupadas por categoría en tarjetas horizontales con un ícono de color por
-  familia. Prefijo :global(.admin-root): ver kit.module.css.
+  Catálogo de herramientas (dirección B del boceto «Más», 14/11/2026): un solo panel con tres
+  columnas separadas por una línea; cada herramienta es una fila con ícono pequeño, nombre y una
+  línea de explicación. En celular las columnas se apilan. Prefijo :global(.admin-root): ver kit.module.css.
 */
 
-:global(.admin-root) .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; }
+:global(.admin-root) .panel { display: grid; min-width: 0; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); }
+@media (min-width: 1024px) { :global(.admin-root) .panel { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
-/* Secciones por categoría */
-:global(.admin-root) .sections { display: flex; flex-direction: column; gap: 1.75rem; }
-:global(.admin-root) .section { display: flex; flex-direction: column; gap: .875rem; min-width: 0; }
-:global(.admin-root) .sectionHead { margin: 0; font-size: var(--admin-text-grupo); font-weight: 600; letter-spacing: -.01em; }
-:global(.admin-root) .grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); }
+:global(.admin-root) .column { display: flex; min-width: 0; flex-direction: column; gap: .5rem; padding: 1.25rem 1rem 1rem; }
+:global(.admin-root) .column + .column { border-top: 1px solid var(--card-edge); }
+@media (min-width: 1024px) {
+  :global(.admin-root) .column { padding: 1.5rem 1.5rem 1.25rem; }
+  :global(.admin-root) .column + .column { border-top: 0; border-left: 1px solid var(--card-edge); }
+}
+:global(.admin-root) .columnHead { margin: 0 0 .25rem; padding-inline: .625rem; font-size: var(--admin-text-grupo); font-weight: 620; letter-spacing: -.01em; }
 
-/* Tarjeta de herramienta: el enlace cubre toda la tarjeta. */
-:global(.admin-root) .tile { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .25rem .875rem; align-items: start; padding: .875rem 1rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); }
-:global(.admin-root) .tile:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
-:global(.admin-root) .tile:has(a:focus-visible) { outline: 3px solid var(--focus-color); outline-offset: 3px; }
-@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .tile { transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); } }
-:global(.admin-root) .icon { grid-row: 1 / span 2; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-thumb); background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .tile[data-group="Calcular"] .icon { background: var(--success-surface); color: var(--success); }
-:global(.admin-root) .tile[data-group="Documentos"] .icon { background: var(--info-surface); color: var(--info); }
-:global(.admin-root) .tile[data-group="Presentar"] .icon { background: var(--warning-surface); color: var(--warning); }
-:global(.admin-root) .tile a { grid-column: 2; min-width: 0; padding-top: .125rem; font-size: var(--admin-text-cuerpo); font-weight: 540; line-height: 1.3; color: var(--foreground); text-decoration: none; overflow-wrap: anywhere; }
-:global(.admin-root) .tile a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-:global(.admin-root) .tile a:focus-visible { outline: none; }
-:global(.admin-root) .tile p { grid-column: 2; margin: 0; font-size: var(--admin-text-pastilla); line-height: 1.5; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .items { display: flex; flex-direction: column; gap: .125rem; margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .item { display: flex; min-height: 2.75rem; align-items: flex-start; gap: .75rem; padding: .625rem; border-radius: var(--radius-control); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .item:hover { background: var(--secondary); }
+:global(.admin-root) .item:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 1px; }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .item { transition: background-color 140ms; } }
+:global(.admin-root) .icon { display: grid; flex: none; place-items: center; width: 2rem; height: 2rem; border-radius: var(--radius-thumb); background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .icon svg { width: 1.125rem; height: 1.125rem; }
+:global(.admin-root) .itemBody { display: flex; min-width: 0; flex-direction: column; gap: .125rem; }
+:global(.admin-root) .itemBody strong { font-size: var(--admin-text-interfaz); font-weight: 600; line-height: 1.3; }
+:global(.admin-root) .itemBody span { font-size: var(--admin-text-pastilla); line-height: 1.4; color: var(--muted-foreground); overflow-wrap: anywhere; }
 
-/* Accesos directos (HER-01): tres tarjetas anchas arriba del catálogo. */
-:global(.admin-root) .shortcuts { display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none; }
-@media (min-width: 900px) { :global(.admin-root) .shortcuts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-:global(.admin-root) .shortcut { display: flex; min-height: 5.5rem; height: 100%; align-items: center; gap: .875rem; padding: 1rem 1.125rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); color: var(--foreground); text-decoration: none; }
-:global(.admin-root) .shortcut:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
-:global(.admin-root) .shortcut:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
-@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .shortcut { transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); } }
-:global(.admin-root) .shortcutIcon { display: grid; flex: none; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-thumb); background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .shortcutBody { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .125rem; }
-:global(.admin-root) .shortcutBody strong { font-size: var(--admin-text-cuerpo); font-weight: 600; line-height: 1.3; }
-:global(.admin-root) .shortcutBody span { font-size: var(--admin-text-pastilla); line-height: 1.45; color: var(--muted-foreground); overflow-wrap: anywhere; }
-:global(.admin-root) .shortcutArrow { flex: none; opacity: .55; }
+/* Al pie: ligas útiles en una fila y, al final, los trabajos de herramientas retiradas. */
+:global(.admin-root) .footer { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .5rem 1.5rem; padding-inline: .25rem; }
+:global(.admin-root) .links { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 0 1.25rem; }
+:global(.admin-root) .links h2 { margin: 0; font-size: var(--admin-text-detalle); font-weight: 600; color: var(--muted-foreground); }
+:global(.admin-root) .links ul { display: flex; flex-wrap: wrap; gap: 0 1.25rem; margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .links a { display: inline-flex; min-height: 2.75rem; align-items: center; gap: .375rem; font-size: var(--admin-text-detalle); color: var(--foreground); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 30%, transparent); text-underline-offset: 4px; }
+:global(.admin-root) .links a:hover { text-decoration-color: currentColor; }
+:global(.admin-root) .links a:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 2px; border-radius: 4px; }
+:global(.admin-root) .links svg { opacity: .6; }
 
-/* Herramientas retiradas: plegadas, solo para consultar sus trabajos guardados. */
-:global(.admin-root) .retired { min-width: 0; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); color: var(--foreground); }
-:global(.admin-root) .retired > summary { display: flex; flex-wrap: wrap; min-height: 3.5rem; align-items: center; gap: .25rem 1rem; padding: .75rem 1rem; font-weight: 600; cursor: pointer; list-style: none; border-radius: inherit; }
+:global(.admin-root) .retired { min-width: 0; max-width: 100%; color: var(--foreground); }
+:global(.admin-root) .retired > summary { display: inline-flex; min-height: 2.75rem; align-items: center; font-size: var(--admin-text-detalle); color: var(--muted-foreground); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 30%, transparent); text-underline-offset: 4px; cursor: pointer; list-style: none; }
 :global(.admin-root) .retired > summary::-webkit-details-marker { display: none; }
-:global(.admin-root) .retired > summary:hover { background: var(--secondary); }
-:global(.admin-root) .retired > summary:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
-:global(.admin-root) .retired > summary span { font-size: var(--admin-text-detalle); font-weight: 400; color: var(--muted-foreground); }
-:global(.admin-root) .retired ul { margin: 0; padding: 0 1rem .5rem; list-style: none; border-top: 1px solid var(--card-edge); }
+:global(.admin-root) .retired > summary:hover { color: var(--foreground); }
+:global(.admin-root) .retired > summary:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 2px; border-radius: 4px; }
+:global(.admin-root) .retired[open] { flex-basis: 100%; }
+:global(.admin-root) .retired ul { margin: .5rem 0 0; padding: 0 1rem; list-style: none; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); }
 :global(.admin-root) .retired li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; padding: .75rem 0; border-bottom: 1px solid var(--card-edge); }
 :global(.admin-root) .retired li:last-child { border-bottom: 0; }
-
-/* Ligas útiles: lista sobria en dos columnas, cada fila abre otra pestaña. */
-:global(.admin-root) .links { display: grid; gap: 0 1.5rem; margin: 0; padding: 0 1rem; list-style: none; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); }
-@media (min-width: 900px) { :global(.admin-root) .links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-:global(.admin-root) .links li { border-bottom: 1px solid var(--card-edge); }
-:global(.admin-root) .links li:last-child { border-bottom: 0; }
-@media (min-width: 900px) { :global(.admin-root) .links li:nth-last-child(2):nth-child(odd) { border-bottom: 0; } }
-:global(.admin-root) .links a { display: flex; min-height: 3.5rem; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 0; color: var(--foreground); text-decoration: none; }
-:global(.admin-root) .links a:hover strong { text-decoration: underline; text-underline-offset: 4px; }
-:global(.admin-root) .links a:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 2px; border-radius: 6px; }
-:global(.admin-root) .links a > span { display: flex; flex-direction: column; gap: .125rem; }
-:global(.admin-root) .links strong { font-size: var(--admin-text-interfaz); font-weight: 600; }
-:global(.admin-root) .links a > span > span { font-size: var(--admin-text-pastilla); line-height: 1.45; color: var(--muted-foreground); overflow-wrap: anywhere; }
-:global(.admin-root) .links svg { flex: none; opacity: .6; }

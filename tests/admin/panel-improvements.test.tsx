@@ -66,7 +66,7 @@ test("every task due today or overdue stays on Hoy, oldest deadline first", asyn
   expect(links).toHaveLength(5);
   expect(links[0].getAttribute("href")).toBe("/admin/tareas/t-4");
   expect(within(today).getByRole("link",{name:/Pendiente 3/}).getAttribute("href")).toBe("/admin/tareas/t-3");
-  expect(within(screen.getByRole("region",{name:"Hoy"})).getByText("0 de 5 hechas")).toBeTruthy();
+  expect(within(screen.getByRole("region",{name:"Agenda de hoy"})).getByText("0 de 5 hechas")).toBeTruthy();
 });
 
 test("an empty operations module offers creation without forcing the form open", async () => {

@@ -74,7 +74,7 @@ Se configuró un Deployment Check en cada proyecto:
 
 Este control retiene la asignación de dominios cuando falta o falla el check; **no impide que exista el build ni su URL de despliegue**. La protección de acceso de Vercel sigue siendo necesaria. Una cuenta autorizada que cambie configuraciones puede eludir controles: esto no es una frontera frente al administrador del proveedor.
 
-Durante la prueba controlada se amplió temporalmente el ámbito del check Fortius a preview, conservando producción. Se comprobó el fallo y el paso a verde, y se restituyó el ámbito a producción mediante PATCH y lectura posterior. Los recibos negativo y positivo se conservan en la copia externa `workspace-before.zip`, dentro de `docs/erp-crm/iterations/`; el [plan único](../../ROADMAP.md) resume su alcance. Esa prueba de mecanismo no creó ni promovió un despliegue de producción.
+Durante la prueba controlada se amplió temporalmente el ámbito del check Fortius a preview, conservando producción. Se comprobó el fallo y el paso a verde, y se restituyó el ámbito a producción mediante PATCH y lectura posterior. Los recibos negativo y positivo se conservan en la copia externa `workspace-before.zip`, dentro de `docs/erp-crm/iterations/`; el [plan único](../../PLAN.md) resume su alcance. Esa prueba de mecanismo no creó ni promovió un despliegue de producción.
 
 ## Previews y datos
 
@@ -116,4 +116,4 @@ Pendientes: custodia y destino aislado aprobados, Auth/Storage recuperados con p
 
 - [Vercel Deployment Checks](https://vercel.com/docs/deployment-checks).
 - OpenAPI oficial `https://openapi.vercel.sh`: `/v2/projects/{projectIdOrName}/checks` y `/v9/projects/{idOrName}/env/{id}`.
-- Metadata de GitHub, checks por SHA y configuración Vercel consultadas mediante sesión autorizada. La evidencia cronológica anterior se conserva fuera del repositorio; el avance está en [el plan único](../../ROADMAP.md).
+- Metadata de GitHub, checks por SHA y configuración Vercel consultadas mediante sesión autorizada. La evidencia cronológica anterior se conserva fuera del repositorio; el avance está en [el plan único](../../PLAN.md).

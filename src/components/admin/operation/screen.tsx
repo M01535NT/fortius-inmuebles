@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, FileText, History, ListChecks, Pencil, Settings2, Trash2, Upload } from "@/components/admin/icons";
 import { RecordNotes, useRecordNotes } from "@/components/admin/workspace/record-notes";
-import { Avatar, Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
+import { Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { PAPELERA } from "@/components/admin/papelera/textos";
@@ -17,7 +17,7 @@ import type { OperationalInterview } from "@/lib/intake/interview";
 import { conditionWith02 } from "@/lib/intake/condition";
 import { EXCEPTION_TAG, INHERITED_TAG, flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
-import { TIPO_LABELS } from "@/data/propiedades";
+import { TIPO_LABELS, formatPrecio } from "@/data/propiedades";
 import { ClientDocumentsTab } from "./client-documents-tab";
 import { DocumentsTab } from "./documents-tab";
 import { HistoryTab } from "./history-tab";
@@ -29,13 +29,13 @@ import { useLeaveGuard, useOperation } from "./use-operation";
 import s from "./operation.module.css";
 
 /*
-  Una operación (boceto D «Moderno», LV-06, construido el 31/10/2026 con las reglas de LV-08):
-  pantalla partida. A la izquierda el panel azul (quién, número de etapa, las diez etapas como
-  barras y la persona con Llamar y WhatsApp); a la derecha las piezas de la etapa (documentos,
-  próxima tarea, confirmaciones e inmueble) y, abajo, la barra flotante con lo que toca y un solo
+  Una operación (boceto «desde cero», LV-09, 14/11/2026; reemplaza el panel azul del boceto D):
+  arriba las migas, la foto, el título con sus datos y Llamar/WhatsApp, y el riel de diez etapas en
+  su propia tarjeta; debajo, a la izquierda la etapa con lo que hay que confirmar y sus documentos,
+  y a la derecha la próxima tarea y el inmueble. Abajo, la barra flotante con lo que toca y un solo
   botón. La operación tiene tres partes (SIM-18, 11/11/2026): «Etapa», «Documentos» (los del
   expediente y los que entrega el cliente) y «Actividad» (tareas e historial); en las dos últimas
-  el panel azul va compacto con la lista de partes. Los datos de la operación (ruta, situación,
+  el encabezado va compacto con la lista de partes. Los datos de la operación (ruta, situación,
   inmueble, contraparte y decisión del encargo), corregir la etapa y eliminar viven en «Más
   opciones» del panel (DEC-37, DEC-38). Los documentos se capturan en su propia ventana. Las
   direcciones anteriores siguen funcionando: ?tab=cliente abre Documentos, ?tab=tareas y
@@ -183,6 +183,8 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
       <StagePanel op={view} today={today} docs={docs} checklist={checklist} compact={tab !== "sigue"} back={back}
         who={{ name: client?.nombre ?? op.folio, wants, href: client ? `/admin/clientes/${encodeURIComponent(client.id)}` : undefined }}
         tags={tags}
+        photo={op.propiedad_slug ? property?.galeria[0]?.src ?? null : undefined}
+        facts={[property?.titulo, property && property.precio.modalidad === "publico" ? `precio ${formatPrecio(property.precio)}` : undefined, adviser ? `responsable ${adviser.nombre}` : undefined].filter((x): x is string => !!x)}
         person={client ? { name: client.nombre, role, digits, email: client.email, href: `/admin/clientes/${encodeURIComponent(client.id)}` } : undefined}
         onOpenStages={focus => setStagesOpen({ focus })} menu={menu}>
         {tab !== "sigue" && tabs}
@@ -190,7 +192,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
       <div className={s.main}>
         {tab === "sigue" && <div data-tour="operacion-pestanas" className={s.foot}>
           {tabs}
-          <span className={s.footWho}>{adviser ? <><Avatar name={adviser.nombre} size={28} />Responsable {adviser.nombre}</> : "Sin responsable"}</span>
+          {!adviser && <span className={s.footWho}>Sin responsable</span>}
         </div>}
         <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
           {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}

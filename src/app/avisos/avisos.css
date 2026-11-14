@@ -8,7 +8,7 @@
 .nt-card p { font-size: var(--type-interfaz); line-height: 1.6; }
 .nt-actions { display: flex; flex-wrap: wrap; gap: var(--space-corto); margin-top: var(--space-corto); }
 .pg-pill-download { border-color: var(--pg-wine); background: var(--pg-wine); color: #fff; }
-.pg-pill-download:hover { border-color: #a2223f; background: #a2223f; }
+.pg-pill-download:hover { border-color: #74112b; background: #74112b; }
 .nt-reading { padding-top: var(--space-corto); border-top: 1px solid var(--border); }
 .nt-reading summary { min-height: 44px; padding: var(--space-cerca) 0; color: var(--primary-text, #8a1634); font-size: var(--type-detalle); font-weight: 600; cursor: pointer; }
 .nt-reading section { padding: var(--space-cerca) 0; }

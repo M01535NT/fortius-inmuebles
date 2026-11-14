@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarPlus, Landmark, Trash2 } from "@/components/admin/icons";
 import { hipotecaHref } from "@/lib/apps/contexto";
-import { Button, ButtonLink, Notice, Pill, Surface } from "@/components/admin/kit";
+import { Button, ButtonLink, buttonClass, Notice, Pill, Surface } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, AsyncSelect, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
@@ -123,12 +123,13 @@ function LeadDetail({ id }: { id: string }) {
   const hipoteca: MenuItem[] = buyer ? [{ label: "Calcular hipoteca", icon: <Landmark size={18} aria-hidden="true" />, onSelect: () => router.push(hipotecaHref(lead.perfil?.presupuestoMax
     ? { precio: lead.perfil.presupuestoMax, moneda: lead.perfil.moneda }
     : propiedad && propiedad.precio.modalidad !== "consulta" ? { precio: propiedad.precio.monto, moneda: propiedad.precio.moneda, inmueble: propiedad.slug } : {})) }] : [];
+  const removeLead = async () => {
+    if (!await confirmDelete("prospecto", `${lead.nombre} sale de Contactos con su historial.`, "o")) return;
+    await removeById(db.leads, lead.id, db.leads.version(lead));
+    router.push("/admin/contactos");
+  };
   const menu: MenuItem[] = lead.clienteId ? hipoteca : [...hipoteca,
-    { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
-      if (!await confirmDelete("prospecto", `${lead.nombre} sale de Contactos con su historial.`, "o")) return;
-      await removeById(db.leads, lead.id, db.leads.version(lead));
-      router.push("/admin/contactos");
-    } },
+    { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: removeLead },
   ];
   const prepare = busy ? <Button variant="primary" disabled>Abrir operación</Button> : <ButtonLink variant="primary" href={operationUrl}>Abrir operación<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
   const draft = interview.current?.estado === "borrador" ? interview.current : null;
@@ -140,7 +141,8 @@ function LeadDetail({ id }: { id: string }) {
 
     {busy && <p role="status" className={s.muted}>Guarda o cancela los cambios pendientes antes de abrir su operación.</p>}
     {lead.clienteId && <p className={s.muted}>Ya es cliente. Esta ficha conserva su historial y su agenda como prospecto.</p>}
-    {duplicates.length > 0 && <Notice title="Puede estar repetido">Revisa antes de crear otro registro: {duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/leads/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
+    {/* Si este es el que sobra, se elimina aquí mismo (titular, 14/11/2026); la fusión asistida es RP-40. */}
+    {duplicates.length > 0 && <Notice title="Puede estar repetido" actions={lead.clienteId ? undefined : <AsyncButton className={buttonClass({ variant: "danger" })} onClick={removeLead}><Trash2 size={16} aria-hidden="true" />Eliminar este registro</AsyncButton>}>{lead.clienteId ? "Este ya es cliente; si sobra otro, elimínalo desde su ficha: " : "Revisa antes de crear otro registro: "}{duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/leads/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
 
     <NextStepCard step={step} today={today} fallback={lead.clienteId ? "Su seguimiento continúa en su ficha de cliente." : draft ? "Terminar su entrevista inicial" : stage === "descartado" || stage === "cerrado" ? "Sin seguimiento: está descartado." : "Sin siguiente paso con fecha. Agenda una llamada o una tarea."}>
       {!lead.clienteId && !buyer && (!lead.firstContactedAt || awaitingFirstReply(lead)) && <AsyncButton className={cn("inline-flex min-h-11 items-center rounded-[10px] border px-4 text-[.9375rem] font-[540]", s.onNavy)} onClick={async () => { await upsert(db.leads, { ...lead, firstContactedAt: new Date().toISOString(), estado: lead.estado === "nuevo" ? "contactado" : lead.estado }, db.leads.version(lead)); }}>Ya hablé con esta persona</AsyncButton>}

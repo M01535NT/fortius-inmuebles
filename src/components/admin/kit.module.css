@@ -52,7 +52,7 @@
 /* Fotos, iniciales y teclas */
 :global(.admin-root) .thumb { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; overflow: hidden; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--muted-foreground); }
 :global(.admin-root) .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-:global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: #dbe4f0; color: #061f3f; font-size: var(--admin-text-minimo); font-weight: 620; letter-spacing: .02em; overflow: hidden; }
+:global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: var(--secondary); color: var(--foreground); font-size: var(--admin-text-minimo); font-weight: 620; letter-spacing: .02em; overflow: hidden; }
 :global(.dark) :global(.admin-root) .avatar { background: var(--secondary); color: var(--foreground); }
 :global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: #f8f8ff; }
 :global(.admin-root) .avatar { position: relative; }
@@ -164,6 +164,8 @@
 :global(.admin-root) .startHere { position: relative; display: inline-flex; }
 :global(.admin-root) .startDot { position: absolute; top: -3px; right: -3px; width: .875rem; height: .875rem; border-radius: 999px; background: var(--info); box-shadow: 0 0 0 3px var(--background); pointer-events: none; }
 :global(.admin-root) .startTip { position: absolute; top: calc(100% + .5rem); right: 0; padding: .25rem .625rem; border-radius: 999px; background: var(--info-surface); color: var(--info); font-size: var(--admin-text-pastilla); font-weight: 540; white-space: nowrap; pointer-events: none; animation: start-tip 300ms linear 5s both; }
+:global(.admin-root) .startHere[data-side] { display: flex; width: 100%; }
+:global(.admin-root) .startTip[data-side] { top: 50%; right: auto; left: calc(100% + .75rem); transform: translateY(-50%); z-index: 41; }
 :global(.admin-root) .startTip[data-above] { top: auto; bottom: calc(100% + .5rem); right: 50%; transform: translateX(50%); }
 @keyframes start-tip { to { opacity: 0; visibility: hidden; } }
 @media (prefers-reduced-motion: no-preference) {

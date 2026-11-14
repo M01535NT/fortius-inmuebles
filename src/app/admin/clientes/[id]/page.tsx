@@ -3,8 +3,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarPlus, Trash2 } from "@/components/admin/icons";
-import { Button, ButtonLink, Notice, Pill, Surface } from "@/components/admin/kit";
-import { ErrorNotice } from "@/components/admin/ui";
+import { Button, ButtonLink, buttonClass, Notice, Pill, Surface } from "@/components/admin/kit";
+import { AsyncButton, ErrorNotice } from "@/components/admin/ui";
 import { ClienteEditor, CLIENTE_TIPO_LABELS } from "@/components/admin/cliente-editor";
 import { LeadProfileSummary } from "@/components/admin/lead-fields";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
@@ -81,10 +81,13 @@ function ClienteDetail({ id }: { id: string }) {
   // Se elimina a Eliminados (13/11/2026), también quien vino de un prospecto: su historial vuelve al restaurarlo.
   // Con una operación en curso no se puede: primero se cierra o se elimina la operación (el servidor también lo revisa).
   const blocking = dossiers === undefined ? "Consultando sus operaciones…" : dossiers === null ? "No se pudieron revisar sus operaciones" : dossiers.length ? `Tiene ${dossiers.length === 1 ? `la operación ${dossiers[0].folio}` : `${dossiers.length} operaciones`} en curso` : "";
-  const menu: MenuItem[] = editing ? [] : [{ label: blocking ? `Eliminar cliente · ${blocking}` : "Eliminar cliente", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, disabled: !!blocking, onSelect: async () => {
+  const removeClient = async () => {
     if (!await confirmDelete("cliente", `${cliente.nombre} sale de Contactos.`, "o")) return;
     await removeById(db.clientes, cliente.id, db.clientes.version(cliente));
     router.push("/admin/contactos?tab=clientes");
+  };
+  const menu: MenuItem[] = editing ? [] : [{ label: blocking ? `Eliminar cliente · ${blocking}` : "Eliminar cliente", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, disabled: !!blocking, onSelect: async () => {
+    await removeClient();
   } }];
   const facts: Array<[string, string | undefined]> = [
     ["Teléfono", cliente.telefono], ["Correo electrónico", cliente.email], ["Tipo de cliente", CLIENTE_TIPO_LABELS[cliente.tipo]], ["Asesor responsable", asesor?.nombre ?? "Sin asignar"],
@@ -97,7 +100,8 @@ function ClienteDetail({ id }: { id: string }) {
       actions={!editing ? <Button onClick={() => setEditing(true)}>Editar cliente</Button> : undefined} />
 
     {editing ? <ClienteEditor initial={cliente} onDone={() => setEditing(false)} /> : <>
-      {duplicates.length > 0 && <Notice title="Puede estar repetido">Revisa antes de crear otro registro: {duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/clientes/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
+      {/* Si este es el que sobra, se elimina aquí mismo (titular, 14/11/2026), salvo con una operación en curso. */}
+      {duplicates.length > 0 && <Notice title="Puede estar repetido" actions={editing ? undefined : <span className="flex flex-col items-start gap-1"><AsyncButton className={buttonClass({ variant: "danger" })} disabled={!!blocking} onClick={removeClient}><Trash2 size={16} aria-hidden="true" />Eliminar este registro</AsyncButton>{blocking && <span className="text-sm">{blocking}.</span>}</span>}>Revisa antes de crear otro registro: {duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/clientes/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
 
       <NextStepCard step={step} today={today} fallback={dossiers === undefined ? "Consultando sus operaciones…" : operations.length ? "Su operación sigue en curso." : "Sin operación abierta ni seguimiento con fecha."}>
         {operations.length > 0

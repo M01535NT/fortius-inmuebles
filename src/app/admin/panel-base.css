@@ -15,100 +15,112 @@
   retirando). Los nombres no cambian: kit.tsx, panel-uplift.css y los .module.css del panel
   los leen igual.
 */
+/*
+  Paleta del panel desde cero (titular, 14/11/2026; ver docs/brand.md). Cuatro capas, cada color
+  con un solo trabajo:
+  - Marca: azul #061F3F (títulos y tinta), borgoña #8A1634 solo para rellenar el botón principal
+    (#74112B al pulsar; nunca como texto), blanco y blanco azulado #F8F8FF.
+  - Grises azulados del 50 al 900 (OKLCH hacia el azul de la marca): 50 #F8F8FF fondo,
+    100 #ECF0F7 selección, 200 #DEE3EC líneas, 300 #C9D0DB bordes de control, 500 #647080 texto
+    tenue y borde de campo (4.8:1), 600 #49566A texto secundario (7.0:1), 900 #061F3F.
+  - Avisos con el mismo peso, cada uno con texto, fondo pálido y borde: azul señal #1E5BA1 (ligas,
+    foco, agenda), verde #1A763F (revisado), ámbar #9C5400 (problema), bermellón #B6341F (vencido;
+    se separa del borgoña por tono y porque nunca rellena un botón).
+  - Oscuro en tres capas: noche #060C14, superficie #0C1724 y elevado #1A2331.
+  Esquinas de 12 px en tarjetas y sombras casi nulas: la profundidad la dan el tono y una línea.
+*/
 .admin-root {
-  --background: #fbfcfe;
+  --background: #f8f8ff;
   --foreground: #061f3f;
   --card: #ffffff;
-  --secondary: #edf2f8;
-  --muted-foreground: #52647a;
-  --border: #dce4ee;
-  --input: #61738a;
+  --secondary: #ecf0f7;
+  --muted-foreground: #49566a;
+  --border: #dee3ec;
+  --input: #647080;
   --primary: #8a1634;
   --primary-foreground: #ffffff;
-  --control-edge: #61738a;
-  --focus-color: #174f94;
-  --primary-text: #8a1634;
+  --control-edge: #647080;
+  --focus-color: #1e5ba1;
+  --primary-text: #061f3f; /* el borgoña no se usa como texto */
   --card-foreground: #061f3f;
-  --panel-selected: #edf2f8;
-  --panel-selected-ink: #8a1634;
+  --panel-selected: #ecf0f7;
+  --panel-selected-ink: #061f3f;
   --primary-edge: #8a1634;
-  --primary-hover: #70112a;
+  --primary-hover: #74112b;
   --scrim: rgba(6, 31, 63, .45);
-  /*
-    Panel: dirección clara aprobada por el titular (17/10/2026) y versión 2 (30/10/2026,
-    LV-08): lienzo blanco azulado (#F8F8FF desde el 11/11/2026), tarjetas de 20 px y bloques de 24 px; sombras azul marino en reposo,
-    al levantar y en la acción principal. El sitio público conserva su escala.
-  */
   --canvas: #f8f8ff;
-  --card-edge: rgba(6, 31, 63, .11);
-  --edge-soft: #c5d0dd;
-  --track: #e3e8f0;
+  --card-edge: #dee3ec;
+  --edge-soft: #c9d0db;
+  --track: #dee3ec;
   --radius-control: 10px;
-  --radius-thumb: 12px;
-  --radius-card: 20px;
-  --radius-panel: 24px;
+  --radius-thumb: 8px;
+  --radius-card: 12px;
+  --radius-panel: 14px;
   --radius-pill: 999px;
-  --shadow-rest: 0 1px 2px rgba(6, 31, 63, .04);
-  --shadow-lift: 0 2px 4px rgba(6, 31, 63, .05), 0 18px 40px -18px rgba(6, 31, 63, .28);
-  --shadow-cta: 0 8px 20px -10px rgba(138, 22, 52, .7);
-  --shadow-float: 0 12px 30px -12px rgba(6, 31, 63, .35);
+  --shadow-rest: none;
+  --shadow-lift: 0 4px 8px rgba(6, 31, 63, .08);
+  --shadow-cta: none;
+  --shadow-float: 0 6px 8px rgba(6, 31, 63, .08);
   --shadow-card: var(--shadow-rest);
   --shadow-control: none;
-  --shadow-raised: 0 12px 32px rgba(6, 31, 63, .14);
+  --shadow-raised: 0 8px 8px rgba(6, 31, 63, .1);
   --ease-out: cubic-bezier(.16, 1, .3, 1);
-  /*
-    Cinco colores de estado (RP-70, LV-01, 13/11/2026), cada uno con superficie y borde, AA sobre
-    tarjeta, fondo y su superficie: guinda (--primary) acción principal; azul (--info) información
-    y agenda; verde (--success) listo o revisado; ámbar (--warning) atención; rojo (--destructive,
-    alias --alert) vencido o error. Ningún otro color comunica estado.
-  */
-  --success: #1f7a4d;
-  --success-surface: #e4f3ea;
-  --success-border: rgba(31, 122, 77, .4);
-  --info: #174f94;
-  --info-surface: #e6eef9;
-  --info-border: rgba(23, 79, 148, .4);
+  --success: #1a763f;
+  --success-surface: #e5faea;
+  --success-border: #afdfbb;
+  --info: #1e5ba1;
+  --info-surface: #eaf5ff;
+  --info-border: #b7d4f9;
+  --warning: #9c5400;
+  --warning-surface: #ffefdc;
+  --warning-border: #fbc99e;
+  --destructive: #b6341f;
   --alert: var(--destructive);
-  --alert-surface: #fff0ed;
+  --alert-surface: #ffece7;
+  --alert-border: #fbc1b5;
   --field-surface: #ffffff;
   --field-radius: var(--radius-control);
 }
 .dark .admin-root {
-  --background: #080f1c;
-  --foreground: #f3f6fc;
-  --card: #121e30;
-  --secondary: #2c405a;
-  --muted-foreground: #c1ccdb;
-  --border: #35465d;
-  --input: #92a7c2;
-  --field-surface: #24364e;
-  --control-edge: #92a7c2;
-  --focus-color: #aacfff;
-  --primary-text: #f8f8ff; /* blanco azulado: la marca no lleva rosa ni crema */
-  --card-foreground: #f3f6fc;
-  --panel-selected: #382333;
+  color-scheme: dark; /* casillas, barras de desplazamiento y calendarios nativos en oscuro */
+  --background: #060c14;
+  --foreground: #f8f8ff;
+  --card: #0c1724;
+  --secondary: #1a2331;
+  --muted-foreground: #b0b8c4;
+  --border: #293342;
+  --input: #8993a2;
+  --field-surface: #1a2331;
+  --control-edge: #8993a2;
+  --focus-color: #92c1fd;
+  --primary-text: #f8f8ff;
+  --card-foreground: #f8f8ff;
+  --panel-selected: #1a2331;
   --panel-selected-ink: #f8f8ff;
-  --primary-edge: #f8f8ff;
-  --primary-hover: #a2223f;
+  --primary-edge: #8a1634;
+  --primary-hover: #74112b;
   --scrim: rgba(0, 0, 0, .62);
-  --canvas: #080f1c;
-  --card-edge: rgba(255, 255, 255, .08);
-  --edge-soft: #4a5d78;
-  --track: #1b2a40;
-  --shadow-rest: 0 1px 2px rgba(0, 0, 0, .3);
-  --shadow-lift: 0 18px 40px -18px rgba(0, 0, 0, .6);
-  --shadow-float: 0 12px 30px -12px rgba(0, 0, 0, .6);
-  --shadow-raised: 0 12px 32px rgba(0, 0, 0, .45);
-  --success: #5fd39a;
-  --success-surface: #15311f;
-  --success-border: rgba(95, 211, 154, .4);
-  --info: #aacfff;
-  --info-surface: #16294a;
-  --info-border: rgba(170, 207, 255, .4);
-  /* Un solo rojo en el panel oscuro: #e2564b daba 4.16:1 sobre su superficie; este da 6.7:1. */
-  --destructive: #ff8a7a;
+  --canvas: #060c14;
+  --card-edge: #293342;
+  --edge-soft: #3a4556;
+  --track: #1a2331;
+  --shadow-rest: none;
+  --shadow-lift: 0 4px 8px rgba(0, 0, 0, .4);
+  --shadow-float: 0 6px 8px rgba(0, 0, 0, .45);
+  --shadow-raised: 0 8px 8px rgba(0, 0, 0, .45);
+  --success: #7fd497;
+  --success-surface: #142d1b;
+  --success-border: #224d2f;
+  --info: #92c1fd;
+  --info-surface: #15273e;
+  --info-border: #274367;
+  --warning: #f4b768;
+  --warning-surface: #37250d;
+  --warning-border: #5c3e14;
+  --destructive: #fa8978;
   --alert: var(--destructive);
-  --alert-surface: #3a1c1a;
+  --alert-surface: #401d18;
+  --alert-border: #69332a;
 }
 
 /*

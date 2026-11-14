@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { Eye, EyeOff } from "@/components/admin/icons";
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
-import { ADMIN_NAV, isNavActive, MobileHeader, MobileMenu, MobileTabBar, TopNav } from "@/components/admin/workspace/guided-nav";
+import { ADMIN_NAV, isNavActive, MobileHeader, MobileMenu, MobileTabBar, SideNav } from "@/components/admin/workspace/guided-nav";
 import { PAPELERA } from "@/components/admin/papelera/textos";
 import { Tour } from "@/components/admin/workspace/tour";
 import {
@@ -382,8 +382,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   // C-80: Eliminados está en el menú del director, pero el asesor la abre para restaurar sus operaciones.
   const directorOnly = session.role !== "admin" && ADMIN_NAV.some(item => item.href !== PAPELERA.href && isNavActive(pathname, item));
   return (
-    <div className="admin-workspace flex min-h-[100dvh] flex-col bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
-      {!focus && <TopNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch hotkey />} />}
+    <div className="admin-workspace flex min-h-[100dvh] flex-col bg-background md:flex-row [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
+      {!focus && <SideNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch variant="field" />} />}
       {ready && loadedPath === pathname && <Tour pathname={pathname} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {!focus && <MobileHeader user={user} search={<WorkspaceSearch />} />}

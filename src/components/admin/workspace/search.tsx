@@ -125,7 +125,7 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
 
   return <>
     {variant === "field"
-      ? <button ref={trigger} type="button" data-tour="buscar" className={s.searchIcon} aria-label="Buscar en el panel" title={`${label} (Ctrl K)`} onClick={open}><Search size={20} aria-hidden="true" /></button>
+      ? <button ref={trigger} type="button" data-tour="buscar" className={s.searchField} aria-label="Buscar en el panel" title={`${label} (Ctrl K)`} onClick={open}><Search size={17} aria-hidden="true" /><span className={s.searchFieldText} aria-hidden="true">Buscar o ir a…</span><kbd className={s.searchKey} aria-hidden="true">Ctrl K</kbd></button>
       : <button ref={trigger} type="button" data-tour="buscar" className={s.searchIcon} aria-label="Buscar en el panel" title={label} onClick={open}><Search size={20} aria-hidden="true" /></button>}
     <dialog ref={dialog} aria-labelledby={titleId} onClose={() => { trigger.current?.focus(); setQuery(""); setDone(""); }} onKeyDown={arrows} className={s.palette}>
       <div className={s.paletteHead}>

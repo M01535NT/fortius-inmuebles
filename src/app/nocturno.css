@@ -124,7 +124,7 @@
 .nx-btn:hover { border-radius: 20px 0 20px 0; transform: translateY(-3px); }
 .nx-btn:active { transform: translateY(-1px) scale(0.98); }
 .nx-btn-primary { border-color: #8a1634; background: #8a1634; color: #fff; }
-.nx-btn-primary:hover { border-color: #70112a; background: #70112a; }
+.nx-btn-primary:hover { border-color: #74112b; background: #74112b; }
 
 .nx-resources { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(40px, 5vw, 64px); margin-top: var(--space-normal); }
 .nx-sub { margin: 0; padding-bottom: var(--space-cerca); border-bottom: 1px solid var(--nx-line); color: var(--nx-muted); font-size: var(--type-interfaz); font-weight: 600; line-height: 1.4; }
