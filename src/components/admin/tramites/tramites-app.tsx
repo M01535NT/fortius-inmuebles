@@ -24,13 +24,9 @@ import s from "./tramites.module.css";
 type Filtro = "curso" | "espera" | "terminados";
 const DAY = 86400000;
 const plusDays = (iso: string, n: number) => new Date(Date.parse(iso + "T12:00:00Z") + n * DAY).toISOString().slice(0, 10);
-const shortDate = (iso?: string) => {
-  if (!iso) return "";
-  const parts = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", timeZone: "America/Tijuana" }).formatToParts(new Date(iso.length === 10 ? iso + "T12:00:00Z" : iso));
-  return `${parts.find(p => p.type === "day")?.value ?? ""} ${(parts.find(p => p.type === "month")?.value ?? "").replace(".", "")}`;
-};
+const shortDate = (iso?: string) => iso ? new Date(iso.length === 10 ? iso + "T12:00:00Z" : iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", timeZone: "America/Tijuana" }) : "";
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(b + "T12:00:00Z") - Date.parse(a + "T12:00:00Z")) / DAY);
-const initials = (name: string) => { const w = name.split(/\s+/).filter(Boolean); return (w.length > 1 ? w.slice(0, 2).map(x => x[0]).join("") : (w[0] ?? "").slice(0, 2)).toUpperCase() || "·"; };
+const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "·";
 const phoneDigits = (p?: string) => (p ?? "").replace(/\D/g, "");
 
 export function TramitesApp({ initialId = null }: { initialId?: string | null }) {
@@ -138,7 +134,6 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
   const shown = ver ?? actual;
   const terminado = t.pasoActual >= TOTAL_PASOS;
   const faltan = terminado ? [] : faltanParaCerrar(t, documentos);
-  const totalPaso = terminado ? 0 : t.pasos[actual].pendientes.length + (documentoDelPaso(t.acreedor, t.pasos[actual].clave) ? 1 : 0);
   const anchor = (el: HTMLElement) => { const r = el.getBoundingClientRect(); return { x: Math.max(16, Math.min(r.right - 400, window.innerWidth - 416)), y: r.bottom + 8 }; };
 
   async function toggle(i: number) {
@@ -214,14 +209,14 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
                 </div>}
               </div>
               <div className={s.stepFoot}>
-                <Button variant="primary" className={s.closeBtn} disabled={busy || faltan.length > 0} onClick={() => void cerrar()}><Check size={16} aria-hidden />{actual === TOTAL_PASOS - 1 ? "Terminar el trámite" : "Cerrar el paso"}</Button>
+                <Button variant="primary" disabled={busy || faltan.length > 0} onClick={() => void cerrar()}><Check size={16} aria-hidden />{actual === TOTAL_PASOS - 1 ? "Terminar el trámite" : "Cerrar el paso"}</Button>
                 {documentoDelPaso(t.acreedor, t.pasos[actual].clave) && !documentos.some(d => d.pasoClave === t.pasos[actual].clave) && <label className={cn("inline-flex", s.onNavy)} style={{ borderRadius: "var(--radius-control)" }}>
                   <FileButton label="Subir documento" onFiles={upload} navy />
                 </label>}
                 {t.espera
                   ? <Button className={s.onNavy} disabled={busy} onClick={() => void save({ ...t, espera: null })}>Ya respondieron</Button>
                   : <Button className={s.onNavy} disabled={busy} onClick={e => setWaitAt(anchor(e.currentTarget))}>Marcar en espera</Button>}
-                <span className={s.hint} title={faltan.length ? `Falta: ${faltan.join(" · ")}` : undefined}>{faltan.length ? `${totalPaso - faltan.length} de ${totalPaso}` : "Todo listo"}</span>
+                <span className={s.hint}>{faltan.length ? `Falta: ${faltan.join(" · ")}` : "Todo listo"}</span>
               </div>
             </section>}
 
@@ -346,7 +341,7 @@ function Composer({ inputRef, busy, onSave }: { inputRef: React.RefObject<HTMLTe
   async function send() { if (await onSave(text)) setText(""); }
   return <div className={s.composer}>
     <div className={s.cbox}>
-      <textarea ref={inputRef} rows={1} value={text} aria-label="Escribe una nota" placeholder="Escribe una nota…" title="Enter guarda; Mayús+Enter salta de línea"
+      <textarea ref={inputRef} rows={1} value={text} aria-label="Escribe una nota" placeholder="Escribe una nota… (Enter guarda, Mayús+Enter salta de línea)"
         onChange={e => { setText(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(140, e.target.scrollHeight) + "px"; }}
         onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} />
       <Button variant="primary" disabled={busy || !text.trim()} onClick={() => void send()}>Guardar</Button>

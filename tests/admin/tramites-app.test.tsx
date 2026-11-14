@@ -29,7 +29,6 @@ test("con pendientes sin marcar no se cierra el paso y marcar uno guarda el camb
   data.tramites = [withStep(base(), 0, [true, false, false])];
   render(<TramitesApp initialId="tr-1" />);
   expect((screen.getByRole("button", { name: /Cerrar el paso/ }) as HTMLButtonElement).disabled).toBe(true);
-  expect(screen.getByText("1 de 3")).toBeTruthy();
   fireEvent.click(screen.getByRole("checkbox", { name: "Escritura con folio real" }));
   await waitFor(() => expect(data.upsert).toHaveBeenCalledTimes(1));
   const saved = data.upsert.mock.calls[0][1] as Tramite;
