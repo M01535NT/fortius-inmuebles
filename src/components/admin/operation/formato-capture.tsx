@@ -48,6 +48,8 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   const [doc, setDoc] = React.useState(initial);
   const [values, setValues] = React.useState<Record<string, unknown>>(initial.data);
   const [emisiones, setEmisiones] = React.useState<Emision[] | null>(null);
+  // Si la consulta falla no se muestra «Sin PDF»: se avisa y se puede reintentar.
+  const [emisionesFallo, setEmisionesFallo] = React.useState(false), [emisionesIntento, setEmisionesIntento] = React.useState(0);
   const [busy, setBusy] = React.useState(""), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
   const [view, setView] = React.useState<"captura" | "pdf">("captura");
   // Las imágenes se suben antes de la sección que las usa (el reporte fotográfico del 07); si ninguna las usa, van al final.
@@ -87,9 +89,9 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
 
   React.useEffect(() => {
     let alive = true;
-    json<{ emisiones: Emision[] }>(`/api/admin/formatos/${doc.id}`).then(r => { if (alive) setEmisiones(r.emisiones); }).catch(() => { if (alive) setEmisiones([]); });
+    json<{ emisiones: Emision[] }>(`/api/admin/formatos/${doc.id}`).then(r => { if (alive) { setEmisiones(r.emisiones); setEmisionesFallo(false); } }).catch(() => { if (alive) { setEmisiones([]); setEmisionesFallo(true); } });
     return () => { alive = false; };
-  }, [doc.id]);
+  }, [doc.id, emisionesIntento]);
   // Lista de imágenes para los campos que las eligen (p. ej. «Fotografías pertinentes» del 07); se renueva al salir de la sección de imágenes.
   const withImages = WITH_IMAGES.includes(definition.id), onImages = section === IMAGES;
   React.useEffect(() => {
@@ -220,7 +222,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
         <p className="py-2 text-sm text-muted-foreground">{definition.id === "07" ? "El PDF se descarga aunque falten datos." : missing.length ? `Faltan ${missing.length} ${missing.length === 1 ? "dato" : "datos"}${emiteIncompleto(definition.id) ? "; el PDF sale como incompleto" : " para el PDF"}` : "Captura completa"}</p>
       </div>
 
-      {view === "pdf" ? <div className="min-h-0 flex-1 overflow-auto px-4 py-6 sm:px-7"><Emissions emisiones={emisiones} current={current} disabled={!!busy} /></div>
+      {view === "pdf" ? <div className="min-h-0 flex-1 overflow-auto px-4 py-6 sm:px-7"><Emissions emisiones={emisiones} current={current} disabled={!!busy} failed={emisionesFallo} onRetry={() => { setEmisiones(null); setEmisionesIntento(n => n + 1); }} /></div>
         : live ? <DocumentoEnVivo definition={definition} documentId={doc.id} expedienteId={doc.expediente_id || undefined} values={data} missing={missing} disabled={!!busy} onDraft={onLiveDraft}
           onAccept={async patch => {
             // Se integra al documento y se guarda con la versión del borrador (un conflicto 409 deja la captura abierta con el aviso).
@@ -311,7 +313,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
 }
 
 /** PDF generados de este documento, con la copia firmada que se le agregue a cada uno. */
-function Emissions({ emisiones, current, disabled }: { emisiones: Emision[] | null; current?: Emision; disabled: boolean }) {
+function Emissions({ emisiones, current, disabled, failed, onRetry }: { emisiones: Emision[] | null; current?: Emision; disabled: boolean; failed: boolean; onRetry: () => void }) {
   const [copias, setCopias] = React.useState<Record<string, Copia[]>>({});
   const [message, setMessage] = React.useState("");
   const key = (emisiones ?? []).map(e => e.id).join(",");
@@ -326,6 +328,7 @@ function Emissions({ emisiones, current, disabled }: { emisiones: Emision[] | nu
     catch (cause) { setMessage(`No se pudo guardar: ${errorMessage(cause)}`); }
   }
   if (emisiones === null) return <p role="status" className="text-sm text-muted-foreground">Consultando los PDF…</p>;
+  if (failed) return <div role="alert" className="flex flex-wrap items-center gap-3"><p className="m-0 text-sm">No se pudieron consultar los PDF de este documento.</p><Button onClick={onRetry}>Reintentar</Button></div>;
   if (!emisiones.length) return <p className="text-sm text-muted-foreground">Sin PDF. Usa «Generar PDF» al completar la captura.</p>;
   return <div className="mx-auto flex max-w-3xl flex-col gap-4">
     {message && <p role="status" className="text-sm">{message}</p>}

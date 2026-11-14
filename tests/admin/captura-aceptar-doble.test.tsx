@@ -37,3 +37,20 @@ test("un segundo dato aceptado mientras se guarda el primero no se envía con la
   await act(async () => { release(); await first; });
   expect(puts).toEqual([3]);
 });
+
+/* Hallazgo de Calidad: si fallaba la consulta de los PDF, la pestaña decía «Sin PDF» como si no hubiera ninguno. */
+test("si no se pueden consultar los PDF lo dice y se puede reintentar", async () => {
+  let fail = true;
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+    if (url.endsWith("/adjuntos")) return Response.json({ adjuntos: [] });
+    if (fail) return Response.json({ error: "Falla" }, { status: 500 });
+    return Response.json({ emisiones: [] });
+  }));
+  render(<FormatoCapture document={{ id: "d1", expediente_id: "op", formato_id: "02", data: {}, version: 3, updated_at: "2026-11-13T00:00:00Z" } as never} folio="EXP-1" context={{}} onSaved={() => undefined} onEmitted={() => undefined} onClose={() => undefined} />);
+  act(() => { screen.getByRole("tab", { name: /PDF y copias firmadas/ }).click(); });
+  expect((await screen.findByText("No se pudieron consultar los PDF de este documento."))).toBeTruthy();
+  expect(screen.queryByText(/Sin PDF/)).toBeNull();
+  fail = false;
+  act(() => { screen.getByRole("button", { name: "Reintentar" }).click(); });
+  expect(await screen.findByText(/Sin PDF/)).toBeTruthy();
+});
