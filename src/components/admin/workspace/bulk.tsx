@@ -58,12 +58,14 @@ export type BulkAction = {
   /** «Se reasignaron», «Se cambiaron»: encabeza el resultado. */
   verb?: string;
   /** Aplica a un registro; devuelve «sin-cambio» si ya tenía el valor. Sin `apply` la acción es inmediata (exportar). */
-  apply?: (id: string, value: string) => Promise<"aplicado" | "sin-cambio">;
+  apply?: (id: string, value: string, note: string) => Promise<"aplicado" | "sin-cambio">;
+  /** Texto que se pide junto con el valor (el motivo de una reasignación); se valida antes de aplicar. */
+  note?: { label: string; min: number; max: number; placeholder?: string };
   run?: (ids: string[]) => void;
   icon?: React.ReactNode;
 };
 
-type Done = { verb: string; action: BulkAction; value: string; results: BulkResult[]; retried: boolean };
+type Done = { verb: string; action: BulkAction; value: string; note: string; results: BulkResult[]; retried: boolean };
 
 /**
  * Barra de acciones de lo seleccionado y resultado por registro. La barra queda pegada abajo (en
@@ -71,6 +73,7 @@ type Done = { verb: string; action: BulkAction; value: string; results: BulkResu
  */
 export function BulkBar({ selection, targets, actions, noun }: { selection: Selection; targets: BulkTarget[]; actions: BulkAction[]; noun: { one: string; many: string; empty: string } }) {
   const [choice, setChoice] = React.useState<Record<string, string>>({});
+  const [notes, setNotes] = React.useState<Record<string, string>>({});
   const [busy, setBusy] = React.useState<{ done: number; total: number } | null>(null);
   const [done, setDone] = React.useState<Done | null>(null);
   const [error, setError] = React.useState("");
@@ -79,13 +82,13 @@ export function BulkBar({ selection, targets, actions, noun }: { selection: Sele
   const resultRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => { if (done) resultRef.current?.focus(); }, [done]);
 
-  async function apply(action: BulkAction, value: string, list: BulkTarget[], previous?: Done) {
+  async function apply(action: BulkAction, value: string, note: string, list: BulkTarget[], previous?: Done) {
     if (!action.apply || busy) return;
     setError(""); setBusy({ done: 0, total: list.length });
     try {
-      const results = await runBulk(list, id => action.apply!(id, value), n => setBusy({ done: n, total: list.length }));
+      const results = await runBulk(list, id => action.apply!(id, value, note), n => setBusy({ done: n, total: list.length }));
       const merged = previous ? mergeRetry(previous.results, results) : results;
-      setDone({ verb: action.verb ?? "Se aplicaron", action, value, results: merged, retried: !!previous });
+      setDone({ verb: action.verb ?? "Se aplicaron", action, value, note, results: merged, retried: !!previous });
       // Lo que falló queda seleccionado para revisarlo; lo aplicado sale de la selección.
       selection.replace(failedOf(merged).map(r => r.id));
     } catch (cause) { setError(errorMessage(cause)); }
@@ -95,8 +98,10 @@ export function BulkBar({ selection, targets, actions, noun }: { selection: Sele
     if (action.run) { action.run(chosen.map(t => t.id)); return; }
     const value = choice[action.id] ?? "";
     if (action.options && !value) { setError(`Elige una opción en «${action.label}».`); return; }
+    const note = (notes[action.id] ?? "").trim();
+    if (action.note && note.length < action.note.min) { setError(`Escribe ${action.note.label.toLowerCase()} (al menos ${action.note.min} caracteres).`); return; }
     setDone(null);
-    void apply(action, value, chosen);
+    void apply(action, value, note, chosen);
   }
 
   const failed = done ? failedOf(done.results) : [];
@@ -112,7 +117,7 @@ export function BulkBar({ selection, targets, actions, noun }: { selection: Sele
           <span className="min-w-0 break-words"><span className="font-medium">{r.label}</span>{r.status === "sin-cambio" ? <span className="text-muted-foreground"> · ya estaba así</span> : r.status === "fallo" ? <>: {r.reason}</> : null}</span>
         </li>)}
       </ul>
-      {failed.length > 0 && <Button className="mt-3" disabled={!!busy} onClick={() => void apply(done.action, done.value, failed, done)}><RotateCcw size={16} aria-hidden="true" />{failed.length === 1 ? "Reintentar la que falló" : `Reintentar las ${failed.length} que fallaron`}</Button>}
+      {failed.length > 0 && <Button className="mt-3" disabled={!!busy} onClick={() => void apply(done.action, done.value, done.note, failed, done)}><RotateCcw size={16} aria-hidden="true" />{failed.length === 1 ? "Reintentar la que falló" : `Reintentar las ${failed.length} que fallaron`}</Button>}
       {done.retried && <p className="m-0 mt-2 text-sm text-muted-foreground">Las que ya se habían aplicado no se repitieron.</p>}
     </div>}
     {selection.on && <div className="sticky bottom-0 z-20 pb-3 pt-1">
@@ -125,6 +130,11 @@ export function BulkBar({ selection, targets, actions, noun }: { selection: Sele
               {action.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           : null)}
+        {count > 0 && actions.filter(a => a.note && choice[a.id]).map(action => <label key={`${action.id}-nota`} className="flex min-w-[min(100%,18rem)] flex-1 items-center">
+          <span className="sr-only">{action.note!.label}</span>
+          <input className="min-h-11 w-full rounded-md border border-border bg-background px-3 text-sm" maxLength={action.note!.max} placeholder={action.note!.placeholder ?? action.note!.label} disabled={!!busy}
+            value={notes[action.id] ?? ""} onChange={event => { setNotes({ ...notes, [action.id]: event.target.value }); setError(""); }} />
+        </label>)}
         {count > 0 && actions.filter(a => a.run).map(action => <Button key={action.id} disabled={!!busy} onClick={() => onAction(action)}>{action.icon}{action.label}</Button>)}
         {count > 0 && actions.some(a => a.options) && <Button variant="primary" className="ml-auto" disabled={!!busy}
           onClick={() => { const action = actions.find(a => a.options && choice[a.id]); if (action) onAction(action); else setError("Elige qué cambiar antes de aplicar."); }}>
