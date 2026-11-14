@@ -84,8 +84,8 @@ export function ContractSignatureCard({ op, today, disabled, onSave, onGoToFiles
         <dt className="text-muted-foreground">Firmaron</dt><dd>{firma.firmantes.map(f => `${f.nombre} (${SIGNER_SHORT[f.parte]})`).join(", ")}</dd>
         {!firma.completa && <><dt className="text-muted-foreground">Falta</dt><dd>{firma.faltan}</dd></>}
         <dt className="text-muted-foreground">Archivo</dt><dd>{file ? <a className="inline-flex items-center gap-1 underline underline-offset-4" href={`/api/admin/archivos-cliente/${file.id}/descargar`} target="_blank" rel="noopener"><FileDown size={15} aria-hidden="true" />{file.titulo}</a> : files === undefined ? "Consultando…" : "No está entre los documentos del cliente."}</dd>
-        {firma.registradoEl && <><dt className="text-muted-foreground">Registrada</dt><dd>{shortDate(firma.registradoEl.slice(0, 10))}</dd></>}
-        {firma.revisada && firma.revisadoEl && <><dt className="text-muted-foreground">Revisada</dt><dd>{shortDate(firma.revisadoEl.slice(0, 10))}</dd></>}
+        {firma.registradoEl && <><dt className="text-muted-foreground">Registrada</dt><dd>{shortDate(firma.registradoEl)}</dd></>}
+        {firma.revisada && firma.revisadoEl && <><dt className="text-muted-foreground">Revisada</dt><dd>{shortDate(firma.revisadoEl)}</dd></>}
         {firma.terminacion && <><dt className="text-muted-foreground">Terminó</dt><dd>{shortDate(firma.terminacion.fecha)} · {firma.terminacion.motivo}</dd></>}
       </dl>
       {state === "por_revisar" && !admin && <p className="text-sm text-muted-foreground">El director la revisa antes de publicar. Mientras tanto el inmueble está «Captado, por revisar».</p>}

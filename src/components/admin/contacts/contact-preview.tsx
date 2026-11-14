@@ -43,7 +43,8 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
     ...tasks.filter(t => isTaskOpen(t) && mine(t)).map(t => ({ id: `t${t.id}`, when: t.vence ? stepDate(t.vence, today) : null, text: t.titulo, kind: "Tarea", href: `/admin/tareas/${encodeURIComponent(t.id)}`, sort: t.vence ?? "9999" })),
     ...events.filter(e => mine(e) && e.fecha >= today).map(e => ({ id: `e${e.id}`, when: stepDate(e.fecha, today, e.hora), text: e.titulo, kind: e.tipo === "visita" ? "Visita" : "Cita", href: `/admin/agenda?fecha=${e.fecha}&evento=${encodeURIComponent(e.id)}`, sort: `${e.fecha} ${e.hora ?? ""}` })),
   ].sort((a, b) => a.sort.localeCompare(b.sort)).slice(0, 5);
-  const notes = (lead?.notas ?? client?.leadOriginal?.notas ?? []).slice(-3).reverse();
+  // C-54: las tres notas más recientes, por fecha (se guardan de la más nueva a la más vieja).
+  const notes = [...(lead?.notas ?? client?.leadOriginal?.notas ?? [])].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 3);
   const due = row.when ? <Pill size="sm" tone={row.late ? "alert" : "muted"}>{row.when}</Pill> : null;
 
   return <Card as="aside" className={s.preview} aria-label={`Vista previa de ${person.nombre}`}>
@@ -75,7 +76,7 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
       <h3 className={s.previewTitle}>Actividad</h3>
       <ul className={s.activity}>
         {activity.map(item => <li key={item.id}><Link href={item.href}><span className={s.activityWhen}>{item.when?.label ?? "Sin fecha"}</span><span className="min-w-0 flex-1 [overflow-wrap:anywhere]"><span className={s.meta}>{item.kind} · </span>{item.text}</span></Link></li>)}
-        {notes.map(note => <li key={note.id}><span className={s.activityRow}><span className={s.activityWhen}>{shortDate(note.fecha.slice(0, 10))}</span><span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{note.texto}</span></span></li>)}
+        {notes.map(note => <li key={note.id}><span className={s.activityRow}><span className={s.activityWhen}>{shortDate(note.fecha)}</span><span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{note.texto}</span></span></li>)}
       </ul>
     </section>}
     <p className={s.meta}>Registrado el {humanDay(person.creadoEl)}.</p>

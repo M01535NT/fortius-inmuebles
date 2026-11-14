@@ -2,10 +2,19 @@ import Decimal from "decimal.js";
 import type { FormatoField } from "./catalog";
 import { PROMESA_ORIGINAL } from "./promesa-text";
 import { formatAmount } from "@/lib/finance/money";
+import { efectivoBlockers, esEfectivo, type PagoOperacion } from "./lfpiorpi";
 
 const field = (section: string, key: string, label: string, type: FormatoField["type"] = "text"): FormatoField => ({ section, key, label, type, required: true });
 const choice = (section: string, key: string, label: string, options: string[][]): FormatoField => ({ ...field(section, key, label, "choice"), options: options.map(([value, label]) => ({ value, label })) });
 const yesNo = [["si", "Sí"], ["no", "No"]];
+/** M-05: medio de pago de la lista, para revisar el límite del efectivo (LFPIORPI art. 32). */
+export const MEDIOS_PAGO_PROMESA = [["transferencia", "Transferencia electrónica"], ["cheque", "Cheque"], ["credito", "Crédito"], ["efectivo", "Efectivo"], ["otro", "Otro medio"]];
+/** El medio de la lista, también si un borrador anterior lo escribió a mano («Transferencia», «Efectivo»). */
+export function medioPromesa(value: unknown): string | undefined {
+  const plain = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+  if (typeof value !== "string") return undefined;
+  return MEDIOS_PAGO_PROMESA.find(([key, label]) => plain(value) === key || plain(value) === plain(label))?.[0];
+}
 const reviewed = [["revisada", "Revisada y compatible"], ["pendiente", "Pendiente"], ["bloqueada", "Con impedimento"]];
 const s = ["01 / Alcance y modelo", "02 / Parte vendedora", "03 / Parte compradora", "04 / Inmueble y anexos", "05 / Precio y pagos", "06 / Condiciones y financiamiento", "07 / Documentación y formalización", "08 / Entrega y gastos", "09 / Garantía y remedios", "10 / Revisión profesional"];
 export const promesaFields: FormatoField[] = [
@@ -35,6 +44,7 @@ export const promesaFields: FormatoField[] = [
   field(s[4], "precio", "Precio", "money"), choice(s[4], "moneda", "Moneda del precio, garantía y pena", [["MXN", "MXN"], ["USD", "USD"]]),
   field(s[4], "tratamientoFiscal", "Tratamiento fiscal del precio", "long"), choice(s[4], "conversion", "¿Hay conversión de moneda?", yesNo), field(s[4], "reglaConversion", "Regla de conversión pactada", "long"),
   field(s[4], "recursosPropios", "Recursos propios previstos", "money"), field(s[4], "credito", "Crédito previsto", "money"), field(s[4], "pagosPrecio", "Pagos del precio al formalizar", "promesaRows"),
+  field(s[4], "tipoCambio", "Tipo de cambio del día del pago en efectivo, pesos por dólar", "number"),
   field(s[5], "fechaCondiciones", "Fecha límite de condiciones", "date"), field(s[5], "condiciones", "Condiciones de formalización", "promesaRows"),
   choice(s[5], "condicionCredito", "¿La obligación depende del crédito?", yesNo), field(s[5], "institucionCredito", "Institución de crédito"), field(s[5], "estadoCredito", "Estado del crédito y soporte", "long"), field(s[5], "fechaSolicitud", "Fecha límite de solicitud de crédito", "date"),
   field(s[6], "documentosVendedor", "Documentos que entregará el vendedor a la notaría", "promesaRows"), field(s[6], "mecanismoGravamenes", "Liquidación y cancelación de cargas, o no aplica con motivo", "long"),
@@ -42,7 +52,7 @@ export const promesaFields: FormatoField[] = [
   field(s[6], "notaria", "Notaría acordada"), field(s[6], "domicilioNotaria", "Domicilio de la notaría", "long"), field(s[6], "diasConvocatoria", "Días naturales de anticipación de convocatoria", "number"),
   field(s[7], "fechaEntrega", "Fecha de entrega prevista", "date"), field(s[7], "condicionesPosesion", "Condiciones de posesión al entregar", "long"),
   field(s[7], "gastosVendedor", "Gastos a cargo del vendedor", "long"), field(s[7], "gastosComprador", "Gastos a cargo del comprador", "long"), field(s[7], "pactoAdeudos", "Pacto sobre adeudos anteriores, o ninguno", "long"),
-  field(s[8], "garantia", "Garantía acordada, cero si no se pacta", "money"), field(s[8], "fechaGarantia", "Fecha de entrega de la garantía", "date"), field(s[8], "receptorGarantia", "Receptor de la garantía"), field(s[8], "cuentaGarantia", "Cuenta de la garantía"),
+  field(s[8], "garantia", "Garantía acordada, cero si no se pacta", "money"), field(s[8], "fechaGarantia", "Fecha de entrega de la garantía", "date"), choice(s[8], "medioGarantia", "Medio de pago de la garantía", MEDIOS_PAGO_PROMESA), choice(s[8], "garantiaAbonaPrecio", "¿La garantía se aplicará al precio por acuerdo escrito?", yesNo), field(s[8], "receptorGarantia", "Receptor de la garantía"), field(s[8], "cuentaGarantia", "Cuenta de la garantía"),
   choice(s[8], "custodioTipo", "Calidad del receptor de la garantía", [["parte", "Parte vendedora"], ["tercero", "Tercero con acuerdo independiente"], ["inmobiliaria", "Inmobiliaria: este modelo no autoriza custodia"]]), field(s[8], "acuerdoCustodia", "Acuerdo independiente y aceptación del tercero", "long"),
   field(s[8], "pena", "Pena recíproca, cero si no se pacta", "money"), field(s[8], "diasSubsanacion", "Días naturales para subsanar", "number"), field(s[8], "diasAviso", "Días naturales para avisar fuerza mayor", "number"), field(s[8], "diasDevolucion", "Días naturales para devolver la garantía", "number"),
   choice(s[9], "identidadEstado", "Revisión de identidad", reviewed), choice(s[9], "titularidadEstado", "Revisión de titularidad", reviewed), choice(s[9], "facultadesEstado", "Revisión de facultades y consentimientos", reviewed),
@@ -52,19 +62,34 @@ export const promesaFields: FormatoField[] = [
 
 export type PromesaRow = Record<string, string | number>;
 export const PROMESA_TABLES = {
-  pagosPrecio: { label: "pago del precio", columns: [{ key: "importe", label: "Importe", type: "number" }, { key: "fecha", label: "Fecha al formalizar", type: "date" }, { key: "medio", label: "Medio de pago", type: "text" }, { key: "beneficiario", label: "Beneficiario", type: "text" }, { key: "cuenta", label: "Cuenta o instrucciones de pago", type: "text" }] },
+  pagosPrecio: { label: "pago del precio", columns: [{ key: "importe", label: "Importe", type: "number" }, { key: "fecha", label: "Fecha al formalizar", type: "date" }, { key: "medio", label: "Medio de pago", type: "choice", options: MEDIOS_PAGO_PROMESA.map(([value, label]) => ({ value, label })) }, { key: "beneficiario", label: "Beneficiario", type: "text" }, { key: "cuenta", label: "Cuenta o instrucciones de pago", type: "text" }] },
   condiciones: { label: "condición", columns: [{ key: "condicion", label: "Condición", type: "text" }, { key: "responsable", label: "Responsable", type: "text" }, { key: "evidencia", label: "Evidencia de cumplimiento requerida", type: "text" }] },
   documentosVendedor: { label: "documento del vendedor", columns: [{ key: "documento", label: "Documento", type: "text" }, { key: "fecha", label: "Fecha límite de entrega", type: "date" }] },
   anexos: { label: "anexo", columns: [{ key: "documento", label: "Documento", type: "text" }, { key: "version", label: "Versión", type: "text" }, { key: "referencia", label: "Referencia de la copia revisada", type: "text" }] },
 } as const;
 export type PromesaTable = keyof typeof PROMESA_TABLES;
 
+/**
+  Pagos de la operación que revisa la regla del efectivo: los del precio y, si se pacta, la garantía.
+  Metodología (13/11/2026): la cláusula de garantía la aplica al precio «sólo mediante acuerdo escrito, o
+  se restituirá». Si se aplica y el calendario ya cubre el precio completo, ese dinero ya está en sus filas
+  y sumarla otra vez bloquearía operaciones legales; si se restituye (o aún no se contesta), se suma.
+*/
+export function pagosPromesa(data: Record<string, unknown>): PagoOperacion[] {
+  const pagos: PagoOperacion[] = Array.isArray(data.pagosPrecio) ? data.pagosPrecio.filter((row): row is Record<string, unknown> => !!row && typeof row === "object") : [];
+  if (!(typeof data.garantia === "number" && data.garantia > 0)) return pagos;
+  const cubre = amount(data.precio) && pagos.length > 0 && pagos.every((pago) => amount(pago.importe)) && pagos.reduce((sum, pago) => sum.add(pago.importe as number), new Decimal(0)).equals(data.precio);
+  return cubre && data.garantiaAbonaPrecio === "si" ? pagos : [...pagos, { importe: data.garantia, fecha: data.fechaGarantia, medio: data.medioGarantia }];
+}
+
 export function mostrarCampoPromesa(key: string, data: Record<string, unknown>): boolean {
   for (const suffix of ["Vendedor", "Comprador"]) if ([`representante${suffix}`, `documentoRepresentacion${suffix}`].includes(key)) return data[`comparece${suffix}`] === "representante";
   if (["institucionCredito", "estadoCredito"].includes(key)) return typeof data.credito === "number" && data.credito > 0;
   if (key === "fechaSolicitud") return data.condicionCredito === "si";
   if (key === "reglaConversion") return data.conversion === "si";
-  if (["fechaGarantia", "receptorGarantia", "cuentaGarantia", "custodioTipo"].includes(key)) return typeof data.garantia === "number" && data.garantia > 0;
+  if (key === "tipoCambio") return data.moneda === "USD" && pagosPromesa(data).some(pago => esEfectivo(pago.medio));
+  if (key === "garantiaAbonaPrecio") return typeof data.garantia === "number" && data.garantia > 0 && esEfectivo(data.medioGarantia);
+  if (["fechaGarantia", "medioGarantia", "receptorGarantia", "cuentaGarantia", "custodioTipo"].includes(key)) return typeof data.garantia === "number" && data.garantia > 0;
   if (key === "acuerdoCustodia") return typeof data.garantia === "number" && data.garantia > 0 && data.custodioTipo === "tercero";
   return true;
 }
@@ -115,7 +140,7 @@ export function validarPromesa(data: Record<string, unknown>, review = true): st
   for (const [key, config] of Object.entries(PROMESA_TABLES)) {
     const entries = rows(data[key]);
     if (!entries || entries.length < 1 || entries.length > 30) { errors.push(`${config.label}: registro obligatorio de 1 a 30 filas`); continue; }
-    for (const entry of entries) if (config.columns.some((column) => column.type === "number" ? !amount(entry[column.key]) || entry[column.key] === 0 : column.type === "date" ? !date(entry[column.key]) : !text(entry[column.key]))) errors.push(`${config.label}: fila incompleta o inválida`);
+    for (const entry of entries) if (config.columns.some((column) => "options" in column ? medioPromesa(entry[column.key]) === undefined : column.type === "number" ? !amount(entry[column.key]) || entry[column.key] === 0 : column.type === "date" ? !date(entry[column.key]) : !text(entry[column.key]))) errors.push(`${config.label}: fila incompleta o inválida`);
     if (key === "pagosPrecio") {
       if (entries.every((entry) => amount(entry.importe)) && amount(data.precio) && !entries.reduce((sum, entry) => sum.add(entry.importe), new Decimal(0)).equals(data.precio as number)) errors.push("El calendario de pagos debe sumar el precio sin descontar la garantía");
       if (entries.some((entry) => entry.fecha !== data.fechaFormalizacion)) errors.push("Los pagos del precio deben pactarse en la fecha de formalización");
@@ -123,6 +148,9 @@ export function validarPromesa(data: Record<string, unknown>, review = true): st
     if (key === "documentosVendedor" && entries.some((entry) => date(entry.fecha) && date(data.fecha) && date(data.fechaFormalizacion) && (entry.fecha < data.fecha || entry.fecha > data.fechaFormalizacion))) errors.push("Los documentos deben entregarse entre promesa y formalización");
     if (key === "anexos" && new Set(entries.map((entry) => `${String(entry.documento).trim().toLowerCase()}|${String(entry.referencia).trim().toLowerCase()}`)).size !== entries.length) errors.push("Anexo duplicado");
   }
+  if (mostrarCampoPromesa("tipoCambio", data) && !(typeof data.tipoCambio === "number" && Number.isFinite(data.tipoCambio) && data.tipoCambio > 0)) errors.push(promesaFields.find((field) => field.key === "tipoCambio")!.label);
+  // Sin tipo de cambio ya lo pide su campo: no se repite el aviso de la regla del efectivo.
+  errors.push(...efectivoBlockers({ pagos: pagosPromesa(data), moneda: data.moneda, tipoCambio: data.tipoCambio }).filter((blocker) => !(errors.includes(promesaFields.find((field) => field.key === "tipoCambio")!.label) && blocker.startsWith("Indica el tipo de cambio"))));
   if (!["identidadEstado", "titularidadEstado", "facultadesEstado"].every((key) => data[key] === "revisada") || data.anexosEstado !== "revisados") errors.push("Resolver identidad, titularidad, facultades y copias de anexos antes de emitir");
   if (!Number.isInteger(data.versionContrato) || (data.versionContrato as number) < 1) errors.push("Versión del contrato positiva");
   if (!date(data.fechaRevision) || !date(data.fecha) || data.fechaRevision > data.fecha) errors.push("Fecha de revisión válida no posterior a la promesa");
@@ -151,6 +179,9 @@ export function importePromesaLetra(value: number, currency: string): string {
   return `${words}${integer > 0 && integer % 1000000 === 0 ? " de" : ""} ${unit} ${cents.padStart(2, "0")}/100 ${currency}`;
 }
 
+/** El medio elegido como se lee en el contrato («por transferencia electrónica»); un texto anterior a la lista, tal cual. */
+const medioTexto = (medio: unknown) => { const found = MEDIOS_PAGO_PROMESA.find(([value]) => value === medioPromesa(medio)); return found ? found[1].toLocaleLowerCase("es-MX") : String(medio ?? "").trim(); };
+
 export function promesaParagraphs(data: Record<string, unknown>): string[] {
   const v = (key: string) => String(data[key] ?? "").trim();
   // C-10: un dato vacío o inválido queda en blanco en vez de lanzar; así la vista en vivo conserva lo
@@ -176,7 +207,7 @@ export function promesaParagraphs(data: Record<string, unknown>): string[] {
     "RECURSOS PROPIOS Y FINANCIAMIENTO": `${cash("recursosPropios")} ${v("moneda")} de recursos propios y ${cash("credito")} ${v("moneda")} de crédito`, "ESTADO DEL CRÉDITO": (data.credito as number) > 0 ? v("estadoCredito") : "no se prevé crédito",
     "ANEXOS INCORPORADOS": list("anexos", (row) => `${row.documento}, versión ${row.version}, ${row.referencia}`), "ACCESORIOS INCLUIDOS": v("accesorios"), EXCLUSIONES: v("exclusiones"), "FECHA LÍMITE": day("fechaLimite"),
     "PRECIO NÚMERO": cash("precio"), MONEDA: v("moneda"), "PRECIO LETRA": letters("precio"), "TRATAMIENTO FISCAL": v("tratamientoFiscal"), "REGLA DE CONVERSIÓN": data.conversion === "si" ? v("reglaConversion") : "el pago en la moneda pactada, sin conversión",
-    "CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO": list("pagosPrecio", (row) => `${amount(row.importe)} ${v("moneda")} el ${rowDay(row.fecha)}, por ${row.medio}, a ${row.beneficiario}, ${row.cuenta}`),
+    "CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO": list("pagosPrecio", (row) => `${amount(row.importe)} ${v("moneda")} el ${rowDay(row.fecha)}, por ${medioTexto(row.medio)}, a ${row.beneficiario}, ${row.cuenta}`),
     "FECHA CONDICIONES": day("fechaCondiciones"), "CONDICIONES, RESPONSABLES Y EVIDENCIA": list("condiciones", (row) => `${row.condicion}; responsable: ${row.responsable}; evidencia: ${row.evidencia}`),
     INSTITUCIÓN: v("institucionCredito"), "FECHA SOLICITUD": data.condicionCredito === "si" ? day("fechaSolicitud") : "no aplica",
     "DOCUMENTOS Y FECHA DE ENTREGA": list("documentosVendedor", (row) => `${row.documento}, a más tardar el ${rowDay(row.fecha)}`), "MECANISMO DE LIQUIDACIÓN Y CANCELACIÓN": v("mecanismoGravamenes"),
@@ -194,7 +225,7 @@ export function promesaParagraphs(data: Record<string, unknown>): string[] {
 }
 
 /** Campos que llenan cada marcador de la promesa (generado de «replacements»); la captura en vivo abre los de cada párrafo. */
-export const PROMESA_MARCADORES: Record<string, string[]> = {"VENDEDOR": ["vendedor"], "COMPRADOR": ["comprador"], "REPRESENTACIÓN VENDEDORA": ["compareceVendedor", "representanteVendedor", "documentoRepresentacionVendedor"], "REPRESENTACIÓN COMPRADORA": ["compareceComprador", "representanteComprador", "documentoRepresentacionComprador"], "LUGAR": ["lugar"], "FECHA": ["fecha"], "IDENTIFICACIÓN Y RFC VENDEDOR": ["identificacionVendedor", "rfcVendedor"], "IDENTIFICACIÓN Y RFC COMPRADOR": ["identificacionComprador", "rfcComprador"], "RÉGIMEN VENDEDOR": ["estadoCivilVendedor", "regimenVendedor"], "RÉGIMEN COMPRADOR": ["estadoCivilComprador", "regimenComprador"], "CONSENTIMIENTOS Y FACULTADES": ["consentimientosVendedor", "documentoRepresentacionVendedor", "compareceVendedor"], "DOMICILIO VENDEDOR": ["domicilioVendedor"], "CORREO VENDEDOR": ["correoVendedor"], "DOMICILIO COMPRADOR": ["domicilioComprador"], "CORREO COMPRADOR": ["correoComprador"], "DERECHO OBJETO": ["derechoObjeto"], "DOMICILIO INMUEBLE": ["inmueble"], "DESCRIPCIÓN REGISTRAL, SUPERFICIE Y COLINDANCIAS": ["descripcionRegistral", "superficie", "colindancias"], "CLAVE CATASTRAL": ["claveCatastral"], "TÍTULO": ["titulo"], "INSCRIPCIÓN": ["inscripcion"], "SITUACIÓN REVELADA": ["situacionRevelada"], "SOPORTES": ["soportes"], "DOCUMENTOS EXHIBIDOS": ["documentosExhibidos"], "ESTADO FÍSICO Y LIMITACIONES INFORMADAS": ["estadoFisico", "limitacionesInformadas"], "RECURSOS PROPIOS Y FINANCIAMIENTO": ["recursosPropios", "moneda", "credito"], "ESTADO DEL CRÉDITO": ["estadoCredito", "credito"], "ANEXOS INCORPORADOS": ["anexos"], "ACCESORIOS INCLUIDOS": ["accesorios"], "EXCLUSIONES": ["exclusiones"], "FECHA LÍMITE": ["fechaLimite"], "PRECIO NÚMERO": ["precio"], "MONEDA": ["moneda"], "PRECIO LETRA": ["precio", "moneda"], "TRATAMIENTO FISCAL": ["tratamientoFiscal"], "REGLA DE CONVERSIÓN": ["reglaConversion", "conversion"], "CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO": ["pagosPrecio", "moneda"], "FECHA CONDICIONES": ["fechaCondiciones"], "CONDICIONES, RESPONSABLES Y EVIDENCIA": ["condiciones"], "INSTITUCIÓN": ["institucionCredito"], "FECHA SOLICITUD": ["fechaSolicitud", "condicionCredito"], "DOCUMENTOS Y FECHA DE ENTREGA": ["documentosVendedor"], "MECANISMO DE LIQUIDACIÓN Y CANCELACIÓN": ["mecanismoGravamenes"], "NOTARÍA Y DOMICILIO": ["notaria", "domicilioNotaria"], "FECHA Y HORA": ["fechaFormalizacion", "horaFormalizacion"], "DÍAS DE CONVOCATORIA": ["diasConvocatoria"], "FECHA ENTREGA": ["fechaEntrega"], "CONDICIONES DE POSESIÓN": ["condicionesPosesion"], "GASTOS VENDEDOR": ["gastosVendedor"], "GASTOS COMPRADOR": ["gastosComprador"], "PACTO SOBRE ADEUDOS": ["pactoAdeudos"], "GARANTÍA NÚMERO": ["garantia"], "GARANTÍA LETRA": ["garantia", "moneda"], "FECHA GARANTÍA": ["fechaGarantia", "garantia"], "RECEPTOR Y CUENTA": ["receptorGarantia", "cuentaGarantia", "acuerdoCustodia", "custodioTipo"], "DÍAS SUBSANACIÓN": ["diasSubsanacion"], "PENA NÚMERO": ["pena"], "PENA LETRA": ["pena", "moneda"], "DÍAS AVISO": ["diasAviso"], "DÍAS DEVOLUCIÓN": ["diasDevolucion"], "REPRESENTANTE VENDEDOR": ["representanteVendedor", "compareceVendedor"], "REPRESENTANTE COMPRADOR": ["representanteComprador", "compareceComprador"]};
+export const PROMESA_MARCADORES: Record<string, string[]> = {"VENDEDOR": ["vendedor"], "COMPRADOR": ["comprador"], "REPRESENTACIÓN VENDEDORA": ["compareceVendedor", "representanteVendedor", "documentoRepresentacionVendedor"], "REPRESENTACIÓN COMPRADORA": ["compareceComprador", "representanteComprador", "documentoRepresentacionComprador"], "LUGAR": ["lugar"], "FECHA": ["fecha"], "IDENTIFICACIÓN Y RFC VENDEDOR": ["identificacionVendedor", "rfcVendedor"], "IDENTIFICACIÓN Y RFC COMPRADOR": ["identificacionComprador", "rfcComprador"], "RÉGIMEN VENDEDOR": ["estadoCivilVendedor", "regimenVendedor"], "RÉGIMEN COMPRADOR": ["estadoCivilComprador", "regimenComprador"], "CONSENTIMIENTOS Y FACULTADES": ["consentimientosVendedor", "documentoRepresentacionVendedor", "compareceVendedor"], "DOMICILIO VENDEDOR": ["domicilioVendedor"], "CORREO VENDEDOR": ["correoVendedor"], "DOMICILIO COMPRADOR": ["domicilioComprador"], "CORREO COMPRADOR": ["correoComprador"], "DERECHO OBJETO": ["derechoObjeto"], "DOMICILIO INMUEBLE": ["inmueble"], "DESCRIPCIÓN REGISTRAL, SUPERFICIE Y COLINDANCIAS": ["descripcionRegistral", "superficie", "colindancias"], "CLAVE CATASTRAL": ["claveCatastral"], "TÍTULO": ["titulo"], "INSCRIPCIÓN": ["inscripcion"], "SITUACIÓN REVELADA": ["situacionRevelada"], "SOPORTES": ["soportes"], "DOCUMENTOS EXHIBIDOS": ["documentosExhibidos"], "ESTADO FÍSICO Y LIMITACIONES INFORMADAS": ["estadoFisico", "limitacionesInformadas"], "RECURSOS PROPIOS Y FINANCIAMIENTO": ["recursosPropios", "moneda", "credito"], "ESTADO DEL CRÉDITO": ["estadoCredito", "credito"], "ANEXOS INCORPORADOS": ["anexos"], "ACCESORIOS INCLUIDOS": ["accesorios"], "EXCLUSIONES": ["exclusiones"], "FECHA LÍMITE": ["fechaLimite"], "PRECIO NÚMERO": ["precio"], "MONEDA": ["moneda"], "PRECIO LETRA": ["precio", "moneda"], "TRATAMIENTO FISCAL": ["tratamientoFiscal"], "REGLA DE CONVERSIÓN": ["reglaConversion", "conversion"], "CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO": ["pagosPrecio", "moneda", "tipoCambio"], "FECHA CONDICIONES": ["fechaCondiciones"], "CONDICIONES, RESPONSABLES Y EVIDENCIA": ["condiciones"], "INSTITUCIÓN": ["institucionCredito"], "FECHA SOLICITUD": ["fechaSolicitud", "condicionCredito"], "DOCUMENTOS Y FECHA DE ENTREGA": ["documentosVendedor"], "MECANISMO DE LIQUIDACIÓN Y CANCELACIÓN": ["mecanismoGravamenes"], "NOTARÍA Y DOMICILIO": ["notaria", "domicilioNotaria"], "FECHA Y HORA": ["fechaFormalizacion", "horaFormalizacion"], "DÍAS DE CONVOCATORIA": ["diasConvocatoria"], "FECHA ENTREGA": ["fechaEntrega"], "CONDICIONES DE POSESIÓN": ["condicionesPosesion"], "GASTOS VENDEDOR": ["gastosVendedor"], "GASTOS COMPRADOR": ["gastosComprador"], "PACTO SOBRE ADEUDOS": ["pactoAdeudos"], "GARANTÍA NÚMERO": ["garantia"], "GARANTÍA LETRA": ["garantia", "moneda"], "FECHA GARANTÍA": ["fechaGarantia", "medioGarantia", "garantiaAbonaPrecio", "garantia"], "RECEPTOR Y CUENTA": ["receptorGarantia", "cuentaGarantia", "acuerdoCustodia", "custodioTipo"], "DÍAS SUBSANACIÓN": ["diasSubsanacion"], "PENA NÚMERO": ["pena"], "PENA LETRA": ["pena", "moneda"], "DÍAS AVISO": ["diasAviso"], "DÍAS DEVOLUCIÓN": ["diasDevolucion"], "REPRESENTANTE VENDEDOR": ["representanteVendedor", "compareceVendedor"], "REPRESENTANTE COMPRADOR": ["representanteComprador", "compareceComprador"]};
 /** Alcance y comprobaciones de la promesa que el contrato no imprime. */
 export const PROMESA_ALCANCE = ["versionContrato", "entidad", "calidadVendedor", "destino", "negociacion", "marcoConsumo", "fundamentoAlcance", "derechoTipo", "identidadEstado", "titularidadEstado", "facultadesEstado"];
 /** Revisión del abogado antes de firmar: se abre con las firmas. */

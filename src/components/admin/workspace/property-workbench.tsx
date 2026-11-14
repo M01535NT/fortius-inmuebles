@@ -96,7 +96,8 @@ export function PropertyWorkbench({
               v && typeof v.lugar === "string" && Number.isFinite(v.minutos),
           ) &&
           ["venta", "renta"].includes(d.operacion) &&
-          ["disponible", "apartada", "vendida", "rentada"].includes(d.estado)
+          // C-56: «En evaluación» (todo inmueble nuevo) también conserva su copia temporal.
+          ["evaluacion", "disponible", "apartada", "vendida", "rentada"].includes(d.estado)
           ? d
           : null;
       } catch {

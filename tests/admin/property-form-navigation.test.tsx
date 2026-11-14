@@ -102,6 +102,7 @@ test("navigation keeps native required fields active and saves only on explicit 
   fireEvent.change(screen.getByLabelText("Zona"), { target: { value: "Centro" } });
   fireEvent.change(screen.getByLabelText("Referencia (nunca dirección exacta)"), { target: { value: "Cerca del parque" } });
   fireEvent.change(screen.getByLabelText("Descripción"), { target: { value: "Descripción conservada" } });
+  fireEvent.change(screen.getByLabelText("Monto"), { target: { value: "2500000" } });
   delaySave = true;
   fireEvent.click(screen.getByRole("button", { name: "Crear inmueble" }));
   await waitFor(() => expect(writes).toHaveLength(1));
@@ -123,6 +124,7 @@ test("a failed save retains the draft and restores navigation and cancel without
   fireEvent.change(screen.getByLabelText("Zona"), { target: { value: "Centro" } });
   fireEvent.change(screen.getByLabelText("Referencia (nunca dirección exacta)"), { target: { value: "Cerca del parque" } });
   fireEvent.change(screen.getByLabelText("Descripción"), { target: { value: "Borrador conservado" } });
+  fireEvent.change(screen.getByLabelText("Monto"), { target: { value: "2500000" } });
   failSave = true;
   fireEvent.click(screen.getByRole("button", { name: "Crear inmueble" }));
   expect((await screen.findByRole("alert")).textContent).toBe("No se guardó");

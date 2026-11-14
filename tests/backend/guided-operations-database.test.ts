@@ -67,7 +67,7 @@ it('prevents bypassing sale controls by switching operation type and stage', asy
  });
 });
 
-const reviewKeys=['entrevista','titularidad','perfil','capacidad','privacidad','factibilidad','valor','precio','intermediacion','levantamiento','plan','publicacion','opciones','comprador','visitas','oferta','revision_cierre','instrumento','contraparte','firma','pago','entrega','registro','honorarios','archivo'];
+const reviewKeys=['identificacion_pld','entrevista','titularidad','perfil','capacidad','privacidad','factibilidad','valor','precio','intermediacion','levantamiento','plan','publicacion','opciones','comprador','visitas','oferta','revision_cierre','instrumento','contraparte','firma','pago','entrega','registro','honorarios','archivo'];
 const completeFlow=(): {version:number;ruta:string;estado:string;motivo:string;contraparteExterna:string;resolucion:{tipo:string;fecha:string;motivo:string;siguienteAccion:string;fechaSiguiente:string};requisitos:Record<string,Record<string,unknown>>} =>({version:1,ruta:'captacion',estado:'activa',motivo:'',contraparteExterna:'Contraparte ficticia externa. Documento de prueba v1.',resolucion:{tipo:'aceptada',fecha:'2026-10-14',motivo:'Admisión de prueba documentada',siguienteAccion:'Seguimiento de prueba',fechaSiguiente:'2030-12-31'},requisitos:Object.fromEntries(reviewKeys.map(k=>[k,{estado:'revisado',soporte:'Soporte ficticio v1 revisado para el ensayo',evidencia:{tipo:'externa',referencia:'Documento externo sintético · versión 1',fecha:'2026-10-14',responsable:'Revisor de ensayo',resultado:'Revisión dentro del alcance de prueba'},...(['factibilidad','revision_cierre'].includes(k)?{vigenteHasta:'2030-12-31'}:{})}]))});
 async function fixture(flow:Record<string,unknown>=completeFlow(),slug='house-a') {
  const id=crypto.randomUUID();
@@ -227,9 +227,13 @@ it('replaces a supplied recording actor with the authenticated user and does not
   const flow=completeFlow();flow.requisitos.entrevista.registradoPor=other;const f=await fixture(flow);
   const saved=(await db.query<{flujo:{requisitos:{entrevista:{registradoPor:string}}}}>('select flujo from public.fortius_inmuebles_expedientes where id=$1',[f.id])).rows[0].flujo;
   expect(saved.requisitos.entrevista.registradoPor).toBe(own);
-  const observed=completeFlow();observed.requisitos.archivo.estado='observado';await update(f.id,'captacion',observed);
+  // La observación bloquea la documentación; un guardado sin requisitos no la borra (M-03: quitar la
+  // contraparte ya no reinicia lo del propietario, así que el bloqueo viene solo de la observación).
+  const observed=completeFlow();observed.requisitos.archivo.estado='observado';observed.requisitos.archivo.bloquea=['documentacion'];await update(f.id,'captacion',observed);
   await update(f.id,'captacion',{version:1,ruta:'captacion',estado:'activa',motivo:'',requisitos:{}});
-  await expect(update(f.id,'documentacion')).rejects.toMatchObject({code:'PT409'});
+  const kept=(await db.query<{flujo:{requisitos:{archivo:{estado:string}}}}>('select flujo from public.fortius_inmuebles_expedientes where id=$1',[f.id])).rows[0].flujo;
+  expect(kept.requisitos.archivo.estado).toBe('observado');
+  await expect(update(f.id,'documentacion')).rejects.toMatchObject({code:'PT409',message:'Resuelve las observaciones abiertas'});
  });
 });
 it.each([{version:'1'},{motivo:123},{contraparteExterna:123},{estado:true}])('rejects direct guide data incompatible with the visible schema: %j',async(patch)=>{

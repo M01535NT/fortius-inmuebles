@@ -66,7 +66,7 @@ it("conserva las 26 cláusulas y genera importes en letra a partir de los númer
 
 it("distingue los casos con crédito, representación y garantía de los casos sin ellos", () => {
   expect(promesa).toHaveProperty("promesaParagraphs");
-  const withFunds = { ...promesaSample, credito: 200000, recursosPropios: 800000, condicionCredito: "si", institucionCredito: "Banco de muestra", estadoCredito: "Solicitud documentada", fechaSolicitud: "2026-10-10", garantia: 31200.25, fechaGarantia: "2026-10-12", receptorGarantia: "Ana Ejemplo", cuentaGarantia: "Cuenta de muestra", custodioTipo: "parte", pena: 15000, compareceVendedor: "representante", representanteVendedor: "Carla Ejemplo", documentoRepresentacionVendedor: "Poder de muestra 1" };
+  const withFunds = { ...promesaSample, credito: 200000, recursosPropios: 800000, condicionCredito: "si", institucionCredito: "Banco de muestra", estadoCredito: "Solicitud documentada", fechaSolicitud: "2026-10-10", garantia: 31200.25, fechaGarantia: "2026-10-12", medioGarantia: "transferencia", receptorGarantia: "Ana Ejemplo", cuentaGarantia: "Cuenta de muestra", custodioTipo: "parte", pena: 15000, compareceVendedor: "representante", representanteVendedor: "Carla Ejemplo", documentoRepresentacionVendedor: "Poder de muestra 1" };
   expect(validateFormato("15", reviewed(withFunds))).toEqual([]);
   const paragraphs = (promesa as unknown as { promesaParagraphs: (values: Record<string, unknown>) => string[] }).promesaParagraphs(withFunds).join("\n");
   expect(paragraphs).toContain("treinta y un mil doscientos pesos 25/100 MXN");

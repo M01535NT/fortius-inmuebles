@@ -122,7 +122,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
           <button
             type="submit"
             disabled={enviando}
-            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
+            className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
           >
             <ArrowDownToLine className="size-4" strokeWidth={1.5} />
             {enviando ? "Enviando…" : "Ver documentos"}

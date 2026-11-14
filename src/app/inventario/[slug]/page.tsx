@@ -39,7 +39,8 @@ export const revalidate = 0;
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const property = await getPropertyBySlug(slug);
-  if (!property) return {};
+  // Sin esto, la pestaña del 404 terminaba con el título del inicio.
+  if (!property) return { title: "Propiedad no encontrada", robots: { index: false, follow: true } };
   return propertyShareMetadata(property);
 }
 
@@ -127,8 +128,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
     { id: "beneficios", label: "Beneficios", show: beneficios.length > 0 },
     { id: "ubicacion", label: "Ubicación", show: true },
     { id: "ficha-tecnica", label: "Ficha técnica", show: ficha.length > 0 },
-    { id: "documentos", label: "Documentos", show: documentos.length > 0 },
     { id: "costos", label: "Costos", show: true },
+    { id: "documentos", label: "Documentos", show: documentos.length > 0 },
     { id: "preguntas", label: "Preguntas", show: true },
   ].filter(section => section.show);
 
@@ -175,7 +176,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <div className="fe-price-block">
               <p className="fe-price">{formatPrecio(property.precio)}</p>
               {porM2 && <p className="fe-price-m2">{porM2.valor} {porM2.base}</p>}
-              {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario. <a href="#costos">Calcular mensualidad</a></p>}
+              {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario. <a href="#mensualidad">Calcular mensualidad</a></p>}
               {property.operacion === "renta" && <p className="fe-price-note">Renta mensual. <a href="#costos">Ver costos</a></p>}
             </div>
           </div>
@@ -251,7 +252,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             </div>
           </section>}
 
-          <section id="documentos" className="fe-section" aria-labelledby="fe-docs">
+          <section className="fe-section" aria-labelledby="fe-docs">
             <h2 id="fe-docs" className="fe-h2">Para decidir con números</h2>
             <div className="fe-docs-grid">
               <div id="costos" className="fe-card fe-costs">
@@ -277,12 +278,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                         <span><strong>Mensualidad con crédito</strong><span>Según enganche, plazo y tasa.</span></span>
                         <ChevronDown size={18} aria-hidden="true" className="fe-mortgage-icon" />
                       </summary>
-                      <div className="fe-mortgage-body"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
+                      <div id="mensualidad" className="fe-mortgage-body"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
                     </details>
                   ) : null}
                 </div>}
               </div>
-              {documentos.length > 0 && <div className="fe-docs">
+              {documentos.length > 0 && <div id="documentos" className="fe-docs">
                 <PropertyDocuments documentos={documentos} slug={property.slug} codigo={property.codigo} />
               </div>}
             </div>

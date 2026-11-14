@@ -20,7 +20,7 @@ export const promesaSample: Record<string, unknown> = {
   fechaEntrega: "2026-12-01", condicionesPosesion: "Desocupada, mediante acta de entrega", mecanismoGravamenes: "No hay gravámenes que cancelar, conforme al soporte revelado",
   gastosVendedor: "Los de cancelación que le correspondan", gastosComprador: "Los de adquisición que le correspondan", pactoAdeudos: "No se trasladan adeudos al comprador",
   garantia: 0, pena: 0, diasSubsanacion: 5, diasAviso: 3, diasDevolucion: 5,
-  pagosPrecio: [{ importe: 1000000, fecha: "2026-12-01", medio: "Transferencia", beneficiario: "Ana Ejemplo", cuenta: "Cuenta de muestra, a verificar por notaría" }],
+  pagosPrecio: [{ importe: 1000000, fecha: "2026-12-01", medio: "transferencia", beneficiario: "Ana Ejemplo", cuenta: "Cuenta de muestra, a verificar por notaría" }],
   condiciones: [{ condicion: "Título y certificado revisados por notaría", responsable: "Parte vendedora", evidencia: "Constancia de revisión de notaría" }],
   documentosVendedor: [{ documento: "Título, certificado y comprobantes", fecha: "2026-11-10" }],
   anexos: [{ documento: "Identificación del inmueble y de las partes", version: "1", referencia: "Anexo A, copia de muestra" }],

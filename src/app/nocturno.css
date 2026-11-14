@@ -233,7 +233,7 @@
 .nx-footer-columns ul { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .nx-footer-link { display: inline-flex; align-items: center; min-height: 36px; padding-block: var(--space-corto); color: var(--ft-muted); font-size: var(--type-detalle); line-height: 1.5; overflow-wrap: anywhere; transition: color 0.2s; }
 .nx-footer-link:hover { color: #fff; text-decoration: underline; text-underline-offset: 5px; text-decoration-color: #8a1634; }
-.nx-footer-brand { display: inline-flex; }
+.nx-footer-brand { display: inline-flex; align-items: center; min-height: 44px; }
 .nx-footer-brand .brand-mark { width: 170px; height: auto; aspect-ratio: 1275 / 324; }
 .nx-footer-brand-block p { max-width: 30ch; margin: var(--space-amplio) 0 0; color: var(--ft-muted); font-size: var(--type-detalle); line-height: 1.6; }
 .nx-footer-contact { display: flex; flex-direction: column; gap: var(--space-corto); margin: var(--space-amplio) 0 0; }

@@ -150,7 +150,20 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
   function snapshot(): PropertyDraft { return {version,fields:readDraftFields(formRef.current),titulo,codigo,operacion,estado,galeria,documentos,pois}; }
   function restore(draft:PropertyDraft) {
     setTitulo(draft.titulo);setOperacion(draft.operacion);setEstado(draft.estado);setGaleria(draft.galeria);setDocumentos(draft.documentos);setPois(draft.pois);
-    formRef.current?.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>("input,select,textarea").forEach(el=>{const value=draft.fields[el.name||el.id];if(value===undefined || el instanceof HTMLInputElement && (el.type==="file" || el.readOnly))return;if(el instanceof HTMLInputElement && el.type==="checkbox")el.checked=value===true;else el.value=String(value);});
+    // C-55: los campos que React controla (monto, tipo, conjunto, origen…) se llenan como si el usuario
+    // escribiera: valor por el setter nativo y su evento, para que su estado lo tome. Una segunda pasada
+    // llena los campos que aparecen según lo elegido en la primera (p. ej. el tipo).
+    const fill = () => formRef.current?.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>("input,select,textarea").forEach(el=>{
+      const value=draft.fields[el.name||el.id];
+      if(value===undefined || el instanceof HTMLInputElement && (el.type==="file" || el.readOnly))return;
+      if(el instanceof HTMLInputElement && el.type==="checkbox"){ if(el.checked!==(value===true)) el.click(); return; }
+      if(el.value===String(value))return;
+      const proto=el instanceof HTMLSelectElement?HTMLSelectElement.prototype:el instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
+      Object.getOwnPropertyDescriptor(proto,"value")?.set?.call(el,String(value));
+      el.dispatchEvent(new Event(el instanceof HTMLSelectElement?"change":"input",{bubbles:true}));
+    });
+    fill();
+    setTimeout(fill, 0);
     if (typeof draft.fields.videoUrl === "string") setVideo(draft.fields.videoUrl);
     if (typeof draft.fields.tour360Url === "string") setTour(draft.fields.tour360Url);
     setDirty(true);
@@ -174,6 +187,10 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
     }
 
     const modalidad = v("modalidad");
+    // C-57: un precio público vacío no se guarda como $0 (el sitio publicaría «$0 MXN»).
+    if (modalidad === "publico" && !(Number(v("monto")) > 0)) {
+      throw new Error("Escribe el monto del precio público o elige «Precio a consulta».");
+    }
     const informacionPublica: NonNullable<Property["informacionPublica"]> = {
       fuenteTerreno: (v("fuenteTerreno") || undefined) as FuenteSuperficie | undefined,
       fuenteConstruccion: (v("fuenteConstruccion") || undefined) as FuenteSuperficie | undefined,
@@ -220,7 +237,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
         modalidad === "publico"
           ? {
               modalidad: "publico",
-              monto: Number(v("monto") || 0),
+              monto: Number(v("monto")),
               moneda: v("moneda") as "MXN" | "USD",
               ...(v("operacion") === "renta"
                 ? { periodo: "mensual" as const }
@@ -649,6 +666,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
                 name="terreno"
                 type="number"
                 min={0}
+                step="any"
                 defaultValue={initial?.ficha.terrenoM2}
                 className={inputClass}
               />
@@ -659,6 +677,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
                 name="construccion"
                 type="number"
                 min={0}
+                step="any"
                 defaultValue={initial?.ficha.construccionM2}
                 className={inputClass}
               />
