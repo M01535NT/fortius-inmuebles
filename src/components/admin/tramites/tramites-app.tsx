@@ -463,16 +463,25 @@ function Avance({ open, onClose, t, propietario, firma, telefono, email, onSent 
   const [partes, setPartes] = React.useState({ listo: true, sigue: true, necesita: true, pagos: false });
   const [medio, setMedio] = React.useState<"whatsapp" | "correo" | "pdf">(telefono ? "whatsapp" : email ? "correo" : "pdf");
   const [copied, setCopied] = React.useState(false);
+  const [porConfirmar, setPorConfirmar] = React.useState(false);
   const texto = textoDelAvance(t, partes, propietario, firma);
   function enviar() {
     if (medio === "whatsapp" && telefono) window.open(`https://wa.me/${waNumber(telefono)}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
     else if (medio === "correo" && email) window.location.href = `mailto:${email}?subject=${encodeURIComponent(`Avance de la cancelación de hipoteca · ${t.titulo}`)}&body=${encodeURIComponent(texto)}`;
     else { const w = window.open("", "_blank"); if (w) { w.document.title = `Avance · ${t.titulo}`; const pre = w.document.createElement("pre"); pre.style.cssText = "font:15px/1.6 system-ui;white-space:pre-wrap;padding:32px"; pre.textContent = texto; w.document.body.appendChild(pre); w.print(); } }
-    void onSent(medio); onClose();
+    // Abrir WhatsApp, el correo o la impresión no prueba que se haya mandado: se registra solo si el asesor lo confirma.
+    setPorConfirmar(true);
   }
+  const cerrar = () => { setPorConfirmar(false); onClose(); };
   const labels = { listo: "Lo que ya está listo", sigue: "Lo que sigue", necesita: "Lo que necesitamos de usted", pagos: "Pagos" } as const;
-  return <Sheet open={open} onClose={onClose} title="Avance para el propietario" description={`Se arma solo con los pasos y pagos. Revísalo antes de mandarlo. Último envío: ${t.ultimoAvance?.fecha ? shortDate(t.ultimoAvance.fecha) : "ninguno"}.`}
-    footer={<div className="flex flex-wrap justify-between gap-2">
+  return <Sheet open={open} onClose={cerrar} title="Avance para el propietario" description={`Se arma solo con los pasos y pagos. Revísalo antes de mandarlo. Último envío: ${t.ultimoAvance?.fecha ? shortDate(t.ultimoAvance.fecha) : "ninguno"}.`}
+    footer={porConfirmar ? <div className="flex flex-wrap items-center justify-between gap-2">
+      <span className={s.meta}>¿Lo enviaste?</span>
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={() => setPorConfirmar(false)}>No se envió</Button>
+        <Button variant="primary" onClick={() => { void onSent(medio); cerrar(); }}>Sí, se envió</Button>
+      </div>
+    </div> : <div className="flex flex-wrap justify-between gap-2">
       <Button onClick={async () => { try { await navigator.clipboard.writeText(texto); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* el portapapeles puede estar bloqueado */ } }}>{copied ? "Copiado" : "Copiar texto"}</Button>
       <Button variant="primary" disabled={(medio === "whatsapp" && !telefono) || (medio === "correo" && !email)} onClick={enviar}>{medio === "whatsapp" ? "Abrir WhatsApp" : medio === "correo" ? "Abrir correo" : "Imprimir o guardar PDF"}</Button>
     </div>}>

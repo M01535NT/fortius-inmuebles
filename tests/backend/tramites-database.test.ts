@@ -39,7 +39,8 @@ beforeAll(async () => {
       ('asesores','ase-ana','{"id":"ase-ana","nombre":"Ana","cargo":"Asesora","iniciales":"AA","activo":true}'),
       ('asesores','ase-beto','{"id":"ase-beto","nombre":"Beto","cargo":"Asesor","iniciales":"BB","activo":true}'),
       ('clientes','cli-ana','{"id":"cli-ana","nombre":"Propietaria","telefono":"6640000000","tipo":"propietario","asesorId":"ase-ana","notas":"","creadoEl":"2026-11-01","actualizadoEl":"2026-11-01"}'),
-      ('clientes','cli-beto','{"id":"cli-beto","nombre":"Otro","telefono":"6640000001","tipo":"propietario","asesorId":"ase-beto","notas":"","creadoEl":"2026-11-01","actualizadoEl":"2026-11-01"}');
+      ('clientes','cli-beto','{"id":"cli-beto","nombre":"Otro","telefono":"6640000001","tipo":"propietario","asesorId":"ase-beto","notas":"","creadoEl":"2026-11-01","actualizadoEl":"2026-11-01"}'),
+      ('clientes','cli-ana-2','{"id":"cli-ana-2","nombre":"Otra propietaria","telefono":"6640000002","tipo":"propietario","asesorId":"ase-ana","notas":"","creadoEl":"2026-11-01","actualizadoEl":"2026-11-01"}');
     insert into public.fortius_inmuebles_adviser_accounts(user_id,asesor_id) values ('${ana}','ase-ana'),('${beto}','ase-beto');`);
 });
 afterAll(async () => { await db?.close(); });
@@ -58,6 +59,8 @@ test("cada asesor ve solo los trámites de sus clientes; reasignar o borrar es d
   await as(ana, async () => {
     await expect(put("tr-1", { ...t.data, asesorId: "ase-beto" }, t.version)).rejects.toMatchObject({ code: "PT403" });
     await expect(put("tr-1", { ...t.data, clienteId: "cli-beto" }, t.version)).rejects.toMatchObject({ code: "PT403" });
+    // Ni siquiera a otro cliente suyo: cambiar el cliente es del director (guarda general de registros privados).
+    await expect(put("tr-1", { ...t.data, clienteId: "cli-ana-2" }, t.version)).rejects.toMatchObject({ code: "PT403", message: expect.stringMatching(/reasigna/) });
     await expect(del("tramites", "tr-1", t.version)).rejects.toMatchObject({ code: "PT403" });
   });
   const otro = await as(ana, () => put("tr-borrar", base("tr-borrar"), null));
@@ -136,6 +139,14 @@ test("quedar en espera crea la tarea de volver a preguntar, una sola vez", async
     expect(tareas[0].data).toMatchObject({ vence: "2026-11-21", clienteId: "cli-ana", asesorId: "ase-ana", estado: "pendiente", categoria: "documentacion" });
     expect(tareas[0].data.titulo).toMatch(/Infonavit/);
     expect(t.data.notas.some(n => n.tipo === "evento" && /espera/.test(n.texto))).toBe(true);
+    // Terminar la espera deja hecha su tarea; una espera nueva reemplaza la anterior.
+    t = await put("tr-5", { ...t.data, espera: null }, t.version);
+    expect((await tareasDe("tr-5")).map(x => x.data.estado)).toEqual(["completada"]);
+    t = await put("tr-5", { ...t.data, espera: { quien: "Infonavit", desde: "2026-11-14", volver: "2026-11-21" } }, t.version);
+    expect((await tareasDe("tr-5")).map(x => x.data.estado)).toEqual(["pendiente"]);
+    t = await put("tr-5", { ...t.data, espera: { quien: "Notaría", desde: "2026-11-15", volver: "2026-11-28" } }, t.version);
+    const estados = Object.fromEntries((await tareasDe("tr-5")).map(x => [x.data.vence, x.data.estado]));
+    expect(estados).toEqual({ "2026-11-21": "completada", "2026-11-28": "pendiente" });
   });
   await as(beto, async () => expect((await db.query("select id from public.fortius_inmuebles_records where collection='tareas' and data->>'tramiteId'='tr-5'")).rows).toEqual([]));
 });

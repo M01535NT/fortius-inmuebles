@@ -100,3 +100,22 @@ test("el asesor ve el estado pero no la acción del director", () => {
   expect(screen.getByText(/Lo autorizó el director/)).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Quitar la autorización" })).toBeNull();
 });
+
+/* TRA-01 · avance al propietario: abrir el canal no prueba el envío; se registra solo al confirmarlo. */
+test("el avance se registra solo cuando el asesor confirma que lo envió", async () => {
+  data.tramites = [base()];
+  const open = vi.spyOn(window, "open").mockReturnValue(null);
+  render(<TramitesApp initialId="tr-1" />);
+  fireEvent.click(screen.getByRole("button", { name: "Enviar avance" }));
+  fireEvent.click(screen.getByRole("button", { name: "Imprimir o guardar PDF" }));
+  expect(open).toHaveBeenCalled();
+  expect(data.upsert).not.toHaveBeenCalled();
+  // «No se envió» regresa al mensaje sin registrar nada.
+  fireEvent.click(screen.getByRole("button", { name: "No se envió" }));
+  expect(data.upsert).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Imprimir o guardar PDF" }));
+  fireEvent.click(screen.getByRole("button", { name: "Sí, se envió" }));
+  await waitFor(() => expect(data.upsert).toHaveBeenCalledTimes(1));
+  expect((data.upsert.mock.calls[0][1] as Tramite).ultimoAvance).toEqual({ medio: "pdf" });
+  open.mockRestore();
+});

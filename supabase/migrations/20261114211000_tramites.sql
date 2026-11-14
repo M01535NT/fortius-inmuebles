@@ -201,15 +201,25 @@ begin
  if jsonb_typeof(new.data->'espera')='object' and (new.data->'espera') is distinct from (prev->'espera') then
   espera_id:='tramite-'||new.id||'-espera-'||replace(new.data->'espera'->>'volver','-','');
   if length(espera_id)>160 then espera_id:='tramite-espera-'||md5(new.id||(new.data->'espera'->>'volver')); end if;
+  -- Una espera nueva reemplaza a la anterior: su tarea de volver a preguntar queda hecha.
+  update public.fortius_inmuebles_records set data=data||jsonb_build_object('estado','completada')
+   where collection='tareas' and data->>'tramiteId'=new.id and data->>'estado'='pendiente'
+     and (id like 'tramite-%-espera-%' or id like 'tramite-espera-%') and id<>espera_id;
   insert into public.fortius_inmuebles_records(collection,id,data) values('tareas',espera_id,jsonb_strip_nulls(jsonb_build_object(
    'id',espera_id,'titulo',left('Volver a preguntar a '||(new.data->'espera'->>'quien')||' · '||(new.data->>'titulo'),160),
    'descripcion','Trámite de cancelación de hipoteca en espera desde el '||(new.data->'espera'->>'desde')||'.',
    'categoria','documentacion','estado','pendiente','prioridad','normal','pasos','[]'::jsonb,
    'asesorId',new.data->>'asesorId','clienteId',new.data->>'clienteId','propiedadSlug',nullif(new.data->>'propiedadSlug',''),
    'tramiteId',new.id,'vence',new.data->'espera'->>'volver')))
-  on conflict do nothing;
+  -- Si la misma espera vuelve (quitada y puesta otra vez), su tarea se reabre en lugar de duplicarse.
+  on conflict (collection,id) do update set data=fortius_inmuebles_records.data||jsonb_build_object('estado','pendiente')
+   where fortius_inmuebles_records.data->>'estado'='completada';
   eventos:=eventos||('Quedó en espera de '||(new.data->'espera'->>'quien')||'; volver a preguntar el '||to_char((new.data->'espera'->>'volver')::date,'DD/MM/YYYY'));
  elsif jsonb_typeof(prev->'espera')='object' and jsonb_typeof(new.data->'espera') is distinct from 'object' then
+  -- Al terminar la espera, la tarea de volver a preguntar ya no está pendiente.
+  update public.fortius_inmuebles_records set data=data||jsonb_build_object('estado','completada')
+   where collection='tareas' and data->>'tramiteId'=new.id and data->>'estado'='pendiente'
+     and (id like 'tramite-%-espera-%' or id like 'tramite-espera-%');
   eventos:=eventos||('Terminó la espera de '||(prev->'espera'->>'quien'));
  end if;
 
