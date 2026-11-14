@@ -20,7 +20,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 - **En `feat/integracion`, sin publicar:** TRA-01, Trámites con la cancelación de hipoteca (pantalla `/admin/tramites` aprobada por el titular, base y servidor con la migración `20261114211000_tramites`, comprobantes solo privados y sin borrar la prueba de un paso cerrado) y su registro de privacidad; LV-09, el panel desde cero (menú lateral, encabezado claro con el riel de etapas y paleta nueva); la paleta del sitio público aprobada por el titular (borgoña presionado `#74112B`, ámbar para lo pendiente y bermellón para errores; las bandas `#0B1828` siguen); las correcciones de Hoy, Contactos y Herramientas de UI/UX; las dependencias con los 18 avisos de GitHub corregidos, ninguno llegaba a producción; y la separación de este plan en `PLAN.md` y `SPEC.md`. Los 8 pasos de TRA-01 siguen fuentes oficiales (Retys BC-DRPPC-014 y 011, gob.mx FOVISSSTE-00-012-A): con Infonavit o Fovissste la cancelación va directo al Registro, sin notario; con banco, ante notario. Se confirma con el primer caso real que el Registro acepte la carta de Infonavit tal cual y su validación previa.
 - **Bloque 0, estado (13/11/2026):** REC-01 con copia diaria funcionando desde el 13/11, esquema 5 con las preferencias de cada usuario; solo falta repetir el ensayo con volumen real después de cargar el inventario. BAS-01 aceptada y CI-01 terminada. ENV-01 espera la decisión c), el backend de pruebas. AUT-01 en revisión: la parte de la base ya está en producción, pero no protege a nadie hasta que el titular active su app de códigos en fortiusinmuebles.com/admin y pruebe una entrada; después Seguridad confirma el factor en la base. OBS-01 activa en producción; Seguridad repite la prueba de Sentry desde producción. PRV-01 espera al abogado. Limpieza diaria de archivos retirados: `CRON_SECRET` puesta y ruta protegida; su primera ejecución es el 14/11 a las 03:30 de Tijuana y Seguridad revisa el resultado. Detalle en `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
 
-**Construidas y en `main`, falta tu visto bueno:** SIM-04, SIM-05, SIM-06, SIM-07, SIM-10, NAV-13, LV-01, LV-02, LV-04, DOC-14, UX-05, SIM-16, SIM-18. Sus filas de estado están en el [historial §24](docs/erp-crm/historial-del-plan.md); al aceptarlas pasan a «terminada».
+**Construidas y en `main`, falta tu visto bueno:** SIM-04, SIM-05, SIM-06, SIM-07, SIM-10, NAV-13, LV-01, LV-02, LV-04, DOC-14, UX-05, SIM-16, SIM-18. Sus filas de estado están en el [historial §24](docs/erp-crm/historial-del-plan.md); al aceptarlas pasan a «terminada». SIM-16 (Hoy) y SIM-18 (una operación) ya los reemplazó LV-09: en localhost se revisa la versión nueva.
 
 **Por decidir (titular):** el recorrido propio de la renta (DEC-02); el vocabulario de papeles de una persona al diseñar REL-01 (DEC-04); custodia y retención de las copias (DEC-06); el backend de pruebas, decisión c) de ENV-01. El texto de cada decisión está en `SPEC.md`.
 
@@ -232,7 +232,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | # | Mejora | Cómo convive con el plan |
 |---|---|---|
 | N01 | **Contraer la barra lateral a íconos** con un botón y la tecla `[` (atajo de una tecla: no actúa dentro de campos y se puede desactivar, RP-11); con la barra contraída, el nombre aparece al pasar el mouse o al enfocar. El estado se recuerda por usuario. | El rediseño (Fase C · 2) había retirado contraer y ajustar el ancho; vuelve solo contraer, sin ancho ajustable. El estado se guarda con las preferencias del servidor (RP-14, UX-02). En celular no aplica: sigue la barra inferior. Se hace junto con el pie compacto de C06. |
-| N02 | **Sección «Fijados»**: cada quien fija hasta 5 registros o listas (operación, contacto, inmueble, lista guardada). | No mueve ni oculta las cinco secciones (RP-58, RP-65). Si un registro fijado se elimina o se pierde el permiso, desaparece de Fijados sin error. En celular, Fijados va en el Menú. |
+| N02 | **Sección «Fijados»**: cada quien fija hasta 5 registros o listas (operación, contacto, inmueble, lista guardada). | No mueve ni oculta las seis secciones (RP-58, RP-65). Si un registro fijado se elimina o se pierde el permiso, desaparece de Fijados sin error. En celular, Fijados va en el Menú. |
 | N03 | **«Recientes»**: los últimos 5 registros abiertos aparecen al abrir el buscador, sin escribir. | Va dentro de la barra de comandos (RP-10, UX-03) y de la búsqueda global de C07. Se guarda por usuario en el servidor; solo lista lo que el usuario puede ver hoy. |
 | N04 | **Contadores solo cuando hay algo que atender** (por ejemplo, «2 vencidas» en Operaciones, en el rojo de alerta). | Completa C06 (quitar contadores inútiles). El de Hoy se queda porque es de atención y suma la bandeja «Para ti» (RP-20). Usa los mismos cálculos de Hoy, sin consultas nuevas al servidor. |
 | N05 | **Vista previa lateral**: tocar una fila de Operaciones, Contactos o Inmuebles abre un panel a la derecha con lo esencial (siguiente paso, teléfono, estado) y sus acciones; «Abrir completo» lleva a la ficha. | Usa el componente de panel lateral del kit (`Sheet`). En celular no hay vista previa: se abre la ficha. Respeta C09 (toda la tarjeta se toca), C24 (lista única de personas) y RP-55 (lo demás en «⋯»). Las ediciones en la vista previa usan el mismo control de versión. |
@@ -348,7 +348,7 @@ Ocho reglas para todas las pantallas (del artboard de diagnóstico): cada dato u
 
 **En `main` y retiradas de esta tabla el 13/11/2026:** LV-06, LV-07 y LV-08 (historial, §20).
 
-**LV-09 · Panel desde cero (titular, 14/11/2026):** reemplaza dos piezas aprobadas antes. El menú lateral sustituye la barra superior de LV-08; Trámites sigue en el menú. El encabezado claro de la operación, con el riel de las diez etapas (también en la lista de Operaciones), sustituye el panel azul de LV-06 (boceto D). Hoy pasa a «Tu día». Paleta nueva del panel: grises con tinte azul; estados con superficie y borde; oscuro en tres capas `#060C14`, `#0C1724` y `#1A2331`; borgoña presionado `#74112B`. Se retiran del panel `#A2223F` y `#0B1828`; en el sitio público `#0B1828` sigue igual. Construido por Sistema visual en `claude/tipografia-3bad50` e integrado en `feat/integracion` (547ccbd); el titular dijo que no se parecía a los bocetos, se corrigió pantalla por pantalla (4bea223) y lo aprobó en localhost el 14/11/2026, sin publicar. Diferencias con el boceto que se dejaron a propósito: filas del menú de 44 px por el mínimo táctil; Hoy conserva «Preparar tu espacio», el aviso al equipo y las casillas de tareas; Operaciones conserva los filtros por etapa; la operación conserva las pestañas Etapa, Documentos y Actividad. Pendiente: la paleta del sitio público y el folleto «Paleta Fortius».
+**LV-09 · Panel desde cero (titular, 14/11/2026):** reemplaza dos piezas aprobadas antes. El menú lateral sustituye la barra superior de LV-08; Trámites sigue en el menú. El encabezado claro de la operación, con el riel de las diez etapas (también en la lista de Operaciones), sustituye el panel azul de LV-06 (boceto D). Hoy pasa a «Tu día». Paleta nueva del panel: grises con tinte azul; estados con superficie y borde; oscuro en tres capas `#060C14`, `#0C1724` y `#1A2331`; borgoña presionado `#74112B`. Se retiran del panel `#A2223F` y `#0B1828`; en el sitio público `#0B1828` sigue igual. Construido por Sistema visual en `claude/tipografia-3bad50` e integrado en `feat/integracion` (547ccbd); el titular dijo que no se parecía a los bocetos, se corrigió pantalla por pantalla (4bea223) y lo aprobó en localhost el 14/11/2026, sin publicar. Diferencias con el boceto que se dejaron a propósito: filas del menú de 44 px por el mínimo táctil; Hoy conserva «Preparar tu espacio», el aviso al equipo y las casillas de tareas; Operaciones conserva los filtros por etapa; la operación conserva las pestañas Etapa, Documentos y Actividad. La paleta del sitio público también está integrada (ddc2e25, aprobada por el titular); el folleto «Paleta Fortius» está al día como página de Sistema visual, fuera del repositorio.
 
 ## Proceso, captura y documentos — paquete del 17/10/2026 (el estado de cada entrega está en «Estado y dependencias»)
 
@@ -728,11 +728,12 @@ No se trabaja en estas entregas hasta que el titular abra la etapa posterior (DE
 
 ## Estado y dependencias de cada entrega
 
-**Revisada contra git el 11/11/2026.** Estados:
+**Revisada contra git el 11/11/2026 y contra el código el 14/11/2026** (revisor independiente: entregas en `main`, parciales y una muestra de pendientes). Estados:
 
 - **terminada:** en `main` y aceptada por el titular.
 - **en_main:** construida, integrada en `main` con Verify aprobado; falta que el titular la revise y la dé por terminada, o comprobarla en producción.
 - **en_local:** construida en la carpeta de trabajo, sin commit.
+- **en_integracion:** construida y con commit en `feat/integracion`, todavía sin publicar en `main`.
 - **parcial:** una parte está en `main`; la columna dice qué falta.
 - **en_revision** y **bloqueada:** se conservan para las entregas de continuidad (bloque 0), que esperan evidencia o accesos externos.
 - **en_curso**, **pendiente** y **en_pausa:** como siempre.
@@ -771,7 +772,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | TAB-03 | 3 | pendiente | FIN-02, TAB-01 |
 | TAB-04 | 3 | pendiente | LEG-01, TEC-01, TAB-01 |
 | UX-01 | 4 | parcial | BAS-01 |
-| UX-02 | 4 | parcial | vista de Operaciones, filas o tarjetas de Inmuebles y vistas guardadas del inventario se guardan en el servidor por usuario (24fffb5, `feat/integracion`, 13/11/2026); faltan densidad, letra, fijados, recientes y secciones de Hoy (con NAV-01 y NAV-05), el tema (ThemeToggle sigue en el navegador) y filtrar en el servidor (PAG-01) |
+| UX-02 | 4 | parcial | vista de Operaciones, filas o tarjetas de Inmuebles y vistas guardadas del inventario se guardan en el servidor por usuario (24fffb5, `feat/integracion`, 13/11/2026); faltan densidad, letra, fijados, recientes y secciones de Hoy (con NAV-01 y NAV-05), el tema (ThemeToggle sigue en el navegador) y filtrar en el servidor (PAG-01); en `main` con el PR #75; «recientes» ya se guardan en el servidor; revisado contra el código el 14/11/2026 |
 | PWA-01 | 4 | pendiente | AUT-01, UX-01 |
 | PWA-02 | 4 | pendiente | PWA-01 |
 | PWA-03 | 4 | pendiente | PWA-01, SEG-01, PRV-01 |
@@ -788,10 +789,10 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | EXT-08 | 6 | pendiente | FIN-02, TAB-01, OPS-01, SEG-01 |
 | EXT-09 | 6 | pendiente | REL-01, TEC-01, VIS-01, SEG-01 |
 | EXT-10 | 6 | pendiente | REL-01, OPS-01, DOC-01, SEG-01, AUT-01, PRV-01 |
-| CRM-02 | 1 | pendiente | CRM-01 |
-| CRM-03 | 1 | pendiente | REL-01, CRM-02 |
+| CRM-02 | 1 | parcial | CRM-01; en `main` (6dc3a0d): registro en dos toques con siguiente paso, mensajes listos y reloj de primera atención; falta comprobar el resto de su aceptación; revisado contra el código el 14/11/2026 |
+| CRM-03 | 1 | parcial | REL-01, CRM-02; línea de tiempo unificada en la ficha de persona; faltan filtros por tipo; revisado contra el código el 14/11/2026 |
 | INV-01 | 1 | pendiente | PUB-01 |
-| DAT-02 | 1 | pendiente | REL-01, DAT-01 |
+| DAT-02 | 1 | parcial | REL-01, DAT-01; catálogo de colonias con fecha de descarga (vía CSR-03); falta la fusión asistida; revisado contra el código el 14/11/2026 |
 | DOC-10 | 2 | pendiente | DOC-01 |
 | DOC-11 | 2 | pendiente | DOC-01 |
 | DOC-12 | 2 | pendiente | DOC-01, SEG-01, PRV-01 |
@@ -801,8 +802,8 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | TAB-05 | 3 | pendiente | TAB-01, DEC-17 |
 | FIS-01 | 3 | pendiente | BAS-01; revisión fiscal |
 | NAV-01 | 4 | pendiente | SIM-02, UX-02 |
-| NAV-02 | 4 | pendiente | UX-03 |
-| NAV-03 | 4 | pendiente | SIM-01, SIM-08 |
+| NAV-02 | 4 | en_main | UX-03; construida: recientes por usuario en el servidor (6a07d62, PR #75); revisado contra el código el 14/11/2026 |
+| NAV-03 | 4 | parcial | SIM-01, SIM-08; vista previa solo en Contactos; faltan Operaciones e Inmuebles; revisado contra el código el 14/11/2026 |
 | NAV-04 | 4 | pendiente | UX-02, SEG-01 |
 | NAV-05 | 4 | pendiente | UX-02, SIM-03 |
 | NAV-06 | 4 | pendiente | CRM-02 |
@@ -814,8 +815,9 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | NAV-12 | 4 | pendiente | Migración autorizada, PRV-01 |
 | NAV-14 | 4 | pendiente | PWA-03 |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
+| LV-09 | 4 | en_integracion | panel desde cero aprobado por el titular el 14/11/2026, con la paleta del sitio público; en `feat/integracion`. Antes de publicar: repetir axe/AA con la paleta nueva (LV-01) |
 | FIR-01 | 6 | pendiente | COR-10, DOC-01, PRV-01, DEC-30 |
-| IA-01 (proveedores) | 1 | en_revision | Claude Haiku 5.5 activo en local con clave de prueba (31/10/2026, 7 datos de un PDF ficticio); adaptador Grok listo pero su clave no la acepta xAI; PDF por páginas con pdfjs-dist |
+| IA-01 (proveedores) | 1 | en_revision | Claude Haiku 5.5 activo en local con clave de prueba (31/10/2026, 7 datos de un PDF ficticio); adaptador Grok listo pero su clave no la acepta xAI; PDF por páginas con pdfjs-dist; el código de lectura está en `main`; lo único en revisión es la clave de xAI para Grok; revisado contra el código el 14/11/2026 |
 | DOC-15 | 2 | pendiente | COR-06 |
 | USO-01 | 4 | pendiente | ninguna |
 | CAP-01 | 1 | pendiente | SIM-01, SIM-09, COR-01 |
@@ -824,11 +826,11 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | CAP-04 | 1 | pendiente | CAP-03, CRM-02 |
 | FCH-01 | 2 | pendiente | REL-01 (diseño conjunto), migración autorizada |
 | FCH-02 | 2 | pendiente | FCH-01, DOC-01 |
-| FCH-04 | 2 | pendiente | UX-05 |
+| FCH-04 | 2 | parcial | UX-05; PDF con faltantes y «Documento incompleto» en todos los formatos salvo 01 y 15; falta comprobar Word, historial y «Para ti»; revisado contra el código el 14/11/2026 |
 | FCH-05 | 2 | pendiente | FCH-01, DOC-10 |
 | FCH-07 | 2 | pendiente | DOC-11, DOC-12 |
 | FCH-08 | 2 | pendiente | DOC-06 |
-| FCH-09 | 2 | pendiente | LV-02 |
+| FCH-09 | 2 | parcial | LV-02; copia firmada registrada solo para la intermediación 09/21 (bbef89d); revisado contra el código el 14/11/2026 |
 | FCH-10 | 2 | pendiente | FCH-01 |
 | FCH-11 | 2 | pendiente | FCH-01 |
 | MOT-01 | 2 | pendiente | FCH-01, FCH-04, MRP-01, migración autorizada |
@@ -836,10 +838,10 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | MOT-03 | 2 | pendiente | MOT-02, SEG-01 |
 | MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
 | HER-04 | 2 | pendiente | FCH-01 |
-| UX-03 | 4 | parcial | barra de comandos Ctrl/⌘K que busca y actúa según el rol, «Recientes» (NAV-02) por usuario y atajos «/» y «?» desactivables (6a07d62, `feat/integracion`, 13/11/2026); acciones masivas con resultado por registro y «Reintentar» (RP-12) y edición en la fila con control de versión (RP-13) en Tareas y Contactos, con boceto aprobado por el titular (b41ae84); exportar contactos solo el administrador y CSV sin fórmulas; el director reasigna operaciones desde la lista con motivo (M-04, deb2326) |
-| UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); siluetas de carga (RP-18; 7d3dfe6) y «Deshacer» al completar una tarea, solo tras confirmar el servidor (RP-16; aa98fba); falta el conflicto en operaciones y formatos; la reversión optimista con motivo (RP-18) no aplica mientras el panel no tenga cambios optimistas |
-| TRA-01 | 4 | en_local | pantalla aprobada por el titular (13/11/2026); pasos según fuentes oficiales, sin esperar al notario |
-| SOP-01 | 5 | pendiente | OBS-01 |
+| UX-03 | 4 | parcial | barra de comandos Ctrl/⌘K que busca y actúa según el rol, «Recientes» (NAV-02) por usuario y atajos «/» y «?» desactivables (6a07d62, `feat/integracion`, 13/11/2026); acciones masivas con resultado por registro y «Reintentar» (RP-12) y edición en la fila con control de versión (RP-13) en Tareas y Contactos, con boceto aprobado por el titular (b41ae84); exportar contactos solo el administrador y CSV sin fórmulas; el director reasigna operaciones desde la lista con motivo (M-04, deb2326); en `main` con el PR #75; revisado contra el código el 14/11/2026 |
+| UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); siluetas de carga (RP-18; 7d3dfe6) y «Deshacer» al completar una tarea, solo tras confirmar el servidor (RP-16; aa98fba); falta el conflicto en operaciones y formatos; la reversión optimista con motivo (RP-18) no aplica mientras el panel no tenga cambios optimistas; en `main` con el PR #75; revisado contra el código el 14/11/2026 |
+| TRA-01 | 4 | en_integracion | pantalla aprobada por el titular (13/11/2026); pasos según fuentes oficiales, sin esperar al notario; base, servidor, pantalla, menú y pruebas en `feat/integracion`; falta el freno de la firma de la venta mientras haya cancelación de hipoteca pendiente (criterio de aceptación); revisado contra el código el 14/11/2026 |
+| SOP-01 | 5 | parcial | OBS-01; guía por pantalla y `/admin/ayuda`; falta «Reportar un problema»; revisado contra el código el 14/11/2026 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
 | EXT-13 | por decidir | idea, no aprobada | DEC-14, SEG-01, PRV-01 |
 | SAAS-01 | posterior | en_pausa | DEC-15 |
@@ -848,9 +850,9 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | SAAS-05 | posterior | en_pausa | SAAS-01, SAAS-02, SAAS-03, DAT-01, USR-01 |
 | SAAS-06 | posterior | en_pausa | SAAS-01, DEC-18 |
 | PIL-02 | posterior | en_pausa | SAAS-01 a SAAS-03, SAAS-05, PIL-01, REC-01, OBS-01 |
-| SIM-15 | 4 | parcial | primera parte en `main` (PR #66); segunda en local el 12/11/2026 (Herramientas sin «Documentos», «Documentos sueltos», Notas e Historial con el kit); cada herramienta con el kit, C56 y C57, también en local; C54 y C55 con SIM-19 |
+| SIM-15 | 4 | parcial | primera parte en `main` (PR #66); segunda en local el 12/11/2026 (Herramientas sin «Documentos», «Documentos sueltos», Notas e Historial con el kit); cada herramienta con el kit, C56 y C57, también en local; C54 y C55 con SIM-19; la segunda parte ya está en `main`; LV-09 dejó otra vez nombres cruzados de C56: el menú dice «Herramientas» y «Agenda», y las páginas «Más» y «Agenda y tareas»; revisado contra el código el 14/11/2026 |
 | COR-25 | 1 | pendiente | DAT-01 |
-| COR-26 | 4 | parcial | PR #66: guía de cada pantalla; en local: «Tu primer día» y manual en `/admin/ayuda`; faltan capturas del manual y prueba de uso |
+| COR-26 | 4 | parcial | PR #66: guía de cada pantalla; en local: «Tu primer día» y manual en `/admin/ayuda`; faltan capturas del manual y prueba de uso; «Tu primer día» y `/admin/ayuda` ya en `main` (585cef2); revisado contra el código el 14/11/2026 |
 | USO-02 | 4 | pendiente | USO-01 |
 
 **Discrepancia pendiente de EXT-03:** el backlog condiciona proveedores/mantenimiento a EXT-02 o a un caso de venta concreto; el seguimiento exige OPS-01 y FIN-01. Conservar ambas referencias y resolver su dependencia al diseñar esa extensión, sin iniciar por una equivalencia supuesta.
