@@ -29,7 +29,8 @@ export const preferencesSchema = z.object({
 export type Preferences = z.infer<typeof preferencesSchema>;
 export type StoredPreferences = { data: Preferences; version: number };
 
-export const readInput = z.object({ claves: z.array(key).min(1).max(100) }).strict();
+// Tantas claves como avisos leídos se guardan: «Marcar todo como leído» las manda juntas.
+export const readInput = z.object({ claves: z.array(key).min(1).max(INBOX_READ_LIMIT) }).strict();
 /** Cambia solo las preferencias del panel que llegan; las demás se conservan. */
 export const panelInput = z.object({ panel: panelSchema.refine(value => Object.keys(value).length > 0, "Indica qué preferencia cambia") }).strict();
 

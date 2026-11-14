@@ -85,11 +85,23 @@ export async function syncPublicFiles(before: PublicFilesSnapshot, propertyId: s
     if (error || !Array.isArray(data)) return result;
     const inUse = new Set((data as string[]).map(needle => byNeedle.get(needle)));
     let errors = 0;
+    const moved: string[] = [];
     for (const path of candidates.filter(item => !inUse.has(item))) {
       const { error: moveError } = await service.storage.from(PUBLIC_BUCKET).move(path, retiredPath(path), { destinationBucket: PRIVATE_BUCKET });
-      if (moveError) errors += 1; else result.retired += 1;
+      if (moveError) errors += 1; else { result.retired += 1; moved.push(path); }
     }
     if (errors) failed("public_file_retire_failed", errors);
+    // Otro guardado pudo empezar a usar la misma dirección entre la revisión y el retiro: se revisa de nuevo
+    // lo retirado y lo que ya se usa vuelve a público, para no dejar una imagen rota en otro registro.
+    if (moved.length) {
+      const movedNeedles = new Map(moved.flatMap(path => needles(path).map(needle => [needle, path] as const)));
+      const again = await service.rpc("fortius_inmuebles_public_files_in_use", { p_needles: [...movedNeedles.keys()], p_property_id: propertyId });
+      const reused = again.error || !Array.isArray(again.data) ? [] : [...new Set((again.data as string[]).map(needle => movedNeedles.get(needle)).filter((path): path is string => Boolean(path)))];
+      for (const path of reused) {
+        const { error: backError } = await service.storage.from(PRIVATE_BUCKET).move(retiredPath(path), path, { destinationBucket: PUBLIC_BUCKET });
+        if (!backError) { result.retired -= 1; result.restored += 1; }
+      }
+    }
   } catch {
     failed("public_file_retire_failed", candidates.length);
   }

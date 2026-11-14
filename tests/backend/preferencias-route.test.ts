@@ -48,6 +48,12 @@ it("marcar como leído crea la fila y después actualiza sobre la versión leíd
   expect(calls.find(c => c.op === "update")?.filters).toEqual({ user_id: "u-me", version: 1 });
 });
 
+it("«Marcar todo como leído» acepta más de 100 avisos de una vez", async () => {
+  const claves = Array.from({ length: 150 }, (_, index) => `asignacion:t${index}`);
+  const body = await (await POST(request({ claves }))).json();
+  expect(Object.keys(body.preferencias.data.bandeja.leidos)).toHaveLength(150);
+});
+
 it("si otra ventana escribió antes, se vuelve a leer y no se pierde lo suyo", async () => {
   row = { data: {}, version: 1 }; raceOnce = true;
   const body = await (await POST(request({ claves: ["k1"] }))).json();

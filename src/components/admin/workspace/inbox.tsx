@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Button, Card, Pill } from "@/components/admin/kit";
 import { useInbox } from "@/components/admin/workspace/use-inbox";
-import { INBOX_LABEL } from "@/lib/admin/inbox";
+import { INBOX_LABEL, INBOX_READ_LIMIT } from "@/lib/admin/inbox";
 import { errorMessage } from "@/lib/admin/store";
 import { cn, humanDateTime } from "@/lib/utils";
 
@@ -28,7 +28,8 @@ export function Inbox({ className }: { className?: string }) {
   const hidden = ordered.length - shown.length;
   const mark = async (keys: string[]) => {
     setError(""); setBusy(true);
-    try { await markRead(keys); } catch (cause) { setError(`No se pudo marcar como leído: ${errorMessage(cause)}`); } finally { setBusy(false); }
+    // Lo leído se guarda hasta INBOX_READ_LIMIT; más que eso no cabe en una sola petición.
+    try { await markRead(keys.slice(0, INBOX_READ_LIMIT)); } catch (cause) { setError(`No se pudo marcar como leído: ${errorMessage(cause)}`); } finally { setBusy(false); }
   };
 
   return <section aria-labelledby="hoy-para-ti" className={cn("flex min-w-0 flex-col gap-3", className)}>

@@ -68,6 +68,21 @@ describe("archivos públicos quitados de un inmueble", () => {
     expect(blind.moves).toEqual([]);
   });
 
+  it("si otro registro empieza a usar la dirección mientras se retira, regresa a público", async () => {
+    const moves: { bucket: string; from: string; to: string }[] = [];
+    let checks = 0;
+    // Primera revisión: nadie usa b.jpg. Segunda (después de moverlo): otro inmueble ya la guardó.
+    const rpc = vi.fn(async (_name: string, args: { p_needles: string[] }) => {
+      checks += 1;
+      return { data: checks === 1 ? [] : args.p_needles.filter(n => n.endsWith("casa/b.jpg")), error: null };
+    });
+    const storage = { from: (bucket: string) => ({ move: async (fromPath: string, toPath: string) => { moves.push({ bucket, from: fromPath, to: toPath }); return { data: null, error: null }; } }) };
+    const client = { from: vi.fn(), storage, rpc } as never;
+    const small = { galeria: [{ src: url("inmuebles/casa/a.jpg") }, { src: url("inmuebles/casa/b.jpg") }] };
+    expect(await syncPublicFiles({ service: client, data: small }, "casa", { galeria: [{ src: url("inmuebles/casa/a.jpg") }] })).toEqual({ retired: 0, restored: 1 });
+    expect(moves.at(-1)).toEqual({ bucket: "fortius-inmuebles-private", from: "retirados/inmuebles/casa/b.jpg", to: "inmuebles/casa/b.jpg" });
+  });
+
   it("si mover falla, el guardado no se rompe y queda anotado", async () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const { client } = service({ moveError: true });
