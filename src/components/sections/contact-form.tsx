@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 
 import { captureLead } from "@/lib/admin/store";
-import { PublicLeadForm } from "@/components/forms/public-lead-form";
+import { enfocarAlMontar, mensajeDeEnvio, PublicLeadForm, revisarTelefono } from "@/components/forms/public-lead-form";
 
 /*
   Formulario de contacto. El lead se entrega al backend dedicado de MNT; si la entrega falla,
@@ -19,6 +19,15 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
   const [error, setError] = useState<string | null>(null);
   const [objective, setObjective] = useState(initialObjective);
   const [message, setMessage] = useState(initialMessage);
+  /* Al cambiar de motivo en Contacto, el objetivo y el mensaje sugeridos se actualizan solo si el
+     visitante no los editó; nombre y teléfono nunca se borran (C-42). Ajuste durante el render,
+     como recomienda React para estado derivado de props. */
+  const [previo, setPrevio] = useState({ objective: initialObjective, message: initialMessage });
+  if (previo.objective !== initialObjective || previo.message !== initialMessage) {
+    if (objective === previo.objective) setObjective(initialObjective);
+    if (message === previo.message) setMessage(initialMessage);
+    setPrevio({ objective: initialObjective, message: initialMessage });
+  }
 
   useEffect(() => {
     const adopt = () => {
@@ -40,7 +49,7 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
 
   if (sent) {
     return (
-      <div role="status" className="cf-sent">
+      <div role="status" className="cf-sent" tabIndex={-1} ref={enfocarAlMontar}>
         <CheckCircle2 size={32} strokeWidth={1.5} aria-hidden="true" />
         <h3 className="pg-h3">Recibimos tu solicitud.</h3>
         <p className="pg-muted">Te contactamos con el siguiente paso.</p>
@@ -56,6 +65,8 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
         const data = new FormData(event.currentTarget);
         const objetivo = String(data.get("objective") ?? "");
         const mensaje = String(data.get("message") ?? "");
+        const telefonoMal = revisarTelefono(event.currentTarget, "phone");
+        if (telefonoMal) { setError(telefonoMal); return; }
         setEnviando(true);
         setError(null);
         try {
@@ -67,8 +78,8 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
             origen: "contacto",
           });
           setSent(true);
-        } catch {
-          setError("No pudimos enviar tus datos. Inténtalo otra vez o escríbenos por WhatsApp.");
+        } catch (fallo) {
+          setError(mensajeDeEnvio(fallo, "No pudimos enviar tus datos. Inténtalo otra vez o escríbenos por WhatsApp."));
         } finally {
           setEnviando(false);
         }

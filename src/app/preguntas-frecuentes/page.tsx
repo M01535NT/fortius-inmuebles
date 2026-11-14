@@ -30,7 +30,7 @@ export default async function PreguntasFrecuentesPage() {
         {groups.map(group => <div key={group.key} className="faq-group">
           <h2 className="pg-h2">{group.title}</h2>
           <div className="border-t border-border">
-            {group.questions.map((item, index) => <PreguntaItem key={item.id} item={item} index={index} animated={false} />)}
+            {group.questions.map((item, index) => <PreguntaItem key={item.id} item={item} index={index} animated={false} headingLevel={3} />)}
           </div>
         </div>)}
       </div>

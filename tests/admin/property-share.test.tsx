@@ -56,6 +56,7 @@ test("each property has its own social metadata, public URL, image and demo disc
   expect(share.text).toContain("24,500");
   expect(share.text).toContain("demostración");
   expect(share.title).toContain("Renta");
+  expect(meta.title).toBe(`${p.titulo} en renta`);
   expect(meta.openGraph).toMatchObject({ title: share.title, description: share.text, images: [{ url: share.image, type: "image/jpeg", width: 1200, height: 630 }] });
   expect(meta.twitter).toMatchObject({ card: "summary_large_image" });
 });

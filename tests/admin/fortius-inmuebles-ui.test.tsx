@@ -39,7 +39,7 @@ test("closing costs keeps zero commission and identifies a missing commission", 
   expect(screen.getByText(/Comisión de intermediación \(0%\)/)).toBeTruthy();
   fireEvent.change(commission, { target: { value: "" } });
   expect(commission.value).toBe("");
-  expect(screen.getByText(/Comisión de intermediación \(pendiente%\)/)).toBeTruthy();
+  expect(screen.getByText(/Comisión de intermediación \(porcentaje pendiente\)/)).toBeTruthy();
   expect(screen.getByText("Falta incorporar")).toBeTruthy();
   expect(screen.queryByText("Total estimado")).toBeNull();
 });

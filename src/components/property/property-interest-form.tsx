@@ -4,7 +4,7 @@ import * as React from "react";
 import { CheckCircle2 } from "lucide-react";
 
 import { captureLead } from "@/lib/admin/store";
-import { PublicLeadForm } from "@/components/forms/public-lead-form";
+import { enfocarAlMontar, mensajeDeEnvio, PublicLeadForm, revisarTelefono } from "@/components/forms/public-lead-form";
 
 const subscribeToLocation = () => () => {};
 
@@ -23,7 +23,7 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
 
   if (sent) {
     return (
-      <div className="flex flex-col items-start" aria-live="polite">
+      <div className="flex flex-col items-start outline-none" role="status" tabIndex={-1} ref={enfocarAlMontar}>
         <CheckCircle2 className="h-7 w-7 text-primary-ink" strokeWidth={1.5} />
         <p className="display-soft mt-4 text-subtitulo text-foreground">Recibimos tu solicitud.</p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -39,6 +39,8 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
       onSubmit={async (e) => {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
+        const telefonoMal = revisarTelefono(e.currentTarget, "telefono");
+        if (telefonoMal) { setError(telefonoMal); return; }
         setEnviando(true);
         setError(null);
         try {
@@ -54,8 +56,8 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
             origen: "interes-propiedad",
           });
           setSent(true);
-        } catch {
-          setError("No pudimos enviar tus datos. Inténtalo otra vez o escríbenos por WhatsApp.");
+        } catch (fallo) {
+          setError(mensajeDeEnvio(fallo, "No pudimos enviar tus datos. Inténtalo otra vez o escríbenos por WhatsApp."));
         } finally {
           setEnviando(false);
         }

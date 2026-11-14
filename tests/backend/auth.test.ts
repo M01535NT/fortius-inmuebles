@@ -82,11 +82,11 @@ describe("HTTP API contracts", () => {
     expect(list.headers.get("cache-control")).toContain("private, no-store");
     expect(await list.json()).toEqual({ records: [] });
   });
-  it("public lead endpoint exposes only persisted id and does not acknowledge a failed write", async () => {
+  it("public lead endpoint acknowledges only a persisted write and never exposes the lead id", async () => {
     const input = { nombre: "Persona", telefono: "6641234567", origen: "contacto" };
     const saved = await leadRoute(req("/api/leads", "POST", input));
     expect(saved.status).toBe(201);
-    expect(await saved.json()).toEqual({ id: "new-lead-id" });
+    expect(await saved.json()).toEqual({ ok: true }); // C-43: el número del prospecto no sale al sitio
     state.leadFailure = true;
     const failed = await leadRoute(req("/api/leads", "POST", input));
     expect(failed.status).toBe(429);

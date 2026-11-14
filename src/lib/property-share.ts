@@ -7,7 +7,7 @@ export function propertyShare(p: Property) {
   const origin = ["localhost", "127.0.0.1", "[::1]"].includes(configured.hostname) ? productionOrigin : configured.origin;
   const url = new URL(`/inventario/${encodeURIComponent(p.slug)}`, origin).href;
   const title = `${p.titulo} · ${OPERACION_LABELS[p.operacion]} | Fortius Inmuebles`;
-  const details = [p.ficha.recamaras != null ? `${p.ficha.recamaras} recámaras` : "", p.ficha.banos != null ? `${p.ficha.banos} baños` : "", p.ficha.construccionM2 != null ? `${p.ficha.construccionM2} m² de construcción` : ""].filter(Boolean);
+  const details = [p.ficha.recamaras != null ? `${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}` : "", p.ficha.banos != null ? `${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}` : "", p.ficha.construccionM2 != null ? `${p.ficha.construccionM2} m² de construcción` : ""].filter(Boolean);
   const text = `${p.demo ? "Propiedad de demostración. " : ""}${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()} · ${p.zona} · ${formatPrecio(p.precio)}${details.length ? ` · ${details.join(" · ")}` : ""}.`;
   return { title, text, url, image: `${url}/imagen-social` };
 }
@@ -16,7 +16,8 @@ export function propertyShareMetadata(p: Property): Metadata {
   const share = propertyShare(p);
   const image = { url: share.image, width: 1200, height: 630, type: "image/jpeg", alt: p.galeria[0]?.alt || p.titulo };
   return {
-    title: p.titulo,
+    /* La operación va en el título: la misma casa en venta y en renta no deben llamarse igual en la pestaña ni en Google. */
+    title: `${p.titulo} en ${OPERACION_LABELS[p.operacion].toLowerCase()}`,
     description: share.text,
     alternates: { canonical: share.url },
     openGraph: { title: share.title, description: share.text, url: share.url, type: "website", siteName: "Fortius Inmuebles", locale: "es_MX", images: [image] },

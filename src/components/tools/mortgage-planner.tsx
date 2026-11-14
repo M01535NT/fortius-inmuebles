@@ -13,6 +13,8 @@ import {
   MAX_MONEY,
   money,
   parseAmount,
+  parseExchangeRate,
+  sumMoney,
   validIsoDate,
 } from "@/lib/finance/money";
 import {
@@ -104,7 +106,7 @@ function Amortization({ result }: { result: MortgageResult }) {
   if (!result.schedule.length) return null;
   return (
     <details className="mt-6 border-t border-border pt-4">
-      <summary className="cursor-pointer py-2 text-sm font-medium">
+      <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
         Tabla de amortización
       </summary>
       <div
@@ -246,7 +248,7 @@ export function MortgagePlanner({
   let price: number | null = null;
   if (originalPrice !== null) {
     try {
-      price = convertPrice(originalPrice, moneda, number("exchange", 100));
+      price = convertPrice(originalPrice, moneda, parseExchangeRate(v.exchange, 100));
     } catch {
       price = null;
     }
@@ -340,7 +342,7 @@ export function MortgagePlanner({
             ? {
                 fx: {
                   original: originalPrice!,
-                  rate: number("exchange", 100)!,
+                  rate: parseExchangeRate(v.exchange, 100)!,
                 },
               }
             : {}),
@@ -371,7 +373,7 @@ export function MortgagePlanner({
               field("price", `Precio de la propiedad (${moneda})`)
             ) : (
               <p className="text-sm text-muted-foreground">
-                Precio del inmueble: {money(precio, moneda)} {moneda}.
+                Precio del inmueble: {money(precio, moneda)}{moneda === "MXN" ? " MXN" : ""}.
               </p>
             )}
             {moneda === "USD" &&
@@ -380,6 +382,7 @@ export function MortgagePlanner({
                 "Tipo de cambio (MXN por USD)",
                 "El precio está en dólares; el crédito de esta herramienta se calcula en pesos.",
                 100,
+                0.0001,
               )}
             <div className="grid gap-4 sm:grid-cols-3">
               {field(
@@ -397,7 +400,7 @@ export function MortgagePlanner({
               )}
             </div>
             <details open={!compact} className="border-t border-border pt-3">
-              <summary className="cursor-pointer py-2 text-sm font-medium">
+              <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
                 Cotización y cargos del banco
               </summary>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -458,7 +461,7 @@ export function MortgagePlanner({
               </div>
             </details>
             <details className="border-t border-border pt-3">
-              <summary className="cursor-pointer py-2 text-sm font-medium">
+              <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
                 Abonos anticipados
               </summary>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -489,7 +492,7 @@ export function MortgagePlanner({
             </details>
             {!compact && (
               <details className="border-t border-border pt-3">
-                <summary className="cursor-pointer py-2 text-sm font-medium">
+                <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
                   ¿Cabe en mi presupuesto?
                 </summary>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -504,8 +507,9 @@ export function MortgagePlanner({
                   {capacity !== null && result && (
                     <p className="text-sm leading-relaxed">
                       Presupuesto para esta hipoteca: {money(capacity)}.{" "}
-                      {result.knownMonthlyPayment > capacity
-                        ? "El egreso conocido del primer mes supera ese presupuesto."
+                      {/* Se compara la cuota obligatoria: el abono extra es voluntario y no cuenta contra el presupuesto (C-45). */}
+                      {sumMoney([result.knownMonthlyPayment, -(result.schedule[0]?.extra ?? 0)]) > capacity
+                        ? "La mensualidad obligatoria supera ese presupuesto."
                         : "Compáralo con el egreso mensual y los cargos pendientes."}{" "}
                       La autorización depende del banco.
                     </p>

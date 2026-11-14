@@ -17,6 +17,7 @@ import { arrendamientoDocumento } from "./arrendamiento";
 import { intermediacionRentaDocumento } from "./intermediacion-renta";
 import { solicitudArrendamientoDocumento } from "./solicitud-arrendamiento";
 import { inventarioRentaDocumento } from "./inventario-renta";
+import { compraventaPlazosDocumento } from "./compraventa-plazos";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
 
 /*
@@ -47,5 +48,6 @@ export const DOCUMENTOS: Partial<Record<string, (data: Record<string, unknown>, 
   "21": intermediacionRentaDocumento,
   "22": solicitudArrendamientoDocumento,
   "23": inventarioRentaDocumento,
+  "24": compraventaPlazosDocumento,
 };
 export const hasDocumento = (id: string) => !!DOCUMENTOS[id];

@@ -58,6 +58,8 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   // Si ya hay representante, comparece por él (persona moral) y firma con su cargo.
   // Arrendamiento (20): el propietario que renta es el arrendador; el plazo de la entrevista es otro dato (cuándo quiere rentar).
   ...(formatoId==="20"?{plazo:undefined,arrendador:owner&&["propietario","copropietario"].includes(a.relacion)?name:undefined,arrendadorCorreo:owner&&["propietario","copropietario"].includes(a.relacion)?persona?.email:undefined}:{}),
+  // Compraventa a plazos (24): el propietario que vende es el vendedor; el precio se captura al pactarse.
+  ...(formatoId==="24"?{vendedor:owner&&["propietario","copropietario"].includes(a.relacion)?name:undefined,vendedorCorreo:owner&&["propietario","copropietario"].includes(a.relacion)?persona?.email:undefined}:{}),
   ...((formatoId==="09"||formatoId==="21")&&empresa?{...prestadorDel09(empresa),...(empresa.representante?{comparecePrestador:"representante",calidadFirmaPrestador:empresa.calidadRepresentante||undefined}:{})}:{}),
  };
  const result: Record<string,string|number> = {};
