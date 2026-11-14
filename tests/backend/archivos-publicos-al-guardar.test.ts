@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
-import { publicFilesBeforeSave, publicPaths, removedPaths, syncPublicFiles } from "@/lib/backend/public-file-cleanup";
+import { publicFilesBeforeSave, publicPaths, purgeRetiredPublicFiles, removedPaths, syncPublicFiles } from "@/lib/backend/public-file-cleanup";
 
 // Decisión del titular (13/11/2026): lo público que se quita de un inmueble deja su dirección pública al guardar,
 // pero se conserva en el almacenamiento privado para poder recuperarlo.
@@ -74,5 +74,17 @@ describe("archivos públicos quitados de un inmueble", () => {
     await expect(syncPublicFiles(await publicFilesBeforeSave("casa", client), "casa", after)).resolves.toEqual({ retired: 0, restored: 0 });
     expect(spy).toHaveBeenCalledOnce();
     spy.mockRestore();
+  });
+
+  it("a los 30 días borra lo retirado y regresa a público lo que volvió a usarse", async () => {
+    const moves: string[] = [];
+    const remove = vi.fn(async () => ({ data: [], error: null }));
+    const rpc = vi.fn(async (name: string, args: { p_needles?: string[]; p_property_id?: string | null }) => name === "fortius_inmuebles_retired_public_files_due"
+      ? { data: ["retirados/inmuebles/casa/vencida.jpg", "retirados/inmuebles/casa/otra-vez.jpg"], error: null }
+      : { data: (args.p_needles ?? []).filter(n => n.endsWith("otra-vez.jpg")), error: args.p_property_id === null ? null : { message: "debe revisar todos los inmuebles" } });
+    const client = { rpc, from: vi.fn(), storage: { from: (bucket: string) => ({ remove, move: async (from: string, to: string) => { moves.push(`${bucket}:${from}->${to}`); return { data: null, error: null }; } }) } } as never;
+    expect(await purgeRetiredPublicFiles(client)).toEqual({ purged: 1, restored: 1 });
+    expect(remove).toHaveBeenCalledWith(["retirados/inmuebles/casa/vencida.jpg"]);
+    expect(moves).toEqual(["fortius-inmuebles-private:retirados/inmuebles/casa/otra-vez.jpg->inmuebles/casa/otra-vez.jpg"]);
   });
 });
