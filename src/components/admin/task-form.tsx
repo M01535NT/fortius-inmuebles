@@ -7,6 +7,7 @@ import { AsyncForm, Field, inputClass, selectClass, textareaClass } from "@/comp
 import { apiRequest, db, uid, useCollection } from "@/lib/admin/store";
 import { LinkPicker, type LinkValue } from "@/components/admin/workspace/link-picker";
 import { useLeaveGuard } from "@/components/admin/operation/use-operation";
+import { useUnsavedDraft } from "@/components/admin/workspace/draft-registry";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, TASK_TEMPLATES, taskSchema, taskExpedienteContext, type Task, type TaskExpediente } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 import s from "./form.module.css";
@@ -25,6 +26,7 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
   // C-08: lo capturado sin guardar no se pierde al cerrar, recargar o salir por un enlace.
   const [dirty, setDirty] = React.useState(false);
   useLeaveGuard(dirty, "Esta tarea tiene cambios sin guardar. ¿Descartarlos y salir?");
+  useUnsavedDraft(dirty);
   const asesores = useCollection(db.asesores);
   const leads = useCollection(db.leads);
   const clientes = useCollection(db.clientes);
