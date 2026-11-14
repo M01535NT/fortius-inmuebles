@@ -295,7 +295,8 @@ test("removal in background refresh does not discard a property's unsaved editor
     "Conservar borrador",
   );
 });
-test("lead note composition retains the opening version across refresh", async () => {
+// C-64 (13/11/2026): la nota solo se agrega; se guarda sobre la versión vigente y no sobre la de cuando se empezó a escribir.
+test("lead note composition saves on the current version after a refresh", async () => {
   await db.leads.load();
   const params = Promise.resolve({ id: "l1" });
   await params;
@@ -313,11 +314,9 @@ test("lead note composition retains the opening version across refresh", async (
   fireEvent.submit(
     screen.getByRole("button", { name: "Agregar nota" }).closest("form")!,
   );
-  await screen.findByRole("alert");
-  expect(sent?.version).toBe(1);
-  expect(
-    (screen.getByLabelText("Nueva nota") as HTMLTextAreaElement).value,
-  ).toBe("Mi nota");
+  await waitFor(() => expect(sent?.version).toBe(2));
+  expect((sent?.data.notas as Array<{ texto: string }>)[0].texto).toBe("Mi nota");
+  await waitFor(() => expect((screen.getByLabelText("Nueva nota") as HTMLTextAreaElement).value).toBe(""));
 });
 test("singleton draft retains opening version and never shows success on conflict", async () => {
   await settingsStore.load();
