@@ -5,7 +5,7 @@ import { ArrowDownToLine, FileText } from "lucide-react";
 
 import type { DocumentoPropiedad } from "@/data/propiedades";
 import { captureLead } from "@/lib/admin/store";
-import { PublicLeadForm } from "@/components/forms/public-lead-form";
+import { mensajeDeEnvio, PublicLeadForm, revisarTelefono } from "@/components/forms/public-lead-form";
 
 /*
   Material comercial público. El formulario registra el interés; no es
@@ -28,6 +28,8 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+    const telefonoMal = revisarTelefono(e.currentTarget, "telefono");
+    if (telefonoMal) { setError(telefonoMal); return; }
     setEnviando(true);
     setError(null);
     try {
@@ -40,8 +42,8 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
         mensaje: `Descargó documentos de ${codigo}`,
       });
       setUnlocked(true);
-    } catch {
-      setError("No pudimos enviar tus datos. Inténtalo otra vez.");
+    } catch (fallo) {
+      setError(mensajeDeEnvio(fallo, "No pudimos enviar tus datos. Inténtalo otra vez."));
     } finally {
       setEnviando(false);
     }
