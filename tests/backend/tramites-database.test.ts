@@ -165,3 +165,36 @@ test("la base nombra cada paso igual que el panel", async () => {
     expect(r.rows[0].n).toBe(p.nombre);
   }
 });
+
+test("en una venta, la cancelación abierta frena la firma hasta inscribirse o hasta la decisión del director", async () => {
+  const exp = "40000000-0000-4000-8000-0000000000e1";
+  await db.exec(`insert into public.fortius_inmuebles_expedientes(id,cliente_id,asesor_id,folio,operacion) values ('${exp}','cli-ana','ase-ana','EXP-TRAMITE-1','venta')`);
+  const frenan = () => db.query<{ n: number }>("select public.fortius_inmuebles_tramites_que_frenan_firma($1) n", [exp]).then(x => Number(x.rows[0].n));
+  let t = await as(ana, () => put("tr-8", { ...base("tr-8"), expedienteId: exp }, null));
+  expect(await as(ana, frenan)).toBe(1);
+  // Otro asesor que vea la operación no ve el trámite, pero la base igual lo cuenta.
+  expect(await as(director, frenan)).toBe(1);
+  await as(ana, async () => {
+    // Solo el director decide firmar sin la cancelación inscrita, y la asesora no desliga el trámite.
+    await expect(put("tr-8", { ...t.data, firmaSinCancelacion: { motivo: "El notario cancela la hipoteca en la misma firma" } }, t.version)).rejects.toMatchObject({ code: "PT403" });
+    await expect(put("tr-8", { ...t.data, expedienteId: "" }, t.version)).rejects.toMatchObject({ code: "PT403" });
+  });
+  await as(director, async () => {
+    await expect(put("tr-8", { ...t.data, firmaSinCancelacion: { motivo: "corto" } }, t.version)).rejects.toMatchObject({ code: "PT400" });
+    t = await put("tr-8", { ...t.data, firmaSinCancelacion: { motivo: "El notario cancela la hipoteca en la misma firma", autorizadoPor: ana } }, t.version);
+  });
+  expect(t.data.firmaSinCancelacion).toMatchObject({ autorizadoPor: director });
+  expect(t.data.firmaSinCancelacion?.autorizadoEl).toBeTruthy();
+  expect(t.data.notas.some(n => n.tipo === "evento" && /director autorizó firmar/.test(n.texto))).toBe(true);
+  expect(await as(ana, frenan)).toBe(0);
+  // La asesora sigue trabajando el trámite sin tocar la decisión; no puede falsear quién la tomó.
+  t = await as(ana, () => put("tr-8", { ...t.data, titulo: "Casa en Otay, venta", firmaSinCancelacion: { ...t.data.firmaSinCancelacion!, autorizadoPor: ana } }, t.version));
+  expect(t.data.firmaSinCancelacion?.autorizadoPor).toBe(director);
+  await as(ana, async () => expect(put("tr-8", { ...t.data, firmaSinCancelacion: null }, t.version)).rejects.toMatchObject({ code: "PT403" }));
+  // Sin la decisión, solo deja de frenar al cerrar el paso del Registro Público.
+  t = await as(director, () => put("tr-8", { ...t.data, firmaSinCancelacion: null }, t.version));
+  expect(await frenan()).toBe(0); // sin sesión no responde nada
+  expect(await as(ana, frenan)).toBe(1);
+  await db.exec("set session_replication_role=replica; update public.fortius_inmuebles_records set data=jsonb_set(data,'{pasoActual}','6') where collection='tramites' and id='tr-8'; set session_replication_role=origin;");
+  expect(await as(ana, frenan)).toBe(0);
+});

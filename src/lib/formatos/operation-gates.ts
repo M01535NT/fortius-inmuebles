@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { databaseError } from "@/lib/backend/http";
 import { defaultRoute } from "@/lib/admin/operation-view";
 import { checklistCompleto, checklistTaskId, type PasoChecklist } from "./checklist-documentos";
-import { isOwnerRoute, type InitialInterviewStatus, type OperationWorkflow } from "./operation-workflow";
+import { isOwnerRoute, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type WorkflowStage } from "./operation-workflow";
 
 /*
   Candados del flujo del propietario en el servidor (sin migración): los mismos que muestra
@@ -31,6 +31,25 @@ export function needsInitialGate(current: Expediente, nextStage: string, nextFlo
   if (flow?.heredado) return false;
   const route = flow?.ruta ?? defaultRoute(current.operacion);
   return isOwnerRoute(route) && (current.etapa ?? "captacion") === "captacion" && nextStage !== "captacion";
+}
+
+/**
+  TRA-01: en una venta, la firma no avanza mientras una cancelación de hipoteca ligada a la operación
+  no esté inscrita (paso del Registro Público cerrado), salvo que el director decida firmar sin ella.
+  Aplica al entrar a «Cierre y entrega · firma y pago» o a una etapa posterior.
+*/
+export function needsMortgageGate(current: Expediente, nextStage: string) {
+  if (current.operacion !== "venta") return false;
+  const from = WORKFLOW_STAGES.indexOf((current.etapa ?? "captacion") as WorkflowStage), to = WORKFLOW_STAGES.indexOf(nextStage as WorkflowStage);
+  return to >= WORKFLOW_STAGES.indexOf("cierre") && to > from;
+}
+export const MORTGAGE_GATE_MESSAGE = "Antes de la firma: la cancelación de hipoteca de esta venta debe quedar inscrita en el Registro Público. Si se firma sin ella, lo decide el director en el trámite, con su motivo.";
+
+/** Cuántas cancelaciones ligadas frenan la firma (la base cuenta también las que el asesor no ve). */
+export async function loadMortgageBlockers(client: SupabaseClient, expedienteId: string): Promise<number> {
+  const { data, error } = await client.rpc("fortius_inmuebles_tramites_que_frenan_firma", { p_expediente: expedienteId });
+  if (error) databaseError(error);
+  return typeof data === "number" ? data : Number(data) || 0;
 }
 
 const latest = (drafts: Draft[], match: (formato: string) => boolean) => drafts.filter(d => match(d.formato_id)).sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];

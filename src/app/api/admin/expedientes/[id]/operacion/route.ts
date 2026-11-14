@@ -16,7 +16,7 @@ const workflowMessages = new Set([
  "Escribe el motivo de la excepción (al menos 10 caracteres)",
 ]);
 import { discardReasonOf, DISCARD_REASONS, WORKFLOW_REQUIREMENTS, type RequirementKey } from "@/lib/formatos/operation-workflow";
-import { initialBlockers, loadInitialStatus, needsInitialGate } from "@/lib/formatos/operation-gates";
+import { initialBlockers, loadInitialStatus, loadMortgageBlockers, MORTGAGE_GATE_MESSAGE, needsInitialGate, needsMortgageGate } from "@/lib/formatos/operation-gates";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -38,6 +38,8 @@ export async function PUT(request: Request, context: Context) {
       const pending = initialBlockers(await loadInitialStatus(client, id));
       if (pending.length) throw new ApiError(409, `Antes de avanzar: ${pending.join("; ")}`);
     }
+    // TRA-01: la hipoteca del vendedor frena la firma hasta inscribir su cancelación o la decisión del director.
+    if (needsMortgageGate(current.data, input.etapa) && await loadMortgageBlockers(client, id) > 0) throw new ApiError(409, MORTGAGE_GATE_MESSAGE);
     const { data, error } = await client.rpc("fortius_inmuebles_update_operation", {
       p_id:id,p_version:input.version,p_stage:input.etapa,p_date:input.fechaObjetivo,p_checklist:input.checklist,
       p_flow:input.flujo??null,p_slug:input.propiedadSlug??null,p_property_specified:input.propiedadSlug!==undefined,
