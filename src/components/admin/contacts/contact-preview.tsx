@@ -1,10 +1,11 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, MessageCircle, Phone } from "@/components/admin/icons";
-import { Avatar, ButtonLink, Card, Pill } from "@/components/admin/kit";
+import { ArrowUpRight, MessageCircle, Phone, Trash2 } from "@/components/admin/icons";
+import { Avatar, Button, ButtonLink, Card, Pill } from "@/components/admin/kit";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { LEAD_PROFILE_OPTIONS } from "@/lib/lead-profile";
-import { LEAD_ORIGEN_LABELS, type Cliente, type Evento, type Lead } from "@/lib/admin/store";
+import { db, errorMessage, LEAD_ORIGEN_LABELS, removeById, type Cliente, type Evento, type Lead } from "@/lib/admin/store";
 import { leadStage, LEAD_STAGE_LABELS } from "@/lib/admin/person-view";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { isTaskOpen, type Task } from "@/lib/tasks";
@@ -17,13 +18,27 @@ import s from "./contacts.module.css";
   computadora, se ve quién es, lo que busca, su presupuesto, el siguiente paso y su actividad
   reciente, con Llamar, WhatsApp y «Abrir ficha». Todo sale de la ficha que ya existe; los
   «inmuebles que coinciden» del boceto no existen todavía en el sistema (EXT-01).
+  Al pie, «Eliminar contacto» (titular, 14/11/2026): el menú «⋯» de la ficha no se encontraba. Mismas
+  reglas que la ficha: va a Eliminados y se restaura; un cliente con una operación en curso no se
+  elimina (`blocking` dice cuál); un prospecto que ya es cliente se elimina como cliente.
 */
 
 const CLIENT_TYPE: Record<Cliente["tipo"], string> = { propietario: "Propietario", comprador: "Comprador", arrendador: "Arrendador", arrendatario: "Arrendatario", inversionista: "Inversionista", otro: "Cliente" };
 
-export function ContactPreview({ row, lead, client, tasks, events, today }: { row: ContactRow; lead?: Lead; client?: Cliente; tasks: Task[]; events: Evento[]; today: string }) {
+export function ContactPreview({ row, lead, client, tasks, events, today, blocking = "" }: { row: ContactRow; lead?: Lead; client?: Cliente; tasks: Task[]; events: Evento[]; today: string; blocking?: string }) {
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState("");
   const person = lead ?? client;
   if (!person) return null;
+  const canDelete = !(lead?.clienteId);
+  async function remove() {
+    if (!await confirmDelete(lead ? "prospecto" : "cliente", `${person!.nombre} sale de Contactos${lead ? " con su historial" : ""}.`, "o")) return;
+    setBusy(true); setError("");
+    try {
+      if (lead) await removeById(db.leads, lead.id, db.leads.version(lead));
+      else await removeById(db.clientes, client!.id, db.clientes.version(client!));
+    } catch (problem) { setError(errorMessage(problem)); setBusy(false); }
+  }
   const digits = (person.telefono ?? "").replace(/\D/g, "");
   const wa = digits.length === 10 ? `52${digits}` : digits;
   const perfil = person.perfil;
@@ -55,10 +70,11 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
         <p className="text-sm text-muted-foreground">{kind}{lead ? ` · ${LEAD_STAGE_LABELS[leadStage(lead.estado)]}` : ""}</p>
       </div>
     </div>
-    <div className="flex flex-wrap gap-2">
+    {/* Llamar y WhatsApp a medias; «Abrir ficha» abajo a todo lo ancho: en una sola fila se partía y quedaba chueca. */}
+    <div className="grid grid-cols-2 gap-2">
       {digits && <ButtonLink href={`tel:${digits}`}><Phone size={16} aria-hidden="true" />Llamar</ButtonLink>}
       {digits && <ButtonLink href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"><MessageCircle size={16} aria-hidden="true" />WhatsApp</ButtonLink>}
-      <ButtonLink href={row.href} className="ml-auto" aria-label={`Abrir ficha de ${person.nombre}`}>Abrir ficha<ArrowUpRight size={16} aria-hidden="true" /></ButtonLink>
+      <ButtonLink href={row.href} className="col-span-2" aria-label={`Abrir ficha de ${person.nombre}`}>Abrir ficha<ArrowUpRight size={16} aria-hidden="true" /></ButtonLink>
     </div>
     <dl className={s.facts}>
       <div><dt>Busca</dt><dd>{row.wants || "—"}</dd></div>
@@ -80,6 +96,11 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
       </ul>
     </section>}
     <p className={s.meta}>Registrado el {humanDay(person.creadoEl)}.</p>
+    {canDelete && <div className="flex flex-col items-start gap-1 border-t border-[var(--card-edge)] pt-3">
+      <Button variant="danger" disabled={busy || !!blocking} onClick={() => void remove()} aria-label={`Eliminar a ${person.nombre}`}><Trash2 size={16} aria-hidden="true" />{busy ? "Eliminando…" : "Eliminar contacto"}</Button>
+      {blocking && <p className={s.meta}>{blocking}{blocking.startsWith("Tiene") ? "; primero se cierra o se elimina." : "."}</p>}
+      {error && <p role="alert" className="text-sm text-[var(--destructive)]">{error}</p>}
+    </div>}
   </Card>;
 }
 

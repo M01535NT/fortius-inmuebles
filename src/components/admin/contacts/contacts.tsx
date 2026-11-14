@@ -49,11 +49,18 @@ export function ContactsScreen() {
   const [selected, setSelected] = React.useState<string | null>(null);
   // Operaciones activas: el siguiente paso de quien tiene una sale de ella, no del perfil (C40).
   const [operations, setOperations] = React.useState<PersonOperation[]>([]);
+  // Folios abiertos por cliente, para no eliminar a quien tiene una operación en curso (undefined: consultando; null: falló).
+  const [openFolios, setOpenFolios] = React.useState<Array<{ clienteId?: string; folio: string }> | null | undefined>(undefined);
   React.useEffect(() => {
     let alive = true;
-    apiRequest<{ expedientes?: Array<{ id: string; cliente_id?: string; etapa?: WorkflowStage; flujo?: OperationWorkflow | null }> }>("/api/admin/expedientes")
-      .then(r => { if (alive) setOperations((r.expedientes ?? []).filter(d => d.etapa !== "cerrado" && d.flujo?.estado !== "descartada").map(d => ({ id: d.id, clienteId: d.cliente_id, stage: processStageText(d.etapa, d.flujo, today) || "curso" }))); })
-      .catch(() => undefined);
+    apiRequest<{ expedientes?: Array<{ id: string; folio: string; cliente_id?: string; etapa?: WorkflowStage; flujo?: OperationWorkflow | null }> }>("/api/admin/expedientes")
+      .then(r => {
+        if (!alive) return;
+        const open = (r.expedientes ?? []).filter(d => d.etapa !== "cerrado" && d.flujo?.estado !== "descartada");
+        setOperations(open.map(d => ({ id: d.id, clienteId: d.cliente_id, stage: processStageText(d.etapa, d.flujo, today) || "curso" })));
+        setOpenFolios(open.map(d => ({ clienteId: d.cliente_id, folio: d.folio })));
+      })
+      .catch(() => { if (alive) setOpenFolios(null); });
     return () => { alive = false; };
   }, [today]);
   const searchInput = React.useRef<HTMLInputElement>(null);
@@ -158,12 +165,20 @@ export function ContactsScreen() {
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : "Aquí están las personas que buscan a Fortius y los clientes, con lo que sigue con cada una. Las que escriben desde el sitio llegan solas."}
       </EmptyBox> : <div className={s.frame} data-tour="contactos-lista">
         <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={stageText} selection={selection} keyOf={keyOf} />
-        {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} />}
+        {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} blocking={previewRow.kind === "cliente" ? deleteBlock(openFolios, previewRow.id) : ""} />}
       </div>}
       {rows.length > 0 && <BulkBar selection={selection} targets={ordered.map(r => ({ id: keyOf(r), label: r.name }))} actions={bulkActions} noun={{ one: "persona seleccionada", many: "personas seleccionadas", empty: "Elige personas en la lista" }} />}
       {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir una operación.</p>}
     </div>
   </GuidedPage>;
+}
+
+/** Por qué no se puede eliminar a un cliente todavía (la misma regla que su ficha y el servidor); vacío si se puede. */
+function deleteBlock(open: Array<{ clienteId?: string; folio: string }> | null | undefined, clientId: string) {
+  if (open === undefined) return "Consultando sus operaciones…";
+  if (open === null) return "No se pudieron revisar sus operaciones";
+  const mine = open.filter(o => o.clienteId === clientId);
+  return mine.length ? `Tiene ${mine.length === 1 ? `la operación ${mine[0].folio}` : `${mine.length} operaciones`} en curso` : "";
 }
 
 function Due({ row }: { row: ContactRow }) {
