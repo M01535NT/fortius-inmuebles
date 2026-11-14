@@ -112,17 +112,28 @@ async function publishedOperation(slug:string){
  expect(await published(slug)).toBe(true);
  return f.id;
 }
-it('withdraws the listing when the intermediation contract ends (M-01)',async()=>{
+// Titular, 14/11/2026: terminar el contrato no retira el inmueble solo; avisa que debe retirarse.
+// Al retirarlo, sus fotos y datos se conservan (se archiva) por si se vuelve a publicar.
+it('asks to withdraw the listing when the intermediation contract ends, without withdrawing it (M-01)',async()=>{
  await asUser(own,async()=>{
   const id=await publishedOperation('m01-terminado');
-  const before=await dataOf('m01-terminado');
   const flujo=await flowOf(id);
   await update(id,'negociacion',{...flujo,firmaContrato:{...flujo.firmaContrato,terminacion:{fecha:'2026-11-13',motivo:'El propietario revocó la intermediación'}}});
+  expect(await published('m01-terminado')).toBe(true);
+  const tasks=(await db.query<{d:{titulo:string;estado:string;asesorId:string;propiedadSlug:string;prioridad:string}}>("select data d from public.fortius_inmuebles_records where collection='tareas' and data->>'expedienteId'=$1 and data->>'titulo' like 'Retirar del sitio%'",[id])).rows;
+  expect(tasks).toHaveLength(1);
+  expect(tasks[0].d).toMatchObject({estado:'pendiente',asesorId:'own',propiedadSlug:'m01-terminado',prioridad:'urgente'});
+  // Otro guardado no repite el aviso.
+  await update(id,'negociacion',{...(await flowOf(id)),motivo:'Seguimiento de la terminación'});
+  expect((await db.query("select 1 from public.fortius_inmuebles_records where collection='tareas' and data->>'expedienteId'=$1 and data->>'titulo' like 'Retirar del sitio%'",[id])).rows).toHaveLength(1);
+  // Al retirarlo se archiva: fotos y datos se conservan.
+  const before=await dataOf('m01-terminado');
+  await putListing('m01-terminado',{...listing('m01-terminado'),publicada:false});
   expect(await published('m01-terminado')).toBe(false);
   expect(await dataOf('m01-terminado')).toEqual(before);
  });
 });
-// Titular, 14/11/2026: una corrección no retira el inmueble; la terminación sí.
+// Titular, 14/11/2026: una corrección no retira el inmueble.
 it('keeps the listing when the signed contract is corrected and awaits review again (M-01)',async()=>{
  await asUser(own,async()=>{
   const id=await publishedOperation('m01-corregido');
