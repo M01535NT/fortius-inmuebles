@@ -191,3 +191,11 @@
 .firmaVenta a { text-decoration: underline; text-underline-offset: 3px; }
 .firmaMotivo { font: inherit; font-size: var(--admin-text-interfaz); color: var(--foreground); background: var(--field-surface); border: 1px solid var(--control-edge); border-radius: var(--field-radius); padding: 8px 10px; resize: vertical; min-height: 72px; }
 .firmaMotivo:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* LV-10f · foto del inmueble y cara del propietario */
+.rowFoto { grid-template-columns: 44px minmax(0, 1fr); align-items: start; column-gap: 12px; }
+.rowThumb { border-radius: 10px; }
+.rowBody { display: grid; gap: 7px; min-width: 0; }
+.rowWho { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: var(--admin-text-detalle); color: var(--muted-foreground); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.headThumb { flex: none; border-radius: 12px; }
+@media (max-width: 700px) { .headThumb { display: none; } }

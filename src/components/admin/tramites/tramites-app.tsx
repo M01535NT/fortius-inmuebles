@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Check, ChevronLeft, ChevronRight, FileText, MessageCircle, Phone, Plus, Star, Trash2, Upload, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
-import { Button, Kbd, Notice, Pill, Segmented, Sheet } from "@/components/admin/kit";
+import { Avatar, Button, Kbd, Notice, Pill, Segmented, Sheet, Thumb } from "@/components/admin/kit";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { apiRequest, archivoFromUpload, db, errorMessage, loadAllDossiers, resolveFileUrl, uid, upsert, uploadFile, useCollection, useLoadState, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
@@ -59,6 +59,9 @@ export function TramitesApp({ initialId = null }: { initialId?: string | null })
   const visibles = tramites.filter(t => filtro === "terminados" ? t.estado !== "en_curso" : t.estado === "en_curso" && (filtro === "curso" || !!t.espera))
     .sort((a, b) => (b.actualizadoEl ?? "").localeCompare(a.actualizadoEl ?? ""));
   const current = tramites.find(t => t.id === selected) ?? (showDetail ? undefined : visibles[0]);
+  // LV-10f: cada fila lleva la foto del inmueble y la cara del propietario (mismo color en todo el panel).
+  const fotoDe = (slug?: string) => slug ? propiedades.find(p => p.slug === slug)?.galeria[0]?.src : undefined;
+  const nombreDe = (id?: string) => id ? clientes.find(c => c.id === id)?.nombre : undefined;
 
   function open(id: string) {
     setSelected(id); setShowDetail(true); setError(null);
@@ -75,17 +78,21 @@ export function TramitesApp({ initialId = null }: { initialId?: string | null })
         {load.status === "loading" && !tramites.length ? <p className={s.empty}>Cargando trámites…</p>
           : load.status === "error" ? <p className={s.empty}>No se pudieron cargar los trámites. {load.error}</p>
           : !visibles.length ? <p className={s.empty}>{filtro === "curso" ? "Sin trámites en curso. Abre uno con «Nuevo» cuando un propietario necesite cancelar su hipoteca." : "Nada por aquí."}</p>
-          : visibles.map(t => <button key={t.id} type="button" className={s.row} aria-current={t.id === current?.id} onClick={() => open(t.id)}>
+          : visibles.map(t => <button key={t.id} type="button" className={cn(s.row, s.rowFoto)} aria-current={t.id === current?.id} onClick={() => open(t.id)}>
+            <Thumb src={fotoDe(t.propiedadSlug)} size={44} className={s.rowThumb} />
+            <span className={s.rowBody}>
             <span className={s.rowA}><b>{t.titulo}</b><span>{t.creadoEl ? `${Math.max(0, daysBetween(t.creadoEl.slice(0, 10), today))} d` : ""}</span></span>
             <span className={s.mbar} aria-hidden>{PASO_CLAVES.map((_, i) => <i key={i} data-s={i < t.pasoActual ? "d" : i === t.pasoActual ? "n" : ""} />)}</span>
             <span className={s.rowB}><span>{ACREEDORES[t.acreedor]} · {t.pasoActual >= TOTAL_PASOS ? "Terminado" : pasosDe(t.acreedor)[t.pasoActual].nombre}</span>{t.espera && <Pill tone="warn" size="sm">En espera</Pill>}{t.estado === "cancelado" && <Pill tone="muted" size="sm">Cancelado</Pill>}</span>
+            {nombreDe(t.clienteId) && <span className={s.rowWho}><Avatar name={nombreDe(t.clienteId)!} size={20} />{nombreDe(t.clienteId)}</span>}
+            </span>
           </button>)}
       </div>
     </aside>
     <main className={s.detail}>
       {current
         ? <Detalle key={current.id} t={current} me={me} sessionId={session?.id ?? ""} sessionName={session?.name || session?.email || "Fortius"} today={today}
-            cliente={clientes.find(c => c.id === current.clienteId)} propiedad={propiedades.find(p => p.slug === current.propiedadSlug)?.titulo}
+            cliente={clientes.find(c => c.id === current.clienteId)} propiedad={propiedades.find(p => p.slug === current.propiedadSlug)?.titulo} foto={fotoDe(current.propiedadSlug)}
             documentos={archivos.filter(a => a.tramiteId === current.id)} tareas={tareas.filter(x => x.tramiteId === current.id)} citas={eventos.filter(e => e.tramiteId === current.id)}
             onBack={() => setShowDetail(false)} offer={undo.offer} onError={setError} error={error} />
         : <div className={s.center}><p className={s.empty}>{selected ? "Este trámite no existe o no tienes acceso." : "Elige un trámite de la lista."}</p></div>}
@@ -97,12 +104,12 @@ export function TramitesApp({ initialId = null }: { initialId?: string | null })
 
 type DetalleProps = {
   t: Tramite; me: string | null; sessionId: string; sessionName: string; today: string;
-  cliente?: { id: string; nombre: string; telefono?: string; email?: string }; propiedad?: string;
+  cliente?: { id: string; nombre: string; telefono?: string; email?: string }; propiedad?: string; foto?: string;
   documentos: Archivo[]; tareas: Task[]; citas: Evento[];
   onBack: () => void; offer: ReturnType<typeof useUndo>["offer"]; onError: (e: string | null) => void; error: string | null;
 };
 
-function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, documentos, tareas, citas, onBack, offer, onError, error }: DetalleProps) {
+function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, foto, documentos, tareas, citas, onBack, offer, onError, error }: DetalleProps) {
   const pasos = pasosDe(t.acreedor);
   const [ver, setVer] = React.useState<number | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -171,6 +178,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
   return <>
     <div className={s.head}>
       <Button variant="ghost" iconOnly className={s.back} onClick={onBack} aria-label="Ver la lista de trámites"><ArrowLeft size={18} aria-hidden /></Button>
+      <Thumb src={foto} size={56} className={s.headThumb} />
       <div className={s.title}>
         <h2>{t.titulo}</h2>
         <span>Cancelación de hipoteca · {ACREEDORES[t.acreedor]}{cliente ? ` · ${cliente.nombre}` : ""}{propiedad ? ` · ${propiedad}` : ""}{t.creadoEl ? ` · lleva ${Math.max(0, daysBetween(t.creadoEl.slice(0, 10), today))} días` : ""}</span>
@@ -275,7 +283,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
         </div>
         <div className={s.blk}>
           <div className={s.blkHead}><h5>Con quién se trata</h5></div>
-          {cliente && <div className={s.person}><span className={s.pa}>{initials(cliente.nombre)}</span><div><b>{cliente.nombre}</b><span>Propietario</span></div>
+          {cliente && <div className={s.person}><Avatar name={cliente.nombre} size={32} /><div><b>{cliente.nombre}</b><span>Propietario</span></div>
             {cliente.telefono && <a className="inline-grid size-10 place-items-center rounded-lg" href={`tel:${phoneDigits(cliente.telefono)}`} aria-label={`Llamar a ${cliente.nombre}`}><Phone size={16} aria-hidden /></a>}
             {cliente.telefono && <a className="inline-grid size-10 place-items-center rounded-lg" href={`https://wa.me/${waNumber(cliente.telefono)}`} target="_blank" rel="noreferrer" aria-label={`WhatsApp a ${cliente.nombre}`}><MessageCircle size={16} aria-hidden /></a>}
           </div>}
