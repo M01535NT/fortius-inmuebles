@@ -233,15 +233,17 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
   /*
     «Eliminar» manda a la persona a Eliminados (se restaura desde ahí), como en su ficha completa.
     Lo que el servidor no deja se dice antes en la opción misma: un cliente con un asunto en curso, y
-    por ahora quien tiene tareas o citas en la Agenda (el servidor las cuenta como referencias).
+    y quien tiene citas en la Agenda. Sus tareas se van con ella, y un prospecto que pasó a cliente se
+    va con su ficha de cliente (y al revés); todo regresa junto al restaurarlo (15/11/2026).
   */
-  const ligadas = [...tareas, ...eventos].filter(t => (row.kind === "lead" ? t.leadId : t.clienteId) === row.id).length;
+  const ligadas = eventos.filter(t => (row.kind === "lead" ? t.leadId : t.clienteId) === row.id).length;
   const bloqueo = !persona ? "cargando sus datos"
     : operaciones.length ? `tiene ${operaciones.length === 1 ? "un asunto" : `${operaciones.length} asuntos`} en curso`
-    : ligadas ? `tiene ${ligadas === 1 ? "una tarea o cita" : `${ligadas} tareas o citas`} en la Agenda` : "";
+    : ligadas ? `tiene ${ligadas === 1 ? "una cita" : `${ligadas} citas`} en la Agenda` : "";
+  const pareja = !!persona && (row.kind === "lead" ? !!(persona as Lead).clienteId : !!(persona as Cliente).leadId);
   async function eliminar() {
     if (!persona || bloqueo) return;
-    if (!await confirmDelete(row.kind === "cliente" ? "cliente" : "prospecto", `${row.name} sale de Personas y de Contactos${row.kind === "lead" ? " con su historial" : ""}.`, "o")) return;
+    if (!await confirmDelete(row.kind === "cliente" ? "cliente" : "prospecto", `${row.name} sale de Personas y de Contactos${pareja ? ` junto con su ficha de ${row.kind === "lead" ? "cliente" : "prospecto"}` : ""}, con su historial y sus tareas.`, "o")) return;
     setError(null);
     try {
       if (row.kind === "cliente") await removeById(db.clientes, persona.id, db.clientes.version(persona as Cliente));
