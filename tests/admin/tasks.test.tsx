@@ -6,6 +6,7 @@ import type { Task } from "@/lib/tasks";
 import TaskDetailPage from "@/app/admin/tareas/[id]/page";
 import TasksPage from "@/components/admin/screens/tareas";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
+import { chooseOption, hiddenValue } from "./agenda-helpers";
 
 const store = vi.hoisted(() => ({ tasks: [] as unknown[], version: 7, put: vi.fn(), load: vi.fn(), search: "", request: vi.fn(), sequence: 0, records: {} as Record<string, unknown[]> }));
 vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(store.search), useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
@@ -47,8 +48,9 @@ test("retains edits and checklist after a conflict and a remote refresh", async 
 test("a template populates only a draft", () => {
   const save = vi.fn();
   render(<TaskForm onSave={save} />);
-  const select = screen.getByLabelText("Plantilla opcional") as HTMLSelectElement;
-  fireEvent.change(select, { target: { value: select.options[1].value } });
+  // LV-10g: la plantilla se elige en el selector del kit (Radix).
+  fireEvent.click(screen.getByLabelText("Plantilla opcional"));
+  fireEvent.click(screen.getAllByRole("option")[1]);
   expect((screen.getByLabelText("Título") as HTMLInputElement).value.length).toBeGreaterThan(0);
   expect(screen.getAllByRole("checkbox").length).toBeGreaterThan(0);
   expect(save).not.toHaveBeenCalled();
@@ -130,7 +132,7 @@ test("next seven days excludes distant and closed tasks; all dates can show comp
   expect(screen.queryByRole("link", { name: "Ya resuelta" })).toBeNull();
   store.search = "vence=todas";
   view.rerender(<TasksPage />);
-  fireEvent.change(screen.getByLabelText("Estado"), { target: { value: "completada" } });
+  chooseOption("Estado", "Completada");
   expect(screen.getByRole("link", { name: "Ya resuelta" })).toBeTruthy();
   expect(screen.queryByText("Vencida")).toBeNull();
 });
@@ -215,7 +217,8 @@ test("SIM-09/C51: una tarea nueva queda a nombre de quien la captura, salvo que 
   store.records = { asesores: [{ id: "own", nombre: "Ana" }, { id: "otra", nombre: "Bea" }] };
   store.request.mockImplementation(async (url: string) => url.includes("mi-asesor") ? { asesorId: "own" } : url.includes("capacidades") ? { expedienteLinks: true } : { expedientes: [] });
   render(<TaskForm onSave={vi.fn()} />);
-  await waitFor(() => expect((screen.getByLabelText("Responsable") as HTMLSelectElement).value).toBe("own"));
+  await waitFor(() => expect(hiddenValue("asesorId")).toBe("own"));
+  expect(screen.getByLabelText("Responsable").textContent).toContain("Ana");
 });
 
 test("SIM-12: la lista vacía de tareas enseña sus primeros pasos y distingue «nada pendiente» de un filtro", async () => {

@@ -265,13 +265,15 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
   const onAcceptRef = React.useRef(onAccept);
   React.useEffect(() => { onAcceptRef.current = onAccept; }, [onAccept]);
   const patchAuto = desdeExpediente.patch, patchAutoKey = JSON.stringify(patchAuto);
+  // El aviso depende de que la ventana siga abierta, no de esta corrida del efecto: guardar re-renderiza (ocupado) antes de terminar.
+  const mounted = React.useRef(true);
+  React.useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   React.useEffect(() => {
     if (!datosExp || disabled || !Object.keys(patchAuto).length) return;
-    let alive = true;
+    const alive = () => mounted.current;
     onAcceptRef.current(patchAuto)
-      .then(() => { if (alive) setAutoNotice(`Se llenaron ${Object.keys(patchAuto).length === 1 ? "1 dato" : `${Object.keys(patchAuto).length} datos`} con el expediente.`); })
-      .catch(cause => { if (alive) setError(errorMessage(cause)); });
-    return () => { alive = false; };
+      .then(() => { if (alive()) setAutoNotice(`Se llenaron ${Object.keys(patchAuto).length === 1 ? "1 dato" : `${Object.keys(patchAuto).length} datos`} con el expediente.`); })
+      .catch(cause => { if (alive()) setError(errorMessage(cause)); });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- el parche se compara por contenido
   }, [datosExp, disabled, patchAutoKey]);
   // CSR-05: lo que falta se separa entre lo propio del formato y lo que se resuelve una vez en el expediente.

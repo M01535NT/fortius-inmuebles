@@ -1,13 +1,15 @@
 "use client";
 import * as React from "react";
-import { FileDown } from "@/components/admin/icons";
+import { FileDown, FileText } from "@/components/admin/icons";
+import { DateField } from "@/components/ui/date-field";
 import { Button, Card, Notice, Pill } from "@/components/admin/kit";
-import { inputClass, selectClass } from "@/components/admin/ui";
+import { inputClass } from "@/components/admin/ui";
 import { fetchJson } from "@/lib/admin/store";
 import { appraisalState, valueFromAppraisal, type OperationWorkflow, type OwnerAppraisal } from "@/lib/formatos/operation-workflow";
 import { flowOf, type OperationRecord } from "@/lib/admin/operation-view";
 import type { ArchivoCliente } from "./client-documents-tab";
 import { saveError } from "./use-operation";
+import { OptionSelect } from "./pickers";
 
 /*
   Avalúo del propietario (COR-17, RP-96). Si el propietario ya trae un avalúo no hace falta la
@@ -96,14 +98,13 @@ export function OwnerAppraisalCard({ op, today, reviewer, disabled, onSave, onGo
         {files === undefined ? <p className="text-sm text-muted-foreground">Consultando los documentos del cliente…</p>
           : files === null ? <p role="alert" className="text-sm text-destructive">No pudimos consultar los documentos del cliente. <button type="button" className="underline underline-offset-4" onClick={reload}>Reintentar</button></p>
           : files.length === 0 ? <Notice tone="info" title="Primero sube el avalúo" actions={<Button onClick={onGoToFiles}>Ir a los documentos del cliente</Button>}>Súbelo a los documentos del cliente en PDF o foto; después elígelo aquí.</Notice>
-          : <label className="text-sm">Archivo del avalúo<select className={selectClass} required value={form.archivo} disabled={lock} onChange={e => setForm({ ...form, archivo: e.target.value })}>
-            <option value="">Elige el archivo…</option>{files.map(f => <option key={f.id} value={f.id}>{f.titulo}</option>)}
-          </select></label>}
+          : <span className="flex flex-col gap-1.5 text-sm"><span>Archivo del avalúo</span><OptionSelect aria-label="Archivo del avalúo" placeholder="Elige el archivo…" value={form.archivo} disabled={lock} onChange={archivo => setForm({ ...form, archivo })}
+            options={files.map(f => ({ value: f.id, label: f.titulo, icon: <FileText size={18} aria-hidden="true" /> }))} /></span>}
       </div>
       <label className="text-sm sm:col-span-2">Perito o unidad de valuación<input className={inputClass} required maxLength={160} value={form.perito} disabled={lock} onChange={e => setForm({ ...form, perito: e.target.value })} /></label>
       <label className="text-sm">Valor del avalúo (MXN)<input className={inputClass} required inputMode="numeric" value={form.valor} disabled={lock} onChange={e => setForm({ ...form, valor: e.target.value })} /></label>
-      <label className="text-sm">Fecha del avalúo<input type="date" className={inputClass} required max={today} value={form.fecha} disabled={lock} onChange={e => setForm({ ...form, fecha: e.target.value })} /></label>
-      <label className="text-sm">Vigente hasta<input type="date" className={inputClass} required min={form.fecha || undefined} value={form.vigenteHasta} disabled={lock} onChange={e => setForm({ ...form, vigenteHasta: e.target.value })} /></label>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Fecha del avalúo</span><DateField aria-label="Fecha del avalúo" required max={today} value={form.fecha} disabled={lock} onChange={fecha => setForm({ ...form, fecha })} /></span>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Vigente hasta</span><DateField aria-label="Vigente hasta" required min={form.fecha || undefined} value={form.vigenteHasta} disabled={lock} onChange={vigenteHasta => setForm({ ...form, vigenteHasta })} /></span>
       <p className="self-end text-sm text-muted-foreground">La vigencia es la que dice el avalúo.</p>
       {problem && <p className="text-sm text-muted-foreground sm:col-span-2">{problem}</p>}
       <span className="flex flex-wrap gap-2 sm:col-span-2">

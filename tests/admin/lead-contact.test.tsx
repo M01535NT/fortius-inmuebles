@@ -42,10 +42,11 @@ it("en dos toques guarda el contacto; al tercer «No contestó» propone reinten
   render(<ContactLog lead={lead({ notas: missed(2) as Lead["notas"] })} today="2026-11-12" />);
   fireEvent.click(screen.getByRole("button", { name: "No contestó" }));
   expect((screen.getByLabelText("Siguiente paso") as HTMLInputElement).value).toBe(RETRY_ACTION);
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-12-12");
+  expect(screen.getByLabelText("Fecha").textContent).toMatch(/12 de dic/);
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
   await waitFor(() => expect(mocks.upsert).toHaveBeenCalledTimes(2));
   expect(mocks.upsert.mock.calls[0][1].notas[0]).toMatchObject({ contacto: "no_contesto" });
+  expect(mocks.upsert.mock.calls[0][1].perfil).toMatchObject({ proximoContacto: "2026-12-12" });
   expect(mocks.upsert.mock.calls[0][2]).toBe(7);
   // DEC-42: el siguiente paso queda como tarea con fecha, ligada al prospecto y sin operación.
   expect(mocks.upsert.mock.calls[1][1]).toMatchObject({ titulo: RETRY_ACTION, vence: "2026-12-12", categoria: "leads", estado: "pendiente", leadId: "l1", asesorId: "a1" });

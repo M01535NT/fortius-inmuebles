@@ -54,3 +54,12 @@ test("SIM-15: sin movimientos, el historial explica qué aparecerá", async () =
   render(<HistoryPage />);
   expect(await screen.findByText("Sin movimientos")).toBeTruthy();
 });
+test("RP-104: los datos que cambiaron se leen en palabras del asesor, sin nombres internos ni marcas automáticas", async () => {
+  request.mockResolvedValue({ entries: [
+    { id: "h1", collection: "tareas", record_id: "t-1", action: "UPDATE", actor_id: "admin", version: 3, changed_fields: ["actualizadoEl", "clienteId", "historial", "propiedadSlug", "vence", "llaveRara"], created_at: "2026-11-10T18:00:00Z", restored_at: null },
+  ], hasMore: false });
+  render(<HistoryPage />);
+  expect(await screen.findByText("Ver los 4 datos que cambiaron")).toBeTruthy();
+  expect(screen.getByText("Cliente, Inmueble, Vencimiento, Otros datos")).toBeTruthy();
+  expect(screen.queryByText(/clienteId|propiedadSlug|actualizadoEl|llaveRara/)).toBeNull();
+});

@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { AgendaCalendar as CalendarioPage } from "@/components/admin/agenda/calendar";
 import { clearAdminCache } from "@/lib/admin/store";
+import { chooseDate, chooseMenu, dateValue, hiddenValue } from "./agenda-helpers";
 
 let data: Record<string, Record<string, unknown>[]>;
 let writes: number;
@@ -49,7 +50,7 @@ afterEach(() => {
    que tomará la captura se abre, se lee y se cierra. */
 const formDate = () => {
   fireEvent.click(screen.getByRole("button", { name: "Agendar" }));
-  const value = (screen.getByLabelText("Fecha") as HTMLInputElement).value;
+  const value = dateValue();
   fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
   return value;
 };
@@ -139,7 +140,7 @@ test("URL context is visible before saving and a rejected draft survives view ch
   const context = within(screen.getByRole("region", { name: "Contexto del evento" }));
   expect(await context.findByText("Asunto: EXP-PRUEBA")).toBeTruthy();
   expect(context.getByText("Cliente: Cliente de prueba")).toBeTruthy();
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-02");
+  expect(dateValue()).toBe("2027-01-02");
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Mi visita pendiente" } });
   failSave = true;
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
@@ -150,7 +151,7 @@ test("URL context is visible before saving and a rejected draft survives view ch
   fireEvent.click(screen.getByRole("button", { name: "Hoy" }));
   openCapture();
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Mi visita pendiente");
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-02");
+  expect(dateValue()).toBe("2027-01-02");
   // El aviso de que no se guardó se muestra al intentar guardar; al reabrir queda el borrador, sin aviso.
   await waitFor(() => expect(writes).toBe(1));
 });
@@ -167,7 +168,7 @@ test("URL references populate selectors after their options arrive", async () =>
   expect(await context.findByText("Cliente: Cliente de prueba")).toBeTruthy();
   expect(context.getByText("Prospecto: Prospecto de prueba")).toBeTruthy();
   expect(context.getByText("Inmueble: F-PRUEBA · Casa de prueba")).toBeTruthy();
-  await waitFor(() => expect((screen.getByLabelText("Asesor (opcional)") as HTMLSelectElement).value).toBe("a1"));
+  await waitFor(() => expect(hiddenValue("asesorId")).toBe("a1"));
   fireEvent.click(context.getByRole("button", { name: "Quitar cliente Cliente de prueba" }));
   expect(context.queryByText("Cliente: Cliente de prueba")).toBeNull();
 });
@@ -179,9 +180,13 @@ test("opening an event in the week selects its day and focuses the detail indepe
   render(<CalendarioPage />);
   const week = within(screen.getByRole("region", { name: "Agenda semanal" }));
   fireEvent.click(await week.findByRole("button", { name: "Ver evento: Firma futura" }));
-  expect(screen.getByRole("heading", { name: "Sábado 2 de enero" })).toBeTruthy();
-  // Abrir un evento no toca la captura: el día queda elegido y el foco va al detalle.
-  expect(document.activeElement).toBe(document.getElementById("calendar-selected-day"));
+  // LV-10g: abrir un evento elige su día y abre su detalle en el panel, sin tocar la captura.
+  const detail = within(screen.getByRole("dialog", { name: "Firma futura" }));
+  expect(detail.getByText("Firma · Sábado 2 de enero · 09:00")).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Sábado 2 de enero", hidden: true })).toBeTruthy();
+  expect(screen.queryByRole("dialog", { name: "Agendar" })).toBeNull();
+  fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
+  expect(screen.queryByRole("dialog", { name: "Firma futura" })).toBeNull();
 });
 
 // SIM-09: «Agendar» es un panel; cerrarlo no borra lo escrito.
@@ -191,13 +196,13 @@ test("a typed capture date and title survive closing the panel and navigating to
   render(<CalendarioPage />);
   openCapture();
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita aún sin guardar" } });
-  fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
+  chooseDate("Fecha", "2026-11-20");
   fireEvent.change(screen.getByLabelText("Hora"), { target: { value: "10:30" } });
   fireEvent.keyDown(document, { key: "Escape" });
   expect(screen.queryByRole("dialog", { name: "Agendar" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Semana siguiente" }));
   openCapture();
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
+  expect(dateValue()).toBe("2026-11-20");
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Visita aún sin guardar");
   expect((screen.getByLabelText("Hora") as HTMLInputElement).value).toBe("10:30");
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
@@ -209,12 +214,13 @@ test("opening an event in the week preserves the date being captured", async () 
   render(<CalendarioPage />);
   openCapture();
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita aún sin guardar" } });
-  fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
+  chooseDate("Fecha", "2026-11-20");
   fireEvent.keyDown(document, { key: "Escape" });
   const week = within(screen.getByRole("region", { name: "Agenda semanal" }));
   fireEvent.click(await week.findByRole("button", { name: "Ver evento: Firma futura" }));
+  fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
   openCapture();
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
+  expect(dateValue()).toBe("2026-11-20");
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Visita aún sin guardar");
   // El día elegido sigue detrás del panel abierto (oculto al lector mientras el panel es modal).
   expect(screen.getByRole("heading", { name: "Sábado 2 de enero", hidden: true })).toBeTruthy();
@@ -267,13 +273,13 @@ test("an unresolved URL expediente blocks generic writes without clearing the ca
   window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita de expediente cargando" } });
-  fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
+  chooseDate("Fecha", "2026-11-20");
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await act(async () => { await Promise.resolve(); });
   expect(writes).toBe(0);
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Visita de expediente cargando");
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
+  expect(dateValue()).toBe("2026-11-20");
 });
 
 test("a failed URL expediente lookup exposes error retry and explicit withdrawal", async () => {
@@ -281,13 +287,13 @@ test("a failed URL expediente lookup exposes error retry and explicit withdrawal
   window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita por recuperar" } });
-  fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
+  chooseDate("Fecha", "2026-11-20");
   expect(await screen.findByRole("alert")).toBeTruthy();
   expect(screen.getByRole("button", { name: "Reintentar consulta de asuntos" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Quitar asunto solicitado" })).toBeTruthy();
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Visita por recuperar");
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
+  expect(dateValue()).toBe("2026-11-20");
   expect(writes).toBe(0);
 });
 
@@ -298,7 +304,7 @@ test("retry resolves the requested expediente and saves its context with the pre
   window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita por recuperar" } });
-  fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
+  chooseDate("Fecha", "2026-11-20");
   await screen.findByRole("alert");
   expedienteResponse = null;
   fireEvent.click(screen.getByRole("button", { name: "Reintentar consulta de asuntos" }));
@@ -306,7 +312,7 @@ test("retry resolves the requested expediente and saves its context with the pre
   await context.findByText("Asunto: EXP-PRUEBA");
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(false);
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Visita por recuperar");
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
+  expect(dateValue()).toBe("2026-11-20");
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(savedEvent).toMatchObject({ titulo: "Visita por recuperar", fecha: "2026-11-20", expedienteId: "exp1", clienteId: "c1" }));
   expect(savedEvent?.propiedadSlug).toBeUndefined();
@@ -316,12 +322,12 @@ test("an absent requested expediente stays blocked until explicit withdrawal", a
   window.history.replaceState(null, "", "/admin/agenda?expediente=missing");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Evento sin expediente confirmado" } });
-  fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
+  chooseDate("Fecha", "2026-11-20");
   await screen.findByRole("alert");
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Quitar asunto solicitado" }));
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(false);
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
+  expect(dateValue()).toBe("2026-11-20");
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(savedEvent).toMatchObject({ titulo: "Evento sin expediente confirmado", fecha: "2026-11-20" }));
   expect(savedEvent?.expedienteId).toBeUndefined();
@@ -333,7 +339,7 @@ test("explicit withdrawal while loading prevents later reattachment", async () =
   window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Evento retirado explícitamente" } });
-  fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
+  chooseDate("Fecha", "2026-11-20");
   fireEvent.click(screen.getByRole("button", { name: "Quitar asunto solicitado" }));
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(false);
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
@@ -356,10 +362,10 @@ test("SIM-09: un hueco de la semana abre «Agendar» con su día y su hora, y el
   column.getBoundingClientRect = () => ({ top: 0, left: 0, right: 100, bottom: 1000, width: 100, height: 1000, x: 0, y: 0, toJSON: () => ({}) });
   fireEvent.click(column, { clientY: 0 });
   const sheet = within(screen.getByRole("dialog", { name: "Agendar" }));
-  expect((sheet.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-12-31");
+  expect(dateValue()).toBe("2026-12-31");
   expect((sheet.getByLabelText("Hora") as HTMLInputElement).value).toMatch(/^\d\d:(00|30)$/);
   fireEvent.keyDown(document, { key: "Escape" });
-  fireEvent.click(screen.getByRole("button", { name: "Eliminar Llamada de prueba" }));
+  chooseMenu("Más opciones de Llamada de prueba", "Eliminar");
   const undo = await screen.findByRole("button", { name: "Deshacer" });
   expect(screen.getByText("Se eliminó «Llamada de prueba».")).toBeTruthy();
   fireEvent.click(undo);

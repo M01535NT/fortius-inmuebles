@@ -6,6 +6,7 @@ import AdminDashboard from "@/app/admin/page";
 import { AgendaCalendar as CalendarioPage } from "@/components/admin/agenda/calendar";
 import { clearAdminCache, type Evento } from "@/lib/admin/store";
 import type { Task } from "@/lib/tasks";
+import { dateValue } from "./agenda-helpers";
 
 let events: Evento[] = [];
 let tasks: Task[] = [];
@@ -78,9 +79,12 @@ test("Hoy keeps this evening's eight Tijuana events when UTC is already tomorrow
 
   const agenda = within(await screen.findByRole("list", {name:"Citas de hoy"}));
   await agenda.findByText("Visita 1");
-  expect(agenda.getByText("Visita 8")).toBeTruthy();
-  expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(8);
-  expect(agenda.getAllByRole("listitem")).toHaveLength(8);
+  // Reglas de volumen de Hoy: las primeras 5 citas del día y «Ver las 8 citas» para el resto.
+  expect(agenda.getByText("Visita 5")).toBeTruthy();
+  expect(agenda.queryByText("Visita 6")).toBeNull();
+  expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(5);
+  expect(agenda.getAllByRole("listitem")).toHaveLength(5);
+  expect(screen.getByRole("link", { name: "Ver las 8 citas" }).getAttribute("href")).toBe("/admin/agenda?fecha=2026-09-22");
 });
 
 test("Hoy's agenda shows only the operating day, not later or past days", async () => {
@@ -117,7 +121,7 @@ test("Hoy's agenda includes earlier and untimed events from the operating day, u
    que tomará la captura se abre, se lee y se cierra. */
 const formDate = () => {
   fireEvent.click(screen.getByRole("button", { name: "Agendar" }));
-  const value = (screen.getByLabelText("Fecha") as HTMLInputElement).value;
+  const value = dateValue();
   fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
   return value;
 };

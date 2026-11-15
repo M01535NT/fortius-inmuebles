@@ -3,8 +3,11 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CalendarDays, CalendarPlus, Check, FileText, MessageCircle, Pencil, Phone, Plus, Search, Upload } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Notice, Pill, Segmented, StageRail, Thumb } from "@/components/admin/kit";
-import { Desplegable, MenuAcciones } from "@/components/admin/bandeja/desplegable";
+import { ActionsMenu, Avatar, Button, ButtonLink, Notice, Pill, Segmented, StageRail, Thumb } from "@/components/admin/kit";
+import { DateField } from "@/components/ui/date-field";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAviso } from "./aviso";
+import { NuevoPerfil } from "./nuevo-perfil";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { CLIENTE_TIPO_LABELS } from "@/components/admin/cliente-editor";
@@ -14,7 +17,7 @@ import { clientRows, leadRows, matches, type ContactRow } from "@/lib/admin/cont
 import { operationalDate } from "@/lib/admin/operational-date";
 import { leadStage, LEAD_STAGE_LABELS } from "@/lib/admin/person-view";
 import { PERSON_STATUS_LABEL } from "@/lib/admin/person-status";
-import { GRUPOS, grupoDe, sucesos, type Suceso } from "@/lib/admin/personas-vista";
+import { CANALES_PREFERIDOS, GRUPOS, canalEnFrase, canalPreferido, grupoDe, sucesos, type CanalPreferido, type Suceso } from "@/lib/admin/personas-vista";
 import { db, errorMessage, fetchJson, loadAllDossiers, upsert, useCollection, type AdminProperty, type Cliente, type Evento, type Lead, type Nota } from "@/lib/admin/store";
 import { stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { formatoById } from "@/lib/formatos/catalog";
@@ -47,7 +50,8 @@ const mesAno = (iso: string) => new Date(iso).toLocaleDateString("es-MX", { mont
 const JSON_HEADERS = { "Content-Type": "application/json" };
 const tituloFormato = (id: string) => { try { return formatoById(id).title; } catch { return "Formato"; } };
 
-export function PersonasApp({ initialId }: { initialId: string | null }) {
+export function PersonasApp({ initialId, initialNuevo = false }: { initialId: string | null; initialNuevo?: boolean }) {
+  const [nuevo, setNuevo] = React.useState(initialNuevo);
   const leads = useCollection(db.leads), clientes = useCollection(db.clientes), tareas = useCollection(db.tareas), eventos = useCollection(db.eventos), propiedades = useCollection(db.propiedades);
   const notas = useCollection(db.notas), asesores = useCollection(db.asesores);
   const today = operationalDate();
@@ -72,9 +76,16 @@ export function PersonasApp({ initialId }: { initialId: string | null }) {
   const condicion = (r: ContactRow) => r.kind === "cliente"
     ? `${CLIENTE_TIPO_LABELS[clientes.find(c => c.id === r.id)?.tipo ?? "otro"]} · ${PERSON_STATUS_LABEL[status.ofClient(r.id) ?? "prospecto"]}`
     : `Prospecto · ${LEAD_STAGE_LABELS[leadStage(abiertos.find(l => l.id === r.id)?.estado)]}`;
-  function abrir(r: ContactRow) {
-    setSelected(clave(r)); setShowDetail(true);
-    const url = new URL(window.location.href); url.searchParams.set("id", clave(r)); window.history.replaceState(null, "", url);
+  function abrirClave(k: string) {
+    setSelected(k); setShowDetail(true);
+    const url = new URL(window.location.href); url.searchParams.set("id", k); url.searchParams.delete("nuevo"); window.history.replaceState(null, "", url);
+  }
+  const abrir = (r: ContactRow) => abrirClave(clave(r));
+  const aviso = useAviso();
+  function cerrarNuevo() {
+    setNuevo(false);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("nuevo")) { url.searchParams.delete("nuevo"); window.history.replaceState(null, "", url); }
   }
   const persona = current ? (current.kind === "cliente" ? clientes.find(c => c.id === current.id) : abiertos.find(l => l.id === current.id)) : undefined;
   const asesor = persona?.asesorId ? asesores.find(a => a.id === persona.asesorId) : undefined;
@@ -82,12 +93,12 @@ export function PersonasApp({ initialId }: { initialId: string | null }) {
   return <div className={b.app} data-detail={showDetail}>
     <aside className={b.list} aria-label="Personas">
       <div className={b.listHead}>
-        <div className={b.listHeadRow}><h1>Personas</h1><ButtonLink href="/admin/operaciones/nueva"><Plus size={16} aria-hidden />Nuevo</ButtonLink></div>
+        <div className={b.listHeadRow}><h1>Personas</h1><Button onClick={() => setNuevo(true)} aria-haspopup="dialog"><Plus size={16} aria-hidden />Nuevo perfil</Button></div>
         <label className={s.search}><Search size={18} aria-hidden /><span className={b.sr}>Buscar por nombre o teléfono</span><input type="search" placeholder="Buscar por nombre o teléfono" value={query} onChange={event => setQuery(event.target.value)} /></label>
         <Segmented label="Mostrar" value={filtro} onChange={setFiltro} options={[{ id: "todas", label: "Todos" }, { id: "prospectos", label: "Prospectos" }, { id: "clientes", label: "Clientes" }]} />
       </div>
       <div className={b.rows}>
-        {!filas.length ? <p className={b.empty}>{query.trim() || filtro !== "todas" ? "Nadie coincide. Prueba con otro nombre o cambia el filtro." : "Todavía no hay personas. Registra a quien llamó con «Nuevo»."}</p>
+        {!filas.length ? <p className={b.empty}>{query.trim() || filtro !== "todas" ? "Nadie coincide. Prueba con otro nombre o cambia el filtro." : "Todavía no hay personas. Registra a quien llamó con «Nuevo perfil»."}</p>
           : GRUPOS.map(grupo => {
             const lista = filas.filter(r => grupoDe(r.sort, today) === grupo.id);
             if (!lista.length) return null;
@@ -110,6 +121,10 @@ export function PersonasApp({ initialId }: { initialId: string | null }) {
             propiedades={propiedades} tareas={tareas} eventos={eventos} notas={notas} etapaDe={etapaDe} />
         : <><span /><span /><div className={b.center}><div className={b.stepView}><div><h3>{selected ? "Esta persona ya no aparece en tus contactos" : "Elige a una persona de la lista"}</h3><p>Aquí verás lo que sigue con ella y sus documentos.</p></div></div></div></>}
     </main>
+    <NuevoPerfil open={nuevo} onClose={cerrarNuevo}
+      onAbrir={k => { setQuery(""); setFiltro("todas"); cerrarNuevo(); abrirClave(k); }}
+      onGuardado={(k, texto) => { setQuery(""); setFiltro("todas"); cerrarNuevo(); abrirClave(k); aviso.avisar(texto); }} />
+    {aviso.suelto && <p className={b.sr} role="status">{aviso.suelto}</p>}
   </div>;
 }
 
@@ -129,7 +144,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
   const [subiendo, setSubiendo] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [docsError, setDocsError] = React.useState(false);
-  const [aviso, setAviso] = React.useState<string | null>(null);
+  const aviso = useAviso();
   const input = React.useRef<HTMLInputElement>(null);
   const esCliente = row.kind === "cliente";
   const tituloInmueble = (slug: string) => propiedades.find(p => p.slug === slug)?.titulo;
@@ -149,7 +164,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
   }, [op]);
 
   async function agregar(files: File[]) {
-    setError(null); setAviso(null);
+    setError(null); aviso.limpiar();
     const validos = files.filter(f => ACEPTA.includes(f.type));
     if (validos.length < files.length) setError("Solo se guardan PDF e imágenes JPEG, PNG o WEBP.");
     if (!validos.length) return;
@@ -162,7 +177,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
         const { documento } = await fetchJson<{ documento: { id: string; titulo: string } }>("/api/admin/bandeja/completar", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify({ ticket: prepared.ticket }) });
         await fetchJson(`/api/admin/bandeja/${documento.id}`, { method: "PATCH", headers: JSON_HEADERS, body: JSON.stringify({ destino: { clienteId: row.id }, esperado: { titulo: documento.titulo, eliminado: false, archivado: false } }) });
       }
-      setAviso(validos.length === 1 ? "Archivo guardado en su perfil." : `${validos.length} archivos guardados en su perfil.`);
+      aviso.avisar(validos.length === 1 ? "Archivo guardado en su perfil." : `${validos.length} archivos guardados en su perfil.`);
     } catch (e) { setError(`${errorMessage(e)} Lo que alcanzó a subir quedó en la Bandeja.`); }
     setSubiendo(false); setVuelta(n => n + 1);
   }
@@ -230,7 +245,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
         {digits && <ButtonLink href={`tel:${digits}`}><Phone size={16} aria-hidden />Llamar</ButtonLink>}
         {digits && <ButtonLink href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"><MessageCircle size={16} aria-hidden />WhatsApp</ButtonLink>}
         <ButtonLink variant="primary" href={`/admin/agenda?nueva=1&${ref}`}><CalendarPlus size={16} aria-hidden />Agendar</ButtonLink>
-        <MenuAcciones label="Más acciones" actions={[
+        <ActionsMenu label="Más acciones" actions={[
           ...(op ? [{ label: "Crear un documento", onSelect: () => { router.push(`${opHref}?tab=documentos`); } }] : []),
           { label: "Nueva tarea", onSelect: () => { router.push(`/admin/agenda?tab=tareas&nueva=1&${ref}`); } },
           { label: "Abrir la ficha completa", onSelect: () => { router.push(row.href); } },
@@ -243,7 +258,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
     <div className={b.body}>
       <div className={b.center}>
         {error && <Notice tone="warn">{error}</Notice>}
-        {aviso && <p className={b.hint} role="status">{aviso}</p>}
+        {aviso.suelto && <p className={b.hint} role="status">{aviso.suelto}</p>}
         <section className={b.step} aria-labelledby="persona-sigue">
           <div className={s.top}>
             {!pendiente && paso && <span className={s.big} aria-hidden>{String(actual + 1).padStart(2, "0")}</span>}
@@ -274,7 +289,10 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
 
         {operaciones.length > 0 && <section aria-labelledby="persona-operaciones">
           <div className={s.sechead}><h3 id="persona-operaciones">Asuntos</h3><Pill size="sm" tone="muted">{operaciones.length}</Pill>
-            {operaciones.length > 1 && <div className={s.opPick}><Desplegable label="Guía y documentos de" value={op?.id ?? ""} onChange={setOpId} options={operaciones.map(o => ({ value: o.id, label: (o.propiedad_slug && tituloInmueble(o.propiedad_slug)) || o.folio, detail: o.folio }))} /></div>}
+            {operaciones.length > 1 && <div className={s.opPick}><Select value={op?.id ?? ""} onValueChange={setOpId}>
+              <SelectTrigger size="sm" aria-label="Guía y documentos de"><SelectValue /></SelectTrigger>
+              <SelectContent>{operaciones.map(o => <SelectItem key={o.id} value={o.id}>{(o.propiedad_slug && tituloInmueble(o.propiedad_slug)) || o.folio}</SelectItem>)}</SelectContent>
+            </Select></div>}
           </div>
           <div className={s.ops}>
             {operaciones.map(o => { const { stages, current } = stageTrack(o, today); const inm = o.propiedad_slug ? tituloInmueble(o.propiedad_slug) : undefined; return <Link key={o.id} href={`/admin/operaciones/${o.id}`} className={s.oprow}>
@@ -296,7 +314,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
               <div><div className={s.name}>{d.nombre}</div><div className={s.sub}>{d.detalle}</div></div>
               <div><div>{d.origen}</div>{d.version && <div className={s.sub}>{d.version}</div>}</div>
               <div className={`${s.sub} ${s.hm}`}>{corta(d.fecha)}</div>
-              <MenuAcciones label={`Acciones de ${d.nombre}`} actions={[{ label: d.clase === "hecho" ? "Abrir el documento" : "Ver el archivo", onSelect: () => { if (d.clase === "hecho") router.push(d.href); else window.open(d.href, "_blank", "noopener"); } }]} />
+              <ActionsMenu label={`Acciones de ${d.nombre}`} actions={[{ label: d.clase === "hecho" ? "Abrir el documento" : "Ver el archivo", onSelect: () => { if (d.clase === "hecho") router.push(d.href); else window.open(d.href, "_blank", "noopener"); } }]} />
             </div>)}
           </> : <p className={b.empty}>{documentos.length ? "No hay documentos de este tipo." : esCliente ? "Todavía no tiene documentos. Usa «Agregar archivo», o archívale uno desde la Bandeja." : "Sus documentos se guardan en su perfil cuando empieza su asunto."}</p>}
         </section>
@@ -318,16 +336,16 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
               onGuardar={v => guardar(() => ({ email: v.trim() || undefined }), "Se guardó el correo.")}>
               {(v, set) => <input aria-label="Correo" type="email" autoComplete="off" maxLength={254} autoFocus value={v} onChange={e => set(e.target.value)} />}
             </Editable>
-            {cliente && <div className={s.dato}><span className={s.datoLabel}>Papel</span>
-              <Desplegable hideLabel label="Papel" value={cliente.tipo} onChange={tipo => { if (tipo !== cliente.tipo) void guardar(() => ({ tipo }), `Ahora es ${CLIENTE_TIPO_LABELS[tipo].toLowerCase()}.`).catch(e => setError(errorMessage(e))); }}
-                options={(Object.keys(CLIENTE_TIPO_LABELS) as Cliente["tipo"][]).map(t => ({ value: t, label: CLIENTE_TIPO_LABELS[t] }))} />
-            </div>}
+            {cliente && <Elegir etiqueta="Papel" value={cliente.tipo} opciones={CLIENTE_TIPO_LABELS}
+              onChange={tipo => { if (tipo !== cliente.tipo) void guardar(() => ({ tipo }), `Ahora es ${CLIENTE_TIPO_LABELS[tipo].toLowerCase()}.`).catch(e => setError(errorMessage(e))); }} />}
+            <Elegir etiqueta="Prefiere que le busquen por" value={canalPreferido(persona?.perfil) ?? ""} opciones={CANALES_PREFERIDOS} vacio="Sin dato"
+              onChange={canal => { if (canal !== canalPreferido(persona?.perfil)) void guardar(p => ({ perfil: { ...p.perfil, canalPreferido: canal } }), `Prefiere ${canalEnFrase(canal as CanalPreferido)}.`).catch(e => setError(errorMessage(e))); }} />
             {!operaciones.length && <Editable etiqueta="Próximo contacto" vacio="Sin fecha"
               muestra={persona?.perfil?.proximoContacto ? [corta(`${persona.perfil.proximoContacto}T12:00:00Z`), persona.perfil.proximaAccion].filter(Boolean).join(" · ") : undefined}
               inicial={() => ({ fecha: persona?.perfil?.proximoContacto ?? "", que: persona?.perfil?.proximaAccion ?? "" })}
               onGuardar={v => guardar(p => ({ perfil: { ...p.perfil, proximoContacto: v.fecha || undefined, proximaAccion: v.que.trim() || undefined } }), "Se guardó el próximo contacto.")}>
               {(v, set) => <>
-                <input type="date" aria-label="Fecha del próximo contacto" autoFocus value={v.fecha} onChange={e => set({ ...v, fecha: e.target.value })} />
+                <DateField aria-label="Fecha del próximo contacto" value={v.fecha} onChange={fecha => set({ ...v, fecha })} />
                 <input type="text" aria-label="Qué toca ese día" placeholder="Qué toca ese día" maxLength={160} value={v.que} onChange={e => set({ ...v, que: e.target.value })} />
               </>}
             </Editable>}
@@ -381,4 +399,16 @@ function Editable<D>({ etiqueta, muestra, vacio, inicial, onGuardar, children }:
     {error && <p className={s.datoError} role="alert">{error}</p>}
     <div className={s.datoActs}><Button type="submit" variant="primary" disabled={guardando}>{guardando ? "Guardando…" : "Guardar"}</Button><Button variant="ghost" onClick={cerrar}>Cancelar</Button></div>
   </form>;
+}
+
+/** Dato de una lista corta que se cambia en su lugar con el selector del panel (DEC-52). */
+function Elegir<K extends string>({ etiqueta, value, opciones, vacio = "Elegir", onChange }: {
+  etiqueta: string; value: K | ""; opciones: Record<K, string>; vacio?: string; onChange: (valor: K) => void;
+}) {
+  return <div className={s.dato}><span className={s.datoLabel}>{etiqueta}</span>
+    <Select value={value} onValueChange={v => onChange(v as K)}>
+      <SelectTrigger size="sm" aria-label={etiqueta}><SelectValue placeholder={vacio} /></SelectTrigger>
+      <SelectContent>{(Object.keys(opciones) as K[]).map(k => <SelectItem key={k} value={k}>{opciones[k]}</SelectItem>)}</SelectContent>
+    </Select>
+  </div>;
 }

@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Button } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
+import { DateField } from "@/components/ui/date-field";
 import { addDays } from "@/lib/admin/lead-contact";
 import { operationNextStep, planNextStep, type NextRef } from "@/lib/admin/next-step-task";
 import { db, errorMessage, uid, upsert, useCollection } from "@/lib/admin/store";
@@ -36,7 +37,7 @@ export function NextStepPrompt({ person, name, today, onClose }: { person: NextR
   return <form onSubmit={save} aria-label={`Siguiente paso${name ? ` con ${name}` : ""}`} className="grid gap-3 rounded-[12px] border border-border bg-card p-3 sm:grid-cols-2">
     <p className="m-0 text-[.9375rem] font-semibold sm:col-span-2">{question}</p>
     <label className="flex flex-col gap-1 text-sm">Siguiente paso<input ref={first} className={inputClass} value={accion} maxLength={160} required placeholder="Llamar para confirmar la visita" onChange={e => setAccion(e.target.value)} /></label>
-    <label className="flex flex-col gap-1 text-sm">Fecha<input type="date" className={inputClass} value={fecha} min={today} required onChange={e => setFecha(e.target.value)} /></label>
+    <div className="flex flex-col gap-1 text-sm"><span aria-hidden>Fecha</span><DateField aria-label="Fecha" value={fecha} min={today} required onChange={setFecha} /></div>
     {error && <p role="alert" className="m-0 text-sm text-destructive sm:col-span-2">{error}</p>}
     <span className="flex flex-wrap gap-2 sm:col-span-2"><Button type="submit" disabled={busy}>Guardar</Button><Button variant="ghost" disabled={busy} onClick={onClose}>Ahora no</Button></span>
   </form>;

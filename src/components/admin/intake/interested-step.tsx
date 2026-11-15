@@ -9,6 +9,8 @@ import { planNextStep } from "@/lib/admin/next-step-task";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import { LEAD_PROFILE_OPTIONS, leadProfileSchema, type LeadProfile } from "@/lib/lead-profile";
+import { DateField } from "@/components/ui/date-field";
+import { CheckField } from "@/components/admin/operation/pickers";
 import s from "./wizard.module.css";
 import { humanDate } from "@/lib/utils";
 
@@ -120,9 +122,9 @@ export function InterestedStep({ intent, contact, origin, onBack, onSaved, onDir
         <label className="flex flex-col gap-2 text-sm font-semibold">Recámaras mínimas<input type="number" min={0} max={50} inputMode="numeric" className={inputClass} value={form.recamaras} onChange={e => set("recamaras", e.target.value)} /></label>
         <label className="flex flex-col gap-2 text-sm font-semibold">¿Para cuándo lo necesita?<input maxLength={500} className={inputClass} value={form.plazo} onChange={e => set("plazo", e.target.value)} /></label>
         <label className="flex flex-col gap-2 text-sm font-semibold sm:col-span-2">Lo que necesita y notas<textarea rows={3} maxLength={4000} className={textareaClass} value={form.requisitos} onChange={e => set("requisitos", e.target.value)} /></label>
-        <label className="flex min-h-11 items-start gap-3 text-sm sm:col-span-2"><input type="checkbox" className="mt-1" checked={form.privacidad} onChange={e => set("privacidad", e.target.checked)} /><span><strong>Ya le compartí el aviso de privacidad.</strong> <span className="text-muted-foreground">Compártele el enlace antes de guardar sus datos.</span></span></label>
+        <CheckField className="text-sm sm:col-span-2" checked={form.privacidad} onChange={on => set("privacidad", on)}><span><strong>Ya le compartí el aviso de privacidad.</strong> <span className="text-muted-foreground">Compártele el enlace antes de guardar sus datos.</span></span></CheckField>
         <label className="flex flex-col gap-2 text-sm font-semibold">Próxima acción<input required maxLength={160} className={inputClass} value={form.accion} onChange={e => set("accion", e.target.value)} /></label>
-        <label className="flex flex-col gap-2 text-sm font-semibold">Fecha de la próxima acción<input required type="date" className={inputClass} value={form.fecha} onChange={e => set("fecha", e.target.value)} /></label>
+        <span className="flex flex-col gap-2 text-sm font-semibold"><span>Fecha de la próxima acción</span><DateField aria-label="Fecha de la próxima acción" className="font-normal" required value={form.fecha} onChange={v => set("fecha", v)} /></span>
       </fieldset>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </div>

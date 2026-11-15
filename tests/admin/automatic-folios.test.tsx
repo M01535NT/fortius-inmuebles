@@ -8,6 +8,7 @@ vi.mock('@/lib/admin/store', async importOriginal => ({
   useCollection: (collection: object) => collection === clientCollection ? [{ id: 'c1', nombre: 'Cliente de prueba', asesorId: 'a1' }] : [],
 }));
 import { DirectCreate } from '@/components/admin/operation/direct-create';
+import { pickCombo } from './pick';
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); push.mockReset(); });
 it('abre una operación sin capturar su folio y lleva a la operación con el folio asignado', async () => {
   const writes: Record<string, unknown>[] = [];
@@ -21,7 +22,7 @@ it('abre una operación sin capturar su folio y lleva a la operación con el fol
   render(<DirectCreate />);
   expect(screen.queryByLabelText(/Folio/)).toBeNull();
   expect(screen.getByText('El folio se asigna al guardar.')).toBeTruthy();
-  fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: 'c1' } });
+  await pickCombo(screen.getByRole('combobox', { name: 'Cliente' }), 'Cliente de prueba');
   fireEvent.click(screen.getByRole('button', { name: 'Abrir asunto' }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).not.toHaveProperty('folio');
@@ -31,7 +32,6 @@ it('abre una operación sin capturar su folio y lleva a la operación con el fol
 it('pide asignar un asesor al cliente antes de abrir la operación', async () => {
   vi.stubGlobal('fetch', vi.fn());
   render(<DirectCreate />);
-  fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: '' } });
   fireEvent.submit(screen.getByRole('form', { name: 'Alta directa' }));
   expect((await screen.findByRole('alert')).textContent).toContain('Asigna un asesor responsable');
   expect(fetch).not.toHaveBeenCalled();
