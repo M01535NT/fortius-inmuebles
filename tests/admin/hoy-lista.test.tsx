@@ -9,7 +9,7 @@ import type { Task } from "@/lib/tasks";
 
 /*
   LV-10b: Hoy palomea sin salir y cumple las reglas de volumen (29/10/2026):
-  con foto solo los 4 más urgentes, hasta 10 filas en total y al final «Ver los N»;
+  con foto solo los 4 más urgentes, hasta 10 filas en total y al final «Ver los N en Asuntos»;
   varios pendientes de la misma persona en una sola fila («2 pendientes»).
 */
 const today = "2026-10-16";
@@ -76,15 +76,15 @@ test("«Ya lo hice» en «Lo siguiente» completa su tarea y ofrece deshacer", a
   expect(await screen.findByRole("button", { name: "Deshacer" })).toBeTruthy();
 });
 
-test("con 15 pendientes: 4 con foto o cara, 10 filas en total y «Ver los 15»", async () => {
+test("con 15 pendientes: 4 con foto o cara, 10 filas en total y «Ver los 15 en Asuntos»", async () => {
   seed(15);
   const { container } = render(<AdminDashboard />);
   const late = await screen.findByRole("list", { name: "Pendientes vencidos" });
   await waitFor(() => expect(within(late).getAllByRole("article")).toHaveLength(9));
   // «Lo siguiente» lleva la foto grande; de las filas, solo las 3 primeras llevan foto o cara.
   expect(container.querySelectorAll("[class*='mediaCell']")).toHaveLength(3);
-  fireEvent.click(screen.getByRole("button", { name: "Ver los 15" }));
-  await waitFor(() => expect(within(late).getAllByRole("article")).toHaveLength(14));
+  // Hoy no crece: el resto se revisa en Asuntos.
+  expect(screen.getByRole("link", { name: "Ver los 15 en Asuntos" }).getAttribute("href")).toBe("/admin/operaciones");
   expect(screen.queryByRole("button", { name: /^Ver los/ })).toBeNull();
 });
 

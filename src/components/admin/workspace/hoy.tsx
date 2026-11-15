@@ -38,7 +38,7 @@ const greetingNow = () => greetingFor(new Date().getHours());
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 /*
   Reglas de volumen de Hoy (29/10/2026): con foto solo los 4 más urgentes («Lo siguiente» y 3 filas);
-  después, hasta 10 en total en lista compacta sin foto, y al final «Ver los N». Tareas y citas, 5.
+  después, hasta 10 en total en lista compacta sin foto, y al final «Ver los N en Asuntos». Tareas y citas, 5.
 */
 const PHOTO_ROWS = 3, LIST_ROWS = 10, TASK_ROWS = 5, AGENDA_ROWS = 5;
 const PHASES = [["Captar", 3], ["Preparar", 4], ["Comercializar", 2], ["Cerrar", 1]] as const;
@@ -73,7 +73,6 @@ export function HoyScreen() {
   const tasks = useCollection(db.tareas), events = useCollection(db.eventos), leads = useCollection(db.leads), properties = useCollection(db.propiedades);
   const today = operationalDate();
   const conditions = useConditions();
-  const [showAll, setShowAll] = React.useState(false);
   // Un solo cálculo para palomear en la portada, en las filas y en la agenda (un aviso a la vez).
   const done = useTaskDone();
   const firstName = (useSession()?.name ?? "").trim().split(/\s+/)[0];
@@ -109,8 +108,8 @@ export function HoyScreen() {
   const lateGroups = groups.filter(group => group[0].late), otherGroups = groups.filter(group => !group[0].late);
   // Vencido primero; entre los dos grupos, a lo más LIST_ROWS filas contando «Lo siguiente».
   const room = LIST_ROWS - 1;
-  const lateShown = showAll ? lateGroups : lateGroups.slice(0, room);
-  const otherShown = showAll ? otherGroups : otherGroups.slice(0, Math.max(0, room - lateShown.length));
+  const lateShown = lateGroups.slice(0, room);
+  const otherShown = otherGroups.slice(0, Math.max(0, room - lateShown.length));
   const hidden = groups.length - lateShown.length - otherShown.length;
   // Los números cuentan pendientes, no filas, y cada uno por lo que es: una fila de «3 pendientes» que
   // empieza con algo vencido no vuelve vencidos a los otros dos. Así cuadran con «N pendientes» y el menú.
@@ -206,7 +205,8 @@ export function HoyScreen() {
               {!next.late && nextBlock}
               <QueueList groups={otherShown} photos={otherPhotos} label="Más pendientes" helpers={helpers} />
             </>}
-            {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>Ver los {queue.length}</Button>}
+            {/* Hoy no crece con el volumen: el resto se revisa en Asuntos, que pone arriba lo vencido y tiene filtros. */}
+            {hidden > 0 && <ButtonLink href="/admin/operaciones" variant="ghost" className={cn(s.more, "self-start")}>Ver los {queue.length} en Asuntos</ButtonLink>}
           </>}
         {done.from === "dia" && <DoneMessage done={done} />}
       </section>
