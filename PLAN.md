@@ -12,9 +12,11 @@ Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema**
 
 | Qué | Quién | Dónde | Estado |
 |---|---|---|---|
-| **FLX-01 · Bandeja y documentos sin operación** (panel flexible, DEC-50) | Sesión «Panel flexible» | rama `claude/flexible-admin-panel-5d2030` | Base, servidor y respaldo listos; faltan las pantallas según los bocetos aprobados. Revisión del titular en localhost antes de integrar. |
+| **FLX-01 · Bandeja y documentos sin operación** (panel flexible, DEC-50) | Agente | rama `feat/integracion` (localhost:3003) | Base, servidor, respaldo, pantalla `/admin/bandeja` y su entrada en el menú listos; también la pantalla `/admin/personas` (lista y perfil), que todavía no tiene entrada en el menú. Falta la revisión del titular en localhost. |
 
-Lo publicado más reciente es el **PR #76** (14/11/2026, merge `52e1f9a`): Trámites (TRA-01), el panel desde cero (LV-09), la paleta del sitio, correcciones de UI/UX, dependencias y la separación de este plan. En `feat/integracion`, sin publicar: las reglas del panel flexible (b96524f).
+Lo publicado más reciente es el **PR #76** (14/11/2026, merge `52e1f9a`): Trámites (TRA-01), el panel desde cero (LV-09), la paleta del sitio, correcciones de UI/UX, dependencias y la separación de este plan. En `feat/integracion`, sin publicar: el panel flexible (FLX-01) y la limpieza del 14/11/2026.
+
+**Limpieza del 14/11/2026 (en `feat/integracion`, sin publicar):** todo el trabajo quedó en una sola rama (`feat/integracion`); se borraron las ramas y copias de trabajo ya integradas. Salieron del código los estilos del panel azul y de las tarjetas viejas, seis componentes que nada montaba y la configuración de Cursor. El encargo, el lienzo y los bocetos de octubre se archivaron en [`docs/archivo/2026-11-14-panel-anterior/`](docs/archivo/2026-11-14-panel-anterior/README.md); `AGENTS.md`, `docs/admin-workspace.md` y este plan ya apuntan al panel nuevo. Pendiente de esa limpieza: retirar del todo `panel.module.css` (sus estilos vivos de botones, tablas y campos pasan al kit), revisar las ocho reglas de pantalla de LV-08 contra LV-09 (historial §27) y poner al día `docs/admin-manual.md` (COR-26).
 
 ### Te toca a ti
 
