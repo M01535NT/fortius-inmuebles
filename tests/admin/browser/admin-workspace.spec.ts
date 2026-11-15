@@ -70,7 +70,7 @@ test("el menú lateral guía por ocho secciones y Herramientas; «Nuevo» y la c
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
   const menu = page.getByRole("menu", { name: "Qué quieres crear" });
   await expect(menu.getByRole("menuitem", { name: "Atender a alguien" })).toHaveAttribute("href", "/admin/operaciones/nueva");
-  await expect(menu.getByRole("menuitem", { name: "Nueva operación" })).toHaveAttribute("href", "/admin/operaciones/nueva?intencion=vender");
+  await expect(menu.getByRole("menuitem", { name: "Nuevo asunto" })).toHaveAttribute("href", "/admin/operaciones/nueva?intencion=vender");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
   const cuenta = page.locator("#admin-account-menu");
