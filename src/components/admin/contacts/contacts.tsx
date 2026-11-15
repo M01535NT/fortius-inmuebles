@@ -2,9 +2,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, FileDown, Plus, Search, UserPlus, X, EMPTY_ART } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Card, EmptyBox } from "@/components/admin/kit";
-import f from "@/components/admin/form.module.css";
+import { ChevronRight, FileDown, Plus, Search, X, EMPTY_ART } from "@/components/admin/icons";
+import { Avatar, Button, ButtonLink, Card, EmptyBox, Sheet } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { ClienteEditor } from "@/components/admin/cliente-editor";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
@@ -79,7 +78,7 @@ export function ContactsScreen() {
   const signedClient = (id: string) => { const st = status.ofClient(id); return st === "cliente" || st === "cliente_anterior"; };
 
   // Direcciones anteriores de «Nuevo prospecto» (?nuevo=1): llevan al asistente único.
-  React.useEffect(() => { if (params.get("nuevo") === "1") router.replace("/admin/operaciones/nueva"); }, [params, router]);
+  React.useEffect(() => { if (params.get("nuevo") === "1") router.replace("/admin/personas?nuevo=1"); }, [params, router]);
   React.useEffect(() => { if (searching) searchInput.current?.focus(); }, [searching]);
 
   const open = leads.filter(l => !l.clienteId);
@@ -155,21 +154,17 @@ export function ContactsScreen() {
   return <GuidedPage title="Contactos" subtitle={<span className="hidden sm:inline">{finding}</span>} actions={<>
     <div className="flex gap-2 lg:hidden">
       <Button iconOnly variant="ghost" aria-label={searching ? "Cerrar búsqueda" : "Buscar"} aria-expanded={searching} onClick={() => { setSearching(v => !v); if (searching) setQuery(""); }}>{searching ? <X size={20} aria-hidden="true" /> : <Search size={20} aria-hidden="true" />}</Button>
-      {filter === "clientes" ? <Button iconOnly aria-label="Agregar cliente" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
-        : <ButtonLink iconOnly aria-label="Agregar contacto" href="/admin/operaciones/nueva"><Plus size={20} aria-hidden="true" /></ButtonLink>}
+      {filter === "clientes" ? <Button iconOnly aria-label="Agregar cliente" aria-haspopup="dialog" onClick={() => setAdding(true)}><Plus size={20} aria-hidden="true" /></Button>
+        : <ButtonLink iconOnly aria-label="Agregar contacto" href="/admin/personas?nuevo=1"><Plus size={20} aria-hidden="true" /></ButtonLink>}
     </div>
     <div className="hidden lg:block">{filter === "clientes"
-      ? <Button variant={adding ? "secondary" : "primary"} aria-expanded={adding} onClick={() => setAdding(v => !v)}>{adding ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{adding ? "Cerrar" : "Agregar cliente"}</Button>
-      : <ButtonLink variant="primary" href="/admin/operaciones/nueva"><Plus size={16} aria-hidden="true" />Agregar contacto</ButtonLink>}</div>
+      ? <Button variant="primary" aria-haspopup="dialog" onClick={() => setAdding(true)}><Plus size={16} aria-hidden="true" />Agregar cliente</Button>
+      : <ButtonLink variant="primary" href="/admin/personas?nuevo=1"><Plus size={16} aria-hidden="true" />Agregar contacto</ButtonLink>}</div>
   </>}>
     {searching && <div className="mb-4 lg:hidden">{searchField}</div>}
-    {filter === "clientes" && adding && <section className={cn(f.window, "mb-5")} aria-label="Nuevo cliente">
-      <div className={f.windowHead}>
-        <div className={f.windowTitle}><span className={f.windowIcon}><UserPlus size={22} aria-hidden="true" /></span><div><h2>Nuevo cliente</h2><p>Para registrar a un propietario directamente. Será cliente cuando firme su contrato.</p></div></div>
-        <Button variant="ghost" iconOnly aria-label="Cerrar captura" onClick={() => setAdding(false)}><X size={20} aria-hidden="true" /></Button>
-      </div>
+    <Sheet open={filter === "clientes" && adding} onClose={() => setAdding(false)} title="Nuevo cliente" description="Para registrar a un propietario directamente. Será cliente cuando firme su contrato.">
       <ClienteEditor key="nuevo" title={false} onDone={() => setAdding(false)} />
-    </section>}
+    </Sheet>
     {/* Filtros como selector a la izquierda; seleccionar y buscar a la derecha. */}
     <div className={s.tabsRow}>
       <div className={s.chips} role="group" aria-label="Mostrar personas">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
@@ -177,7 +172,7 @@ export function ContactsScreen() {
       <div className="hidden lg:block">{searchField}</div>
     </div>
     <div className="mt-5 min-w-0">
-      {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su asunto desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
+      {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su asunto desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/personas?nuevo=1">Agregar contacto</ButtonLink>}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : "Aquí están las personas que buscan a Fortius y los clientes, con lo que sigue con cada una. Las que escriben desde el sitio llegan solas."}
       </EmptyBox> : <div className={s.frame}>
         <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} current={previewRow ? keyOf(previewRow) : undefined} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={stageText} selection={selection} keyOf={keyOf} />

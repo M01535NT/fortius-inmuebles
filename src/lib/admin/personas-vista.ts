@@ -69,3 +69,91 @@ export function sucesos(quien: { kind: "lead" | "cliente"; id: string; operacion
   }
   return lista.sort((a, b) => b.orden.localeCompare(a.orden)).slice(0, max);
 }
+
+/*
+  FLX-01 · «Nuevo perfil» con las cinco preguntas de una llamada (DEC-50; RP-94 igual): nombre,
+  teléfono, motivo, canal preferido y en qué quedaron. Se guarda como prospecto con lo que ya existe
+  en la base: el motivo en `perfil.operacion` (y lo que contó en `mensaje`), el canal preferido en
+  `perfil.canalPreferido` (el perfil acepta campos nuevos), y «en qué quedaron» como próximo
+  contacto con su fecha, igual que al registrar un contacto (RP-21, COR-18).
+*/
+export const MOTIVOS = {
+  vender: "Vender",
+  comprar: "Comprar",
+  rentar: "Rentar",
+  arrendar: "Ofrecer en renta",
+  invertir: "Invertir",
+} as const;
+export type Motivo = keyof typeof MOTIVOS;
+export const CANALES_PREFERIDOS = { llamada: "Llamada", whatsapp: "WhatsApp", correo: "Correo" } as const;
+export type CanalPreferido = keyof typeof CANALES_PREFERIDOS;
+/** Para leerse dentro de una frase: «Prefiere WhatsApp», «Prefiere llamada». */
+export const canalEnFrase = (c: CanalPreferido) => c === "whatsapp" ? "WhatsApp" : CANALES_PREFERIDOS[c].toLowerCase();
+/** Lo que más se acuerda en una primera llamada; se puede escribir otra cosa. */
+export const ACUERDOS = ["Enviarle opciones", "Agendar una visita", "Volver a llamarle", "Pedirle sus documentos"] as const;
+
+/** Canal preferido guardado en el perfil, si es uno de los conocidos. */
+export function canalPreferido(perfil: unknown): CanalPreferido | undefined {
+  const valor = perfil && typeof perfil === "object" ? (perfil as Record<string, unknown>).canalPreferido : undefined;
+  return typeof valor === "string" && valor in CANALES_PREFERIDOS ? valor as CanalPreferido : undefined;
+}
+
+export type Respuestas = {
+  nombre: string; telefono: string; email: string; motivo: Motivo | ""; detalle: string;
+  canal: CanalPreferido | ""; acuerdo: string; fecha: string; privacidad: boolean;
+};
+
+export function sinAcentos(texto: string) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+const digitos = (texto: string) => texto.replace(/\D/g, "").slice(-10);
+
+/** Qué falta para guardar (RP-94: nombre, interés y un medio de contacto) y dónde poner el foco. */
+export function faltante(r: Respuestas): { campo: keyof Respuestas; texto: string } | null {
+  if (r.nombre.trim().split(/\s+/).filter(Boolean).length < 1) return { campo: "nombre", texto: "Escribe su nombre." };
+  if (digitos(r.telefono).length < 7) return { campo: "telefono", texto: "Escribe su teléfono para poder volver a buscarle." };
+  if (!r.motivo) return { campo: "motivo", texto: "Elige para qué llamó." };
+  if (r.canal === "correo" && !/^\S+@\S+\.\S+$/.test(r.email.trim())) return { campo: "email", texto: "Escribe su correo, porque prefiere que le escriban ahí." };
+  if (!r.acuerdo.trim()) return { campo: "acuerdo", texto: "Anota en qué quedaron." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(r.fecha)) return { campo: "fecha", texto: "Elige cuándo le vuelves a buscar." };
+  return null;
+}
+
+/**
+  Personas que podrían ser la misma (RP-94): mismo teléfono (últimos 10 dígitos) o mismo nombre sin
+  acentos ni mayúsculas. Solo avisa; el asesor decide «es la misma» o «es otra», sin fusión.
+*/
+export function parecidas<T extends { id: string; nombre: string; telefono?: string }>(personas: readonly T[], nombre: string, telefono: string): Array<T & { por: "teléfono" | "nombre" }> {
+  const tel = digitos(telefono), nom = sinAcentos(nombre);
+  return personas.flatMap((p): Array<T & { por: "teléfono" | "nombre" }> => {
+    if (tel.length >= 7 && digitos(p.telefono ?? "") === tel) return [{ ...p, por: "teléfono" as const }];
+    if (nom.split(" ").length >= 2 && sinAcentos(p.nombre) === nom) return [{ ...p, por: "nombre" as const }];
+    return [];
+  });
+}
+
+/** El prospecto nuevo, contactado en esta llamada, con su próximo contacto. */
+export function prospectoNuevo(r: Respuestas, ids: { id: string; nota: string }, at: string, asesorId?: string) {
+  const detalle = r.detalle.trim();
+  const motivo = r.motivo ? MOTIVOS[r.motivo] : "";
+  return {
+    id: ids.id,
+    nombre: r.nombre.trim().replace(/\s+/g, " "),
+    telefono: r.telefono.trim(),
+    ...(r.email.trim() ? { email: r.email.trim() } : {}),
+    origen: "manual" as const,
+    estado: "contactado" as const,
+    creadoEl: at,
+    firstContactedAt: at,
+    ...(asesorId ? { asesorId } : {}),
+    ...(detalle ? { mensaje: detalle.slice(0, 2000) } : {}),
+    perfil: {
+      ...(r.motivo ? { operacion: r.motivo } : {}),
+      ...(r.canal ? { canalPreferido: r.canal } : {}),
+      proximoContacto: r.fecha,
+      proximaAccion: r.acuerdo.trim().slice(0, 160),
+      ...(r.privacidad ? { avisoPrivacidad: diaLocal(at) } : {}),
+    },
+    notas: [{ id: ids.nota, fecha: at, contacto: "llamada" as const, texto: `Primer contacto: ${motivo.toLowerCase()}${r.canal ? `. Prefiere ${canalEnFrase(r.canal)}` : ""}. Quedamos en: ${r.acuerdo.trim()}.` }],
+  };
+}
