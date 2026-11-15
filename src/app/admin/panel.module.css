@@ -54,13 +54,6 @@
 .panel :global(.admin-content) { width: 100%; max-width: 110rem; margin-inline: auto; padding: 1rem 1rem calc(7rem + env(safe-area-inset-bottom, 0px)); } /* abajo: altura de la barra inferior del celular */
 .panel :global(.admin-page-header) { align-items: center; border: 0; padding-bottom: .25rem; }
 .panel :global(.admin-page-header) p { margin-top: .5rem; font-size: var(--admin-text-interfaz); }
-.panel :global(.admin-search-trigger) { flex: 1; min-width: 2.75rem; justify-content: flex-start; max-width: 44rem; background: var(--field-surface); color: var(--muted-foreground); font-weight: 400; }
-.panel :global(.admin-search-trigger) span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.panel :global(.admin-search-trigger) kbd { margin-left: auto; border: 1px solid var(--border); border-radius: .25rem; padding: .125rem .375rem; font-size: var(--admin-text-minimo); }
-.panel :global(.admin-card) { min-width: 0; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); box-shadow: 0 2px 8px #061f3f03; }
-.panel :global(.admin-card-heading) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 1rem; min-height: 2.75rem; border-bottom: 1px solid var(--border); }
-.panel :global(.admin-card-heading) h2 { font-size: var(--admin-text-grupo); }
-.panel :global(.admin-card-heading) a { display: inline-flex; align-items: center; min-height: 2.75rem; gap: .375rem; font-size: var(--admin-text-detalle); color: var(--foreground); }
 .panel :global(.admin-badge) { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; border-radius: .25rem; font-size: var(--admin-text-pastilla); line-height: 1.5; }
 @media (min-width: 1280px) {
   .panel :global(.admin-inventory-controls) { background: transparent; border: 0; padding: 0; }
@@ -79,45 +72,9 @@
 .panel :global(.admin-data-scope) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; color: var(--muted-foreground); font-size: var(--admin-text-pastilla); }
 .panel :global(.admin-data-scope) label { display: inline-flex; align-items: center; gap: .625rem; min-height: 2.75rem; font-size: var(--admin-text-pastilla); cursor: pointer; }
 .panel :global(.admin-data-scope) input { width: 1.125rem; height: 1.125rem; accent-color: var(--primary); }
-.panel :global(.admin-report-metrics) { display: grid; gap: .75rem; }
-.panel :global(.admin-metric-action) { display: grid; gap: .375rem; min-width: 0; padding: 1rem; text-align: left; border: 1px solid var(--border); border-radius: .375rem; background: var(--card); color: var(--foreground); }
-.panel :is(button,a):global(.admin-metric-action):hover { background: var(--secondary); }
-.panel :global(.admin-metric-action) strong { font-size: var(--admin-text-cifra); font-variant-numeric: tabular-nums; line-height: 1.2; }
-.panel :global(.admin-metric-action) :is(span,small) { font-size: var(--admin-text-detalle); }
-.panel :global(.admin-metric-action) small { color: var(--muted-foreground); }
-.panel :global(.admin-report-detail) { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-.panel :global(.admin-report-detail) h3 { font-size: var(--admin-text-cuerpo); }
-.panel :global(.admin-report-detail) a { display: block; min-height: 2.75rem; padding-block: .5rem; overflow-wrap: anywhere; }
-.panel :global(.admin-report-detail) small { display: block; color: var(--muted-foreground); }
-.panel :global(.admin-document-filters) { display: grid; gap: .75rem; padding: 1rem 1.25rem; align-items: end; }
-.panel :global(.admin-document-filters) label { min-width: 0; font-size: var(--admin-text-detalle); }
-.panel :global(.admin-document-filters) :is(input,select) { margin-top: .375rem; }
-.panel :global(.admin-document-list) > li { display: grid; grid-template-columns: 1.5rem minmax(0,1fr); gap: .75rem; align-items: center; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
-.panel :global(.admin-document-list) h3 { font-size: var(--admin-text-interfaz); overflow-wrap: anywhere; }
-.panel :global(.admin-document-list) :is(p,small) { color: var(--muted-foreground); font-size: var(--admin-text-pastilla); overflow-wrap: anywhere; }
-.panel :global(.admin-document-list) > li > :is(a,span) { grid-column: 2; justify-self: start; }
-.panel :global(.admin-document-pagination) { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1rem; padding: 1rem; border-top: 1px solid var(--border); }
-@media (min-width: 640px) {
-  .panel :global(.admin-report-metrics) { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .panel :global(.admin-document-list) > li { grid-template-columns: 1.5rem minmax(0,1fr) auto auto; }
-  .panel :global(.admin-document-list) > li > :is(a,span) { grid-column: auto; }
-}
-@media (min-width: 1024px) {
-  .panel :global(.admin-document-filters) { grid-template-columns: minmax(0,1fr) minmax(0,1.5fr) auto; }
-}
 .panel table th { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-size: var(--admin-text-pastilla); font-weight: 600; background: var(--secondary); }
 .panel table td { padding-block: .875rem; }
 @media (min-width: 768px) {
   .panel :global(.admin-content) { padding: .75rem 2rem 2.5rem; }
 }
 .panel :global(.admin-content.admin-focus) { max-width: none; padding: 0; display: flex; flex-direction: column; } /* Nueva operación a pantalla completa */
-
-/* Geometry of the approved image: compact header, operational table and side agenda. */
-@media (max-width: 639px) { .panel :global(.admin-search-trigger) { flex: 0 0 2.75rem; width: 2.75rem; padding: 0; justify-content: center; }.panel :global(.admin-search-trigger) span { display: none; } }
-
-/* Búsqueda: solo el ícono en celular, con texto desde 640 px. */
-
- .panel :global(.admin-search-trigger) > span { display: none; }
-@media (min-width: 640px) {
-  .panel :global(.admin-search-trigger) > span { display: inline; }
-}
