@@ -2,7 +2,7 @@
 
 **Actualizado:** 14 de noviembre de 2026. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo.
 
-Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema** (reglas RP y decisiones DEC) está en [`SPEC.md`](SPEC.md); lo terminado, en el [historial](docs/erp-crm/historial-del-plan.md). Si algo choca con `SPEC.md`, manda `SPEC.md`. Solo la sesión central edita los dos archivos.
+Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema** (reglas RP y decisiones DEC) está en [`SPEC.md`](SPEC.md); lo terminado, en el [historial](docs/erp-crm/historial-del-plan.md). Si algo choca con `SPEC.md`, manda `SPEC.md`. El agente que trabaja un tema actualiza los dos archivos en la rama de trabajo.
 
 **Para saber cómo va, basta leer esta primera sección.** Lo demás es consulta: el orden de trabajo, los paquetes con su detalle, la tabla de estado de cada entrega y las tareas de continuidad.
 
@@ -12,7 +12,7 @@ Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema**
 
 | Qué | Quién | Dónde | Estado |
 |---|---|---|---|
-| **FLX-01 · Bandeja y documentos sin operación** (panel flexible, DEC-50) | Agente | rama `feat/integracion` (localhost:3003) | Base, servidor, respaldo, pantalla `/admin/bandeja` y su entrada en el menú listos; también la pantalla `/admin/personas` (lista y perfil), en el menú junto a Contactos. Falta la revisión del titular en localhost. |
+| **FLX-01 · Bandeja y documentos sin operación** (panel flexible, DEC-50) | Agente | rama `feat/integracion` (localhost:3003) | Base, servidor, respaldo, pantalla `/admin/bandeja` y su entrada en el menú listos; también la pantalla `/admin/personas` (lista y perfil), en el menú junto a Contactos. Faltan «Nuevo perfil» con las cinco preguntas de una llamada y tu revisión en localhost. |
 
 Lo publicado más reciente es el **PR #76** (14/11/2026, merge `52e1f9a`): Trámites (TRA-01), el panel desde cero (LV-09), la paleta del sitio, correcciones de UI/UX, dependencias y la separación de este plan. En `feat/integracion`, sin publicar: el panel flexible (FLX-01) y la limpieza del 14/11/2026.
 
@@ -29,8 +29,8 @@ Lo publicado más reciente es el **PR #76** (14/11/2026, merge `52e1f9a`): Trám
 
 ### Qué sigue, en orden
 
-1. **Terminar FLX-01** y publicarla cuando la apruebes.
-2. **FLX-02 a FLX-06**, una etapa a la vez y con tu revisión entre cada una ([paquete FLX](#panel-flexible-flx--aprobado-por-el-titular-el-14112026)). Antes de FLX-03 y FLX-04 se avisa, porque cambian cómo avanza una operación.
+1. **Terminar FLX-01** (falta «Nuevo perfil» con las cinco preguntas) y publicarla cuando la apruebes.
+2. **FLX-02 a FLX-05 y FLX-07**, una etapa a la vez y con tu revisión entre cada una ([paquete FLX](#panel-flexible-flx--aprobado-por-el-titular-el-14112026)). Antes de FLX-03 y FLX-04 se avisa, porque cambian cómo avanza una operación. FLX-07 (la Bandeja recomienda a dónde va cada documento, RP-103) va después de FLX-04. Al final, FLX-06 cierra el paquete.
 3. **Continuidad** (Seguridad), en paralelo: confirmar los dos pasos cuando los actives, repetir la prueba de Sentry desde producción, revisar la limpieza diaria de archivos y el ensayo de restauración con un archivo de la Bandeja. Estado detallado: REC-01 con copia diaria desde el 13/11 (falta repetir el ensayo con volumen real); BAS-01 aceptada; CI-01 terminada; OBS-01 activa; PRV-01 espera al abogado. Ver `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
 4. **Después, el «Orden vigente»**, sin lo que FLX absorbe.
 
@@ -588,16 +588,17 @@ Las 17 abren sin error con datos simulados (solo «Enlaces y QR» cayó por un d
 
 ## Panel flexible (FLX) — aprobado por el titular el 14/11/2026
 
-**Origen:** el titular recibió el levantamiento y el avalúo de un terreno para inspeccionarlo, sin trato con el propietario, y el panel no tenía dónde guardarlos. Aprobó un concepto nuevo (DEC-50): guardar primero y ordenar después, con Bandeja, personas, inmuebles sin dueño conocido y asuntos; la metodología como guía que sugiere; nada frena, solo avisa (RP-100); compradores y arrendatarios como clientes al firmar (RP-93). Bocetos aprobados: lenguaje de Trámites. Lo lleva la sesión «Panel flexible»; las etapas 3 y 4 tocan el territorio de Metodología y se coordinan con la central antes de empezar.
+**Origen:** el titular recibió el levantamiento y el avalúo de un terreno para inspeccionarlo, sin trato con el propietario, y el panel no tenía dónde guardarlos. Aprobó un concepto nuevo (DEC-50): guardar primero y ordenar después, con Bandeja, personas, inmuebles sin dueño conocido y asuntos; la metodología como guía que sugiere; nada frena, solo avisa (RP-100); compradores y arrendatarios como clientes al firmar (RP-93); lo que recibimos manda: todo entra por la Bandeja y el sistema recomienda a dónde va (RP-103). Bocetos aprobados: lenguaje de Trámites. Las etapas 3 y 4 cambian cómo avanza una operación: se avisa al titular antes de empezarlas.
 
 | ID | Alcance | Depende de | Aceptación |
 |---|---|---|---|
-| FLX-01 | **Bandeja y documentos sin operación:** tabla nueva (migración aditiva) con documentos ligables a persona, inmueble, asunto o a nada; Bandeja con lectura y confirmación; inmueble sin propietario; «Nuevo perfil» con las cinco preguntas de una llamada; entrada en el menú después de Hoy (RP-58, RP-101, RP-102). | LV-09 | Soltar dos PDF y terminar con el terreno archivado sin propietario; abrir un perfil con las cinco preguntas; el respaldo diario incluye la tabla nueva; ninguna guarda existente se quita. |
+| FLX-01 | **Bandeja y documentos sin operación:** tabla nueva (migración aditiva) con documentos ligables a persona, inmueble, asunto o a nada; Bandeja donde se elige a mano a dónde va cada documento (la lectura y la recomendación son FLX-07); inmueble sin propietario; «Nuevo perfil» con las cinco preguntas de una llamada; entrada en el menú después de Hoy (RP-58, RP-101, RP-102). | LV-09 | Soltar dos PDF y terminar con el terreno archivado sin propietario; abrir un perfil con las cinco preguntas; el respaldo diario incluye la tabla nueva; ninguna guarda existente se quita. |
 | FLX-02 | **Crear cualquier documento desde cualquier lado:** «Crear documento» en persona, inmueble y asunto; se retiran los candados de pantalla. | FLX-01 | Crear el levantamiento sin entrevista; los formatos conservan versiones y PDF inmutables. |
 | FLX-03 | **De frenos a avisos y de metodología a guías:** guías como datos (venta, renta, compra, búsqueda de renta, inspección, opinión de valor, cancelación de hipoteca); disparadores nuevos que avisan y anotan en lugar de rechazar, con el mismo cambio en TypeScript (RP-100). | FLX-02 | Publicar sin intermediación firmada deja aviso en el historial; las pruebas que hoy dicen «rechaza» pasan a «permite y anota», sin borrarse; una operación existente conserva etapa, documentos y formatos. |
 | FLX-04 | **Perfiles completos y listas:** persona con folio y vista agregada; papeles por asunto; compradores y arrendatarios como clientes (RP-93); prospectos del formulario sin duplicarse. | FLX-03 | Un comprador que firma pasa a cliente y conserva su historial; listas con filtros. |
 | FLX-05 | **Vencimientos y coincidencias:** vigencia por documento y fechas de contratos en Hoy; coincidencias entre búsquedas e inmuebles. | FLX-04 | Un arrendamiento por terminar aparece en Hoy como llamada; un inmueble nuevo muestra quién buscaba algo así. |
-| FLX-06 | **Cierre:** manual, registro de privacidad (documentos de compradores y arrendatarios), revisión con crítico en contexto limpio y propuesta de verificación completa. | FLX-05 | Documentos al día; PRV-01 actualizado para el abogado. |
+| FLX-07 | **La Bandeja recomienda a dónde va cada documento (RP-103):** al soltar un documento, el sistema lo lee (la lectura de IA-01) y busca a qué inmueble, persona o asunto corresponde por lo que el documento dice: dirección, clave catastral, folio real, nombres, RFC o CURP. Muestra la recomendación con el dato que la sostiene; se confirma con un clic o se deja sin ligar. Si no encuentra nada, propone crear el inmueble, la persona o el asunto con lo leído, y también eso espera el clic. Sin lectura disponible, la Bandeja sigue funcionando a mano como en FLX-01. Se construye después de FLX-04, cuando existen los asuntos y los perfiles completos contra los cuales comparar; puede ir en paralelo con FLX-05. | FLX-04, IA-01 | **Ejemplo del titular:** se suelta el avalúo de un terreno que ya está registrado y la Bandeja recomienda ese inmueble, mostrando el dato con que lo reconoció (por ejemplo, la clave catastral); un clic lo liga. Además: el avalúo de un terreno que no existe propone «Crear inmueble» con dirección y superficie ya llenas, y no se crea nada sin confirmar; «Dejar sin ligar» lo deja en la Bandeja; una prueba comprueba que, sin el clic, el servidor no liga ni crea nada (RP-44, RP-62). Con documentos de clientes reales, la lectura espera el visto bueno del abogado (PRV-01); mientras la base tenga solo datos de prueba (DEC-10) se ensaya con documentos ficticios. |
+| FLX-06 | **Cierre:** manual, registro de privacidad (documentos de compradores y arrendatarios), revisión con crítico en contexto limpio y propuesta de verificación completa. | FLX-05, FLX-07 | Documentos al día; PRV-01 actualizado para el abogado. |
 
 **Por replantear en su etapa** (las reglas siguen vigentes hasta entonces): candado de arranque (FLUJO-04a) y «avanzar sí espera» (B-04, RP-87); DEC-42 (siguiente paso con tarea y fecha); el freno de la firma de TRA-01, que pasaría a aviso con Trámites como guía; MOT-01 a MOT-04 (guías como listas editables en lugar de motor con editor). REL-01, FCH-01, HER-02, HER-04, CRM-03 y COR-11 quedan absorbidas o se replantean dentro de FLX.
 
@@ -852,12 +853,13 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | UX-03 | 4 | parcial | barra de comandos Ctrl/⌘K que busca y actúa según el rol, «Recientes» (NAV-02) por usuario y atajos «/» y «?» desactivables (6a07d62, `feat/integracion`, 13/11/2026); acciones masivas con resultado por registro y «Reintentar» (RP-12) y edición en la fila con control de versión (RP-13) en Tareas y Contactos, con boceto aprobado por el titular (b41ae84); exportar contactos solo el administrador y CSV sin fórmulas; el director reasigna operaciones desde la lista con motivo (M-04, deb2326); en `main` con el PR #75; revisado contra el código el 14/11/2026 |
 | UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); siluetas de carga (RP-18; 7d3dfe6) y «Deshacer» al completar una tarea, solo tras confirmar el servidor (RP-16; aa98fba); falta el conflicto en operaciones y formatos; la reversión optimista con motivo (RP-18) no aplica mientras el panel no tenga cambios optimistas; en `main` con el PR #75; revisado contra el código el 14/11/2026 |
 | TRA-01 | 4 | en_main | pantalla aprobada por el titular (13/11/2026); pasos según fuentes oficiales, sin esperar al notario; base, servidor, pantalla, menú y pruebas en `feat/integracion`; freno de la firma de la venta hecho el 14/11/2026: el servidor y la base (migración `20261114212000_freno_firma_hipoteca`, disparador que cubre la RPC y la tabla) responden 409 mientras la cancelación no esté inscrita, salvo «Firmar sin la cancelación» del director con su motivo; pantalla en la etapa y en el trámite (9f6c8f0); revisado contra el código el 14/11/2026; en `main` con el PR #76 (52e1f9a, 14/11/2026) |
-| FLX-01 | 4 | en_curso | sesión «Panel flexible», rama `claude/flexible-admin-panel-5d2030`, desde `feat/integracion` 3d4b7a3 |
+| FLX-01 | 4 | en_curso | en `feat/integracion` (14/11/2026): construidos la base y el servidor de documentos sin operación, el respaldo con la tabla nueva, la pantalla `/admin/bandeja` (soltar, archivar en inmueble, operación o persona, o dejar para después) y la pantalla `/admin/personas` (lista y perfil), las dos en el menú. Falta «Nuevo perfil» con las cinco preguntas de una llamada y la revisión del titular en localhost. |
 | FLX-02 | 4 | pendiente | FLX-01 |
 | FLX-03 | 4 | pendiente | FLX-02; coordina con Metodología |
 | FLX-04 | 4 | pendiente | FLX-03 |
 | FLX-05 | 5 | pendiente | FLX-04 |
-| FLX-06 | 6 | pendiente | FLX-05 |
+| FLX-07 | 5 | pendiente | FLX-04, IA-01; con clientes reales, PRV-01 |
+| FLX-06 | 6 | pendiente | FLX-05, FLX-07 |
 | SOP-01 | 5 | parcial | OBS-01; guía por pantalla y `/admin/ayuda`; falta «Reportar un problema»; revisado contra el código el 14/11/2026 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
 | EXT-13 | por decidir | idea, no aprobada | DEC-14, SEG-01, PRV-01 |

@@ -62,7 +62,7 @@ Rotar no requiere cambio de código. Cada cambio en Vercel necesita un despliegu
 - La lectura con IA sigue apagada en producción hasta el visto bueno del abogado y la anotación en el registro de tratamiento.
 - Los respaldos pasan a contener datos personales reales: el bucket R2 y la llave privada del titular se tratan como tales (acceso registrado, sin copias sin cifrar fuera del equipo de GitHub).
 - Una migración que borre o reescriba datos necesita copia previa comprobada.
-- `AGENTS.md`, el plan y la memoria de los agentes se actualizan ese mismo día (lo hace la central).
+- `AGENTS.md`, el plan y la memoria de los agentes se actualizan ese mismo día (lo hace el agente que acompañe el cambio).
 
 ## Decisiones del titular
 
