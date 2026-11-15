@@ -7,7 +7,7 @@ El desarrollo del ERP/CRM se dirige únicamente desde [PLAN.md](../PLAN.md); có
 | Producto | [Propósito y capacidades](PRODUCT.md). |
 | Historial del plan | [Trabajo terminado y registros de sesiones pasadas](erp-crm/historial-del-plan.md), separados del plan el 11/11/2026. No es un plan: si contradice al plan, manda el plan. |
 | Preguntas abiertas | [Cuestionario único para el titular](erp-crm/CUESTIONARIO_TITULAR.md), empezando por A y B. Reúne sin duplicados las preguntas al titular, el complemento P01–P84 y las preguntas del panel. Cada respuesta se integra en el plan. |
-| Panel | [Estructura vigente del panel](brand.md#estructura-del-panel-14112026) (LV-09), [espacio de trabajo](admin-workspace.md), [manual](admin-manual.md) (corte de octubre; su puesta al día es COR-26). |
+| Panel | [Estructura vigente del panel](brand.md#estructura-del-panel-14112026) (LV-09), [espacio de trabajo](admin-workspace.md), [manual](admin-manual.md) (corte de octubre; su puesta al día va en FLX-06). |
 | Archivo | [Diseño del panel anterior](archivo/2026-11-14-panel-anterior/README.md): encargo, lienzo y bocetos retirados el 14/11/2026. Solo historia. |
 | Marca | [Marca](brand.md), [identidad técnica](fortius-inmuebles-identity.md). |
 | Publicación | [Despliegue](deployment-fortius.md), [entornos](erp-crm/environment-release.md). |

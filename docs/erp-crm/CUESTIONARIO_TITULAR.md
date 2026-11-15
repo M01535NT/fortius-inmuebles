@@ -6,6 +6,8 @@ Este archivo reúne en un solo lugar las preguntas que antes estaban repartidas 
 
 **No es un plan.** El único plan vigente es [`PLAN.md`](../../PLAN.md) y las reglas de [`SPEC.md`](../../SPEC.md) prevalecen. Este archivo solo guarda preguntas y respuestas.
 
+> **Nota (14/11/2026):** al podar el plan, varias entregas que se citan aquí pasaron al panel flexible (por ejemplo REL-01, CRM-01, OPS-01, CAP-01, CAP-03, FCH-04, DOC-15, MOT-02 y HER-04) y USO-01 se unió a USO-02. Dónde quedó cada una está en el [historial del plan, §28.6](historial-del-plan.md). Las respuestas siguen valiendo.
+
 ## Cómo responder
 
 - Escribe debajo de **Respuesta**. Con «Sí a la propuesta» basta; si no, di qué cambia. También puedes contestar en el chat con el identificador (por ejemplo, «B-04: …»).
