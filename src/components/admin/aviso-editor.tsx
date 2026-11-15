@@ -3,6 +3,8 @@ import * as React from "react";
 import type { FormatoDefinition } from "@/lib/formatos/catalog";
 import { claveRepresentante, mostrarCampoAviso, validarAviso } from "@/lib/formatos/aviso";
 import { inputClass, selectClass } from "./ui";
+import { DateField } from "@/components/ui/date-field";
+// Fechas con DateField (DEC-52). Las decisiones se quedan en <select> nativo con el estilo del kit: formulario largo de un formato con plantilla, y en celular abre el selector del sistema.
 
 type Props = { definition: FormatoDefinition; values: Record<string, unknown>; onChange: (key: string, value: unknown) => void };
 const responsableKeys = ["responsable", "domicilioResponsable", "contactoPrivacidad", "correoPrivacidad"];
@@ -19,7 +21,7 @@ export function AvisoEditor({ definition, values, onChange }: Props) {
         <label htmlFor={id} className="mb-1.5 block font-medium">{field.label}</label>
         {field.type === "choice" ? <select id={id} value={String(values[key] ?? "")} onChange={event => onChange(key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option>{field.options?.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-        </select> : <input id={id} aria-describedby={help ? `${id}-help` : undefined} type={field.type === "date" ? "date" : key === "correoPrivacidad" ? "email" : "text"} value={String(values[key] ?? "")} onChange={event => onChange(key, event.target.value)} className={inputClass} />}
+        </select> : field.type === "date" ? <DateField id={id} aria-describedby={help ? `${id}-help` : undefined} value={String(values[key] ?? "")} onChange={value => onChange(key, value)} /> : <input id={id} aria-describedby={help ? `${id}-help` : undefined} type={key === "correoPrivacidad" ? "email" : "text"} value={String(values[key] ?? "")} onChange={event => onChange(key, event.target.value)} className={inputClass} />}
         {help && <p id={`${id}-help`} className="mt-1 text-xs text-muted-foreground">{help}</p>}
       </div>;
     });

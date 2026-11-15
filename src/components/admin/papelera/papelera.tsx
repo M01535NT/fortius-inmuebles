@@ -8,6 +8,7 @@ import { apiRequest, db, errorMessage, fetchJson, loadAdminData, useCollection, 
 import type { OperationRecord } from "@/lib/admin/operation-view";
 import { humanDateTime } from "@/lib/utils";
 import { PAPELERA } from "./textos";
+import { useAviso } from "./aviso";
 
 /*
   Papelera única (NAV-13, N23): reúne en una pantalla lo que ya se podía recuperar en dos lugares
@@ -25,9 +26,10 @@ function Fallo({ error, onRetry }: { error: string; onRetry: () => void }) {
 }
 
 function Operaciones() {
+  const aviso = useAviso();
   const clients = useCollection(db.clientes), properties = useCollection(db.propiedades);
   const [records, setRecords] = React.useState<OperationRecord[] | undefined>(undefined);
-  const [error, setError] = React.useState(""), [notice, setNotice] = React.useState(""), [revision, setRevision] = React.useState(0);
+  const [error, setError] = React.useState(""), [revision, setRevision] = React.useState(0);
   React.useEffect(() => {
     let active = true;
     fetchJson<{ expedientes: OperationRecord[] }>("/api/admin/expedientes?estado=eliminados")
@@ -38,17 +40,17 @@ function Operaciones() {
 
   async function restaurar(op: OperationRecord) {
     if (!await confirmAction(`El asunto ${op.folio} vuelve a Asuntos con sus documentos y tareas.`, { title: `${PAPELERA.restaurar} asunto`, confirmLabel: PAPELERA.restaurar })) return;
-    setError(""); setNotice("");
+    setError(""); aviso.clear();
     try {
       await fetchJson(`/api/admin/expedientes/${op.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: op.version }) });
       setRecords(items => items?.filter(item => item.id !== op.id));
-      setNotice(`Asunto ${op.folio} de vuelta en Asuntos.`);
+      aviso.show(`Asunto ${op.folio} de vuelta en Asuntos.`);
     } catch (cause) { setError(errorMessage(cause)); }
   }
 
   return <section aria-labelledby="papelera-operaciones" className="flex flex-col gap-3">
     <h2 id="papelera-operaciones" className="text-lg font-semibold">{PAPELERA.operaciones}</h2>
-    {notice && <p role="status" className="text-sm">{notice}</p>}
+    {aviso.inline && <p role="status" className="text-sm">{aviso.inline}</p>}
     {error ? <Fallo error={error} onRetry={() => { setError(""); setRecords(undefined); setRevision(n => n + 1); }} />
       : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando asuntos eliminados…</p>
       : !records.length ? <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="No hay asuntos eliminados">Cuando se elimine un asunto aparecerá aquí con sus documentos y tareas.</EmptyBox>
@@ -64,11 +66,12 @@ function Operaciones() {
 }
 
 function Registros() {
+  const aviso = useAviso();
   const session = useSession();
   const propiedades = useCollection(db.propiedades), notas = useCollection(db.notas), eventos = useCollection(db.eventos);
   const [entries, setEntries] = React.useState<Entry[] | undefined>(undefined);
   const [offset, setOffset] = React.useState(0), [more, setMore] = React.useState(false);
-  const [error, setError] = React.useState(""), [notice, setNotice] = React.useState(""), [busy, setBusy] = React.useState(""), [revision, setRevision] = React.useState(0);
+  const [error, setError] = React.useState(""), [busy, setBusy] = React.useState(""), [revision, setRevision] = React.useState(0);
   const admin = session?.role === "admin";
   React.useEffect(() => {
     if (!admin) return;
@@ -86,12 +89,12 @@ function Registros() {
 
   async function restaurar(entry: Entry) {
     if (!await confirmAction(`${nameOf(entry) ?? "El registro"} vuelve a su lugar; lo que estaba publicado vuelve sin publicar.`, { title: `${PAPELERA.restaurar} ${(KIND[entry.collection] ?? "registro").toLowerCase()}`, confirmLabel: PAPELERA.restaurar })) return;
-    setBusy(entry.id); setError(""); setNotice("");
+    setBusy(entry.id); setError(""); aviso.clear();
     try {
       await apiRequest("/api/admin/historial", "POST", { historyId: entry.id });
       setEntries(items => items?.filter(item => item.id !== entry.id));
-      setNotice(`${KIND[entry.collection] ?? "Registro"} de vuelta en su lugar.`);
-      try { await loadAdminData(); } catch { setNotice("Se restauró. Recarga el panel para ver las listas al día."); }
+      aviso.show(`${KIND[entry.collection] ?? "Registro"} de vuelta en su lugar.`);
+      try { await loadAdminData(); } catch { aviso.show("Se restauró. Recarga el panel para ver las listas al día."); }
     } catch (cause) { setError(errorMessage(cause)); }
     finally { setBusy(""); }
   }
@@ -100,7 +103,7 @@ function Registros() {
     <h2 id="papelera-registros" className="text-lg font-semibold">{PAPELERA.registros}</h2>
     {!session ? null : !admin ? <Notice tone="info">El director restaura los inmuebles, artículos, notas y citas. Pídeselo si eliminaste uno por error.</Notice> : <>
       <p className="text-sm text-muted-foreground">Los inmuebles y artículos vuelven sin publicar.</p>
-      {notice && <p role="status" className="text-sm">{notice}</p>}
+      {aviso.inline && <p role="status" className="text-sm">{aviso.inline}</p>}
       {error ? <Fallo error={error} onRetry={() => { setError(""); setEntries(undefined); setRevision(n => n + 1); }} />
         : entries === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando lo eliminado…</p>
         : !entries.length && offset === 0 ? <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="Nada más que recuperar">Cuando se elimine un contacto, un inmueble, un artículo, una nota o una cita, aparecerá aquí.</EmptyBox>

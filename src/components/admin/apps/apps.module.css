@@ -14,11 +14,13 @@
 .metric { padding: 1rem; border: 1px solid var(--card-edge); border-radius: .75rem; background: var(--secondary); }
 .metric dt { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
 .metric dd { margin-top: .375rem; font-size: var(--admin-text-cifra); font-weight: 620; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.tableWrap { overflow: auto; max-height: 520px; margin-top: .75rem; border: 1px solid var(--card-edge); border-radius: .75rem; }
-.tableWrap:focus-visible { outline: 2px solid var(--ring, currentColor); outline-offset: 2px; }
-.tableWrap table { min-width: 100%; border-collapse: collapse; font-size: var(--admin-text-pastilla); font-variant-numeric: tabular-nums; }
-.tableWrap th, .tableWrap td { min-width: 110px; max-width: 360px; padding: .75rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--card-edge); overflow-wrap: anywhere; }
-.tableWrap th { position: sticky; top: 0; background: var(--secondary); font-size: var(--admin-text-minimo); font-weight: 600; }
+/* La tabla (`Table` de ui) trae su propia caja que se desplaza; aquí se le pone el tope de alto para que el encabezado se quede fijo. */
+.tableWrap { margin-top: .75rem; border: 1px solid var(--card-edge); border-radius: .75rem; overflow: hidden; }
+.tableWrap:focus-visible { outline: 3px solid var(--focus-color, currentColor); outline-offset: 2px; }
+.tableWrap > [data-slot="table-container"] { max-height: 520px; overflow: auto; }
+.tableWrap table { min-width: 100%; font-size: var(--admin-text-pastilla); font-variant-numeric: tabular-nums; }
+.tableWrap th, .tableWrap td { min-width: 110px; max-width: 360px; padding: .75rem; vertical-align: top; overflow-wrap: anywhere; white-space: normal; }
+.tableWrap thead th { position: sticky; top: 0; z-index: 1; background: var(--secondary); font-size: var(--admin-text-minimo); font-weight: 600; }
 .result section { margin-top: 1.5rem; }
 .result h3 { font-weight: 600; }
 .result p { white-space: pre-wrap; line-height: 1.7; font-size: var(--admin-text-detalle); }

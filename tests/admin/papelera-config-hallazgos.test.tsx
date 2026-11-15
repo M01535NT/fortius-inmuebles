@@ -114,8 +114,9 @@ test("guardar otro dato de Configuración no fija el tope de IA del servidor", a
 test("una cuenta ligada a un asesor inactivo no se muestra como «Sin vincular»", async () => {
   extra = url => url === "/api/admin/asesor-cuentas" ? { cuentas: [{ user_id: "51000000-0000-4000-8000-000000000083", email: "ana@fortius.test", role: "editor", active: true, asesor_id: "ana" }] } : undefined;
   render(<AdviserAccountLinks isAdmin advisers={[ana, beto]} />);
-  const select = await screen.findByRole("combobox", { name: "Asesor" }) as HTMLSelectElement;
-  expect(select.selectedOptions[0]?.textContent, "el vínculo vigente con la ficha inactiva no se ve").not.toBe("Sin vincular");
+  // LV-10 (bloque g): el selector es `Select` de Radix; su botón muestra la ficha elegida.
+  const select = await screen.findByRole("combobox", { name: "Asesor" });
+  expect(select.textContent, "el vínculo vigente con la ficha inactiva no se ve").toContain("Ana Inactiva de ensayo");
 });
 
 /*

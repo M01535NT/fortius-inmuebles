@@ -134,8 +134,11 @@ test("con corte «Fijo», una oferta dentro del periodo cuenta en «Ofertas y ci
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-11-13T20:00:00.000Z"));
   render(<PeriodReport />);
-  await screen.findByRole("option", { name: "Cartera de ensayo" });
-  fireEvent.change(screen.getByLabelText("Cartera"), { target: { value: "b1" } });
+  // LV-10 (bloque g): la cartera se elige en el `Select` de Radix.
+  const cartera = screen.getByRole("combobox", { name: "Cartera" });
+  await waitFor(() => expect((cartera as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.keyDown(cartera, { key: "Enter" });
+  fireEvent.click(await screen.findByRole("option", { name: "Cartera de ensayo" }));
   const etiqueta = await screen.findByText("Ofertas", { exact: true });
   expect(etiqueta.nextElementSibling?.textContent, "ofertas contadas en el periodo").toBe("1");
 });
