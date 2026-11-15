@@ -240,11 +240,11 @@ it("«Eliminar» del menú ⋯ manda al prospecto a Eliminados con su versión",
   expect((borrados.mock.calls[0] as unknown[])[1]).toBe("lead-1");
 });
 
-it("«Eliminar» dice por qué no se puede: un asunto en curso o una tarea en la Agenda", async () => {
+it("una tarea en la Agenda ya no impide «Eliminar»: se va con la persona (15/11/2026)", async () => {
   servidor();
   render(<PersonasApp initialId="cliente:cli-2" />);
   await screen.findByRole("heading", { level: 2, name: "Ana Robles" });
-  const opcion = within(await abrirMenu()).getByRole("menuitem", { name: /Eliminar · tiene una tarea o cita en la Agenda/ });
-  expect(opcion.getAttribute("aria-disabled")).toBe("true");
+  const opcion = within(await abrirMenu()).getByRole("menuitem", { name: "Eliminar" });
+  expect(opcion.getAttribute("aria-disabled")).not.toBe("true");
   expect(borrados).not.toHaveBeenCalled();
 });

@@ -69,6 +69,14 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const today = operationalDate();
   const requested = params.get("tab");
   const tab: TabId = TABS.some(t => t.id === requested) ? requested as TabId : requested && LEGACY_TAB[requested] ? LEGACY_TAB[requested] : params.has("documento") ? "documentos" : "sigue";
+  // La lista de pestañas cambia de lugar (fila de abajo en «Etapa», columna en las demás) y se vuelve a montar:
+  // si el cambio vino desde las pestañas, el foco sigue a la elegida para que quien usa teclado no pierda su sitio.
+  const tabFocus = React.useRef(false);
+  React.useEffect(() => {
+    if (!tabFocus.current) return;
+    tabFocus.current = false;
+    document.getElementById(`operacion-tab-${tab}`)?.focus();
+  }, [tab]);
   // Documentos: los del expediente o los que entrega el cliente (titular, 29/10/2026).
   const [docKind, setDocKind] = React.useState<"expediente" | "cliente">(requested === "cliente" ? "cliente" : "expediente");
   // «Agregar documento»: los archivos elegidos pasan a los documentos del cliente, que los sube uno por uno.
@@ -116,7 +124,9 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
 
   async function changeTab(next: TabId) {
     if (next === tab) return true;
+    const fromTabs = !!document.activeElement?.closest("[role=tablist]");
     if (dirty[tab] && !await confirmAction("Hay cambios sin guardar en esta pestaña. ¿Descartarlos y cambiar de pestaña?")) return false;
+    tabFocus.current = fromTabs;
     setDirty(old => ({ ...old, [tab]: false }));
     const query = new URLSearchParams(params.toString()); query.delete("documento");
     if (next === "sigue") query.delete("tab"); else query.set("tab", next);
