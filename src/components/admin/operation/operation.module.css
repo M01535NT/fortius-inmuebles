@@ -233,11 +233,13 @@
 :global(.admin-root) .crumbs [aria-current] { color: var(--foreground); font-variant-numeric: tabular-nums; }
 :global(.admin-root) .crumbs + .titleRow { margin-top: -.75rem; }
 :global(.admin-root) .titleRow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1rem 1.25rem; }
-:global(.admin-root) .titlePhoto { border-radius: var(--radius-thumb); }
+:global(.admin-root) .titlePhoto { flex: none; display: block; width: 5.5rem; }
+:global(.admin-root) .titlePhoto > span { border-radius: var(--radius-thumb); }
+@media (min-width: 768px) { :global(.admin-root) .titlePhoto { width: 7.5rem; } }
 :global(.admin-root) .titleText { display: flex; min-width: 0; flex: 1 1 20rem; flex-direction: column; gap: .375rem; }
 :global(.admin-root) .opTitle { font-size: 1.75rem; line-height: 1.15; font-weight: 620; letter-spacing: -.02em; overflow-wrap: anywhere; text-wrap: balance; }
 :global(.admin-root) .opTitle .whoName { font-weight: inherit; }
-:global(.admin-root) .opFacts { margin: 0; font-size: .9375rem; line-height: 1.5; color: var(--muted-foreground); }
+:global(.admin-root) .opFacts { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0; font-size: .9375rem; line-height: 1.5; color: var(--muted-foreground); }
 :global(.admin-root) .opActions { display: flex; flex: none; align-items: center; gap: .5rem; }
 :global(.admin-root) .actBtn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 1px solid var(--input); border-radius: var(--radius-control); background: var(--card); color: var(--foreground); font-size: var(--admin-text-detalle); font-weight: 600; text-decoration: none; }
 :global(.admin-root) .actBtn:hover { border-color: var(--foreground); }
@@ -250,7 +252,7 @@
 /* La etapa actual ocupa lo que su nombre necesita. */
 :global(.admin-root) .railStep[data-now] { z-index: 1; }
 :global(.admin-root) .railBtn { display: flex; width: 100%; flex-direction: column; gap: .5rem; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; }
-:global(.admin-root) button.railBtn { cursor: pointer; }
+:global(.admin-root) button.railBtn { cursor: pointer; min-width: 0; } /* Cada etapa mide lo que su columna: con 44 px de ancho fijo se enciman en el celular; el alto de 44 px se queda. */
 :global(.admin-root) button.railBtn:hover .railNum { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
 :global(.admin-root) .railBar { display: block; height: 6px; border-radius: 999px; background: var(--track); }
 :global(.admin-root) .railStep[data-state=done] .railBar { background: var(--foreground); }

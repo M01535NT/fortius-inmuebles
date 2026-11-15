@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { AlertCircle, AlertTriangle, Building2, Check, ChevronLeft, ChevronRight, docIcon, FileDown, FileText, Mail, MessageCircle, Phone, stageIcon } from "@/components/admin/icons";
-import { ActionsMenu, Avatar, Button, ButtonLink, IconTile, Pill, Sheet, Thumb } from "@/components/admin/kit";
+import { ActionsMenu, Avatar, Button, ButtonLink, Faces, IconTile, Pill, Sheet, Thumb } from "@/components/admin/kit";
 import { flowOf, isGuided, phaseFormats, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
@@ -49,7 +49,7 @@ function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | und
   pasó, abre «Ver etapas» en ella), lo que quedó pendiente de etapas anteriores y, al pie, la persona
   con Llamar y WhatsApp. En las demás pestañas va compacto, con las partes de la operación.
 */
-export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, photo, facts = [], onOpenStages, menu: menuItems = [], children }: {
+export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, photo, facts = [], adviser, onOpenStages, menu: menuItems = [], children }: {
   op: OperationRecord; today: string; docs: DocumentsController; checklist?: Task; compact: boolean;
   /** A dónde vuelve el círculo de regreso. */
   back: string;
@@ -62,6 +62,8 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
   photo?: string | null;
   /** Datos bajo el título: inmueble, precio y responsable. */
   facts?: string[];
+  /** Nombre del asesor responsable: su cara va junto a la del cliente (LV-10c). */
+  adviser?: string;
   onOpenStages: (focus?: SalePhase) => void;
   /** «Más opciones»: datos de la operación, corregir etapa y eliminar. */
   menu?: Array<{ label: string; icon?: React.ReactNode; onSelect: () => void }>;
@@ -87,13 +89,13 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
       <span aria-current="page">{op.folio}</span>
     </nav>
     <div className={s.titleRow}>
-      {photo !== undefined && <Thumb src={photo ?? undefined} size={72} icon={<Building2 size={24} aria-hidden="true" />} className={s.titlePhoto} />}
+      {photo !== undefined && <span className={s.titlePhoto}><Thumb src={photo ?? undefined} ratio="10 / 7" icon={<Building2 size={24} aria-hidden="true" />} /></span>}
       <div className={s.titleText}>
         <div className={s.opTitle}>
           <h1 className={s.whoName}>{who.href ? <Link href={who.href} className={s.whoLink}>{who.name}</Link> : who.name}</h1>
           {who.wants && <span> {who.wants}</span>}
         </div>
-        {facts.length > 0 && <p className={s.opFacts}>{facts.join(" · ")}</p>}
+        {(facts.length > 0 || person || adviser) && <p className={s.opFacts}>{(person || adviser) && <Faces people={[person, adviser && { name: adviser }].filter((p): p is { name: string } => !!p)} size={28} />}<span>{facts.join(" · ")}</span></p>}
         {tags.length > 0 && <span className={s.navyTags}>{tags.map(tag => <span key={tag.text} className={s.navyTag} title={tag.detail}>{tag.text}</span>)}</span>}
       </div>
       <div className={s.opActions}>
@@ -113,7 +115,8 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
         const label = `${stage.n} · ${stage.label}: ${now ? "aquí vas" : gap ? gap.gap.toLowerCase() : done ? "lista" : "pendiente"}`;
         const inner = <><span className={s.railBar} aria-hidden="true" /><span className={s.railNum} aria-hidden="true">{now ? <>{React.createElement(stageIcon(stage, i), { size: 14, "aria-hidden": true })}<b>{stage.label}</b></> : stage.n}</span></>;
         return <li key={stage.n} aria-current={now ? "step" : undefined} className={s.railStep} data-state={state} data-now={now || undefined}>
-          {done && stage.key
+          {/* LV-10c: el riel es clicable completo; cada etapa abre «Ver etapas» en ella. */}
+          {stage.key
             ? <button type="button" className={s.railBtn} title={label} aria-label={label} onClick={() => onOpenStages(stage.key)}>{inner}</button>
             : <span className={s.railBtn} title={label}>{inner}<span className="sr-only">{label}</span></span>}
           {now && <CloseSteps stage={stage} onDark />}

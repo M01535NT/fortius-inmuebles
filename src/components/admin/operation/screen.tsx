@@ -185,6 +185,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         tags={tags}
         photo={op.propiedad_slug ? property?.galeria[0]?.src ?? null : undefined}
         facts={[property?.titulo, property && property.precio.modalidad === "publico" ? `precio ${formatPrecio(property.precio)}` : undefined, adviser ? `responsable ${adviser.nombre}` : undefined].filter((x): x is string => !!x)}
+        adviser={adviser?.nombre}
         person={client ? { name: client.nombre, role, digits, email: client.email, href: `/admin/clientes/${encodeURIComponent(client.id)}` } : undefined}
         onOpenStages={focus => setStagesOpen({ focus })} menu={menu}>
         {tab !== "sigue" && tabs}
