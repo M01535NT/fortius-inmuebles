@@ -98,7 +98,7 @@ export function PropertyList() {
     <button type="button" className={s.gapChip} aria-pressed={demand} onClick={() => setDemand(on => !on)}>Buscan y no tenemos<span>{new Set(groups.flatMap(g => g.seekers.map(x => `${x.kind}-${x.id}`))).size}</span></button>
     <Segmented className={s.segmented} label="Operación" value={filters.operation || "todos"} onChange={id => update({ ...filters, operation: id === "todos" ? "" : id })} options={[{ id: "todos", label: "Todos" }, { id: "venta", label: "En venta" }, { id: "renta", label: "En renta" }]} />
     <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia o calle" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>
-    <ButtonLink href="/admin/propiedades/nueva" variant="primary" data-tour="inmuebles-agregar"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
+    <ButtonLink href="/admin/propiedades/nueva" variant="primary"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
   </>}>
     {!demand && <details className={s.more}>
       <summary>Más filtros{extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}</summary>
@@ -111,7 +111,7 @@ export function PropertyList() {
       : <>
       {viewError && <p role="alert" className="m-0 text-sm text-destructive">{viewError}</p>}
       <button type="button" className={s.viewToggle} onClick={toggleView}>{view === "filas" ? <><LayoutGrid size={16} aria-hidden="true" />Ver en tarjetas</> : <><List size={16} aria-hidden="true" />Ver en filas</>}</button>
-      <ul aria-label="Inmuebles" data-tour="inmuebles-lista" data-view={view} className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul></>}
+      <ul aria-label="Inmuebles" data-view={view} className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul></>}
 
     {!demand && results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
       <button type="button" className={s.pageButton} disabled={current === 0} onClick={() => setPage(current - 1)}>Anterior</button>

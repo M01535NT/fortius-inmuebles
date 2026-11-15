@@ -191,10 +191,10 @@ export function OperationsBoard() {
           {admin && me && <Segmented label="Operaciones que se muestran" options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} value={scope} onChange={setScope} />}
           <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
           {listed.length > 0 && <SelectToggle selection={selection} noun="operaciones" />}
-          <div data-tour="op-vista" className={s.viewSwitch}><Segmented label="Vista" value={view} onChange={setView} options={[{ id: "lista", label: "Lista", icon: <List size={16} aria-hidden="true" /> }, { id: "tablero", label: "Tablero", icon: <Columns3 size={16} aria-hidden="true" /> }]} /></div>
+          <div className={s.viewSwitch}><Segmented label="Vista" value={view} onChange={setView} options={[{ id: "lista", label: "Lista", icon: <List size={16} aria-hidden="true" /> }, { id: "tablero", label: "Tablero", icon: <Columns3 size={16} aria-hidden="true" /> }]} /></div>
         </div>
         <div className={s.stageRow}>
-          <div data-tour="op-filtros" className={s.filters} role="group" aria-label="Etapa">
+          <div className={s.filters} role="group" aria-label="Etapa">
             <button type="button" className={s.filter} aria-pressed={stageFilter === "todas"} onClick={() => chooseStage("todas")}>Todas<span className={s.count}>{active.length}</span></button>
             {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <button key={stage.label} type="button" className={s.filter} aria-pressed={stageFilter === stage.label} onClick={() => chooseStage(stage.label)}>{stage.label}<span className={s.count}>{active.filter(row => row.stage === stage.label).length}</span></button>)}
           </div>

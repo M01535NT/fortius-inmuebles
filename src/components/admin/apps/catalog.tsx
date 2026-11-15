@@ -59,7 +59,7 @@ export function AppsCatalog() {
     return group === "Documentos" ? [apps[0], ...EXTRA[group], ...apps.slice(1)].filter(Boolean) : [...apps, ...EXTRA[group]];
   };
   return <div className="flex flex-col gap-6">
-    <div className={styles.panel} data-tour="herramientas-grupos">
+    <div className={styles.panel}>
       {APP_GROUPS.map(group => <section key={group} className={styles.column} aria-labelledby={`grupo-${group}`}>
         <h2 id={`grupo-${group}`} className={styles.columnHead}>{GROUP_TITLE[group]}</h2>
         <ul className={styles.items}>{entries(group).map(entry => <li key={entry.key}>

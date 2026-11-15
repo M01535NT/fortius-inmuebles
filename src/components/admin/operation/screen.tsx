@@ -190,7 +190,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         {tab !== "sigue" && tabs}
       </StagePanel>
       <div className={s.main}>
-        {tab === "sigue" && <div data-tour="operacion-pestanas" className={s.foot}>
+        {tab === "sigue" && <div className={s.foot}>
           {tabs}
           {!adviser && <span className={s.footWho}>Sin responsable</span>}
         </div>}

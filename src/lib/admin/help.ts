@@ -1,8 +1,7 @@
 /*
   «¿Cómo se hace esto?» (COR-26, 12/11/2026): el manual del panel para el asesor, dentro del panel.
-  Cada sección corresponde a una pantalla de la guía (`tour.ts`, mismo `id`), así la guía de cada
-  pantalla enlaza a su sección. Lenguaje del asesor, sin detalles técnicos. Si una pantalla cambia,
-  se cambian aquí sus pasos.
+  Cada sección corresponde a una pantalla del panel (mismo `id`). Lenguaje del asesor, sin detalles
+  técnicos. Si una pantalla cambia, se cambian aquí sus pasos.
 */
 export type HelpTask = { q: string; steps: string[] };
 export type HelpSection = { id: string; title: string; intro: string; tasks: HelpTask[]; director?: true };

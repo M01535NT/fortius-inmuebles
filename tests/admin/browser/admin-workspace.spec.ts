@@ -93,7 +93,7 @@ test("un asesor no ve Administración y conserva las 17 herramientas", async ({ 
   await page.keyboard.press("Escape");
   // HER-01 (12/11/2026): catálogo depurado en tres grupos; desde el 14/11 en un solo panel, cada herramienta una vez
   // (las 9 apps más la opinión de valor, Trámites y el inmueble compartido).
-  await expect(page.locator('[data-tour="herramientas-grupos"] li')).toHaveCount(12);
+  await expect(page.getByRole("main").locator("section li")).toHaveCount(12);
 });
 
 test("en celular la barra inferior y el menú llevan a todas las secciones", async ({ page }) => {

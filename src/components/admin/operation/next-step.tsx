@@ -243,7 +243,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {/* Boceto «desde cero» (14/11/2026): a la izquierda la etapa con lo que hay que confirmar y sus documentos; a la derecha la próxima tarea y el inmueble. */}
     <div className={cn(s.span6, s.bodyCols)}>
       <div className={s.bodyMain}>
-    {(reviewsGroup.length > 0 || otherGroup.length > 0 || !!stageText) && <section aria-labelledby="etapa-actual" data-tour="operacion-confirma" className={cn(s.piece, s.stagePiece)}>
+    {(reviewsGroup.length > 0 || otherGroup.length > 0 || !!stageText) && <section aria-labelledby="etapa-actual" className={cn(s.piece, s.stagePiece)}>
       <div className={s.stageIntro}><h2 id="etapa-actual" className={s.stageTitle}>{stageName}</h2>{stageText && <p className={s.stageText}>{stageText}</p>}</div>
       {(reviewsGroup.length > 0 || otherGroup.length > 0) && <>
       <div className={s.pieceHead}><h3 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h3><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que la operación pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
@@ -262,7 +262,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       </>}
     </section>}
 
-    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" data-tour="operacion-documentos" className={s.piece}>
+    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" className={s.piece}>
       <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><Hint term="los documentos de la etapa">Los formatos que deja esta etapa. Cada uno se abre en su propia ventana para llenarlo.</Hint><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
       <ul className={s.docList}>{documentsGroup.map(item => item.kind === "abogado"
         ? <li key="abogado" className={s.docWait}>
@@ -321,7 +321,7 @@ function FloatBar({ children }: { children: React.ReactNode }) {
     observer.observe(el);
     return () => { observer.disconnect(); root.style.removeProperty("--op-float"); root.removeAttribute("data-op-float"); };
   }, []);
-  return <div ref={ref} role="region" aria-label="Siguiente acción" data-tour="operacion-continuar" className={s.float}>{children}</div>;
+  return <div ref={ref} role="region" aria-label="Siguiente acción" className={s.float}>{children}</div>;
 }
 
 /** Formatos que se hacen más de una vez en la misma operación: uno por visita, reporte, oferta o presupuesto. */

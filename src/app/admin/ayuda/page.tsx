@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { Card, Surface } from "@/components/admin/kit";
 import { PageHeader } from "@/components/admin/ui";
-import { openTour } from "@/components/admin/workspace/tour";
 import { useIsDirector } from "@/lib/admin/staff-scope";
 import { HELP_SECTIONS } from "@/lib/admin/help";
 
@@ -27,6 +26,6 @@ export default function HelpPage() {
         </div>
       </Card>)}
     </div>
-    <p className="mt-6 text-sm text-muted-foreground">¿No encuentras algo? <button type="button" className="font-semibold text-foreground underline underline-offset-4" onClick={openTour}>Abre la guía de esta pantalla</button> o pregúntale al director.</p>
+    <p className="mt-6 text-sm text-muted-foreground">¿No encuentras algo? Busca con Ctrl K o pregúntale al director.</p>
   </Surface>;
 }

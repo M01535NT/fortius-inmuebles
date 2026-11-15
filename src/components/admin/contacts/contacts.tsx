@@ -154,12 +154,12 @@ export function ContactsScreen() {
   return <GuidedPage title="Contactos" subtitle={<span className="hidden sm:inline">{finding}</span>} actions={<>
     <div className="flex gap-2 lg:hidden">
       <Button iconOnly variant="ghost" aria-label={searching ? "Cerrar búsqueda" : "Buscar"} aria-expanded={searching} onClick={() => { setSearching(v => !v); if (searching) setQuery(""); }}>{searching ? <X size={20} aria-hidden="true" /> : <Search size={20} aria-hidden="true" />}</Button>
-      {filter === "clientes" ? <Button iconOnly data-tour="contactos-agregar" aria-label="Agregar cliente" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
-        : <ButtonLink iconOnly data-tour="contactos-agregar" aria-label="Agregar contacto" href="/admin/operaciones/nueva"><Plus size={20} aria-hidden="true" /></ButtonLink>}
+      {filter === "clientes" ? <Button iconOnly aria-label="Agregar cliente" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
+        : <ButtonLink iconOnly aria-label="Agregar contacto" href="/admin/operaciones/nueva"><Plus size={20} aria-hidden="true" /></ButtonLink>}
     </div>
     <div className="hidden lg:block">{filter === "clientes"
-      ? <Button variant={adding ? "secondary" : "primary"} data-tour="contactos-agregar" aria-expanded={adding} onClick={() => setAdding(v => !v)}>{adding ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{adding ? "Cerrar" : "Agregar cliente"}</Button>
-      : <ButtonLink variant="primary" data-tour="contactos-agregar" href="/admin/operaciones/nueva"><Plus size={16} aria-hidden="true" />Agregar contacto</ButtonLink>}</div>
+      ? <Button variant={adding ? "secondary" : "primary"} aria-expanded={adding} onClick={() => setAdding(v => !v)}>{adding ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{adding ? "Cerrar" : "Agregar cliente"}</Button>
+      : <ButtonLink variant="primary" href="/admin/operaciones/nueva"><Plus size={16} aria-hidden="true" />Agregar contacto</ButtonLink>}</div>
   </>}>
     {searching && <div className="mb-4 lg:hidden">{searchField}</div>}
     {filter === "clientes" && adding && <section className={cn(f.window, "mb-5")} aria-label="Nuevo cliente">
@@ -171,14 +171,14 @@ export function ContactsScreen() {
     </section>}
     {/* Filtros como selector a la izquierda; seleccionar y buscar a la derecha. */}
     <div className={s.tabsRow}>
-      <div className={s.chips} role="group" aria-label="Mostrar personas" data-tour="contactos-filtros">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
+      <div className={s.chips} role="group" aria-label="Mostrar personas">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
       {rows.length > 0 && <SelectToggle selection={selection} noun="contactos" />}
       <div className="hidden lg:block">{searchField}</div>
     </div>
     <div className="mt-5 min-w-0">
       {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : "Aquí están las personas que buscan a Fortius y los clientes, con lo que sigue con cada una. Las que escriben desde el sitio llegan solas."}
-      </EmptyBox> : <div className={s.frame} data-tour="contactos-lista">
+      </EmptyBox> : <div className={s.frame}>
         <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} current={previewRow ? keyOf(previewRow) : undefined} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={stageText} selection={selection} keyOf={keyOf} />
         {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} blocking={previewRow.kind === "cliente" ? deleteBlock(openFolios, previewRow.id) : ""} wait={waiting(previewRow)} limitHours={limitHours} me={me} />}
       </div>}
