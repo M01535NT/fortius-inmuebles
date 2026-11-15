@@ -49,15 +49,19 @@ beforeAll(async () => {
 afterAll(async () => { await db?.close(); });
 
 
-it('blocks a sale-stage jump even when a client writes directly to PostgreSQL', async () => {
+it('a sale-stage jump written directly to PostgreSQL passes but leaves its notice (FLX-03, RP-100)', async () => {
  await asUser(own, async () => {
-  await expect(db.query("update public.fortius_inmuebles_expedientes set etapa='comercializacion',version=version+1 where id=$1",[exp])).rejects.toMatchObject({code:'PT409'});
+  await db.query("update public.fortius_inmuebles_expedientes set etapa='comercializacion',version=version+1 where id=$1",[exp]);
+  const notice=(await db.query<{descripcion:string}>("select descripcion from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso'",[exp])).rows;
+  expect(notice).toHaveLength(1);
+  expect(notice[0].descripcion).toMatch(/^Pasó a «Comercialización» sin: La guía del asunto/);
+  await db.query("update public.fortius_inmuebles_expedientes set etapa='captacion',version=version+1 where id=$1",[exp]);
  });
 });
-it('rejects publication of a new sale listing without a reviewed linked capture operation', async () => {
+it('publishing a new sale listing stays with the director (DEC-43); without capture it no longer waits for one (FLX-03)', async () => {
  const p={slug:'guided-private',codigo:'GUIDE-1',titulo:'Prueba ficticia privada',tipo:'casa',operacion:'venta',precio:{modalidad:'consulta'},zona:'Prueba',direccionAproximada:'Prueba',descripcion:['Prueba'],ficha:{},amenidades:[],galeria:[{src:'/hero/casa-playa.webp',alt:'Prueba'}],asesorId:'own',creditoDisponible:false,puntosDeInteres:[],destacada:false,estado:'disponible',publicadaEl:'2026-10-13',demo:true,publicada:true};
  await asUser(own, async () => {
-  await expect(db.query("select public.fortius_inmuebles_put_record('propiedades',$1,$2::jsonb,null)",[p.slug,JSON.stringify(p)])).rejects.toMatchObject({code:'PT409'});
+  await expect(db.query("select public.fortius_inmuebles_put_record('propiedades',$1,$2::jsonb,null)",[p.slug,JSON.stringify(p)])).rejects.toMatchObject({code:'PT403'});
  });
 });
 
@@ -81,6 +85,21 @@ async function fixture(flow:Record<string,unknown>=completeFlow(),slug='house-a'
 async function update(id:string,stage:string,flow:Record<string,unknown>|null=null,slug?:string) {
  const version=(await db.query<{version:number}>('select version from public.fortius_inmuebles_expedientes where id=$1',[id])).rows[0].version;
  return (await db.query<{r:Record<string,unknown>}>("select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,$5,$6) r",[id,version,stage,flow?JSON.stringify(flow):null,slug??null,slug!==undefined])).rows[0].r;
+}
+/** El último aviso que la base anotó en el historial del asunto (FLX-03, RP-100). */
+async function lastNotice(id:string){
+ return (await db.query<{descripcion:string}>("select descripcion from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso' order by created_at desc limit 1",[id])).rows[0]?.descripcion ?? '';
+}
+/**
+  FLX-03 (RP-100): lo que antes frenaba el paso ahora lo deja pasar y lo anota. La prueba comprueba
+  el aviso y regresa la etapa para seguir recorriendo el flujo como antes.
+*/
+async function passesWithNotice(id:string,stage:string,expected:RegExp,flow:Record<string,unknown>|null=null){
+ const before=(await db.query<{etapa:string}>('select etapa from public.fortius_inmuebles_expedientes where id=$1',[id])).rows[0].etapa;
+ const moved=await update(id,stage,flow);
+ expect(moved.etapa).toBe(stage);
+ expect(await lastNotice(id)).toMatch(expected);
+ if(before!==stage)await update(id,before,{...(moved.flujo as Record<string,unknown>),motivo:'Regreso de la prueba'});
 }
 /** Sube a los documentos del cliente un contrato ficticio de la operación (como superusuario de la prueba). */
 async function clientFile(id:string){
@@ -131,10 +150,10 @@ it('accepts the owner appraisal as value evidence only while it is current (COR-
   const expired=appraisalFlow(lateFile,appraisal(lateFile,{fecha:'2025-01-10',vigenteHasta:'2025-07-10'}));
   await update(late.id,'documentacion',{...expired,firmaContrato:lateSign});
   await asAdmin(()=>update(late.id,'documentacion',{...expired,firmaContrato:{...lateSign,revisada:true}}));
-  await expect(update(late.id,'comercializacion')).rejects.toMatchObject({code:'PT409'});
+  await passesWithNotice(late.id,'comercializacion',/Opinión de valor y fuentes/);
   const withoutAppraisal=appraisalFlow(lateFile,undefined);
   await update(late.id,'documentacion',{...withoutAppraisal,firmaContrato:{...lateSign,revisada:true}});
-  await expect(update(late.id,'comercializacion')).rejects.toMatchObject({code:'PT409'});
+  await passesWithNotice(late.id,'comercializacion',/Opinión de valor y fuentes/);
  });
 });
 /** COR-22: el cierre guarda quién captó y quién vendió, y el inmueble vendido sigue en el sitio como vendido. */
@@ -171,7 +190,9 @@ it('records who captured and who sold, and keeps a sold listing visible as sold 
   expect(await published('house-left')).toBe(false);
   // Con la operación ya cerrada se puede volver a mostrar como vendido, nunca como disponible.
   await actAs(admin);
-  await expect(putListing('house-left',listing('house-left'))).rejects.toMatchObject({code:'PT409'});
+  // FLX-03: mostrarlo como disponible ya no se impide; queda el aviso en su captación.
+  await putListing('house-left',listing('house-left'));
+  expect(await lastNotice(ops['house-left'])).toMatch(/^Se publicó el inmueble sin: la captación lista para publicar/);
   await putListing('house-left',listing('house-left',{estado:'vendida'}));
   expect(await published('house-left')).toBe(true);
   await actAs(own);
@@ -181,10 +202,10 @@ it('walks signature/payment, delivery and post-sale separately and archives with
  await asUser(own,async()=>{
   const f=await fixture();await update(f.id,'documentacion');await sign(f.id,'documentacion');
   for(const stage of ['comercializacion','negociacion','cierre','entrega','postventa'])expect((await update(f.id,stage)).etapa).toBe(stage);
-  await expect(update(f.id,'cerrado')).rejects.toMatchObject({code:'PT409'});
+  await passesWithNotice(f.id,'cerrado',/Resolver o descartar las tareas pendientes/);
   await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,1)",[f.task.id,JSON.stringify({...f.task,estado:'completada'})]);
-  // COR-22: sin quién captó y quién vendió no se archiva.
-  await expect(update(f.id,'cerrado')).rejects.toMatchObject({code:'PT409'});
+  // COR-22: sin quién captó y quién vendió se archiva, y queda el aviso (FLX-03).
+  await passesWithNotice(f.id,'cerrado',/Quién captó y quién vendió/);
   await update(f.id,'postventa',{...completeFlow(),cierre:{capto:'own',vendio:'other'}});
   expect((await update(f.id,'cerrado')).etapa).toBe('cerrado');
  });
@@ -192,17 +213,17 @@ it('walks signature/payment, delivery and post-sale separately and archives with
 it('does not treat received documents as reviewed evidence and requires an assigned dated action',async()=>{
  await asUser(own,async()=>{
   const flow=completeFlow();flow.requisitos.entrevista.estado='recibido';const f=await fixture(flow);
-  await expect(update(f.id,'documentacion')).rejects.toMatchObject({code:'PT409'});
+  await passesWithNotice(f.id,'documentacion',/Entrevista y objetivo del propietario/);
   await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,1)",[f.task.id,JSON.stringify({...f.task,vence:''})]);
-  await expect(update(f.id,'documentacion',completeFlow())).rejects.toMatchObject({code:'PT409'});
+  await passesWithNotice(f.id,'documentacion',/Una próxima tarea con fecha y responsable/,completeFlow());
  });
 });
 it('rejects expired feasibility before commercialization and expired closing review before signing',async()=>{
  await asUser(own,async()=>{
   const flow=completeFlow();flow.requisitos.factibilidad.vigenteHasta='2020-01-01';const f=await fixture(flow);
-  await update(f.id,'documentacion');await sign(f.id,'documentacion');await expect(update(f.id,'comercializacion',flow)).rejects.toMatchObject({code:'PT409'});
+  await update(f.id,'documentacion');await sign(f.id,'documentacion');await passesWithNotice(f.id,'comercializacion',/Factibilidad documentada/,flow);
   await update(f.id,'comercializacion',completeFlow());await update(f.id,'negociacion');
-  const expired=completeFlow();expired.requisitos.revision_cierre.vigenteHasta='2020-01-01';await expect(update(f.id,'cierre',expired)).rejects.toMatchObject({code:'PT409'});
+  const expired=completeFlow();expired.requisitos.revision_cierre.vigenteHasta='2020-01-01';await passesWithNotice(f.id,'cierre',/Revisión actualizada para contratar y cerrar/,expired);
  });
 });
 it('reconciles task context and reserves prior review evidence and version history when the property changes',async()=>{
@@ -233,7 +254,7 @@ it('replaces a supplied recording actor with the authenticated user and does not
   await update(f.id,'captacion',{version:1,ruta:'captacion',estado:'activa',motivo:'',requisitos:{}});
   const kept=(await db.query<{flujo:{requisitos:{archivo:{estado:string}}}}>('select flujo from public.fortius_inmuebles_expedientes where id=$1',[f.id])).rows[0].flujo;
   expect(kept.requisitos.archivo.estado).toBe('observado');
-  await expect(update(f.id,'documentacion')).rejects.toMatchObject({code:'PT409',message:'Resuelve las observaciones abiertas'});
+  await passesWithNotice(f.id,'documentacion',/Resolver las observaciones abiertas/);
  });
 });
 it.each([{version:'1'},{motivo:123},{contraparteExterna:123},{estado:true}])('rejects direct guide data incompatible with the visible schema: %j',async(patch)=>{
@@ -254,7 +275,7 @@ it('registers owner report deliveries in the guide and rejects malformed ones (C
 it('requires the reviewed contract signature to reach publication and keeps its record (COR-10, RP-90, RP-97)',async()=>{
  await asUser(own,async()=>{
   const f=await fixture();await update(f.id,'documentacion');
-  await expect(update(f.id,'comercializacion')).rejects.toMatchObject({code:'PT409'});
+  await passesWithNotice(f.id,'comercializacion',/La firma del contrato revisada por el director/);
   const file=await clientFile(f.id);
   // Forma inválida, archivo ajeno o inexistente, e incompleta sin decir quién falta.
   for(const bad of [{...signature(file),tipo:'otro'},{...signature(file),fecha:'10/11/2026'},{...signature(file),firmantes:[]},{...signature(file),firmantes:[{nombre:'A',parte:'propietario'}]},{...signature(file),nota:'x'},signature(crypto.randomUUID()),signature(file,{completa:false})])
@@ -268,20 +289,21 @@ it('requires the reviewed contract signature to reach publication and keeps its 
   // Completa: el asesor no la revisa; el director sí.
   const full=signature(file);await update(f.id,'documentacion',{...completeFlow(),firmaContrato:full});
   await expect(update(f.id,'documentacion',{...completeFlow(),firmaContrato:{...full,revisada:true}})).rejects.toMatchObject({code:'PT403'});
-  await expect(update(f.id,'comercializacion')).rejects.toMatchObject({code:'PT409'});
+  await passesWithNotice(f.id,'comercializacion',/La firma del contrato revisada por el director/);
   const reviewed=(await asAdmin(()=>update(f.id,'documentacion',{...completeFlow(),firmaContrato:{...full,revisada:true}}))).flujo as {firmaContrato:Record<string,unknown>};
   expect(reviewed.firmaContrato).toMatchObject({revisada:true,revisadoPor:admin});
   // Guardar la guía sin la firma no la borra; corregir la firma borra su revisión.
   expect(((await update(f.id,'documentacion',completeFlow())).flujo as {firmaContrato?:unknown}).firmaContrato).toMatchObject({revisada:true});
   const corrected=(await update(f.id,'documentacion',{...completeFlow(),firmaContrato:{...full,fecha:'2026-11-11',revisada:true}})).flujo as {firmaContrato:Record<string,unknown>};
   expect(corrected.firmaContrato).toMatchObject({fecha:'2026-11-11',revisada:false});expect(corrected.firmaContrato.revisadoPor).toBeUndefined();
-  await expect(update(f.id,'comercializacion')).rejects.toMatchObject({code:'PT409'});
+  await passesWithNotice(f.id,'comercializacion',/La firma del contrato revisada por el director/);
   await asAdmin(()=>update(f.id,'documentacion',{...completeFlow(),firmaContrato:{...full,fecha:'2026-11-11',revisada:true}}));
   expect((await update(f.id,'comercializacion')).etapa).toBe('comercializacion');
   // Un contrato terminado ya no autoriza avanzar.
   await expect(update(f.id,'comercializacion',{...completeFlow(),firmaContrato:{...full,fecha:'2026-11-11',revisada:true,terminacion:{fecha:'2026-11-12',motivo:''}}})).rejects.toMatchObject({code:'PT400'});
   const ended=(await update(f.id,'comercializacion',{...completeFlow(),firmaContrato:{...full,fecha:'2026-11-11',revisada:true,terminacion:{fecha:'2026-11-12',motivo:'Rescisión de prueba'}}})).flujo as {firmaContrato:Record<string,unknown>};
   expect(ended.firmaContrato).toMatchObject({revisada:true,terminacion:{motivo:'Rescisión de prueba'}});
-  await expect(update(f.id,'negociacion')).rejects.toMatchObject({code:'PT409'});
+  // FLX-03: un contrato terminado ya no autoriza avanzar; pasa y queda el aviso.
+  await passesWithNotice(f.id,'negociacion',/La firma del contrato revisada por el director/);
  });
 });

@@ -101,15 +101,17 @@ it('requires the identification file to enter closing in a sale, not before and 
  expect(await required('arrendador','cierre')).not.toContain('identificacion_pld');
  expect(await required('arrendatario','cierre')).not.toContain('identificacion_pld');
 });
-it('blocks signing until the identification file is reviewed',async()=>{
+it('signing without the reviewed identification file passes and leaves its notice (FLX-03, RP-100)',async()=>{
  await asUser(own,async()=>{
   const {id}=await fixture();
   await update(id,'documentacion');await sign(id,'documentacion');await update(id,'comercializacion');await update(id,'negociacion');
   const firmaContrato=(await db.query<{f:unknown}>("select flujo->'firmaContrato' f from public.fortius_inmuebles_expedientes where id=$1",[id])).rows[0].f;
   const pendiente=completeFlow();pendiente.requisitos.identificacion_pld={estado:'recibido',soporte:'Faltan las identificaciones'};
   await update(id,'negociacion',{...pendiente,firmaContrato});
-  await expect(update(id,'cierre')).rejects.toThrow(/identificacion_pld/);
-  await update(id,'negociacion',{...completeFlow(),firmaContrato});
+  expect((await update(id,'cierre')).etapa).toBe('cierre');
+  const aviso=(await db.query<{descripcion:string}>("select descripcion from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso' order by created_at desc limit 1",[id])).rows[0]?.descripcion;
+  expect(aviso).toMatch(/^Pasó a «Cierre» sin: .*Expediente de identificación de las partes \(LFPIORPI\)/);
+  await update(id,'negociacion',{...completeFlow(),firmaContrato,motivo:'Regreso de la prueba'});
   await update(id,'cierre');
   expect((await db.query<{etapa:string}>('select etapa from public.fortius_inmuebles_expedientes where id=$1',[id])).rows[0].etapa).toBe('cierre');
  });

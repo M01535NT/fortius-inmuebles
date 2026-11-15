@@ -178,8 +178,13 @@ it("el director da de alta inventario heredado; pasa a verificación y no public
     .then(r => db.query(`select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,null,false)`, [inherited, r.rows[0].version, stage, JSON.stringify(flujo)]));
   await asUser(admin, async () => {
     await advance("documentacion", value);
-    // A comercialización no pasa: titularidad, factibilidad y valor siguen pendientes y no admiten excepción.
-    await expect(advance("comercializacion", value)).rejects.toMatchObject({ code: "PT409" });
+    // FLX-03 (RP-100): a comercialización pasa, y la base anota que titularidad, factibilidad y valor
+    // siguen pendientes (no admiten excepción).
+    await advance("comercializacion", value);
+    const aviso = (await db.query<{ descripcion: string }>("select descripcion from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso' order by created_at desc limit 1", [inherited])).rows[0]?.descripcion;
+    expect(aviso).toMatch(/^Pasó a «Comercialización» sin: .*Identidad, representación y antecedente de propiedad/);
+    expect(aviso).toMatch(/Factibilidad documentada/);
+    expect(aviso).toMatch(/Opinión de valor y fuentes/);
   });
   await asUser(own, async () => {
     // El asesor no quita ni cambia la marca.

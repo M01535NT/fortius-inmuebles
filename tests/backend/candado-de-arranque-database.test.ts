@@ -47,25 +47,32 @@ const prepare = (id: string) => asUser(own, async () => {
   const task = { id: `next-${id}`, titulo: "Solicitar escritura", categoria: "documentacion", estado: "pendiente", prioridad: "normal", pasos: [], asesorId: "own", clienteId: "c-own", expedienteId: id, vence: "2030-12-31" };
   await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,null)", [task.id, JSON.stringify(task)]);
 });
+// FLX-03 (RP-100): salir de captación sin el arranque ya no se impide; queda el aviso en el historial.
+const notice = (id: string) => db.query<{ descripcion: string }>("select descripcion from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso'", [id]).then(r => r.rows.map(x => x.descripcion));
 const advance = (id: string) => asUser(own, () => db.query("update public.fortius_inmuebles_expedientes set etapa='documentacion',version=3 where id=$1 and version=2 returning etapa", [id]));
 
-it("sin 02, 04 ni checklist no sale de captación, aunque el asesor escriba directo en la base", async () => {
+it("sin 02, 04 ni checklist sale de captación y la base lo anota, aunque el asesor escriba directo en ella", async () => {
   await prepare(exp);
-  await expect(advance(exp)).rejects.toMatchObject({ code: "PT409",
-    message: "Antes de avanzar: Recibe los documentos del checklist; Termina la entrevista inicial (02) y genera su PDF; Termina el levantamiento (04) y genera su PDF" });
+  expect((await advance(exp)).rows).toEqual([{ etapa: "documentacion" }]);
+  const [aviso] = await notice(exp);
+  expect(aviso).toMatch(/^Pasó a «Documentación» sin: (.+; )?Los documentos de la lista; La entrevista inicial \(02\) con su PDF; El levantamiento \(04\) con su PDF$/);
 });
 
-it("con un paso del checklist pendiente tampoco sale, aunque el 02 y el 04 estén emitidos", async () => {
+it("con un paso del checklist pendiente sale y el aviso dice solo eso, aunque el 02 y el 04 estén emitidos", async () => {
   await prepare(exp2);
   await asUser(own, () => db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,null)", [`checklist-${exp2}`, JSON.stringify({ id: `checklist-${exp2}`,
     titulo: "Reunir los documentos del propietario", categoria: "documentacion", estado: "pendiente", prioridad: "normal", asesorId: "own", clienteId: "c-own", expedienteId: exp2,
     pasos: [{ id: "D01", texto: "Escritura (ficticia de ensayo)", hecho: false }, { id: "D02", texto: "Predial (ficticio)", hecho: false, noAplica: "Exento según el propietario" }] })]));
   await cumplirArranque(db, exp2, own);
-  await expect(advance(exp2)).rejects.toMatchObject({ code: "PT409", message: "Antes de avanzar: Recibe los documentos del checklist" });
+  expect((await advance(exp2)).rows).toEqual([{ etapa: "documentacion" }]);
+  const [aviso] = await notice(exp2);
+  expect(aviso).toMatch(/Los documentos de la lista$/);
+  expect(aviso).not.toMatch(/\(02\)|\(04\)/);
 });
 
 it("con el arranque completo avanza", async () => {
   await prepare(exp3);
   await cumplirArranque(db, exp3, own);
   expect((await advance(exp3)).rows).toEqual([{ etapa: "documentacion" }]);
+  expect((await notice(exp3)).join(" ")).not.toMatch(/lista|\(02\)|\(04\)/);
 });
