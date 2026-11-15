@@ -137,10 +137,11 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
       <DialogContent instant hideClose className="top-[8dvh] max-h-[min(80dvh,640px)] w-[min(640px,calc(100%-2rem))] translate-y-0 gap-0 overflow-hidden p-0">
         <DialogTitle className="sr-only">Buscar en el panel</DialogTitle>
         <DialogDescription className="sr-only">Escribe un nombre, folio o lo que quieres hacer; las flechas recorren y Enter elige.</DialogDescription>
-        <Command shouldFilter={false} loop label="Buscar en el panel" className="flex min-h-0 flex-1 flex-col">
+        {/* cmdk nombra el campo con esta etiqueta (aria-labelledby gana a un aria-label propio). */}
+        <Command shouldFilter={false} loop label="Buscar personas, inmuebles o folios, o escribir qué quieres hacer" className="flex min-h-0 flex-1 flex-col">
           <div className={s.paletteHead}>
             <Search size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
-            <Command.Input autoFocus aria-label="Buscar personas, inmuebles o folios, o escribir qué quieres hacer" placeholder="Nombre, folio o lo que quieres hacer" value={query} onValueChange={setQuery} />
+            <Command.Input autoFocus placeholder="Nombre, folio o lo que quieres hacer" value={query} onValueChange={setQuery} />
             <DialogClose className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Cerrar búsqueda"><X size={20} aria-hidden="true" /></DialogClose>
           </div>
           <Command.List className={s.paletteBody} label="Resultados de la búsqueda">

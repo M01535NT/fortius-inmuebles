@@ -64,6 +64,8 @@ test("la barra guarda el registro abierto en Recientes, ofrece acciones y marca 
   fireEvent.keyDown(window, { key: "k", ctrlKey: true });
   const dialog = within(screen.getByRole("dialog", { name: "Buscar en el panel", hidden: true }));
   expect(await dialog.findByRole("group", { name: "Recientes", hidden: true })).toBeTruthy();
+  // El campo se anuncia con lo que se puede buscar, no solo con el título de la ventana.
+  expect(dialog.getByRole("combobox", { name: "Buscar personas, inmuebles o folios, o escribir qué quieres hacer", hidden: true })).toBeTruthy();
   fireEvent.change(dialog.getByRole("combobox", { hidden: true }), { target: { value: "predial" } });
   fireEvent.click(await dialog.findByRole("option", { name: "Marcar como hecha: Pedir el predial", hidden: true }));
   await waitFor(() => expect(puts).toHaveLength(1));
