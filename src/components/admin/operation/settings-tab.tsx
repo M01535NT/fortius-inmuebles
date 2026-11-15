@@ -14,7 +14,7 @@ const ROLE: Record<string, string> = { captacion: "Propietario vendedor", compra
 const OPPOSITE: Record<string, string> = { captacion: "compra", compra: "captacion", arrendador: "arrendatario", arrendatario: "arrendador", inversion: "" };
 
 /**
-  Datos de la operación (antes pestaña «Ajustes»; desde SIM-18 se abren en «Más opciones»): la
+  Datos del asunto (antes pestaña «Ajustes»; desde SIM-18 se abren en «Más opciones»): la
   ruta y situación, el inmueble, la fecha objetivo, la contraparte y corregir la etapa con motivo.
   Eliminar está en el mismo menú. La decisión del encargo pasó al panel de la etapa (COR-14, DEC-38).
 */
@@ -52,13 +52,13 @@ export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: Ope
   }
   async function goBack() {
     if (!back || flow.motivo.trim().length < 3) { setError("Elige la etapa y escribe el motivo de la corrección."); return; }
-    if (!await confirmAction(`¿Regresar la operación a «${stageLabel(back, flow.ruta)}»? Queda registrado con tu motivo.`)) return;
+    if (!await confirmAction(`¿Regresar el asunto a «${stageLabel(back, flow.ruta)}»? Queda registrado con tu motivo.`)) return;
     await run(() => onSave({ flujo: flow, etapa: back, propiedadSlug: property || null, fechaObjetivo: date || null }).then(() => setBack("")), "Etapa corregida");
   }
   return <form onSubmit={save} className="flex max-w-[56rem] flex-col gap-5">
     <fieldset disabled={busy} className="flex min-w-0 flex-col gap-5">
-      <Card className="grid gap-4 p-5 sm:grid-cols-2" aria-label="Datos de la operación">
-        <h2 className="m-0 text-lg sm:col-span-2">Datos de la operación</h2>
+      <Card className="grid gap-4 p-5 sm:grid-cols-2" aria-label="Datos del asunto">
+        <h2 className="m-0 text-lg sm:col-span-2">Datos del asunto</h2>
         {guided && <label className="text-sm font-semibold">Ruta<select className={selectClass} value={flow.ruta} onChange={e => setFlow(old => ({ ...old, ruta: e.target.value as OperationWorkflow["ruta"] }))}>{routeChoices.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
         {guided && <label className="text-sm font-semibold">Situación<select className={selectClass} value={flow.estado} onChange={e => setFlow(old => ({ ...old, estado: e.target.value as OperationWorkflow["estado"] }))}>{Object.entries(WORKFLOW_STATES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
         <label className="text-sm font-semibold">Inmueble<select className={selectClass} value={property} onChange={e => setProperty(e.target.value)}><option value="">Sin vincular todavía</option>{property && !available.some(p => p.slug === property) && <option value={property}>Inmueble vinculado no disponible</option>}{available.map(p => <option key={p.slug} value={p.slug}>{p.titulo}</option>)}</select></label>
@@ -71,7 +71,7 @@ export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: Ope
         <div><h2 className="m-0 text-lg">Contraparte</h2><p className="mt-1 text-sm text-muted-foreground">Quién firma con el propietario: un interesado o una contraparte externa con su respaldo. No es cliente de Fortius.</p></div>
         <div className="grid gap-3 sm:grid-cols-2">
           {!historical && <label className="text-sm font-semibold">Interesado que firma<select className={selectClass} value={flow.contraparteLeadId ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteLeadId: e.target.value || undefined, contraparteId: undefined, contraparteExterna: e.target.value ? undefined : old.contraparteExterna }))}><option value="">Ninguno del panel</option>{flow.contraparteLeadId && !interested.some(l => l.id === flow.contraparteLeadId) && <option value={flow.contraparteLeadId}>{leads.find(l => l.id === flow.contraparteLeadId)?.nombre ?? "Interesado vinculado"}</option>}{interested.map(l => <option key={l.id} value={l.id}>{l.nombre}{l.telefono ? ` · ${l.telefono}` : ""}</option>)}</select></label>}
-          {(historical || flow.contraparteId) && <label className="text-sm font-semibold">Operación de la contraparte<select className={selectClass} value={flow.contraparteId ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteId: e.target.value || undefined, contraparteLeadId: undefined, contraparteExterna: undefined }))}><option value="">Ninguna del panel</option>{flow.contraparteId && !compatible.some(e => e.id === flow.contraparteId) && <option value={flow.contraparteId}>Vínculo actual · comprobar</option>}{compatible.map(e => <option key={e.id} value={e.id}>{e.folio} · {ROLE[e.flujo?.ruta ?? ""]}</option>)}</select></label>}
+          {(historical || flow.contraparteId) && <label className="text-sm font-semibold">Asunto de la contraparte<select className={selectClass} value={flow.contraparteId ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteId: e.target.value || undefined, contraparteLeadId: undefined, contraparteExterna: undefined }))}><option value="">Ninguno del panel</option>{flow.contraparteId && !compatible.some(e => e.id === flow.contraparteId) && <option value={flow.contraparteId}>Vínculo actual · comprobar</option>}{compatible.map(e => <option key={e.id} value={e.id}>{e.folio} · {ROLE[e.flujo?.ruta ?? ""]}</option>)}</select></label>}
           <label className="text-sm font-semibold">Contraparte externa y respaldo<textarea rows={2} maxLength={1000} disabled={!!flow.contraparteId || !!flow.contraparteLeadId} className={textareaClass} value={flow.contraparteExterna ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteExterna: e.target.value || undefined }))} /></label>
         </div>
       </Card>}
@@ -85,7 +85,7 @@ export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: Ope
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
       {guided && WORKFLOW_STAGES.indexOf(stage) > 0 && <Card className="flex flex-col gap-3 p-5" aria-label="Corregir etapa">
-        <div><h2 className="m-0 text-lg">Corregir etapa</h2><p className="mt-1 text-sm text-muted-foreground">Regresa a una etapa anterior si avanzó por error. El motivo va en «Datos de la operación».</p></div>
+        <div><h2 className="m-0 text-lg">Corregir etapa</h2><p className="mt-1 text-sm text-muted-foreground">Regresa a una etapa anterior si avanzó por error. El motivo va en «Datos del asunto».</p></div>
         <label className="text-sm font-semibold">Regresar a<select className={selectClass} value={back} onChange={e => setBack(e.target.value as WorkflowStage | "")}><option value="">Elige la etapa</option>{WORKFLOW_STAGES.slice(0, WORKFLOW_STAGES.indexOf(stage)).map(st => <option key={st} value={st}>{stageLabel(st, flow.ruta)}</option>)}</select></label>
         <Button className="self-start" disabled={!back || flow.motivo.trim().length < 3 || busy} onClick={() => void goBack()}>Regresar con este motivo</Button>
       </Card>}

@@ -22,7 +22,7 @@ it('abre una operación sin capturar su folio y lleva a la operación con el fol
   expect(screen.queryByLabelText(/Folio/)).toBeNull();
   expect(screen.getByText('El folio se asigna al guardar.')).toBeTruthy();
   fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: 'c1' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Abrir operación' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Abrir asunto' }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).not.toHaveProperty('folio');
   expect(writes[0]).toMatchObject({ clienteId: 'c1', asesorId: 'a1', operacion: 'venta', flujo: { ruta: 'captacion', estado: 'activa' } });

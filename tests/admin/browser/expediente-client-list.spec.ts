@@ -30,7 +30,7 @@ for (const width of [390, 768, 1440]) {
       return route.fulfill({ json: { records: data.map(item => ({ id: item.id, data: item, version: 1 })) } });
     });
     await page.goto("/admin/operaciones");
-    await expect(page.getByRole("heading", { name: "Operaciones", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Asuntos", exact: true })).toBeVisible();
     // Lista del boceto C: «Esperan algo de ti» y «Al día», con filtro por etapa (sin fases desde el 27/10/2026).
     const waiting = page.getByRole("region", { name: /Esperan algo de ti/ });
     await expect(waiting.getByRole("link", { name: /Juan Ibarra\. Etapa 1 de 10, Primer contacto\. Sin próxima tarea/ })).toBeVisible();
@@ -42,7 +42,7 @@ for (const width of [390, 768, 1440]) {
     await page.getByRole("group", { name: "Etapa" }).getByRole("button", { name: /^Todas/ }).click();
     await page.screenshot({ path: testInfo.outputPath(`tablero-${width}.png`), fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const search = page.getByRole("textbox", { name: "Buscar operación" });
+    const search = page.getByRole("textbox", { name: "Buscar asunto" });
     await search.fill("tonala");
     await expect(waiting.getByRole("link", { name: /Liliana Tonalá Vargas/ })).toBeVisible();
     await expect(waiting.getByRole("link", { name: /Juan Ibarra/ })).toHaveCount(0);
@@ -55,9 +55,9 @@ for (const width of [390, 768, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`operacion-${width}.png`), fullPage: true });
     // En celular la operación esconde la barra inferior; «Volver a Operaciones» lleva a la misma lista.
-    await page.getByRole("link", { name: /^(Volver a )?Operaciones$/ }).filter({ visible: true }).first().click();
+    await page.getByRole("link", { name: /^(Volver a )?Asuntos$/ }).filter({ visible: true }).first().click();
     await page.getByRole("link", { name: "Ver eliminados" }).click();
-    await expect(page.getByText("No hay operaciones eliminadas")).toBeVisible();
+    await expect(page.getByText("No hay asuntos eliminados")).toBeVisible();
     await page.goto("/admin/operaciones/nueva");
     await expect(page.getByRole("heading", { name: "¿Qué quiere hacer el cliente?" })).toBeVisible();
     expect(errors).toEqual([]);

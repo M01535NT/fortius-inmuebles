@@ -46,9 +46,9 @@ export function InheritedCreate({ onDirtyChange, taken }: { onDirtyChange?: (dir
   }
 
   return <form className="flex flex-col gap-4" onSubmit={event => void create(event)} noValidate>
-    <p className="text-sm text-muted-foreground">Para un inmueble que el asesor ya trae con contrato firmado. La entrevista, el levantamiento y el plan se dan por cubiertos. Antes de publicar, en la operación, registras el contrato firmado y revisas la titularidad, la factibilidad, el valor y el precio.</p>
+    <p className="text-sm text-muted-foreground">Para un inmueble que el asesor ya trae con contrato firmado. La entrevista, el levantamiento y el plan se dan por cubiertos. Antes de publicar, en el asunto, registras el contrato firmado y revisas la titularidad, la factibilidad, el valor y el precio.</p>
     <label className="text-sm font-semibold">Inmueble<select className={selectClass} value={slug} onChange={e => setSlug(e.target.value)} disabled={busy}>
-      <option value="">{options.length ? "Elige el inmueble…" : "No hay inmuebles sin operación"}</option>
+      <option value="">{options.length ? "Elige el inmueble…" : "No hay inmuebles sin asunto"}</option>
       {options.map(p => <option key={p.slug} value={p.slug}>{p.titulo} · {adviserOf(p.asesorId)}</option>)}
     </select></label>
     <div className="grid gap-3 sm:grid-cols-2">

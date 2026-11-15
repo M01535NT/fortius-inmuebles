@@ -13,7 +13,7 @@ export type PersonRef = { kind: "lead" | "cliente"; id: string; asesorId?: strin
 /** Una operación: su siguiente paso es su próxima tarea con fecha (tarjeta «Próxima tarea»). */
 export type OperationRef = { kind: "operacion"; id: string; asesorId?: string; clienteId?: string; propiedadSlug?: string };
 export type NextRef = PersonRef | OperationRef;
-export const OPERATION_NEXT_DESCRIPTION = "Próxima acción de la operación";
+export const OPERATION_NEXT_DESCRIPTION = "Próxima acción del asunto";
 
 /** La tarea nueva con que una operación agenda su siguiente paso. */
 export function operationNextStep(ref: OperationRef, step: { accion: string; fecha: string; id: string }): Task {

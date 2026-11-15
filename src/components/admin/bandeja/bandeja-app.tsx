@@ -286,7 +286,7 @@ function Detalle({ doc, enPapelera, error, aviso, atajos, archivarConTeclaRef, o
             </div>}
             {manual && <div className={s.destStack}>
               <Desplegable label="Inmueble" value={inmueble} onChange={setInmueble} options={conNinguno("Ninguno", opcionesInmueble)} disabled={busy} />
-              <Desplegable label="Operación" value={operacion} onChange={setOperacion} options={conNinguno("Ninguna", opcionesOperacion)} disabled={busy} />
+              <Desplegable label="Asunto" value={operacion} onChange={setOperacion} options={conNinguno("Ninguno", opcionesOperacion)} disabled={busy} />
               <Desplegable label="Persona" value={persona} onChange={setPersona} options={conNinguno("Sin persona", opcionesPersona)} disabled={busy} />
             </div>}
             {sugerencias.length > 0 && <button type="button" className={s.link} disabled={busy} onClick={() => setOtro(v => !v)}>{manual ? "Ver los que coinciden" : "Otro destino"}</button>}

@@ -61,10 +61,10 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
           return linked ? { ...old, ...taskExpedienteContext(linked) } : old;
         });
       })
-      .catch(() => { if (active) setExpedienteError("No se pudieron consultar las operaciones. Puedes guardar la tarea sin vincularla."); });
+      .catch(() => { if (active) setExpedienteError("No se pudieron consultar los asuntos. Puedes guardar la tarea sin vincularla."); });
     apiRequest<{ expedienteLinks: boolean }>("/api/admin/tareas/capacidades")
       .then((result) => { if (active) setExpedienteLinks(result.expedienteLinks); })
-      .catch(() => { if (active) setCapabilityError("No se pudo comprobar el vínculo con operaciones. Puedes guardar la tarea sin vincularla."); });
+      .catch(() => { if (active) setCapabilityError("No se pudo comprobar el vínculo con asuntos. Puedes guardar la tarea sin vincularla."); });
     return () => { active = false; };
   // This context belongs to the editor session, as does its draft.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,14 +91,14 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
   const picker = <LinkPicker id="task-link" value={{ leadId: draft.leadId, clienteId: draft.clienteId, propiedadSlug: draft.propiedadSlug, expedienteId: draft.expedienteId || undefined }}
     onChange={(next, operation) => changeLinks(next, operation as TaskExpediente | undefined)} leads={leads} clientes={clientes} propiedades={propiedades}
     operations={expedienteLinks ? expedientes : expedientes.filter((item) => item.id === draft.expedienteId)}
-    unavailable={{ expediente: expedientesLoaded || expedienteError ? "Operación no disponible" : "Cargando…" }}
+    unavailable={{ expediente: expedientesLoaded || expedienteError ? "Asunto no disponible" : "Cargando…" }}
     status={<>
-      {!expedientesLoaded && !expedienteError && <p role="status" className="text-sm text-muted-foreground">Cargando operaciones…</p>}
-      {expedienteLinks === false && <p role="status" className="text-sm text-muted-foreground">Vincular tareas con operaciones todavía no está disponible. Puedes guardar la tarea sin vincularla.</p>}
+      {!expedientesLoaded && !expedienteError && <p role="status" className="text-sm text-muted-foreground">Cargando asuntos…</p>}
+      {expedienteLinks === false && <p role="status" className="text-sm text-muted-foreground">Vincular tareas con asuntos todavía no está disponible. Puedes guardar la tarea sin vincularla.</p>}
       {capabilityError && <p role="status" className="text-sm text-muted-foreground">{capabilityError}</p>}
       {expedienteError && <p role="status" className="text-sm text-muted-foreground">{expedienteError}</p>}
-      {expedientesLoaded && draft.expedienteId && !expediente && <p className="text-sm text-muted-foreground">Esa operación ya no está disponible. Elige otra o quita el vínculo.</p>}
-      {expediente && !contextMatches && <Button className="self-start" onClick={() => selectExpediente(expediente.id)}>Usar los datos actuales de la operación</Button>}
+      {expedientesLoaded && draft.expedienteId && !expediente && <p className="text-sm text-muted-foreground">Ese asunto ya no está disponible. Elige otra o quita el vínculo.</p>}
+      {expediente && !contextMatches && <Button className="self-start" onClick={() => selectExpediente(expediente.id)}>Usar los datos actuales del asunto</Button>}
     </>} />;
   const details = <div className={s.grid}>
     {!initial && <Field label="Plantilla opcional" htmlFor="task-template" className={s.span2} hint="Carga un borrador que puedes ajustar antes de guardar.">
@@ -117,9 +117,9 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const next = submitter?.name === "estado" ? { ...draft, estado: submitter.value as Task["estado"] } : draft;
     if (next.expedienteId) {
-      if (!expedienteLinks) throw new Error(expedienteLinks === false ? "Vincular tareas con operaciones todavía no está disponible. Puedes guardar la tarea sin vincularla." : "No se pudo comprobar el vínculo. Reintenta o guarda sin él.");
-      if (!expedientesLoaded || !expediente) throw new Error("Elige una operación en curso o quita el vínculo.");
-      if (!contextMatches) throw new Error("Actualiza cliente, inmueble y responsable con los de la operación.");
+      if (!expedienteLinks) throw new Error(expedienteLinks === false ? "Vincular tareas con asuntos todavía no está disponible. Puedes guardar la tarea sin vincularla." : "No se pudo comprobar el vínculo. Reintenta o guarda sin él.");
+      if (!expedientesLoaded || !expediente) throw new Error("Elige un asunto en curso o quita el vínculo.");
+      if (!contextMatches) throw new Error("Actualiza cliente, inmueble y responsable con los del asunto.");
     }
     const result = taskSchema.safeParse(next);
     if (!result.success) throw new Error(result.error.issues.map((issue) => issue.message).join(". "));
@@ -135,7 +135,7 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
       <div className={s.grid}>
         <Field label="Título" htmlFor="task-title" className={s.span2}><input id="task-title" required maxLength={160} className={inputClass} value={draft.titulo} onChange={(e) => change("titulo", e.target.value)} /></Field>
         <Field label="Fecha límite (opcional)" htmlFor="task-due"><input id="task-due" type="date" className={inputClass} value={draft.vence ?? ""} onChange={(e) => change("vence", e.target.value || undefined)} /></Field>
-        <Field label="Responsable" htmlFor="task-advisor" hint={draft.expedienteId ? "Lo pone la operación." : undefined}><select disabled={!!draft.expedienteId} id="task-advisor" className={selectClass} value={draft.asesorId ?? ""} onChange={(e) => change("asesorId", e.target.value || undefined)}><option value="">Sin asignar</option>{draft.asesorId && !asesores.some((a) => a.id === draft.asesorId) && <option value={draft.asesorId}>Responsable no disponible</option>}{asesores.filter((a) => a.activo || a.id === draft.asesorId).map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
+        <Field label="Responsable" htmlFor="task-advisor" hint={draft.expedienteId ? "Lo pone el asunto." : undefined}><select disabled={!!draft.expedienteId} id="task-advisor" className={selectClass} value={draft.asesorId ?? ""} onChange={(e) => change("asesorId", e.target.value || undefined)}><option value="">Sin asignar</option>{draft.asesorId && !asesores.some((a) => a.id === draft.asesorId) && <option value={draft.asesorId}>Responsable no disponible</option>}{asesores.filter((a) => a.activo || a.id === draft.asesorId).map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
         <div className={s.span2}>{picker}</div>
       </div>
     </section>

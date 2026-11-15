@@ -51,9 +51,9 @@ for(const width of [390,768,1440]) {
    expect(await outside.evaluate(e=>{const b=e.getBoundingClientRect();const t=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return e===t||e.contains(t)||!!t?.closest('label')?.contains(e);})).toBe(true);
    await page.screenshot({path:info.outputPath(r+'-revisado-'+width+'.png')});
    await page.keyboard.press('Escape');
-   await page.getByRole('button',{name:'Más opciones'}).click();await page.getByRole('menuitem',{name:'Datos de la operación'}).click();
+   await page.getByRole('button',{name:'Más opciones'}).click();await page.getByRole('menuitem',{name:'Datos del asunto'}).click();
    // COR-14 / DEC-38: la decisión del encargo ya no está en los datos de la operación.
-   await expect(page.getByRole('dialog',{name:'Datos de la operación'}).getByRole('combobox',{name:'Decisión',exact:true})).toHaveCount(0);
+   await expect(page.getByRole('dialog',{name:'Datos del asunto'}).getByRole('combobox',{name:'Decisión',exact:true})).toHaveCount(0);
    await expect(page.getByRole('region',{name:'Contraparte'})).toHaveCount(r==='inversion'?0:1);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
    await page.screenshot({path:info.outputPath(r+'-ajustes-'+width+'.png')});

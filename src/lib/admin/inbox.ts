@@ -53,7 +53,7 @@ export function inboxItems({ tasks, notes, me, visible, now }: { tasks: readonly
     if (note.autorId ? note.autorId === me.userId : !!note.autor && myName.has(fold(note.autor.trim()))) continue;
     let where: string | undefined, href: string;
     if (note.propiedadSlug) { where = visible.property(note.propiedadSlug); href = `/admin/propiedades/${encodeURIComponent(note.propiedadSlug)}/editar?notas=1`; }
-    else if (note.expedienteId) { where = note.clienteId ? visible.client(note.clienteId) : "una operación"; href = `/admin/operaciones/${encodeURIComponent(note.expedienteId)}?notas=1`; }
+    else if (note.expedienteId) { where = note.clienteId ? visible.client(note.clienteId) : "un asunto"; href = `/admin/operaciones/${encodeURIComponent(note.expedienteId)}?notas=1`; }
     else continue;
     // Si no puedes ver el inmueble o la persona, la nota no es para ti.
     if (!where) continue;

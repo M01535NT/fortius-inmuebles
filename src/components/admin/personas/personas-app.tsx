@@ -188,8 +188,8 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
 
   const documentos: Fila[] = [
     ...sueltos.map(d => ({ id: `s${d.id}`, nombre: d.titulo, detalle: "De la persona", origen: "Recibido", fecha: d.created_at, clase: "recibido" as const, href: `/api/admin/bandeja/${d.id}/descargar` })),
-    ...(op ? archivos.filter(a => !a.deleted_at).map(a => ({ id: `a${a.id}`, nombre: a.titulo, detalle: "De la operación", origen: "Recibido", fecha: a.created_at, clase: "recibido" as const, href: `/api/admin/archivos-cliente/${a.id}/descargar` })) : []),
-    ...(op ? borradores.map(d => ({ id: `f${d.id}`, nombre: tituloFormato(d.formato_id), detalle: "De la operación", origen: "Hecho aquí", version: `Versión ${d.version}`, fecha: d.updated_at, clase: "hecho" as const, href: `/admin/operaciones/${op.id}?documento=${d.id}` })) : []),
+    ...(op ? archivos.filter(a => !a.deleted_at).map(a => ({ id: `a${a.id}`, nombre: a.titulo, detalle: "Del asunto", origen: "Recibido", fecha: a.created_at, clase: "recibido" as const, href: `/api/admin/archivos-cliente/${a.id}/descargar` })) : []),
+    ...(op ? borradores.map(d => ({ id: `f${d.id}`, nombre: tituloFormato(d.formato_id), detalle: "Del asunto", origen: "Hecho aquí", version: `Versión ${d.version}`, fecha: d.updated_at, clase: "hecho" as const, href: `/admin/operaciones/${op.id}?documento=${d.id}` })) : []),
   ].sort((x, y) => y.fecha.localeCompare(x.fecha));
   const visibles = documentos.filter(d => tab === "todos" || (tab === "recibidos") === (d.clase === "recibido"));
 
@@ -198,7 +198,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
   const actual = pasos && fase ? pasos.findIndex(p => p.key === fase) : -1;
   const paso = pasos && actual >= 0 ? pasos[actual] : null;
   // Cuando no hay tarea ni cita, el «siguiente paso» de la lista es la etapa de la operación: aquí lo cuenta la guía, no se repite.
-  const pendiente = /^Operación en /i.test(row.step) ? "" : row.step;
+  const pendiente = /^Asunto en /i.test(row.step) ? "" : row.step;
   const guia = op?.flujo?.ruta === "arrendador" ? "renta" : "venta";
   const digits = (persona?.telefono ?? "").replace(/\D/g, "");
   const wa = digits.length === 10 ? `52${digits}` : digits;
@@ -237,7 +237,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
         ]} />
       </div>
     </div>
-    {pasos ? <nav className={s.route} aria-label={`Guía de la operación ${op!.folio}`}>
+    {pasos ? <nav className={s.route} aria-label={`Guía del asunto ${op!.folio}`}>
       {pasos.map((paso, i) => <Link key={paso.key} href={opHref} className={s.rstep} data-s={i < actual ? "d" : i === actual ? "n" : ""} title={`${paso.label}: ${i < actual ? "hecho" : i === actual ? "paso actual" : "pendiente"}`} aria-current={i === actual ? "step" : undefined}><i /><span>{paso.label}</span></Link>)}
     </nav> : <span />}
     <div className={b.body}>
@@ -249,15 +249,15 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
             {!pendiente && paso && <span className={s.big} aria-hidden>{String(actual + 1).padStart(2, "0")}</span>}
             <div>
               <p className={s.kicker}>En qué quedamos</p>
-              <h3 id="persona-sigue">{pendiente || (paso ? paso.label : op ? `Su operación va en ${etapaDe(op)}` : "Sin siguiente paso anotado")}</h3>
-              <p>{pendiente ? (paso ? `Es lo pendiente con esta persona. Su operación va en el paso ${actual + 1} de ${pasos!.length} de la guía de ${guia}: ${paso.label.toLowerCase()}.` : "Es lo pendiente con esta persona.")
-                : paso ? `Es el paso ${actual + 1} de ${pasos!.length} de la guía de ${guia}. Abre la operación para trabajarlo.`
-                : op ? "Abre la operación para ver qué toca." : "Anota en qué quedaron para que aparezca en Hoy."}{row.when && <> <span className={s.when} data-late={row.late}>{row.when}</span></>}</p>
+              <h3 id="persona-sigue">{pendiente || (paso ? paso.label : op ? `Su asunto va en ${etapaDe(op)}` : "Sin siguiente paso anotado")}</h3>
+              <p>{pendiente ? (paso ? `Es lo pendiente con esta persona. Su asunto va en el paso ${actual + 1} de ${pasos!.length} de la guía de ${guia}: ${paso.label.toLowerCase()}.` : "Es lo pendiente con esta persona.")
+                : paso ? `Es el paso ${actual + 1} de ${pasos!.length} de la guía de ${guia}. Abre el asunto para trabajarlo.`
+                : op ? "Abre el asunto para ver qué toca." : "Anota en qué quedaron para que aparezca en Hoy."}{row.when && <> <span className={s.when} data-late={row.late}>{row.when}</span></>}</p>
             </div>
           </div>
           <div className={b.stepFoot}>
-            {op ? <Link href={opHref} className={`${b.onDark} ${s.onDarkLink}`}>Abrir la operación</Link>
-              : <Link href={row.kind === "cliente" ? `/admin/operaciones/nueva?clienteId=${encodeURIComponent(row.id)}` : row.href} className={`${b.onDark} ${s.onDarkLink}`}>{row.kind === "cliente" ? "Abrir una operación" : "Atender a esta persona"}</Link>}
+            {op ? <Link href={opHref} className={`${b.onDark} ${s.onDarkLink}`}>Abrir el asunto</Link>
+              : <Link href={row.kind === "cliente" ? `/admin/operaciones/nueva?clienteId=${encodeURIComponent(row.id)}` : row.href} className={`${b.onDark} ${s.onDarkLink}`}>{row.kind === "cliente" ? "Abrir un asunto" : "Atender a esta persona"}</Link>}
             <Link href={`/admin/agenda?tab=tareas&nueva=1&${ref}`} className={`${b.onDark} ${s.onDarkLink}`} data-quiet="true">Anotar en qué quedamos</Link>
           </div>
         </section>
@@ -273,7 +273,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
         </section>}
 
         {operaciones.length > 0 && <section aria-labelledby="persona-operaciones">
-          <div className={s.sechead}><h3 id="persona-operaciones">Operaciones</h3><Pill size="sm" tone="muted">{operaciones.length}</Pill>
+          <div className={s.sechead}><h3 id="persona-operaciones">Asuntos</h3><Pill size="sm" tone="muted">{operaciones.length}</Pill>
             {operaciones.length > 1 && <div className={s.opPick}><Desplegable label="Guía y documentos de" value={op?.id ?? ""} onChange={setOpId} options={operaciones.map(o => ({ value: o.id, label: (o.propiedad_slug && tituloInmueble(o.propiedad_slug)) || o.folio, detail: o.folio }))} /></div>}
           </div>
           <div className={s.ops}>
@@ -298,7 +298,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
               <div className={`${s.sub} ${s.hm}`}>{corta(d.fecha)}</div>
               <MenuAcciones label={`Acciones de ${d.nombre}`} actions={[{ label: d.clase === "hecho" ? "Abrir el documento" : "Ver el archivo", onSelect: () => { if (d.clase === "hecho") router.push(d.href); else window.open(d.href, "_blank", "noopener"); } }]} />
             </div>)}
-          </> : <p className={b.empty}>{documentos.length ? "No hay documentos de este tipo." : esCliente ? "Todavía no tiene documentos. Usa «Agregar archivo», o archívale uno desde la Bandeja." : "Sus documentos se guardan en su perfil cuando empieza su operación."}</p>}
+          </> : <p className={b.empty}>{documentos.length ? "No hay documentos de este tipo." : esCliente ? "Todavía no tiene documentos. Usa «Agregar archivo», o archívale uno desde la Bandeja." : "Sus documentos se guardan en su perfil cuando empieza su asunto."}</p>}
         </section>
 
         <section aria-labelledby="persona-historia">

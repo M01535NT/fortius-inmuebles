@@ -42,7 +42,7 @@ export function useOperation(id: string) {
 }
 
 /** Mientras haya captura sin guardar, pide confirmación antes de salir (de la operación, por omisión). */
-export function useLeaveGuard(dirty: boolean, message = "Hay captura sin guardar. ¿Descartar los cambios y salir de esta operación?") {
+export function useLeaveGuard(dirty: boolean, message = "Hay captura sin guardar. ¿Descartar los cambios y salir de este asunto?") {
   const allow = React.useRef(false), pending = React.useRef(false);
   React.useEffect(() => {
     if (!dirty) return;
@@ -66,5 +66,5 @@ export function useLeaveGuard(dirty: boolean, message = "Hay captura sin guardar
 /** Mensaje claro para un error de guardado. */
 export function saveError(cause: unknown) {
   const message = errorMessage(cause);
-  return /cambió|version|versión/i.test(message) ? "La operación cambió en otra pantalla. Recarga antes de seguir." : message.replace(/^Requisito pendiente: /, "Falta: ");
+  return /cambió|version|versión/i.test(message) ? "El asunto cambió en otra pantalla. Recarga antes de seguir." : message.replace(/^Requisito pendiente: /, "Falta: ");
 }

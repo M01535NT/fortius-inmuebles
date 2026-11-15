@@ -9,8 +9,8 @@ import { intentTitle, optionLabel, visibleFields } from "@/lib/intake/wizard";
 import s from "./wizard.module.css";
 
 const NEXT: Record<string, string> = {
-  vender: "Entrevista en persona: se captura con el formato 02 desde la operación.",
-  arrendar: "Entrevista en persona: se captura con el formato 02 desde la operación.",
+  vender: "Entrevista en persona: se captura con el formato 02 desde el asunto.",
+  arrendar: "Entrevista en persona: se captura con el formato 02 desde el asunto.",
   comprar: "Revisar su perfil y buscarle opciones.",
   rentar: "Revisar lo que necesita y buscarle opciones.",
   invertir: "Revisar su mandato y buscar alternativas.",
@@ -37,17 +37,17 @@ export function DoneStep({ interview, fresh }: { interview: OperationalInterview
   React.useEffect(() => { heading.current?.focus(); }, []);
   return <div className={s.body}>
     <span className={s.doneMark} aria-hidden="true"><Check size={28} /></span>
-    <h1 ref={heading} tabIndex={-1} className={s.title}>{!fresh ? "Entrevista terminada" : correction ? "Listo, la corrección quedó guardada" : "Listo, la operación está creada"}</h1>
-    <p className={s.lead}>{!fresh ? `Se terminó el ${interview.completed_at ? new Date(interview.completed_at).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) : "día registrado"}. Sus respuestas se conservan sin cambios.` : correction ? "La entrevista anterior se conserva en la misma operación." : owner ? "La encuentras en Operaciones, en la etapa Prospecto." : "La encuentras en Operaciones, en la etapa Captación."}</p>
-    <div className={s.doneCard}>{owner && fresh && !correction && <p className={s.doneStage} aria-hidden="true"><span>02</span><small>Entrevista inicial</small></p>}<dl className={s.summary} aria-label="Resumen de la operación">
+    <h1 ref={heading} tabIndex={-1} className={s.title}>{!fresh ? "Entrevista terminada" : correction ? "Listo, la corrección quedó guardada" : "Listo, el asunto está creado"}</h1>
+    <p className={s.lead}>{!fresh ? `Se terminó el ${interview.completed_at ? new Date(interview.completed_at).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) : "día registrado"}. Sus respuestas se conservan sin cambios.` : correction ? "La entrevista anterior se conserva en el mismo asunto." : owner ? "Lo encuentras en Asuntos, en la etapa Prospecto." : "Lo encuentras en Asuntos, en la etapa Captación."}</p>
+    <div className={s.doneCard}>{owner && fresh && !correction && <p className={s.doneStage} aria-hidden="true"><span>02</span><small>Entrevista inicial</small></p>}<dl className={s.summary} aria-label="Resumen del asunto">
       <dt>Folio</dt><dd className="tabular-nums font-semibold">{folio === undefined && href ? "Consultando…" : folio ?? "—"}</dd>
       <dt>Cliente</dt><dd>{who}</dd>
       <dt>Quiere</dt><dd>{intentTitle(interview.intencion)}</dd>
-      {owner && <><dt>Inmueble</dt><dd>{property?.titulo ?? (interview.propiedad_slug ? "Inmueble registrado" : "Sin inmueble vinculado: vincúlalo en la operación, en Ajustes.")}</dd></>}
+      {owner && <><dt>Inmueble</dt><dd>{property?.titulo ?? (interview.propiedad_slug ? "Inmueble registrado" : "Sin inmueble vinculado: vincúlalo en el asunto, en Ajustes.")}</dd></>}
       <dt>Lo que sigue</dt><dd>{NEXT[interview.intencion]} Los documentos, quién es dueño y los recursos todavía deben comprobarse.</dd>
     </dl></div>
     <div className="flex flex-wrap items-center gap-3">
-      {href && <ButtonLink variant="primary" href={href}>Abrir la operación<ArrowRight size={16} aria-hidden="true" /></ButtonLink>}
+      {href && <ButtonLink variant="primary" href={href}>Abrir el asunto<ArrowRight size={16} aria-hidden="true" /></ButtonLink>}
       <Link href="/admin" className="font-semibold text-foreground underline-offset-4 hover:underline">Volver a Hoy</Link>
     </div>
     <Card as="div" className="p-5"><details><summary className="cursor-pointer font-semibold">Ver las respuestas de la entrevista</summary>

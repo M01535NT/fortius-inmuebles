@@ -27,7 +27,7 @@ it("reúne operaciones e inmuebles eliminados y restaura cada uno por su ruta de
   expect(screen.getByRole("heading", { level: 1, name: "Eliminados" })).toBeTruthy();
   expect(screen.getByRole("navigation", { name: "Administración" })).toBeTruthy();
   fireEvent.click(await screen.findByRole("button", { name: "Restaurar EXP-0001" }));
-  expect(await screen.findByText("Operación EXP-0001 de vuelta en Operaciones.")).toBeTruthy();
+  expect(await screen.findByText("Asunto EXP-0001 de vuelta en Asuntos.")).toBeTruthy();
   expect(h.fetchJson).toHaveBeenCalledWith("/api/admin/expedientes/e1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ version: 3 }) }));
 
   expect(screen.getByText(/Inmueble · se eliminó el .* · por ti/)).toBeTruthy();
@@ -60,6 +60,6 @@ it("vacía, lo dice; con error, ofrece reintentar", async () => {
   h.request.mockResolvedValue({ entries: [], hasMore: false });
   render(<PapeleraScreen />);
   fireEvent.click(await screen.findByRole("button", { name: "Reintentar" }));
-  expect(await screen.findByText("No hay operaciones eliminadas")).toBeTruthy();
+  expect(await screen.findByText("No hay asuntos eliminados")).toBeTruthy();
   expect(screen.getByText("Nada más que recuperar")).toBeTruthy();
 });

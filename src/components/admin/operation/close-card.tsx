@@ -54,7 +54,7 @@ export function CloseCard({ op, intermediacion, disabled, onSave, className }: {
 
   return <Card id="cierre-operacion" className={`flex flex-col gap-4 p-5 ${className ?? ""}`} aria-labelledby="cierre-titulo">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h2 id="cierre-titulo" className="m-0 text-base">Cierre de la operación</h2>
+      <h2 id="cierre-titulo" className="m-0 text-base">Cierre del asunto</h2>
       <Pill tone={cierre ? "success" : "warn"}>{cierre ? "Registrado" : "Falta registrar"}</Pill>
     </div>
 

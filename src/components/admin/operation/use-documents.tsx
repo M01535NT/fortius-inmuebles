@@ -25,7 +25,7 @@ import { semillaOpinion } from "@/lib/formatos/opinion-juridica";
 */
 
 const post = (body: unknown) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-const LOAD_ERROR = "No se pudieron cargar los documentos de la operación. Vuelve a intentarlo antes de iniciar un formato.";
+const LOAD_ERROR = "No se pudieron cargar los documentos del asunto. Vuelve a intentarlo antes de iniciar un formato.";
 const byNewest = (a: Documento, b: Documento) => b.updated_at.localeCompare(a.updated_at);
 /** «04» es el levantamiento de cualquier tipo (04A–04G). */
 const matches = (formato: string, id: string) => formato === "04" ? id.startsWith("04") : id === formato;

@@ -215,13 +215,13 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
       <legend className="mb-2 text-sm font-semibold">¿Con qué lo comprobaste?</legend>
       {evidence.documents.map(d => <label key={d.id} className={s.option}><input type="radio" name="respaldo" checked={source === `doc:${d.id}`} onChange={() => setSource(`doc:${d.id}`)} /><span className="flex min-w-0 flex-col"><strong className="[overflow-wrap:anywhere]">{formatoById(d.formato_id).title}</strong><small className={s.mono}>Versión {d.version}{d.updated_at ? ` · Actualizado el ${shortDate(d.updated_at)}` : ""}</small></span></label>)}
       {evidence.interview && <label className={s.option}><input type="radio" name="respaldo" checked={source === "entrevista"} onChange={() => setSource("entrevista")} /><span className="flex flex-col"><strong>Entrevista terminada</strong><small className="text-muted-foreground">Lo que declaró el cliente en la entrevista</small></span></label>}
-      {clientOption && <label className={s.option}><input type="radio" name="respaldo" checked={source === "cliente"} onChange={() => setSource("cliente")} /><span className="flex flex-col"><strong>Un documento del cliente</strong><small className="text-muted-foreground">Lo que subiste a sus documentos en esta operación</small></span></label>}
+      {clientOption && <label className={s.option}><input type="radio" name="respaldo" checked={source === "cliente"} onChange={() => setSource("cliente")} /><span className="flex flex-col"><strong>Un documento del cliente</strong><small className="text-muted-foreground">Lo que subiste a sus documentos en este asunto</small></span></label>}
       <label className={s.option}><input type="radio" name="respaldo" checked={source === "externa"} onChange={() => setSource("externa")} /><span className="flex flex-col"><strong>Documento fuera del sistema</strong><small className="text-muted-foreground">Lo revisaste en papel o en la notaría</small></span></label>
-      <button type="button" className={s.linkButton} onClick={onAddDocument}>Agregar un documento a la operación</button>
+      <button type="button" className={s.linkButton} onClick={onAddDocument}>Agregar un documento al asunto</button>
     </fieldset>
     {source === "cliente" && (clientFiles === undefined ? <p className="text-sm text-muted-foreground">Consultando los documentos del cliente…</p>
       : clientFiles === null ? <p role="alert" className="text-sm text-destructive">No pudimos consultar los documentos del cliente.</p>
-      : clientFiles.length === 0 ? <p className="text-sm text-muted-foreground">Todavía no hay documentos del cliente en esta operación. Súbelo en la pestaña del cliente y vuelve aquí.</p>
+      : clientFiles.length === 0 ? <p className="text-sm text-muted-foreground">Todavía no hay documentos del cliente en este asunto. Súbelo en la pestaña del cliente y vuelve aquí.</p>
       : <label className="text-sm font-semibold">Documento del cliente<select className={selectClass} value={clientFile} onChange={e => setClientFile(e.target.value)}><option value="">Elige el archivo…</option>{clientFiles.map(f => <option key={f.id} value={f.id}>{f.titulo}</option>)}</select></label>)}
     {source === "externa" && <label className="text-sm font-semibold">Folio o dónde está<input className={inputClass} maxLength={1000} value={where} onChange={e => setWhere(e.target.value)} placeholder="Ej. Escritura 1234, Notaría 5 de Tijuana" /></label>}
     <label className="text-sm font-semibold">Quién lo revisó<input className={inputClass} list="revisores" maxLength={160} value={who} onChange={e => setWho(e.target.value)} /><datalist id="revisores">{advisers.filter(a => a.activo !== false).map(a => <option key={a.id} value={a.nombre} />)}</datalist></label>
@@ -284,7 +284,7 @@ function ExceptionSheet({ requirement, route, review, onClose, onSave }: { requi
   const base: Review = review ? { ...review } : { estado: "pendiente", soporte: "" };
   delete base.excepcion;
   const save = () => void run(why.trim().length < 10 ? "Escribe por qué se avanza sin este requisito (al menos 10 caracteres)." : { ...base, excepcion: { ...(current && current.motivo === why.trim() ? current : {}), motivo: why.trim() } });
-  return <Sheet open onClose={onClose} eyebrow="Excepción del director" title={requirementName(requirement, route)} description="La operación avanza sin este requisito. El motivo, la fecha y quién lo autorizó quedan en el historial." footer={<>
+  return <Sheet open onClose={onClose} eyebrow="Excepción del director" title={requirementName(requirement, route)} description="El asunto avanza sin este requisito. El motivo, la fecha y quién lo autorizó quedan en el historial." footer={<>
     {current && <Button disabled={busy} onClick={() => void run(base)}>Quitar la excepción</Button>}
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
     <Button variant="primary" disabled={busy} onClick={save}>{busy ? "Guardando…" : current ? "Guardar" : "Autorizar"}</Button>

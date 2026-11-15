@@ -124,7 +124,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   async function advance() {
     if (!target?.target || blockers.length) return;
     setBusy(true); setError(""); setNotice("");
-    try { await onSave({ etapa: target.target }); setNotice(`Listo: la operación pasó a «${target.label}».`); window.scrollTo({ top: 0, behavior: "instant" }); }
+    try { await onSave({ etapa: target.target }); setNotice(`Listo: el asunto pasó a «${target.label}».`); window.scrollTo({ top: 0, behavior: "instant" }); }
     catch (cause) { const message = saveError(cause); if (esFrenoDeFirma(message)) setMortgageBlocked(true); else setError(`No se pudo avanzar: ${message}`); } finally { setBusy(false); }
   }
   function goToPending(item: Extract<StageItem, { kind: "pendiente" }>) {
@@ -150,7 +150,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     setBusy(true); setError(""); setNotice("");
     try {
       await onSave({ flujo: { ...flow, estado: action === "pausa" ? "pausada" : "descartada", motivo: action === "pausa" ? "Pausada en la entrevista inicial" : "Referida" } });
-      setNotice(action === "pausa" ? "La operación quedó en pausa." : "La operación quedó descartada como referida.");
+      setNotice(action === "pausa" ? "El asunto quedó en pausa." : "El asunto quedó descartado como referido.");
     } catch (cause) { setError(`No se pudo guardar: ${saveError(cause)}`); } finally { setBusy(false); }
   }
   const counted = items.filter(itemCounted), done = counted.filter(itemDone).length;
@@ -170,8 +170,8 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     const pass = target?.target ? <Button variant={now ? "secondary" : "primary"} disabled={lock || blockers.length > 0} onClick={() => void advance()}>Pasar a: {target.label}</Button> : null;
     let title = "", text = "", action: React.ReactNode = null;
     if (!now) {
-      title = target?.target ? "Todo lo de esta etapa está listo" : stageOf(op) === "cerrado" ? "Operación archivada" : "Todo listo en esta etapa";
-      text = target?.target ? `Pasa a ${target.label} cuando quieras.` : target ? `La siguiente etapa, «${target.label}», se abre sola.` : "No hay más pasos en esta operación.";
+      title = target?.target ? "Todo lo de esta etapa está listo" : stageOf(op) === "cerrado" ? "Asunto archivado" : "Todo listo en esta etapa";
+      text = target?.target ? `Pasa a ${target.label} cuando quieras.` : target ? `La siguiente etapa, «${target.label}», se abre sola.` : "No hay más pasos en este asunto.";
       action = pass;
     } else if (now.kind === "inicio") {
       title = now.step === "levantamiento" ? "Iniciar el levantamiento" : "Iniciar la lista de documentos";
@@ -207,7 +207,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     } else if (now.kind === "abogado") {
       if (!now.task) {
         title = "Revisión del abogado antes del levantamiento";
-        text = condition ? `Mencionó: ${condition.text.toLowerCase()}.` : "La entrevista pide evaluar la operación.";
+        text = condition ? `Mencionó: ${condition.text.toLowerCase()}.` : "La entrevista pide evaluar el asunto.";
         action = <Button variant="primary" disabled={lock} onClick={() => void requestLawyer()}>Pedir revisión al abogado</Button>;
       } else {
         title = "Esperando la revisión del abogado";
@@ -216,8 +216,8 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       }
     } else if (now.kind === "decision02") {
       title = now.action === "pausa" ? "La entrevista dice: pausar" : "La entrevista dice: referir";
-      text = now.action === "pausa" ? "Deja la operación en pausa. Se reactiva desde «Más opciones»." : "Se descarta con el motivo «Referida».";
-      action = <Button variant="primary" disabled={lock} onClick={() => void applyDecision(now.action)}>{now.action === "pausa" ? "Pausar la operación" : "Referir y descartar"}</Button>;
+      text = now.action === "pausa" ? "Deja el asunto en pausa. Se reactiva desde «Más opciones»." : "Se descarta con el motivo «Referida».";
+      action = <Button variant="primary" disabled={lock} onClick={() => void applyDecision(now.action)}>{now.action === "pausa" ? "Pausar el asunto" : "Referir y descartar"}</Button>;
     } else {
       title = now.text; text = now.why ? now.why.replace(/^./, c => c.toUpperCase()) + "." : "";
       action = <Button variant="primary" disabled={lock} onClick={() => goToPending(now)}>{now.place === "ajustes" ? "Abrir los datos" : now.place === "encargo" ? "Ir a la decisión" : now.place === "tarea" ? "Agendar la próxima tarea" : now.place === "firma" ? "Ir a la firma" : now.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button>;
@@ -235,7 +235,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   }
 
   return <section aria-label="Esta etapa" className={s.grid}>
-    {flow.estado !== "activa" && <p className={cn(s.span6, "font-semibold text-[var(--warning)]")}>Operación {flow.estado === "pausada" ? "en pausa" : flow.estado === "regularizacion" ? "en regularización" : "descartada"}{flow.motivo ? `: ${flow.motivo}` : ""}</p>}
+    {flow.estado !== "activa" && <p className={cn(s.span6, "font-semibold text-[var(--warning)]")}>Asunto {flow.estado === "pausada" ? "en pausa" : flow.estado === "regularizacion" ? "en regularización" : "descartado"}{flow.motivo ? `: ${flow.motivo}` : ""}</p>}
     {locked && reviewsGroup.some(i => !i.earlier && CONTRACT_KEYS.includes(i.key)) && <div className={s.span6}><Notice tone="info">Primero dictamen jurídico, opinión de valor y decisión del encargo. Luego, contrato y preparación.</Notice></div>}
     <MortgageGateNotice className={s.span6} operationId={op.id} operacion={op.operacion} stage={stageOf(op)} next={target?.target ?? null} blocked={mortgageBlocked} />
     {porConfirmar > 0 && <div className={s.span6}><Notice tone="info" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice></div>}
@@ -246,7 +246,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {(reviewsGroup.length > 0 || otherGroup.length > 0 || !!stageText) && <section aria-labelledby="etapa-actual" className={cn(s.piece, s.stagePiece)}>
       <div className={s.stageIntro}><h2 id="etapa-actual" className={s.stageTitle}>{stageName}</h2>{stageText && <p className={s.stageText}>{stageText}</p>}</div>
       {(reviewsGroup.length > 0 || otherGroup.length > 0) && <>
-      <div className={s.pieceHead}><h3 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h3><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que la operación pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
+      <div className={s.pieceHead}><h3 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h3><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que el asunto pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
       <ul className={s.items}>
         {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} inFloat={now?.kind === "requisito" && now.key === item.key} onQuick={quick} onSheet={setSheet} />)}
         {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>
@@ -267,7 +267,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       <ul className={s.docList}>{documentsGroup.map(item => item.kind === "abogado"
         ? <li key="abogado" className={s.docWait}>
           <StateIcon state={item.task ? "recibido" : "pendiente"} done={item.done} />
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong>Revisión del abogado</strong><span className="text-sm text-muted-foreground">{item.done ? "Hecha. Ya puedes seguir con el levantamiento." : item.task ? "Pedida. El levantamiento espera su respuesta." : item.condition ? `Mencionó: ${item.condition.toLowerCase()}. Va antes del levantamiento.` : "La entrevista pide evaluar la operación antes del levantamiento."}</span></span>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong>Revisión del abogado</strong><span className="text-sm text-muted-foreground">{item.done ? "Hecha. Ya puedes seguir con el levantamiento." : item.task ? "Pedida. El levantamiento espera su respuesta." : item.condition ? `Mencionó: ${item.condition.toLowerCase()}. Va antes del levantamiento.` : "La entrevista pide evaluar el asunto antes del levantamiento."}</span></span>
           {item.task && <Link className="text-sm font-semibold underline underline-offset-4" href={`/admin/tareas/${encodeURIComponent(item.task.id)}`}>Ver la tarea</Link>}
         </li>
         : item.kind === "inicio"
@@ -332,7 +332,7 @@ function DocRow({ item, now, docs, signed, disabled, survey, surveySelect }: { i
   // SIM-05 (C15): en la etapa, el documento por su nombre; el número se ve en Documentos.
   const [, ...rest] = formatTitle(item.formato, doc).split(" · ");
   const waits = item.formato === "06" && !doc && docs.status("05") !== "terminado";
-  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar la revisión jurídica" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en esta operación") : "Todavía no empieza";
+  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar la revisión jurídica" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en este asunto") : "Todavía no empieza";
   return <li className="flex flex-col gap-2">
     <div className={s.docRowWrap}>
       <button type="button" className={cn(s.docRow, waits && s.docRowWait)} data-now={now || undefined} disabled={disabled || waits} aria-label={`${doc ? "Abrir" : "Iniciar"} ${rest.join(" · ")}`} onClick={() => void docs.start(item.formato, survey)}>
@@ -530,7 +530,7 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
         {!editing && <div className={s.taskActions}><Button disabled={busy} onClick={() => void finish()}><Check size={16} aria-hidden="true" />Hecha</Button><button type="button" className={s.linkButton} onClick={() => { setDate(next.vence ?? ""); setEditing(true); }}>Cambiar fecha</button></div>}
         {editing && <div className="flex flex-col gap-2"><label className="text-sm">Nueva fecha<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label><div className="flex gap-2"><Button variant="primary" disabled={busy || !date} onClick={() => void changeDate()}>Guardar fecha</Button><Button variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancelar</Button></div></div>}
       </> : <form onSubmit={create} className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">{stageOf(op) === "cerrado" ? "Operación archivada: no necesita próxima tarea." : "Esta operación no tiene una próxima tarea con fecha. Agenda el siguiente paso para no perderlo de vista."}</p>
+        <p className="text-sm text-muted-foreground">{stageOf(op) === "cerrado" ? "Asunto archivado: no necesita próxima tarea." : "Este asunto no tiene una próxima tarea con fecha. Agenda el siguiente paso para no perderlo de vista."}</p>
         {stageOf(op) !== "cerrado" && <>
           <label className="text-sm">Qué sigue<input className={inputClass} maxLength={160} value={title} onChange={e => setTitle(e.target.value)} /></label>
           <label className="text-sm">Fecha<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label>
@@ -604,7 +604,7 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
   const preparadoEl = prepared?.[0]?.updatedAt, preparado = preparadoEl ? calendarDayOf(preparadoEl) : undefined;
   return <Card className="flex flex-col gap-2 p-5" aria-label="Informe al propietario">
     <h2 className="m-0 flex items-center gap-2 text-base"><FileText size={18} aria-hidden="true" />Informe mensual al propietario</h2>
-    <p className={cn("text-sm", status && status.estado !== "al_dia" && s.lateText)}>{runs === undefined ? "Consultando informes…" : runs === null && !ultima ? "No se pudieron consultar los informes. Recarga la página para reintentar." : !status ? "Todavía no hay un informe preparado para esta operación."
+    <p className={cn("text-sm", status && status.estado !== "al_dia" && s.lateText)}>{runs === undefined ? "Consultando informes…" : runs === null && !ultima ? "No se pudieron consultar los informes. Recarga la página para reintentar." : !status ? "Todavía no hay un informe preparado para este asunto."
       : status.estado === "vencido" ? `Vencido desde el ${shortDate(status.proximo!)}.` : `Al día; el siguiente toca el ${shortDate(status.proximo ?? today)}.`}</p>
     <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
       <dt className="text-muted-foreground">Último preparado</dt><dd>{preparado ? shortDate(preparado) : "Ninguno"}</dd>

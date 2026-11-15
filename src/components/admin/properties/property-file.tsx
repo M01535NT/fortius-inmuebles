@@ -45,7 +45,7 @@ function PlazaUnits({ slug, units }: { slug: string; units: Property[] }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 id="locales-plaza" className="text-lg font-semibold">Locales de esta plaza</h2>
-          <p className="text-sm text-muted-foreground">Un local que se vende o renta aparte es otro inmueble, con su operación y folio. La plaza completa se trabaja aquí.</p>
+          <p className="text-sm text-muted-foreground">Un local que se vende o renta aparte es otro inmueble, con su asunto y folio. La plaza completa se trabaja aquí.</p>
         </div>
         <Link href={`/admin/propiedades/nueva?conjunto=${encodeURIComponent(slug)}`} className={btnGhost}>Agregar un local de esta plaza</Link>
       </div>

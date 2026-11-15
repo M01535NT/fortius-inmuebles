@@ -160,7 +160,7 @@ test("creation from a dossier URL retains the exact operation after the authoriz
   dossiers(); store.search = `nueva=1&expediente=${dossierB.id}`;
   store.put.mockReset().mockImplementation(async (_collection, value) => value);
   render(<TasksPage />);
-  await screen.findByRole("button", { name: "Quitar operación RENTA-2" });
+  await screen.findByRole("button", { name: "Quitar asunto RENTA-2" });
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Revisión de renta" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(store.put).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ expedienteId: dossierB.id, clienteId: "c-own", asesorId: "own" }), null));
@@ -168,10 +168,10 @@ test("creation from a dossier URL retains the exact operation after the authoriz
 test("missing migration blocks dossier references but permits legacy updates", async () => {
   dossiers(false); const save = vi.fn(async (value: Task) => value);
   render(<TaskForm initial={{ ...task, expedienteId: dossierA.id, clienteId: "c-own", asesorId: "own", propiedadSlug: "same-property" }} onSave={save} />);
-  await screen.findByText(/Vincular tareas con operaciones todavía no está disponible/);
+  await screen.findByText(/Vincular tareas con asuntos todavía no está disponible/);
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await screen.findByRole("alert"); expect(save).not.toHaveBeenCalled();
-  fireEvent.click(await screen.findByRole("button", { name: "Quitar operación VENTA-1" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Quitar asunto VENTA-1" }));
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(save).toHaveBeenCalledWith(expect.not.objectContaining({ expedienteId: dossierA.id })));
 });
@@ -184,14 +184,14 @@ test("dossier work shows its direct tasks and labels legacy property tasks witho
   render(<RelatedWork expedienteId={dossierA.id} clienteId="c-own" propertySlug="same-property" />);
   expect(screen.getByRole("link", { name: /Directa venta/ })).toBeTruthy();
   expect(screen.queryByRole("link", { name: /Directa renta/ })).toBeNull();
-  expect(screen.getByRole("link", { name: /Anterior inmueble.*Sin operación vinculada/ })).toBeTruthy();
+  expect(screen.getByRole("link", { name: /Anterior inmueble.*Sin asunto vinculado/ })).toBeTruthy();
   expect(screen.getByRole("link", { name: "Crear tarea relacionada" }).getAttribute("href")).toContain(`expediente=${dossierA.id}`);
 });
 
 test("a dossier outside the authorized list remains blocked and does not erase the written title", async () => {
   dossiers(); const save = vi.fn(async (value: Task) => value);
   render(<TaskForm defaults={{ expedienteId: "60000000-0000-4000-8000-000000000099" }} onSave={save} />);
-  await screen.findByText(/Esa operación ya no está disponible/);
+  await screen.findByText(/Ese asunto ya no está disponible/);
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Conservar título" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await screen.findByRole("alert"); expect(save).not.toHaveBeenCalled();
@@ -205,8 +205,8 @@ test("a failed capability check reports uncertainty without claiming the migrati
   });
   const save = vi.fn(async (value: Task) => value);
   render(<TaskForm initial={task} onSave={save} />);
-  await screen.findByText(/No se pudo comprobar el vínculo con operaciones/);
-  expect(screen.queryByText(/Vincular tareas con operaciones todavía no está disponible/)).toBeNull();
+  await screen.findByText(/No se pudo comprobar el vínculo con asuntos/);
+  expect(screen.queryByText(/Vincular tareas con asuntos todavía no está disponible/)).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(save).toHaveBeenCalled());
 });

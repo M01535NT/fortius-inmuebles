@@ -4,11 +4,11 @@ Corte documental: 14/11/2026, con el «panel desde cero» (LV-09) y la Bandeja (
 
 ## Navegación
 
-El **menú lateral** lleva el logotipo, el buscador, «Nuevo» y las ocho secciones principales, que no se mueven ni se ocultan (RP-58): **Hoy** (con el número de pendientes), **Bandeja**, **Operaciones**, **Contactos**, **Personas** (lista y perfil en una pantalla), **Inmuebles**, **Agenda** y **Trámites**. Después de una línea van **Herramientas** y, solo para el director, **Administración** (Equipo, Sitio web, Reportes, Historial, Eliminados y Configuración). La cuenta queda abajo. De 768 a 1279 px el menú se recoge a íconos.
+El **menú lateral** lleva el logotipo, el buscador, «Nuevo» y las ocho secciones principales, que no se mueven ni se ocultan (RP-58): **Hoy** (con el número de pendientes), **Bandeja**, **Asuntos**, **Contactos**, **Personas** (lista y perfil en una pantalla), **Inmuebles**, **Agenda** y **Trámites**. Después de una línea van **Herramientas** y, solo para el director, **Administración** (Equipo, Sitio web, Reportes, Historial, Eliminados y Configuración). La cuenta queda abajo. De 768 a 1279 px el menú se recoge a íconos.
 
-«Nuevo» abre un menú corto: Atender a alguien, Nueva operación, Nuevo inmueble, Nueva tarea, Agendar visita y Agregar archivo (este último lleva a la Bandeja).
+«Nuevo» abre un menú corto: Atender a alguien, Nuevo asunto, Nuevo inmueble, Nueva tarea, Agendar visita y Agregar archivo (este último lleva a la Bandeja).
 
-En celular, la barra inferior lleva Hoy, Operaciones, «+», Contactos y Más. «Más» reúne Bandeja, Personas, Inmuebles, Agenda, Trámites, Herramientas, Administración (solo el director) y la cuenta.
+En celular, la barra inferior lleva Hoy, Asuntos, «+», Contactos y Más. «Más» reúne Bandeja, Personas, Inmuebles, Agenda, Trámites, Herramientas, Administración (solo el director) y la cuenta.
 
 Las direcciones anteriores (prospectos, clientes, calendario, tareas, expedientes, apps, proceso por etapa y entrevistas) redirigen a la sección nueva sin perder la consulta.
 
@@ -25,8 +25,8 @@ La búsqueda reúne los registros que el usuario puede consultar y permite crear
 - La vista previa es una representación de la captura, no una publicación ni una reproducción exacta de la página pública.
 - **Guardar copia temporal** conserva la captura en esta pestaña. No es un autoguardado en el servidor. Cerrar la sesión borra estas copias. Tras un conflicto, se puede conservar la copia y recargar: una copia de otra versión se consulta completa sin sobrescribir los datos más recientes.
 - Contactos es una sola lista de personas con filtros (Todas, Nuevos, En seguimiento, Clientes y Descartados). Cada persona lleva su condición calculada por la firma de su contrato: Prospecto, Cliente, Cliente anterior o Contraparte (ver el [manual](admin-manual.md#prospectos-clientes-y-firma-del-contrato)). Las coincidencias de teléfono/correo son avisos, no fusiones automáticas.
-- Los vínculos entre personas, inmuebles, tareas, agenda y operaciones usan las relaciones existentes.
-- En una operación, «Lo tengo» no acredita la revisión. «Revisado» pide el documento que lo respalda, quién lo revisó, la fecha, la vigencia cuando aplica y qué se encontró.
+- Los vínculos entre personas, inmuebles, tareas, agenda y asuntos usan las relaciones existentes.
+- En un asunto, «Lo tengo» no acredita la revisión. «Revisado» pide el documento que lo respalda, quién lo revisó, la fecha, la vigencia cuando aplica y qué se encontró.
 
 ## Activación de historial y recuperación
 

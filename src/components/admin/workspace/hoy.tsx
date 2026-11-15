@@ -50,7 +50,7 @@ function byPerson(items: QueueItem[]) {
 }
 /** Qué dice el botón de cada fila, según a dónde lleva. */
 function actionOf(item: QueueItem) {
-  if (item.href.startsWith("/admin/operaciones")) return "Abrir operación";
+  if (item.href.startsWith("/admin/operaciones")) return "Abrir asunto";
   if (item.href.startsWith("/admin/tareas")) return "Abrir tarea";
   if (item.kind === "informe") return "Preparar";
   if (item.href.startsWith("/admin/clientes") || item.href.startsWith("/admin/leads") || item.href.startsWith("/admin/contactos")) return "Abrir ficha";
@@ -108,7 +108,7 @@ export function HoyScreen() {
   const weekList = week.map(day => ({ day, items: weekItems(day) })).filter(entry => entry.items.length > 0);
   const weekCount = weekList.reduce((sum, entry) => sum + entry.items.length, 0);
   const lateCount = queue.filter(item => item.late).length;
-  const failures = [dossiers === null && "las operaciones", interviews === null && "las entrevistas", contracts === null && "los contratos de servicio", reports === null && "los informes al propietario"].filter((x): x is string => !!x);
+  const failures = [dossiers === null && "los asuntos", interviews === null && "las entrevistas", contracts === null && "los contratos de servicio", reports === null && "los informes al propietario"].filter((x): x is string => !!x);
   // COR-14: la situación y la condición de la llamada, en texto junto a la operación.
   const tagsOf = (item: QueueItem) => { const d = item.folio ? dossiers?.find(x => x.folio === item.folio) : undefined; return d ? operationTags(d, conditions.ofOperation(d.id)) : []; };
   // COR-21: un prospecto nuevo del sitio se marca como atendido desde aquí, sin abrir su ficha.
@@ -221,12 +221,12 @@ export function HoyScreen() {
       <section aria-labelledby="hoy-dia" className={cn(s.panel, s.nextBox)}>
         <div className={s.head}><h2 id="hoy-dia" className={s.title}>Tu día</h2><span className={s.meta}>{dossiers !== undefined && queue.length > 0 ? `${plural(queue.length, "pendiente", "pendientes")} · ` : ""}{longDate(today).toLocaleLowerCase("es-MX")}</span></div>
         {failures.map(what => <div key={what}>{failed(what)}</div>)}
-        {dossiers === undefined ? <p role="status" className={s.note}>Consultando operaciones…</p>
+        {dossiers === undefined ? <p role="status" className={s.note}>Consultando asuntos…</p>
           : !next ? <section aria-labelledby="hoy-cola" className={s.empty}>
             <h3 id="hoy-cola" className="sr-only">Lo siguiente</h3>
             <strong className={s.emptyTitle}>Nada espera por ti.</strong>
-            <span className={s.rowText}>{inProgress.length ? "Cada operación tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: la operación se crea al terminarla."}</span>
-            {!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nueva operación</ButtonLink>}
+            <span className={s.rowText}>{inProgress.length ? "Cada asunto tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: el asunto se crea al terminarla."}</span>
+            {!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nuevo asunto</ButtonLink>}
           </section>
           : <>
             {lateTotal > 0 && <>
@@ -260,8 +260,8 @@ export function HoyScreen() {
     </div>
 
     {stageNames.length === 10 && <section aria-labelledby="hoy-cartera" className={cn(s.panel, s.cartera)}>
-      <div className={s.head}><h2 id="hoy-cartera" className={s.title}>Tu cartera por etapa</h2><span className={s.meta}>{plural(inProgress.length, "operación", "operaciones")} · {plural(prospects, "prospecto", "prospectos")}</span></div>
-      <ol className={s.pipe} aria-label="Operaciones por etapa">{stageNames.map((stage, i) => {
+      <div className={s.head}><h2 id="hoy-cartera" className={s.title}>Tu cartera por etapa</h2><span className={s.meta}>{plural(inProgress.length, "asunto", "asuntos")} · {plural(prospects, "prospecto", "prospectos")}</span></div>
+      <ol className={s.pipe} aria-label="Asuntos por etapa">{stageNames.map((stage, i) => {
         const Icon = stageIcon(stage, i), n = stagesCount[i];
         return <li key={stage.label} className={s.pcol}>
           <span className={cn(s.pnum, !n && s.pzero)}>{n}</span>

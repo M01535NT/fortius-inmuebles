@@ -13,7 +13,7 @@ export const PAPELERA = {
   restaurar: "Restaurar",
   /** Enlace desde Operaciones e Historial. */
   enlace: "Ver eliminados",
-  operaciones: "Operaciones",
+  operaciones: "Asuntos",
   registros: "Contactos, inmuebles, artículos, notas y citas",
   /** Frase de la confirmación de borrado según se pueda restaurar o no (género del objeto). */
   sePuedeRestaurar: { o: "Podrás restaurarlo desde Eliminados.", a: "Podrás restaurarla desde Eliminados." },

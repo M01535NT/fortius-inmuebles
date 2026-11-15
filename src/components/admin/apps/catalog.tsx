@@ -28,7 +28,7 @@ type Entry = { key: string; href: string; title: string; text: string; icon: Rea
    el alta de un inmueble de otra inmobiliaria (PUB-02, RP-95), con su autorización escrita, y los
    trámites por pasos (TRA-01). */
 const EXTRA: Record<AppGroup, Entry[]> = {
-  Documentos: [{ key: "opinion", href: "/admin/apps/documentos?formato=07", title: "Opinión de valor", text: "Con los datos que dé el cliente, sin abrir una operación.", icon: <Building2 size={18} strokeWidth={1.6} aria-hidden="true" /> },
+  Documentos: [{ key: "opinion", href: "/admin/apps/documentos?formato=07", title: "Opinión de valor", text: "Con los datos que dé el cliente, sin abrir un asunto.", icon: <Building2 size={18} strokeWidth={1.6} aria-hidden="true" /> },
     // TRA-01: trámites aparte de la venta, por pasos; también en el menú lateral (14/11/2026).
     { key: "tramites", href: "/admin/tramites", title: "Trámites", text: "Cancelación de hipoteca paso a paso, con documentos, notas y el avance para el propietario.", icon: <Route size={18} strokeWidth={1.6} aria-hidden="true" /> }],
   Calcular: [],

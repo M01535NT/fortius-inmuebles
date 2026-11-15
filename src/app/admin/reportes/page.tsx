@@ -51,7 +51,7 @@ export default function ReportesPage() {
     let active = true;
     apiRequest<{ expedientes: ReportRecord[] }>("/api/admin/expedientes")
       .then(result => { if (active) { setExpedientes(result.expedientes); setExpedientStatus("ready"); } })
-      .catch(cause => { if (active) { setError(cause instanceof Error ? cause.message : "No se pudieron cargar las operaciones."); setExpedientStatus("error"); } });
+      .catch(cause => { if (active) { setError(cause instanceof Error ? cause.message : "No se pudieron cargar los asuntos."); setExpedientStatus("error"); } });
     return () => { active = false; };
   }, [session?.role]);
   if (session?.role !== "admin") return <p role="alert" className="rounded-md border border-border p-6">Los reportes son solo para administradores.</p>;
@@ -91,15 +91,15 @@ export default function ReportesPage() {
       {detail === "contacts" && <div id="report-contacts" className={s.detail}>{overdue.length ? <ul>{overdue.map(contact => <li key={contact.id}><Link href={contact.href}>{contact.personName}<small>{followupLabel(contact)} · desde {humanDate(contact.fecha)}</small></Link></li>)}</ul> : <p className={s.note}>Nadie espera contacto.</p>}</div>}
     </section>
     <section className={s.block} aria-labelledby="report-stages">
-      <h2 id="report-stages" className="text-xl font-semibold">Operaciones por etapa</h2>
-      {stageRows.length ? <ul className={s.stages}>{stageRows.map(([label, { count }]) => <li key={label}><span>{label}</span><strong>{count}</strong></li>)}</ul> : <p className={s.note}>Todavía no hay operaciones abiertas.</p>}
-      <Link href="/admin/operaciones" className="inline-flex min-h-11 items-center self-start text-sm font-medium text-foreground underline underline-offset-4">Abrir operaciones</Link>
+      <h2 id="report-stages" className="text-xl font-semibold">Asuntos por etapa</h2>
+      {stageRows.length ? <ul className={s.stages}>{stageRows.map(([label, { count }]) => <li key={label}><span>{label}</span><strong>{count}</strong></li>)}</ul> : <p className={s.note}>Todavía no hay asuntos abiertos.</p>}
+      <Link href="/admin/operaciones" className="inline-flex min-h-11 items-center self-start text-sm font-medium text-foreground underline underline-offset-4">Abrir asuntos</Link>
     </section>
     <details className={s.fold}>
       <summary>Por asesor <span className={s.summaryNote}>Lo que lleva cada quien hoy</span></summary>
       <div className={s.foldBody}>
         <InventoryScope count={propiedades.filter(property => property.demo).length} included={includeDemo} onChange={setIncludeDemo} />
-        <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><caption className="sr-only">Cartera actual por asesor</caption><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2 font-medium">Asesor</th><th scope="col" className="p-2 font-medium">Prospectos activos</th><th scope="col" className="p-2 font-medium">Clientes</th><th scope="col" className="p-2 font-medium">Inmuebles</th><th scope="col" className="p-2 font-medium">Operaciones</th><th scope="col" className="p-2 font-medium">Contactos vencidos</th><th scope="col" className="p-2 font-medium">Tareas vencidas</th><th scope="col" className="p-2 font-medium">Cierres · reparto estimado</th></tr></thead><tbody>
+        <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><caption className="sr-only">Cartera actual por asesor</caption><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2 font-medium">Asesor</th><th scope="col" className="p-2 font-medium">Prospectos activos</th><th scope="col" className="p-2 font-medium">Clientes</th><th scope="col" className="p-2 font-medium">Inmuebles</th><th scope="col" className="p-2 font-medium">Asuntos</th><th scope="col" className="p-2 font-medium">Contactos vencidos</th><th scope="col" className="p-2 font-medium">Tareas vencidas</th><th scope="col" className="p-2 font-medium">Cierres · reparto estimado</th></tr></thead><tbody>
           {metrics.portfolio.map(row => <tr key={row.id} className="border-b border-border"><th scope="row" className="p-2 font-medium">{row.nombre}</th><td className="p-2 tabular-nums">{row.leads}</td><td className="p-2 tabular-nums">{row.clientes}</td><td className="p-2 tabular-nums">{row.inmuebles}</td><td className="p-2 tabular-nums">{row.expedientes}</td><td className="p-2 tabular-nums">{row.contactosVencidos}</td><td className="p-2 tabular-nums">{row.tareasVencidas}</td><td className="p-2 tabular-nums">{row.cierres ? `${row.cierres}${row.repartoEstimado !== null ? ` · ${new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(row.repartoEstimado)}` : ""}` : "—"}</td></tr>)}
           <tr><th scope="row" className="p-2 font-medium">Sin asesor</th><td className="p-2 tabular-nums">{metrics.unassigned.leads}</td><td className="p-2 tabular-nums">{metrics.unassigned.clientes}</td><td className="p-2 tabular-nums">{metrics.unassigned.inmuebles}</td><td className="p-2 tabular-nums">{metrics.unassigned.expedientes}</td><td className="p-2 tabular-nums">{metrics.unassigned.contactosVencidos}</td><td className="p-2 tabular-nums">{metrics.unassigned.tareasVencidas}</td><td className="p-2 tabular-nums">—</td></tr>
         </tbody></table></div>

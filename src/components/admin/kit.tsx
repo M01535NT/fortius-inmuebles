@@ -224,7 +224,7 @@ export function StageProgress({ stages, current, notes, warnings, selectable, on
     <p className="flex justify-between gap-3 text-[0.9375rem]"><span className="font-semibold">{stages[current - 1]}</span><span className="tabular-nums text-sm text-muted-foreground">Etapa {current} de {total}</span></p>
     <ProgressBar value={current} max={total} label={`Etapa ${current} de ${total}`} />
   </div>;
-  return <ol aria-label="Avance de la operación" className="grid gap-2" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}>
+  return <ol aria-label="Avance del asunto" className="grid gap-2" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}>
     {stages.map((name, i) => {
       const n = i + 1, done = n < current, here = n === current, warning = done ? warnings?.[n] : undefined;
       const label = <span className="flex min-w-0 items-baseline gap-1.5"><span className="tabular-nums text-xs text-muted-foreground">{n}</span><span className={cn(s.stepName, "text-sm leading-snug", here ? "font-bold" : "font-medium text-muted-foreground")}>{name}</span></span>;

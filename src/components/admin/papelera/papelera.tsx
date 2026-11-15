@@ -37,12 +37,12 @@ function Operaciones() {
   }, [revision]);
 
   async function restaurar(op: OperationRecord) {
-    if (!await confirmAction(`La operación ${op.folio} vuelve a Operaciones con sus documentos y tareas.`, { title: `${PAPELERA.restaurar} operación`, confirmLabel: PAPELERA.restaurar })) return;
+    if (!await confirmAction(`El asunto ${op.folio} vuelve a Asuntos con sus documentos y tareas.`, { title: `${PAPELERA.restaurar} asunto`, confirmLabel: PAPELERA.restaurar })) return;
     setError(""); setNotice("");
     try {
       await fetchJson(`/api/admin/expedientes/${op.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: op.version }) });
       setRecords(items => items?.filter(item => item.id !== op.id));
-      setNotice(`Operación ${op.folio} de vuelta en Operaciones.`);
+      setNotice(`Asunto ${op.folio} de vuelta en Asuntos.`);
     } catch (cause) { setError(errorMessage(cause)); }
   }
 
@@ -50,9 +50,9 @@ function Operaciones() {
     <h2 id="papelera-operaciones" className="text-lg font-semibold">{PAPELERA.operaciones}</h2>
     {notice && <p role="status" className="text-sm">{notice}</p>}
     {error ? <Fallo error={error} onRetry={() => { setError(""); setRecords(undefined); setRevision(n => n + 1); }} />
-      : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando operaciones eliminadas…</p>
-      : !records.length ? <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="No hay operaciones eliminadas">Cuando se elimine una operación aparecerá aquí con sus documentos y tareas.</EmptyBox>
-      : <Card as="ul" className="m-0 list-none overflow-hidden p-0" aria-label="Operaciones eliminadas">{records.map(op => {
+      : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando asuntos eliminados…</p>
+      : !records.length ? <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="No hay asuntos eliminados">Cuando se elimine un asunto aparecerá aquí con sus documentos y tareas.</EmptyBox>
+      : <Card as="ul" className="m-0 list-none overflow-hidden p-0" aria-label="Asuntos eliminados">{records.map(op => {
         const who = clients.find(c => c.id === op.cliente_id)?.nombre;
         const where = op.propiedad_slug ? properties.find(p => p.slug === op.propiedad_slug)?.titulo : undefined;
         return <li key={op.id} className={row}>

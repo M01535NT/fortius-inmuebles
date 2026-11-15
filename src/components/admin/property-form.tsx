@@ -885,7 +885,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
         <p className="mt-1.5 text-sm text-muted-foreground">
           Publica únicamente material comercial. Estos archivos tienen una URL pública;
           el formulario de contacto no protege su confidencialidad. Guarda identificaciones
-          y documentos de la operación en archivos privados.
+          y documentos del asunto en archivos privados.
         </p>
         <UploadControl
           label="Subir PDF público"

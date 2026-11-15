@@ -79,7 +79,7 @@ export function RelatedWork({
       })
       .catch(() => {
         if (active)
-          setError("No se pudieron consultar las operaciones vinculadas.");
+          setError("No se pudieron consultar los asuntos vinculados.");
       });
     return () => {
       active = false;
@@ -231,7 +231,7 @@ export function RelatedWork({
                 >
                   {t.titulo}
                   <span className="block text-xs text-muted-foreground">
-                    {TASK_STATUSES[t.estado]} · {t.vence ? humanDate(t.vence) : "Sin fecha"}{expedienteId && !t.expedienteId ? " · Sin operación vinculada" : ""}
+                    {TASK_STATUSES[t.estado]} · {t.vence ? humanDate(t.vence) : "Sin fecha"}{expedienteId && !t.expedienteId ? " · Sin asunto vinculado" : ""}
                   </span>
                 </Link>
               </li>
@@ -276,7 +276,7 @@ export function RelatedWork({
       )}
       {dossiers.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold">Operaciones</h3>
+          <h3 className="text-sm font-semibold">Asuntos</h3>
           {dossiers.map((d) => (
             <Link
               key={d.id}

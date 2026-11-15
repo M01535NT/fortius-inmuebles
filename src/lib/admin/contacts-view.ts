@@ -68,7 +68,7 @@ export function nextStep(person: { id: string; perfil?: LeadProfile; estado?: st
   options.sort((a, b) => a.sort.localeCompare(b.sort));
   const first = options[0];
   if (first) return { text: first.text, date: first.date, time: first.time };
-  return ops.length ? { text: `Operación en ${ops[0].stage.charAt(0).toLowerCase()}${ops[0].stage.slice(1)}` } : null;
+  return ops.length ? { text: `Asunto en ${ops[0].stage.charAt(0).toLowerCase()}${ops[0].stage.slice(1)}` } : null;
 }
 
 export type ContactRow = {

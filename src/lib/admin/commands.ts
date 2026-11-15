@@ -10,10 +10,13 @@ import { normalizedText } from "@/lib/admin/workspace";
 export type Command = { id: string; label: string; detail: string; href: string; words?: string };
 export type CommandSource = { quick: ReadonlyArray<{ label: string; href: string }>; nav: ReadonlyArray<{ label: string; href: string }>; admin: ReadonlyArray<{ label: string; href: string }> };
 
+/** Quien busca con el nombre anterior (operación, DEC-53) o con «expediente» llega a Asuntos. */
+const alias = (href: string) => href.startsWith("/admin/operaciones") ? " operacion operaciones expediente" : "";
+
 export function commandsFor(role: string | undefined, source: CommandSource): Command[] {
   return [
-    ...source.quick.map(item => ({ id: `nuevo:${item.href}`, label: item.label, detail: "Crear", href: item.href, words: "nuevo nueva crear agregar alta" })),
-    ...source.nav.map(item => ({ id: `ir:${item.href}`, label: `Ir a ${item.label}`, detail: "Ir", href: item.href, words: "ir abrir ver" })),
+    ...source.quick.map(item => ({ id: `nuevo:${item.href}`, label: item.label, detail: "Crear", href: item.href, words: `nuevo nueva crear agregar alta${alias(item.href)}` })),
+    ...source.nav.map(item => ({ id: `ir:${item.href}`, label: `Ir a ${item.label}`, detail: "Ir", href: item.href, words: `ir abrir ver${alias(item.href)}` })),
     { id: "ir:/admin/perfil", label: "Ir a Mi perfil", detail: "Ir", href: "/admin/perfil", words: "cuenta contraseña foto" },
     ...(role === "admin" ? source.admin.map(item => ({ id: `ir:${item.href}`, label: `Ir a ${item.label}`, detail: "Administración", href: item.href, words: "ir abrir ver administrar" })) : []),
   ];
