@@ -2,7 +2,8 @@
 import * as React from "react";
 import { Pencil, Star } from "@/components/admin/icons";
 import { Button } from "@/components/admin/kit";
-import { AsyncButton, AsyncSelect } from "@/components/admin/ui";
+import { AsyncButton, ErrorNotice } from "@/components/admin/ui";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Undoable } from "@/components/admin/workspace/undo-notice";
 import { ESTADO_LABELS, ESTADOS_POR_OPERACION, estadoValido, formatPrecio, type Property } from "@/data/propiedades";
 import { montoDe } from "@/lib/admin/inmuebles-vitrina";
@@ -11,13 +12,28 @@ import s from "./properties.module.css";
 
 /* Cambios en su lugar de un inmueble: precio, estado y destacada, cada uno con la versión del registro. */
 
-export function PropertyStatus({ property, className }: { property: Property; className?: string }) {
-  return <AsyncSelect aria-label={`Estado de ${property.titulo}`} value={property.estado}
-    onChange={async value => await upsertPropiedad({ ...property, estado: value as Property["estado"] }, db.propiedades.version(property))}
-    className={className ?? "min-h-11 w-full min-w-0 rounded-[10px] border border-input bg-background px-2 text-base text-foreground"}>
-    {!estadoValido(property.operacion, property.estado) && <option value={property.estado} disabled>{ESTADO_LABELS[property.estado]} (no corresponde a la operación; corrígelo)</option>}
-    {ESTADOS_POR_OPERACION[property.operacion].map(value => <option key={value} value={value}>{ESTADO_LABELS[value]}</option>)}
-  </AsyncSelect>;
+/** Estado del inmueble con el selector del panel (shadcn/ui «Select», DEC-52); guarda al elegir, con su versión. */
+export function PropertyStatus({ property }: { property: Property }) {
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const valid = estadoValido(property.operacion, property.estado);
+  async function choose(value: string) {
+    if (value === property.estado || busy) return;
+    setBusy(true); setError(null);
+    try { await upsertPropiedad({ ...property, estado: value as Property["estado"] }, db.propiedades.version(property)); }
+    catch (cause) { setError(errorMessage(cause)); }
+    finally { setBusy(false); }
+  }
+  return <div className="grid w-full gap-1">
+    <Select value={property.estado} onValueChange={value => { void choose(value); }} disabled={busy}>
+      <SelectTrigger aria-label={`Estado de ${property.titulo}`} aria-busy={busy}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {!valid && <SelectItem value={property.estado} disabled>{ESTADO_LABELS[property.estado]} (no corresponde a la operación; corrígelo)</SelectItem>}
+        {ESTADOS_POR_OPERACION[property.operacion].map(value => <SelectItem key={value} value={value}>{ESTADO_LABELS[value]}</SelectItem>)}
+      </SelectContent>
+    </Select>
+    <ErrorNotice error={error} />
+  </div>;
 }
 
 export function FeaturedButton({ property, className }: { property: Property; className: string }) {

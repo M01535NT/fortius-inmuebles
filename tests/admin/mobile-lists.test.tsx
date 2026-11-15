@@ -95,7 +95,8 @@ test("mobile property rows expose full details and preserve versioned changes an
   const ficha = within(await screen.findByRole("dialog", { name: property.titulo }));
   expect(ficha.getByRole("link", { name: `Editar ${property.titulo}` }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
   expect(ficha.getByText("Asesora de prueba")).toBeTruthy();
-  fireEvent.change(ficha.getByRole("combobox", { name: `Estado de ${property.titulo}` }), { target: { value: "apartada" } });
+  fireEvent.keyDown(ficha.getByRole("combobox", { name: `Estado de ${property.titulo}` }), { key: "Enter" });
+  fireEvent.click(await screen.findByRole("option", { name: "Apartada" }));
   await waitFor(() => expect(db.propiedades.list()[0].estado).toBe("apartada"));
   expect(writes[0].version).toBe(7);
   rejectWrites = true;

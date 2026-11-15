@@ -3,12 +3,14 @@ import { usePropertyScope } from "@/lib/admin/staff-scope";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Building2, Clock, Key, LayoutGrid, List, MapPin, Plus, Search, Star, UserRound, EMPTY_ART } from "@/components/admin/icons";
-import { ActionsMenu, Avatar, ButtonLink, EmptyBox, Kbd, Pill, Segmented, StageRail, Thumb } from "@/components/admin/kit";
+import { ActionsMenu, Avatar, ButtonLink, EmptyBox, Kbd, Pill, StageRail, Thumb } from "@/components/admin/kit";
+import { Checkbox, ToggleGroup, ToggleGroupItem } from "@/components/ui/controls";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { inputClass } from "@/components/admin/ui";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
 import { usePanelPreference } from "@/components/admin/workspace/preferences-store";
-import { BulkBar, SelectBox, SelectToggle, useSelection, type BulkAction, type Selection } from "@/components/admin/workspace/bulk";
+import { BulkBar, SelectToggle, useSelection, type BulkAction, type Selection } from "@/components/admin/workspace/bulk";
 import { emptyInventoryFilters, filterInventory, type InventoryFilters } from "@/lib/admin/workspace";
 import { CAPTURE_STATUS_LABEL, type CaptureStatus } from "@/lib/admin/person-status";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
@@ -184,11 +186,19 @@ export function PropertyList() {
     </section>}
 
     <div className={s.toolbar}>
-      {!demand && <Segmented className={s.segmented} label="Operación" value={filters.operation || "todos"} onChange={id => update({ ...filters, operation: id === "todos" ? "" : id })} options={[{ id: "todos", label: "Todos" }, { id: "venta", label: "En venta" }, { id: "renta", label: "En renta" }]} />}
-      <button type="button" className={s.gapChip} aria-pressed={missingOnly && !demand} onClick={() => { setDemand(false); setMissingOnly(on => demand || !on); setPage(0); }}>Les falta algo<span>{incomplete.length}</span></button>
-      <button type="button" className={s.gapChip} aria-pressed={demand} onClick={() => setDemand(on => !on)}>Buscan y no tenemos<span>{new Set(groups.flatMap(g => g.seekers.map(x => `${x.kind}-${x.id}`))).size}</span></button>
+      {!demand && <ToggleGroup type="single" className={s.segmented} aria-label="Operación" value={filters.operation || "todos"} onValueChange={id => { if (id) update({ ...filters, operation: id === "todos" ? "" : id }); }}>
+        {[["todos", "Todos"], ["venta", "En venta"], ["renta", "En renta"]].map(([id, label]) => <ToggleGroupItem key={id} value={id} className={s.segItem}>{label}</ToggleGroupItem>)}
+      </ToggleGroup>}
+      {/* Filtros rápidos: uno a la vez, se quitan al pulsarlos de nuevo (shadcn/ui «ToggleGroup»). */}
+      <ToggleGroup type="single" className={s.quick} aria-label="Filtros rápidos" value={demand ? "demanda" : missingOnly ? "falta" : ""} onValueChange={id => { setDemand(id === "demanda"); setMissingOnly(id === "falta"); setPage(0); }}>
+        <ToggleGroupItem value="falta" className={s.gapChip}>Les falta algo<span>{incomplete.length}</span></ToggleGroupItem>
+        <ToggleGroupItem value="demanda" className={s.gapChip}>Buscan y no tenemos<span>{new Set(groups.flatMap(g => g.seekers.map(x => `${x.kind}-${x.id}`))).size}</span></ToggleGroupItem>
+      </ToggleGroup>
       {!demand && <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia, calle o código" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>}
-      {!demand && <Segmented className={s.viewSwitch} label="Forma de ver" value={view} onChange={id => { void saveView(id); }} options={[{ id: "filas", label: "Lista", icon: <List size={16} aria-hidden="true" /> }, { id: "tarjetas", label: "Galería", icon: <LayoutGrid size={16} aria-hidden="true" /> }]} />}
+      {!demand && <ToggleGroup type="single" className={s.viewSwitch} aria-label="Forma de ver" value={view} onValueChange={id => { if (id === "filas" || id === "tarjetas") void saveView(id); }}>
+        <ToggleGroupItem value="filas" className={s.segItem}><List size={16} aria-hidden="true" />Lista</ToggleGroupItem>
+        <ToggleGroupItem value="tarjetas" className={s.segItem}><LayoutGrid size={16} aria-hidden="true" />Galería</ToggleGroupItem>
+      </ToggleGroup>}
     </div>
     {!demand && <Disclosure className={s.more} title={`Más filtros${extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}`}>
       <div className="mt-3"><InventoryControls value={filters} onChange={update} advisers={advisers} count={results.length} hideSearch /></div>
@@ -237,7 +247,7 @@ function PropertyItem({ row, view, index, today, selection, offer, onOpen, onNav
   const style = { "--i": Math.min(index, 12) } as React.CSSProperties;
 
   if (view === "tarjetas") return <li className={s.card} style={style}>
-    {selection.on && <span className={s.cardPick}><SelectBox selection={selection} id={p.slug} label={p.titulo} /></span>}
+    {selection.on && <PickBox selection={selection} id={p.slug} label={p.titulo} className={s.cardPick} />}
     <button type="button" data-open className={s.cardOpen} onClick={onOpen} aria-label={`Abrir ${p.titulo}`}>
       <span className={s.photoWrap}>
         <Thumb src={p.galeria[0]?.src} ratio="4 / 3" className={s.photo} icon={<span className={s.noPhoto}><Building2 size={28} aria-hidden="true" /><span>Sin foto</span></span>} />
@@ -258,7 +268,7 @@ function PropertyItem({ row, view, index, today, selection, offer, onOpen, onNav
   </li>;
 
   return <li className={s.row} style={style} data-pick={selection.on || undefined} data-picked={selection.selected.has(p.slug) || undefined}>
-    {selection.on && <SelectBox selection={selection} id={p.slug} label={p.titulo} />}
+    {selection.on && <PickBox selection={selection} id={p.slug} label={p.titulo} className={s.pick} />}
     <button type="button" data-open className={s.rowOpen} onClick={onOpen} aria-label={`Abrir ${p.titulo}`}>
       <Thumb src={p.galeria[0]?.src} size={96} className={s.rowThumb} icon={<Building2 size={24} aria-hidden="true" />} />
       <span className={s.rowText}>
@@ -269,19 +279,30 @@ function PropertyItem({ row, view, index, today, selection, offer, onOpen, onNav
     </button>
     <span className={s.rowStage}>
       {track ? <><StageRail total={track.stages.length} current={track.current} /><small><b>{track.current + 1}</b> · {track.stages[track.current]?.label}</small></> : null}
-      {active && prep.items.length > 0 && <span className={s.prep} title={prepLine(prep.missing)}>
+      {active && prep.items.length > 0 && <span className={s.prep}>
         <span className={s.bars} aria-hidden="true">{prep.items.map(x => <i key={x.item} data-on={x.estado === "listo" || undefined} />)}</span>
         <small data-done={!prep.missing.length || undefined}>{prepLine(prep.missing)}</small>
       </span>}
       {lent && <small className={s.lentRow}><Clock size={12} aria-hidden="true" />Llaves con {lent.persona}</small>}
     </span>
     <span className={s.rowPeople}>
-      {owner && <span title={`Propietario: ${owner}`}><Avatar name={owner} size={30} /></span>}
-      {adviser ? <span title={`Responsable: ${adviser.nombre}`}><Avatar name={adviser.nombre} src={adviser.foto} size={30} /></span> : <small className={s.meta}>Sin asignar</small>}
-      <span className="sr-only">{[owner && `Propietario: ${owner}`, `Responsable: ${adviser?.nombre ?? "sin asignar"}`].filter(Boolean).join(". ")}</span>
+      {owner && <Face name={owner} role="Propietario" />}
+      {adviser ? <Face name={adviser.nombre} src={adviser.foto} role="Responsable" /> : <small className={s.meta}>Sin asignar</small>}
     </span>
     <span className={s.rowPrice}>{price}{flags}</span>
     <span className={s.rowState}>{statePill}</span>
     <span className={s.rowMenu}>{menu}</span>
   </li>;
+}
+
+/** Casilla de selección (shadcn/ui «Checkbox») con su objetivo de 44 px. */
+function PickBox({ selection, id, label, className }: { selection: Selection; id: string; label: string; className?: string }) {
+  return <label className={className}><Checkbox checked={selection.selected.has(id)} onCheckedChange={() => selection.toggle(id)} aria-label={`Seleccionar: ${label}`} /></label>;
+}
+
+/** Cara con su nombre y papel al pasar el ratón o llegar con el teclado (shadcn/ui «Tooltip»); el lector de pantalla lo oye siempre. */
+function Face({ name, src, role }: { name: string; src?: string; role: string }) {
+  return <Tooltip><TooltipTrigger asChild>
+    <span tabIndex={0} className={s.face}><Avatar name={name} src={src} size={30} /><span className="sr-only">{role}: {name}</span></span>
+  </TooltipTrigger><TooltipContent>{role}: {name}</TooltipContent></Tooltip>;
 }
