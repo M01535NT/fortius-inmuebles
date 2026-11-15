@@ -420,6 +420,19 @@ it("la lista de operaciones ya no trae un bote por renglón: eliminar vive dentr
   expect(screen.queryByRole("button", { name: /^Eliminar el asunto de/ })).toBeNull();
 });
 
+it("al cambiar de pestaña con el teclado el foco sigue a la pestaña elegida aunque la lista cambie de lugar", async () => {
+  await openOperation();
+  const etapa = screen.getByRole("tab", { name: "Etapa" });
+  etapa.focus();
+  fireEvent.keyDown(etapa, { key: "ArrowRight" });
+  await waitFor(() => expect(nav.search.get("tab")).toBe("documentos"));
+  await waitFor(() => expect(document.activeElement?.id).toBe("operacion-tab-documentos"));
+  const docs = document.activeElement as HTMLElement;
+  fireEvent.keyDown(docs, { key: "ArrowUp" });
+  await waitFor(() => expect(nav.search.get("tab")).toBeNull());
+  await waitFor(() => expect(document.activeElement?.id).toBe("operacion-tab-sigue"));
+});
+
 it("el «⋯» de cada fila abre el asunto, lo abre en otra pestaña o copia su enlace", async () => {
   const writeText = vi.fn().mockResolvedValue(undefined);
   Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
