@@ -11,7 +11,6 @@ import {
   btnGhost,
   btnPrimary,
   inputClass,
-  selectClass,
   textareaClass,
 } from "@/components/admin/ui";
 import {
@@ -20,6 +19,8 @@ import {
   type SiteContent,
 } from "@/lib/admin/store";
 import type { PreguntaFrecuente, Testimonio } from "@/lib/domain/records";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckField } from "@/components/admin/apps/fields";
 
 const newId = () => crypto.randomUUID();
 const GRUPO_LABELS: Record<PreguntaFrecuente["grupo"], string> = { vender: "Para vender", comprar: "Para comprar", general: "En general" };
@@ -146,10 +147,10 @@ function Editor({ initial }: { initial: SiteContent }) {
             {preguntas.map((item, index) => (
               <li key={item.id} className="space-y-3 rounded-md border border-border p-4">
                 <Field label="Grupo" htmlFor={`faq-grupo-${item.id}`}>
-                  <select id={`faq-grupo-${item.id}`} value={item.grupo} className={selectClass}
-                    onChange={(e) => setPreguntas((list) => list.map((row, i) => i === index ? { ...row, grupo: e.target.value as PreguntaFrecuente["grupo"] } : row))}>
-                    {(Object.keys(GRUPO_LABELS) as PreguntaFrecuente["grupo"][]).map((key) => <option key={key} value={key}>{GRUPO_LABELS[key]}</option>)}
-                  </select>
+                  <Select value={item.grupo} onValueChange={(grupo) => setPreguntas((list) => list.map((row, i) => i === index ? { ...row, grupo: grupo as PreguntaFrecuente["grupo"] } : row))}>
+                    <SelectTrigger id={`faq-grupo-${item.id}`}><SelectValue /></SelectTrigger>
+                    <SelectContent>{(Object.keys(GRUPO_LABELS) as PreguntaFrecuente["grupo"][]).map((key) => <SelectItem key={key} value={key}>{GRUPO_LABELS[key]}</SelectItem>)}</SelectContent>
+                  </Select>
                 </Field>
                 <Field label="Pregunta" htmlFor={`faq-pregunta-${item.id}`}>
                   <input id={`faq-pregunta-${item.id}`} value={item.pregunta} maxLength={300} className={inputClass}
@@ -184,11 +185,8 @@ function Editor({ initial }: { initial: SiteContent }) {
                   <input id={`tes-detalle-${item.id}`} value={item.detalle} maxLength={160} className={inputClass}
                     onChange={(e) => setTestimonios((list) => list.map((row, i) => i === index ? { ...row, detalle: e.target.value } : row))} />
                 </Field>
-                <label className="flex min-h-11 items-center gap-3 text-sm text-foreground">
-                  <input type="checkbox" checked={item.autorizado} className="h-5 w-5"
-                    onChange={(e) => setTestimonios((list) => list.map((row, i) => i === index ? { ...row, autorizado: e.target.checked } : row))} />
-                  Tengo autorización por escrito de esta persona para publicarlo
-                </label>
+                <CheckField className="items-center text-foreground" checked={item.autorizado} label="Tengo autorización por escrito de esta persona para publicarlo"
+                  onChange={(autorizado) => setTestimonios((list) => list.map((row, i) => i === index ? { ...row, autorizado } : row))} />
                 <button type="button" className={btnDanger} onClick={() => setTestimonios((list) => list.filter((_, i) => i !== index))}>Quitar testimonio</button>
               </li>
             ))}

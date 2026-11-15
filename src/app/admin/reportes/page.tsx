@@ -19,7 +19,12 @@ import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { longDate } from "@/lib/admin/today";
 import { humanDate } from "@/lib/utils";
 import { isShared, sharedCommissionEstimate } from "@/lib/admin/shared-property";
+import { Avatar, Thumb } from "@/components/admin/kit";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { StageChart } from "./stage-chart";
 import s from "@/components/admin/workspace/reports.module.css";
+
+const money = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
 
 type ReportRecord = StageRecord & Partial<OperationRecord>;
 
@@ -92,17 +97,20 @@ export default function ReportesPage() {
     </section>
     <section className={s.block} aria-labelledby="report-stages">
       <h2 id="report-stages" className="text-xl font-semibold">Asuntos por etapa</h2>
-      {stageRows.length ? <ul className={s.stages}>{stageRows.map(([label, { count }]) => <li key={label}><span>{label}</span><strong>{count}</strong></li>)}</ul> : <p className={s.note}>Todavía no hay asuntos abiertos.</p>}
+      {stageRows.length ? <StageChart rows={stageRows.map(([label, { count }]) => ({ label, count }))} /> : <p className={s.note}>Todavía no hay asuntos abiertos.</p>}
       <Link href="/admin/operaciones" className="inline-flex min-h-11 items-center self-start text-sm font-medium text-foreground underline underline-offset-4">Abrir asuntos</Link>
     </section>
     <details className={s.fold}>
       <summary>Por asesor <span className={s.summaryNote}>Lo que lleva cada quien hoy</span></summary>
       <div className={s.foldBody}>
         <InventoryScope count={propiedades.filter(property => property.demo).length} included={includeDemo} onChange={setIncludeDemo} />
-        <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><caption className="sr-only">Cartera actual por asesor</caption><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2 font-medium">Asesor</th><th scope="col" className="p-2 font-medium">Prospectos activos</th><th scope="col" className="p-2 font-medium">Clientes</th><th scope="col" className="p-2 font-medium">Inmuebles</th><th scope="col" className="p-2 font-medium">Asuntos</th><th scope="col" className="p-2 font-medium">Contactos vencidos</th><th scope="col" className="p-2 font-medium">Tareas vencidas</th><th scope="col" className="p-2 font-medium">Cierres · reparto estimado</th></tr></thead><tbody>
-          {metrics.portfolio.map(row => <tr key={row.id} className="border-b border-border"><th scope="row" className="p-2 font-medium">{row.nombre}</th><td className="p-2 tabular-nums">{row.leads}</td><td className="p-2 tabular-nums">{row.clientes}</td><td className="p-2 tabular-nums">{row.inmuebles}</td><td className="p-2 tabular-nums">{row.expedientes}</td><td className="p-2 tabular-nums">{row.contactosVencidos}</td><td className="p-2 tabular-nums">{row.tareasVencidas}</td><td className="p-2 tabular-nums">{row.cierres ? `${row.cierres}${row.repartoEstimado !== null ? ` · ${new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(row.repartoEstimado)}` : ""}` : "—"}</td></tr>)}
-          <tr><th scope="row" className="p-2 font-medium">Sin asesor</th><td className="p-2 tabular-nums">{metrics.unassigned.leads}</td><td className="p-2 tabular-nums">{metrics.unassigned.clientes}</td><td className="p-2 tabular-nums">{metrics.unassigned.inmuebles}</td><td className="p-2 tabular-nums">{metrics.unassigned.expedientes}</td><td className="p-2 tabular-nums">{metrics.unassigned.contactosVencidos}</td><td className="p-2 tabular-nums">{metrics.unassigned.tareasVencidas}</td><td className="p-2 tabular-nums">—</td></tr>
-        </tbody></table></div>
+        <Table className="min-w-[760px] [&_:is(th,td):last-child]:!static [&_:is(th,td):last-child]:!shadow-none"><TableCaption className="sr-only">Cartera actual por asesor</TableCaption>
+          <TableHeader><TableRow className="hover:bg-transparent">{["Asesor", "Prospectos activos", "Clientes", "Inmuebles", "Asuntos", "Contactos vencidos", "Tareas vencidas", "Cierres · reparto estimado"].map((label, i) => <TableHead key={label} scope="col" className={i ? "text-right" : undefined}>{label}</TableHead>)}</TableRow></TableHeader>
+          <TableBody>
+            {metrics.portfolio.map(row => <TableRow key={row.id}><TableHead scope="row" className="h-auto text-[0.9375rem] font-medium text-foreground"><span className="inline-flex items-center gap-2.5"><Avatar name={row.nombre} size={28} />{row.nombre}</span></TableHead>{[row.leads, row.clientes, row.inmuebles, row.expedientes].map((n, i) => <TableCell key={i} className="text-right tabular-nums">{n}</TableCell>)}<TableCell className={`text-right tabular-nums ${row.contactosVencidos ? "font-semibold text-destructive" : ""}`}>{row.contactosVencidos}</TableCell><TableCell className={`text-right tabular-nums ${row.tareasVencidas ? "font-semibold text-destructive" : ""}`}>{row.tareasVencidas}</TableCell><TableCell className="text-right tabular-nums">{row.cierres ? `${row.cierres}${row.repartoEstimado !== null ? ` · ${money.format(row.repartoEstimado)}` : ""}` : "—"}</TableCell></TableRow>)}
+            <TableRow><TableHead scope="row" className="h-auto text-[0.9375rem] font-medium text-foreground">Sin asesor</TableHead>{[metrics.unassigned.leads, metrics.unassigned.clientes, metrics.unassigned.inmuebles, metrics.unassigned.expedientes, metrics.unassigned.contactosVencidos, metrics.unassigned.tareasVencidas].map((n, i) => <TableCell key={i} className="text-right tabular-nums">{n}</TableCell>)}<TableCell className="text-right tabular-nums">—</TableCell></TableRow>
+          </TableBody>
+        </Table>
         <p className={s.note}>El reparto es una estimación: 25 % al que capta y 25 % al que vende (50 % si es el mismo), sobre la comisión del contrato de intermediación. No es lo cobrado.</p>
       </div>
     </details>
@@ -110,9 +118,12 @@ export default function ReportesPage() {
     {shared.length > 0 && <details className={s.fold}>
       <summary>Inmuebles compartidos <span className={s.summaryNote}>{shared.length === 1 ? "1 de otra inmobiliaria" : `${shared.length} de otras inmobiliarias`}</span></summary>
       <div className={s.foldBody}>
-        <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-left text-sm"><caption className="sr-only">Inmuebles compartidos y su comisión estimada</caption><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2 font-medium">Inmueble</th><th scope="col" className="p-2 font-medium">Inmobiliaria</th><th scope="col" className="p-2 font-medium">Comisión acordada</th><th scope="col" className="p-2 font-medium">Estimación</th></tr></thead><tbody>
-          {shared.map(property => { const estimate = sharedCommissionEstimate(property); return <tr key={property.slug} className="border-b border-border"><th scope="row" className="p-2 font-medium"><Link href={`/admin/propiedades/${encodeURIComponent(property.slug)}/editar`} className="underline underline-offset-4">{property.titulo}</Link>{property.demo ? " · ejemplo" : ""}</th><td className="p-2">{property.aliado?.inmobiliaria ?? "—"}</td><td className="p-2 tabular-nums">{property.aliado?.porcentaje != null ? `${property.aliado.porcentaje} %` : "—"}</td><td className="p-2 tabular-nums">{estimate ? new Intl.NumberFormat("es-MX", { style: "currency", currency: estimate.moneda, maximumFractionDigits: 0 }).format(estimate.monto) : "—"}</td></tr>; })}
-        </tbody></table></div>
+        <Table className="min-w-[560px]"><TableCaption className="sr-only">Inmuebles compartidos y su comisión estimada</TableCaption>
+          <TableHeader><TableRow className="hover:bg-transparent"><TableHead scope="col">Inmueble</TableHead><TableHead scope="col">Inmobiliaria</TableHead><TableHead scope="col" className="text-right">Comisión acordada</TableHead><TableHead scope="col" className="text-right">Estimación</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {shared.map(property => { const estimate = sharedCommissionEstimate(property); return <TableRow key={property.slug}><TableHead scope="row" className="h-auto whitespace-normal text-[0.9375rem] font-medium text-foreground"><span className="inline-flex items-center gap-2.5"><Thumb src={property.galeria?.[0]?.src} size={36} /><span><Link href={`/admin/propiedades/${encodeURIComponent(property.slug)}/editar`} className="underline underline-offset-4">{property.titulo}</Link>{property.demo ? " · ejemplo" : ""}</span></span></TableHead><TableCell>{property.aliado?.inmobiliaria ?? "—"}</TableCell><TableCell className="text-right tabular-nums">{property.aliado?.porcentaje != null ? `${property.aliado.porcentaje} %` : "—"}</TableCell><TableCell className="text-right tabular-nums">{estimate ? new Intl.NumberFormat("es-MX", { style: "currency", currency: estimate.moneda, maximumFractionDigits: 0 }).format(estimate.monto) : "—"}</TableCell></TableRow>; })}
+          </TableBody>
+        </Table>
         <p className={s.note}>Estimación: precio publicado por la comisión acordada con la inmobiliaria. No se suma a los cierres ni es lo cobrado; un precio a consulta no se estima.</p>
       </div>
     </details>}

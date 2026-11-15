@@ -110,6 +110,8 @@ test("mobile property deletion requires confirmation and retains the row when th
   render(<PropiedadesPage />);
   const list = await screen.findByRole("list", { name: "Inmuebles" });
   const confirm = vi.mocked(confirmAction).mockResolvedValue(false);
+  // Las opciones se abren con «⋯» (Radix Collapsible): cerradas no están en la página.
+  fireEvent.click(within(list).getByRole("button", { name: `Opciones de ${property.titulo}` }));
   const remove = within(list).getByRole("button", { name: `Eliminar ${property.titulo}` });
   fireEvent.click(remove);
   await waitFor(() => expect(remove.getAttribute("aria-busy")).toBe("false"));
@@ -125,9 +127,9 @@ test("mobile property deletion requires confirmation and retains the row when th
   expect(writes.at(-1)).toEqual({ url: `/api/admin/collections/propiedades/${property.slug}`, method: "DELETE", version: 7 });
 });
 
-test("SIM-17: «Agregar contacto» abre el asistente único y no hay captura aparte", async () => {
+test("SIM-17 (FLX-01): «Agregar contacto» abre «Nuevo perfil» y no hay captura aparte en Contactos", async () => {
   render(<ContactsScreen />);
-  for (const link of screen.getAllByRole("link", { name: "Agregar contacto" })) expect(link.getAttribute("href")).toBe("/admin/operaciones/nueva");
+  for (const link of screen.getAllByRole("link", { name: "Agregar contacto" })) expect(link.getAttribute("href")).toBe("/admin/personas?nuevo=1");
   expect(screen.queryByRole("button", { name: "Busca comprar o rentar" })).toBeNull();
   expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
   await screen.findByRole("list", { name: "Contactos" });

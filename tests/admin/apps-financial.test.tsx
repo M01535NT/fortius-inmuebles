@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { afterEach, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { FinancialEditor } from "@/components/admin/apps/financial-editor";
 import { getFinancialDefaults } from "@/lib/apps/financial";
 import type { AppInput, AppResult } from "@/lib/apps/types";
@@ -56,7 +56,9 @@ it("cambia de magnitud a moneda y conserva fuente y fecha del tipo de cambio", (
   fireEvent.change(screen.getByLabelText("Cantidad"), { target: { value: "20" } });
   fireEvent.change(screen.getByLabelText("MXN por USD"), { target: { value: "20" } });
   fireEvent.change(screen.getByLabelText("Fuente del tipo de cambio"), { target: { value: "Cotización capturada" } });
-  fireEvent.change(screen.getByLabelText("Fecha del tipo de cambio"), { target: { value: "2026-10-13" } });
+  // La fecha se elige en el calendario (DateField, DEC-52).
+  fireEvent.click(screen.getByLabelText("Fecha del tipo de cambio"));
+  fireEvent.click(within(screen.getByRole("dialog")).getAllByRole("button", { name: /(^|\s)13 de / })[0]);
   fireEvent.click(screen.getByRole("button", { name: "Convertir" }));
   expect(screen.getByLabelText("Resultado emitido").textContent).toContain("$1.00 USD");
   expect(JSON.parse(screen.getByLabelText("Datos guardables").textContent!).rateSource).toBe("Cotización capturada");

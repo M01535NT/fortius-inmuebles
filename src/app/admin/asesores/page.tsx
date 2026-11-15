@@ -9,6 +9,7 @@ import { AdviserAccountLinks } from "@/components/admin/adviser-account-links";
 import { SectionBoundary } from "@/components/admin/section-boundary";
 
 import { Field, PageHeader, inputClass } from "@/components/admin/ui";
+import { Switch } from "@/components/ui/controls";
 import {
   db,
   removeById,
@@ -138,15 +139,10 @@ function Editor({
         <div className="grid gap-4 sm:grid-cols-2">
           {([['foto', 'URL de fotografía pública'], ['telefono', 'Teléfono público'], ['whatsapp', 'WhatsApp público (URL o número)'], ['email', 'Correo público'], ['instagram', 'Instagram (URL)'], ['facebook', 'Facebook (URL)'], ['linkedin', 'LinkedIn (URL)']] as const).map(([key, label]) => <Field key={key} label={label} htmlFor={`as-publico-${key}`}><input id={`as-publico-${key}`} name={`publico-${key}`} type={key === 'email' ? 'email' : ['foto', 'instagram', 'facebook', 'linkedin'].includes(key) ? 'url' : 'text'} defaultValue={asesor?.perfilPublico?.[key]} className={inputClass} /></Field>)}
         </div>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="publicado" defaultChecked={asesor?.perfilPublico?.publicado ?? false} className="size-4" />Publicar esta ficha y sus datos de contacto en Nosotros</label>
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm"><Switch name="publicado" defaultChecked={asesor?.perfilPublico?.publicado ?? false} />Publicar esta ficha y sus datos de contacto en Nosotros</label>
       </fieldset>
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          type="checkbox"
-          name="activo"
-          defaultChecked={asesor?.activo ?? true}
-          className="size-4 accent-[var(--primary)]"
-        />
+      <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-foreground">
+        <Switch name="activo" defaultChecked={asesor?.activo ?? true} />
         Activo (asignable y visible en el sitio)
       </label>
       <div className="flex flex-wrap gap-3">

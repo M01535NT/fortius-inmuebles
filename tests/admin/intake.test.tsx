@@ -1,6 +1,7 @@
 import * as React from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { pickOption } from "./pick";
 const { request, push, nav, upsert } = vi.hoisted(() => ({ request: vi.fn(), push: vi.fn(), upsert: vi.fn(), nav: { search: new URLSearchParams(), listeners: new Set<() => void>() } }));
 vi.mock("next/navigation", async () => {
   const react = await import("react");
@@ -52,7 +53,7 @@ it("elige qué quiere el cliente, captura quién es y no envía dos veces", asyn
   await waitFor(() => expect(screen.getByRole("combobox", { name: "Asesor responsable" })).toBeTruthy());
   fireEvent.click(screen.getByRole("button", { name: /Continuar con los datos del prospecto/ }));
   expect(screen.getByRole("alert").textContent).toBe("Elige al asesor responsable.");
-  fireEvent.change(screen.getByRole("combobox", { name: "Asesor responsable" }), { target: { value: "a" } });
+  await pickOption(screen.getByRole("combobox", { name: "Asesor responsable" }), "Ana");
   fireEvent.click(screen.getByRole("button", { name: /Continuar con los datos del prospecto/ }));
   fireEvent.click(screen.getByRole("button", { name: /Guardando/ }));
   expect(request.mock.calls.filter(c => c[1] === "POST")).toHaveLength(1);

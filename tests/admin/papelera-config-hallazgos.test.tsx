@@ -114,8 +114,9 @@ test("guardar otro dato de Configuración no fija el tope de IA del servidor", a
 test("una cuenta ligada a un asesor inactivo no se muestra como «Sin vincular»", async () => {
   extra = url => url === "/api/admin/asesor-cuentas" ? { cuentas: [{ user_id: "51000000-0000-4000-8000-000000000083", email: "ana@fortius.test", role: "editor", active: true, asesor_id: "ana" }] } : undefined;
   render(<AdviserAccountLinks isAdmin advisers={[ana, beto]} />);
-  const select = await screen.findByRole("combobox", { name: "Asesor" }) as HTMLSelectElement;
-  expect(select.selectedOptions[0]?.textContent, "el vínculo vigente con la ficha inactiva no se ve").not.toBe("Sin vincular");
+  // LV-10 (bloque g): el selector es `Select` de Radix; su botón muestra la ficha elegida.
+  const select = await screen.findByRole("combobox", { name: "Asesor" });
+  expect(select.textContent, "el vínculo vigente con la ficha inactiva no se ve").toContain("Ana Inactiva de ensayo");
 });
 
 /*
@@ -126,9 +127,10 @@ test("una cuenta ligada a un asesor inactivo no se muestra como «Sin vincular»
 test("una tarea nueva no ofrece como responsable a un asesor inactivo", async () => {
   extra = url => url === "/api/admin/collections/asesores" ? { records: [rec("ana", ana), rec("beto", beto)] } : undefined;
   render(<TaskForm onSave={async (task: Task) => task} />);
-  const select = await screen.findByLabelText("Responsable") as HTMLSelectElement;
-  await waitFor(() => expect(Array.from(select.options).some(o => o.textContent === beto.nombre)).toBe(true));
-  expect(Array.from(select.options).map(o => o.textContent)).not.toContain(ana.nombre);
+  // LV-10 (Agenda y Tareas): el responsable se elige con el buscador del kit (`Combobox`).
+  const names = async () => { fireEvent.click(await screen.findByRole("combobox", { name: "Responsable" })); const list = screen.getAllByRole("option").map(o => o.textContent ?? ""); fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" }); return list; };
+  await waitFor(async () => expect((await names()).some(t => t.includes(beto.nombre))).toBe(true));
+  expect((await names()).some(t => t.includes(ana.nombre))).toBe(false);
 });
 
 /*

@@ -3,6 +3,8 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/admin/workspace/use-person-status", () => ({ usePersonStatus: () => ({ ofClient: (id: string) => id === "cli-2" ? "cliente" : "prospecto", ofLead: () => undefined }) }));
 const guardados = vi.hoisted(() => vi.fn(async (_col: unknown, item: unknown) => item));
+const borrados = vi.hoisted(() => vi.fn(async () => undefined));
+vi.mock("@/components/admin/workspace/confirm", () => ({ confirmDelete: vi.fn(async () => true) }));
 vi.mock("@/lib/admin/store", async importOriginal => {
   const actual = await importOriginal<typeof import("@/lib/admin/store")>();
   const OP = "51000000-0000-4000-8000-000000000001";
@@ -18,7 +20,7 @@ vi.mock("@/lib/admin/store", async importOriginal => {
     [actual.db.propiedades, [{ slug: "casa-chapultepec", titulo: "Casa en Chapultepec", codigo: "FORTIUS-000209", precio: { modalidad: "publico", monto: 4200000, moneda: "MXN" }, galeria: [], estado: "evaluacion", publicada: false }]],
   ]);
   return {
-    ...actual, useCollection: (col: unknown) => data.get(col) ?? [], upsert: guardados,
+    ...actual, useCollection: (col: unknown) => data.get(col) ?? [], upsert: guardados, removeById: borrados,
     loadAllDossiers: async () => [{ id: OP, folio: "EXP-000342", version: 1, cliente_id: "cli-1", asesor_id: "a1", operacion: "venta", propiedad_slug: "casa-chapultepec", etapa: "documentacion", flujo: { version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: {} } }],
   };
 });
@@ -26,7 +28,7 @@ import { PersonasApp } from "@/components/admin/personas/personas-app";
 
 /* FLX · Personas: lista y perfil en una pantalla, con la guía, lo que sigue y sus documentos. */
 const OP = "51000000-0000-4000-8000-000000000001";
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); guardados.mockClear(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); guardados.mockClear(); borrados.mockClear(); });
 
 function servidor() {
   const calls: Array<{ method: string; url: string; body?: Record<string, unknown> }> = [];
@@ -41,6 +43,7 @@ function servidor() {
     if (url.startsWith("https://storage.example/")) return new Response(null, { status: 200 });
     if (url === "/api/admin/bandeja/completar") return Response.json({ documento: { id: "d9", titulo: "Predial" } }, { status: 201 });
     if (url === "/api/admin/bandeja/d9" && method === "PATCH") return Response.json({ documento: { id: "d9", titulo: "Predial" } });
+    if (url === "/api/admin/entrevistas/config") return Response.json({ administrador: false, asesorId: "a1" });
     return Response.json({ expedientes: [] });
   }));
   return calls;
@@ -175,4 +178,73 @@ it("LV-10e · si el servidor no acepta el cambio, el campo sigue abierto con el 
   expect(screen.getByRole("button", { name: "Cambiar teléfono: 6645550177" })).toBeTruthy();
   // Lo del primer contacto también cuenta en lo que ha pasado.
   expect(within(screen.getByRole("region", { name: "Lo que ha pasado" })).getByText("«Busca casa con patio»")).toBeTruthy();
+});
+
+/* FLX-01 · «Nuevo perfil» con las cinco preguntas de una llamada. */
+async function llenar(nombre: string, telefono: string) {
+  const panel = await screen.findByRole("dialog", { name: "Nuevo perfil" });
+  fireEvent.change(within(panel).getByLabelText("¿Cómo se llama?"), { target: { value: nombre } });
+  fireEvent.change(within(panel).getByLabelText("¿A qué teléfono le buscamos?"), { target: { value: telefono } });
+  fireEvent.click(within(panel).getByRole("radio", { name: "Vender" }));
+  fireEvent.click(within(panel).getByRole("radio", { name: "WhatsApp" }));
+  fireEvent.click(within(panel).getByRole("button", { name: "Agendar una visita" }));
+  return panel;
+}
+
+it("«Nuevo perfil» guarda al prospecto con las cinco respuestas y su próximo contacto como tarea", async () => {
+  servidor();
+  render(<PersonasApp initialId={null} />);
+  fireEvent.click(screen.getByRole("button", { name: "Nuevo perfil" }));
+  const panel = await llenar("Ejemplo Ramírez Soto", "664 555 0100");
+  await waitFor(() => expect(within(panel).getByRole("button", { name: "Guardar perfil" })).toBeTruthy());
+  await new Promise(r => setTimeout(r, 0));
+  fireEvent.click(within(panel).getByRole("button", { name: "Guardar perfil" }));
+  await waitFor(() => expect(guardados).toHaveBeenCalledTimes(2));
+  const [, lead, version] = guardados.mock.calls[0] as unknown as [unknown, Record<string, unknown> & { perfil: Record<string, unknown>; notas: unknown[] }, unknown];
+  expect(version).toBeNull();
+  expect(lead).toMatchObject({ nombre: "Ejemplo Ramírez Soto", telefono: "664 555 0100", origen: "manual", estado: "contactado", asesorId: "a1",
+    perfil: { operacion: "vender", canalPreferido: "whatsapp", proximaAccion: "Agendar una visita" } });
+  expect(lead.notas).toHaveLength(1);
+  const [, tarea] = guardados.mock.calls[1] as unknown as [unknown, Record<string, unknown>];
+  expect(tarea).toMatchObject({ titulo: "Agendar una visita", leadId: lead.id, asesorId: "a1", estado: "pendiente" });
+  expect(await screen.findByText(/Se guardó el perfil de Ejemplo Ramírez Soto/)).toBeTruthy();
+});
+
+it("si el teléfono ya es de alguien, avisa y no guarda hasta saber si es la misma persona", async () => {
+  servidor();
+  render(<PersonasApp initialId={null} initialNuevo />);
+  const panel = await llenar("Carlos Vega Ruiz", "664-555-0177");
+  const aviso = within(panel).getByRole("group", { name: "Personas que podrían ser la misma" });
+  expect(within(aviso).getByText(/mismo teléfono/)).toBeTruthy();
+  await new Promise(r => setTimeout(r, 0));
+  fireEvent.click(within(panel).getByRole("button", { name: "Guardar perfil" }));
+  expect(await within(panel).findByRole("alert")).toHaveProperty("textContent", "Dinos si es la misma persona que ya tienes o si es otra.");
+  expect(guardados).not.toHaveBeenCalled();
+  fireEvent.click(within(aviso).getByRole("button", { name: "Es la misma" }));
+  expect(await screen.findByRole("heading", { name: "Carlos Vega" })).toBeTruthy();
+  expect(guardados).not.toHaveBeenCalled();
+});
+
+async function abrirMenu() {
+  const boton = screen.getByRole("button", { name: "Más acciones" });
+  fireEvent.keyDown(boton, { key: "Enter" });
+  return screen.findByRole("menu");
+}
+
+it("«Eliminar» del menú ⋯ manda al prospecto a Eliminados con su versión", async () => {
+  servidor();
+  render(<PersonasApp initialId="lead:lead-1" />);
+  await screen.findByRole("heading", { level: 2, name: "Carlos Vega" });
+  fireEvent.click(within(await abrirMenu()).getByRole("menuitem", { name: "Eliminar" }));
+  await waitFor(() => expect(borrados).toHaveBeenCalledTimes(1));
+  expect((borrados.mock.calls[0] as unknown[])[1]).toBe("lead-1");
+});
+
+it("«Eliminar» dice por qué no se puede: un asunto en curso o una tarea en la Agenda", async () => {
+  servidor();
+  render(<PersonasApp initialId="cliente:cli-2" />);
+  await screen.findByRole("heading", { level: 2, name: "Ana Robles" });
+  const opcion = within(await abrirMenu()).getByRole("menuitem", { name: /Eliminar · tiene una tarea o cita en la Agenda/ });
+  expect(opcion.getAttribute("aria-disabled")).toBe("true");
+  expect(borrados).not.toHaveBeenCalled();
 });

@@ -4,6 +4,8 @@ import { ArrowLeft, ArrowRight, Check, FileDown, FileText, Save, X } from "@/com
 import { Button, Notice, Pill, Ring } from "@/components/admin/kit";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { inputClass, selectClass } from "@/components/admin/ui";
+import { SheetDescription, SheetOverlay, SheetPanel, SheetPortal, SheetRoot, SheetTitle } from "@/components/ui/sheet";
+import { TabsList, TabsRoot, TabsTrigger } from "@/components/ui/tabs";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { downloadAdminPdf } from "@/lib/admin/download-pdf";
 import { copiaEditable, downloadFormatoCopia } from "@/lib/admin/download-word";
@@ -105,14 +107,9 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
     window.addEventListener("beforeunload", before);
     return () => window.removeEventListener("beforeunload", before);
   }, [dirty]);
-  // La página de atrás no se desplaza mientras la ventana está abierta; el foco empieza en el título de la sección.
-  React.useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null, overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    // C-07: sobre el documento en vivo no hay título de sección; el foco va al diálogo, nunca detrás del velo.
-    (heading.current ?? dialog.current)?.focus();
-    return () => { document.body.style.overflow = overflow; previous?.focus?.(); };
-  }, []);
+  // LV-10c: la ventana es un diálogo de Radix (DEC-52): bloquea el fondo, encierra el foco y lo devuelve al cerrar.
+  // El foco empieza en el título de la sección; C-07: sobre el documento en vivo va al diálogo, nunca detrás del velo.
+  function focusStart(event: Event) { event.preventDefault(); (heading.current ?? dialog.current)?.focus(); }
 
   async function persist(next = values) {
     if (JSON.stringify(next) === JSON.stringify(doc.data)) return doc;
@@ -185,11 +182,6 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
       setNotice(`Copia en ${copia} descargada.`);
     });
   }
-  React.useEffect(() => {
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape" && !event.defaultPrevented) void close(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  });
 
   const budget = definition.id === "19" && !missing.length ? calcularPresupuesto(values) : null;
   const net = definition.id === "08" && !missing.length ? calcularNeto(data) : null;
@@ -198,14 +190,18 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   const where = [context.etapa, context.cliente, folio].filter(Boolean).join(" · ");
   const completeSections = pendingBySection.filter(count => count === 0).length;
 
-  return <>
-    <div className={s.windowScrim} aria-hidden="true" />
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="captura-titulo" aria-describedby="captura-contexto" className={cn(s.window, "outline-none")}>
+  // Escape y el velo no cierran directo: pasan por `close`, que guarda o pregunta antes de salir.
+  return <SheetRoot open onOpenChange={open => { if (!open) void close(); }}>
+    <SheetPortal>
+    <SheetOverlay className={s.windowScrim} />
+    <SheetPanel ref={dialog} tabIndex={-1} aria-labelledby="captura-titulo" aria-describedby="captura-contexto" className={cn(s.window, "outline-none")}
+      onOpenAutoFocus={focusStart}
+      onPointerDownOutside={event => event.preventDefault()} onInteractOutside={event => event.preventDefault()}>
       <header className="flex flex-wrap items-start gap-3 border-b border-border px-4 py-4 sm:gap-4 sm:px-7">
         <span className={s.formatBadge} aria-hidden="true">{definition.id}</span>
         <div className="flex min-w-0 flex-1 basis-40 flex-col gap-0.5">
-          <h2 id="captura-titulo" className="m-0 text-xl font-bold leading-tight [overflow-wrap:anywhere]">{definition.title}</h2>
-          <p id="captura-contexto" className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{where}</p>
+          <SheetTitle id="captura-titulo" className="m-0 text-xl font-bold leading-tight [overflow-wrap:anywhere]">{definition.title}</SheetTitle>
+          <SheetDescription id="captura-contexto" className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{where}</SheetDescription>
         </div>
         <div className="flex items-center gap-3">
           {current ? <a className={cn(s.pill, s.pillDone)} aria-label="Descargar el PDF de esta versión" href={`/api/admin/emisiones/${current.id}/descargar`}><FileDown size={14} aria-hidden="true" /><span className="ml-1 hidden sm:inline">PDF de esta versión</span><span className="ml-1 sm:hidden">PDF</span></a> : <span className={cn(s.pill, s.pillDraft, "hidden sm:inline-flex")}>Borrador</span>}
@@ -215,10 +211,10 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 sm:px-7">
-        <div role="tablist" aria-label="Partes del documento" className="flex">
-          <button type="button" role="tab" aria-selected={view === "captura"} className={s.windowTab} onClick={() => setView("captura")}><FileText size={16} aria-hidden="true" />{live ? "Documento" : "Captura"}</button>
-          <button type="button" role="tab" aria-selected={view === "pdf"} className={s.windowTab} onClick={() => setView("pdf")}><FileDown size={16} aria-hidden="true" />PDF y copias firmadas{emisiones && emisiones.length > 0 && <span className="tabular-nums text-xs">{emisiones.length}</span>}</button>
-        </div>
+        <TabsRoot value={view} onValueChange={next => setView(next as typeof view)} activationMode="automatic"><TabsList aria-label="Partes del documento" className="flex" loop>
+          <TabsTrigger value="captura" className={s.windowTab} onClick={() => setView("captura")}><FileText size={16} aria-hidden="true" />{live ? "Documento" : "Captura"}</TabsTrigger>
+          <TabsTrigger value="pdf" className={s.windowTab} onClick={() => setView("pdf")}><FileDown size={16} aria-hidden="true" />PDF y copias firmadas{emisiones && emisiones.length > 0 && <span className="tabular-nums text-xs">{emisiones.length}</span>}</TabsTrigger>
+        </TabsList></TabsRoot>
         <p className="py-2 text-sm text-muted-foreground">{definition.id === "07" ? "El PDF se descarga aunque falten datos." : missing.length ? `Faltan ${missing.length} ${missing.length === 1 ? "dato" : "datos"}${emiteIncompleto(definition.id) ? "; el PDF sale como incompleto" : " para el PDF"}` : "Captura completa"}</p>
       </div>
 
@@ -307,8 +303,9 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
           <Button variant="primary" disabled={!!busy || !canPdf} title={!definition.readyForEmission ? "Este formato todavía no genera PDF" : missing.length ? (emiteIncompleto(definition.id) ? "Faltan datos: el PDF saldrá marcado como incompleto" : "Faltan datos para generar el PDF") : undefined} onClick={() => void pdf()}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Generar PDF"}</Button>
         </div>
       </footer>
-    </div>
-  </>;
+    </SheetPanel>
+    </SheetPortal>
+  </SheetRoot>;
 
 }
 

@@ -6,6 +6,7 @@ vi.mock("@/lib/admin/store", async original => ({ ...await original<typeof impor
 import { clearAdminCache } from "@/lib/admin/store";
 import { EncargoDecisionCard } from "@/components/admin/operation/encargo-decision";
 import type { OperationRecord } from "@/lib/admin/operation-view";
+import { pickOption } from "./pick";
 
 beforeEach(() => {
   clearAdminCache();
@@ -29,18 +30,19 @@ const op = {
 test("el asesor puede pasar un encargo aceptado a «Pausada» y guardarlo", async () => {
   const onSave = vi.fn().mockResolvedValue(undefined);
   render(<EncargoDecisionCard op={op} today="2026-11-13" disabled={false} onSave={onSave} onDirtyChange={() => {}} />);
-  const decision = screen.getByRole("combobox", { name: /Decisión/ }) as HTMLSelectElement;
+  const decision = screen.getByRole("combobox", { name: /Decisión/ }) as HTMLButtonElement;
   expect(decision.disabled, "el selector de la decisión está bloqueado al asesor").toBe(false);
-  fireEvent.change(decision, { target: { value: "pausada" } });
+  await pickOption(decision, "Pausada");
   fireEvent.change(screen.getByLabelText(/Motivo y alcance/), { target: { value: "El propietario pidió esperar" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar decisión" }));
   await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
   expect(onSave.mock.calls[0][0].flujo.resolucion.tipo).toBe("pausada");
 });
 
-test("el asesor también puede registrar «Rechazada» sobre un encargo aceptado", () => {
+test("el asesor también puede registrar «Rechazada» sobre un encargo aceptado", async () => {
   render(<EncargoDecisionCard op={op} today="2026-11-13" disabled={false} onSave={vi.fn()} onDirtyChange={() => {}} />);
-  const rechazada = screen.getByRole("option", { name: "Rechazada" }) as HTMLOptionElement;
-  const decision = screen.getByRole("combobox", { name: /Decisión/ }) as HTMLSelectElement;
-  expect(decision.disabled || rechazada.disabled, "«Rechazada» no se puede elegir").toBe(false);
+  const decision = screen.getByRole("combobox", { name: /Decisión/ }) as HTMLButtonElement;
+  decision.focus(); fireEvent.keyDown(decision, { key: "Enter" });
+  const rechazada = await screen.findByRole("option", { name: "Rechazada" });
+  expect(decision.disabled || rechazada.getAttribute("aria-disabled") === "true", "«Rechazada» no se puede elegir").toBe(false);
 });

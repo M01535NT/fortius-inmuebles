@@ -6,6 +6,7 @@ import { ButtonLink, Card } from "@/components/admin/kit";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { isOwnerIntent, type OperationalInterview } from "@/lib/intake/interview";
 import { intentTitle, optionLabel, visibleFields } from "@/lib/intake/wizard";
+import { Fold } from "@/components/admin/operation/pickers";
 import s from "./wizard.module.css";
 
 const NEXT: Record<string, string> = {
@@ -50,9 +51,9 @@ export function DoneStep({ interview, fresh }: { interview: OperationalInterview
       {href && <ButtonLink variant="primary" href={href}>Abrir el asunto<ArrowRight size={16} aria-hidden="true" /></ButtonLink>}
       <Link href="/admin" className="font-semibold text-foreground underline-offset-4 hover:underline">Volver a Hoy</Link>
     </div>
-    <Card as="div" className="p-5"><details><summary className="cursor-pointer font-semibold">Ver las respuestas de la entrevista</summary>
+    <Card as="div" className="p-5"><Fold summary="Ver las respuestas de la entrevista" triggerClassName="font-semibold">
       <dl className={s.answers}>{answered.map(f => <div key={f.key}><dt>{f.label}</dt><dd className="[overflow-wrap:anywhere]">{f.options ? optionLabel(f, interview.respuestas[f.key]) : interview.respuestas[f.key]}</dd></div>)}</dl>
-    </details>
+    </Fold>
     <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
       {interview.expediente_id && <Link className="font-semibold underline underline-offset-4" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, clienteId: interview.cliente_id ?? "", expedienteId: interview.expediente_id })}`}>Corregir la entrevista</Link>}
       {interview.anterior_id && <Link className="font-semibold underline underline-offset-4" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.anterior_id)}`}>Ver la entrevista anterior</Link>}

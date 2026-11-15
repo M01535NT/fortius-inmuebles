@@ -10,7 +10,7 @@ import type { AppContext, AppInput, AppResult, AppRun } from "@/lib/apps/types";
 import { apiRequest, db, errorMessage, useCollection, useSession, loadAllDossiers } from "@/lib/admin/store";
 import { LinkPicker } from "@/components/admin/workspace/link-picker";
 import { PageHeader, inputClass } from "@/components/admin/ui";
-import { Button, Notice } from "@/components/admin/kit";
+import { Button, Notice, Sheet } from "@/components/admin/kit";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { getFinancialDefaults } from "@/lib/apps/financial";
 import { getCommercialDefaults } from "@/lib/apps/commercial";
@@ -62,7 +62,7 @@ function WorkspaceSession({slug}:{slug:string}){
  {(()=>{const parent=parentOf(app);return <Link href={parent?`/admin/apps/${parent.slug}`:"/admin/herramientas"} className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium underline-offset-4 hover:underline"><ArrowLeft size={16} aria-hidden="true"/>{parent?.title??"Herramientas"}</Link>;})()}
  <PageHeader title={app.title} description={app.description} actions={<>
    <Button disabled={busyAny} onClick={create}><Plus size={17} aria-hidden="true"/>Nuevo</Button>
-   <Button aria-expanded={historyOpen} onClick={()=>setHistoryOpen(!historyOpen)}><History size={17} aria-hidden="true"/>Mis trabajos</Button>
+   <Button aria-haspopup="dialog" onClick={()=>setHistoryOpen(true)}><History size={17} aria-hidden="true"/>Mis trabajos</Button>
    <Button variant={result?"primary":"secondary"} disabled={busyAny||!dirty||input.ocrHasUnsavedChanges===true} onClick={save}><Save size={17} aria-hidden="true"/>{busy?"Guardando…":"Guardar"}</Button>
  </>}/>
  {retired&&<Notice tone="info" title="Esta herramienta ya no está en el catálogo">{"home" in app?`${app.home} `:""}Aquí sigues pudiendo consultar y descargar los trabajos que ya guardaste.</Notice>}
@@ -74,13 +74,14 @@ function WorkspaceSession({slug}:{slug:string}){
    hint={contextLocked?"Inicia un trabajo nuevo para cambiar el vínculo.":context.expedienteId||context.clienteId||context.inmuebleId?undefined:"Opcional. Sin vínculo, es un trabajo independiente."}
    status={dossierError?<small role="alert">{dossierError}</small>:undefined}
    onChange={(_next,dossier)=>{setContext(dossier?{expedienteId:dossier.id,clienteId:dossier.cliente_id,...(dossier.propiedad_slug?{inmuebleId:dossier.propiedad_slug}:{})}:{});setDirty(true);setResult(null);}}/></div>}{context.inmuebleId&&!context.expedienteId&&<p className={styles.saved}>Para el inmueble: <strong>{propiedades.find(p=>p.slug===context.inmuebleId)?.titulo??context.inmuebleId}</strong>. El trabajo guardado aparece en su ficha.</p>}<p className={styles.saved}>{dirty?"Cambios sin guardar":run?`Guardado · ${humanDateTime(run.updatedAt)}`:"Llena los datos y prepara tu resultado."}</p></fieldset>
- {historyOpen&&<section className={styles.history} aria-labelledby="app-history-title"><div className={styles.toolbar}><h2 id="app-history-title" className="text-lg font-semibold">{deleted?"Eliminados":"Trabajos guardados"}</h2><Button variant="ghost" disabled={busyAny} onClick={()=>setDeleted(!deleted)}>{deleted?"Ver activos":"Ver eliminados"}</Button></div>
-   {runs.map(item=><div className={styles.historyRow} key={item.id}><div className="min-w-0"><strong className="break-words">{item.title}</strong><p className="text-sm text-muted-foreground">{humanDateTime(item.updatedAt)}</p></div><div className="flex gap-2">{!deleted&&<Button disabled={busyAny} onClick={()=>open(item)}>Abrir</Button>}<Button variant="ghost" disabled={busyAny} onClick={()=>remove(item)}>{deleted?"Restaurar":"Eliminar"}</Button></div></div>)}
+ {/* «Mis trabajos» en panel lateral (Sheet del kit sobre Radix, DEC-52): foco atrapado, Escape y velo cierran. */}
+ <Sheet open={historyOpen} onClose={()=>setHistoryOpen(false)} title={deleted?"Eliminados":"Mis trabajos"} description={app.title}><section className="flex flex-col gap-1" aria-label={deleted?"Eliminados":"Trabajos guardados"}><div className={styles.toolbar}><Button variant="ghost" disabled={busyAny} onClick={()=>setDeleted(!deleted)}>{deleted?"Ver activos":"Ver eliminados"}</Button></div>
+   {runs.map(item=><div className={styles.historyRow} key={item.id}><div className="min-w-0"><strong className="break-words">{item.title}</strong><p className="text-sm text-muted-foreground">{humanDateTime(item.updatedAt)}</p></div><div className="flex gap-2">{!deleted&&<Button disabled={busyAny} onClick={()=>{setHistoryOpen(false);void open(item);}}>Abrir</Button>}<Button variant="ghost" disabled={busyAny} onClick={()=>remove(item)}>{deleted?"Restaurar":"Eliminar"}</Button></div></div>)}
    {!runs.length&&<p className="py-4 text-sm text-muted-foreground">{deleted?"No hay trabajos eliminados.":"Todavía no guardas trabajos de esta herramienta. Usa «Guardar» cuando tengas un resultado."}</p>}
    {next!==null&&<Button variant="ghost" className="self-start" onClick={()=>loadHistory(next).catch(e=>setError(errorMessage(e)))}>Cargar más</Button>}
    {run&&<Button variant="ghost" className="self-start" onClick={async()=>{try{const epoch=generation.current;const target=run.id;const v=await apiRequest<{versions:AppRun[]}>(`/api/admin/apps/runs/${run.id}/versions`);if(epoch===generation.current)setVersions(v.versions.filter(version=>version.id===target));}catch(e){setError(errorMessage(e));}}}>Ver cambios anteriores de este trabajo</Button>}
    {versions.some(v=>v.id===run?.id)&&<div className="flex flex-wrap gap-2">{versions.filter(v=>v.id===run?.id).map(v=><Button key={v.version} disabled={busyAny} onClick={async()=>{if(v.id!==run?.id)return;if(dirty&&!await confirmAction("¿Cambiar lo que tienes en pantalla por esta copia anterior?"))return;setEditorKey(k=>k+1);setInput(v.input);setResult(v.result);setTitle(v.title);setDirty(true);setNotice(`Se cargó la copia del ${humanDateTime(v.updatedAt).toLowerCase()}. Guarda para conservarla como la más reciente.`);}}><RotateCcw size={14} aria-hidden="true"/>{humanDateTime(v.updatedAt)}</Button>)}</div>}
- </section>}
+ </section></Sheet>
  <fieldset disabled={busy} className={styles.editor}>{FINANCIAL_APPS.has(slug)?<FinancialEditor key={editorKey} {...props}/>:COMMERCIAL_APPS.has(slug)?<CommercialEditor key={editorKey} {...props}/>:<DocumentEditor key={editorKey} {...props}/>}</fieldset>
  {result&&<><AppResultView result={result}/><div className={styles.toolbar}>{slug==="neto-propietario"?<><Button disabled={!run||dirty||busy} onClick={()=>exportResult("pdf","neto")}><FileDown size={17} aria-hidden="true"/>PDF del neto</Button>{input.isrMode==="calcular"&&<Button disabled={!run||dirty||busy} onClick={()=>exportResult("pdf","isr")}><FileDown size={17} aria-hidden="true"/>Hoja del ISR</Button>}</>:slug!=="conversor"&&<Button disabled={!run||dirty||busy} onClick={()=>exportResult("pdf")}><FileDown size={17} aria-hidden="true"/>Descargar PDF</Button>}<Button disabled={!run||dirty||busy} onClick={()=>exportResult("csv")}>Descargar CSV</Button>{dirty&&<small className="text-sm text-muted-foreground">Guarda el resultado para descargarlo.</small>}</div></>}
  </div>;

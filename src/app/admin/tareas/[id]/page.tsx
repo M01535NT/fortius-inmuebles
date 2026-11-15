@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft, EMPTY_ART } from "@/components/admin/icons";
+import { ChevronDown, ChevronLeft, EMPTY_ART } from "@/components/admin/icons";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/disclosure";
 import { TaskForm } from "@/components/admin/task-form";
 import { Avatar, Button, ButtonLink, Card, EmptyBox, Notice, Pill, type PillTone } from "@/components/admin/kit";
 import { db, useCollection, upsert } from "@/lib/admin/store";
@@ -70,7 +71,8 @@ function TaskDetail({ id }: { id: string }) {
               <div><dt className="font-medium">Fecha límite actual</dt><dd>{conflict.task.vence || "Sin fecha"}</dd></div>
               <div className="sm:col-span-2"><dt className="font-medium">Descripción actual</dt><dd className="whitespace-pre-wrap">{conflict.task.descripcion || "Sin descripción"}</dd></div>
             </dl>
-            <details><summary className="flex min-h-11 cursor-pointer items-center font-medium">Ver más detalles de la versión actual</summary>
+            <Collapsible><CollapsibleTrigger className="group/more flex min-h-11 items-center gap-2 font-medium focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-color)]">Ver más detalles de la versión actual<ChevronDown size={16} aria-hidden="true" className="transition-transform duration-150 group-data-[state=open]/more:rotate-180 motion-reduce:transition-none" /></CollapsibleTrigger>
+              <CollapsibleContent>
               <dl className="grid min-w-0 gap-2 sm:grid-cols-2">
                 <div><dt className="font-medium">Prioridad</dt><dd>{TASK_PRIORITIES[conflict.task.prioridad]}</dd></div>
                 <div><dt className="font-medium">Categoría</dt><dd>{TASK_CATEGORIES[conflict.task.categoria]}</dd></div>
@@ -81,7 +83,7 @@ function TaskDetail({ id }: { id: string }) {
                 <div><dt className="font-medium">Motivo de espera</dt><dd>{conflict.task.motivoEspera || "Sin motivo registrado"}</dd></div>
                 <div className="sm:col-span-2"><dt className="font-medium">Pasos</dt><dd>{conflict.task.pasos.length ? <ul className="space-y-1">{conflict.task.pasos.map((paso) => <li key={paso.id}>{paso.hecho ? "Completado" : "Pendiente"}: {paso.texto}</li>)}</ul> : "Sin pasos"}</dd></div>
               </dl>
-            </details>
+            </CollapsibleContent></Collapsible>
           </div>}
         </Notice></section>}
         {rebased && <p role="status" className="text-sm">Tu borrador se conserva y ya usa la versión revisada como base. Revisa los campos y pulsa Guardar tarea para aplicar tus cambios.</p>}

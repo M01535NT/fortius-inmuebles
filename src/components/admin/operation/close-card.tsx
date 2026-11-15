@@ -1,13 +1,13 @@
 "use client";
 import * as React from "react";
 import { Button, Card, Pill } from "@/components/admin/kit";
-import { selectClass } from "@/components/admin/ui";
 import { db, upsertPropiedad, useCollection } from "@/lib/admin/store";
 import { captorOf, commissionSplit, type OperationClose, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { calcularIntermediacion } from "@/lib/formatos/intermediacion";
 import { calcularIntermediacionRenta } from "@/lib/formatos/intermediacion-renta";
 import { flowOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { saveError } from "./use-operation";
+import { Choices, PersonSelect } from "./pickers";
 
 /*
   Cierre de la operación (COR-22, RP-99). Registra quién captó y quién vendió (cualquier asesor del
@@ -59,12 +59,8 @@ export function CloseCard({ op, intermediacion, disabled, onSave, className }: {
     </div>
 
     <form className="grid gap-3 sm:grid-cols-2" aria-label="Quién captó y quién vendió" onSubmit={e => { e.preventDefault(); if (!lock && changed) void run(() => onSave({ flujo: { ...flow, cierre: draft } }), "Listo: quedó registrado quién captó y quién vendió."); }}>
-      <label className="text-sm">Asesor que captó<select className={selectClass} value={capto} disabled={lock} onChange={e => setCapto(e.target.value)}>
-        {team.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
-      </select></label>
-      <label className="text-sm">Asesor que {rent ? "rentó" : "vendió"}<select className={selectClass} value={vendio} disabled={lock} onChange={e => setVendio(e.target.value)}>
-        {team.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
-      </select></label>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Asesor que captó</span><PersonSelect people={team} value={capto} disabled={lock} onChange={setCapto} aria-label="Asesor que captó" /></span>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Asesor que {rent ? "rentó" : "vendió"}</span><PersonSelect people={team} value={vendio} disabled={lock} onChange={setVendio} aria-label={`Asesor que ${rent ? "rentó" : "vendió"}`} /></span>
       <div className="flex flex-col gap-1 text-sm sm:col-span-2">
         <span className="font-semibold">Reparto estimado de la comisión</span>
         <ul className="m-0 flex list-none flex-col gap-1 p-0">
@@ -89,11 +85,8 @@ export function CloseCard({ op, intermediacion, disabled, onSave, className }: {
         </>
         : <>
           <p className="m-0 text-sm text-muted-foreground">Al cerrar, márcalo como {soldText}. Así sale de las búsquedas de disponibles.</p>
-          {property.publicada && <fieldset className="flex flex-col gap-2" disabled={lock}>
-            <legend className="sr-only">¿Qué pasa con el anuncio?</legend>
-            <label className="flex min-h-11 items-center gap-2 text-sm"><input type="radio" className="size-5" name="anuncio" checked={keep} onChange={() => setKeep(true)} />Dejarlo en el sitio como {soldText}</label>
-            <label className="flex min-h-11 items-center gap-2 text-sm"><input type="radio" className="size-5" name="anuncio" checked={!keep} onChange={() => setKeep(false)} />Retirarlo del sitio</label>
-          </fieldset>}
+          {property.publicada && <Choices name="anuncio" label="¿Qué pasa con el anuncio?" disabled={lock} value={keep ? "dejar" : "retirar"} onChange={v => setKeep(v === "dejar")}
+            options={[{ value: "dejar", label: `Dejarlo en el sitio como ${soldText}` }, { value: "retirar", label: "Retirarlo del sitio" }]} />}
           <span><Button disabled={lock} onClick={() => void run(() => upsertPropiedad({ ...property, estado: sold, publicada: property.publicada && keep }, db.propiedades.version(property)), `Listo: el inmueble quedó como «${rent ? "Rentada" : "Vendida"}».`)}>Marcar el inmueble como {soldText}</Button></span>
         </>}
     </div>}

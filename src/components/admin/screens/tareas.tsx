@@ -7,8 +7,15 @@ import Link from "next/link";
 import { humanDate, overdueText } from "@/lib/utils";
 import { useSearchParams, useRouter } from "next/navigation";
 import { TaskForm } from "@/components/admin/task-form";
-import { Badge, Field, inputClass, selectClass } from "@/components/admin/ui";
-import { Button, Card, EmptyBox } from "@/components/admin/kit";
+import { Badge, Field, inputClass } from "@/components/admin/ui";
+import { Avatar, Button, Card, EmptyBox } from "@/components/admin/kit";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
+import { Checkbox } from "@/components/ui/controls";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/disclosure";
+import { ChevronDown } from "@/components/admin/icons";
+import { RefMedia, resolveRefs, type AgendaContext } from "@/components/admin/agenda/agenda-parts";
+import { useNotify } from "@/components/admin/agenda/notify";
 import { EMPTY_ART } from "@/components/admin/icons";
 import { stepDate } from "@/lib/admin/contacts-view";
 import { db, useCollection, upsert } from "@/lib/admin/store";
@@ -21,6 +28,18 @@ import { toCsv } from "@/lib/admin/bulk";
 import { saveBlob } from "@/lib/admin/download-word";
 import { FileDown } from "@/components/admin/icons";
 import type { Task } from "@/lib/tasks";
+
+/*
+  Tareas (Agenda → Tareas). Desde LV-10g: cada tarea lleva la cara de la persona y la foto del
+  inmueble (DEC-51); los filtros son selectores del kit (Radix) y el responsable se busca por su
+  cara; «Más filtros» se abre con el plegable del kit; los avisos salen en el apilado de Sonner.
+*/
+function FilterSelect({ id, value, onChange, items }: { id: string; value: string; onChange: (value: string) => void; items: Array<[string, string]> }) {
+  return <Select value={value} onValueChange={onChange}>
+    <SelectTrigger id={id}><SelectValue /></SelectTrigger>
+    <SelectContent>{items.map(([key, label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}</SelectContent>
+  </Select>;
+}
 
 export default function TasksPage() { return <React.Suspense fallback={<p>Cargando tareas…</p>}><Tasks /></React.Suspense>; }
 
@@ -54,7 +73,10 @@ function Tasks() {
   }).sort((a, b) => (a.vence ?? "9999").localeCompare(b.vence ?? "9999") || a.titulo.localeCompare(b.titulo, "es"));
   // «Abiertas» es la vista normal: no cuenta como filtro activo (C44).
   const activeFilters = Number(responsible !== "todas") + Number(status !== "abiertas") + Number(priority !== "todas") + Number(category !== "todas");
-  const [saving, setSaving] = React.useState<string | null>(null), [message, setMessage] = React.useState("");
+  const [saving, setSaving] = React.useState<string | null>(null);
+  const { notify, node: notice } = useNotify();
+  const setMessage = (text: string) => { if (text) notify(text, text.startsWith("No se pudo") ? "error" : "ok"); };
+  const refsContext: AgendaContext = { leads, clientes, propiedades, asesores, expedientes: [] };
   const [ask, setAsk] = React.useState<NextRef | null>(null);
   const undo = useUndo();
   // RP-12/RP-13 (UX-03): selección de varias tareas y cambios en la fila, con control de versión.
@@ -80,7 +102,7 @@ function Tasks() {
     } },
   ];
   async function toggle(task: (typeof filtered)[number]) {
-    setSaving(task.id); setMessage("");
+    setSaving(task.id);
     setAsk(null); undo.clear();
     try {
       const completing = !["completada", "cancelada"].includes(task.estado);
@@ -100,7 +122,8 @@ function Tasks() {
       return <li key={task.id} className={"flex min-w-0 items-start gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:px-5" + (selection.selected.has(task.id) ? " bg-muted" : "")}>
         {/* C44: se completa desde la lista, igual que en Hoy. */}
         {selection.on ? <SelectBox selection={selection} id={task.id} label={task.titulo} />
-        : <label className="-ml-3 flex h-11 w-11 flex-none cursor-pointer items-center justify-center self-start"><input type="checkbox" className="h-5 w-5 cursor-pointer accent-[var(--primary)]" checked={task.estado === "completada"} disabled={saving === task.id || task.estado === "cancelada"} onChange={() => void toggle(task)} aria-label={`${open ? "Marcar como hecha" : "Marcar como pendiente"}: ${task.titulo}`} /></label>}
+        : <label className="-ml-3 flex h-11 w-11 flex-none cursor-pointer items-center justify-center self-start"><Checkbox checked={task.estado === "completada"} disabled={saving === task.id || task.estado === "cancelada"} onCheckedChange={() => void toggle(task)} aria-label={`${open ? "Marcar como hecha" : "Marcar como pendiente"}: ${task.titulo}`} /></label>}
+        <RefMedia refs={resolveRefs(task, refsContext)} size={40} className="mt-0.5 hidden sm:inline-block" />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
           <h3 className="m-0 min-w-0 text-base font-semibold"><Link className={"inline-flex min-h-11 items-center [overflow-wrap:anywhere] hover:underline" + (open ? "" : " text-muted-foreground line-through")} href={`/admin/tareas/${task.id}`}>{task.titulo}</Link></h3>
@@ -121,11 +144,12 @@ function Tasks() {
     { id: "semana", title: "Esta semana", buckets: ["proximas"] }, { id: "despues", title: "Más adelante", buckets: ["futuras"] },
     { id: "sin-fecha", title: "Sin fecha", buckets: ["sin-fecha"] }, { id: "hechas", title: "Hechas y canceladas", buckets: ["cerradas"] },
   ];
-  const options = (record: Record<string, string>) => Object.entries(record).map(([value, label]) => <option key={value} value={value}>{label}</option>);
+  const options = (record: Record<string, string>) => Object.entries(record) as Array<[string, string]>;
   return <div className="min-w-0 space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted-foreground" aria-live="polite">{filtered.length} {filtered.length === 1 ? "tarea" : "tareas"}{message ? ` · ${message}` : ""}</p>
+      <p className="text-sm text-muted-foreground" aria-live="polite">{filtered.length} {filtered.length === 1 ? "tarea" : "tareas"}</p>
       <UndoNotice {...undo} onError={setMessage} />
+      {notice}
       <div className="flex flex-wrap gap-2">{filtered.length > 0 && <SelectToggle selection={selection} noun="tareas" />}<Button variant={creating ? "secondary" : "primary"} aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</Button></div>
     </div>
     {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : clientes.find(c => c.id === (ask.kind === "operacion" ? ask.clienteId : ask.id))?.nombre} onClose={() => setAsk(null)} />}
@@ -133,17 +157,19 @@ function Tasks() {
     <section aria-label="Filtros de tareas" className="min-w-0 space-y-3">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
       <Field label="Buscar tareas" htmlFor="tasks-search"><input id="tasks-search" className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Título o descripción" /></Field>
-      <Field label="Vencimiento" htmlFor="tasks-due"><select id="tasks-due" className={selectClass} value={due} onChange={(e) => { const next = new URLSearchParams(params.toString()); next.set("vence", e.target.value); next.set("tab", "tareas"); router.replace(`/admin/agenda?${next}`, { scroll: false }); }}><option value="todas">Todas las fechas</option><option value="vencidas">Vencidas</option><option value="hoy">Hoy</option><option value="proximas">Próximos 7 días</option><option value="sin-fecha">Sin fecha</option></select></Field>
+      <Field label="Vencimiento" htmlFor="tasks-due"><FilterSelect id="tasks-due" value={due} onChange={(value) => { const next = new URLSearchParams(params.toString()); next.set("vence", value); next.set("tab", "tareas"); router.replace(`/admin/agenda?${next}`, { scroll: false }); }}
+        items={[["todas", "Todas las fechas"], ["vencidas", "Vencidas"], ["hoy", "Hoy"], ["proximas", "Próximos 7 días"], ["sin-fecha", "Sin fecha"]]} /></Field>
       </div>
-      <details className="min-w-0 rounded-md border border-border px-3">
-        <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">{activeFilters ? `Más filtros · ${activeFilters} ${activeFilters === 1 ? "activo" : "activos"}` : "Más filtros"}</summary>
-        <div className="grid min-w-0 gap-3 pb-4 sm:grid-cols-2 xl:grid-cols-4">
-      <Field label="Responsable" htmlFor="tasks-responsible"><select id="tasks-responsible" className={selectClass} value={responsible} onChange={(e) => setResponsible(e.target.value)}><option value="todas">Todos los responsables</option><option value="sin-asignar">Sin asignar</option>{asesores.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
-      <Field label="Estado" htmlFor="tasks-status"><select id="tasks-status" className={selectClass} value={status} onChange={(e) => setStatus(e.target.value)}><option value="abiertas">Abiertas</option><option value="todas">Todos los estados</option>{options(TASK_STATUSES)}</select></Field>
-      <Field label="Prioridad" htmlFor="tasks-priority"><select id="tasks-priority" className={selectClass} value={priority} onChange={(e) => setPriority(e.target.value)}><option value="todas">Todas las prioridades</option>{options(TASK_PRIORITIES)}</select></Field>
-      <Field label="Categoría" htmlFor="tasks-category"><select id="tasks-category" className={selectClass} value={category} onChange={(e) => setCategory(e.target.value)}><option value="todas">Todas las categorías</option>{options(TASK_CATEGORIES)}</select></Field>
-        </div>
-      </details>
+      <Collapsible className="min-w-0 rounded-[var(--radius-control)] border border-border px-3">
+        <CollapsibleTrigger className="group/more flex min-h-11 w-full items-center justify-between gap-3 py-3 text-left text-sm font-medium focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-color)]">{activeFilters ? `Más filtros · ${activeFilters} ${activeFilters === 1 ? "activo" : "activos"}` : "Más filtros"}<ChevronDown size={18} aria-hidden="true" className="flex-none text-muted-foreground transition-transform duration-150 group-data-[state=open]/more:rotate-180 motion-reduce:transition-none" /></CollapsibleTrigger>
+        <CollapsibleContent forceMount className="data-[state=closed]:hidden"><div className="grid min-w-0 gap-3 pb-4 sm:grid-cols-2 xl:grid-cols-4">
+      <Field label="Responsable" htmlFor="tasks-responsible"><Combobox id="tasks-responsible" value={responsible} onChange={setResponsible} searchPlaceholder="Buscar responsable…"
+        options={[{ value: "todas", label: "Todos los responsables" }, { value: "sin-asignar", label: "Sin asignar" }, ...asesores.map((a) => ({ value: a.id, label: a.nombre, media: <Avatar name={a.nombre} src={a.perfilPublico?.foto} size={24} /> }))]} /></Field>
+      <Field label="Estado" htmlFor="tasks-status"><FilterSelect id="tasks-status" value={status} onChange={setStatus} items={[["abiertas", "Abiertas"], ["todas", "Todos los estados"], ...options(TASK_STATUSES)]} /></Field>
+      <Field label="Prioridad" htmlFor="tasks-priority"><FilterSelect id="tasks-priority" value={priority} onChange={setPriority} items={[["todas", "Todas las prioridades"], ...options(TASK_PRIORITIES)]} /></Field>
+      <Field label="Categoría" htmlFor="tasks-category"><FilterSelect id="tasks-category" value={category} onChange={setCategory} items={[["todas", "Todas las categorías"], ...options(TASK_CATEGORIES)]} /></Field>
+        </div></CollapsibleContent>
+      </Collapsible>
     </section>
     {filtered.length ? <div className="flex flex-col gap-6">{GROUPS.map(group => {
       const items = filtered.filter(task => group.buckets.includes(taskBucket(task, today)));

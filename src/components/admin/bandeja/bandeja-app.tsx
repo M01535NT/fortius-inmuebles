@@ -1,26 +1,34 @@
 "use client";
 import * as React from "react";
-import { ArrowLeft, Building2, FileDown, FileText, Upload, UserRound } from "@/components/admin/icons";
-import { Button, Kbd, Notice, Segmented } from "@/components/admin/kit";
+import { ArrowLeft, Clock, FileDown, FileText, Folder, Pencil, Search, Trash2, Upload, ZoomIn } from "@/components/admin/icons";
+import { ActionsMenu, Avatar, Button, Kbd, Notice, Segmented, Swap, Thumb } from "@/components/admin/kit";
+import { inputClass } from "@/components/admin/ui";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { useSingleKeyShortcuts } from "@/components/admin/workspace/shortcuts";
 import { VistaPdf } from "@/components/admin/vista-pdf";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
+import { Label, RadioGroup, RadioGroupItem } from "@/components/ui/controls";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { typingTarget } from "@/lib/admin/commands";
 import { db, errorMessage, fetchJson, loadAllDossiers, useCollection } from "@/lib/admin/store";
 import type { OperationRecord } from "@/lib/admin/operation-view";
 import { SIN_DESTINO, sugerirDestinos, type Destino, type Sugerencia } from "@/lib/admin/bandeja-sugerencias";
 import { cn } from "@/lib/utils";
-import { Desplegable, MenuAcciones, type Opcion } from "./desplegable";
+import { useAviso } from "./aviso";
 import s from "./bandeja.module.css";
 
 /*
   FLX-01 · Bandeja (RP-101, RP-102) y LV-10d · Bandeja como correo (boceto del 14/11/2026). Lo que
   llega se guarda sin llenar nada: se suelta en cualquier parte de la pantalla o se elige con
   «Agregar». Se recorre como un correo: lista a la izquierda, el documento en grande al centro y
-  «¿Dónde se guarda?» a la derecha, con los destinos que coinciden con el nombre del archivo.
-  Archivar y mandar a la papelera avisan con «Deshacer», que el servidor revierte de verdad.
-  Atajos de una tecla (UX-03): J y K para moverse, E para archivar; se apagan con la preferencia
-  de atajos y nunca actúan dentro de un campo, un menú abierto o una ventana.
+  «¿Dónde se guarda?» a la derecha, con los destinos que coinciden con el nombre del archivo (cada
+  uno con la foto del inmueble o la cara de la persona). Archivar y mandar a la papelera avisan con
+  «Deshacer», que el servidor revierte de verdad. Atajos de una tecla (UX-03): J y K para moverse,
+  E para archivar y # para la papelera; se apagan con la preferencia de atajos y nunca actúan dentro
+  de un campo, un menú abierto o una ventana. Piezas de DEC-52: selector con buscador para el
+  destino, «Select» para el tipo, menú del kit, ventana para la vista grande y avisos de Sonner.
 */
 
 type Documento = {
@@ -29,7 +37,7 @@ type Documento = {
   archivado_el: string | null; created_at: string; deleted_at: string | null;
 };
 type Vista = "pendientes" | "papelera";
-const TIPOS: Opcion<string>[] = [
+const TIPOS = [
   { value: "levantamiento", label: "Levantamiento" }, { value: "avaluo", label: "Avalúo" }, { value: "escritura", label: "Escritura" },
   { value: "identificacion", label: "Identificación" }, { value: "predial", label: "Predial" }, { value: "libertad_gravamen", label: "Libertad de gravamen" },
   { value: "contrato", label: "Contrato" }, { value: "foto", label: "Foto" }, { value: "otro", label: "Otro" },
@@ -61,6 +69,8 @@ const enviar = async (doc: Documento, body: Record<string, unknown>) =>
 const atajoBloqueado = (event: KeyboardEvent) => event.ctrlKey || event.metaKey || event.altKey || typingTarget(event.target)
   || !!document.querySelector("dialog[open], [role=dialog][data-state=open], [role=alertdialog], [role=menu], [role=listbox]");
 
+type Teclas = { archivar: () => void; papelera: () => void };
+
 export function BandejaApp() {
   const propiedades = useCollection(db.propiedades), clientes = useCollection(db.clientes);
   const [operaciones, setOperaciones] = React.useState<OperationRecord[]>([]);
@@ -73,11 +83,11 @@ export function BandejaApp() {
   const [subiendo, setSubiendo] = React.useState(0);
   const [arrastre, setArrastre] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [aviso, setAviso] = React.useState<string | null>(null);
+  const aviso = useAviso();
   const undo = useUndo();
   const { value: atajos } = useSingleKeyShortcuts();
   const input = React.useRef<HTMLInputElement>(null);
-  const archivarConTeclaRef = React.useRef<(() => void) | null>(null);
+  const teclasRef = React.useRef<Teclas | null>(null);
 
   const [vuelta, setVuelta] = React.useState(0);
   const cargar = React.useCallback(() => setVuelta(n => n + 1), []);
@@ -90,8 +100,10 @@ export function BandejaApp() {
   }, [vuelta]);
   React.useEffect(() => { let alive = true; loadAllDossiers<OperationRecord>().then(all => { if (alive) setOperaciones(all.filter(o => !o.deleted_at)); }).catch(() => undefined); return () => { alive = false; }; }, []);
 
+  const limpiar = () => { setError(null); aviso.limpiar(); };
+
   async function recibir(files: File[]) {
-    setError(null); setAviso(null);
+    limpiar();
     const validos = files.filter(file => ACEPTA.includes(file.type));
     if (validos.length < files.length) setError("Solo se guardan PDF e imágenes JPEG, PNG o WEBP.");
     if (!validos.length) return;
@@ -102,12 +114,12 @@ export function BandejaApp() {
       catch (e) { setError(errorMessage(e)); }
       setSubiendo(n => n - 1);
     }
-    if (ultimo) { setVista("pendientes"); setSelected(ultimo.id); setAviso(guardados === 1 ? "Guardado en la Bandeja. No hizo falta llenar nada." : `${guardados} archivos guardados en la Bandeja.`); }
+    if (ultimo) { setVista("pendientes"); setSelected(ultimo.id); aviso.avisar(guardados === 1 ? "Guardado en la Bandeja. No hizo falta llenar nada." : `${guardados} archivos guardados en la Bandeja.`); }
   }
 
   const lista = vista === "pendientes" ? docs : papelera;
   const current = lista.find(d => d.id === selected) ?? (showDetail ? undefined : lista[0]);
-  const abrir = (id: string) => { setSelected(id); setShowDetail(true); setError(null); setAviso(null); };
+  const abrir = (id: string) => { setSelected(id); setShowDetail(true); limpiar(); };
 
   /** Acomoda las listas según cómo quedó el documento en el servidor. */
   const colocar = React.useCallback((documento: Documento) => {
@@ -125,8 +137,8 @@ export function BandejaApp() {
   }
 
   async function cambiar(doc: Documento, body: Record<string, unknown>, hecho: string | null) {
-    setError(null); setAviso(null);
-    try { const documento = await enviar(doc, body); colocar(documento); if (hecho) setAviso(hecho); return documento; }
+    limpiar();
+    try { const documento = await enviar(doc, body); colocar(documento); if (hecho) aviso.avisar(hecho); return documento; }
     catch (e) { setError(errorMessage(e)); cargar(); return null; }
   }
 
@@ -144,9 +156,9 @@ export function BandejaApp() {
     if (!lista.length) return;
     const i = lista.findIndex(d => d.id === current?.id);
     const next = lista[Math.min(lista.length - 1, Math.max(0, i < 0 ? 0 : i + paso))];
-    setSelected(next.id); setError(null); setAviso(null);
+    setSelected(next.id); limpiar();
     const fila = document.getElementById(`bandeja-fila-${next.id}`);
-    fila?.scrollIntoView({ block: "nearest" });
+    fila?.scrollIntoView?.({ block: "nearest" });
     if (fila && document.activeElement?.closest(`.${s.rows}`)) fila.focus({ preventScroll: true });
   }
   const moverConTecla = React.useRef(mover);
@@ -157,7 +169,8 @@ export function BandejaApp() {
       if (atajoBloqueado(event)) return;
       const k = event.key.toLowerCase();
       if (k === "j" || k === "k") { event.preventDefault(); moverConTecla.current(k === "j" ? 1 : -1); }
-      else if (k === "e" && !event.repeat && archivarConTeclaRef.current) { event.preventDefault(); archivarConTeclaRef.current(); }
+      else if (k === "e" && !event.repeat && teclasRef.current) { event.preventDefault(); teclasRef.current.archivar(); }
+      else if (k === "#" && !event.repeat && teclasRef.current) { event.preventDefault(); teclasRef.current.papelera(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -177,26 +190,31 @@ export function BandejaApp() {
       </div>
       <div className={s.rows}>
         {estado === "cargando" ? <p className={s.empty}>Cargando la Bandeja…</p>
-          : estado === "error" && !lista.length ? <p className={s.empty}>No se pudo cargar la Bandeja. <button type="button" className="underline" onClick={() => { setEstado("cargando"); setError(null); cargar(); }}>Reintentar</button></p>
+          : estado === "error" && !lista.length ? <div className={s.empty}><p>No se pudo cargar la Bandeja.</p><Button onClick={() => { setEstado("cargando"); setError(null); cargar(); }}>Reintentar</Button></div>
           : !lista.length ? <p className={s.empty}>{vista === "pendientes" ? "No hay nada por archivar. Suelta aquí un PDF o una foto, o usa «Agregar»; desde el celular puedes tomar la foto en ese momento." : "La papelera está vacía."}</p>
           : lista.map(d => <button key={d.id} id={`bandeja-fila-${d.id}`} type="button" className={s.mrow} aria-current={d.id === current?.id} onClick={() => abrir(d.id)}>
-            <span className={s.ftype} aria-hidden="true"><FileText size={18} /><span>{formato(d.mime)}</span></span>
+            <span className={s.ftype} aria-hidden="true">
+              {d.mime.startsWith("image/")
+                // eslint-disable-next-line @next/next/no-img-element -- archivo privado servido por la API con sesión; next/image no lo puede optimizar
+                ? <img src={archivoUrl(d)} alt="" loading="lazy" />
+                : <><FileText size={18} /><span>{formato(d.mime)}</span></>}
+            </span>
             <span className={s.rowText}><b>{d.titulo}</b><small>{TIPOS.find(t => t.value === d.tipo_documento)?.label ?? "Sin tipo"} · {peso(d.byte_length)}</small></span>
             <span className={s.rowWhen}>{cuando(d.created_at)}</span>
           </button>)}
       </div>
       <p className={s.foot}>{atajos && vista === "pendientes" && lista.length > 0
-        ? <><span><Kbd>J</Kbd> <Kbd>K</Kbd> moverse</span><span><Kbd>E</Kbd> archivar</span></>
+        ? <><span><Kbd>J</Kbd> <Kbd>K</Kbd> moverse</span><span><Kbd>E</Kbd> archivar</span><span><Kbd>#</Kbd> papelera</span></>
         : "Suelta archivos en cualquier parte de la pantalla. Se guardan sin llenar nada."}</p>
     </aside>
     <main className={s.detail}>
       {current
-        ? <Detalle key={current.id} doc={current} enPapelera={vista === "papelera"} error={error} aviso={aviso} atajos={atajos} archivarConTeclaRef={archivarConTeclaRef}
+        ? <Detalle key={current.id} doc={current} enPapelera={vista === "papelera"} error={error} aviso={aviso.texto} atajos={atajos} teclasRef={teclasRef}
             onBack={() => setShowDetail(false)} cambiar={cambiar} archivar={archivar} aPapelera={aPapelera} despues={() => { if (showDetail && window.matchMedia("(max-width: 900px)").matches) setShowDetail(false); else mover(1); }}
             propiedades={propiedades} clientes={clientes} operaciones={operaciones} />
         : <div className={s.view}>
             {error && <Notice tone="warn">{error}</Notice>}
-            {aviso && <p className={s.hint} role="status">{aviso}</p>}
+            {aviso.texto && <p className={s.hint} role="status">{aviso.texto}</p>}
             <div className={s.stepView}><div><h3>{lista.length ? "Elige un archivo de la lista" : vista === "pendientes" ? "La Bandeja está vacía" : "Nada en la papelera"}</h3><p>{vista === "pendientes" ? "Lo que llegue aparecerá aquí hasta que lo archives." : "Lo que mandes a la papelera se puede restaurar desde aquí."}</p></div></div>
           </div>}
     </main>
@@ -204,43 +222,69 @@ export function BandejaApp() {
   </div>;
 }
 
-type Registro = { slug: string; titulo: string; codigo?: string | null };
-function Detalle({ doc, enPapelera, error, aviso, atajos, archivarConTeclaRef, onBack, cambiar, archivar, aPapelera, despues, propiedades, clientes, operaciones }: {
-  doc: Documento; enPapelera: boolean; error: string | null; aviso: string | null; atajos: boolean; archivarConTeclaRef: React.RefObject<(() => void) | null>;
+type Registro = { slug: string; titulo: string; codigo?: string | null; galeria?: Array<{ src?: string | null }> };
+type Persona = { id: string; nombre: string };
+
+/** Foto antes que ícono (RP-104): el inmueble con su foto; la persona con su cara; el asunto con la foto de su inmueble o la cara de su persona. */
+function Cara({ tipo, destino, label, size, inmuebles, personas }: { tipo: Sugerencia["tipo"]; destino: Destino; label: string; size: number; inmuebles: Map<string, Registro>; personas: Map<string, Persona> }) {
+  const casa = destino.propiedadSlug ? inmuebles.get(destino.propiedadSlug) : undefined;
+  const persona = destino.clienteId ? personas.get(destino.clienteId) : undefined;
+  if (tipo === "persona" || (tipo === "operacion" && !casa?.galeria?.[0]?.src && persona)) return <Avatar name={persona?.nombre ?? label} size={size} />;
+  return <Thumb src={casa?.galeria?.[0]?.src} size={size} icon={tipo === "operacion" ? <FileText size={Math.round(size * 0.45)} aria-hidden="true" /> : undefined} />;
+}
+
+function Detalle({ doc, enPapelera, error, aviso, atajos, teclasRef, onBack, cambiar, archivar, aPapelera, despues, propiedades, clientes, operaciones }: {
+  doc: Documento; enPapelera: boolean; error: string | null; aviso: string | null; atajos: boolean; teclasRef: React.RefObject<Teclas | null>;
   onBack: () => void; despues: () => void;
   cambiar: (doc: Documento, body: Record<string, unknown>, hecho: string | null) => Promise<Documento | null>;
   archivar: (doc: Documento, destino: Destino, texto: string) => Promise<void>; aPapelera: (doc: Documento) => Promise<void>;
-  propiedades: Registro[]; clientes: Array<{ id: string; nombre: string }>; operaciones: OperationRecord[];
+  propiedades: Registro[]; clientes: Persona[]; operaciones: OperationRecord[];
 }) {
   const sugerencias = React.useMemo(() => sugerirDestinos(doc, propiedades, operaciones, clientes), [doc, propiedades, operaciones, clientes]);
-  const [elegida, setElegida] = React.useState<string | null>(sugerencias[0]?.id ?? null);
+  const inmuebles = React.useMemo(() => new Map(propiedades.map(p => [p.slug, p])), [propiedades]);
+  const personas = React.useMemo(() => new Map(clientes.map(c => [c.id, c])), [clientes]);
+  const [elegida, setElegida] = React.useState<string>(sugerencias[0]?.id ?? "");
   const [otro, setOtro] = React.useState(false);
   const [inmueble, setInmueble] = React.useState(NINGUNO), [operacion, setOperacion] = React.useState(NINGUNO), [persona, setPersona] = React.useState(NINGUNO);
   const [renombrando, setRenombrando] = React.useState(false);
+  const [grande, setGrande] = React.useState(false);
   const [titulo, setTitulo] = React.useState(doc.titulo);
   const [busy, setBusy] = React.useState(false);
+  const id = React.useId();
 
-  const opcionesInmueble = React.useMemo(() => propiedades.map(p => ({ value: p.slug, label: p.titulo, detail: p.codigo ?? undefined })), [propiedades]);
-  const opcionesPersona = React.useMemo(() => clientes.map(c => ({ value: c.id, label: c.nombre })), [clientes]);
-  const opcionesOperacion = React.useMemo(() => operaciones.map(o => ({ value: o.id, label: o.unidad || o.folio, detail: o.unidad ? o.folio : undefined })), [operaciones]);
-  const conNinguno = (label: string, options: Opcion<string>[]) => [{ value: NINGUNO, label }, ...options];
+  const cara = (tipo: Sugerencia["tipo"], destino: Destino, label: string) => <Cara tipo={tipo} destino={destino} label={label} size={28} inmuebles={inmuebles} personas={personas} />;
+  const opcionesInmueble = React.useMemo<ComboboxOption[]>(() => propiedades.map(p => ({ value: p.slug, label: p.titulo, detail: p.codigo ?? undefined, media: <Thumb src={p.galeria?.[0]?.src} size={28} /> })), [propiedades]);
+  const opcionesPersona = React.useMemo<ComboboxOption[]>(() => clientes.map(c => ({ value: c.id, label: c.nombre, media: <Avatar name={c.nombre} size={28} /> })), [clientes]);
+  const opcionesOperacion = React.useMemo<ComboboxOption[]>(() => operaciones.map(o => ({
+    value: o.id, label: o.unidad || o.folio, detail: o.unidad ? o.folio : undefined,
+    keywords: [o.folio, (o.cliente_id && personas.get(o.cliente_id)?.nombre) || ""],
+    media: <Cara tipo="operacion" destino={{ expedienteId: o.id, propiedadSlug: o.propiedad_slug ?? null, clienteId: o.cliente_id ?? null }} label={o.folio} size={28} inmuebles={inmuebles} personas={personas} />,
+  })), [operaciones, inmuebles, personas]);
+  const conNinguno = (label: string, options: ComboboxOption[]): ComboboxOption[] => [{ value: NINGUNO, label }, ...options];
   const elegido = (value: string) => value === NINGUNO ? null : value;
   const manual = otro || !sugerencias.length;
   const sugerencia = manual ? undefined : sugerencias.find(x => x.id === elegida);
   const destino: Destino | null = sugerencia ? sugerencia.destino
     : inmueble !== NINGUNO || operacion !== NINGUNO || persona !== NINGUNO ? { propiedadSlug: elegido(inmueble), expedienteId: elegido(operacion), clienteId: elegido(persona) } : null;
   const destinoTexto = sugerencia ? sugerencia.label
-    : [[inmueble, opcionesInmueble], [operacion, opcionesOperacion], [persona, opcionesPersona]].map(([value, options]) => value === NINGUNO ? null : (options as Opcion<string>[]).find(o => o.value === value)?.label).filter(Boolean).join(" · ");
+    : ([[inmueble, opcionesInmueble], [operacion, opcionesOperacion], [persona, opcionesPersona]] as const).map(([value, options]) => value === NINGUNO ? null : options.find(o => o.value === value)?.label).filter(Boolean).join(" · ");
   const run = async (body: Record<string, unknown>, hecho: string) => { setBusy(true); const r = await cambiar(doc, body, hecho); setBusy(false); return r; };
   const archivarAqui = async () => { if (!destino || busy) return; setBusy(true); await archivar(doc, destino, `Archivado en ${destinoTexto}.`); setBusy(false); };
 
-  const ultimo = React.useRef(archivarAqui);
-  React.useEffect(() => { ultimo.current = archivarAqui; });
+  const ultimo = React.useRef<Teclas>({ archivar: () => undefined, papelera: () => undefined });
+  React.useEffect(() => { ultimo.current = { archivar: () => void archivarAqui(), papelera: () => { if (!busy) void aPapelera(doc); } }; });
   React.useEffect(() => {
     if (enPapelera) return;
-    archivarConTeclaRef.current = () => void ultimo.current();
-    return () => { archivarConTeclaRef.current = null; };
-  }, [enPapelera, archivarConTeclaRef]);
+    teclasRef.current = { archivar: () => ultimo.current.archivar(), papelera: () => ultimo.current.papelera() };
+    return () => { teclasRef.current = null; };
+  }, [enPapelera, teclasRef]);
+
+  const vistaDocumento = (completa: boolean) => doc.mime === "application/pdf"
+    ? <VistaPdf url={archivoUrl(doc)} titulo={doc.titulo} maxPaginas={completa ? 20 : 6} soloPrimeraEnCelular={!completa} />
+    : <div className={s.paper} data-kind="image" data-full={completa || undefined}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- archivo privado servido por la API con sesión; next/image no lo puede optimizar */}
+        <img src={archivoUrl(doc)} alt={doc.titulo} />
+      </div>;
 
   return <div className={s.body}>
     <section className={s.view} aria-label="Documento">
@@ -249,57 +293,73 @@ function Detalle({ doc, enPapelera, error, aviso, atajos, archivarConTeclaRef, o
         <div className={s.title}>
           {renombrando
             ? <form onSubmit={async event => { event.preventDefault(); const limpio = titulo.trim(); if (!limpio || limpio === doc.titulo) { setRenombrando(false); return; } if (await run({ titulo: limpio }, "Nombre cambiado.")) setRenombrando(false); }}>
-                <label className={s.sr} htmlFor="bandeja-titulo">Nombre del documento</label>
-                <input id="bandeja-titulo" className={s.titleInput} value={titulo} maxLength={240} autoFocus onChange={event => setTitulo(event.target.value)} onBlur={() => { setTitulo(doc.titulo); setRenombrando(false); }} onKeyDown={event => { if (event.key === "Escape") { setTitulo(doc.titulo); setRenombrando(false); } }} />
+                <label className={s.sr} htmlFor={`${id}-titulo`}>Nombre del documento</label>
+                <input id={`${id}-titulo`} className={inputClass} value={titulo} maxLength={240} autoFocus onChange={event => setTitulo(event.target.value)} onBlur={() => { setTitulo(doc.titulo); setRenombrando(false); }} onKeyDown={event => { if (event.key === "Escape") { setTitulo(doc.titulo); setRenombrando(false); } }} />
               </form>
             : <h2>{doc.titulo}</h2>}
           <span>{enPapelera ? "En la papelera" : `Llegó el ${fechaHora(doc.created_at)} · sin archivar`}</span>
         </div>
         <div className={s.actions}>
-          <Button variant="ghost" iconOnly aria-label="Abrir el archivo en otra pestaña" title="Abrir en otra pestaña" onClick={() => window.open(archivoUrl(doc), "_blank", "noopener")}><FileDown size={18} aria-hidden /></Button>
+          <Tooltip><TooltipTrigger asChild>
+            <Button variant="ghost" iconOnly aria-label="Ver en grande" onClick={() => setGrande(true)}><ZoomIn size={18} aria-hidden /></Button>
+          </TooltipTrigger><TooltipContent>Ver en grande</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild>
+            <Button variant="ghost" iconOnly aria-label="Abrir el archivo en otra pestaña" onClick={() => window.open(archivoUrl(doc), "_blank", "noopener")}><FileDown size={18} aria-hidden /></Button>
+          </TooltipTrigger><TooltipContent>Abrir en otra pestaña</TooltipContent></Tooltip>
           {enPapelera
             ? <Button variant="primary" disabled={busy} onClick={() => void run({ papelera: false }, "Restaurado: volvió a la Bandeja.")}>Restaurar</Button>
-            : <MenuAcciones label="Más acciones" actions={[
-                { label: "Cambiar el nombre", onSelect: () => setRenombrando(true) },
-                { label: "Dejar para después", onSelect: despues },
-                { label: "Mandar a la papelera", danger: true, separated: true, onSelect: () => void aPapelera(doc) },
+            : <ActionsMenu label="Más acciones" disabled={busy} actions={[
+                { label: "Cambiar el nombre", icon: <Pencil size={16} aria-hidden="true" />, onSelect: () => setRenombrando(true) },
+                { label: "Dejar para después", icon: <Clock size={16} aria-hidden="true" />, onSelect: despues },
+                { label: "Mandar a la papelera", icon: <Trash2 size={16} aria-hidden="true" />, danger: true, separated: true, onSelect: () => void aPapelera(doc) },
               ]} />}
         </div>
       </div>
       {error && <Notice tone="warn">{error}</Notice>}
       {aviso && <p className={s.hint} role="status">{aviso}</p>}
-      {doc.mime === "application/pdf"
-        ? <VistaPdf url={archivoUrl(doc)} titulo={doc.titulo} soloPrimeraEnCelular />
-        : <div className={s.paper} data-kind="image">
-            {/* eslint-disable-next-line @next/next/no-img-element -- archivo privado servido por la API con sesión; next/image no lo puede optimizar */}
-            <img src={archivoUrl(doc)} alt={doc.titulo} />
-          </div>}
+      {vistaDocumento(false)}
     </section>
+    <Dialog open={grande} onOpenChange={setGrande}>
+      <DialogContent className={s.grande} closeLabel="Cerrar la vista grande">
+        <div className={s.grandeHead}><DialogTitle>{doc.titulo}</DialogTitle><DialogDescription>{formato(doc.mime)} · {peso(doc.byte_length)}</DialogDescription></div>
+        {grande && vistaDocumento(true)}
+      </DialogContent>
+    </Dialog>
     <aside className={s.inspector} aria-label="Datos del archivo">
       {enPapelera
         ? <div className={s.stepView}><div><h3>Está en la papelera</h3><p>No se borra. Restáuralo para archivarlo.</p></div></div>
-        : <section className={cn(s.step, s.mailStep)} aria-labelledby="bandeja-destino">
-            <div><h3 id="bandeja-destino">¿Dónde se guarda?</h3>
+        : <section className={s.donde} aria-labelledby={`${id}-donde`}>
+            <div><h3 id={`${id}-donde`}>¿Dónde se guarda?</h3>
               <p>{sugerencias.length && !manual ? "Coinciden con el nombre del archivo. Elige uno u otro destino." : "Elige uno o varios. Un inmueble puede no tener propietario todavía; la persona puede quedar vacía."}</p></div>
-            {!manual && <div className={s.picks} role="group" aria-label="Destinos que coinciden">
-              {sugerencias.map(x => <Pick key={x.id} sugerencia={x} pressed={x.id === elegida} disabled={busy} onPress={() => setElegida(x.id)} />)}
-            </div>}
-            {manual && <div className={s.destStack}>
-              <Desplegable label="Inmueble" value={inmueble} onChange={setInmueble} options={conNinguno("Ninguno", opcionesInmueble)} disabled={busy} />
-              <Desplegable label="Asunto" value={operacion} onChange={setOperacion} options={conNinguno("Ninguno", opcionesOperacion)} disabled={busy} />
-              <Desplegable label="Persona" value={persona} onChange={setPersona} options={conNinguno("Sin persona", opcionesPersona)} disabled={busy} />
-            </div>}
-            {sugerencias.length > 0 && <button type="button" className={s.link} disabled={busy} onClick={() => setOtro(v => !v)}>{manual ? "Ver los que coinciden" : "Otro destino"}</button>}
+            <Swap id={manual ? "manual" : "sugeridos"} className={s.destStack}>
+              {manual
+                ? <>
+                    <Destinatario id={`${id}-inmueble`} label="Inmueble" value={inmueble} onChange={setInmueble} options={conNinguno("Ninguno", opcionesInmueble)} disabled={busy} buscar="Buscar por nombre o código…" />
+                    <Destinatario id={`${id}-asunto`} label="Asunto" value={operacion} onChange={setOperacion} options={conNinguno("Ninguno", opcionesOperacion)} disabled={busy} buscar="Buscar por folio o persona…" />
+                    <Destinatario id={`${id}-persona`} label="Persona" value={persona} onChange={setPersona} options={conNinguno("Sin persona", opcionesPersona)} disabled={busy} buscar="Buscar por nombre…" />
+                  </>
+                : <RadioGroup value={elegida} onValueChange={setElegida} disabled={busy} aria-label="Destinos que coinciden" className={s.picks}>
+                    {sugerencias.map(x => <label key={x.id} className={s.pick}>
+                      {cara(x.tipo, x.destino, x.label)}
+                      <span className={s.pickText}><b>{x.label}</b><small>{x.detail}</small></span>
+                      <RadioGroupItem value={x.id} className={s.pickRadio} />
+                    </label>)}
+                  </RadioGroup>}
+            </Swap>
+            {sugerencias.length > 0 && <Button variant="ghost" className={s.otro} disabled={busy} onClick={() => setOtro(v => !v)}><Search size={16} aria-hidden />{manual ? "Ver los que coinciden" : "Otro destino"}</Button>}
             <div className={s.stepFoot}>
-              <button type="button" className={s.onDark} disabled={busy || !destino} aria-keyshortcuts={atajos ? "E" : undefined} onClick={() => void archivarAqui()}>
-                Archivar aquí{atajos && <span className={s.kbdOnDark} aria-hidden="true">E</span>}
-              </button>
-              <button type="button" className={s.onDark} data-quiet="true" disabled={busy} onClick={despues}>Dejar para después</button>
+              <Button variant="primary" disabled={busy || !destino} aria-keyshortcuts={atajos ? "E" : undefined} onClick={() => void archivarAqui()}>
+                <Folder size={16} aria-hidden />Archivar aquí{atajos && <span className={s.kbdOn} aria-hidden="true">E</span>}
+              </Button>
+              <Button variant="ghost" disabled={busy} onClick={despues}>Dejar para después</Button>
             </div>
           </section>}
       {!enPapelera && <div className={s.blk}>
-        <h3>Tipo de documento</h3>
-        <Desplegable hideLabel label="Tipo de documento" placeholder="Sin tipo" value={doc.tipo_documento ?? ""} options={TIPOS} disabled={busy} onChange={tipo => void run({ tipo }, "Tipo guardado.")} />
+        <h3 id={`${id}-tipo`}>Tipo de documento</h3>
+        <Select value={doc.tipo_documento ?? ""} disabled={busy} onValueChange={tipo => { if (tipo !== doc.tipo_documento) void run({ tipo }, "Tipo guardado."); }}>
+          <SelectTrigger aria-labelledby={`${id}-tipo`}><SelectValue placeholder="Sin tipo" /></SelectTrigger>
+          <SelectContent>{TIPOS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+        </Select>
       </div>}
       <div className={s.blk}>
         <h3>Archivo</h3>
@@ -307,16 +367,15 @@ function Detalle({ doc, enPapelera, error, aviso, atajos, archivarConTeclaRef, o
         <div className={s.kv}><span>Nombre original</span><span>{doc.nombre_original}</span></div>
         <div className={s.kv}><span>Tamaño</span><span>{peso(doc.byte_length)}</span></div>
         <div className={s.kv}><span>Formato</span><span>{formato(doc.mime)}</span></div>
-        <div className={s.kv}><span>Huella</span><span title={doc.sha256}>{doc.sha256.slice(0, 12)}…</span></div>
       </div>
     </aside>
   </div>;
 }
 
-function Pick({ sugerencia, pressed, disabled, onPress }: { sugerencia: Sugerencia; pressed: boolean; disabled: boolean; onPress: () => void }) {
-  const Icono = sugerencia.tipo === "persona" ? UserRound : sugerencia.tipo === "inmueble" ? Building2 : FileText;
-  return <button type="button" className={s.pick} aria-pressed={pressed} disabled={disabled} onClick={onPress}>
-    <span className={s.pickIcon} aria-hidden="true"><Icono size={18} /></span>
-    <span className={s.pickText}><b>{sugerencia.label}</b><small>{sugerencia.detail}</small></span>
-  </button>;
+/** Un destino a mano: selector con buscador (shadcn/ui «Combobox») con su etiqueta visible. */
+function Destinatario({ id, label, value, onChange, options, disabled, buscar }: { id: string; label: string; value: string; onChange: (v: string) => void; options: ComboboxOption[]; disabled: boolean; buscar: string }) {
+  return <div className={s.field}>
+    <Label htmlFor={id} className={s.fieldLabel}>{label}</Label>
+    <Combobox id={id} value={value} onChange={onChange} options={options} disabled={disabled} searchPlaceholder={buscar} empty="No hay coincidencias" />
+  </div>;
 }

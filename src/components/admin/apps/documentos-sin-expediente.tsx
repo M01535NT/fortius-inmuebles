@@ -16,6 +16,7 @@ import { emiteIncompleto, formatoById, validateFormato, type FormatoDefinition }
 import { VALOR_DEFAULTS } from "@/lib/formatos/valor-fields";
 import { downloadValorExcel } from "@/lib/admin/download-word";
 import { cn, humanDateTime } from "@/lib/utils";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 /*
   Documentos sueltos (HER-02): cualquier formato sin abrir una operación ni un prospecto.
@@ -245,11 +246,14 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
 
   const sectionDefinition = { ...definition, fields: definition.fields.filter(f => (f.section ?? "Datos") === section) };
   const pdfTitle = !definition.readyForEmission ? "Este formato todavía no genera PDF; descarga el Word" : !pdfPosible ? "Este formato necesita todos sus datos para el PDF" : missing.length ? "Faltan datos: el PDF saldrá marcado como incompleto" : undefined;
-  return <div role="dialog" aria-modal="true" aria-labelledby="documento-titulo" className="fixed inset-0 z-[70] flex flex-col bg-background text-foreground">
+  // Ventana propia a pantalla completa sobre `Dialog` de Radix (DEC-52): foco atrapado, Escape guarda y cierra, el foco vuelve al botón que la abrió.
+  return <Dialog open><DialogContent hideClose aria-describedby={undefined}
+    onEscapeKeyDown={event => { event.preventDefault(); if (!busy) void close(); }} onInteractOutside={event => event.preventDefault()}
+    className="inset-0 left-0 top-0 z-[70] h-dvh max-h-none w-full translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none border-0 bg-background p-0 shadow-none">
     <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-3 sm:px-8">
       <div className="flex min-w-0 flex-col gap-0.5">
         <Eyebrow>{definition.id} · Documento suelto{run ? ` · Guardado ${humanDateTime(run.updatedAt).toLowerCase()}` : ""}</Eyebrow>
-        <h2 id="documento-titulo" className="m-0 text-lg font-bold [overflow-wrap:anywhere]">{open.title}</h2>
+        <DialogTitle className="text-lg font-bold [overflow-wrap:anywhere]">{open.title}</DialogTitle>
       </div>
       <Button variant="ghost" iconOnly aria-label="Cerrar" disabled={!!busy} onClick={() => void close()}><X size={20} aria-hidden="true" /></Button>
     </header>
@@ -296,5 +300,5 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
           : <Button variant="primary" disabled={!!busy} onClick={() => go(index + 1)}>Siguiente sección<ArrowRight size={16} aria-hidden="true" /></Button>}
       </div>
     </footer>
-  </div>;
+  </DialogContent></Dialog>;
 }

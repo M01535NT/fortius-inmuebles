@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { CloseCard } from "@/components/admin/operation/close-card";
 import { emptyWorkflow, workflowBlockers, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import type { OperationRecord } from "@/lib/admin/operation-view";
+import { pickOption } from "./pick";
 
 const mocks = vi.hoisted(() => ({ upsert: vi.fn(), property: { slug: "casa", estado: "disponible", publicada: true } as Record<string, unknown> }));
 vi.mock("@/lib/admin/store", () => ({
@@ -22,7 +23,7 @@ it("registra quién captó y quién vendió con el reparto estimado del contrato
   render(<CloseCard op={op()} intermediacion={contrato} disabled={false} onSave={onSave} />);
   expect(screen.getByText("Falta registrar")).toBeTruthy();
   expect(screen.getByText("50 % · $100,000")).toBeTruthy();
-  fireEvent.change(screen.getByLabelText("Asesor que vendió"), { target: { value: "a2" } });
+  await pickOption(screen.getByLabelText("Asesor que vendió"), "Asesor que vende");
   expect(screen.getAllByText("25 % · $50,000")).toHaveLength(2);
   fireEvent.click(screen.getByRole("button", { name: "Registrar quién captó y quién vendió" }));
   await waitFor(() => expect(onSave).toHaveBeenCalled());
