@@ -90,7 +90,7 @@
 :global(.admin-root) .toggle { border: 0; background: none; padding: 0; font-weight: 620; color: var(--foreground); cursor: pointer; min-height: 2.75rem; text-align: left; }
 :global(.admin-root) .toggle::after { content: " ▾"; color: var(--muted-foreground); }
 :global(.admin-root) .toggle[aria-expanded=true]::after { content: " ▴"; }
-:global(.admin-root) .archived summary { cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; font-size: var(--admin-text-detalle); font-weight: 600; color: var(--muted-foreground); }
+:global(.admin-root) .archivedTrigger { min-height: 2.75rem; font-size: var(--admin-text-detalle); font-weight: 600; color: var(--muted-foreground); }
 :global(.admin-root) .archivedLink { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 .25rem; font-size: var(--admin-text-detalle); color: var(--foreground); }
 :global(.admin-root) .deletedRow { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; }
 :global(.admin-root) .deletedRow + .deletedRow { border-top: 1px solid var(--border); }

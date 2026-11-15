@@ -20,6 +20,7 @@ import { useOperationFormats } from "./use-operation-formats";
 import { useTodayData } from "@/components/admin/workspace/use-today-queue";
 import { useLeaveGuard } from "./use-operation";
 import { PAPELERA } from "@/components/admin/papelera/textos";
+import { Fold } from "./pickers";
 import s from "./board.module.css";
 
 /*
@@ -214,7 +215,7 @@ export function OperationsBoard() {
             {admin && <BulkBar selection={selection} targets={listed.map(row => ({ id: row.op.id, label: `${row.who} · ${row.op.folio}` }))} actions={bulkActions} noun={{ one: "asunto seleccionado", many: "asuntos seleccionados", empty: "Elige asuntos en la lista" }} />}
           </>}
         {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ningún asunto coincide. Borra la búsqueda o cambia el filtro.</p>}
-        {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="tabular-nums text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
+        {archived.length > 0 && <Fold className={s.archived} triggerClassName={s.archivedTrigger} summary={`Archivadas (${archived.length})`}><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="tabular-nums text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></Fold>}
       </>}
 
     <footer className="mt-8 flex flex-col gap-4">
@@ -269,7 +270,7 @@ function RowBody({ row, today, selecting }: { row: Row; today: string; selecting
           <RowRail row={row} />
           <span className={s.stageText}>{row.n} · {row.stage}{row.attention && <> · <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span></>}{row.tags.map(tag => <React.Fragment key={tag}> · <span className={s.reason}>{tag}</span></React.Fragment>)}</span>
         </span>
-        <span className={s.next}><span><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>{row.adviser && <span className={s.nextMeta}><Avatar name={row.adviser} size={20} />{row.adviser.split(/s+/)[0]} · {row.op.folio}</span>}</span>
+        <span className={s.next}><span><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>{row.adviser && <span className={s.nextMeta}><Avatar name={row.adviser} size={20} />{row.adviser.split(/\s+/)[0]} · {row.op.folio}</span>}</span>
         <span className={s.due} data-late={row.late || undefined}>{dueLabel(row.date, today)}</span>
         {!selecting && <ChevronRight size={18} aria-hidden="true" className={s.chevron} />}
   </>;

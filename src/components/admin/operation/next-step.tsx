@@ -2,11 +2,13 @@
 import * as React from "react";
 import { calendarDayOf } from "@/lib/admin/operational-date";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Check, docIcon, FileDown, FileText, House, PlayCircle, Plus, Trash2 } from "@/components/admin/icons";
+import { ArrowRight, CalendarDays, Check, docIcon, FileDown, FileText, House, Mail, MessageCircle, MoreHorizontal, Phone, PlayCircle, Plus, Trash2, UserRound } from "@/components/admin/icons";
+import { DateField } from "@/components/ui/date-field";
+import { Checkbox } from "@/components/ui/controls";
 import Image from "next/image";
 import { Button, ButtonLink, Card, DocBadge, Hint, IconTile, Notice } from "@/components/admin/kit";
 import { TIPO_LABELS, type Property as Propiedad } from "@/data/propiedades";
-import { AsyncSelect, inputClass, selectClass } from "@/components/admin/ui";
+import { ErrorNotice, inputClass, selectClass } from "@/components/admin/ui";
 import { offerCandidates, offerOwner, withoutOffer } from "@/lib/admin/lead-offers";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
@@ -26,6 +28,7 @@ import type { DocumentsController } from "./use-documents";
 import type { Documento } from "./documents-tab";
 import type { ArchivoCliente } from "./client-documents-tab";
 import { saveError } from "./use-operation";
+import { Fold, OptionSelect, PersonSelect } from "./pickers";
 import { useIsDirector } from "@/lib/admin/staff-scope";
 import { ContractSignatureCard } from "./contract-signature";
 import { OwnerAppraisalCard } from "./owner-appraisal";
@@ -39,6 +42,9 @@ import { WaitingSeekers } from "@/components/admin/properties/waiting-seekers";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
 
+
+/** Ícono de cada canal de entrega del informe (COR-08). */
+const CANAL_ICON: Record<EntregaInforme["canal"], typeof Phone> = { whatsapp: MessageCircle, correo: Mail, en_persona: UserRound, telefono: Phone, otro: MoreHorizontal };
 /*
   «Esta etapa» (boceto C, aprobado el 17/10/2026): arriba «Ahora toca» con una sola acción
   principal; debajo «Para terminar la etapa» reúne los documentos que se llenan, lo que se
@@ -255,10 +261,10 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
           <div className={s.itemActions}><Button disabled={lock} onClick={() => goToPending(item)}>{item.place === "ajustes" ? "Abrir los datos" : item.place === "encargo" ? "Ir a la decisión" : item.place === "tarea" ? "Ir a la próxima tarea" : item.place === "firma" ? "Ir a la firma" : item.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button></div>
         </div></li>)}
       </ul>
-      <details className={s.meaning}><summary>¿Qué significa cada estado?</summary><ul className="mb-2 mt-1 flex flex-col gap-2 text-sm text-muted-foreground">
+      <Fold className={s.meaning} triggerClassName={s.foldTrigger} summary="¿Qué significa cada estado?"><ul className="mb-2 mt-1 flex flex-col gap-2 text-sm text-muted-foreground">
         <li><strong className="text-foreground">Lo tengo</strong>: ya llegó el documento; todavía no se revisa. <strong className="text-foreground">Revisado</strong> exige decir con qué se comprobó, quién y cuándo.</li>
         <li>El panel guarda cada revisión, pero no emite dictámenes ni sustituye la revisión de un profesional.</li>
-      </ul></details>
+      </ul></Fold>
       </>}
     </section>}
 
@@ -380,7 +386,7 @@ function PropertyPiece({ op, property, interview, className, onLink }: { op: Ope
 function FirstContact({ interview, op, disabled }: { interview: OperationalInterview | null; op: OperationRecord; disabled: boolean }) {
   const a = interview?.respuestas ?? {};
   const flow = flowOf(op);
-  return <details className={cn(s.why, "mt-5")}><summary>Lo que dijo en el primer contacto</summary><div className="mt-3 flex flex-col gap-4">
+  return <Fold className={cn(s.why, "mt-5")} triggerClassName={s.foldMuted} summary="Lo que dijo en el primer contacto"><div className="mt-3 flex flex-col gap-4">
     {interview ? <dl className={s.facts}>
       {a.ubicacion && <><dt>Inmueble</dt><dd>{a.ubicacion}{a.zona ? ` · ${a.zona}` : ""}</dd></>}
       {a.tipoInmueble && <><dt>Tipo</dt><dd>{answerLabel(a.tipoInmueble)}</dd></>}
@@ -390,7 +396,7 @@ function FirstContact({ interview, op, disabled }: { interview: OperationalInter
       {a.condiciones && <><dt>Notas</dt><dd className="whitespace-pre-line">{a.condiciones}</dd></>}
     </dl> : <p className="text-sm text-muted-foreground">Todavía no hay entrevista del primer contacto.</p>}
     <InterviewAccess key={op.id} expedienteId={op.id} clienteId={op.cliente_id} intencion={flow.ruta === "arrendador" ? "arrendar" : "vender"} disabled={disabled} />
-  </div></details>;
+  </div></Fold>;
 }
 
 /**
@@ -462,7 +468,7 @@ function Checklist({ task, answers, expedienteId, disabled, onError }: { task: T
               {paso.noAplica ? <span className="text-sm text-muted-foreground">No aplica: {paso.noAplica}</span> : <span className="text-sm text-[var(--warning)]">Por confirmar: {paso.porConfirmar}</span>}
             </div>
             : <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3">
-              <input type="checkbox" className="size-5 shrink-0" checked={paso.hecho} disabled={lock} onChange={e => void cambiar(paso.id, { hecho: e.target.checked, ...(e.target.checked ? {} : { archivoId: undefined }) })} />
+              <Checkbox checked={paso.hecho} disabled={lock} onCheckedChange={next => { const hecho = next === true; void cambiar(paso.id, { hecho, ...(hecho ? {} : { archivoId: undefined }) }); }} />
               <span className={paso.hecho ? "text-muted-foreground" : ""}>{paso.texto}</span>
             </label>}
           <span className="flex flex-wrap gap-1">
@@ -528,12 +534,12 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
       {next ? <>
         <span className="flex min-w-0 flex-col gap-0.5"><span className={cn("text-sm", late ? s.lateText : "text-muted-foreground")}>{next.vence ? `${late ? "Venció el " : next.vence === today ? "Hoy · " : ""}${weekdayDate(next.vence)} ${shortDate(next.vence).split(" ")[1]}` : "Sin fecha"}</span><Link href={`/admin/tareas/${encodeURIComponent(next.id)}`} className={s.taskTitle}>{next.titulo}</Link></span>
         {!editing && <div className={s.taskActions}><Button disabled={busy} onClick={() => void finish()}><Check size={16} aria-hidden="true" />Hecha</Button><button type="button" className={s.linkButton} onClick={() => { setDate(next.vence ?? ""); setEditing(true); }}>Cambiar fecha</button></div>}
-        {editing && <div className="flex flex-col gap-2"><label className="text-sm">Nueva fecha<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label><div className="flex gap-2"><Button variant="primary" disabled={busy || !date} onClick={() => void changeDate()}>Guardar fecha</Button><Button variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancelar</Button></div></div>}
+        {editing && <div className="flex flex-col gap-2"><span className="flex flex-col gap-1.5 text-sm"><span>Nueva fecha</span><DateField aria-label="Nueva fecha" required value={date} onChange={setDate} disabled={busy} /></span><div className="flex gap-2"><Button variant="primary" disabled={busy || !date} onClick={() => void changeDate()}>Guardar fecha</Button><Button variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancelar</Button></div></div>}
       </> : <form onSubmit={create} className="flex flex-col gap-3">
         <p className="text-sm text-muted-foreground">{stageOf(op) === "cerrado" ? "Asunto archivado: no necesita próxima tarea." : "Este asunto no tiene una próxima tarea con fecha. Agenda el siguiente paso para no perderlo de vista."}</p>
         {stageOf(op) !== "cerrado" && <>
           <label className="text-sm">Qué sigue<input className={inputClass} maxLength={160} value={title} onChange={e => setTitle(e.target.value)} /></label>
-          <label className="text-sm">Fecha<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label>
+          <span className="flex flex-col gap-1.5 text-sm"><span>Fecha</span><DateField aria-label="Fecha" required value={date} onChange={setDate} disabled={busy} /></span>
           <Button type="submit" variant="primary" disabled={busy || !title.trim() || !date}>Agendar</Button>
         </>}
       </form>}
@@ -546,7 +552,7 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
 function Declared({ op, interview }: { op: OperationRecord; interview: OperationalInterview }) {
   const properties = useCollection(db.propiedades);
   const property = properties.find(p => p.slug === op.propiedad_slug);
-  return <Card className="p-5"><details><summary className="cursor-pointer font-semibold">Lo que dijo el propietario y lo que dice la ficha</summary>
+  return <Card className="p-5"><Fold summary="Lo que dijo el propietario y lo que dice la ficha">
     <dl className={cn(s.facts, "mt-3")}>
       <dt>Ubicación que dio</dt><dd>{interview.respuestas.ubicacion || "No la dio"}</dd>
       <dt>Ubicación en la ficha</dt><dd>{property?.direccionAproximada || "Sin inmueble vinculado"}</dd>
@@ -556,7 +562,7 @@ function Declared({ op, interview }: { op: OperationRecord; interview: Operation
     </dl>
     <p className="mt-3 text-sm text-muted-foreground">Si no coinciden, corrige la ficha y registra el acuerdo. Los documentos generados no cambian.</p>
     {op.propiedad_slug && <Link className="mt-2 inline-block text-sm font-semibold underline underline-offset-4" href={`/admin/propiedades/${encodeURIComponent(op.propiedad_slug)}/editar`}>Revisar la ficha del inmueble</Link>}
-  </details></Card>;
+  </Fold></Card>;
 }
 
 function useRuns(slug: string, ids: string[]) {
@@ -612,10 +618,9 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
     </dl>
     {preparado && (!ultima || ultima.fecha < preparado) && !form && <p className="text-sm text-[var(--warning)]">El último informe preparado todavía no se registra como entregado.</p>}
     {form ? <form onSubmit={registrar} className="mt-1 grid gap-2 sm:grid-cols-3" aria-label="Registrar entrega del informe">
-      <label className="text-sm">Fecha de entrega<input type="date" className={inputClass} required max={today} value={form.fecha} disabled={lock} onChange={e => setForm({ ...form, fecha: e.target.value })} /></label>
-      <label className="text-sm">Canal<select className={selectClass} required value={form.canal} disabled={lock} onChange={e => setForm({ ...form, canal: e.target.value as EntregaInforme["canal"] })}>
-        <option value="">Elige…</option>{Object.entries(CANALES_INFORME).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-      </select></label>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Fecha de entrega</span><DateField aria-label="Fecha de entrega" required max={today} value={form.fecha} disabled={lock} onChange={fecha => setForm({ ...form, fecha })} /></span>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Canal</span><OptionSelect aria-label="Canal" placeholder="Elige…" value={form.canal} disabled={lock} onChange={canal => setForm({ ...form, canal })}
+        options={(Object.entries(CANALES_INFORME) as Array<[EntregaInforme["canal"], string]>).map(([value, label]) => ({ value, label, icon: React.createElement(CANAL_ICON[value], { size: 18, "aria-hidden": true }) }))} /></span>
       <label className="text-sm">Quién lo entregó<input className={inputClass} required maxLength={160} value={form.responsable} disabled={lock} onChange={e => setForm({ ...form, responsable: e.target.value })} /></label>
       <span className="flex flex-wrap gap-2 sm:col-span-3">
         <Button type="submit" variant="primary" disabled={lock || !form.fecha || !form.canal || !form.responsable.trim()}>Guardar entrega</Button>
@@ -627,9 +632,9 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
     </span>}
     {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-    {entregas.length > 1 && <details className="text-sm"><summary className="cursor-pointer">Entregas anteriores</summary>
+    {entregas.length > 1 && <Fold className="text-sm" triggerClassName="font-medium" summary="Entregas anteriores">
       <ul className="mt-1 flex flex-col gap-0.5">{entregas.slice(1).map(e => <li key={`${e.fecha}-${e.registradoEl ?? e.responsable}`}>{shortDate(e.fecha)} · {CANALES_INFORME[e.canal]} · {e.responsable}</li>)}</ul>
-    </details>}
+    </Fold>}
     <p className="text-sm text-muted-foreground">Informe mensual al propietario. Prepararlo no es entregarlo: registra cuándo, por dónde y quién.</p>
   </Card>;
 }
@@ -664,12 +669,20 @@ function VisitsAndOffers({ op, today, documents }: { op: OperationRecord; today:
         {offers === undefined ? <p className="text-muted-foreground">Consultando ofertas…</p> : offers === null ? <p className="text-muted-foreground">No se pudieron consultar las ofertas.</p> : offers.length ? <ul className="flex flex-col gap-1">{offers.slice(0, 5).map(run => <li key={run.id}>{run.title} · {shortDate(run.updatedAt)}{run.context?.expedienteId && run.context.expedienteId !== op.id ? " · del comprador" : ""}</li>)}</ul> : <p className="text-muted-foreground">Sin ofertas comparadas.</p>}
         {offerDocs.length ? <ul className="flex flex-col gap-2">{offerDocs.map(d => { const owner = offerOwner(leads, d.id), fecha = (d.updated_at ?? today).slice(0, 10), options = owner && !candidates.some(c => c.id === owner.id) ? [owner, ...candidates] : candidates; return <li key={d.id} className="flex flex-col gap-1">
           <span>Oferta por escrito (14) · {shortDate(fecha)}{owner ? <> · de <Link className="font-semibold underline underline-offset-4" href={`/admin/leads/${encodeURIComponent(owner.id)}`}>{owner.nombre}</Link></> : ""}</span>
-          {options.length ? <label className="flex flex-col gap-1"><span className="text-muted-foreground">¿De quién es esta oferta?</span><AsyncSelect value={owner?.id ?? ""} className={selectClass} onChange={async value => { if (value) await link(d.id, fecha, value); else if (owner) await upsert(db.leads, withoutOffer(owner, d.id), db.leads.version(owner)); }}>
-            <option value="">Sin ligar</option>{options.map(l => <option key={l.id} value={l.id}>{l.nombre}</option>)}
-          </AsyncSelect></label> : !owner && <span className="text-muted-foreground">Para ligarla, relaciona al interesado con el inmueble o agenda su visita.</span>}
+          {options.length ? <span className="flex flex-col gap-1"><span className="text-muted-foreground">¿De quién es esta oferta?</span><OfferOwner value={owner?.id ?? ""} people={options} onPick={async value => { if (value) await link(d.id, fecha, value); else if (owner) await upsert(db.leads, withoutOffer(owner, d.id), db.leads.version(owner)); }} /></span> : !owner && <span className="text-muted-foreground">Para ligarla, relaciona al interesado con el inmueble o agenda su visita.</span>}
         </li>; })}</ul> : <p className="text-muted-foreground">Sin oferta por escrito (formato 14) en el expediente.</p>}
         <Link className="font-semibold underline underline-offset-4" href={`/admin/apps/ofertas?expedienteId=${encodeURIComponent(op.id)}`}>Comparar una oferta</Link>
       </div>
     </div>
   </Card>;
+}
+
+/** Quién hizo la oferta (14): el interesado con su cara. Mientras se guarda, el selector espera. */
+function OfferOwner({ value, people, onPick }: { value: string; people: Array<{ id: string; nombre: string }>; onPick: (id: string) => Promise<unknown> }) {
+  const [busy, setBusy] = React.useState(false), [error, setError] = React.useState<string | null>(null);
+  return <div aria-busy={busy}>
+    <PersonSelect aria-label="¿De quién es esta oferta?" people={people} value={value} emptyLabel="Sin ligar" disabled={busy}
+      onChange={next => { setBusy(true); setError(null); void onPick(next).catch(cause => setError(errorMessage(cause))).finally(() => setBusy(false)); }} />
+    <ErrorNotice error={error} />
+  </div>;
 }

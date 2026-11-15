@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { OwnerAppraisalCard } from "@/components/admin/operation/owner-appraisal";
 import { emptyWorkflow, type OperationWorkflow, type OwnerAppraisal } from "@/lib/formatos/operation-workflow";
 import type { OperationRecord } from "@/lib/admin/operation-view";
+import { pickDate, pickOption } from "./pick";
 
 const mocks = vi.hoisted(() => ({ fetch: vi.fn() }));
 vi.mock("@/lib/admin/store", () => ({ fetchJson: mocks.fetch }));
@@ -19,15 +20,15 @@ it("registra el avalúo y deja la opinión de valor revisada con ese archivo (CO
   render(<OwnerAppraisalCard op={op()} today="2026-11-12" reviewer="Asesora de ejemplo" disabled={false} onSave={onSave} onGoToFiles={() => undefined} />);
   expect(screen.getByText(/su banco o el Infonavit pedirá su propio avalúo/)).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "El propietario trae avalúo" }));
-  fireEvent.change(await screen.findByLabelText("Archivo del avalúo"), { target: { value: file.id } });
+  await pickOption(await screen.findByLabelText("Archivo del avalúo"), file.titulo);
   fireEvent.change(screen.getByLabelText("Perito o unidad de valuación"), { target: { value: "Perito de ejemplo" } });
   fireEvent.change(screen.getByLabelText("Valor del avalúo (MXN)"), { target: { value: "$2,500,000" } });
-  fireEvent.change(screen.getByLabelText("Fecha del avalúo"), { target: { value: "2026-09-01" } });
+  await pickDate(screen.getByLabelText("Fecha del avalúo"), "2026-09-01");
   const save = screen.getByRole("button", { name: "Guardar el avalúo" }) as HTMLButtonElement;
-  fireEvent.change(screen.getByLabelText("Vigente hasta"), { target: { value: "2026-10-01" } });
+  await pickDate(screen.getByLabelText("Vigente hasta"), "2026-10-01");
   expect(save.disabled).toBe(true);
   expect(screen.getByText(/Ese avalúo ya venció/)).toBeTruthy();
-  fireEvent.change(screen.getByLabelText("Vigente hasta"), { target: { value: "2027-03-01" } });
+  await pickDate(screen.getByLabelText("Vigente hasta"), "2027-03-01");
   fireEvent.click(save);
   await waitFor(() => expect(onSave).toHaveBeenCalled());
   const flujo = onSave.mock.calls[0][0].flujo as OperationWorkflow;

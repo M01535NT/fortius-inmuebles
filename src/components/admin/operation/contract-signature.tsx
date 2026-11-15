@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
-import { FileDown, Plus, Trash2 } from "@/components/admin/icons";
+import { FileDown, FileText, Plus, Trash2 } from "@/components/admin/icons";
+import { DateField } from "@/components/ui/date-field";
 import { Button, Card, Notice, Pill } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { db, fetchJson, useCollection, useSession } from "@/lib/admin/store";
@@ -9,6 +10,7 @@ import { flowOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { shortDate } from "@/lib/admin/today";
 import type { ArchivoCliente } from "./client-documents-tab";
 import { saveError } from "./use-operation";
+import { CheckField, OptionSelect } from "./pickers";
 
 /*
   Firma del contrato con Fortius (COR-10, RP-90, RP-91, RP-97). Desde que el propietario firma la
@@ -96,7 +98,7 @@ export function ContractSignatureCard({ op, today, disabled, onSave, onGoToFiles
       <label className="text-sm">Contrato<select className={selectClass} value={form.tipo} disabled={lock} onChange={e => setForm({ ...form, tipo: e.target.value as Form["tipo"] })}>
         {Object.entries(CONTRACT_TYPES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select></label>
-      <label className="text-sm">Fecha de firma<input type="date" className={inputClass} required max={today} value={form.fecha} disabled={lock} onChange={e => setForm({ ...form, fecha: e.target.value })} /></label>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Fecha de firma</span><DateField aria-label="Fecha de firma" required max={today} value={form.fecha} disabled={lock} onChange={fecha => setForm({ ...form, fecha })} /></span>
       <fieldset className="flex flex-col gap-2 sm:col-span-2">
         <legend className="mb-1 text-sm font-semibold">Quién firmó</legend>
         {form.firmantes.map((f, i) => <div key={i} className="flex flex-wrap items-end gap-2">
@@ -112,11 +114,10 @@ export function ContractSignatureCard({ op, today, disabled, onSave, onGoToFiles
         {files === undefined ? <p className="text-sm text-muted-foreground">Consultando los documentos del cliente…</p>
           : files === null ? <p role="alert" className="text-sm text-destructive">No pudimos consultar los documentos del cliente. <button type="button" className="underline underline-offset-4" onClick={reload}>Reintentar</button></p>
           : files.length === 0 ? <Notice tone="info" title="Primero sube el contrato firmado" actions={<Button onClick={onGoToFiles}>Ir a los documentos del cliente</Button>}>Escanéalo o tómale foto y súbelo a los documentos del cliente; después elígelo aquí.</Notice>
-          : <label className="text-sm">Contrato firmado<select className={selectClass} required value={form.archivo} disabled={lock} onChange={e => setForm({ ...form, archivo: e.target.value })}>
-            <option value="">Elige el archivo…</option>{files.map(f => <option key={f.id} value={f.id}>{f.titulo}</option>)}
-          </select></label>}
+          : <span className="flex flex-col gap-1.5 text-sm"><span>Contrato firmado</span><OptionSelect aria-label="Contrato firmado" placeholder="Elige el archivo…" value={form.archivo} disabled={lock} onChange={archivo => setForm({ ...form, archivo })}
+            options={files.map(f => ({ value: f.id, label: f.titulo, icon: <FileText size={18} aria-hidden="true" /> }))} /></span>}
       </div>
-      <label className="flex min-h-11 items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" className="size-5" checked={form.completa} disabled={lock} onChange={e => setForm({ ...form, completa: e.target.checked })} />Firmaron todos los que deben firmar</label>
+      <CheckField className="sm:col-span-2" checked={form.completa} disabled={lock} onChange={completa => setForm({ ...form, completa })}>Firmaron todos los que deben firmar</CheckField>
       {!form.completa && <label className="text-sm sm:col-span-2">Quién falta por firmar<input className={inputClass} required maxLength={1000} value={form.faltan} disabled={lock} onChange={e => setForm({ ...form, faltan: e.target.value })} /></label>}
       <span className="flex flex-wrap gap-2 sm:col-span-2">
         <Button type="submit" disabled={lock || !ready}>Guardar la firma</Button>
@@ -125,7 +126,7 @@ export function ContractSignatureCard({ op, today, disabled, onSave, onGoToFiles
     </form>}
 
     {ending && firma && <form onSubmit={e => { e.preventDefault(); if (ending.fecha && ending.motivo.trim().length >= 3) void save({ ...firma, terminacion: { fecha: ending.fecha, motivo: ending.motivo.trim().slice(0, 1000) } }, "Terminación registrada."); }} className="grid gap-2 sm:grid-cols-3" aria-label="Registrar la terminación del contrato">
-      <label className="text-sm">Terminó el<input type="date" className={inputClass} required max={today} value={ending.fecha} disabled={lock} onChange={e => setEnding({ ...ending, fecha: e.target.value })} /></label>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Terminó el</span><DateField aria-label="Terminó el" required max={today} value={ending.fecha} disabled={lock} onChange={fecha => setEnding({ ...ending, fecha })} /></span>
       <label className="text-sm sm:col-span-2">Motivo<input className={inputClass} required maxLength={1000} placeholder="Venció, se rescindió…" value={ending.motivo} disabled={lock} onChange={e => setEnding({ ...ending, motivo: e.target.value })} /></label>
       <span className="flex flex-wrap gap-2 sm:col-span-3"><Button type="submit" disabled={lock || !ending.fecha || ending.motivo.trim().length < 3}>Guardar terminación</Button><Button disabled={lock} onClick={() => setEnding(null)}>Cancelar</Button></span>
     </form>}

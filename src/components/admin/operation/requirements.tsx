@@ -1,7 +1,10 @@
 "use client";
 import * as React from "react";
-import { MoreHorizontal, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem } from "@/components/admin/icons";
-import { Button, Hint, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
+import { Check, FileText, MoreHorizontal, ShieldCheck, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem } from "@/components/admin/icons";
+import { DateField } from "@/components/ui/date-field";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/controls";
+import { Button, buttonClass, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
@@ -10,6 +13,7 @@ import { allowsNotApplicable, encodeProblem, hasValidity, problemOf, requirement
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { useIsDirector } from "@/lib/admin/staff-scope";
 import { cn } from "@/lib/utils";
+import { CheckField, Fold, OptionSelect } from "./pickers";
 import s from "./operation.module.css";
 
 /*
@@ -47,7 +51,6 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   inFloat?: boolean;
   onQuick: (key: RequirementKey, state: "pendiente" | "recibido") => void; onSheet: (sheet: NonNullable<OpenSheet>) => void;
 }) {
-  const [more, setMore] = React.useState(false);
   const state = reviewState(flow, requirement), review = flow.requisitos[requirement];
   const done = reviewComplete(flow, requirement, today);
   const expired = state === "revisado" && !done;
@@ -68,9 +71,8 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   const notApplicableReserved = !director && directorNotApplicable(requirement) && state !== "no_aplica";
   const options = STATES.filter(st => (st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica") && (st !== "no_aplica" || !notApplicableReserved) && (!reserved || st === state || (st !== "revisado" && st !== "no_aplica")));
   const disabled = busy || locked;
-  function exception() { setMore(false); onSheet({ key: requirement, kind: "excepcion" }); }
+  function exception() { onSheet({ key: requirement, kind: "excepcion" }); }
   function choose(st: ReviewStateKey) {
-    setMore(false);
     if (st === "revisado" || st === "observado" || st === "no_aplica") onSheet({ key: requirement, kind: st });
     else onQuick(requirement, st);
   }
@@ -88,14 +90,19 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
           <Button disabled={disabled} onClick={() => onQuick(requirement, "recibido")}>Ya se resolvió</Button>
         </> : done ? null : reserved ? state !== "recibido" && <Button disabled={disabled} onClick={() => onQuick(requirement, "recibido")}>Lo tengo</Button>
           : <Button disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "revisado" })}>Confirmar</Button>}
-        <Button variant="ghost" iconOnly aria-label={`Más estados de ${name}`} aria-expanded={more} disabled={disabled} onClick={() => setMore(open => !open)}><MoreHorizontal size={18} aria-hidden="true" /></Button>
+        {/* LV-10c: los demás estados en un menú de Radix (flechas, Enter, Escape y el foco de vuelta al botón). */}
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild><button type="button" className={buttonClass({ variant: "ghost", iconOnly: true })} aria-label={`Más estados de ${name}`} disabled={disabled}><MoreHorizontal size={18} aria-hidden="true" /></button></DropdownMenuTrigger>
+          <DropdownMenuContent className="min-w-[15rem]" onCloseAutoFocus={event => { const at = document.activeElement; if (at && at !== document.body && !at.closest("[role=menu]")) event.preventDefault(); }}>
+            {options.map(st => { const { icon: Icon, label } = REVIEW_STATE_UI[st]; return <DropdownMenuItem key={st} role="menuitemradio" aria-checked={st === state} className={s[`stMenu_${st}`]} onSelect={() => choose(st)}>
+              <Icon size={18} aria-hidden="true" />{label.replace(" ✓", "")}{st === state && <Check size={16} aria-hidden="true" className="ml-auto" />}
+            </DropdownMenuItem>; })}
+            {canExcept && <><DropdownMenuSeparator /><DropdownMenuItem onSelect={exception}><ShieldCheck size={18} aria-hidden="true" /><span className="flex min-w-0 flex-col py-1"><span>{excepted ? "Cambiar o quitar la excepción" : "Autorizar excepción"}</span><span className="text-xs font-normal text-muted-foreground">El director deja avanzar sin este punto; el motivo queda en el historial.</span></span></DropdownMenuItem></>}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
     {problem?.body && <p className={cn(s.itemExtra, "whitespace-pre-line text-sm")}>{problem.body}{review?.registradoEl ? ` · Desde el ${shortDate(review.registradoEl)}` : ""}</p>}
-    {more && <div role="radiogroup" aria-label={`Estado de ${name}`} className={cn(s.states, s.itemExtra)}>
-      {options.map(st => { const { icon: Icon, label } = REVIEW_STATE_UI[st]; return <button key={st} type="button" role="radio" aria-checked={st === state} disabled={disabled} className={cn(s.state, s[`st_${st}`])} onClick={() => choose(st)}><Icon size={15} aria-hidden="true" />{label.replace(" ✓", "")}</button>; })}
-    </div>}
-    {more && canExcept && <div className={s.itemExtra}><Button variant="ghost" disabled={disabled} onClick={exception}>{excepted ? "Cambiar o quitar la excepción" : "Autorizar excepción"}</Button><Hint term="la excepción">El director deja avanzar sin este punto con un motivo escrito, que queda en el historial.</Hint></div>}
   </li>;
 }
 
@@ -212,29 +219,32 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
       </div>
     </div>
     <fieldset className="flex flex-col gap-2.5" disabled={busy}>
-      <legend className="mb-2 text-sm font-semibold">¿Con qué lo comprobaste?</legend>
-      {evidence.documents.map(d => <label key={d.id} className={s.option}><input type="radio" name="respaldo" checked={source === `doc:${d.id}`} onChange={() => setSource(`doc:${d.id}`)} /><span className="flex min-w-0 flex-col"><strong className="[overflow-wrap:anywhere]">{formatoById(d.formato_id).title}</strong><small className={s.mono}>Versión {d.version}{d.updated_at ? ` · Actualizado el ${shortDate(d.updated_at)}` : ""}</small></span></label>)}
-      {evidence.interview && <label className={s.option}><input type="radio" name="respaldo" checked={source === "entrevista"} onChange={() => setSource("entrevista")} /><span className="flex flex-col"><strong>Entrevista terminada</strong><small className="text-muted-foreground">Lo que declaró el cliente en la entrevista</small></span></label>}
-      {clientOption && <label className={s.option}><input type="radio" name="respaldo" checked={source === "cliente"} onChange={() => setSource("cliente")} /><span className="flex flex-col"><strong>Un documento del cliente</strong><small className="text-muted-foreground">Lo que subiste a sus documentos en este asunto</small></span></label>}
-      <label className={s.option}><input type="radio" name="respaldo" checked={source === "externa"} onChange={() => setSource("externa")} /><span className="flex flex-col"><strong>Documento fuera del sistema</strong><small className="text-muted-foreground">Lo revisaste en papel o en la notaría</small></span></label>
+      <legend id="respaldo-titulo" className="mb-2 text-sm font-semibold">¿Con qué lo comprobaste?</legend>
+      <RadioGroup name="respaldo" aria-labelledby="respaldo-titulo" value={source} onValueChange={setSource} disabled={busy} className="gap-2.5">
+        {evidence.documents.map(d => <label key={d.id} className={s.option}><RadioGroupItem value={`doc:${d.id}`} /><span className="flex min-w-0 flex-col"><strong className="[overflow-wrap:anywhere]">{formatoById(d.formato_id).title}</strong><small className={s.mono}>Versión {d.version}{d.updated_at ? ` · Actualizado el ${shortDate(d.updated_at)}` : ""}</small></span></label>)}
+        {evidence.interview && <label className={s.option}><RadioGroupItem value="entrevista" /><span className="flex flex-col"><strong>Entrevista terminada</strong><small className="text-muted-foreground">Lo que declaró el cliente en la entrevista</small></span></label>}
+        {clientOption && <label className={s.option}><RadioGroupItem value="cliente" /><span className="flex flex-col"><strong>Un documento del cliente</strong><small className="text-muted-foreground">Lo que subiste a sus documentos en este asunto</small></span></label>}
+        <label className={s.option}><RadioGroupItem value="externa" /><span className="flex flex-col"><strong>Documento fuera del sistema</strong><small className="text-muted-foreground">Lo revisaste en papel o en la notaría</small></span></label>
+      </RadioGroup>
       <button type="button" className={s.linkButton} onClick={onAddDocument}>Agregar un documento al asunto</button>
     </fieldset>
     {source === "cliente" && (clientFiles === undefined ? <p className="text-sm text-muted-foreground">Consultando los documentos del cliente…</p>
       : clientFiles === null ? <p role="alert" className="text-sm text-destructive">No pudimos consultar los documentos del cliente.</p>
       : clientFiles.length === 0 ? <p className="text-sm text-muted-foreground">Todavía no hay documentos del cliente en este asunto. Súbelo en la pestaña del cliente y vuelve aquí.</p>
-      : <label className="text-sm font-semibold">Documento del cliente<select className={selectClass} value={clientFile} onChange={e => setClientFile(e.target.value)}><option value="">Elige el archivo…</option>{clientFiles.map(f => <option key={f.id} value={f.id}>{f.titulo}</option>)}</select></label>)}
+      : <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Documento del cliente</span><OptionSelect aria-label="Documento del cliente" className="font-normal" placeholder="Elige el archivo…" value={clientFile} onChange={setClientFile}
+        options={clientFiles.map(f => ({ value: f.id, label: f.titulo, icon: <FileText size={18} aria-hidden="true" /> }))} /></span>)}
     {source === "externa" && <label className="text-sm font-semibold">Folio o dónde está<input className={inputClass} maxLength={1000} value={where} onChange={e => setWhere(e.target.value)} placeholder="Ej. Escritura 1234, Notaría 5 de Tijuana" /></label>}
     <label className="text-sm font-semibold">Quién lo revisó<input className={inputClass} list="revisores" maxLength={160} value={who} onChange={e => setWho(e.target.value)} /><datalist id="revisores">{advisers.filter(a => a.activo !== false).map(a => <option key={a.id} value={a.nombre} />)}</datalist></label>
     <div className="grid gap-3 sm:grid-cols-2">
-      <label className="text-sm font-semibold">Fecha de revisión<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label>
-      {hasValidity(requirement) && <label className="text-sm font-semibold">Vigente hasta<input type="date" className={inputClass} value={until} onChange={e => setUntil(e.target.value)} /></label>}
+      <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Fecha de revisión</span><DateField aria-label="Fecha de revisión" className="font-normal" required value={date} onChange={setDate} disabled={busy} /></span>
+      {hasValidity(requirement) && <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Vigente hasta</span><DateField aria-label="Vigente hasta" className="font-normal" value={until} onChange={setUntil} disabled={busy} /></span>}
     </div>
     {hasValidity(requirement) && <p className="-mt-3 text-sm text-muted-foreground">Una semana antes de que venza aparece en Hoy, en «Esta semana».</p>}
-    <details className={s.more}><summary>Más detalles</summary><div className="mt-3 flex flex-col gap-4">
+    <Fold className={s.more} triggerClassName={s.moreTrigger} summary="Más detalles"><div className="mt-3 flex flex-col gap-4">
       {document && <label className="text-sm font-semibold">Usar el PDF generado o un archivo de este documento<select className={selectClass} value={kept} onChange={e => setKept(e.target.value)}><option value="">El documento en su versión {document.version}</option>{(sources?.emisiones ?? []).map(e => <option key={e.id} value={`emision:${e.id}`}>PDF generado · versión {e.draft_version}</option>)}{(sources?.adjuntos ?? []).map(a => <option key={a.id} value={`adjunto:${a.id}`}>Archivo · {a.caption}</option>)}</select></label>}
       <label className="text-sm font-semibold">Límites o condiciones<textarea className={textareaClass} rows={2} maxLength={1000} value={limits} onChange={e => setLimits(e.target.value)} /></label>
       <p className="text-sm text-muted-foreground">Formato relacionado: {requirementFormato(requirement, route)}. La referencia se valida al guardar; el panel no certifica su contenido ni sustituye una revisión profesional.</p>
-    </div></details>
+    </div></Fold>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </Sheet>;
 }
@@ -256,7 +266,7 @@ function ProblemSheet({ requirement, review, route, onClose, onSave }: { require
   </>}>
     <label className="text-sm font-semibold">Cuál es el problema<input className={inputClass} maxLength={160} value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej. Falta la firma del copropietario" /></label>
     <label className="text-sm font-semibold">Qué pasó y cómo se puede resolver<textarea className={textareaClass} rows={4} maxLength={800} value={body} onChange={e => setBody(e.target.value)} /></label>
-    <details className={s.more}><summary>Más detalles</summary><fieldset className="mt-3 flex flex-col gap-1"><legend className="mb-1 text-sm">Además de esta etapa, también detiene:</legend>{WORKFLOW_STAGES.filter(st => st !== "captacion").map(st => <label key={st} className="inline-flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={blocks.includes(st)} onChange={e => setBlocks(old => e.target.checked ? [...old, st] : old.filter(v => v !== st))} />{stageLabel(st, route)}</label>)}</fieldset></details>
+    <Fold className={s.more} triggerClassName={s.moreTrigger} summary="Más detalles"><fieldset className="mt-3 flex flex-col"><legend className="mb-1 text-sm">Además de esta etapa, también detiene:</legend>{WORKFLOW_STAGES.filter(st => st !== "captacion").map(st => <CheckField key={st} disabled={busy} checked={blocks.includes(st)} onChange={on => setBlocks(old => on ? [...old, st] : old.filter(v => v !== st))}>{stageLabel(st, route)}</CheckField>)}</fieldset></Fold>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </Sheet>;
 }

@@ -2,15 +2,19 @@
 import * as React from "react";
 import Link from "next/link";
 import { Button, Card } from "@/components/admin/kit";
-import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
+import { selectClass, textareaClass } from "@/components/admin/ui";
+import { DateField } from "@/components/ui/date-field";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { db, useCollection, useSession } from "@/lib/admin/store";
 import { discardReasonOf, DISCARD_REASONS, stageLabel, WORKFLOW_ROUTES, WORKFLOW_STAGES, WORKFLOW_STATES, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { flowOf, isGuided, routeStages, stageOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { saveError } from "./use-operation";
+import { Combobox, faceOption, OptionSelect, photoOption } from "./pickers";
 
 type Save = (changes: { flujo?: OperationWorkflow; etapa?: WorkflowStage; propiedadSlug?: string | null; fechaObjetivo?: string | null }) => Promise<unknown>;
 const ROLE: Record<string, string> = { captacion: "Propietario vendedor", compra: "Comprador", arrendador: "Propietario arrendador", arrendatario: "Arrendatario", inversion: "Inversionista" };
+/** Color de la situación: activa en verde, en pausa y en regularización en ámbar, descartada en rojo. */
+const STATE_TONE: Record<OperationWorkflow["estado"], string> = { activa: "var(--success)", pausada: "var(--warning)", regularizacion: "var(--warning)", descartada: "var(--alert)" };
 const OPPOSITE: Record<string, string> = { captacion: "compra", compra: "captacion", arrendador: "arrendatario", arrendatario: "arrendador", inversion: "" };
 
 /**
@@ -60,9 +64,11 @@ export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: Ope
       <Card className="grid gap-4 p-5 sm:grid-cols-2" aria-label="Datos del asunto">
         <h2 className="m-0 text-lg sm:col-span-2">Datos del asunto</h2>
         {guided && <label className="text-sm font-semibold">Ruta<select className={selectClass} value={flow.ruta} onChange={e => setFlow(old => ({ ...old, ruta: e.target.value as OperationWorkflow["ruta"] }))}>{routeChoices.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
-        {guided && <label className="text-sm font-semibold">Situación<select className={selectClass} value={flow.estado} onChange={e => setFlow(old => ({ ...old, estado: e.target.value as OperationWorkflow["estado"] }))}>{Object.entries(WORKFLOW_STATES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
-        <label className="text-sm font-semibold">Inmueble<select className={selectClass} value={property} onChange={e => setProperty(e.target.value)}><option value="">Sin vincular todavía</option>{property && !available.some(p => p.slug === property) && <option value={property}>Inmueble vinculado no disponible</option>}{available.map(p => <option key={p.slug} value={p.slug}>{p.titulo}</option>)}</select></label>
-        <label className="text-sm font-semibold">Fecha objetivo<input type="date" value={date} className={inputClass} onChange={e => setDate(e.target.value)} /></label>
+        {guided && <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Situación</span><OptionSelect aria-label="Situación" className="font-normal" value={flow.estado} onChange={estado => setFlow(old => ({ ...old, estado }))}
+          options={(Object.entries(WORKFLOW_STATES) as Array<[OperationWorkflow["estado"], string]>).map(([k, v]) => ({ value: k, label: v, icon: <span aria-hidden="true" className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: STATE_TONE[k] }} /> }))} /></span>}
+        <span className="flex flex-col gap-1.5 text-sm font-semibold sm:col-span-2"><span>Inmueble</span><Combobox aria-label="Inmueble" className="font-normal" placeholder="Sin vincular todavía" searchPlaceholder="Buscar inmueble…" value={property} onChange={setProperty}
+          options={[{ value: "", label: "Sin vincular todavía" }, ...(property && !available.some(p => p.slug === property) ? [{ value: property, label: "Inmueble vinculado no disponible" }] : []), ...available.map(p => photoOption(p.slug, p.titulo, p.galeria[0]?.src))]} /></span>
+        <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Fecha objetivo</span><DateField aria-label="Fecha objetivo" className="font-normal" value={date} onChange={setDate} disabled={busy} /></span>
         {guided && flow.estado === "descartada" && <label className="text-sm font-semibold sm:col-span-2">Motivo del descarte<select className={selectClass} value={discardReasonOf(flow.motivo) ?? ""} onChange={e => setFlow(old => { const detail = discardReasonOf(old.motivo) ? old.motivo.slice(discardReasonOf(old.motivo)!.length).replace(/^:\s*/, "") : old.motivo; return { ...old, motivo: e.target.value ? `${e.target.value}${detail.trim() ? `: ${detail.trim()}` : ""}` : detail }; })}><option value="">Elige el motivo</option>{DISCARD_REASONS.map(r => <option key={r} value={r}>{r}</option>)}</select></label>}
         {guided && <label className="text-sm font-semibold sm:col-span-2">Motivo de pausa, regularización, descarte o corrección<textarea rows={2} maxLength={1000} className={textareaClass} value={flow.motivo} onChange={e => setFlow(old => ({ ...old, motivo: e.target.value }))} /></label>}
       </Card>
@@ -70,7 +76,9 @@ export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: Ope
       {guided && flow.ruta !== "inversion" && <Card className="flex flex-col gap-4 p-5" aria-label="Contraparte">
         <div><h2 className="m-0 text-lg">Contraparte</h2><p className="mt-1 text-sm text-muted-foreground">Quién firma con el propietario: un interesado o una contraparte externa con su respaldo. No es cliente de Fortius.</p></div>
         <div className="grid gap-3 sm:grid-cols-2">
-          {!historical && <label className="text-sm font-semibold">Interesado que firma<select className={selectClass} value={flow.contraparteLeadId ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteLeadId: e.target.value || undefined, contraparteId: undefined, contraparteExterna: e.target.value ? undefined : old.contraparteExterna }))}><option value="">Ninguno del panel</option>{flow.contraparteLeadId && !interested.some(l => l.id === flow.contraparteLeadId) && <option value={flow.contraparteLeadId}>{leads.find(l => l.id === flow.contraparteLeadId)?.nombre ?? "Interesado vinculado"}</option>}{interested.map(l => <option key={l.id} value={l.id}>{l.nombre}{l.telefono ? ` · ${l.telefono}` : ""}</option>)}</select></label>}
+          {!historical && <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Interesado que firma</span><Combobox aria-label="Interesado que firma" className="font-normal" placeholder="Ninguno del panel" searchPlaceholder="Buscar interesado…" value={flow.contraparteLeadId ?? ""}
+            onChange={id => setFlow(old => ({ ...old, contraparteLeadId: id || undefined, contraparteId: undefined, contraparteExterna: id ? undefined : old.contraparteExterna }))}
+            options={[{ value: "", label: "Ninguno del panel" }, ...(flow.contraparteLeadId && !interested.some(l => l.id === flow.contraparteLeadId) ? [faceOption(flow.contraparteLeadId, leads.find(l => l.id === flow.contraparteLeadId)?.nombre ?? "Interesado vinculado")] : []), ...interested.map(l => faceOption(l.id, l.nombre, l.telefono || undefined, l.telefono ? [l.telefono] : undefined))]} /></span>}
           {(historical || flow.contraparteId) && <label className="text-sm font-semibold">Asunto de la contraparte<select className={selectClass} value={flow.contraparteId ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteId: e.target.value || undefined, contraparteLeadId: undefined, contraparteExterna: undefined }))}><option value="">Ninguno del panel</option>{flow.contraparteId && !compatible.some(e => e.id === flow.contraparteId) && <option value={flow.contraparteId}>Vínculo actual · comprobar</option>}{compatible.map(e => <option key={e.id} value={e.id}>{e.folio} · {ROLE[e.flujo?.ruta ?? ""]}</option>)}</select></label>}
           <label className="text-sm font-semibold">Contraparte externa y respaldo<textarea rows={2} maxLength={1000} disabled={!!flow.contraparteId || !!flow.contraparteLeadId} className={textareaClass} value={flow.contraparteExterna ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteExterna: e.target.value || undefined }))} /></label>
         </div>
