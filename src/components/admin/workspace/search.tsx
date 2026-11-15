@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Command } from "cmdk";
 import { usePathname, useRouter } from "next/navigation";
-import { Check, Search, X } from "@/components/admin/icons";
+import { ArrowRight, Check, CheckCircle2, Columns3, Plus, Search, X } from "@/components/admin/icons";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { apiRequest, db, errorMessage, upsert, useCollection, useSession } from "@/lib/admin/store";
 import { normalizedText } from "@/lib/admin/workspace";
@@ -13,7 +13,7 @@ import { usePersonStatus } from "./use-person-status";
 import { usePreferences, savePanel } from "./preferences-store";
 import { ShortcutsHelp, useSingleKeyShortcuts } from "./shortcuts";
 import { ADMIN_NAV, MAIN_NAV, QUICK_CREATE, TOOLS_NAV } from "./guided-nav";
-import { Kbd } from "@/components/admin/kit";
+import { Avatar, Kbd, Thumb } from "@/components/admin/kit";
 
 import s from "./guided-nav.module.css";
 
@@ -24,9 +24,12 @@ import s from "./guided-nav.module.css";
   tareas como hechas (con el mismo control de versión que la ficha). Sin escribir, muestra los
   últimos 5 registros abiertos (Recientes). Las flechas recorren las opciones y Enter elige.
   No anima al abrir: se usa muchas veces al día y debe sentirse inmediata.
+  LV-10f: cada persona lleva su cara (el mismo color que en todo el panel), cada inmueble su foto y
+  lo demás su ícono; sin escribir, además de Recientes, aparecen las altas más usadas. Solo se
+  muestra lo que el servidor entrega a cada quien y las acciones de su papel.
 */
 
-type Result = { id: string; label: string; detail: string; text: string; href: string; taskId?: string };
+type Result = { id: string; label: string; detail: string; text: string; href: string; taskId?: string; tipo: "persona" | "inmueble" | "tarea" | "operacion"; foto?: string | null; cara?: string };
 
 /** Hay una ventana abierta (Radix o nativa): los atajos de una tecla no actúan detrás de ella. */
 export const dialogOpen = () => !!document.querySelector("dialog[open], [role=dialog][data-state=open], [role=alertdialog]");
@@ -85,17 +88,20 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
 
   const clientName = (id?: string) => clients.find(c => c.id === id)?.nombre;
   const all: Result[] = [
-    ...properties.map(p => ({ id: `p:${p.slug}`, label: p.titulo, detail: `Inmueble · ${p.codigo}`, text: `${p.titulo} ${p.codigo} ${p.zona}`, href: `/admin/propiedades/${p.slug}/editar` })),
-    ...leads.filter(l => !l.clienteId).map(l => ({ id: `l:${l.id}`, label: l.nombre, detail: PERSON_STATUS_LABEL[status.ofLead(l) ?? "prospecto"], text: `${l.nombre} ${l.telefono} ${l.email ?? ""}`, href: `/admin/leads/${l.id}` })),
-    ...clients.map(c => ({ id: `c:${c.id}`, label: c.nombre, detail: (s => s ? PERSON_STATUS_LABEL[s] : "Contacto")(status.ofClient(c.id)), text: `${c.nombre} ${c.telefono} ${c.email ?? ""}`, href: `/admin/clientes/${c.id}` })),
-    ...tasks.map(t => ({ id: `t:${t.id}`, label: t.titulo, detail: isTaskOpen(t) ? "Tarea" : "Tarea hecha", text: t.titulo, href: `/admin/tareas/${t.id}`, taskId: isTaskOpen(t) ? t.id : undefined })),
-    ...dossiers.map(e => ({ id: `e:${e.id}`, label: clientName(e.cliente_id) ?? e.folio, detail: `Operación · ${e.folio}`, text: `${e.folio} ${clientName(e.cliente_id) ?? ""}`, href: `/admin/operaciones/${encodeURIComponent(e.id)}` })),
+    ...properties.map(p => ({ id: `p:${p.slug}`, label: p.titulo, detail: `Inmueble · ${p.codigo}`, text: `${p.titulo} ${p.codigo} ${p.zona}`, href: `/admin/propiedades/${p.slug}/editar`, tipo: "inmueble" as const, foto: p.galeria[0]?.src })),
+    ...leads.filter(l => !l.clienteId).map(l => ({ id: `l:${l.id}`, label: l.nombre, detail: PERSON_STATUS_LABEL[status.ofLead(l) ?? "prospecto"], text: `${l.nombre} ${l.telefono} ${l.email ?? ""}`, href: `/admin/leads/${l.id}`, tipo: "persona" as const })),
+    ...clients.map(c => ({ id: `c:${c.id}`, label: c.nombre, detail: (s => s ? PERSON_STATUS_LABEL[s] : "Contacto")(status.ofClient(c.id)), text: `${c.nombre} ${c.telefono} ${c.email ?? ""}`, href: `/admin/clientes/${c.id}`, tipo: "persona" as const })),
+    ...tasks.map(t => ({ id: `t:${t.id}`, label: t.titulo, detail: isTaskOpen(t) ? "Tarea" : "Tarea hecha", text: t.titulo, href: `/admin/tareas/${t.id}`, taskId: isTaskOpen(t) ? t.id : undefined, tipo: "tarea" as const })),
+    ...dossiers.map(e => ({ id: `e:${e.id}`, label: clientName(e.cliente_id) ?? e.folio, detail: `Operación · ${e.folio}`, text: `${e.folio} ${clientName(e.cliente_id) ?? ""}`, href: `/admin/operaciones/${encodeURIComponent(e.id)}`, tipo: "operacion" as const, cara: clientName(e.cliente_id) })),
   ];
   // El filtro es el del panel (sin acentos ni mayúsculas), no el de cmdk: cmdk solo dibuja y recorre.
   const results = all.filter(item => normalizedText(item.text).includes(normalizedText(query)));
   // Solo lo que hoy se puede ver: un reciente que ya no aparece en tus módulos no se muestra.
   const recents = recent.map(href => all.find(item => item.href === href)).filter((item): item is Result => !!item);
-  const commands = filterCommands(commandsFor(session?.role, { quick: QUICK_CREATE, nav: [...MAIN_NAV, TOOLS_NAV], admin: ADMIN_NAV }), query).slice(0, 6);
+  const allCommands = commandsFor(session?.role, { quick: QUICK_CREATE, nav: [...MAIN_NAV, TOOLS_NAV], admin: ADMIN_NAV });
+  const commands = filterCommands(allCommands, query).slice(0, 6);
+  // Sin escribir: las altas más usadas, para crear sin buscar.
+  const starters = allCommands.filter(command => command.id.startsWith("nuevo:")).slice(0, 4);
   const stores = [db.propiedades, db.leads, db.clientes, db.tareas];
   const go = (href: string) => { onOpenChange(false); router.push(href); };
 
@@ -110,12 +116,18 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
   // Una tarea abierta lleva una segunda opción justo debajo para marcarla hecha sin abrirla.
   const rows = (items: Result[]) => items.flatMap(item => [
     <Command.Item key={item.id} value={item.id} onSelect={() => go(item.href)} className={s.result}>
+      <Lead item={item} />
       <span className="min-w-0 flex-1 break-words font-medium">{item.label}</span><span className={s.resultKind}>{item.detail}</span>
     </Command.Item>,
     ...(item.taskId ? [<Command.Item key={`${item.id}:hecha`} value={`${item.id}:hecha`} disabled={busy === item.taskId} onSelect={() => void complete(item.taskId!)} className={s.result} aria-label={`Marcar como hecha: ${item.label}`}>
       <Check size={18} aria-hidden="true" className="ml-1 shrink-0 text-muted-foreground" /><span className="min-w-0 flex-1 text-sm text-muted-foreground">Marcar como hecha</span>
     </Command.Item>] : []),
   ]);
+  const commandRows = (list: typeof commands) => list.map(command =>
+    <Command.Item key={command.id} value={`cmd:${command.id}`} onSelect={() => go(command.href)} className={s.result}>
+      <span className={s.resultLead} aria-hidden="true">{command.id.startsWith("nuevo:") ? <Plus size={18} /> : <ArrowRight size={18} />}</span>
+      <span className="min-w-0 flex-1 break-words font-medium">{command.label}</span><span className={s.resultKind}>{command.detail}</span>
+    </Command.Item>);
 
   return <>
     {variant === "field"
@@ -137,13 +149,13 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
             {error && <p role="alert" className="px-3 py-2 text-sm text-destructive">{error}</p>}
             {done && <p role="status" className="px-3 py-2 text-sm">{done}</p>}
             {query.trim() ? <>
-              {commands.length > 0 && <Command.Group heading="Acciones" className={s.paletteGroup}>{commands.map(command =>
-                <Command.Item key={command.id} value={`cmd:${command.id}`} onSelect={() => go(command.href)} className={s.result}>
-                  <span className="min-w-0 flex-1 break-words font-medium">{command.label}</span><span className={s.resultKind}>{command.detail}</span>
-                </Command.Item>)}</Command.Group>}
+              {commands.length > 0 && <Command.Group heading="Acciones" className={s.paletteGroup}>{commandRows(commands)}</Command.Group>}
               <Command.Group heading={`${results.length} ${results.length === 1 ? "resultado" : "resultados"}${results.length > 30 ? " · primeros 30" : ""}`} className={s.paletteGroup}>{rows(results.slice(0, 30))}</Command.Group>
-            </> : recents.length ? <Command.Group heading="Recientes" className={s.paletteGroup}>{rows(recents)}</Command.Group>
-              : <p className="px-3 py-6 text-center text-sm text-muted-foreground">Escribe un nombre, teléfono, código o folio, o lo que quieres hacer («nueva tarea», «ir a reportes»).</p>}
+            </> : <>
+              {recents.length > 0 && <Command.Group heading="Recientes" className={s.paletteGroup}>{rows(recents)}</Command.Group>}
+              {starters.length > 0 && <Command.Group heading="Crear" className={s.paletteGroup}>{commandRows(starters)}</Command.Group>}
+              {!recents.length && <p className="px-3 py-4 text-center text-sm text-muted-foreground">Escribe un nombre, teléfono, código o folio, o lo que quieres hacer («nueva tarea», «ir a reportes»).</p>}
+            </>}
           </Command.List>
         </Command>
         <p className={s.paletteFoot}><span><Kbd>↑ ↓</Kbd> recorre</span><span><Kbd>Enter</Kbd> abre</span><span><Kbd>Esc</Kbd> cierra</span><button type="button" className="underline underline-offset-2" onClick={() => { onOpenChange(false); setHelp(true); }}>Atajos</button></p>
@@ -151,4 +163,13 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
     </Dialog>
     {hotkey && <ShortcutsHelp open={help} onClose={() => setHelp(false)} />}
   </>;
+}
+
+/** Lo que va al frente de cada resultado: la cara de la persona, la foto del inmueble o su ícono. */
+function Lead({ item }: { item: Result }) {
+  if (item.tipo === "persona") return <Avatar name={item.label} size={28} className={s.resultFace} />;
+  if (item.tipo === "inmueble") return <Thumb src={item.foto} size={32} className={s.resultThumb} />;
+  if (item.tipo === "operacion" && item.cara) return <Avatar name={item.cara} size={28} className={s.resultFace} />;
+  if (item.tipo === "operacion") return <span className={s.resultLead} aria-hidden="true"><Columns3 size={18} /></span>;
+  return <span className={s.resultLead} aria-hidden="true"><CheckCircle2 size={18} /></span>;
 }

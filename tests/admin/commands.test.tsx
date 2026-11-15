@@ -73,6 +73,23 @@ test("la barra guarda el registro abierto en Recientes, ofrece acciones y marca 
   expect(dialog.getByRole("group", { name: "Acciones", hidden: true }).textContent).toContain("Nueva tarea");
 });
 
+test("sin escribir ofrece altas; las personas salen con su cara y los inmuebles con su foto (LV-10f)", async () => {
+  const base = vi.mocked(fetch).getMockImplementation()!;
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+    if (url.endsWith("/collections/leads")) return Response.json({ records: [{ id: "l1", data: { id: "l1", nombre: "Iliana Tonalá", telefono: "6640000000", estado: "nuevo" }, version: 1 }] });
+    return base(url, init);
+  }));
+  await isLoggedIn();
+  render(<WorkspaceSearch variant="field" />);
+  fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+  const dialog = within(screen.getByRole("dialog", { name: "Buscar en el panel", hidden: true }));
+  const crear = await dialog.findByRole("group", { name: "Crear", hidden: true });
+  expect(crear.textContent).toContain("Nueva tarea");
+  fireEvent.change(dialog.getByRole("combobox", { hidden: true }), { target: { value: "iliana" } });
+  const persona = await dialog.findByRole("option", { name: /Iliana Tonalá/, hidden: true });
+  expect(persona.textContent).toMatch(/^IT/);
+});
+
 test("«/» abre la barra fuera de un campo y no dentro de uno", async () => {
   await isLoggedIn();
   render(<><input aria-label="Campo" /><WorkspaceSearch variant="field" /></>);

@@ -118,3 +118,8 @@
 /* Menús sobre Radix (DEC-52): Radix los coloca junto a su botón; aquí solo se quita la posición fija. */
 :global(.admin-root) .pop.popFloat { position: relative; inset: auto; transform: none; animation: none; }
 :global(.admin-root) .popFloat [role=menuitem][data-highlighted] { background: var(--secondary); outline: none; }
+
+/* LV-10f · Ctrl K con caras, fotos e íconos */
+:global(.admin-root) .resultLead { display: grid; flex: none; place-items: center; width: 2rem; height: 2rem; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--muted-foreground); }
+:global(.admin-root) .resultFace { flex: none; margin-inline: .125rem; }
+:global(.admin-root) .resultThumb { flex: none; border-radius: var(--radius-thumb); }
