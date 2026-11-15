@@ -105,7 +105,6 @@ export type QueueItem = {
   /** Prospecto nuevo del sitio: Hoy ofrece «Registrar contacto» (COR-21). */
   leadId?: string;
 };
-export const QUEUE_LABEL: Record<QueueKind, string> = { plazo: "Pasó el plazo", problema: "Problema", vencida: "Vencida", nuevo: "Nuevo", llaves: "Llaves", contrato: "Contrato", licencia: "Licencia", informe: "Informe", falta: "Falta", revisar: "Revisar", hoy: "Vence hoy", decidir: "Oferta", entrevista: "Entrevista", seguimiento: "Seguimiento", agendar: "Agendar", aviso: "Aviso" };
 // Las operaciones siguen el orden de RP-84 (problema, vencida, falta, revisar, vence hoy, oferta, sin próxima tarea).
 const QUEUE_RANK: Record<QueueKind, number> = { plazo: -1, problema: 0, vencida: 1, nuevo: 2, llaves: 3, contrato: 4, licencia: 4, informe: 5, falta: 6, revisar: 7, hoy: 8, decidir: 9, entrevista: 10, seguimiento: 11, agendar: 12, aviso: 13 };
 const WAITING_KIND: Record<AttentionKind | "contacto", QueueKind> = { problema: "problema", vencida: "vencida", falta: "falta", revisar: "revisar", hoy: "hoy", oferta: "decidir", agendar: "agendar", contacto: "seguimiento" };

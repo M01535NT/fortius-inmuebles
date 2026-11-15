@@ -47,7 +47,6 @@
 :global(.admin-root) .pill[data-tone=solid] { background: var(--foreground); color: var(--card); }
 :global(.admin-root) .pill[data-tone=onDark] { background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .25); color: #fff; }
 :global(.admin-root) .pill[data-size=sm] { min-height: 1.375rem; padding: 0 .5rem; font-size: var(--admin-text-minimo); }
-:global(.admin-root) .counter { display: inline-flex; align-items: center; justify-content: center; min-width: 1.375rem; height: 1.375rem; padding: 0 .4375rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: var(--admin-text-minimo); font-weight: 600; }
 
 /* Fotos, iniciales y teclas */
 :global(.admin-root) .thumb { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; overflow: hidden; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--muted-foreground); }

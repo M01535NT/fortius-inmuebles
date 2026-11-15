@@ -252,12 +252,6 @@ export function nowItem(items: StageItem[]) {
   return items.find(i => i.kind === "requisito" && i.state === "observado") ?? items.find(i => !itemDone(i) && !(i.kind === "documento" && i.optional));
 }
 
-/** Qué hacemos y para qué en la etapa actual. */
-export function stageGuide(op: OperationRecord, today: string) {
-  const { phase, labels, current } = routeStages(op, today);
-  const sale = phase ? ownerProcess(flowOf(op).ruta).find(p => p.key === phase) : undefined;
-  return { title: labels[current], que: sale?.hace, para: sale?.para };
-}
 
 /** Requisitos que se trabajan ahora. Los de etapas anteriores que siguen abiertos se agregan al final. */
 export function currentRequirements(op: OperationRecord, today: string): Array<{ key: RequirementKey; earlier: boolean }> {

@@ -51,6 +51,3 @@ export const HELP_SECTIONS: HelpSection[] = [
   ] },
 ];
 
-/** La sección del manual de una pantalla de la guía. */
-export const helpHref = (id: string) => `/admin/ayuda#${id}`;
-export const hasHelp = (id: string) => HELP_SECTIONS.some(section => section.id === id);

@@ -11,7 +11,6 @@ import { usePanelContainer } from "./portal";
   Escape y devuelve el foco a donde estaba. Los estilos son los del panel (tokens de .admin-root).
 */
 export const Dialog = DialogPrimitive.Root;
-export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 
 const overlay = "fixed inset-0 z-[60] bg-[var(--scrim)] motion-safe:data-[state=open]:animate-[fadeIn_.2s_ease] motion-safe:data-[state=closed]:animate-[fadeOut_.15s_ease-in]";

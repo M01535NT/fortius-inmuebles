@@ -75,12 +75,6 @@ export function Pill({ tone = "neutral", size, className, ...props }: { tone?: P
   return <span className={cn(s.pill, className)} data-tone={tone === "neutral" ? undefined : tone} data-size={size} {...props} />;
 }
 
-/** Contador en guinda (pendientes de Hoy). */
-export function Counter({ value, label }: { value: number; label?: string }) {
-  if (value <= 0) return null;
-  return <span className={s.counter}>{value > 99 ? "99+" : value}{label && <span className="sr-only"> {label}</span>}</span>;
-}
-
 /** Foto de un inmueble con esquinas de 12 px; sin foto muestra el ícono. `ratio` la hace fluida («4 / 3»). */
 export function Thumb({ src, alt = "", size = 52, ratio, icon, className, children }: { src?: string | null; alt?: string; size?: number; ratio?: string; icon?: React.ReactNode; className?: string; children?: React.ReactNode }) {
   const style = ratio ? { width: "100%", aspectRatio: ratio } : { width: size, height: size };
