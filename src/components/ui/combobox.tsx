@@ -29,6 +29,8 @@ export function Combobox({ options, value, onChange, name, id, placeholder = "El
     {name && <input type="hidden" name={name} value={value} />}
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
+        {/* Radix pone aria-controls al botón (apunta a la ventanita); la regla no lo ve. */}
+        {/* eslint-disable-next-line jsx-a11y/role-has-required-aria-props */}
         <button type="button" id={id} role="combobox" aria-expanded={open} disabled={disabled} {...aria} className={cn(
           "inline-flex min-h-11 w-full items-center justify-between gap-2 rounded-[var(--field-radius)] border border-[var(--control-edge)] bg-[var(--field-surface)] px-3 text-left text-[0.9375rem] text-foreground disabled:cursor-not-allowed disabled:opacity-60",
           className,

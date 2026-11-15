@@ -37,7 +37,7 @@ export function DateField({ id, name, value, defaultValue, onChange, min, max, r
     {name && <input type="hidden" name={name} value={current} />}
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" id={id} disabled={disabled} aria-required={required || undefined} {...aria} aria-haspopup="dialog"
+        <button type="button" id={id} disabled={disabled} {...aria} aria-haspopup="dialog"
           className={cn(
             "inline-flex min-h-11 w-full items-center gap-2.5 rounded-[var(--field-radius)] border border-[var(--control-edge)] bg-[var(--field-surface)] px-3 text-left text-[0.9375rem] text-foreground",
             "disabled:cursor-not-allowed disabled:opacity-60",
