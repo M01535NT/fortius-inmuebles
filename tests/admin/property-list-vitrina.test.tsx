@@ -61,3 +61,18 @@ it("Escape cierra la edición del precio sin guardar", () => {
   expect(screen.queryByLabelText("Precio de Casa en Chapultepec en MXN")).toBeNull();
   expect(guardados).not.toHaveBeenCalled();
 });
+
+it("J y K se mueven entre los inmuebles y cada uno se abre en su ficha rápida", async () => {
+  servidor();
+  render(<PropertyList />);
+  const casa = screen.getByRole("button", { name: "Abrir Casa en Chapultepec" }), depa = screen.getByRole("button", { name: "Abrir Departamento en Zona Río" });
+  casa.focus();
+  fireEvent.keyDown(casa, { key: "j" });
+  expect(document.activeElement).toBe(depa);
+  fireEvent.keyDown(depa, { key: "k" });
+  expect(document.activeElement).toBe(casa);
+  fireEvent.click(depa);
+  const ficha = within(await screen.findByRole("dialog", { name: "Departamento en Zona Río" }));
+  expect(ficha.getByRole("link", { name: "Subir fotos" }).getAttribute("href")).toBe("/admin/propiedades/depa-rio/editar");
+  expect(ficha.getByRole("link", { name: "Completar: Departamento en Zona Río" })).toBeTruthy();
+});

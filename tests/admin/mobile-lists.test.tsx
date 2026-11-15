@@ -88,20 +88,22 @@ test("mobile contact rows show what the person wants and the next step; search a
 test("mobile property rows expose full details and preserve versioned changes and errors", async () => {
   render(<PropiedadesPage />);
   const list = await screen.findByRole("list", { name: "Inmuebles" });
-  fireEvent.click(within(list).getByLabelText(`Opciones de ${property.titulo}`));
-  expect(within(list).getByRole("link", { name: new RegExp(`^Venta.*${property.titulo}`) }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
   expect(within(list).getAllByText("Publicado").length).toBeGreaterThan(0);
   expect(within(list).getByText(/12,850,000 MXN/)).toBeTruthy();
-  expect(within(list).getByText("Asesora de prueba")).toBeTruthy();
-  fireEvent.change(within(list).getByRole("combobox", { name: `Estado de ${property.titulo}` }), { target: { value: "apartada" } });
+  // LV-10f: cada inmueble se abre en su ficha rápida; ahí van estado, responsable y acciones.
+  fireEvent.click(within(list).getByRole("button", { name: `Abrir ${property.titulo}` }));
+  const ficha = within(await screen.findByRole("dialog", { name: property.titulo }));
+  expect(ficha.getByRole("link", { name: `Editar ${property.titulo}` }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
+  expect(ficha.getByText("Asesora de prueba")).toBeTruthy();
+  fireEvent.change(ficha.getByRole("combobox", { name: `Estado de ${property.titulo}` }), { target: { value: "apartada" } });
   await waitFor(() => expect(db.propiedades.list()[0].estado).toBe("apartada"));
   expect(writes[0].version).toBe(7);
   rejectWrites = true;
-  fireEvent.click(within(list).getByRole("button", { name: /Marcar destacada/ }));
-  expect((await within(list).findByRole("alert")).textContent).toContain("No se guardó");
+  fireEvent.click(ficha.getByRole("button", { name: /Marcar destacada/ }));
+  expect((await ficha.findByRole("alert")).textContent).toContain("No se guardó");
   expect(db.propiedades.list()[0].destacada).toBe(false);
   rejectWrites = false;
-  fireEvent.click(within(list).getByRole("button", { name: /Marcar destacada/ }));
+  fireEvent.click(within(screen.getByRole("dialog", { name: property.titulo })).getByRole("button", { name: /Marcar destacada/ }));
   await waitFor(() => expect(db.propiedades.list()[0].destacada).toBe(true));
   expect(writes.at(-1)?.version).toBe(8);
 });
@@ -110,16 +112,16 @@ test("mobile property deletion requires confirmation and retains the row when th
   render(<PropiedadesPage />);
   const list = await screen.findByRole("list", { name: "Inmuebles" });
   const confirm = vi.mocked(confirmAction).mockResolvedValue(false);
-  // Las opciones se abren con «⋯» (Radix Collapsible): cerradas no están en la página.
-  fireEvent.click(within(list).getByRole("button", { name: `Opciones de ${property.titulo}` }));
-  const remove = within(list).getByRole("button", { name: `Eliminar ${property.titulo}` });
+  fireEvent.click(within(list).getByRole("button", { name: `Abrir ${property.titulo}` }));
+  const ficha = within(await screen.findByRole("dialog", { name: property.titulo }));
+  const remove = ficha.getByRole("button", { name: `Eliminar ${property.titulo}` });
   fireEvent.click(remove);
   await waitFor(() => expect(remove.getAttribute("aria-busy")).toBe("false"));
   expect(writes).toHaveLength(0);
   confirm.mockResolvedValue(true);
   rejectWrites = true;
   fireEvent.click(remove);
-  await within(list).findByRole("alert");
+  await ficha.findByRole("alert");
   expect(db.propiedades.list()).toHaveLength(1);
   rejectWrites = false;
   fireEvent.click(remove);
@@ -135,14 +137,15 @@ test("SIM-17 (FLX-01): «Agregar contacto» abre «Nuevo perfil» y no hay captu
   await screen.findByRole("list", { name: "Contactos" });
 });
 
-test("C59: en el celular los inmuebles van en filas y «Ver en tarjetas» cambia la vista", async () => {
+test("C59: los inmuebles van en lista y «Galería» cambia la forma de ver", async () => {
   render(<PropiedadesPage />);
   const list = await screen.findByRole("list", { name: "Inmuebles" });
   expect(list.getAttribute("data-view")).toBe("filas");
-  fireEvent.click(screen.getByRole("button", { name: "Ver en tarjetas" }));
-  expect(list.getAttribute("data-view")).toBe("tarjetas");
-  fireEvent.click(screen.getByRole("button", { name: "Ver en filas" }));
-  expect(list.getAttribute("data-view")).toBe("filas");
+  const forma = within(screen.getByRole("radiogroup", { name: "Forma de ver" }));
+  fireEvent.click(forma.getByRole("radio", { name: "Galería" }));
+  expect(screen.getByRole("list", { name: "Inmuebles" }).getAttribute("data-view")).toBe("tarjetas");
+  fireEvent.click(forma.getByRole("radio", { name: "Lista" }));
+  expect(screen.getByRole("list", { name: "Inmuebles" }).getAttribute("data-view")).toBe("filas");
 });
 
 test("SIM-10 (C27): Inmuebles no lleva el aviso general de borradores; cada inmueble dice lo suyo", async () => {

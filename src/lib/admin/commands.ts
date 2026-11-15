@@ -52,6 +52,7 @@ export const SHORTCUTS: ReadonlyArray<{ keys: string; what: string; single: bool
   { keys: "S", what: "En la agenda: ver la semana", single: true },
   { keys: "M", what: "En la agenda: ver el mes", single: true },
   { keys: "A", what: "En la agenda: agendar en el día elegido", single: true },
+  { keys: "J K", what: "En inmuebles: bajar o subir por la lista (Enter abre la ficha rápida)", single: true },
 ];
 
 /** ¿La tecla viene de un lugar donde se escribe? Ahí ningún atajo de una tecla actúa. */

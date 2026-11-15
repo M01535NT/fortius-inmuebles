@@ -308,7 +308,7 @@ export function EmptyBox({ icon, art, title, children, steps, action }: { icon?:
   Panel que se abre a la derecha en computadora y desde abajo en celular. Escape y el velo lo cierran.
   Con `keepMounted`, lo escrito sigue ahí al volver a abrirlo (el panel lo recuerda hasta guardar).
 */
-export function Sheet({ open, onClose, eyebrow, title, description, children, footer, keepMounted }: { open: boolean; onClose: () => void; eyebrow?: string; title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode; keepMounted?: boolean }) {
+export function Sheet({ open, onClose, eyebrow, title, description, children, footer, keepMounted, wide }: { open: boolean; onClose: () => void; eyebrow?: string; title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode; keepMounted?: boolean; /** Ficha ancha (780 px en computadora): galería y dos columnas. */ wide?: boolean }) {
   // Sobre Radix (DEC-52): Radix encierra el foco, cierra con Escape y con el velo, y bloquea el fondo.
   // El foco vuelve a donde estaba antes de abrir (las pantallas abren el panel sin un «Trigger» de Radix).
   const previous = React.useRef<HTMLElement | null>(null);
@@ -342,7 +342,7 @@ export function Sheet({ open, onClose, eyebrow, title, description, children, fo
     {footer && <div className="flex flex-col-reverse gap-2.5 border-t border-border px-5 py-4 sm:flex-row sm:justify-end sm:px-7">{footer}</div>}
   </>;
   const panelProps = {
-    className: s.sheet,
+    className: cn(s.sheet, wide && s.sheetWide),
     // Sin descripción, Radix no debe buscar una (evita el aviso y un aria-describedby vacío).
     ...(description ? {} : { "aria-describedby": undefined }),
     // El primer campo recibe el foco al abrir; si no hay, el primer botón que no sea «Cerrar».
