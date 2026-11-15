@@ -296,7 +296,7 @@ Ya resuelto el 26/10/2026:
 
 **N. Navegación, personalización y trabajo rápido (aprobado el 17/10/2026)**
 
-- **RP-58 · La barra lateral se adapta, pero no se reordena.** Se puede contraer a íconos y fijar favoritos; las siete secciones principales (Hoy, Bandeja, Operaciones, Contactos, Inmuebles, Agenda y Trámites; LV-09 y FLX-01, 14/11/2026) no se mueven ni se ocultan. Después de una línea van Herramientas y Administración. En el celular, la Bandeja entra por «Más» y por el «+». (NAV-01)
+- **RP-58 · La barra lateral se adapta, pero no se reordena.** Se puede contraer a íconos y fijar favoritos; las ocho secciones principales (Hoy, Bandeja, Operaciones, Contactos, Personas, Inmuebles, Agenda y Trámites; LV-09 y FLX-01, 14/11/2026) no se mueven ni se ocultan. Después de una línea van Herramientas y Administración. En el celular, la Bandeja y Personas entran por «Más»; la Bandeja también por el «+». (NAV-01)
 - **RP-59 · Volver nunca cuesta.** Abrir un registro desde una lista no hace perder la lista: vista previa lateral en computadora, y al regresar se conservan búsqueda, filtro y posición. (NAV-03)
 - **RP-60 · Listas que se actualizan solas.** Los grupos de trabajo frecuentes («sin contacto en 5 días», «sin próxima tarea») son listas inteligentes, no filtros que cada quien rearma. (NAV-04)
 - **RP-61 · Personalizar poco y con límites.** Cada quien puede ajustar lo que ve (secciones de Hoy, tamaño de letra, tema, pantalla de inicio por rol), pero nunca ocultar lo que exige atención ni cambiar los colores con significado. (NAV-05)
@@ -431,6 +431,7 @@ La tabla de reglas reemplazadas hasta el 13/11/2026 está en el historial (§18:
 | 14/11/2026 | Panel azul de la operación (LV-06, boceto D) | Encabezado claro con el riel de diez etapas (LV-09) | Misma aprobación. |
 | 14/11/2026 | RP-58: cinco secciones principales | Seis secciones, con Trámites (TRA-01, LV-09) | El titular pidió Trámites en el menú («Sí, en la barra», 13/11/2026). |
 | 14/11/2026 | RP-58: seis secciones principales | Siete, con la Bandeja después de Hoy (FLX-01) | El titular aprobó los bocetos del panel flexible. |
+| 14/11/2026 | RP-58: siete secciones principales | Ocho, con Personas junto a Contactos (FLX) | El titular lo pidió al revisar la limpieza («Sí, junto a Contactos»). |
 | 14/11/2026 | RP-93: compradores y arrendatarios nunca son clientes ni abren expediente | Son clientes desde que firman su contrato, con su papel en cada operación | El titular aprobó el panel flexible y confirmó el registro el mismo día. |
 | 14/11/2026 | RP-96 y B-13: requisitos de protección que nunca se saltan | Avisos anotados en el historial (RP-100) | Misma aprobación; aplica cuando se construya FLX-03. |
 

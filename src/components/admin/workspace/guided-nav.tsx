@@ -2,7 +2,7 @@
 import * as React from "react";
 import { usePendingCount } from "@/components/admin/workspace/use-today-queue";
 import Link from "next/link";
-import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, Inbox, LayoutGrid, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserRound } from "@/components/admin/icons";
+import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, Inbox, LayoutGrid, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserRound, UserRoundCheck } from "@/components/admin/icons";
 import { HelpDot, TourLauncher, openTour, useHelpPending } from "./tour";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
@@ -19,7 +19,7 @@ import s from "./guided-nav.module.css";
 /*
   Marco del panel, versión 3 (titular, 14/11/2026, «Panel desde cero»): menú lateral sobre el mismo
   fondo, separado por una línea. Arriba el logotipo, el buscador (Ctrl K) y «+ Nuevo»; luego Hoy ·
-  Operaciones · Contactos · Inmuebles · Agenda · Trámites y, tras una línea, Herramientas y
+  Bandeja · Operaciones · Contactos · Personas · Inmuebles · Agenda · Trámites y, tras una línea, Herramientas y
   Administración (solo el director). Abajo, la ayuda y la cuenta. Crece sin apretarse, a diferencia
   de la barra superior de la versión 2 (DEC-35, LV-08), a la que reemplaza. Entre 768 y 1279 px el
   menú queda en íconos con su nombre accesible. En celular no cambia: barra inferior con «+» y «Más».
@@ -32,11 +32,19 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/admin/bandeja", label: "Bandeja", icon: Inbox, match: ["/admin/bandeja"] },
   { href: "/admin/operaciones", label: "Operaciones", icon: Columns3, match: ["/admin/operaciones"] },
   { href: "/admin/contactos", label: "Contactos", icon: Contact, match: ["/admin/contactos", "/admin/leads", "/admin/clientes"] },
+  // FLX (titular, 14/11/2026): Personas, lista y perfil en una pantalla, va junto a Contactos.
+  { href: "/admin/personas", label: "Personas", icon: UserRoundCheck, match: ["/admin/personas"] },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin/propiedades"] },
   // Boceto «desde cero» (14/11/2026): «Agenda» y después Trámites, justo antes de Herramientas.
   { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
   { href: "/admin/tramites", label: "Trámites", icon: Route, match: ["/admin/tramites"] },
 ];
+/** Busca una sección por su dirección: así agregar una entrada no desacomoda el celular. */
+function mainNav(href: string): NavItem {
+  const item = MAIN_NAV.find(entry => entry.href === href);
+  if (!item) throw new Error(`Sección del menú inexistente: ${href}`);
+  return item;
+}
 /** Herramientas: un solo acceso a las 17. «/admin/notas» lleva a Hoy (DEC-42). */
 export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas"] };
 /** Administración (solo administrador). Sitio web y Reportes agrupan sus páginas en pestañas (ver AdminFrame). */
@@ -163,7 +171,7 @@ export function MobileHeader({ search, user }: { search: React.ReactNode; user: 
 
 export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathname: string; menuOpen: boolean; onMenu: () => void; menuButton: React.Ref<HTMLButtonElement> }) {
   const pending = usePendingCount();
-  const [hoy, , operaciones, contactos] = MAIN_NAV;
+  const [hoy, operaciones, contactos] = ["/admin", "/admin/operaciones", "/admin/contactos"].map(mainNav);
   const tab = (item: NavItem, badge = 0) => {
     const active = !menuOpen && isNavActive(pathname, item);
     return <Link href={item.href} className={s.tab} aria-current={active ? "page" : undefined}>
@@ -179,7 +187,7 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
 }
 
 export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: User; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
-  const [, bandeja, , , inmuebles, agenda, tramites] = MAIN_NAV;
+  const [bandeja, personas, inmuebles, agenda, tramites] = ["/admin/bandeja", "/admin/personas", "/admin/propiedades", "/admin/agenda", "/admin/tramites"].map(mainNav);
   const helpPending = useHelpPending();
   const events = useCollection(db.eventos);
   const today = operationalDate();
@@ -192,6 +200,7 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
     <div className="flex items-center gap-3 px-1"><Avatar name={user.name} src={user.avatar} size={40} /><span className="flex min-w-0 flex-col"><span className="truncate font-semibold">{user.name}</span><span className="text-sm text-muted-foreground">{roleLabel(role)}</span></span></div>
     <div className={s.menuGroup}>
       {row(bandeja.href, bandeja.label, <bandeja.icon size={20} aria-hidden={true} />, isNavActive(pathname, bandeja))}
+      {row(personas.href, personas.label, <personas.icon size={20} aria-hidden={true} />, isNavActive(pathname, personas))}
       {row(inmuebles.href, inmuebles.label, <inmuebles.icon size={20} aria-hidden={true} />, isNavActive(pathname, inmuebles))}
       {row(agenda.href, agenda.label, <agenda.icon size={20} aria-hidden={true} />, isNavActive(pathname, agenda), visits ? `${visits} ${visits === 1 ? "visita" : "visitas"} hoy` : undefined)}
       {row(tramites.href, tramites.label, <tramites.icon size={20} aria-hidden={true} />, isNavActive(pathname, tramites))}

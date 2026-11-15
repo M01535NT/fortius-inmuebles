@@ -59,11 +59,11 @@ async function fits(page: Page) {
   ).toBe(true);
 }
 
-test("el menú lateral guía por seis secciones y Herramientas; «Nuevo» y la cuenta abren sus menús", async ({ page }) => {
+test("el menú lateral guía por ocho secciones y Herramientas; «Nuevo» y la cuenta abren sus menús", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
   const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  for (const name of ["Hoy", "Bandeja", "Operaciones", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
   await expect(nav.getByRole("link", { name: /^Hoy/ })).toHaveAttribute("aria-current", "page");
   for (const gone of ["Organizar módulos", "Abrir aplicaciones"]) await expect(page.getByRole("button", { name: gone, exact: true })).toHaveCount(0);
   await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);

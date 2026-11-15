@@ -18,10 +18,10 @@ const sidenav = (role: string, pathname = "/admin") => render(<SideNav pathname=
 beforeEach(() => { tasks.length = 0; leads.length = 0; clients.length = 0; pending.value = 0; });
 afterEach(cleanup);
 
-test("el menú lateral lleva los seis módulos y Herramientas, el buscador y la cuenta; sin Administración a la vista del asesor", () => {
+test("el menú lateral lleva las ocho secciones y Herramientas, el buscador y la cuenta; sin Administración a la vista del asesor", () => {
   sidenav("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
-  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Bandeja", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"]);
+  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Bandeja", "Operaciones", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"]);
   expect(within(nav).getByRole("link", { name: "Herramientas" }).getAttribute("href")).toBe("/admin/herramientas");
   expect(screen.getByRole("button", { name: "Buscar" })).toBeTruthy();
   const account = screen.getByRole("button", { name: /Mariana Ruiz, Asesor/ });
@@ -69,7 +69,7 @@ test("el administrador encuentra Administración en el menú lateral y en su cue
 });
 
 test("la sección activa incluye sus fichas de detalle y las direcciones anteriores", () => {
-  const [hoy, bandeja, operaciones, contactos, , agenda] = MAIN_NAV;
+  const [hoy, bandeja, operaciones, contactos, personas, agenda] = ["/admin", "/admin/bandeja", "/admin/operaciones", "/admin/contactos", "/admin/personas", "/admin/agenda"].map(href => MAIN_NAV.find(item => item.href === href)!);
   // FLX-01 (RP-58): la Bandeja es la segunda sección.
   expect(bandeja.label).toBe("Bandeja");
   expect(isNavActive("/admin/bandeja", bandeja)).toBe(true);
@@ -78,6 +78,10 @@ test("la sección activa incluye sus fichas de detalle y las direcciones anterio
   expect(isNavActive("/admin/operaciones", hoy)).toBe(false);
   expect(isNavActive("/admin/operaciones/nueva", operaciones)).toBe(true);
   expect(isNavActive("/admin/leads/123", contactos)).toBe(true);
+  // Personas va junto a Contactos y cada una marca solo su pantalla.
+  expect(isNavActive("/admin/personas", personas)).toBe(true);
+  expect(isNavActive("/admin/personas", contactos)).toBe(false);
+  expect(isNavActive("/admin/contactos", personas)).toBe(false);
   expect(isNavActive("/admin/tareas/9", agenda)).toBe(true);
   expect(isNavActive("/admin/agendas", agenda)).toBe(false);
   for (const path of ["/admin/herramientas", "/admin/apps/hipoteca", "/admin/notas", "/admin/reportes", "/admin/configuracion", "/admin/perfil"]) expect(isNavActive(path, MORE_NAV)).toBe(true);
