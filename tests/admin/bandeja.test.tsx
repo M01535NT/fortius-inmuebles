@@ -37,8 +37,8 @@ function servidor(conflicto = false, documentos: Array<typeof levantamiento> = [
   }));
   return calls;
 }
-const elegir = async (desplegable: RegExp, opcion: RegExp) => {
-  fireEvent.click(screen.getByRole("button", { name: desplegable }));
+const elegir = async (selector: string, opcion: RegExp) => {
+  fireEvent.click(screen.getByRole("combobox", { name: selector }));
   fireEvent.click(await screen.findByRole("option", { name: opcion }));
 };
 
@@ -57,7 +57,7 @@ it("RP-102: archiva en un inmueble sin persona y el documento sale de la lista",
   const calls = servidor();
   render(<BandejaApp />);
   await screen.findByRole("heading", { name: "Levantamiento topografico" });
-  await elegir(/^Inmueble/, /Terreno en Rosarito/);
+  await elegir("Inmueble", /Terreno en Rosarito/);
   fireEvent.click(screen.getByRole("button", { name: "Archivar aquí" }));
   await waitFor(() => expect(calls.find(c => c.method === "PATCH")?.body).toEqual({
     destino: { propiedadSlug: "terreno-rosarito", expedienteId: null, clienteId: null },
@@ -88,19 +88,33 @@ it("rechaza tipos que no se guardan y muestra el conflicto del servidor", async 
   expect(await screen.findByText(/Otra persona cambió este documento/)).toBeTruthy();
 });
 
-it("el desplegable se recorre con el teclado y Escape devuelve el foco al botón", async () => {
+it("el selector de destino busca sin acentos, se elige con Enter y Escape devuelve el foco", async () => {
   servidor();
   render(<BandejaApp />);
   await screen.findByRole("heading", { name: "Levantamiento topografico" });
-  const boton = screen.getByRole("button", { name: /^Inmueble/ });
-  fireEvent.click(boton);
-  const lista = await screen.findByRole("listbox", { name: "Inmueble" });
-  expect(document.activeElement?.textContent).toContain("Ninguno");
-  fireEvent.keyDown(lista, { key: "ArrowDown" });
-  expect(document.activeElement?.textContent).toContain("Terreno en Rosarito");
-  fireEvent.keyDown(lista, { key: "Escape" });
-  expect(screen.queryByRole("listbox")).toBeNull();
-  expect(document.activeElement).toBe(boton);
+  const selector = screen.getByRole("combobox", { name: "Inmueble" });
+  fireEvent.click(selector);
+  const buscar = await screen.findByPlaceholderText("Buscar por nombre o código…");
+  fireEvent.change(buscar, { target: { value: "rosárito" } });
+  expect(screen.queryByRole("option", { name: "Ninguno" })).toBeNull();
+  fireEvent.keyDown(buscar, { key: "Enter" });
+  expect(selector.textContent).toContain("Terreno en Rosarito");
+  expect((screen.getByRole("button", { name: "Archivar aquí" }) as HTMLButtonElement).disabled).toBe(false);
+  fireEvent.click(selector);
+  fireEvent.keyDown(await screen.findByPlaceholderText("Buscar por nombre o código…"), { key: "Escape" });
+  await waitFor(() => expect(screen.queryByPlaceholderText("Buscar por nombre o código…")).toBeNull());
+  expect(document.activeElement).toBe(selector);
+});
+
+it("LV-10d: «Ver en grande» abre el documento en una ventana que se cierra con Escape", async () => {
+  servidor();
+  render(<BandejaApp />);
+  await screen.findByRole("heading", { name: "Levantamiento topografico" });
+  fireEvent.click(screen.getByRole("button", { name: "Ver en grande" }));
+  const ventana = await screen.findByRole("dialog", { name: "Levantamiento topografico" });
+  expect(within(ventana).getByText("PDF · 2 KB")).toBeTruthy();
+  fireEvent.keyDown(ventana, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 });
 
 const fila = (nombre: RegExp) => within(screen.getByRole("complementary", { name: "Bandeja" })).getByRole("button", { name: nombre });
@@ -139,7 +153,7 @@ it("LV-10d: sugiere el destino que coincide, E lo archiva y «Deshacer» lo regr
   const calls = servidor(false, [escritura, avaluo]);
   render(<BandejaApp />);
   await screen.findByRole("heading", { name: "Escritura Rosarito" });
-  expect(screen.getByRole("button", { name: /Terreno en Rosarito/ }).getAttribute("aria-pressed")).toBe("true");
+  expect(screen.getByRole("radio", { name: /Terreno en Rosarito/ }).getAttribute("aria-checked")).toBe("true");
   fireEvent.keyDown(window, { key: "e" });
   await waitFor(() => expect(calls.find(c => c.method === "PATCH")?.body).toEqual({
     destino: { propiedadSlug: "terreno-rosarito", expedienteId: null, clienteId: null },
@@ -161,7 +175,7 @@ it("LV-10d: «Otro destino» abre los desplegables y la papelera también se des
   render(<BandejaApp />);
   await screen.findByRole("heading", { name: "Escritura Rosarito" });
   fireEvent.click(screen.getByRole("button", { name: "Otro destino" }));
-  expect(screen.getByRole("button", { name: /^Persona/ })).toBeTruthy();
+  expect(screen.getByRole("combobox", { name: "Persona" })).toBeTruthy();
   expect((screen.getByRole("button", { name: "Archivar aquí" }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.keyDown(screen.getByRole("button", { name: "Más acciones" }), { key: "Enter" });
   fireEvent.click(await screen.findByRole("menuitem", { name: "Mandar a la papelera" }));
@@ -169,4 +183,14 @@ it("LV-10d: «Otro destino» abre los desplegables y la papelera también se des
   fireEvent.click(screen.getByRole("button", { name: "Deshacer" }));
   await waitFor(() => expect(calls.filter(c => c.method === "PATCH")[1]?.body).toEqual({ papelera: false, esperado: { titulo: "Escritura Rosarito", eliminado: true, archivado: false } }));
   expect(await screen.findByRole("heading", { name: "Escritura Rosarito" })).toBeTruthy();
+});
+
+it("LV-10d: # manda a la papelera sin abrir el menú", async () => {
+  const calls = servidor(false, [escritura, avaluo]);
+  render(<BandejaApp />);
+  await screen.findByRole("heading", { name: "Escritura Rosarito" });
+  expect(screen.getByText("papelera")).toBeTruthy();
+  fireEvent.keyDown(window, { key: "#" });
+  await waitFor(() => expect(calls.find(c => c.method === "PATCH")?.body).toEqual({ papelera: true, esperado: { titulo: "Escritura Rosarito", eliminado: false, archivado: false } }));
+  expect(await screen.findByText("Se mandó a la papelera.")).toBeTruthy();
 });
