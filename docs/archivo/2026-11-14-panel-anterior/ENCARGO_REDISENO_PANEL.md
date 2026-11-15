@@ -8,14 +8,14 @@
 
 El panel `/admin` de Fortius es confuso. Tiene unas 8 entradas de navegación que se enciman, una página de operación enorme y lenguaje técnico y legal en pantalla. Se rehace **la interfaz** para que sea minimalista e intuitiva y **guíe al asesor paso a paso** por cada operación: pantallas cortas, lenguaje sencillo y una sola acción principal por pantalla.
 
-**Referencia visual principal: `docs/diseno/lienzo-panel/`.** Es el lienzo de diseño aprobado, con 36 pantallas en celular (390 px) y computadora (1440 px), en claro y oscuro:
+**Referencia visual principal: `docs/archivo/2026-11-14-panel-anterior/lienzo-panel/`.** Es el lienzo de diseño aprobado, con 36 pantallas en celular (390 px) y computadora (1440 px), en claro y oscuro:
 
 - `canvas.json` indica qué representa cada archivo `.dc.html`. Por ejemplo, `Main.dc.html` es Hoy en computadora y `OperacionEscritorio.dc.html` es la operación guiada.
 - `fortius-panel.css` y `ds/fortius/tokens.json` contienen los tokens de color, tipografía, espacios y estados (claro y oscuro). Son la base de la Fase 1.
 - `Componentes.dc.html` y `Tokens.dc.html` son la hoja de componentes y la de tokens.
 - Los `.dc.html` necesitan el runtime del lienzo para verse. En el repositorio sirven como fuente legible: marcado, textos exactos, estados y datos de ejemplo en `renderVals()`. Para verlos renderizados, el titular abre el lienzo original.
 
-**Referencia secundaria: `docs/diseno/bocetos-panel-guiado.html`.** Son los primeros bocetos aprobados. Se abren en cualquier navegador y sirven para entender el comportamiento interactivo (cambiar estados, abrir el panel de «Revisado»). Si contradicen al lienzo, manda el lienzo.
+**Referencia secundaria: `docs/archivo/2026-11-14-panel-anterior/bocetos-panel-guiado.html`.** Son los primeros bocetos aprobados. Se abren en cualquier navegador y sirven para entender el comportamiento interactivo (cambiar estados, abrir el panel de «Revisado»). Si contradicen al lienzo, manda el lienzo.
 
 Los datos de los diseños son ficticios; en el panel se usan los datos reales de las colecciones existentes. Es un cambio de **interfaz**: la lógica de negocio, los datos y el servidor no cambian, salvo lo indicado en la sección 4 para «Próximos 7 días».
 
@@ -114,7 +114,7 @@ Se actualizan los enlaces internos, la búsqueda y las pruebas a las rutas nueva
 
 **Operación guiada** (lienzo: `OperacionEscritorio*` y `OperacionMovil*`)
 
-> **Nueva disposición elegida por el titular (29/10/2026):** la pantalla de una operación pasará al boceto D «Moderno» (`docs/diseno/operacion-boceto-d/OperacionModerno.dc.html`), especificado como LV-06 en `PLAN.md` (desde el 14/11/2026 reemplazado por LV-09). Cambia la disposición y el estilo; el contenido y las reglas de esta sección (requisitos, chips, «Marcar como revisado», próxima tarea, candados para pasar de etapa, pestañas, Ajustes) se conservan. Se construye cuando el titular lo pida.
+> **Nueva disposición elegida por el titular (29/10/2026):** la pantalla de una operación pasará al boceto D «Moderno» (`docs/archivo/2026-11-14-panel-anterior/operacion-boceto-d/OperacionModerno.dc.html`), especificado como LV-06 en `PLAN.md` (desde el 14/11/2026 reemplazado por LV-09). Cambia la disposición y el estilo; el contenido y las reglas de esta sección (requisitos, chips, «Marcar como revisado», próxima tarea, candados para pasar de etapa, pestañas, Ajustes) se conservan. Se construye cuando el titular lo pida.
 - **Encabezado:** regreso a Operaciones, cliente, folio, inmueble, precio («Precio que espera» o «Precio de salida», según la etapa) y responsable.
 - **Avance de 6 etapas** numeradas del 1 al 6 («Lista», «Aquí vas»). En celular se lee «Etapa N de 6» con barra. Cambia también la numeración 0–5 que hoy usan las páginas de proceso.
 - **Pestañas:** Lo que sigue · Documentos · Tareas · Historial · Ajustes.

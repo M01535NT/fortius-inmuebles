@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 import s from "./kit.module.css";
 
 /*
-  Componentes del panel. Referencia visual: bocetos aprobados por el titular el 17/10/2026
-  (lienzo «Bocetos del panel Fortius») y, para estados y formularios,
-  docs/diseno/lienzo-panel/Componentes.dc.html. Escala admin-*: 10 px controles, 12 px fotos,
+  Componentes del panel. Referencia visual vigente: el «panel desde cero» (LV-09, 14/11/2026,
+  en PLAN.md). Los bocetos anteriores están archivados en docs/archivo/2026-11-14-panel-anterior/
+  y son solo historia. Escala admin-*: 10 px controles, 12 px fotos,
   16 px tarjetas, 20 px paneles y pastilla en estados; sombras azul marino.
   Sus estilos (kit.module.css) están fuera de las capas de Tailwind: una clase de
   Tailwind sirve para acomodar (márgenes, alineación, flex) pero no reemplaza el
