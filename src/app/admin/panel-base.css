@@ -39,6 +39,11 @@
   --primary: #8a1634;
   --primary-foreground: #ffffff;
   --brand-navy: #061f3f; /* azul de marca fijo en ambos temas (avatares) */
+  --navy-surface: #061f3f; /* bloque azul de «lo que sigue» (Bandeja, Trámites) */
+  --on-navy: #f8f8ff; /* texto y bordes sobre azul, en ambos temas */
+  --on-navy-muted: rgba(248, 248, 255, .74);
+  --on-navy-edge: rgba(248, 248, 255, .28);
+  --on-navy-focus: #92c1fd;
   --control-edge: #647080;
   --focus-color: #1e5ba1;
   --primary-text: #061f3f; /* el borgoña no se usa como texto */
@@ -83,6 +88,7 @@
 }
 .dark .admin-root {
   color-scheme: dark; /* casillas, barras de desplazamiento y calendarios nativos en oscuro */
+  --navy-surface: #0e2a50;
   --background: #060c14;
   --foreground: #f8f8ff;
   --card: #0c1724;

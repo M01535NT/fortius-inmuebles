@@ -159,7 +159,7 @@
 :global(.admin-root) .media { border-radius: 10px; }
 
 /* «Lo siguiente» en grande: foto del inmueble a la izquierda y el bloque azul con la acción. */
-:global(.admin-root) .hero { --hero-bg: #061f3f; display: grid; grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr); min-height: 12rem; overflow: hidden; border-radius: var(--radius-card); background: var(--hero-bg); color: #f8f8ff; margin-bottom: .5rem; }
+:global(.admin-root) .hero { --hero-bg: var(--brand-navy); display: grid; grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr); min-height: 12rem; overflow: hidden; border-radius: var(--radius-card); background: var(--hero-bg); color: var(--on-navy); margin-bottom: .5rem; }
 :global(.dark) :global(.admin-root) .hero { --hero-bg: #1a2331; }
 :global(.admin-root) .heroMedia { display: flex; min-height: 100%; }
 :global(.admin-root) .heroThumb { width: 100% !important; height: 100% !important; aspect-ratio: auto !important; border-radius: 0; background: rgba(248,248,255,.08); color: #b0b8c4; }
@@ -172,9 +172,9 @@
 :global(.admin-root) .heroTitle { display: block; margin: 0; font-size: 1.375rem; line-height: 1.25; font-weight: 640; letter-spacing: -.01em; text-wrap: balance; overflow-wrap: anywhere; }
 :global(.admin-root) .heroText { margin: 0; font-size: var(--admin-text-detalle); color: #b0b8c4; overflow-wrap: anywhere; }
 :global(.admin-root) .heroActions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: auto; padding-top: .75rem; }
-:global(.admin-root) .hero .heroSecondary { background: rgba(248,248,255,.08); border-color: rgba(248,248,255,.24); color: #f8f8ff; }
+:global(.admin-root) .hero .heroSecondary { background: rgba(248,248,255,.08); border-color: rgba(248,248,255,.24); color: var(--on-navy); }
 :global(.admin-root) .hero .heroSecondary:hover { background: rgba(248,248,255,.16); }
-:global(.admin-root) .hero :focus-visible { outline-color: #92c1fd; }
+:global(.admin-root) .hero :focus-visible { outline-color: var(--on-navy-focus); }
 @media (max-width: 639px) {
   :global(.admin-root) .hero { grid-template-columns: minmax(0, 1fr); }
   :global(.admin-root) .heroMedia { height: 9.5rem; }
