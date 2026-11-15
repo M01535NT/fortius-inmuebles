@@ -1,10 +1,10 @@
 "use client";
-import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
+import { UndoNotice } from "@/components/admin/workspace/undo-notice";
 import * as React from "react";
 import Link from "next/link";
-import { AlertTriangle, Building2, Check, ChevronRight, Circle, Plus, Star } from "@/components/admin/icons";
+import { AlertTriangle, Building2, Check, Plus } from "@/components/admin/icons";
 import { Avatar, Button, ButtonLink, Surface, Swap, Thumb } from "@/components/admin/kit";
-import { db, upsert, useCollection, useSession, type Evento } from "@/lib/admin/store";
+import { db, useCollection, useSession, type Evento } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { greeting as greetingFor, longDate, shortDate, todayTasks, upcomingItems, weekDays, weekdayDate, type QueueItem, type TodayDossier } from "@/lib/admin/today";
@@ -19,7 +19,8 @@ import { NewMenu } from "@/components/admin/workspace/guided-nav";
 import { NextStepPrompt } from "@/components/admin/contacts/next-step-prompt";
 import { Announcements } from "@/components/admin/workspace/announcements";
 import { Inbox } from "@/components/admin/workspace/inbox";
-import { askNextAfter, type NextRef } from "@/lib/admin/next-step-task";
+import { useTaskDone, type TaskDone } from "@/components/admin/workspace/hoy/use-task-done";
+import { actionOf, QueueList, TaskCheck, type RowHelpers } from "@/components/admin/workspace/hoy/queue-list";
 import s from "./hoy.module.css";
 
 /*
@@ -35,7 +36,11 @@ import s from "./hoy.module.css";
 const noSubscribe = () => () => undefined;
 const greetingNow = () => greetingFor(new Date().getHours());
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const LIST_ROWS = 7, TASK_ROWS = 5;
+/*
+  Reglas de volumen de Hoy (29/10/2026): con foto solo los 4 más urgentes («Lo siguiente» y 3 filas);
+  después, hasta 10 en total en lista compacta sin foto, y al final «Ver los N». Tareas y citas, 5.
+*/
+const PHOTO_ROWS = 3, LIST_ROWS = 10, TASK_ROWS = 5, AGENDA_ROWS = 5;
 const PHASES = [["Captar", 3], ["Preparar", 4], ["Comercializar", 2], ["Cerrar", 1]] as const;
 /** Los pendientes de una misma persona van juntos; el primero (el más urgente) da la fila. */
 function byPerson(items: QueueItem[]) {
@@ -47,20 +52,6 @@ function byPerson(items: QueueItem[]) {
     if (group) group.push(item); else groups.set(key, [item]);
   }
   return [...groups.values()];
-}
-/** Qué dice el botón de cada fila, según a dónde lleva. */
-function actionOf(item: QueueItem) {
-  if (item.href.startsWith("/admin/operaciones")) return "Abrir asunto";
-  if (item.href.startsWith("/admin/tareas")) return "Abrir tarea";
-  if (item.kind === "informe") return "Preparar";
-  if (item.href.startsWith("/admin/clientes") || item.href.startsWith("/admin/leads") || item.href.startsWith("/admin/contactos")) return "Abrir ficha";
-  return "Abrir";
-}
-/** El ícono de estado de la fila: problema en triángulo, lo nuevo con estrella y lo demás en círculo. */
-function StateIcon({ item }: { item: QueueItem }) {
-  if (item.kind === "problema" || item.kind === "plazo") return <span className={cn(s.si, s.siWarn)}><AlertTriangle size={18} aria-hidden="true" /></span>;
-  if (item.kind === "nuevo") return <span className={cn(s.si, s.siInfo)}><Star size={18} aria-hidden="true" /></span>;
-  return <span className={s.si}><Circle size={18} aria-hidden="true" /></span>;
 }
 /** Lo mínimo de la operación que necesita el riel para saber su etapa. */
 const asOperation = (d: TodayDossier): OperationRecord => ({ id: d.id, folio: d.folio, version: 0, cliente_id: d.cliente_id ?? "", asesor_id: d.asesor_id ?? "", operacion: "venta", propiedad_slug: d.propiedad_slug ?? null, etapa: d.etapa, flujo: d.flujo, inicial: d.inicial });
@@ -83,9 +74,8 @@ export function HoyScreen() {
   const today = operationalDate();
   const conditions = useConditions();
   const [showAll, setShowAll] = React.useState(false);
-  const [heroBusy, setHeroBusy] = React.useState(false);
-  const [heroMessage, setHeroMessage] = React.useState("");
-  const heroUndo = useUndo();
+  // Un solo cálculo para palomear en la portada, en las filas y en la agenda (un aviso a la vez).
+  const done = useTaskDone();
   const firstName = (useSession()?.name ?? "").trim().split(/\s+/)[0];
   // El saludo usa la hora del navegador, no la del servidor.
   const greeting = React.useSyncExternalStore(noSubscribe, greetingNow, () => "Hola");
@@ -118,49 +108,27 @@ export function HoyScreen() {
   const rest = queue.slice(1);
   const groups = byPerson(rest);
   const lateGroups = groups.filter(group => group[0].late), otherGroups = groups.filter(group => !group[0].late);
+  // Vencido primero; entre los dos grupos, a lo más LIST_ROWS filas contando «Lo siguiente».
   const room = LIST_ROWS - 1;
   const lateShown = showAll ? lateGroups : lateGroups.slice(0, room);
   const otherShown = showAll ? otherGroups : otherGroups.slice(0, Math.max(0, room - lateShown.length));
   const hidden = groups.length - lateShown.length - otherShown.length;
   const lateTotal = lateGroups.length + (next?.late ? 1 : 0), todayTotal = otherGroups.length + (next && !next.late ? 1 : 0);
+  // Las 3 primeras filas visibles (las más urgentes después de «Lo siguiente») van con foto o cara.
+  const latePhotos = Math.min(PHOTO_ROWS, lateShown.length), otherPhotos = Math.max(0, PHOTO_ROWS - latePhotos);
 
   // DEC-51: cada pendiente con la foto de su inmueble o, si no tiene, con la cara de la persona.
   const slugOf = (item: QueueItem) => item.propertySlug ?? (item.folio ? dossiers?.find(x => x.folio === item.folio)?.propiedad_slug : undefined);
   const personOf = (item: QueueItem) => item.who.split(" · ")[0].trim() || item.who;
-  const media = (item: QueueItem, size = 44) => {
-    const slug = slugOf(item);
-    return slug ? <Thumb src={photo(slug)} size={size} className={s.media} /> : <Avatar name={personOf(item)} size={size - 4} />;
-  };
-  const row = (group: QueueItem[], label?: string) => {
-    const item = group[0], lead = leadOf(item), others = group.length - 1, tags = tagsOf(item);
-    return <li key={item.id}><article className={cn(s.qrow, lead && s.qrowLead)}>
-      <Link href={item.href} className={s.row} aria-label={label ?? `Continuar con ${item.who}`}>
-        <StateIcon item={item} />
-        <span className={s.mediaCell}>{media(item)}</span>
-        <span className={s.rowBody}>
-          <span className={s.rowTitle}>{item.text}</span>
-          <span className={s.rowText}>{item.who}{item.detail ? ` · ${item.detail}` : ""}{tags.map(tag => <span key={tag} className={s.warnText}> · {tag}</span>)}{others > 0 && ` · ${others} más`}</span>
-        </span>
-        {item.when && <span className={cn(s.when, item.late && s.lateText, !item.late && item.kind === "nuevo" && s.infoText)}>{item.when}</span>}
-        {!lead && <span className={s.rowGo} aria-hidden="true">{actionOf(item)}</span>}
-        <ChevronRight size={18} aria-hidden="true" className={s.rowChevron} />
-      </Link>
-      {lead && <FirstContactButton lead={lead} className={s.rowAction} />}
-    </article></li>;
+  const taskOf = (item: QueueItem) => item.taskId ? tasks.find(t => t.id === item.taskId) : undefined;
+  const helpers: RowHelpers = {
+    media: item => { const slug = slugOf(item); return slug ? <Thumb src={photo(slug)} size={44} className={s.media} /> : <Avatar name={personOf(item)} size={40} />; },
+    tagsOf, leadOf, taskOf, done,
   };
   // «Lo siguiente» en grande (DEC-51): foto del inmueble, qué hacer y, si es una tarea, «Ya lo hice» con deshacer.
-  const nextTask = next?.taskId ? tasks.find(t => t.id === next.taskId) : undefined;
+  const nextTask = next ? taskOf(next) : undefined;
   const nextSlug = next ? slugOf(next) : undefined;
   const nextLead = next ? leadOf(next) : undefined;
-  async function completeNext() {
-    if (!nextTask) return;
-    setHeroBusy(true); setHeroMessage(""); heroUndo.clear();
-    try {
-      const saved = await upsert(db.tareas, { ...nextTask, estado: "completada" }, db.tareas.version(nextTask));
-      heroUndo.offer({ text: `Completaste «${nextTask.titulo}».`, undo: () => upsert(db.tareas, { ...saved, estado: nextTask.estado as typeof saved.estado }, db.tareas.version(saved.id)) });
-    } catch (error) { setHeroMessage(`No se pudo guardar: ${error instanceof Error ? error.message : "intenta de nuevo"}`); }
-    finally { setHeroBusy(false); }
-  }
   const nextBlock = next && <section aria-labelledby="hoy-cola" className={s.nextSection}>
     <Swap as="article" id={next.id} className={s.hero}>
       <span className={s.heroMedia}>{nextSlug ? <Thumb src={photo(nextSlug)} ratio="4 / 3" className={s.heroThumb} /> : <span className={s.heroFace}><Avatar name={personOf(next)} size={72} onDark /></span>}</span>
@@ -171,14 +139,12 @@ export function HoyScreen() {
           <span className={s.heroText}>{next.who}{next.detail ? ` · ${next.detail}` : ""}{tagsOf(next).map(tag => ` · ${tag}`)}</span>
         </Link>
         <div className={s.heroActions}>
-          {nextTask && isTaskOpen(nextTask) && <Button variant="primary" disabled={heroBusy} onClick={() => void completeNext()}><Check size={18} aria-hidden="true" />Ya lo hice</Button>}
+          {nextTask && isTaskOpen(nextTask) && <Button variant="primary" disabled={done.saving === nextTask.id} onClick={() => void done.toggle(nextTask)} aria-label={`Ya lo hice: ${nextTask.titulo}`}><Check size={18} aria-hidden="true" />Ya lo hice</Button>}
           {nextLead ? <FirstContactButton lead={nextLead} className={s.heroSecondary} />
             : <ButtonLink href={next.href} variant={nextTask ? "secondary" : "primary"} className={nextTask ? s.heroSecondary : undefined}>{actionOf(next)}</ButtonLink>}
         </div>
       </div>
     </Swap>
-    {heroMessage && <p role="alert" className="text-sm text-destructive">{heroMessage}</p>}
-    <UndoNotice {...heroUndo} onError={setHeroMessage} />
     {rest.length === 0 && <p className={s.note}>Nada más espera por ti.</p>}
   </section>;
 
@@ -232,20 +198,21 @@ export function HoyScreen() {
             {lateTotal > 0 && <>
               <h3 className={cn(s.group, s.groupLate)}>Vencido <span>{lateTotal}</span></h3>
               {next.late && nextBlock}
-              {lateShown.length > 0 && <ul className={s.list} aria-label="Pendientes vencidos">{lateShown.map(group => row(group))}</ul>}
+              <QueueList groups={lateShown} photos={latePhotos} label="Pendientes vencidos" helpers={helpers} />
             </>}
             {todayTotal > 0 && (otherShown.length > 0 || !next.late) && <>
               <h3 className={s.group}>Hoy <span>{todayTotal}</span></h3>
               {!next.late && nextBlock}
-              {otherShown.length > 0 && <ul className={s.list} aria-label="Más pendientes">{otherShown.map(group => row(group))}</ul>}
+              <QueueList groups={otherShown} photos={otherPhotos} label="Más pendientes" helpers={helpers} />
             </>}
-            {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>{hidden === 1 ? "Ver 1 fila más" : `Ver ${hidden} filas más`}</Button>}
+            {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>Ver los {groups.length + 1}</Button>}
           </>}
+        {done.from === "dia" && <DoneMessage done={done} />}
       </section>
     </div>
 
     <div className={s.side}>
-      <TodayBlock tasks={dayTasks} agenda={agenda} today={today} nextEvent={nextEvent} names={names} leads={leads} photo={photo} />
+      <TodayBlock tasks={dayTasks} agenda={agenda} today={today} nextEvent={nextEvent} names={names} leads={leads} photo={photo} done={done} />
 
       <Section id="hoy-semana" title="Próximos 7 días" className={s.weekBox} action={weekCount > 0 ? <span className={s.meta}>{weekCount}</span> : more("/admin/agenda", "Ver agenda")}>
         {weekList.length ? <ul className={s.week} aria-label="Próximos 7 días, por día">{weekList.flatMap(({ day, items }) => items.map((item, i) => <li key={item.id} className={s.day}>
@@ -258,6 +225,9 @@ export function HoyScreen() {
         </li>))}</ul> : <p className={s.note}>Nada vence en los próximos siete días.</p>}
       </Section>
     </div>
+
+    <UndoNotice {...done.undo} onError={done.setMessage} />
+    {done.ask && <NextStepPrompt key={done.ask.id} person={done.ask} today={today} name={done.ask.kind === "lead" ? leads.find(l => l.id === done.ask!.id)?.nombre : names.client(done.ask.kind === "operacion" ? done.ask.clienteId : done.ask.id)} onClose={done.closeAsk} />}
 
     {stageNames.length === 10 && <section aria-labelledby="hoy-cartera" className={cn(s.panel, s.cartera)}>
       <div className={s.head}><h2 id="hoy-cartera" className={s.title}>Tu cartera por etapa</h2><span className={s.meta}>{plural(inProgress.length, "asunto", "asuntos")} · {plural(prospects, "prospecto", "prospectos")}</span></div>
@@ -274,17 +244,19 @@ export function HoyScreen() {
   </Surface>;
 }
 
+/** El resultado de palomear: «Guardado» o el motivo del error, junto al bloque donde se hizo. */
+function DoneMessage({ done }: { done: TaskDone }) {
+  if (!done.message) return null;
+  const failed = done.message.startsWith("No se pudo");
+  return <p role={failed ? "alert" : "status"} className={cn("text-sm", failed ? "text-destructive" : "text-muted-foreground")}>{done.message}</p>;
+}
+
 /** «Agenda de hoy»: citas como línea de tiempo con la raya de «Ahora» y, debajo, las tareas del día, que se marcan aquí. */
-function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
+function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo, done: completer }: {
   tasks: Task[]; agenda: Evento[]; today: string; nextEvent?: Evento; names: { client: (id?: string) => string | undefined; property: (slug?: string | null) => string | undefined };
-  leads: Array<{ id: string; nombre: string }>; photo: (slug?: string | null) => string | undefined;
+  leads: Array<{ id: string; nombre: string }>; photo: (slug?: string | null) => string | undefined; done: TaskDone;
 }) {
-  const [saving, setSaving] = React.useState<string | null>(null);
-  const [message, setMessage] = React.useState("");
   const [now, setNow] = React.useState<string | null>(null);
-  const allTasks = useCollection(db.tareas);
-  const [ask, setAsk] = React.useState<NextRef | null>(null);
-  const undo = useUndo();
   React.useEffect(() => {
     // La hora se toma en el navegador para no dibujar «Ahora» con la hora del servidor.
     const tick = () => { const d = new Date(); setNow(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`); };
@@ -292,22 +264,8 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
     const id = window.setInterval(tick, 60_000);
     return () => window.clearInterval(id);
   }, []);
-  const open = tasks.filter(isTaskOpen), done = tasks.length - open.length;
+  const open = tasks.filter(isTaskOpen), finished = tasks.length - open.length;
   const shown = tasks.slice(0, TASK_ROWS);
-  async function toggle(task: Task) {
-    setSaving(task.id); setMessage(""); setAsk(null); undo.clear();
-    try {
-      const completing = isTaskOpen(task);
-      const saved = await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
-      // RP-16: completar se deshace con un toque; el aviso sale cuando el servidor ya lo guardó.
-      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => { setAsk(null); return upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)); } }); // C-71: deshacer también retira «¿Qué sigue?»
-      else setMessage("Guardado");
-      // DEC-42: completar el siguiente paso de una persona pide el que sigue.
-      if (completing) setAsk(askNextAfter(task, allTasks));
-    } catch (error) {
-      setMessage(`No se pudo guardar: ${error instanceof Error ? error.message : "intenta de nuevo"}`);
-    } finally { setSaving(null); }
-  }
   const empty = !agenda.length && !tasks.length;
   // La raya de «Ahora» va después de la última cita que ya empezó.
   const nowAt = now === null ? -1 : agenda.filter(event => (event.hora ?? "99") <= now).length;
@@ -321,7 +279,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
           <span className="flex min-w-0 flex-col gap-0.5"><small className="text-muted-foreground">La siguiente: {weekdayDate(nextEvent.fecha)}{nextEvent.hora ? ` · ${nextEvent.hora}` : ""}{nextEvent.tipo === "visita" ? " · Visita" : ""}</small><strong className="[overflow-wrap:anywhere]">{nextEvent.titulo}</strong></span>
         </Link>}
       </div> : <>
-        {agenda.length > 0 && <ul className={s.agenda} aria-label="Citas de hoy">{agenda.flatMap((event, i) => {
+        {agenda.length > 0 && <ul className={s.agenda} aria-label="Citas de hoy">{agenda.slice(0, AGENDA_ROWS).flatMap((event, i) => {
           const visit = event.tipo === "visita";
           const context = [names.client(event.clienteId) ?? leads.find(l => l.id === event.leadId)?.nombre, names.property(event.propiedadSlug)].filter(text => text && text !== event.titulo).join(" · ");
           const item = <li key={event.id} className="contents"><Link href={`/admin/agenda?fecha=${today}&evento=${encodeURIComponent(event.id)}`} className={cn(s.event, visit && s.visit)}>
@@ -329,13 +287,14 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
             <span className="flex min-w-0 flex-col gap-0.5"><strong className={s.eventTitle}>{event.titulo}</strong>{(visit || context) && <small className={s.dayMeta}>{visit ? ["Visita", context].filter(Boolean).join(" · ") : context}</small>}</span>
           </Link></li>;
           return i === nowAt ? [nowLine, item] : [item];
-        }).concat(nowAt === agenda.length ? [nowLine] : [])}</ul>}
+        }).concat(nowAt === Math.min(agenda.length, AGENDA_ROWS) ? [nowLine] : [])}</ul>}
+        {agenda.length > AGENDA_ROWS && <span className={s.moreRow}>{more(`/admin/agenda?fecha=${today}`, `Ver las ${agenda.length} citas`)}</span>}
         {tasks.length > 0 && <div className={cn(s.tasks, agenda.length > 0 && s.tasksAfterAgenda)}>
-          <p className={s.tasksHead}><span>Tareas</span><span className={s.meta}>{done} de {tasks.length} hechas</span></p>
+          <p className={s.tasksHead}><span>Tareas</span><span className={s.meta}>{finished} de {tasks.length} hechas</span></p>
           <ul className="flex flex-col" aria-label="Tareas de hoy">{shown.map(task => {
             const isOpen = isTaskOpen(task);
             return <li key={task.id} className={s.task}>
-              <input type="checkbox" className={s.check} checked={!isOpen} disabled={saving === task.id} onChange={() => void toggle(task)} aria-label={`${isOpen ? "Marcar como hecha" : "Marcar como pendiente"}: ${task.titulo}`} />
+              <TaskCheck task={task} done={completer} where="agenda" className={s.taskCheck} />
               <span className="flex min-w-0 flex-col gap-0.5"><Link href={`/admin/tareas/${encodeURIComponent(task.id)}`} className={cn("[overflow-wrap:anywhere]", !isOpen && s.doneText)}>{task.titulo}</Link><small className={cn(s.dayMeta, isOpen && task.vence! < today && s.lateText)}>{task.vence === today ? "Hoy" : `Vencida desde el ${shortDate(task.vence!)}`}</small></span>
             </li>;
           })}</ul>
@@ -347,8 +306,6 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
         <Link href="/admin/agenda?nueva=1" className={s.add}><Plus size={16} aria-hidden="true" />Agendar</Link>
       </div>
     </div>
-    {message && <p role="status" className={cn("text-sm", message.startsWith("No se pudo") ? "text-destructive" : "text-muted-foreground")}>{message}</p>}
-    <UndoNotice {...undo} onError={setMessage} />
-    {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : names.client(ask.kind === "operacion" ? ask.clienteId : ask.id)} onClose={() => setAsk(null)} />}
+    {completer.from === "agenda" && <DoneMessage done={completer} />}
   </Section>;
 }
