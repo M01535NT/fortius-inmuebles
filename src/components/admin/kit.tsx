@@ -13,8 +13,8 @@ import s from "./kit.module.css";
 /*
   Componentes del panel. Referencia visual vigente: el «panel desde cero» (LV-09, 14/11/2026,
   en PLAN.md). Los bocetos anteriores están archivados en docs/archivo/2026-11-14-panel-anterior/
-  y son solo historia. Escala admin-*: 10 px controles, 12 px fotos,
-  16 px tarjetas, 20 px paneles y pastilla en estados; sombras azul marino.
+  y son solo historia. Escala admin-*: 10 px controles,
+  12 px tarjetas, 14 px paneles y pastilla en estados; sombras casi nulas (tokens de panel-base.css).
   Sus estilos (kit.module.css) están fuera de las capas de Tailwind: una clase de
   Tailwind sirve para acomodar (márgenes, alineación, flex) pero no reemplaza el
   relleno, el tamaño ni los colores del componente. Para eso, agrega una variante.

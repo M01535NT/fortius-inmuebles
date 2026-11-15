@@ -26,8 +26,9 @@ import { usePersonStatus } from "@/components/admin/workspace/use-person-status"
 import s from "./contacts.module.css";
 
 /*
-  Contactos (boceto aprobado por el titular, 17/10/2026). Pestañas Prospectos y Clientes en
-  una sola lista de personas (LV-08, DEC-36: sin pestañas Prospectos y Clientes; la etapa va como chip y como filtro; «?tab=clientes» sigue filtrando); una lista de personas con sus iniciales, lo que buscan, la zona y el
+  Contactos (boceto aprobado por el titular, 17/10/2026; DEC-36): una sola lista de personas, sin
+  pestañas Prospectos y Clientes (la etapa va como chip y como filtro; «?tab=clientes» sigue
+  filtrando); cada persona con sus iniciales, lo que buscan, la zona y el
   presupuesto, y el siguiente paso con su fecha; en computadora se lee en columnas. El estado
   del prospecto, la conversión y la edición se hacen en la ficha de cada persona. En
   computadora, a la derecha se ve la vista previa de la persona señalada (con el puntero o el

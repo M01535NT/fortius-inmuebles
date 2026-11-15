@@ -26,7 +26,7 @@ type Entry = { key: string; href: string; title: string; text: string; icon: Rea
    trámites por pasos (TRA-01). */
 const EXTRA: Record<AppGroup, Entry[]> = {
   Documentos: [{ key: "opinion", href: "/admin/apps/documentos?formato=07", title: "Opinión de valor", text: "Con los datos que dé el cliente, sin abrir una operación.", icon: <Building2 size={18} strokeWidth={1.6} aria-hidden="true" /> },
-    // TRA-01: trámites aparte de la venta, por pasos; también en la barra superior (14/11/2026).
+    // TRA-01: trámites aparte de la venta, por pasos; también en el menú lateral (14/11/2026).
     { key: "tramites", href: "/admin/tramites", title: "Trámites", text: "Cancelación de hipoteca paso a paso, con documentos, notas y el avance para el propietario.", icon: <Route size={18} strokeWidth={1.6} aria-hidden="true" /> }],
   Calcular: [],
   Presentar: [{ key: "compartido", href: "/admin/propiedades/nueva?origen=compartido", title: "Inmueble compartido", text: "De otra inmobiliaria, con su autorización para publicarlo.", icon: <Link2 size={18} strokeWidth={1.6} aria-hidden="true" /> }],

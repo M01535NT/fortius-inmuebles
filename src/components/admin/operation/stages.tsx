@@ -44,8 +44,8 @@ function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | und
 
 
 /**
-  Panel azul de la operación (LV-06 «Moderno», 31/10/2026): regreso y folio, quién y qué quiere, el
-  número de etapa grande, las diez etapas como barras (cada una conserva su nombre accesible y, si ya
+  Encabezado de la operación (LV-09, 14/11/2026; reemplaza el panel azul de LV-06): migas, quién y
+  qué quiere, la etapa actual con su ícono, las diez etapas como barras (cada una conserva su nombre accesible y, si ya
   pasó, abre «Ver etapas» en ella), lo que quedó pendiente de etapas anteriores y, al pie, la persona
   con Llamar y WhatsApp. En las demás pestañas va compacto, con las partes de la operación.
 */
