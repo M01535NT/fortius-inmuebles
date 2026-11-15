@@ -65,7 +65,7 @@ test("reintentar «Registrar contacto» tras un error no duplica la visita ya gu
   alGuardar = (put, n) => put.coleccion === "leads" && n === 1 ? Response.json({ error: "Servicio temporalmente no disponible" }, { status: 503 }) : null;
   render(<ContactLog lead={prospecto()} today={hoy} />);
   fireEvent.click(screen.getByRole("button", { name: "Visitó" }));
-  await screen.findByRole("option", { name: "Casa A de ensayo" });
+  await waitFor(() => expect(screen.getByRole("combobox", { name: "Inmueble que visitó" }).textContent).toContain("Casa A de ensayo"));
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
   await screen.findByRole("alert");
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));

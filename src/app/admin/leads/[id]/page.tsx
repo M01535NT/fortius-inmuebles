@@ -7,6 +7,7 @@ import { hipotecaHref } from "@/lib/apps/contexto";
 import { Button, ButtonLink, buttonClass, Notice, Pill, Surface } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, AsyncSelect, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { confirmDelete } from "@/components/admin/workspace/confirm";
+import { DateField } from "@/components/ui/date-field";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
 import { ContactLog } from "@/components/admin/contacts/contact-log";
@@ -45,6 +46,7 @@ function LeadDetail({ id }: { id: string }) {
   const [noteDirty, setNoteDirty] = React.useState(false);
   const [agendaOpen, setAgendaOpen] = React.useState(false);
   const [agendaDirty, setAgendaDirty] = React.useState(false);
+  const [fechaCita, setFechaCita] = React.useState("");
   const [contactDirty, setContactDirty] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState<{ lead: Lead; version: number | null } | null>(null);
   const [contactPreset, setContactPreset] = React.useState<{ key: number; kind: "whatsapp"; nota: string } | null>(null);
@@ -114,8 +116,9 @@ function LeadDetail({ id }: { id: string }) {
     event.preventDefault();
     if (!lead) return;
     const form = event.currentTarget, data = new FormData(form);
+    if (!fechaCita) { document.getElementById("ev-fecha")?.focus(); throw new Error("Elige la fecha de la cita."); }
     await upsert(db.eventos, { id: uid(), titulo: String(data.get("titulo") ?? ""), fecha: String(data.get("fecha") ?? ""), hora: String(data.get("hora") ?? "") || undefined, tipo: String(data.get("tipo") ?? "llamada") as EventoTipo, leadId: lead.id, propiedadSlug: lead.propiedadSlug }, null);
-    form.reset(); setAgendaDirty(false); setAgendaOpen(false);
+    form.reset(); setFechaCita(""); setAgendaDirty(false); setAgendaOpen(false);
   }
   // COR-10: con su registro de cliente, la condición la da la firma; si firmó con un cliente de Fortius, es contraparte.
   const condition = personStatus.ofLead(lead);
@@ -169,14 +172,14 @@ function LeadDetail({ id }: { id: string }) {
             </AsyncForm>
             {/* La cita solo se oculta al cerrarla, para no perder lo escrito. */}
             <AsyncForm hidden={!agendaOpen} onSubmit={agendar} aria-label="Agendar con este prospecto" className={cn(s.inlineForm, !agendaOpen && "hidden")}
-              onChange={event => { const data = new FormData(event.currentTarget); setAgendaDirty(["titulo", "fecha", "hora"].some(key => String(data.get(key) ?? "").trim() !== "") || data.get("tipo") !== EVENTO_TIPOS[0]); }}>
+              onChange={event => { const data = new FormData(event.currentTarget); setAgendaDirty(!!fechaCita || ["titulo", "hora"].some(key => String(data.get(key) ?? "").trim() !== "") || data.get("tipo") !== EVENTO_TIPOS[0]); }}>
               <Field label="Título" htmlFor="ev-titulo"><input id="ev-titulo" name="titulo" required placeholder="Visita, llamada…" className={inputClass} /></Field>
-              <Field label="Fecha" htmlFor="ev-fecha"><input id="ev-fecha" name="fecha" type="date" required className={inputClass} /></Field>
+              <Field label="Fecha" htmlFor="ev-fecha"><DateField id="ev-fecha" name="fecha" required value={fechaCita} onChange={v => { setFechaCita(v); setAgendaDirty(true); }} /></Field>
               <Field label="Hora" htmlFor="ev-hora"><input id="ev-hora" name="hora" type="time" className={inputClass} /></Field>
               <Field label="Tipo" htmlFor="ev-tipo"><select id="ev-tipo" name="tipo" className={selectClass}>{EVENTO_TIPOS.map(tipo => <option key={tipo} value={tipo}>{EVENTO_TIPO_LABELS[tipo]}</option>)}</select></Field>
               <div className={s.inlineFoot}>
                 <Button type="submit">Guardar cita</Button>
-                <Button variant="ghost" onClick={event => { event.currentTarget.form?.reset(); setAgendaDirty(false); setAgendaOpen(false); }}>Cancelar</Button>
+                <Button variant="ghost" onClick={event => { event.currentTarget.form?.reset(); setFechaCita(""); setAgendaDirty(false); setAgendaOpen(false); }}>Cancelar</Button>
               </div>
             </AsyncForm>
           </Timeline>

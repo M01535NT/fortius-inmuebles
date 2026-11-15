@@ -1,7 +1,9 @@
 "use client";
 import * as React from "react";
-import { Button } from "@/components/admin/kit";
-import { inputClass, selectClass } from "@/components/admin/ui";
+import { Button, Thumb } from "@/components/admin/kit";
+import { Combobox } from "@/components/ui/combobox";
+import { DateField } from "@/components/ui/date-field";
+import { inputClass } from "@/components/admin/ui";
 import { db, errorMessage, uid, upsert, useCollection, type Lead } from "@/lib/admin/store";
 import { planNextStep } from "@/lib/admin/next-step-task";
 import { CONTACT_KINDS, RETRY_ACTION, RETRY_DAYS, addDays, missedInARow, suggestedNext, withContact, type ContactKind } from "@/lib/admin/lead-contact";
@@ -12,6 +14,7 @@ import { CONTACT_KINDS, RETRY_ACTION, RETRY_DAYS, addDays, missedInARow, suggest
   para que la vean su ficha y la operación del propietario. Tras tres «No contestó» seguidos se
   propone reintentar en 30 días (RP-97).
 */
+const SIN = "sin-inmueble";
 export function ContactLog({ lead, today, onDirtyChange, preset }: { lead: Lead; today: string; onDirtyChange?: (dirty: boolean) => void; preset?: { key: number; kind: ContactKind; nota: string } | null }) {
   const properties = useCollection(db.propiedades);
   const tasks = useCollection(db.tareas);
@@ -85,12 +88,12 @@ export function ContactLog({ lead, today, onDirtyChange, preset }: { lead: Lead;
       {missed >= 2 && <p className="m-0 text-sm text-muted-foreground">{missed} intentos seguidos sin respuesta.</p>}
     </fieldset>
     {kind && <form onSubmit={save} aria-label={`Guardar «${CONTACT_KINDS[kind]}»`} className="grid gap-3 sm:grid-cols-2">
-      {kind === "visito" && <label className="flex flex-col gap-1 text-sm sm:col-span-2">Inmueble que visitó<select className={selectClass} value={inmueble} onChange={e => setInmueble(e.target.value)}>
-        <option value="">Sin inmueble</option>
-        {properties.map(p => <option key={p.slug} value={p.slug}>{p.titulo}</option>)}
-      </select></label>}
+      {kind === "visito" && <div className="flex flex-col gap-1 text-sm sm:col-span-2"><span aria-hidden>Inmueble que visitó</span>
+        <Combobox aria-label="Inmueble que visitó" value={inmueble || SIN} onChange={v => setInmueble(v === SIN ? "" : v)} placeholder="Sin inmueble" searchPlaceholder="Buscar por nombre o zona" empty="Ningún inmueble coincide"
+          options={[{ value: SIN, label: "Sin inmueble" }, ...properties.map(p => ({ value: p.slug, label: p.titulo, detail: p.zona, keywords: [p.codigo], media: <Thumb src={p.galeria?.[0]?.src} size={32} /> }))]} />
+      </div>}
       <label className="flex flex-col gap-1 text-sm">Siguiente paso<input className={inputClass} value={accion} maxLength={160} required onChange={e => setAccion(e.target.value)} /></label>
-      <label className="flex flex-col gap-1 text-sm">Fecha<input type="date" className={inputClass} value={fecha} min={today} required onChange={e => setFecha(e.target.value)} /></label>
+      <div className="flex flex-col gap-1 text-sm"><span aria-hidden>Fecha</span><DateField aria-label="Fecha" value={fecha} min={today} required onChange={setFecha} /></div>
       <label className="flex flex-col gap-1 text-sm sm:col-span-2">Nota (opcional)<input className={inputClass} value={nota} maxLength={2000} placeholder="Qué se habló o qué quedó pendiente" onChange={e => setNota(e.target.value)} /></label>
       {retry && <p className="m-0 text-sm text-muted-foreground sm:col-span-2">Es el tercer intento sin respuesta. Vuelve a intentarlo en {RETRY_DAYS} días.</p>}
       <span className="flex flex-wrap gap-2 sm:col-span-2"><Button type="submit" disabled={busy}>Guardar</Button><Button variant="ghost" disabled={busy} onClick={cancel}>Cancelar</Button></span>

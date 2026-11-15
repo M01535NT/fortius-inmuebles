@@ -2,9 +2,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, FileDown, Plus, Search, UserPlus, X, EMPTY_ART } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Card, EmptyBox } from "@/components/admin/kit";
-import f from "@/components/admin/form.module.css";
+import { ChevronRight, FileDown, Plus, Search, X, EMPTY_ART } from "@/components/admin/icons";
+import { Avatar, Button, ButtonLink, Card, EmptyBox, Sheet } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { ClienteEditor } from "@/components/admin/cliente-editor";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
@@ -155,21 +154,17 @@ export function ContactsScreen() {
   return <GuidedPage title="Contactos" subtitle={<span className="hidden sm:inline">{finding}</span>} actions={<>
     <div className="flex gap-2 lg:hidden">
       <Button iconOnly variant="ghost" aria-label={searching ? "Cerrar búsqueda" : "Buscar"} aria-expanded={searching} onClick={() => { setSearching(v => !v); if (searching) setQuery(""); }}>{searching ? <X size={20} aria-hidden="true" /> : <Search size={20} aria-hidden="true" />}</Button>
-      {filter === "clientes" ? <Button iconOnly aria-label="Agregar cliente" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
+      {filter === "clientes" ? <Button iconOnly aria-label="Agregar cliente" aria-haspopup="dialog" onClick={() => setAdding(true)}><Plus size={20} aria-hidden="true" /></Button>
         : <ButtonLink iconOnly aria-label="Agregar contacto" href="/admin/operaciones/nueva"><Plus size={20} aria-hidden="true" /></ButtonLink>}
     </div>
     <div className="hidden lg:block">{filter === "clientes"
-      ? <Button variant={adding ? "secondary" : "primary"} aria-expanded={adding} onClick={() => setAdding(v => !v)}>{adding ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{adding ? "Cerrar" : "Agregar cliente"}</Button>
+      ? <Button variant="primary" aria-haspopup="dialog" onClick={() => setAdding(true)}><Plus size={16} aria-hidden="true" />Agregar cliente</Button>
       : <ButtonLink variant="primary" href="/admin/operaciones/nueva"><Plus size={16} aria-hidden="true" />Agregar contacto</ButtonLink>}</div>
   </>}>
     {searching && <div className="mb-4 lg:hidden">{searchField}</div>}
-    {filter === "clientes" && adding && <section className={cn(f.window, "mb-5")} aria-label="Nuevo cliente">
-      <div className={f.windowHead}>
-        <div className={f.windowTitle}><span className={f.windowIcon}><UserPlus size={22} aria-hidden="true" /></span><div><h2>Nuevo cliente</h2><p>Para registrar a un propietario directamente. Será cliente cuando firme su contrato.</p></div></div>
-        <Button variant="ghost" iconOnly aria-label="Cerrar captura" onClick={() => setAdding(false)}><X size={20} aria-hidden="true" /></Button>
-      </div>
+    <Sheet open={filter === "clientes" && adding} onClose={() => setAdding(false)} title="Nuevo cliente" description="Para registrar a un propietario directamente. Será cliente cuando firme su contrato.">
       <ClienteEditor key="nuevo" title={false} onDone={() => setAdding(false)} />
-    </section>}
+    </Sheet>
     {/* Filtros como selector a la izquierda; seleccionar y buscar a la derecha. */}
     <div className={s.tabsRow}>
       <div className={s.chips} role="group" aria-label="Mostrar personas">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
