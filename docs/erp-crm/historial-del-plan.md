@@ -33,6 +33,7 @@
 25. Secciones de octubre retiradas del plan el 14/11/2026 (decisión del titular)
 26. Tablero del 14/11/2026 antes de reescribirlo para que se siga fácil
 27. LV-08 retirado del plan el 14/11/2026 (limpieza del panel anterior)
+29. Limpieza del panel antes de LV-10 (14/11/2026)
 
 ## 1. Rediseño guiado del panel (Fase C): encargo y avance
 
@@ -2540,3 +2541,16 @@ Anotado y fuera por ahora: `npm audit` marca 3 avisos altos de una cadena solo d
 8. **Etapa posterior** (en pausa): solo cuando el titular la abra.
 
 **Entregas sin bloque en el «Orden vigente»** (el titular decide dónde van; el agente no las acomoda): COR-11 (compra y búsqueda de renta como lead), COR-12 (quitar PROFECO del 09), DOC-14, DOC-15, PUB-02 (inmuebles compartidos), FIR-01 y EXT-13 (conexión a IA con tope). EXT-12 (captura sobre el documento) entró al bloque 1 por decisión del titular (DEC-31, 27/10/2026). EXT-02, EXT-03, EXT-04 y EXT-07 sí están en el bloque 7, «solo por decisión de negocio».
+
+## 29. Limpieza del panel antes de LV-10 (14/11/2026)
+
+Pedido del titular: limpiar el panel sin cambiar nada para el asesor (mismas pantallas, datos y permisos). En `feat/integracion`, sin publicar (commits d40048f, 86b687b, f103489, 0af2582 y e62ead0).
+
+- **Código sin uso:** íconos CircleDashed y CircleDot, `Counter` del kit, `stageGuide`, `QUEUE_LABEL`, `helpHref` y `hasHelp`, piezas de Radix sin uso y unas 40 clases CSS que ya nadie pintaba. Ningún archivo del panel quedó sin uso: lo muerto era por dentro.
+- **`panel.module.css` retirado:** sus reglas base (letra, campos, foco, botones, tablas, confirmación nativa y marco) pasan a `src/app/admin/panel-base.css` bajo `.admin-root`, con la misma especificidad y el mismo orden.
+- **Colores sueltos a tokens:** el bloque azul de Bandeja, Trámites, Hoy y el kit lee `--brand-navy`, `--navy-surface`, `--on-navy`, `--on-navy-muted`, `--on-navy-edge` y `--on-navy-focus`; el botón principal, `--primary`.
+- **Duplicados:** tres menús «⋯» hechos a mano (Bandeja y Personas, ficha de persona, encabezado de la operación) son ahora uno, `ActionsMenu` del kit, sobre Radix (DEC-52).
+- **Dependencias:** ninguna sobra; `lucide-react` la usa el sitio público y el botón de tema que comparte el panel.
+- **Comentarios** que describían la barra superior (LV-08) y el panel azul (LV-06) corregidos.
+- **Ocho reglas de pantalla de LV-08 contra LV-09:** seis siguen y quedan en `SPEC.md` como RP-104; «lo demás sin color» y el lenguaje visual de LV-08 (esquinas de 20–24 px, bloques azules de 28 px) los reemplazó LV-09 (anotado en «Reglas reemplazadas»). «Sin encabezados de columna» chocará con las tablas completas de DEC-51; se decide en LV-10.
+- **Se dejó a propósito:** `Faces` y `StageRail` del kit (base de LV-10c); el desfase de 4.5 rem de la vista previa de Contactos (era la barra superior; quitarlo mueve la vista); el desplegable de Bandeja (`Desplegable`), que hace lo que haría un Select de Radix pero cambiarlo es rehacer el control, mejor en LV-10; la confirmación nativa `<dialog>`, respaldo cuando no hay ventana de Radix montada.

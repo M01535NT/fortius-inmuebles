@@ -19,7 +19,7 @@ Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema**
 
 El día que cargues el inventario real se sigue [`paso-a-inventario-real.md`](docs/erp-crm/paso-a-inventario-real.md). Todo lo demás está en «Después de empezar a operar», sin orden fijo.
 
-**Lo último:** el PR #76 (14/11/2026, merge `52e1f9a`) publicó Trámites (TRA-01), el panel desde cero (LV-09) y la paleta del sitio. En `feat/integracion`, sin publicar: FLX-01, Personas en el menú, la limpieza del 14/11/2026 y la poda de este plan (de 115 entregas quedaron 86; 21 pasaron a FLX y lo terminado o descartado está en el historial, §28). Pendiente de la limpieza: retirar del todo `panel.module.css` (sus estilos vivos pasan al kit) y revisar las ocho reglas de pantalla de LV-08 contra LV-09 (historial §27).
+**Lo último:** el PR #76 (14/11/2026, merge `52e1f9a`) publicó Trámites (TRA-01), el panel desde cero (LV-09) y la paleta del sitio. En `feat/integracion`, sin publicar: FLX-01, Personas en el menú, la limpieza del 14/11/2026 y la poda de este plan (de 115 entregas quedaron 86; 21 pasaron a FLX y lo terminado o descartado está en el historial, §28). La limpieza previa a LV-10 (retiro de `panel.module.css`, un solo menú «⋯», colores a tokens y las ocho reglas de LV-08 revisadas, RP-104) está en el historial (§29).
 
 ### Te toca a ti
 
