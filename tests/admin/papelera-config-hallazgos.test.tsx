@@ -127,9 +127,10 @@ test("una cuenta ligada a un asesor inactivo no se muestra como «Sin vincular»
 test("una tarea nueva no ofrece como responsable a un asesor inactivo", async () => {
   extra = url => url === "/api/admin/collections/asesores" ? { records: [rec("ana", ana), rec("beto", beto)] } : undefined;
   render(<TaskForm onSave={async (task: Task) => task} />);
-  const select = await screen.findByLabelText("Responsable") as HTMLSelectElement;
-  await waitFor(() => expect(Array.from(select.options).some(o => o.textContent === beto.nombre)).toBe(true));
-  expect(Array.from(select.options).map(o => o.textContent)).not.toContain(ana.nombre);
+  // LV-10 (Agenda y Tareas): el responsable se elige con el buscador del kit (`Combobox`).
+  const names = async () => { fireEvent.click(await screen.findByRole("combobox", { name: "Responsable" })); const list = screen.getAllByRole("option").map(o => o.textContent ?? ""); fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" }); return list; };
+  await waitFor(async () => expect((await names()).some(t => t.includes(beto.nombre))).toBe(true));
+  expect((await names()).some(t => t.includes(ana.nombre))).toBe(false);
 });
 
 /*

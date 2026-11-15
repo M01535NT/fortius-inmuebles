@@ -82,7 +82,7 @@ function ClienteDetail({ id }: { id: string }) {
   // Con una operación en curso no se puede: primero se cierra o se elimina la operación (el servidor también lo revisa).
   const blocking = dossiers === undefined ? "Consultando sus asuntos…" : dossiers === null ? "No se pudieron revisar sus asuntos" : dossiers.length ? `Tiene ${dossiers.length === 1 ? `el asunto ${dossiers[0].folio}` : `${dossiers.length} asuntos`} en curso` : "";
   const removeClient = async () => {
-    if (!await confirmDelete("cliente", `${cliente.nombre} sale de Contactos.`, "o")) return;
+    if (!await confirmDelete("cliente", `${cliente.nombre} sale de Contactos con sus tareas.`, "o")) return;
     await removeById(db.clientes, cliente.id, db.clientes.version(cliente));
     router.push("/admin/contactos?tab=clientes");
   };

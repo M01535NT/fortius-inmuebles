@@ -402,12 +402,8 @@ function MonthDayButton(props: DayButtonProps) {
   </CalendarDayButton>;
 }
 
-/* El calendario del kit define su raíz en línea y se volvería a montar en cada render (los datos de la
-   agenda se refrescan solos); aquí va una raíz estable para no perder el foco ni el clic. */
-function MonthRoot({ className, rootRef, ...rest }: React.ComponentProps<"div"> & { rootRef?: React.Ref<HTMLDivElement> }) {
-  return <div data-slot="calendar" ref={rootRef} className={className} {...rest} />;
-}
-const MONTH_COMPONENTS = { Root: MonthRoot, DayButton: MonthDayButton };
+// Estable a nivel de módulo: el calendario del kit ya fija su raíz (no se vuelve a montar en cada render).
+const MONTH_COMPONENTS = { DayButton: MonthDayButton };
 
 /** Hora de Tijuana «HH:mm», para atenuar las citas de hoy que ya pasaron. */
 function nowTime() {

@@ -127,7 +127,7 @@ function LeadDetail({ id }: { id: string }) {
     ? { precio: lead.perfil.presupuestoMax, moneda: lead.perfil.moneda }
     : propiedad && propiedad.precio.modalidad !== "consulta" ? { precio: propiedad.precio.monto, moneda: propiedad.precio.moneda, inmueble: propiedad.slug } : {})) }] : [];
   const removeLead = async () => {
-    if (!await confirmDelete("prospecto", `${lead.nombre} sale de Contactos con su historial.`, "o")) return;
+    if (!await confirmDelete("prospecto", `${lead.nombre} sale de Contactos con su historial y sus tareas.`, "o")) return;
     await removeById(db.leads, lead.id, db.leads.version(lead));
     router.push("/admin/contactos");
   };

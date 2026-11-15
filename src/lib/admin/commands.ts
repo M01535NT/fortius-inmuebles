@@ -47,6 +47,11 @@ export const SHORTCUTS: ReadonlyArray<{ keys: string; what: string; single: bool
   { keys: "?", what: "Ver esta lista de atajos", single: true },
   { keys: "↑ ↓", what: "Moverse entre los resultados de la barra", single: false },
   { keys: "Esc", what: "Cerrar la barra o una ventana", single: false },
+  { keys: "T", what: "En la agenda: ir a hoy", single: true },
+  { keys: "← →", what: "En la agenda: semana o mes anterior o siguiente", single: true },
+  { keys: "S", what: "En la agenda: ver la semana", single: true },
+  { keys: "M", what: "En la agenda: ver el mes", single: true },
+  { keys: "A", what: "En la agenda: agendar en el día elegido", single: true },
 ];
 
 /** ¿La tecla viene de un lugar donde se escribe? Ahí ningún atajo de una tecla actúa. */
