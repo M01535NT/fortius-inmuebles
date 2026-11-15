@@ -184,7 +184,7 @@ export function HoyScreen() {
         <SectionBoundary what="«Para ti»"><Inbox /></SectionBoundary>
       </div>
 
-      <section aria-labelledby="hoy-dia" className={cn(s.panel, s.nextBox)}>
+      <section aria-labelledby="hoy-dia" className={cn(s.panel, s.nextBox)} onClickCapture={done.guardClick}>
         <div className={s.head}><h2 id="hoy-dia" className={s.title}>Tu día</h2><span className={s.meta}>{dossiers !== undefined && queue.length > 0 ? `${plural(queue.length, "pendiente", "pendientes")} · ` : ""}{longDate(today).toLocaleLowerCase("es-MX")}</span></div>
         {failures.map(what => <div key={what}>{failed(what)}</div>)}
         {dossiers === undefined ? <p role="status" className={s.note}>Consultando asuntos…</p>
@@ -271,7 +271,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo, done
   const nowAt = now === null ? -1 : agenda.filter(event => (event.hora ?? "99") <= now).length;
   const nowLine = <li key="ahora" className={s.nowRow} aria-hidden="true"><span className={s.nowTime}>Ahora</span><span className={s.nowLine} /></li>;
   return <Section id="hoy-hoy" title="Agenda de hoy" count={agenda.length + open.length || undefined} className={s.todayBox} action={more("/admin/agenda", "Ver semana")}>
-    <div className={s.todayCard}>
+    <div className={s.todayCard} onClickCapture={completer.guardClick}>
       {empty ? <div className={s.agendaEmpty}>
         <p className={s.note}>Sin citas ni tareas hoy</p>
         {nextEvent && <Link href={`/admin/agenda?fecha=${nextEvent.fecha}&evento=${encodeURIComponent(nextEvent.id)}`} className={s.nextEvent}>

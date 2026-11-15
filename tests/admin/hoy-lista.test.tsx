@@ -51,7 +51,7 @@ beforeEach(() => {
     return Response.json({ records: collections[parts[parts.length - 1]] ?? [], entrevistas: [], runs: [], ultimos: {}, contratos: [], documentos: [] });
   });
 });
-afterEach(() => { cleanup(); clearAdminCache(); resetTodayData(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); clearAdminCache(); resetTodayData(); vi.restoreAllMocks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 test("una fila de «Tu día» se palomea sin salir de Hoy y «Deshacer» la regresa", async () => {
   seed(3);
@@ -95,4 +95,31 @@ test("dos pendientes de la misma persona van en una fila que dice «2 pendientes
   const row = await late.findByRole("link", { name: /Llamar al cliente 2 .*2 pendientes/ });
   expect(row.textContent).toContain("2 pendientes");
   expect(late.queryByText("Llamar al cliente 3")).toBeNull();
+});
+
+test("en Hoy el aviso de «Deshacer» dura 12 s, no 8", async () => {
+  seed(3);
+  const timer = vi.spyOn(window, "setTimeout");
+  render(<AdminDashboard />);
+  const late = within(await screen.findByRole("list", { name: "Pendientes vencidos" }));
+  fireEvent.click(await late.findByRole("checkbox", { name: "Marcar como hecha: Llamar al cliente 2" }));
+  await screen.findByRole("button", { name: "Deshacer" });
+  const delays = timer.mock.calls.map(call => call[1]);
+  expect(delays).toContain(12_000);
+  expect(delays).not.toContain(8_000);
+});
+
+test("el clic que llega justo cuando el aviso se va no abre la fila de abajo", async () => {
+  seed(3);
+  render(<AdminDashboard />);
+  const late = within(await screen.findByRole("list", { name: "Pendientes vencidos" }));
+  fireEvent.click(await late.findByRole("checkbox", { name: "Marcar como hecha: Llamar al cliente 2" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Deshacer" }));
+  await waitFor(() => expect(puts).toHaveLength(2));
+  await waitFor(() => expect(screen.queryByText("Completaste «Llamar al cliente 2».")).toBeNull());
+  const row = late.getByRole("link", { name: /Llamar al cliente 3/ });
+  // fireEvent.click devuelve false cuando la página canceló la navegación.
+  expect(fireEvent.click(row), "clic justo después de que se fue el aviso").toBe(false);
+  vi.setSystemTime(Date.now() + 1_000);
+  expect(fireEvent.click(row), "clic un segundo después").toBe(true);
 });
