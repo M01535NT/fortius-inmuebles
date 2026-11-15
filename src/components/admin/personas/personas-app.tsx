@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarDays, CalendarPlus, Check, FileText, MessageCircle, Pencil, Phone, Plus, Search, Upload } from "@/components/admin/icons";
+import { ArrowLeft, CalendarDays, CalendarPlus, Check, FileText, MessageCircle, Pencil, Phone, Plus, Search, Trash2, Upload } from "@/components/admin/icons";
 import { ActionsMenu, Avatar, Button, ButtonLink, Notice, Pill, Segmented, StageRail, Thumb } from "@/components/admin/kit";
 import { DateField } from "@/components/ui/date-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,7 @@ import { useAviso } from "./aviso";
 import { NuevoPerfil } from "./nuevo-perfil";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { CLIENTE_TIPO_LABELS } from "@/components/admin/cliente-editor";
 import { propertyState } from "@/components/admin/properties/property-list";
 import { formatPrecio } from "@/data/propiedades";
@@ -18,7 +19,7 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { leadStage, LEAD_STAGE_LABELS } from "@/lib/admin/person-view";
 import { PERSON_STATUS_LABEL } from "@/lib/admin/person-status";
 import { CANALES_PREFERIDOS, GRUPOS, canalEnFrase, canalPreferido, grupoDe, sucesos, type CanalPreferido, type Suceso } from "@/lib/admin/personas-vista";
-import { db, errorMessage, fetchJson, loadAllDossiers, upsert, useCollection, type AdminProperty, type Cliente, type Evento, type Lead, type Nota } from "@/lib/admin/store";
+import { db, errorMessage, fetchJson, loadAllDossiers, removeById, upsert, useCollection, type AdminProperty, type Cliente, type Evento, type Lead, type Nota } from "@/lib/admin/store";
 import { stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { formatoById } from "@/lib/formatos/catalog";
 import { isOwnerRoute, ownerProcess, processPhase, processStageText } from "@/lib/formatos/operation-workflow";
@@ -229,6 +230,31 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
   const historia = sucesos({ kind: row.kind, id: row.id, operaciones: operaciones.map(o => o.id) }, { notas, eventos, tareas, notasContacto }, today);
   const cliente = row.kind === "cliente" ? persona as Cliente | undefined : undefined;
 
+  /*
+    «Eliminar» manda a la persona a Eliminados (se restaura desde ahí), como en su ficha completa.
+    Lo que el servidor no deja se dice antes en la opción misma: un cliente con un asunto en curso, y
+    por ahora quien tiene tareas o citas en la Agenda (el servidor las cuenta como referencias).
+  */
+  const ligadas = [...tareas, ...eventos].filter(t => (row.kind === "lead" ? t.leadId : t.clienteId) === row.id).length;
+  const bloqueo = !persona ? "cargando sus datos"
+    : operaciones.length ? `tiene ${operaciones.length === 1 ? "un asunto" : `${operaciones.length} asuntos`} en curso`
+    : ligadas ? `tiene ${ligadas === 1 ? "una tarea o cita" : `${ligadas} tareas o citas`} en la Agenda` : "";
+  async function eliminar() {
+    if (!persona || bloqueo) return;
+    if (!await confirmDelete(row.kind === "cliente" ? "cliente" : "prospecto", `${row.name} sale de Personas y de Contactos${row.kind === "lead" ? " con su historial" : ""}.`, "o")) return;
+    setError(null);
+    try {
+      if (row.kind === "cliente") await removeById(db.clientes, persona.id, db.clientes.version(persona as Cliente));
+      else await removeById(db.leads, persona.id, db.leads.version(persona as Lead));
+      aviso.avisar(`${row.name} pasó a Eliminados.`);
+      onBack();
+    } catch (e) {
+      // El servidor también cuenta lo que este usuario no ve (tareas de otro asesor, su registro de prospecto).
+      const texto = errorMessage(e);
+      setError(/referencias/.test(texto) ? `No se pudo eliminar a ${row.name}: todavía tiene tareas, citas u otros registros ligados. Recarga y vuelve a intentarlo; si sigue igual, pídeselo a dirección.` : texto);
+    }
+  }
+
   return <>
     <div className={cn(b.head, s.cover)}>
       <Button variant="ghost" iconOnly className={b.back} aria-label="Volver a la lista" onClick={onBack}><ArrowLeft size={18} aria-hidden /></Button>
@@ -249,6 +275,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
           ...(op ? [{ label: "Crear un documento", onSelect: () => { router.push(`${opHref}?tab=documentos`); } }] : []),
           { label: "Nueva tarea", onSelect: () => { router.push(`/admin/agenda?tab=tareas&nueva=1&${ref}`); } },
           { label: "Abrir la ficha completa", onSelect: () => { router.push(row.href); } },
+          { label: bloqueo ? `Eliminar · ${bloqueo}` : "Eliminar", icon: <Trash2 size={18} aria-hidden />, danger: true, separated: true, disabled: !!bloqueo, onSelect: () => { void eliminar(); } },
         ]} />
       </div>
     </div>
