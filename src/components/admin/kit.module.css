@@ -81,8 +81,9 @@
 /* Pestañas: subrayado en una fila; lista vertical dentro de una operación. */
 :global(.admin-root) .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
 :global(.admin-root) .tabs .tab { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 .875rem; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--muted-foreground); font-size: var(--admin-text-interfaz); font-weight: 540; cursor: pointer; white-space: nowrap; text-decoration: none; border-radius: 0; }
-/* La fila se desplaza de lado (overflow-x) y recortaría el anillo de foco global, que va 3 px por fuera: aquí va por dentro. */
-:global(.admin-root) .tabs .tab:focus-visible { outline-offset: -3px; border-radius: var(--radius-control) var(--radius-control) 0 0; }
+/* La fila se desplaza de lado (overflow-x) y recortaría el anillo de foco global, que va 3 px por fuera: aquí va por dentro. Sin redondeo propio: el anillo
+   sigue la forma de cada pestaña (recta en la fila subrayada, píldora en las del asunto). */
+:global(.admin-root) .tabs .tab:focus-visible { outline-offset: -3px; }
 :global(.admin-root) .tabs .tab[aria-selected=true], :global(.admin-root) .tabs .tab[aria-current=page] { color: var(--foreground); border-bottom-color: var(--primary); background: none; }
 :global(.admin-root) .tabsVertical { display: flex; flex-direction: column; gap: .125rem; }
 :global(.admin-root) .tabsVertical .tab { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: var(--radius-control); background: none; color: var(--foreground); font-size: var(--admin-text-interfaz); font-weight: 540; text-align: left; cursor: pointer; }
