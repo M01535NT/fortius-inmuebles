@@ -16,6 +16,7 @@ vi.mock("@/lib/admin/store", () => ({
   useCollection: (collection: { kind?: string }) => collection.kind === "tareas" ? store.tasks : store.records[collection.kind ?? ""] ?? [],
   apiRequest: (...args: unknown[]) => store.request(...args),
   upsert: (...args: unknown[]) => store.put(...args), uid: () => `draft-${++store.sequence}`, errorMessage: (e: Error) => e.message,
+  onAdminCacheClear: () => undefined,
 }));
 beforeEach(() => { store.sequence = 0; store.records = {}; store.request.mockReset().mockImplementation(async (url: string) => url.includes("capacidades") ? { expedienteLinks: true } : { expedientes: [] }); });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); store.search = ""; });
