@@ -420,6 +420,29 @@ it("la lista de operaciones ya no trae un bote por renglón: eliminar vive dentr
   expect(screen.queryByRole("button", { name: /^Eliminar el asunto de/ })).toBeNull();
 });
 
+it("el «⋯» de cada fila abre el asunto, lo abre en otra pestaña o copia su enlace", async () => {
+  const writeText = vi.fn().mockResolvedValue(undefined);
+  Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+  render(<OperationsBoard />);
+  const row = await screen.findByRole("link", { name: /Familia Castañeda Ortiz/ });
+  const more = screen.getByRole("button", { name: /^Más acciones de Familia Castañeda Ortiz/ });
+  more.focus(); fireEvent.keyDown(more, { key: "Enter" });
+  const menu = await screen.findByRole("menu");
+  expect(within(menu).getByRole("menuitem", { name: "Abrir" }).getAttribute("href")).toBe(row.getAttribute("href"));
+  const tab = within(menu).getByRole("menuitem", { name: "Abrir en pestaña nueva" });
+  expect([tab.getAttribute("href"), tab.getAttribute("target"), tab.getAttribute("rel")]).toEqual([row.getAttribute("href"), "_blank", "noopener"]);
+  fireEvent.click(within(menu).getByRole("menuitem", { name: "Copiar enlace" }));
+  await waitFor(() => expect(writeText).toHaveBeenCalledWith(`${window.location.origin}${row.getAttribute("href")}`));
+  await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+  // En el tablero cada tarjeta lleva el mismo menú, fuera del enlace de la tarjeta.
+  fireEvent.click(screen.getByText("Tablero"));
+  const board = await screen.findByRole("list", { name: "Asuntos por etapa" });
+  const cardMore = within(board).getByRole("button", { name: /^Más acciones de Familia Castañeda Ortiz/ });
+  expect(cardMore.closest("a")).toBeNull();
+  cardMore.focus(); fireEvent.keyDown(cardMore, { key: "Enter" });
+  expect(within(await screen.findByRole("menu")).getByRole("menuitem", { name: "Abrir en pestaña nueva" }).getAttribute("target")).toBe("_blank");
+});
+
 it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña", async () => {
   await openOperation("historial");
   const note = await screen.findByLabelText("Nueva nota");
