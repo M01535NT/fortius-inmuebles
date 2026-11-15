@@ -38,7 +38,7 @@ const greetingNow = () => greetingFor(new Date().getHours());
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 /*
   Reglas de volumen de Hoy (29/10/2026): con foto solo los 4 más urgentes («Lo siguiente» y 3 filas);
-  después, hasta 10 en total en lista compacta sin foto, y al final «Ver los N en Asuntos». Tareas y citas, 5.
+  después, hasta 10 en total en lista compacta sin foto, y al final «Ver los N asuntos» (y, si quedan prospectos o seguimientos fuera, «Ver a las N personas por atender»). Tareas y citas, 5.
 */
 const PHOTO_ROWS = 3, LIST_ROWS = 10, TASK_ROWS = 5, AGENDA_ROWS = 5;
 const PHASES = [["Captar", 3], ["Preparar", 4], ["Comercializar", 2], ["Cerrar", 1]] as const;
@@ -53,6 +53,10 @@ function byPerson(items: QueueItem[]) {
   }
   return [...groups.values()];
 }
+/** El asunto al que lleva un pendiente (no cuenta «Nuevo asunto» desde una entrevista). */
+const asuntoOf = (item: QueueItem) => /^\/admin\/operaciones\/(?!nueva\b)([^/?#]+)/.exec(item.href)?.[1];
+/** Prospecto nuevo o seguimiento de contacto: se revisan en Personas. */
+const isPersonItem = (item: QueueItem) => item.kind === "nuevo" || item.kind === "seguimiento";
 /** Lo mínimo de la operación que necesita el riel para saber su etapa. */
 const asOperation = (d: TodayDossier): OperationRecord => ({ id: d.id, folio: d.folio, version: 0, cliente_id: d.cliente_id ?? "", asesor_id: d.asesor_id ?? "", operacion: "venta", propiedad_slug: d.propiedad_slug ?? null, etapa: d.etapa, flujo: d.flujo, inicial: d.inicial });
 
@@ -110,7 +114,12 @@ export function HoyScreen() {
   const room = LIST_ROWS - 1;
   const lateShown = lateGroups.slice(0, room);
   const otherShown = otherGroups.slice(0, Math.max(0, room - lateShown.length));
-  const hidden = groups.length - lateShown.length - otherShown.length;
+  // Lo que no cabe se revisa donde vive, y el enlace cuenta lo que se va a encontrar ahí: asuntos en
+  // Asuntos y personas por atender en Personas (no los pendientes de Hoy, que incluyen las dos cosas).
+  const hiddenItems = [...lateGroups.slice(lateShown.length), ...otherGroups.slice(otherShown.length)].flat();
+  const asuntosTotal = new Set(queue.map(asuntoOf).filter(Boolean)).size;
+  const peopleTotal = new Set(queue.filter(isPersonItem).map(item => item.who)).size;
+  const moreAsuntos = hiddenItems.some(item => asuntoOf(item)), morePeople = hiddenItems.some(isPersonItem);
   // Los números cuentan pendientes, no filas, y cada uno por lo que es: una fila de «3 pendientes» que
   // empieza con algo vencido no vuelve vencidos a los otros dos. Así cuadran con «N pendientes» y el menú.
   const lateTotal = queue.filter(item => item.late).length, todayTotal = queue.length - lateTotal;
@@ -206,7 +215,10 @@ export function HoyScreen() {
               <QueueList groups={otherShown} photos={otherPhotos} label="Más pendientes" helpers={helpers} />
             </>}
             {/* Hoy no crece con el volumen: el resto se revisa en Asuntos, que pone arriba lo vencido y tiene filtros. */}
-            {hidden > 0 && <ButtonLink href="/admin/operaciones" variant="ghost" className={cn(s.more, "self-start")}>Ver los {queue.length} en Asuntos</ButtonLink>}
+            {(moreAsuntos || morePeople) && <div className={s.moreLinks}>
+              {moreAsuntos && <ButtonLink href="/admin/operaciones" variant="ghost" className={s.more}>{asuntosTotal === 1 ? "Ver el asunto" : `Ver los ${asuntosTotal} asuntos`}</ButtonLink>}
+              {morePeople && <ButtonLink href="/admin/personas" variant="ghost" className={s.more}>{peopleTotal === 1 ? "Ver a la persona por atender" : `Ver a las ${peopleTotal} personas por atender`}</ButtonLink>}
+            </div>}
           </>}
         {done.from === "dia" && <DoneMessage done={done} />}
       </section>

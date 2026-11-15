@@ -48,6 +48,7 @@ beforeEach(() => {
       return Response.json({ record: saved });
     }
     if (url.endsWith("/api/admin/expedientes")) return Response.json({ expedientes: dossiers });
+    if (url.endsWith("/api/admin/entrevistas/config")) return Response.json({ administrador: false, asesorId: "a1" });
     return Response.json({ records: collections[parts[parts.length - 1]] ?? [], entrevistas: [], runs: [], ultimos: {}, contratos: [], documentos: [] });
   });
 });
@@ -76,16 +77,28 @@ test("«Ya lo hice» en «Lo siguiente» completa su tarea y ofrece deshacer", a
   expect(await screen.findByRole("button", { name: "Deshacer" })).toBeTruthy();
 });
 
-test("con 15 pendientes: 4 con foto o cara, 10 filas en total y «Ver los 15 en Asuntos»", async () => {
+test("con 15 pendientes: 4 con foto o cara, 10 filas en total y «Ver los 15 asuntos»", async () => {
   seed(15);
   const { container } = render(<AdminDashboard />);
   const late = await screen.findByRole("list", { name: "Pendientes vencidos" });
   await waitFor(() => expect(within(late).getAllByRole("article")).toHaveLength(9));
   // «Lo siguiente» lleva la foto grande; de las filas, solo las 3 primeras llevan foto o cara.
   expect(container.querySelectorAll("[class*='mediaCell']")).toHaveLength(3);
-  // Hoy no crece: el resto se revisa en Asuntos.
-  expect(screen.getByRole("link", { name: "Ver los 15 en Asuntos" }).getAttribute("href")).toBe("/admin/operaciones");
+  // Hoy no crece: el resto se revisa en Asuntos, y el enlace cuenta asuntos (no pendientes).
+  expect(screen.getByRole("link", { name: "Ver los 15 asuntos" }).getAttribute("href")).toBe("/admin/operaciones");
+  expect(screen.queryByRole("link", { name: /personas por atender/ })).toBeNull();
   expect(screen.queryByRole("button", { name: /^Ver los/ })).toBeNull();
+});
+
+test("con prospectos fuera de la lista, el enlace a Asuntos cuenta asuntos y otro lleva a Personas", async () => {
+  seed(12);
+  // 12 asuntos con tarea vencida y 3 prospectos nuevos del sitio (aún en plazo): 15 pendientes, que no caben.
+  collections.leads = [1, 2, 3].map(n => rec(`l${n}`, { id: `l${n}`, nombre: `Prospecto de ensayo ${n}`, telefono: "6640000000", origen: "sitio", estado: "nuevo", creadoEl: "2026-10-16T17:30:00Z", notas: [], asesorId: "a1" }));
+  render(<AdminDashboard />);
+  await screen.findByRole("list", { name: "Pendientes vencidos" });
+  const asuntos = await screen.findByRole("link", { name: "Ver los 12 asuntos" });
+  expect(asuntos.getAttribute("href")).toBe("/admin/operaciones");
+  expect(screen.getByRole("link", { name: "Ver a las 3 personas por atender" }).getAttribute("href")).toBe("/admin/personas");
 });
 
 test("dos pendientes de la misma persona van en una fila que dice «2 pendientes»", async () => {
