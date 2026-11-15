@@ -95,6 +95,9 @@ test("dos pendientes de la misma persona van en una fila que dice «2 pendientes
   const row = await late.findByRole("link", { name: /Llamar al cliente 2 .*2 pendientes/ });
   expect(row.textContent).toContain("2 pendientes");
   expect(late.queryByText("Llamar al cliente 3")).toBeNull();
+  // Los números cuentan pendientes, no filas: 4 vencidos aunque se vean 3 (la portada y 2 filas).
+  expect(screen.getByText("4 cosas vencidas")).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 3, name: "Vencido 4" })).toBeTruthy();
 });
 
 test("en Hoy el aviso de «Deshacer» dura 12 s, no 8", async () => {

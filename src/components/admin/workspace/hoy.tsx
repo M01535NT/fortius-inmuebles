@@ -97,7 +97,6 @@ export function HoyScreen() {
   ];
   const weekList = week.map(day => ({ day, items: weekItems(day) })).filter(entry => entry.items.length > 0);
   const weekCount = weekList.reduce((sum, entry) => sum + entry.items.length, 0);
-  const lateCount = queue.filter(item => item.late).length;
   const failures = [dossiers === null && "los asuntos", interviews === null && "las entrevistas", contracts === null && "los contratos de servicio", reports === null && "los informes al propietario"].filter((x): x is string => !!x);
   // COR-14: la situación y la condición de la llamada, en texto junto a la operación.
   const tagsOf = (item: QueueItem) => { const d = item.folio ? dossiers?.find(x => x.folio === item.folio) : undefined; return d ? operationTags(d, conditions.ofOperation(d.id)) : []; };
@@ -113,7 +112,9 @@ export function HoyScreen() {
   const lateShown = showAll ? lateGroups : lateGroups.slice(0, room);
   const otherShown = showAll ? otherGroups : otherGroups.slice(0, Math.max(0, room - lateShown.length));
   const hidden = groups.length - lateShown.length - otherShown.length;
-  const lateTotal = lateGroups.length + (next?.late ? 1 : 0), todayTotal = otherGroups.length + (next && !next.late ? 1 : 0);
+  // Los números cuentan pendientes, no filas, y cada uno por lo que es: una fila de «3 pendientes» que
+  // empieza con algo vencido no vuelve vencidos a los otros dos. Así cuadran con «N pendientes» y el menú.
+  const lateTotal = queue.filter(item => item.late).length, todayTotal = queue.length - lateTotal;
   // Las 3 primeras filas visibles (las más urgentes después de «Lo siguiente») van con foto o cara.
   const latePhotos = Math.min(PHOTO_ROWS, lateShown.length), otherPhotos = Math.max(0, PHOTO_ROWS - latePhotos);
 
@@ -152,7 +153,7 @@ export function HoyScreen() {
   const todayCount = todayTotal + agenda.length + dayTasks.filter(isTaskOpen).length;
   const oldest = next?.late ? next.when : undefined;
   const finding = dossiers === undefined ? "Consultando tu día…"
-    : <>{lateCount > 0 ? <>Tienes <b className={s.lateText}>{plural(lateCount, "cosa vencida", "cosas vencidas")}</b> y </> : "No tienes nada vencido; "}
+    : <>{lateTotal > 0 ? <>Tienes <b className={s.lateText}>{plural(lateTotal, "cosa vencida", "cosas vencidas")}</b> y </> : "No tienes nada vencido; "}
       {todayCount > 0 ? `${todayCount} para hoy` : "nada más para hoy"}.{oldest ? ` Lo más urgente viene ${oldest.charAt(0).toLowerCase()}${oldest.slice(1)}.` : ""}</>;
 
   // Tu cartera: cuántas operaciones del propietario hay en cada una de sus diez etapas.
@@ -205,7 +206,7 @@ export function HoyScreen() {
               {!next.late && nextBlock}
               <QueueList groups={otherShown} photos={otherPhotos} label="Más pendientes" helpers={helpers} />
             </>}
-            {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>Ver los {groups.length + 1}</Button>}
+            {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>Ver los {queue.length}</Button>}
           </>}
         {done.from === "dia" && <DoneMessage done={done} />}
       </section>
