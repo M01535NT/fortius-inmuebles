@@ -111,7 +111,6 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | N17 | **Calificación del prospecto**: caliente, tibio o frío; la pone el asesor y el sistema sugiere una según la actividad; las listas se ordenan por ella. | Es distinta del estado del prospecto (Nuevo, Contactado…), que no cambia. La sugerencia nunca se aplica sola (RP-62). Requiere un campo nuevo en el perfil del prospecto (con migración si no cabe en el perfil existente). |
 | N18 | **Foto de documento con la cámara**: en celular, el requisito abre directo la cámara. | Entra por la misma carga de DOC-11 y termina en «Lo tengo», nunca en revisado. La imagen se guarda privada y sin ubicación (como la herramienta Fotografías). |
 | N19 | **Modo «Ver como cliente»**: mostrar el inmueble en la tableta sin precio mínimo, comisión ni notas internas. | Se arma con la proyección pública del inmueble (RP-64, PUB-01), no ocultando campos. Sale del modo con un botón claro. No da acceso a otras pantallas del panel mientras está activo. |
-| N20 | **Aviso de «<persona> está editando esto»**. | Evita conflictos antes de que ocurran; el control de versión (409) sigue siendo la protección real. Requiere presencia en tiempo real de Supabase (incluida en la librería instalada, sin dependencia nueva) y decisión del titular. Prioridad baja. |
 
 **D. Agenda**
 
@@ -133,7 +132,6 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | ID | Mejoras | Depende de | Aceptación |
 |---|---|---|---|
 | NAV-01 | N01, N02, N04 | SIM-02, UX-02 | Barra contraíble con botón y `[`, nombres visibles al enfocar; hasta 5 fijados que sobreviven a recargar y cambiar de equipo; contadores solo con algo vencido; las cinco secciones no se mueven. |
-| NAV-02 | N03 | UX-03 | Recientes al abrir el buscador, por usuario, solo con registros visibles. |
 | NAV-03 | N05, N06 | SIM-01, SIM-08 | Vista previa en Operaciones, Contactos e Inmuebles a partir de 1024 px; al volver de una ficha, lista con la misma búsqueda, filtro y posición. |
 | NAV-04 | N07 | UX-02, SEG-01 | Listas del equipo creadas por el administrador y personales por usuario; cada lista respeta permisos; umbrales en Configuración. |
 | NAV-05 | N08–N11 | UX-02, SIM-03 | Secciones de Hoy ocultables salvo las protegidas; letra Grande sin desbordamiento a 320 px; tema automático; inicio por rol con Hoy como respaldo. |
@@ -141,8 +139,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | NAV-07 | N13–N15 | UX-04, SIM-07 | Posponer con deshacer; acciones de fila con alternativa en «⋯»; edición en la ficha con control de versión. |
 | NAV-08 | N16 | DOC-10, SEG-01 | Cola que recorre pendientes de revisión de todas las operaciones visibles; misma evidencia que «Marcar como revisado». |
 | NAV-09 | N17 | CRM-02 | Calificación manual con sugerencia que no se aplica sola; listas ordenables por ella. |
-| NAV-10 | N18, N19 | DOC-11, PUB-01 | Cámara desde el requisito, imagen privada sin ubicación; «Ver como cliente» con datos públicos únicamente. |
-| NAV-11 | N20 | Decisión del titular | Aviso de edición simultánea sin reemplazar el control de versión. |
+| NAV-10 | N18, N19 | FLX-07, PUB-01 | Cámara desde el requisito, imagen privada sin ubicación; «Ver como cliente» con datos públicos únicamente. |
 | NAV-12 | N21, N22 | Migración autorizada (N21), PRV-01 (N22) | Citas con duración y arrastre con alternativa de teclado; suscripción de solo lectura, revocable y con datos mínimos. |
 | NAV-14 | N25 | PWA-03 | En espera hasta que existan avisos fuera del panel. |
 
@@ -211,13 +208,13 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 
 | ID | Alcance | Depende de | Aceptación |
 |---|---|---|---|
-| FLX-01 | **Bandeja y documentos sin operación:** tabla nueva (migración aditiva) con documentos ligables a persona, inmueble, asunto o a nada; Bandeja donde se elige a mano a dónde va cada documento (la lectura y la recomendación son FLX-07); inmueble sin propietario; «Nuevo perfil» con las cinco preguntas de una llamada; entrada en el menú después de Hoy (RP-58, RP-101, RP-102). | LV-09 | Soltar dos PDF y terminar con el terreno archivado sin propietario; abrir un perfil con las cinco preguntas; el respaldo diario incluye la tabla nueva; ninguna guarda existente se quita. |
-| FLX-02 | **Crear cualquier documento desde cualquier lado:** «Crear documento» en persona, inmueble y asunto; se retiran los candados de pantalla. | FLX-01 | Crear el levantamiento sin entrevista; los formatos conservan versiones y PDF inmutables. |
-| FLX-03 | **De frenos a avisos y de metodología a guías:** guías como datos (venta, renta, compra, búsqueda de renta, inspección, opinión de valor, cancelación de hipoteca); disparadores nuevos que avisan y anotan en lugar de rechazar, con el mismo cambio en TypeScript (RP-100). | FLX-02 | Publicar sin intermediación firmada deja aviso en el historial; las pruebas que hoy dicen «rechaza» pasan a «permite y anota», sin borrarse; una operación existente conserva etapa, documentos y formatos. |
-| FLX-04 | **Perfiles completos y listas:** persona con folio y vista agregada; papeles por asunto; compradores y arrendatarios como clientes (RP-93); prospectos del formulario sin duplicarse. | FLX-03 | Un comprador que firma pasa a cliente y conserva su historial; listas con filtros. |
-| FLX-05 | **Vencimientos y coincidencias:** vigencia por documento y fechas de contratos en Hoy; coincidencias entre búsquedas e inmuebles. | FLX-04 | Un arrendamiento por terminar aparece en Hoy como llamada; un inmueble nuevo muestra quién buscaba algo así. |
-| FLX-07 | **La Bandeja recomienda a dónde va cada documento (RP-103):** al soltar un documento, el sistema lo lee (la lectura de IA-01) y busca a qué inmueble, persona o asunto corresponde por lo que el documento dice: dirección, clave catastral, folio real, nombres, RFC o CURP. Muestra la recomendación con el dato que la sostiene; se confirma con un clic o se deja sin ligar. Si no encuentra nada, propone crear el inmueble, la persona o el asunto con lo leído, y también eso espera el clic. Sin lectura disponible, la Bandeja sigue funcionando a mano como en FLX-01. Se construye después de FLX-04, cuando existen los asuntos y los perfiles completos contra los cuales comparar; puede ir en paralelo con FLX-05. | FLX-04, IA-01 | **Ejemplo del titular:** se suelta el avalúo de un terreno que ya está registrado y la Bandeja recomienda ese inmueble, mostrando el dato con que lo reconoció (por ejemplo, la clave catastral); un clic lo liga. Además: el avalúo de un terreno que no existe propone «Crear inmueble» con dirección y superficie ya llenas, y no se crea nada sin confirmar; «Dejar sin ligar» lo deja en la Bandeja; una prueba comprueba que, sin el clic, el servidor no liga ni crea nada (RP-44, RP-62). Con documentos de clientes reales, la lectura espera el visto bueno del abogado (PRV-01); mientras la base tenga solo datos de prueba (DEC-10) se ensaya con documentos ficticios. |
-| FLX-06 | **Cierre:** manual, registro de privacidad (documentos de compradores y arrendatarios), revisión con crítico en contexto limpio y propuesta de verificación completa. | FLX-05, FLX-07 | Documentos al día; PRV-01 actualizado para el abogado. |
+| FLX-01 | **Bandeja y documentos sin operación:** tabla nueva (migración aditiva) con documentos ligables a persona, inmueble, asunto o a nada; Bandeja donde se elige a mano a dónde va cada documento (la lectura y la recomendación son FLX-07); inmueble sin propietario; «Nuevo perfil» con las cinco preguntas de una llamada; entrada en el menú después de Hoy (RP-58, RP-101, RP-102). Absorbe CAP-01 (primer contacto en una pantalla: es «Nuevo perfil»). | LV-09 | Soltar dos PDF y terminar con el terreno archivado sin propietario; abrir un perfil con las cinco preguntas; el respaldo diario incluye la tabla nueva; ninguna guarda existente se quita. |
+| FLX-02 | **Crear cualquier documento desde cualquier lado:** «Crear documento» en persona, inmueble y asunto; se retiran los candados de pantalla. Absorbe FCH-02 (los documentos se llenan con lo que saben la persona y el inmueble; el PDF emitido no cambia solo, RP-76) y HER-04 (un trabajo suelto pasa a un asunto con sus datos). | FLX-01 | Crear el levantamiento sin entrevista; los formatos conservan versiones y PDF inmutables. |
+| FLX-03 | **De frenos a avisos y de metodología a guías:** guías como datos (venta, renta, compra, búsqueda de renta, inspección, opinión de valor, cancelación de hipoteca); disparadores nuevos que avisan y anotan en lugar de rechazar, con el mismo cambio en TypeScript (RP-100). Absorbe MOT-01 a MOT-04 (las guías como listas editables sustituyen al motor con editor; procesos base y módulos del 17/10/2026 en el historial, §28.3), FCH-04 (descargar con faltantes; ningún campo vacío detiene, RP-77 y RP-82) y DOC-15 (listas de documentos por situación como guías). | FLX-02 | Publicar sin intermediación firmada deja aviso en el historial; las pruebas que hoy dicen «rechaza» pasan a «permite y anota», sin borrarse; una operación existente conserva etapa, documentos y formatos. |
+| FLX-04 | **Perfiles completos y listas:** persona con folio y vista agregada; papeles por asunto; compradores y arrendatarios como clientes (RP-93); prospectos del formulario sin duplicarse. Absorbe REL-01 (persona con varios papeles, representantes y varios propietarios), CRM-01 (la condición de cliente sale del contrato firmado), CRM-03 (línea de tiempo con filtros por tipo), OPS-01 (el asunto como centro de trabajo), CAP-03 (lo ya respondido se confirma; preguntas por momento, historial §28.3), FCH-01 (datos de la persona y del inmueble en un solo lugar, con origen y estado por dato), FCH-07 (archivo por documento pedido) y FCH-11 (el valor concluido queda en el inmueble). | FLX-03 | Un comprador que firma pasa a cliente y conserva su historial; listas con filtros. |
+| FLX-05 | **Vencimientos y coincidencias:** vigencia por documento y fechas de contratos en Hoy; coincidencias entre búsquedas e inmuebles. Absorbe EXT-01 (coincidencias explicables en los dos sentidos) y DOC-13 (vencimientos por fecha y responsable). | FLX-04 | Un arrendamiento por terminar aparece en Hoy como llamada; un inmueble nuevo muestra quién buscaba algo así. |
+| FLX-07 | **La Bandeja recomienda a dónde va cada documento (RP-103):** al soltar un documento, el sistema lo lee (la lectura de IA-01) y busca a qué inmueble, persona o asunto corresponde por lo que el documento dice: dirección, clave catastral, folio real, nombres, RFC o CURP. Muestra la recomendación con el dato que la sostiene; se confirma con un clic o se deja sin ligar. Si no encuentra nada, propone crear el inmueble, la persona o el asunto con lo leído, y también eso espera el clic. Sin lectura disponible, la Bandeja sigue funcionando a mano como en FLX-01. Se construye después de FLX-04, cuando existen los asuntos y los perfiles completos contra los cuales comparar; puede ir en paralelo con FLX-05. Absorbe DOC-11 (soltar varios archivos y que se proponga a dónde van; ninguno queda revisado por cargarse). | FLX-04, IA-01 | **Ejemplo del titular:** se suelta el avalúo de un terreno que ya está registrado y la Bandeja recomienda ese inmueble, mostrando el dato con que lo reconoció (por ejemplo, la clave catastral); un clic lo liga. Además: el avalúo de un terreno que no existe propone «Crear inmueble» con dirección y superficie ya llenas, y no se crea nada sin confirmar; «Dejar sin ligar» lo deja en la Bandeja; una prueba comprueba que, sin el clic, el servidor no liga ni crea nada (RP-44, RP-62). Con documentos de clientes reales, la lectura espera el visto bueno del abogado (PRV-01); mientras la base tenga solo datos de prueba (DEC-10) se ensaya con documentos ficticios. |
+| FLX-06 | **Cierre:** manual, registro de privacidad (documentos de compradores y arrendatarios), revisión con crítico en contexto limpio y propuesta de verificación completa. Absorbe COR-26 (manual con capturas actuales; la prueba de uso es USO-02). | FLX-05, FLX-07 | Documentos al día; PRV-01 actualizado para el abogado. |
 
 **Por replantear en su etapa** (las reglas siguen vigentes hasta entonces): candado de arranque (FLUJO-04a) y «avanzar sí espera» (B-04, RP-87); DEC-42 (siguiente paso con tarea y fecha); el freno de la firma de TRA-01, que pasaría a aviso con Trámites como guía; MOT-01 a MOT-04 (guías como listas editables en lugar de motor con editor). REL-01, FCH-01, HER-02, HER-04, CRM-03 y COR-11 quedan absorbidas o se replantean dentro de FLX.
 
@@ -254,17 +251,13 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 
 | ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
 |---|---|---|---|---|
-| REL-01 P1/I | Persona con varios papeles, representantes y varios propietarios por inmueble; datos de organización | personas nuevo, clientes/propiedades/expedientes, migración aditiva | DEC-04/09, BAS-01; 3–5d | Vínculo versionado y con fuente; no certificar titularidad; persona no se duplica por papel. Legacy sigue legible. |
-| SEG-01 P0/I | Matriz de capacidades por función y por registro | identity nuevo, auth, staff, RLS y Storage | DEC-03, REL-01; 3–5d | Dos asesores, administrador y capacidad especializada probados en API/DB; reasignación elimina acceso indebido. |
+| SEG-01 P0/I | Matriz de capacidades por función y por registro | identity nuevo, auth, staff, RLS y Storage | DEC-03, FLX-04; 3–5d | Dos asesores, administrador y capacidad especializada probados en API/DB; reasignación elimina acceso indebido. |
 | USR-01 P1/I | Administrar cuentas del equipo desde el panel | nueva vista/API de personal, perfil asesor y adviser-accounts | SEG-01/AUT-01; 3–5d | Invitar, vincular y desactivar personal con trazabilidad; perfil público separado de cuenta; evitar dejar cero administradores activos; no pedir ni mostrar contraseña del usuario. **Flujo pedido por el titular (17/10/2026, J-01):** en Equipo, el administrador captura nombre completo, celular, correo y rol (con sus permisos), registra el convenio de confidencialidad y envía la invitación por correo. La persona abre el enlace, crea su usuario y contraseña, responde un captcha (Cloudflare Turnstile) y confirma su celular con un código por SMS (proveedor de pago conectado a Supabase); si no se puede, con una app de códigos. Al entrar por primera vez, el panel le da la bienvenida y lo guía a subir su foto y escribir su biografía, que edita él mismo. Las invitaciones salen por un servicio de correo propio, no por el correo de prueba de Supabase. Es condición para las pruebas de uso (USO-01). |
-| CRM-01 P1/I | Captar, calificar, abrir operación y programar próxima acción; coincidencias revisables; la condición de cliente sale del contrato firmado (RP-90) | leads/clientes/lead-profile, conversion, followups | REL-01, SEG-01; 3–5d | Conversión idempotente, fuente/consentimiento trazados, sin fusión automática por teléfono; convertir no muestra «Cliente» sin contrato firmado. |
-| OPS-01 P1/I | Expediente como operación coherente y centro de trabajo | operaciones nuevo, expedientes, tareas/eventos/related-work | DEC-02/05, CRM-01; 3–5d | Contexto compartido y enlaces durables; conflicto conserva captura; tarea vincula expediente explícitamente. |
-| PUB-01 P1/I | Inventario interno separado de publicación; captación web conectada | property-form, public.ts, `/api/public/leads`, layout config | SEG-01, CRM-01; 2–4d | Alta no publica; datos privados no aparecen en web/PDF; formulario sintético llega al CRM si se autoriza activar captación. Demo se conserva. |
-| DAT-01 P1/I | Revisar datos heredados e importaciones/exportaciones permitidas | validadores/domain, utilidades de importación y reporte de simulación | REL-01/SEG-01/PRV-01; 2–4d | Simulación sin escrituras detecta referencias ambiguas, duplicados y errores; usuario decide fusiones; ejecución idempotente y export restringido. Nunca importar ejemplos como actividad real. |
-| CRM-02 P1/I | Registro rápido de contacto, siguiente paso obligatorio, plantillas de mensaje y reloj de primera atención (RP-21 a RP-23) | contactos, fichas, followups, tareas | CRM-01; 3–5d | Registrar un contacto en dos toques; sin siguiente paso pide fecha o motivo. La plantilla abre WhatsApp o correo y el envío no se registra hasta que el asesor lo confirma. El reloj usa la definición de «Primera atención». |
-| CRM-03 P1/C | Ficha 360° de la persona con línea de tiempo unificada (RP-27) | fichas de prospecto y cliente, historial, eventos, tareas, documentos, ofertas | REL-01, CRM-02; 3–5d | Cada hecho aparece una sola vez, con fuente y enlace; filtros por tipo; respeta permisos. |
+| PUB-01 P1/I | Inventario interno separado de publicación; captación web conectada | property-form, public.ts, `/api/public/leads`, layout config | SEG-01, FLX-04; 2–4d | Alta no publica; datos privados no aparecen en web/PDF; formulario sintético llega al CRM si se autoriza activar captación. Demo se conserva. |
+| DAT-01 P1/I | Revisar datos heredados e importaciones/exportaciones permitidas | validadores/domain, utilidades de importación y reporte de simulación | FLX-04/SEG-01/PRV-01; 2–4d | Simulación sin escrituras detecta referencias ambiguas, duplicados y errores; usuario decide fusiones; ejecución idempotente y export restringido. Nunca importar ejemplos como actividad real. |
+| CRM-02 P1/I | Registro rápido de contacto, siguiente paso obligatorio, plantillas de mensaje y reloj de primera atención (RP-21 a RP-23) | contactos, fichas, followups, tareas | FLX-04; 3–5d | Registrar un contacto en dos toques; sin siguiente paso pide fecha o motivo. La plantilla abre WhatsApp o correo y el envío no se registra hasta que el asesor lo confirma. El reloj usa la definición de «Primera atención». |
 | INV-01 P1/C | Salud del inmueble, alertas de precio e historial de precio (RP-28) | propiedades, historial de cambios, eventos, ofertas, Comparables | PUB-01; 2–4d | Indicadores con fuente; umbrales ajustables en Configuración; historial de precio con autor, fecha y motivo; la alerta abre Comparables con el inmueble. |
-| DAT-02 P1/I | Calidad de captura: validaciones, catálogo de colonias, montos con moneda y fusión asistida (RP-40 a RP-43) | validadores, formularios, catálogo SEPOMEX con fecha de corte, personas | REL-01, DAT-01; 3–6d | Mensajes de validación claros; catálogo con fecha de corte y «otra» marcada; fusión campo por campo con historial y deshacer, nunca automática. |
+| DAT-02 P1/I | Calidad de captura: validaciones, catálogo de colonias, montos con moneda y fusión asistida (RP-40 a RP-43) | validadores, formularios, catálogo SEPOMEX con fecha de corte, personas | FLX-04, DAT-01; 3–6d | Mensajes de validación claros; catálogo con fecha de corte y «otra» marcada; fusión campo por campo con historial y deshacer, nunca automática. |
 
 **Retirada de esta tabla el 13/11/2026:** PUB-02, en `main` con el PR #73 (historial, §21).
 
@@ -272,23 +265,18 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 
 | ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
 |---|---|---|---|---|
-| COM-01 P1/I | Conectar cartera/oportunidad/expediente sin duplicar hechos | comercial server/types, operación y vínculos SQL | OPS-01, DEC-05/09; 3–5d | Reconciliar vínculos por ID; las ponderaciones de la cartera no se presentan como probabilidad (el pronóstico por etapa es FIN-03); libro emitido histórico intacto. |
-| VIS-01 P1/I | Visita con resultado, asistencia, autorización y próxima acción; captura desde el celular (RP-25) | calendario/eventos, formato 13, operación, informe al propietario | OPS-01; 2–4d | Visita programada distinta de realizada/cancelada; llegada, opinión del comprador y foto en menos de un minuto; alimenta el informe al propietario; no contar doble al corregir; acceso y seguimiento correctos. |
+| COM-01 P1/I | Conectar cartera/oportunidad/expediente sin duplicar hechos | comercial server/types, operación y vínculos SQL | FLX-04, DEC-05/09; 3–5d | Reconciliar vínculos por ID; las ponderaciones de la cartera no se presentan como probabilidad (el pronóstico por etapa es FIN-03); libro emitido histórico intacto. |
+| VIS-01 P1/I | Visita con resultado, asistencia, autorización y próxima acción; captura desde el celular (RP-25) | calendario/eventos, formato 13, operación, informe al propietario | FLX-04; 2–4d | Visita programada distinta de realizada/cancelada; llegada, opinión del comprador y foto en menos de un minuto; alimenta el informe al propietario; no contar doble al corregir; acceso y seguimiento correctos. |
 | OFE-01 P1/I | Ofertas/contraofertas como línea de tiempo, vigencia y respuesta autorizada (RP-26) | formato 14/oferta, operación, historial | COM-01, VIS-01; 3–5d | Versiones, vencimiento de cada oferta y diferencia contra el precio de salida; respuesta del propietario identificada; acuerdo comercial no se presenta como contrato firmado. |
-| DOC-01 P1/I | Unificar fuente documental/revisión/emisión/copia firmada | formatos catalog/server/API, assets, snapshots | OPS-01, SEG-01; 3–6d | Hash/versión verificables; cambio invalida revisión afectada; firma capturada no equivale a firma electrónica. |
+| DOC-01 P1/I | Unificar fuente documental/revisión/emisión/copia firmada | formatos catalog/server/API, assets, snapshots | FLX-04, SEG-01; 3–6d | Hash/versión verificables; cambio invalida revisión afectada; firma capturada no equivale a firma electrónica. |
 | LEG-01 P1/I | Requisitos, hallazgos, excepciones y conclusión profesional por etapa | juridica, formato 05/06, transitions propuesto | DOC-01, DEC-05, revisión jurídica; 3–5d | Recibido/revisado separados; no avanzar por casilla vacía; excepción tiene autor, fundamento y fecha. Modelo 09 sigue bloqueado hasta cotejo externo requerido. |
 | TEC-01 P1/I | Levantamientos y discrepancias con fuente/fecha/evidencia | levantamiento y variantes 04, assets, property facts | DOC-01; 3–5d | Superficies no se mezclan ni suman indebidamente; medición, declaración y dato documental diferenciados; foto vinculada. |
-| CAP-01 a CAP-04 P1/I | Llamada en menos de un minuto, aviso y cita, entrevista por momentos con preguntas ampliadas, cierre y modo cita (F01–F09) | ver «Proceso, captura y documentos» | dependencias en su tabla; 1–3d por entrega | Aceptación en su tabla. |
-| FCH-01 a FCH-11 P1/I | Ficha única, documentos que leen de ella, descarga con advertencia, expediente en un archivo, membrete, plantillas propias, dictamen con párrafos (F10–F23) | ver «Proceso, captura y documentos» | FCH-01 con REL-01 y migración; 1–5d por entrega | Aceptación en su tabla. |
-| MOT-01 a MOT-04 P1/I | Motor de procesos por tipo de operación con módulos y editor | ver «Proceso, captura y documentos» | FCH-01; migración; por estimar tras MOT-01 | Aceptación en su tabla; la versión 1 reproduce exactamente los candados actuales. |
-| HER-01 a HER-04 P1/C | Herramientas para trabajo suelto: catálogo depurado, machotes y documentos sin operación, ISR y neto, pasar a operación (RP-83) | ver «Herramientas para trabajo suelto (HER)» | dependencias en su tabla; catálogo confirmado el 18/10/2026 | Aceptación en su tabla. |
+| CAP-02 y CAP-04 P1/I | Aviso de privacidad con un toque, cierre de la entrevista y modo cita (F03, F08, F09); CAP-01 pasó a FLX-01 y CAP-03 a FLX-04 | ver «Proceso, captura y documentos» | dependencias en su tabla; 1–3d por entrega | Aceptación en su tabla. |
+| FCH-05, FCH-08 a FCH-10 P1/I | Captura al lado del documento, dictamen con párrafos, copia firmada como paso final y plantillas Word propias (F15, F20, F21, F23); FCH-01, FCH-02, FCH-04, FCH-07 y FCH-11 pasaron a FLX | ver «Proceso, captura y documentos» | dependencias en su tabla; 1–5d por entrega | Aceptación en su tabla. |
 | CIE-01 P1/I | Condiciones, formalización, entrega, pendientes y archivo | formatos 15/16/17, operación, transiciones | OFE-01/LEG-01/TEC-01; 3–5d | Cierre comercial/documental/cobro distintos; entrega con evidencia; poscierre pendiente no desaparece por cerrar. |
 | DOC-10 P1/C | Revisión lado a lado (RP-35) | operación guiada, visor de PDF e imagen, panel «Marcar como revisado» | DOC-01; 2–4d | En computadora se ve el documento y se captura la revisión sin cambiar de pantalla; en celular se alterna sin perder la captura. |
-| DOC-11 P1/C | Carga de varios archivos con requisito propuesto (RP-36) | carga de archivos, requisitos de la operación | DOC-01; 2–3d | Se arrastran varios archivos; se propone el requisito por tipo y nombre y la persona confirma; ningún archivo queda revisado por cargarse. La propuesta por contenido llega con EXT-11. |
 | DOC-12 P2/C | Pedir un documento al cliente por liga segura (RP-37) | ruta pública acotada, Storage privado, requisitos | DOC-01, SEG-01, PRV-01; 3–5d | Liga con vencimiento y revocable que solo permite subir a ese requisito; lo recibido queda «Lo tengo»; la liga no da acceso a ningún otro dato. |
-| DOC-13 P1/C | Tablero de vencimientos de Fortius (RP-38) | «Pendientes documentales», requisitos con vigencia | DOC-01; 1–3d | Lista por fecha y responsable que enlaza a cada requisito; respeta permisos. |
 | FIR-01 P1/C | **Firma electrónica propia, sin proveedor de pago** (titular, 17/10/2026): liga personal enviada por WhatsApp o correo; el firmante ve el contrato completo, confirma su identidad con un código enviado a su correo o teléfono y firma con el dedo o escribiendo su nombre; el sistema guarda fecha y hora, código verificado, dirección de conexión y huella SHA-256 del PDF, y agrega al PDF una hoja de evidencia. La firma así registrada cumple la prueba de RP-97. Uso previsto: intermediación y acuse del aviso; promesa y arrendamiento si el abogado lo confirma; nunca la compraventa definitiva, que va ante notario. La constancia NOM-151 queda opcional. | ruta pública acotada, Storage privado, formatos, firma registrada (COR-10) | COR-10, DOC-01, PRV-01, DEC-30; 4–6d | Un firmante sin el código no puede firmar; cualquier cambio al PDF después de firmar se detecta con la huella; la hoja de evidencia acompaña al PDF; la liga vence y se puede revocar. |
-| DOC-15 P1/I | **Biblioteca de listas de documentos por situación** (titular, 17/10/2026, L-01): el director captura y edita listas por caso (propietario de casa, terreno o nave; comprador; arrendatario; y otras), con vista previa y descarga en PDF. Cada operación toma su lista de la biblioteca; ahí solo se marca «No aplica» o se agrega un documento. | configuración, lista de documentos (COR-06), formatos | COR-06; 2–4d | Cambiar una lista en la biblioteca cambia las operaciones nuevas, no las ya abiertas; la vista previa coincide con el PDF. |
 
 **Retiradas de esta tabla el 13/11/2026** por estar en `main` o descartadas: COR-01 y COR-02, SUB-01 (descartada), DOC-EXP y DAT-EXP (historial, §20).
 
@@ -296,10 +284,10 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 
 | ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
 |---|---|---|---|---|
-| FIN-01 P1/I | Registro de hechos financieros por operación y empresa | operational-finance nuevo, SQL, evidencias privadas | DEC-07, OPS-01/DOC-01/SEG-01; 4–7d | Estimado/pactado/facturado/cobrado separados; obligación/pago parcial/anulación identificados; importes decimales y monedas conservados. |
+| FIN-01 P1/I | Registro de hechos financieros por operación y empresa | operational-finance nuevo, SQL, evidencias privadas | DEC-07, FLX-04/DOC-01/SEG-01; 4–7d | Estimado/pactado/facturado/cobrado separados; obligación/pago parcial/anulación identificados; importes decimales y monedas conservados. |
 | FIN-02 P1/I | Egresos, presupuestos, honorarios y repartos revisables | operational-finance, formatos 08/18/19, comercial | FIN-01 y revisión fiscal; 3–6d | No duplicar pagos/directos; no reconocer honorario por cierre sin regla; periodos/TC fuente; sin custodia ni banco automático. |
-| TAB-01 P1/I | Contrato común de métricas, filtros y desglose | analytics nuevo; reportes/admin | SEG-01/CRM-01 y definiciones aprobadas; 2–4d | Total = registros detallados autorizados, fecha/corte/fuente/pendientes; demo excluido del operativo por defecto pero visible. Contrato se puede preparar antes de finanzas; cada widget espera su propia fuente. |
-| TAB-02 P1/I | Comercial accionable | dashboard/Today/reportes, analytics | CRM-01/COM-01/VIS-01/TAB-01; 2–4d | Cohortes y primera atención explícitas; venta no equivale a conversión de lead; pendientes enlazan acción. |
+| TAB-01 P1/I | Contrato común de métricas, filtros y desglose | analytics nuevo; reportes/admin | SEG-01/FLX-04 y definiciones aprobadas; 2–4d | Total = registros detallados autorizados, fecha/corte/fuente/pendientes; demo excluido del operativo por defecto pero visible. Contrato se puede preparar antes de finanzas; cada widget espera su propia fuente. |
+| TAB-02 P1/I | Comercial accionable | dashboard/Today/reportes, analytics | FLX-04/COM-01/VIS-01/TAB-01; 2–4d | Cohortes y primera atención explícitas; venta no equivale a conversión de lead; pendientes enlazan acción. |
 | TAB-03 P1/I | Financiero por operación, moneda y periodo | nueva vista financiera, analytics | FIN-02/TAB-01; 3–5d | Cobros conciliados vs potencial; no sumar monedas sin conversión válida; detalle y export reconciliados. |
 | TAB-04 P1/I | Jurídico y técnico con pendientes por responsable | nuevas vistas y queries | LEG-01/TEC-01/TAB-01; 3–5d | Estados derivados de revisión explícita; sin dictamen automático; hallazgo lleva a su evidencia. |
 | FIN-03 P2/C | Pronóstico de ingresos por mes (RP-30) | analytics, operaciones, configuración de etapas | FIN-01, DEC-17; 2–3d | Rotulado «Estimación»; probabilidades por etapa ajustables en Configuración; nunca se suma a lo cobrado. |
@@ -311,15 +299,12 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 
 | ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
 |---|---|---|---|---|
-| UX-01 P1/I | Sistema de interfaz y captura comprensible en todos los módulos | admin/UI/shell/form-section/formularios | Desde fase 1; 3–6d iniciales | Contraste y jerarquía; foco y teclado; estados cargando/vacío/error/conflicto/sin permiso; no pérdida silenciosa. |
-| UX-02 P1/C | Búsqueda, vistas y preferencias guardadas en el servidor por usuario (RP-14); sin tablero personal armable (RP-66) | workspace/search/preferences, migración aditiva de preferencias | UX-01; 2–4d (la búsqueda en servidor a escala llega con PAG-01) | Filtra en servidor; densidad, columnas y vistas siguen al usuario entre equipos; el navegador solo guarda comodidades del dispositivo; orden accesible; una preferencia no altera permisos ni muestra widgets prohibidos. |
-| UX-03 P1/C | Velocidad: barra de comandos, atajos, acciones masivas, edición en tabla, densidad y columnas (RP-09 a RP-13) | workspace/search, listas, kit | UX-01; 4–7d | Ctrl/Cmd+K busca y actúa solo con lo permitido; atajos documentados y desactivables, sin actuar dentro de campos; acciones masivas informan por registro y no duplican al reintentar; edición en tabla con control de versión; probado con teclado y lector de pantalla. |
-| UX-04 P1/I | Confianza al guardar: estado de guardado, deshacer, conflicto lado a lado, siluetas y sesión vencida (RP-15 a RP-19) | kit, store, formularios | UX-01; 3–5d | Nunca «Guardado» antes de la confirmación del servidor; «Deshacer» solo donde el servidor restaura; conflicto campo por campo sin sobrescribir; sesión vencida conserva la captura. |
-| SIM-01 a SIM-12 P1/I | Simplificación de la interfaz: las 32 correcciones C01–C32 aprobadas el 17/10/2026 (RP-50 a RP-57) | ver la sección «Simplificación de la interfaz (SIM)» | UX-01; SIM-01 primero; 1–3d por entrega | La aceptación de cada entrega está en su tabla; ninguna cambia reglas del servidor, permisos ni datos. |
-| NAV-01 a NAV-14 P1/C | Navegación y productividad: las 25 mejoras N01–N25 aprobadas el 17/10/2026 (RP-58 a RP-69) | ver la sección «Navegación y productividad (NAV)» | dependencias por entrega en su tabla; 1–4d por entrega | La aceptación de cada entrega está en su tabla; NAV-12 lleva migración y NAV-14 espera PWA-03. |
-| LV-01 a LV-04 P1/C | Lenguaje visual: las 10 mejoras V01–V10 aprobadas el 17/10/2026 (RP-70 a RP-74) | ver la sección «Lenguaje visual (LV)» | LV-01 junto con SIM-01; 1–3d por entrega | La aceptación de cada entrega está en su tabla; sin dependencias nuevas. |
-| TRA-01 P1/O | **Trámites con pasos (titular, 13/11/2026):** la cancelación de hipoteca como primer trámite, dentro de una venta (frena la firma si el vendedor tiene hipoteca) o suelto para un cliente: saldo para liquidar, pago, carta de liquidación o instrucción de cancelación, firma ante notario cuando aplique, inscripción en el Registro Público y certificado de libertad de gravamen nuevo; cada paso con responsable, fecha y aviso en Hoy si se atrasa. El mismo modelo sirve después para escrituración, regularización e intestados. | operación, Hoy, documentos del cliente; Metodología diseña y Bloques construye | Boceto aprobado por el titular; pasos confirmados para Baja California | El trámite se sigue paso a paso; en una venta, la firma no avanza sin la cancelación inscrita o la decisión del titular; nada se marca hecho sin su evidencia. |
-| PWA-01 P1/I | Instalación y apertura del panel | manifiesto específico admin/layout/iconos | AUT-01/UX-01; 2–4d | Identidad/start_url/scope probados; inicia admin; acceso normal tras actualización; matriz real iOS/Android/iPad/Windows/macOS. |
+| UX-02 P1/C | Búsqueda, vistas y preferencias guardadas en el servidor por usuario (RP-14); sin tablero personal armable (RP-66) | workspace/search/preferences, migración aditiva de preferencias | LV-09; 2–4d (la búsqueda en servidor a escala llega con PAG-01) | Filtra en servidor; densidad, columnas y vistas siguen al usuario entre equipos; el navegador solo guarda comodidades del dispositivo; orden accesible; una preferencia no altera permisos ni muestra widgets prohibidos. |
+| UX-03 P1/C | Velocidad: barra de comandos, atajos, acciones masivas, edición en tabla, densidad y columnas (RP-09 a RP-13) | workspace/search, listas, kit | LV-09; 4–7d | Ctrl/Cmd+K busca y actúa solo con lo permitido; atajos documentados y desactivables, sin actuar dentro de campos; acciones masivas informan por registro y no duplican al reintentar; edición en tabla con control de versión; probado con teclado y lector de pantalla. |
+| UX-04 P1/I | Confianza al guardar: estado de guardado, deshacer, conflicto lado a lado, siluetas y sesión vencida (RP-15 a RP-19) | kit, store, formularios | LV-09; 3–5d | Nunca «Guardado» antes de la confirmación del servidor; «Deshacer» solo donde el servidor restaura; conflicto campo por campo sin sobrescribir; sesión vencida conserva la captura. |
+| NAV-01, NAV-03 a NAV-10, NAV-12, NAV-14 P1/C | Navegación y productividad: las mejoras N01–N25 aprobadas el 17/10/2026 (RP-58 a RP-69), salvo N20 (archivada) y las ya construidas | ver la sección «Navegación y productividad (NAV)» | dependencias por entrega en su tabla; 1–4d por entrega | La aceptación de cada entrega está en su tabla; NAV-12 lleva migración y NAV-14 espera PWA-03. |
+| LV-03 P1/C | Animaciones pequeñas que confirman (V06, RP-73) | ver la sección «Lenguaje visual (LV)» | LV-02, UX-04; 1–2d | Aceptación en su tabla; sin dependencias nuevas. |
+| PWA-01 P1/I | Instalación y apertura del panel | manifiesto específico admin/layout/iconos | AUT-01/LV-09; 2–4d | Identidad/start_url/scope probados; inicia admin; acceso normal tras actualización; matriz real iOS/Android/iPad/Windows/macOS. |
 | PWA-02 P2/C | Conectividad y captura de campo limitada | formularios, capa de conexión; SW solo alcance aprobado | PWA-01, DEC-08; 3–6d | Sin cache de API/Auth/PDF privados; caducidad/cierre de sesión; reintento no duplica. Offline de datos sensibles requiere diseño y aprobación adicionales. |
 | PWA-03 P3/O | Notificaciones de tareas y citas con consentimiento | registro push por dispositivo, preferencias y disparador confiable | PWA-01/SEG-01/PRV-01 y canal acordado; 2–5d preliminares | Usuario opt-in; mensaje sin datos sensibles; horario operativo, revocación y duplicados probados; compatibilidad iOS instalada confirmada. No prometer entrega garantizada. |
 | PAG-01 P1/I | Búsqueda/paginación de servidor y agregados | backend/repository, collections, expedientes, store y listas | SEG-01 y contratos por módulo; 4–7d | No descargar toda colección para una página; orden estable; RLS; filas sin pérdida ni duplicación; ningún cliente legacy se trunca. |
@@ -335,7 +320,7 @@ No se trabaja en estas entregas hasta que el titular abra la etapa posterior (DE
 |---|---|---|---|---|
 | SAAS-01 P2/O | Empresa como frontera de datos (RP-02) | migración aditiva, RLS, Storage, folios, respaldo/restauración, búsqueda y cachés | DEC-15; por estimar | Con dos empresas sintéticas, ninguna lee, busca, exporta ni descarga datos de la otra por API, SQL directo, enlace o ID modificado. Fortius queda como empresa 1 sin cambiar sus datos. Folios por empresa; respaldo y restauración por empresa ensayados en aislado. |
 | SAAS-02 P2/O | Marca por empresa (RP-03) | tema del panel, PDF y Word, correos, dominio o subdominio | SAAS-01; por estimar | Logo, colores y datos de documentos cambian sin tocar código; el contraste AA se valida al guardar el tema; cada documento sale con los datos de su empresa. |
-| SAAS-03 P2/O | Adaptar por empresa los procesos del motor (RP-04) | motor de procesos (MOT), configuración por empresa | SAAS-01, MOT-03; por estimar | Cada empresa parte de los procesos de Fortius como plantilla y los ajusta sin afectar a otras; el resto lo cubre MOT. |
+| SAAS-03 P2/O | Adaptar por empresa los procesos del motor (RP-04) | motor de procesos (MOT), configuración por empresa | SAAS-01, FLX-03; por estimar | Cada empresa parte de los procesos de Fortius como plantilla y los ajusta sin afectar a otras; el resto lo cubre MOT. |
 | SAAS-05 P2/O | Alta guiada de empresa e importación (RP-07) | asistente de alta, DAT-01, USR-01, SAAS-02/03 | SAAS-01 a SAAS-03, DAT-01, USR-01; por estimar | Una empresa sintética queda operando sin intervención técnica; la importación se simula y se revisa antes de escribir. |
 | SAAS-06 P3/O | Planes, suscripción y límites (RP-08) | cobro, límites de usuarios y almacenamiento | SAAS-01, DEC-18; por estimar | Límites visibles con aviso previo; sin pago, solo lectura con exportación disponible; nunca se borran datos. |
 | PIL-02 P2/O | Piloto con 2 o 3 inmobiliarias externas (RP-46) | empresas piloto con datos separados, guía de pruebas | SAAS-01 a SAAS-03, SAAS-05, PIL-01, REC-01, OBS-01; por estimar | Recorridos aceptados por cada empresa; tiempos medidos contra metas fijadas antes; incidencias priorizadas y cerradas antes de vender. |
@@ -366,58 +351,49 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | OBS-01 | 0 | en_revision | BAS-01 |
 | ENV-01 | 0 | en_revision | BAS-01 (aceptada el 13/11/2026) |
 | PRV-01 | 0 | en_revision | BAS-01 |
-| REL-01 | 1 | pendiente | BAS-01 |
-| SEG-01 | 1 | pendiente | REL-01 |
+| SEG-01 | 1 | pendiente | FLX-04 |
 | USR-01 | 1 | pendiente | SEG-01, AUT-01 |
-| CRM-01 | 1 | parcial | REL-01, SEG-01 |
-| OPS-01 | 1 | parcial | CRM-01 |
-| PUB-01 | 1 | parcial | SEG-01, CRM-01 |
-| DAT-01 | 1 | pendiente | REL-01, SEG-01, PRV-01 |
-| COM-01 | 2 | pendiente | OPS-01 |
-| VIS-01 | 2 | pendiente | OPS-01 |
+| PUB-01 | 1 | parcial | SEG-01, FLX-04 |
+| DAT-01 | 1 | pendiente | FLX-04, SEG-01, PRV-01 |
+| COM-01 | 2 | pendiente | FLX-04 |
+| VIS-01 | 2 | pendiente | FLX-04 |
 | OFE-01 | 2 | pendiente | COM-01, VIS-01 |
-| DOC-01 | 2 | parcial | OPS-01, SEG-01 |
+| DOC-01 | 2 | parcial | FLX-04, SEG-01 |
 | LEG-01 | 2 | pendiente | DOC-01 |
 | TEC-01 | 2 | pendiente | DOC-01 |
 | CIE-01 | 2 | pendiente | OFE-01, LEG-01, TEC-01 |
-| FIN-01 | 3 | pendiente | OPS-01, DOC-01, SEG-01 |
+| FIN-01 | 3 | pendiente | FLX-04, DOC-01, SEG-01 |
 | FIN-02 | 3 | pendiente | FIN-01 |
-| TAB-01 | 3 | pendiente | SEG-01, CRM-01 |
-| TAB-02 | 3 | pendiente | CRM-01, COM-01, VIS-01, TAB-01 |
+| TAB-01 | 3 | pendiente | SEG-01, FLX-04 |
+| TAB-02 | 3 | pendiente | FLX-04, COM-01, VIS-01, TAB-01 |
 | TAB-03 | 3 | pendiente | FIN-02, TAB-01 |
 | TAB-04 | 3 | pendiente | LEG-01, TEC-01, TAB-01 |
-| UX-01 | 4 | parcial | BAS-01 |
 | UX-02 | 4 | parcial | vista de Operaciones, filas o tarjetas de Inmuebles y vistas guardadas del inventario se guardan en el servidor por usuario (24fffb5, `feat/integracion`, 13/11/2026); faltan densidad, letra, fijados, recientes y secciones de Hoy (con NAV-01 y NAV-05), el tema (ThemeToggle sigue en el navegador) y filtrar en el servidor (PAG-01); en `main` con el PR #75; «recientes» ya se guardan en el servidor; revisado contra el código el 14/11/2026 |
-| PWA-01 | 4 | pendiente | AUT-01, UX-01 |
+| PWA-01 | 4 | pendiente | AUT-01, LV-09 |
 | PWA-02 | 4 | pendiente | PWA-01 |
 | PWA-03 | 4 | pendiente | PWA-01, SEG-01, PRV-01 |
 | PAG-01 | 5 | pendiente | SEG-01 |
 | ESC-01 | 5 | pendiente | PAG-01, FIN-01 |
 | PIL-01 | 5 | pendiente | REC-01, CI-01, ENV-01, PRV-01, USR-01, DAT-01, CIE-01, TAB-02, TAB-03, TAB-04, PWA-01, PAG-01 |
-| EXT-01 | 6 | pendiente | CRM-01, OPS-01 |
 | EXT-02 | 6 | pendiente | FIN-02, CIE-01, LEG-01 |
-| EXT-03 | 6 | pendiente | OPS-01, FIN-01 |
-| EXT-04 | 6 | pendiente | OPS-01, PRV-01 |
+| EXT-03 | 6 | pendiente | FLX-04, FIN-01 |
+| EXT-04 | 6 | pendiente | FLX-04, PRV-01 |
 | EXT-05 | 6 | pendiente | FIN-02, DOC-01, PRV-01 |
 | EXT-06 | 6 | pendiente | DOC-01, LEG-01, PRV-01 |
 | EXT-07 | 6 | pendiente | ESC-01 |
-| EXT-08 | 6 | pendiente | FIN-02, TAB-01, OPS-01, SEG-01 |
-| EXT-09 | 6 | pendiente | REL-01, TEC-01, VIS-01, SEG-01 |
-| EXT-10 | 6 | pendiente | REL-01, OPS-01, DOC-01, SEG-01, AUT-01, PRV-01 |
-| CRM-02 | 1 | parcial | CRM-01; en `main` (6dc3a0d): registro en dos toques con siguiente paso, mensajes listos y reloj de primera atención; falta comprobar el resto de su aceptación; revisado contra el código el 14/11/2026 |
-| CRM-03 | 1 | parcial | REL-01, CRM-02; línea de tiempo unificada en la ficha de persona; faltan filtros por tipo; revisado contra el código el 14/11/2026 |
+| EXT-08 | 6 | pendiente | FIN-02, TAB-01, FLX-04, SEG-01 |
+| EXT-09 | 6 | pendiente | FLX-04, TEC-01, VIS-01, SEG-01 |
+| EXT-10 | 6 | pendiente | FLX-04, DOC-01, SEG-01, AUT-01, PRV-01 |
+| CRM-02 | 1 | parcial | FLX-04; en `main` (6dc3a0d): registro en dos toques con siguiente paso, mensajes listos y reloj de primera atención; falta comprobar el resto de su aceptación; revisado contra el código el 14/11/2026 |
 | INV-01 | 1 | pendiente | PUB-01 |
-| DAT-02 | 1 | parcial | REL-01, DAT-01; catálogo de colonias con fecha de descarga (vía CSR-03); falta la fusión asistida; revisado contra el código el 14/11/2026 |
+| DAT-02 | 1 | parcial | FLX-04, DAT-01; catálogo de colonias con fecha de descarga (vía CSR-03); falta la fusión asistida; revisado contra el código el 14/11/2026 |
 | DOC-10 | 2 | pendiente | DOC-01 |
-| DOC-11 | 2 | pendiente | DOC-01 |
 | DOC-12 | 2 | pendiente | DOC-01, SEG-01, PRV-01 |
-| DOC-13 | 2 | pendiente | DOC-01 |
 | FIN-03 | 3 | pendiente | FIN-01, DEC-17 |
 | APR-01 | 3 | pendiente | SEG-01, FIN-02, UX-05 |
 | TAB-05 | 3 | pendiente | TAB-01, DEC-17 |
 | FIS-01 | 3 | pendiente | BAS-01; revisión fiscal |
 | NAV-01 | 4 | pendiente | SIM-02, UX-02 |
-| NAV-02 | 4 | en_main | UX-03; construida: recientes por usuario en el servidor (6a07d62, PR #75); revisado contra el código el 14/11/2026 |
 | NAV-03 | 4 | parcial | SIM-01, SIM-08; vista previa solo en Contactos; faltan Operaciones e Inmuebles; revisado contra el código el 14/11/2026 |
 | NAV-04 | 4 | pendiente | UX-02, SEG-01 |
 | NAV-05 | 4 | pendiente | UX-02, SIM-03 |
@@ -425,37 +401,19 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | NAV-07 | 4 | pendiente | UX-04, SIM-07 |
 | NAV-08 | 4 | pendiente | DOC-10, SEG-01 |
 | NAV-09 | 4 | pendiente | CRM-02 |
-| NAV-10 | 4 | pendiente | DOC-11, PUB-01 |
-| NAV-11 | 4 | pendiente | Decisión del titular |
+| NAV-10 | 4 | pendiente | FLX-07, PUB-01 |
 | NAV-12 | 4 | pendiente | Migración autorizada, PRV-01 |
 | NAV-14 | 4 | pendiente | PWA-03 |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
-| LV-09 | 4 | en_main | panel desde cero aprobado por el titular el 14/11/2026, con la paleta del sitio público; en `feat/integracion`. Contraste AA repetido con axe el 14/11/2026 con la paleta nueva: 0 fallas en 23 pantallas del panel y 8 del sitio público, a 1440 y 390 px, claro y oscuro (f18915a); en `main` con el PR #76 (52e1f9a, 14/11/2026) |
 | FIR-01 | 6 | pendiente | COR-10, DOC-01, PRV-01, DEC-30 |
-| IA-01 (proveedores) | 1 | en_revision | Claude Haiku 5.5 activo en local con clave de prueba (31/10/2026, 7 datos de un PDF ficticio); adaptador Grok listo pero su clave no la acepta xAI; PDF por páginas con pdfjs-dist; el código de lectura está en `main`; lo único en revisión es la clave de xAI para Grok; revisado contra el código el 14/11/2026 |
-| DOC-15 | 2 | pendiente | COR-06 |
-| USO-01 | 4 | pendiente | ninguna |
-| CAP-01 | 1 | pendiente | SIM-01, SIM-09, COR-01 |
 | CAP-02 | 1 | pendiente | CRM-02 |
-| CAP-03 | 1 | pendiente | COR-01, COR-06, SEG-01 |
-| CAP-04 | 1 | pendiente | CAP-03, CRM-02 |
-| FCH-01 | 2 | pendiente | REL-01 (diseño conjunto), migración autorizada |
-| FCH-02 | 2 | pendiente | FCH-01, DOC-01 |
-| FCH-04 | 2 | parcial | UX-05; PDF con faltantes y «Documento incompleto» en todos los formatos salvo 01 y 15; falta comprobar Word, historial y «Para ti»; revisado contra el código el 14/11/2026 |
-| FCH-05 | 2 | pendiente | FCH-01, DOC-10 |
-| FCH-07 | 2 | pendiente | DOC-11, DOC-12 |
+| CAP-04 | 1 | pendiente | FLX-04, CRM-02 |
+| FCH-05 | 2 | pendiente | FLX-04, DOC-10 |
 | FCH-08 | 2 | pendiente | DOC-06 |
 | FCH-09 | 2 | parcial | LV-02; copia firmada registrada solo para la intermediación 09/21 (bbef89d); revisado contra el código el 14/11/2026 |
-| FCH-10 | 2 | pendiente | FCH-01 |
-| FCH-11 | 2 | pendiente | FCH-01 |
-| MOT-01 | 2 | pendiente | FCH-01, FCH-04, MRP-01, migración autorizada |
-| MOT-02 | 2 | pendiente | MOT-01, CAP-03 |
-| MOT-03 | 2 | pendiente | MOT-02, SEG-01 |
-| MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
-| HER-04 | 2 | pendiente | FCH-01 |
+| FCH-10 | 2 | pendiente | FLX-04 |
 | UX-03 | 4 | parcial | barra de comandos Ctrl/⌘K que busca y actúa según el rol, «Recientes» (NAV-02) por usuario y atajos «/» y «?» desactivables (6a07d62, `feat/integracion`, 13/11/2026); acciones masivas con resultado por registro y «Reintentar» (RP-12) y edición en la fila con control de versión (RP-13) en Tareas y Contactos, con boceto aprobado por el titular (b41ae84); exportar contactos solo el administrador y CSV sin fórmulas; el director reasigna operaciones desde la lista con motivo (M-04, deb2326); en `main` con el PR #75; revisado contra el código el 14/11/2026 |
 | UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); siluetas de carga (RP-18; 7d3dfe6) y «Deshacer» al completar una tarea, solo tras confirmar el servidor (RP-16; aa98fba); falta el conflicto en operaciones y formatos; la reversión optimista con motivo (RP-18) no aplica mientras el panel no tenga cambios optimistas; en `main` con el PR #75; revisado contra el código el 14/11/2026 |
-| TRA-01 | 4 | en_main | pantalla aprobada por el titular (13/11/2026); pasos según fuentes oficiales, sin esperar al notario; base, servidor, pantalla, menú y pruebas en `feat/integracion`; freno de la firma de la venta hecho el 14/11/2026: el servidor y la base (migración `20261114212000_freno_firma_hipoteca`, disparador que cubre la RPC y la tabla) responden 409 mientras la cancelación no esté inscrita, salvo «Firmar sin la cancelación» del director con su motivo; pantalla en la etapa y en el trámite (9f6c8f0); revisado contra el código el 14/11/2026; en `main` con el PR #76 (52e1f9a, 14/11/2026) |
 | FLX-01 | 4 | en_curso | en `feat/integracion` (14/11/2026): construidos la base y el servidor de documentos sin operación, el respaldo con la tabla nueva, la pantalla `/admin/bandeja` (soltar, archivar en inmueble, operación o persona, o dejar para después) y la pantalla `/admin/personas` (lista y perfil), las dos en el menú. Falta «Nuevo perfil» con las cinco preguntas de una llamada y la revisión del titular en localhost. |
 | FLX-02 | 4 | pendiente | FLX-01 |
 | FLX-03 | 4 | pendiente | FLX-02; coordina con Metodología |
@@ -468,14 +426,12 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | EXT-13 | por decidir | idea, no aprobada | DEC-14, SEG-01, PRV-01 |
 | SAAS-01 | posterior | en_pausa | DEC-15 |
 | SAAS-02 | posterior | en_pausa | SAAS-01 |
-| SAAS-03 | posterior | en_pausa | SAAS-01, MOT-03 |
+| SAAS-03 | posterior | en_pausa | SAAS-01, FLX-03 |
 | SAAS-05 | posterior | en_pausa | SAAS-01, SAAS-02, SAAS-03, DAT-01, USR-01 |
 | SAAS-06 | posterior | en_pausa | SAAS-01, DEC-18 |
 | PIL-02 | posterior | en_pausa | SAAS-01 a SAAS-03, SAAS-05, PIL-01, REC-01, OBS-01 |
-| SIM-15 | 4 | parcial | primera parte en `main` (PR #66); segunda en local el 12/11/2026 (Herramientas sin «Documentos», «Documentos sueltos», Notas e Historial con el kit); cada herramienta con el kit, C56 y C57, también en local; C54 y C55 con SIM-19; la segunda parte ya está en `main`; los nombres cruzados de C56 que dejó LV-09 se corrigieron el 14/11/2026 (f18915a): cada página se llama como su entrada del menú; revisado contra el código el 14/11/2026 |
 | COR-25 | 1 | pendiente | DAT-01 |
-| COR-26 | 4 | parcial | PR #66: guía de cada pantalla; en local: «Tu primer día» y manual en `/admin/ayuda`; faltan capturas del manual y prueba de uso; «Tu primer día» y `/admin/ayuda` ya en `main` (585cef2); revisado contra el código el 14/11/2026 |
-| USO-02 | 4 | pendiente | USO-01 |
+| USO-02 | 4 | pendiente | FLX-06 |
 
 **Discrepancia pendiente de EXT-03:** el backlog condiciona proveedores/mantenimiento a EXT-02 o a un caso de venta concreto; el seguimiento exige OPS-01 y FIN-01. Conservar ambas referencias y resolver su dependencia al diseñar esa extensión, sin iniciar por una equivalencia supuesta.
 
@@ -514,7 +470,6 @@ Paquetes de fase 6: EXT-01, EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11 están solic
 
 | ID / capacidad | Cuándo evaluarla / dependencias | Resultado de descubrimiento antes de programar |
 |---|---|---|
-| EXT-01 — Compradores y matching | Solicitada el 17/10/2026 (RP-24); CRM-01/OPS-01 | Reglas aprobadas, coincidencias explicables en los dos sentidos (inmueble → prospectos y prospecto → inmuebles) y permisos. |
 | EXT-02 — Renta/administración | Hay contratos recurrentes administrados por Fortius; FIN-02/CIE-01/LEG-01 | Ciclo de renta/depósitos/renovación/mora/entrega y reparto de cobros definido. |
 | EXT-03 — Proveedores/mantenimiento | Hay órdenes, presupuestos y trabajos que coordinar; EXT-02 o caso de venta concreto | Responsable, autorización, evidencia y enlace a operación/arrendamiento. |
 | EXT-04 — Portales/correo/calendario/WhatsApp API | Doble captura real y proveedor con acceso API; OPS-01/PRV-01 | IDs externos, consentimiento, idempotencia, reintentos y costo. Enlace WhatsApp no equivale a integración. **Primera integración elegida (titular, 17/10/2026):** EasyBroker; el panel manda sobre los datos del inmueble y los envía, si el plan de EasyBroker incluye API (H-06). |

@@ -2253,3 +2253,233 @@ Seis funciones construidas y en `main`: contrato de servicio y licencia estatal 
 5. Pruebas: cada campo con su zona pulsable, las mismas hojas en la vista y en el PDF, hojas llenas al 70 % y las pruebas del formato al día, sin debilitarlas. Revisión en celular y escritorio, en claro y oscuro.
 
 **Reglas que se conservan.** Un dato faltante nunca detiene el flujo (RP-82); el PDF se descarga avisando qué falta (RP-77) y descargarlo no es aprobarlo (RP-85). Guardar y publicar siguen siendo acciones distintas. Cuando exista la ficha única (FCH-01), los campos llegarán llenos con lo que la ficha sabe y lo capturado regresará a ella con su origen (FCH-05); la captura en vivo no depende de eso para empezar.
+
+### 28.6 Filas retiradas de las tablas del plan
+
+**Motivo:** cada fila dice a dónde fue. Las que van a una etapa FLX quedan anotadas en esa etapa del plan. Texto de cada fila tal como estaba.
+
+- **EXT-01** (Capacidades adicionales) → FLX-05.
+
+  ```
+  | EXT-01 — Compradores y matching | Solicitada el 17/10/2026 (RP-24); CRM-01/OPS-01 | Reglas aprobadas, coincidencias explicables en los dos sentidos (inmueble → prospectos y prospecto → inmuebles) y permisos. |
+  ```
+- **N20** (Navegación (NAV)) → se archiva (titular, 14/11/2026).
+
+  ```
+  | N20 | **Aviso de «<persona> está editando esto»**. | Evita conflictos antes de que ocurran; el control de versión (409) sigue siendo la protección real. Requiere presencia en tiempo real de Supabase (incluida en la librería instalada, sin dependencia nueva) y decisión del titular. Prioridad baja. |
+  ```
+- **NAV-02** (Navegación (NAV)) → en `main` (PR #75).
+
+  ```
+  | NAV-02 | N03 | UX-03 | Recientes al abrir el buscador, por usuario, solo con registros visibles. |
+  ```
+- **NAV-11** (Navegación (NAV)) → se archiva (titular, 14/11/2026).
+
+  ```
+  | NAV-11 | N20 | Decisión del titular | Aviso de edición simultánea sin reemplazar el control de versión. |
+  ```
+- **REL-01** (Backlog) → FLX-04.
+
+  ```
+  | REL-01 P1/I | Persona con varios papeles, representantes y varios propietarios por inmueble; datos de organización | personas nuevo, clientes/propiedades/expedientes, migración aditiva | DEC-04/09, BAS-01; 3–5d | Vínculo versionado y con fuente; no certificar titularidad; persona no se duplica por papel. Legacy sigue legible. |
+  ```
+- **CRM-01** (Backlog) → FLX-04.
+
+  ```
+  | CRM-01 P1/I | Captar, calificar, abrir operación y programar próxima acción; coincidencias revisables; la condición de cliente sale del contrato firmado (RP-90) | leads/clientes/lead-profile, conversion, followups | REL-01, SEG-01; 3–5d | Conversión idempotente, fuente/consentimiento trazados, sin fusión automática por teléfono; convertir no muestra «Cliente» sin contrato firmado. |
+  ```
+- **OPS-01** (Backlog) → FLX-04.
+
+  ```
+  | OPS-01 P1/I | Expediente como operación coherente y centro de trabajo | operaciones nuevo, expedientes, tareas/eventos/related-work | DEC-02/05, CRM-01; 3–5d | Contexto compartido y enlaces durables; conflicto conserva captura; tarea vincula expediente explícitamente. |
+  ```
+- **CRM-03** (Backlog) → FLX-04.
+
+  ```
+  | CRM-03 P1/C | Ficha 360° de la persona con línea de tiempo unificada (RP-27) | fichas de prospecto y cliente, historial, eventos, tareas, documentos, ofertas | REL-01, CRM-02; 3–5d | Cada hecho aparece una sola vez, con fuente y enlace; filtros por tipo; respeta permisos. |
+  ```
+- **MOT-01** (Backlog) → FLX-03.
+
+  ```
+  | MOT-01 a MOT-04 P1/I | Motor de procesos por tipo de operación con módulos y editor | ver «Proceso, captura y documentos» | FCH-01; migración; por estimar tras MOT-01 | Aceptación en su tabla; la versión 1 reproduce exactamente los candados actuales. |
+  ```
+- **HER-01** (Backlog) → ver §28.3 (el detalle se repartió).
+
+  ```
+  | HER-01 a HER-04 P1/C | Herramientas para trabajo suelto: catálogo depurado, machotes y documentos sin operación, ISR y neto, pasar a operación (RP-83) | ver «Herramientas para trabajo suelto (HER)» | dependencias en su tabla; catálogo confirmado el 18/10/2026 | Aceptación en su tabla. |
+  ```
+- **DOC-11** (Backlog) → FLX-07.
+
+  ```
+  | DOC-11 P1/C | Carga de varios archivos con requisito propuesto (RP-36) | carga de archivos, requisitos de la operación | DOC-01; 2–3d | Se arrastran varios archivos; se propone el requisito por tipo y nombre y la persona confirma; ningún archivo queda revisado por cargarse. La propuesta por contenido llega con EXT-11. |
+  ```
+- **DOC-13** (Backlog) → FLX-05.
+
+  ```
+  | DOC-13 P1/C | Tablero de vencimientos de Fortius (RP-38) | «Pendientes documentales», requisitos con vigencia | DOC-01; 1–3d | Lista por fecha y responsable que enlaza a cada requisito; respeta permisos. |
+  ```
+- **DOC-15** (Backlog) → FLX-03.
+
+  ```
+  | DOC-15 P1/I | **Biblioteca de listas de documentos por situación** (titular, 17/10/2026, L-01): el director captura y edita listas por caso (propietario de casa, terreno o nave; comprador; arrendatario; y otras), con vista previa y descarga en PDF. Cada operación toma su lista de la biblioteca; ahí solo se marca «No aplica» o se agrega un documento. | configuración, lista de documentos (COR-06), formatos | COR-06; 2–4d | Cambiar una lista en la biblioteca cambia las operaciones nuevas, no las ya abiertas; la vista previa coincide con el PDF. |
+  ```
+- **UX-01** (Backlog) → ya no se hace: lo cubren el kit y LV-09; lo que falta está en UX-04.
+
+  ```
+  | UX-01 P1/I | Sistema de interfaz y captura comprensible en todos los módulos | admin/UI/shell/form-section/formularios | Desde fase 1; 3–6d iniciales | Contraste y jerarquía; foco y teclado; estados cargando/vacío/error/conflicto/sin permiso; no pérdida silenciosa. |
+  ```
+- **SIM-01** (Backlog) → ver §28.3 (el detalle se repartió).
+
+  ```
+  | SIM-01 a SIM-12 P1/I | Simplificación de la interfaz: las 32 correcciones C01–C32 aprobadas el 17/10/2026 (RP-50 a RP-57) | ver la sección «Simplificación de la interfaz (SIM)» | UX-01; SIM-01 primero; 1–3d por entrega | La aceptación de cada entrega está en su tabla; ninguna cambia reglas del servidor, permisos ni datos. |
+  ```
+- **TRA-01** (Backlog) → en `main` (PR #76); el freno de la firma se replantea en FLX-03.
+
+  ```
+  | TRA-01 P1/O | **Trámites con pasos (titular, 13/11/2026):** la cancelación de hipoteca como primer trámite, dentro de una venta (frena la firma si el vendedor tiene hipoteca) o suelto para un cliente: saldo para liquidar, pago, carta de liquidación o instrucción de cancelación, firma ante notario cuando aplique, inscripción en el Registro Público y certificado de libertad de gravamen nuevo; cada paso con responsable, fecha y aviso en Hoy si se atrasa. El mismo modelo sirve después para escrituración, regularización e intestados. | operación, Hoy, documentos del cliente; Metodología diseña y Bloques construye | Boceto aprobado por el titular; pasos confirmados para Baja California | El trámite se sigue paso a paso; en una venta, la firma no avanza sin la cancelación inscrita o la decisión del titular; nada se marca hecho sin su evidencia. |
+  ```
+- **REL-01** (Estado y dependencias) → FLX-04.
+
+  ```
+  | REL-01 | 1 | pendiente | BAS-01 |
+  ```
+- **CRM-01** (Estado y dependencias) → FLX-04.
+
+  ```
+  | CRM-01 | 1 | parcial | REL-01, SEG-01 |
+  ```
+- **OPS-01** (Estado y dependencias) → FLX-04.
+
+  ```
+  | OPS-01 | 1 | parcial | CRM-01 |
+  ```
+- **UX-01** (Estado y dependencias) → ya no se hace: lo cubren el kit y LV-09; lo que falta está en UX-04.
+
+  ```
+  | UX-01 | 4 | parcial | BAS-01 |
+  ```
+- **EXT-01** (Estado y dependencias) → FLX-05.
+
+  ```
+  | EXT-01 | 6 | pendiente | CRM-01, OPS-01 |
+  ```
+- **CRM-03** (Estado y dependencias) → FLX-04.
+
+  ```
+  | CRM-03 | 1 | parcial | REL-01, CRM-02; línea de tiempo unificada en la ficha de persona; faltan filtros por tipo; revisado contra el código el 14/11/2026 |
+  ```
+- **DOC-11** (Estado y dependencias) → FLX-07.
+
+  ```
+  | DOC-11 | 2 | pendiente | DOC-01 |
+  ```
+- **DOC-13** (Estado y dependencias) → FLX-05.
+
+  ```
+  | DOC-13 | 2 | pendiente | DOC-01 |
+  ```
+- **NAV-02** (Estado y dependencias) → en `main` (PR #75).
+
+  ```
+  | NAV-02 | 4 | en_main | UX-03; construida: recientes por usuario en el servidor (6a07d62, PR #75); revisado contra el código el 14/11/2026 |
+  ```
+- **NAV-11** (Estado y dependencias) → se archiva (titular, 14/11/2026).
+
+  ```
+  | NAV-11 | 4 | pendiente | Decisión del titular |
+  ```
+- **LV-09** (Estado y dependencias) → en `main` (PR #76), aprobado por el titular.
+
+  ```
+  | LV-09 | 4 | en_main | panel desde cero aprobado por el titular el 14/11/2026, con la paleta del sitio público; en `feat/integracion`. Contraste AA repetido con axe el 14/11/2026 con la paleta nueva: 0 fallas en 23 pantallas del panel y 8 del sitio público, a 1440 y 390 px, claro y oscuro (f18915a); en `main` con el PR #76 (52e1f9a, 14/11/2026) |
+  ```
+- **IA-01** (Estado y dependencias) → en `main`; la clave de Grok se revoca el día del paso a datos reales.
+
+  ```
+  | IA-01 (proveedores) | 1 | en_revision | Claude Haiku 5.5 activo en local con clave de prueba (31/10/2026, 7 datos de un PDF ficticio); adaptador Grok listo pero su clave no la acepta xAI; PDF por páginas con pdfjs-dist; el código de lectura está en `main`; lo único en revisión es la clave de xAI para Grok; revisado contra el código el 14/11/2026 |
+  ```
+- **DOC-15** (Estado y dependencias) → FLX-03.
+
+  ```
+  | DOC-15 | 2 | pendiente | COR-06 |
+  ```
+- **USO-01** (Estado y dependencias) → ya no se hace: se une a USO-02.
+
+  ```
+  | USO-01 | 4 | pendiente | ninguna |
+  ```
+- **CAP-01** (Estado y dependencias) → FLX-01.
+
+  ```
+  | CAP-01 | 1 | pendiente | SIM-01, SIM-09, COR-01 |
+  ```
+- **CAP-03** (Estado y dependencias) → FLX-04.
+
+  ```
+  | CAP-03 | 1 | pendiente | COR-01, COR-06, SEG-01 |
+  ```
+- **FCH-01** (Estado y dependencias) → FLX-04.
+
+  ```
+  | FCH-01 | 2 | pendiente | REL-01 (diseño conjunto), migración autorizada |
+  ```
+- **FCH-02** (Estado y dependencias) → FLX-02.
+
+  ```
+  | FCH-02 | 2 | pendiente | FCH-01, DOC-01 |
+  ```
+- **FCH-04** (Estado y dependencias) → FLX-03.
+
+  ```
+  | FCH-04 | 2 | parcial | UX-05; PDF con faltantes y «Documento incompleto» en todos los formatos salvo 01 y 15; falta comprobar Word, historial y «Para ti»; revisado contra el código el 14/11/2026 |
+  ```
+- **FCH-07** (Estado y dependencias) → FLX-04.
+
+  ```
+  | FCH-07 | 2 | pendiente | DOC-11, DOC-12 |
+  ```
+- **FCH-11** (Estado y dependencias) → FLX-04.
+
+  ```
+  | FCH-11 | 2 | pendiente | FCH-01 |
+  ```
+- **MOT-01** (Estado y dependencias) → FLX-03.
+
+  ```
+  | MOT-01 | 2 | pendiente | FCH-01, FCH-04, MRP-01, migración autorizada |
+  ```
+- **MOT-02** (Estado y dependencias) → FLX-03.
+
+  ```
+  | MOT-02 | 2 | pendiente | MOT-01, CAP-03 |
+  ```
+- **MOT-03** (Estado y dependencias) → FLX-03.
+
+  ```
+  | MOT-03 | 2 | pendiente | MOT-02, SEG-01 |
+  ```
+- **MOT-04** (Estado y dependencias) → FLX-03.
+
+  ```
+  | MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
+  ```
+- **HER-04** (Estado y dependencias) → FLX-02.
+
+  ```
+  | HER-04 | 2 | pendiente | FCH-01 |
+  ```
+- **TRA-01** (Estado y dependencias) → en `main` (PR #76); el freno de la firma se replantea en FLX-03.
+
+  ```
+  | TRA-01 | 4 | en_main | pantalla aprobada por el titular (13/11/2026); pasos según fuentes oficiales, sin esperar al notario; base, servidor, pantalla, menú y pruebas en `feat/integracion`; freno de la firma de la venta hecho el 14/11/2026: el servidor y la base (migración `20261114212000_freno_firma_hipoteca`, disparador que cubre la RPC y la tabla) responden 409 mientras la cancelación no esté inscrita, salvo «Firmar sin la cancelación» del director con su motivo; pantalla en la etapa y en el trámite (9f6c8f0); revisado contra el código el 14/11/2026; en `main` con el PR #76 (52e1f9a, 14/11/2026) |
+  ```
+- **SIM-15** (Estado y dependencias) → en `main`; lo demás lo rehízo LV-09.
+
+  ```
+  | SIM-15 | 4 | parcial | primera parte en `main` (PR #66); segunda en local el 12/11/2026 (Herramientas sin «Documentos», «Documentos sueltos», Notas e Historial con el kit); cada herramienta con el kit, C56 y C57, también en local; C54 y C55 con SIM-19; la segunda parte ya está en `main`; los nombres cruzados de C56 que dejó LV-09 se corrigieron el 14/11/2026 (f18915a): cada página se llama como su entrada del menú; revisado contra el código el 14/11/2026 |
+  ```
+- **COR-26** (Estado y dependencias) → FLX-06.
+
+  ```
+  | COR-26 | 4 | parcial | PR #66: guía de cada pantalla; en local: «Tu primer día» y manual en `/admin/ayuda`; faltan capturas del manual y prueba de uso; «Tu primer día» y `/admin/ayuda` ya en `main` (585cef2); revisado contra el código el 14/11/2026 |
+  ```
