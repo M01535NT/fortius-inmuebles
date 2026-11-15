@@ -458,7 +458,9 @@ it("el «⋯» de cada fila abre el asunto, lo abre en otra pestaña o copia su 
   await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
   // En el tablero cada tarjeta lleva el mismo menú, fuera del enlace de la tarjeta.
   fireEvent.click(screen.getByText("Tablero"));
-  const board = await screen.findByRole("list", { name: "Asuntos por etapa" });
+  const board = await screen.findByRole("list", { name: "Asuntos por urgencia" });
+  // Columnas por urgencia (titular, 15/11/2026), siempre las cuatro aunque estén vacías.
+  expect(within(board).getAllByRole("listitem").map(column => column.querySelector("h2")?.firstChild?.textContent)).toEqual(["Vencido", "Esta semana", "Más adelante", "Sin fecha"]);
   const cardMore = within(board).getByRole("button", { name: /^Más acciones de Familia Castañeda Ortiz/ });
   expect(cardMore.closest("a")).toBeNull();
   cardMore.focus(); fireEvent.keyDown(cardMore, { key: "Enter" });
@@ -522,7 +524,7 @@ it("Expediente: cerrar una ventana guarda y abrir otra no mezcla las capturas", 
   expect(within(second).queryByLabelText("Quien paga")).toBeNull();
 });
 
-it("la lista separa lo que espera algo de ti, filtra por etapa, busca sin acentos y filtra «Mías»", async () => {
+it("la lista separa lo que espera algo de ti, filtra por urgencia sin mostrar etapas, busca sin acentos y filtra «Mías»", async () => {
   server.ops = [
     base(), base({ id: ID2, folio: "EXP-COMPRA", cliente_id: "c2", asesor_id: "a2", etapa: "negociacion", flujo: flow({}, { ruta: "compra" }) }),
     base({ id: "51000000-0000-4000-8000-000000000003", folio: "EXP-CERRADO", etapa: "cerrado" }),
@@ -531,23 +533,26 @@ it("la lista separa lo que espera algo de ti, filtra por etapa, busca sin acento
   server.tasks = [{ id: "t1", titulo: "Pedir la escritura", estado: "pendiente", prioridad: "normal", categoria: "captacion", pasos: [], vence: "2026-10-14", expedienteId: ID }];
   nav.search = new URLSearchParams({ etapa: "visitas-ofertas" });
   render(<OperationsBoard />);
-  // «?etapa=visitas-ofertas» sigue funcionando: filtra por esa etapa (ya no hay fases).
-  const etapa = await screen.findByRole("group", { name: "Etapa" });
-  expect(within(etapa).getByRole("button", { name: /Visitas y ofertas/ }).getAttribute("aria-pressed")).toBe("true");
-  // Con el filtro, la operación de otra etapa no aparece en ningún grupo (el grupo vacío ya no se dibuja).
-  expect(screen.queryByRole("link", { name: /Familia Castañeda Ortiz. Etapa/ })).toBeNull();
+  // Titular, 15/11/2026: Asuntos no muestra ni filtra etapas (un «?etapa=» viejo ya no filtra); se filtra por urgencia.
+  const urgencia = await screen.findByRole("group", { name: "Urgencia" });
   fireEvent.click(screen.getByRole("radio", { name: "Todo el equipo" }));
-  fireEvent.click(within(etapa).getByRole("button", { name: /Oferta y negociación/ }));
-  await waitFor(() => expect(nav.search.get("etapa")).toBe("Oferta y negociación"));
-  expect(screen.getByRole("link", { name: /Ángel Martínez\. Etapa 4 de 7, Oferta y negociación/ })).toBeTruthy();
-  fireEvent.click(within(etapa).getByRole("button", { name: /^Todas/ }));
-  await waitFor(() => expect(nav.search.get("etapa")).toBeNull());
+  expect(screen.getByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeTruthy();
+  expect(screen.queryByText(/Dictamen jurídico|Oferta y negociación/)).toBeNull();
+  expect(within(urgencia).queryByRole("button", { name: /Oferta y negociación/ })).toBeNull();
+  fireEvent.click(within(urgencia).getByRole("button", { name: /^Vencido/ }));
+  await waitFor(() => expect(nav.search.get("urgencia")).toBe("vencido"));
+  expect(screen.getByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeTruthy();
+  fireEvent.click(within(urgencia).getByRole("button", { name: /^Sin fecha/ }));
+  await waitFor(() => expect(nav.search.get("urgencia")).toBe("sinfecha"));
+  expect(screen.queryByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeNull();
+  fireEvent.click(within(urgencia).getByRole("button", { name: /^Todas/ }));
+  await waitFor(() => expect(nav.search.get("urgencia")).toBeNull());
   const waiting = screen.getByRole("region", { name: /Esperan algo de ti/ });
   const castaneda = within(waiting).getByRole("link", { name: /Familia Castañeda Ortiz/ });
   expect(castaneda.getAttribute("href")).toBe(`/admin/operaciones/${ID}`);
   expect(within(castaneda).getByText("Tarea vencida")).toBeTruthy();
   expect(within(castaneda).getByText("Vencido · 14 oct")).toBeTruthy();
-  expect(within(waiting).getByRole("link", { name: /EXP-SIN-CLIENTE\. Etapa 5 de 10, Dictamen jurídico\. Falta la entrevista inicial/ })).toBeTruthy();
+  expect(within(waiting).getByRole("link", { name: /EXP-SIN-CLIENTE\. Falta la entrevista inicial/ })).toBeTruthy();
   fireEvent.click(screen.getByRole("radio", { name: "Mías" }));
   expect(screen.queryByRole("link", { name: /Ángel Martínez/ })).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: "Todo el equipo" }));
@@ -564,7 +569,7 @@ it("un fallo del tablero se distingue de un tablero vacío y permite reintentar"
   server.fail = url => down && url.startsWith("/api/admin/expedientes") ? Response.json({ error: "Consulta no disponible" }, { status: 503 }) : undefined;
   render(<OperationsBoard />);
   expect((await screen.findByRole("alert")).textContent).toContain("Consulta no disponible");
-  expect(screen.queryByText("Sin asuntos en esta etapa.")).toBeNull();
+  expect(screen.queryByText("Ningún asunto con este filtro.")).toBeNull();
   down = false;
   fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
   expect(await screen.findByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeTruthy();

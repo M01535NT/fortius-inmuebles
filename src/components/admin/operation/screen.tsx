@@ -10,12 +10,12 @@ import { confirmAction, confirmDeleteOperation } from "@/components/admin/worksp
 import { PAPELERA } from "@/components/admin/papelera/textos";
 import { apiRequest, db, fetchJson as json, useCollection, useSession, errorMessage } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { exceptionKeys, inheritedPending, isOwnerRoute, type OperationWorkflow, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
+import { exceptionKeys, inheritedPending, isOwnerRoute, type OperationWorkflow, type SalePhase } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { conditionWith02 } from "@/lib/intake/condition";
-import { EXCEPTION_TAG, INHERITED_TAG, flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
+import { EXCEPTION_TAG, INHERITED_TAG, flowOf, initialStatus, isGuided, operationTags, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { TIPO_LABELS, formatPrecio } from "@/data/propiedades";
 import { ClientDocumentsTab } from "./client-documents-tab";
@@ -112,7 +112,6 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const flow = flowOf(op);
   const docs = useOperationDocuments({ op, checklist, interviewAnswers: (interview?.respuestas ?? {}) as Record<string, unknown>, cliente: client?.nombre });
   const view: OperationRecord = { ...op, inicial: initialStatus(new Map(["02", "04"].filter(f => docs.latest(f)).map(f => [f, docs.status(f) === "terminado"])), checklist) };
-  const { phase } = routeStages(view, today);
   const track = stageTrack(view, today);
   const markDirty = React.useMemo(() => Object.fromEntries(DIRTY_KEYS.map(key => [key, (value: boolean) => setDirty(old => old[key] === value ? old : { ...old, [key]: value })])) as Record<DirtyKey, (value: boolean) => void>, []);
 
@@ -197,7 +196,8 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     ...(isGuided(op) && op.etapa && op.etapa !== "captacion" ? [{ label: "Corregir etapa", icon: <ChevronLeft size={16} aria-hidden="true" />, onSelect: () => setSettings(true) }] : []),
     { label: "Eliminar asunto", icon: <Trash2 size={16} aria-hidden="true" />, onSelect: () => void removeFromPanel() },
   ];
-  const back = phase ? `/admin/operaciones?etapa=${ownerProcess(op.flujo?.ruta).find(p => p.key === phase)?.slug ?? ""}` : "/admin/operaciones";
+  // Asuntos ya no se filtra por etapa (titular, 15/11/2026): «Volver» regresa a la lista completa.
+  const back = "/admin/operaciones";
   const tabs = <Tabs orientation={tab === "sigue" ? "horizontal" : "vertical"} className={tab === "sigue" ? s.footTabs : s.navyTabs} idPrefix="operacion" label="Secciones del asunto" value={tab} onChange={id => void changeTab(id)} items={tabItems} />;
 
   return <Surface className={s.screen}>
