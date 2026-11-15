@@ -106,6 +106,7 @@ function Perfil({ row, sub, persona, operaciones, today, onBack, tituloInmueble,
   const [vuelta, setVuelta] = React.useState(0);
   const [subiendo, setSubiendo] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [docsError, setDocsError] = React.useState(false);
   const [aviso, setAviso] = React.useState<string | null>(null);
   const input = React.useRef<HTMLInputElement>(null);
   const esCliente = row.kind === "cliente";
@@ -113,7 +114,7 @@ function Perfil({ row, sub, persona, operaciones, today, onBack, tituloInmueble,
   React.useEffect(() => {
     if (!esCliente) return;
     let alive = true;
-    fetchJson<{ documentos: Suelto[] }>(`/api/admin/bandeja?clienteId=${encodeURIComponent(row.id)}`).then(r => { if (alive) setSueltos(r.documentos); }).catch(e => { if (alive) setError(errorMessage(e)); });
+    fetchJson<{ documentos: Suelto[] }>(`/api/admin/bandeja?clienteId=${encodeURIComponent(row.id)}`).then(r => { if (alive) { setSueltos(r.documentos); setDocsError(false); } }).catch(() => { if (alive) setDocsError(true); });
     return () => { alive = false; };
   }, [esCliente, row.id, vuelta]);
   React.useEffect(() => {
@@ -153,6 +154,10 @@ function Perfil({ row, sub, persona, operaciones, today, onBack, tituloInmueble,
   const pasos = op && isOwnerRoute(op.flujo?.ruta) ? ownerProcess(op.flujo?.ruta) : null;
   const fase = op && pasos ? processPhase(op.etapa, op.flujo, today) : null;
   const actual = pasos && fase ? pasos.findIndex(p => p.key === fase) : -1;
+  const paso = pasos && actual >= 0 ? pasos[actual] : null;
+  // Cuando no hay tarea ni cita, el «siguiente paso» de la lista es la etapa de la operación: aquí lo cuenta la guía, no se repite.
+  const pendiente = /^Operación en /i.test(row.step) ? "" : row.step;
+  const guia = op?.flujo?.ruta === "arrendador" ? "renta" : "venta";
   const digits = (persona?.telefono ?? "").replace(/\D/g, "");
   const wa = digits.length === 10 ? `52${digits}` : digits;
   const opHref = op ? `/admin/operaciones/${op.id}` : "";
@@ -184,10 +189,11 @@ function Perfil({ row, sub, persona, operaciones, today, onBack, tituloInmueble,
         {aviso && <p className={b.hint} role="status">{aviso}</p>}
         <section className={b.step} aria-labelledby="persona-sigue">
           <div className={s.top}>
-            {actual >= 0 && <span className={s.big} aria-hidden>{String(actual + 1).padStart(2, "0")}</span>}
+            {!pendiente && paso && <span className={s.big} aria-hidden>{String(actual + 1).padStart(2, "0")}</span>}
             <div>
-              <h3 id="persona-sigue">{row.step || (op ? `Su operación va en ${etapaDe(op)}` : "Sin siguiente paso anotado")}</h3>
-              <p>{row.step ? (pasos && actual >= 0 ? `Guía de ${op!.flujo?.ruta === "arrendador" ? "renta" : "venta"}: ${pasos[actual].label.toLowerCase()}.` : "Es lo que quedó pendiente con esta persona.")
+              <h3 id="persona-sigue">{pendiente || (paso ? paso.label : op ? `Su operación va en ${etapaDe(op)}` : "Sin siguiente paso anotado")}</h3>
+              <p>{pendiente ? (paso ? `Es lo pendiente con esta persona. Su operación va en el paso ${actual + 1} de ${pasos!.length} de la guía de ${guia}: ${paso.label.toLowerCase()}.` : "Es lo pendiente con esta persona.")
+                : paso ? `Es el paso ${actual + 1} de ${pasos!.length} de la guía de ${guia}. Abre la operación para trabajarlo.`
                 : op ? "Abre la operación para ver qué toca." : "Anota en qué quedaron para que aparezca en Hoy."}{row.when && <> <span className={s.when} data-late={row.late}>{row.when}</span></>}</p>
             </div>
           </div>
@@ -200,6 +206,7 @@ function Perfil({ row, sub, persona, operaciones, today, onBack, tituloInmueble,
         <section aria-labelledby="persona-documentos">
           <div className={s.sechead}><h3 id="persona-documentos">Documentos</h3><Pill size="sm" tone="muted">{documentos.length}</Pill>
             <Segmented label="Mostrar documentos" value={tab} onChange={setTab} options={[{ id: "todos", label: "Todos" }, { id: "recibidos", label: "Recibidos" }, { id: "hechos", label: "Hechos aquí" }]} /></div>
+          {docsError && <p className={b.hint} role="status">No se pudieron cargar los documentos de la persona. <button type="button" className="underline" onClick={() => setVuelta(n => n + 1)}>Reintentar</button></p>}
           {visibles.length ? <>
             <div className={s.thead}><span>Documento</span><span>Origen</span><span>Fecha</span><span /></div>
             {visibles.map(d => <div key={d.id} className={s.trow}>
@@ -213,7 +220,7 @@ function Perfil({ row, sub, persona, operaciones, today, onBack, tituloInmueble,
       </div>
       <aside className={b.inspector} aria-label="Datos de la persona">
         <div className={b.blk}><h3>En qué quedamos</h3>
-          {row.step ? <><p className={s.value}>{row.step}</p>{row.when && <div><Pill size="sm" tone={row.late ? "alert" : "warn"}>{row.when}</Pill></div>}</> : <p className={s.muted}>Nada anotado.</p>}
+          {pendiente ? <><p className={s.value}>{pendiente}</p>{row.when && <div><Pill size="sm" tone={row.late ? "alert" : "warn"}>{row.when}</Pill></div>}</> : <p className={s.muted}>Nada anotado.</p>}
         </div>
         <div className={b.blk}><h3>Contacto</h3>
           <p className={s.value}>{persona?.telefono || "Sin teléfono"}</p>

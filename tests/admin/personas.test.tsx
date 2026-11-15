@@ -78,3 +78,28 @@ it("«Agregar archivo» lo guarda y lo liga a la persona; un prospecto todavía 
   expect(await screen.findByRole("heading", { name: "Carlos Vega" })).toBeTruthy();
   expect(screen.queryByRole("button", { name: /Agregar archivo/ })).toBeNull();
 });
+
+it("si fallan solo los documentos de la persona, el perfil se ve y la sección lo dice con su reintento", async () => {
+  servidor();
+  const base = globalThis.fetch as unknown as (url: string, init?: RequestInit) => Promise<Response>;
+  let falla = true;
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => url === "/api/admin/bandeja?clienteId=cli-1" && falla ? Response.json({ error: "El panel no responde. Espera un minuto y vuelve a intentarlo." }, { status: 503 }) : base(url, init)));
+  render(<PersonasApp initialId="cliente:cli-1" />);
+  expect(await screen.findByText(/No se pudieron cargar los documentos de la persona/)).toBeTruthy();
+  expect(screen.queryByText(/El panel no responde/)).toBeNull();
+  // Lo demás sigue ahí: la guía y los documentos de la operación.
+  expect(await screen.findByText("Escritura pública")).toBeTruthy();
+  falla = false;
+  fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+  expect(await screen.findByText("Identificación oficial")).toBeTruthy();
+  expect(screen.queryByText(/No se pudieron cargar los documentos de la persona/)).toBeNull();
+});
+
+it("sin pendiente anotado, el bloque muestra el paso de la guía con su número y no se contradice", async () => {
+  servidor();
+  render(<PersonasApp initialId="cliente:cli-1" />);
+  const bloque = (await screen.findByRole("link", { name: "Abrir la operación" })).closest("section")!;
+  const actual = (await screen.findByRole("navigation", { name: /Guía de la operación/ })).querySelector("[aria-current='step']")!.textContent!;
+  expect(within(bloque).getByRole("heading", { level: 3 }).textContent).toBe(actual);
+  expect(bloque.textContent).toMatch(/Es el paso \d+ de \d+ de la guía de venta/);
+});
