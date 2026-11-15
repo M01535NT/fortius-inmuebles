@@ -1,4 +1,4 @@
-/* Reportes (SIM-11): cuatro números arriba y el detalle plegado. Tokens del kit; no usa panel.module.css. */
+/* Reportes (SIM-11): cuatro números arriba y el detalle plegado. Tokens del kit. */
 :global(.admin-root) .block { display: flex; min-width: 0; flex-direction: column; gap: 1rem; }
 :global(.admin-root) .filters { display: grid; min-width: 0; gap: .75rem; }
 @media (min-width: 640px) { :global(.admin-root) .filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

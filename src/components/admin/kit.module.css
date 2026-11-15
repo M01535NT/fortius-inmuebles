@@ -1,9 +1,8 @@
 /*
-  Componentes del panel. Dirección clara aprobada por el titular (17/10/2026): esquinas suaves
-  (10 px controles, 12 px fotos, 16 px tarjetas, 20 px paneles, pastilla en estados), sombras
-  azul marino que suben al pasar el puntero y la acción principal en guinda con su sombra.
-  Usan los tokens de .panel; el prefijo :global(.admin-root), clase global del contenedor
-  del panel, les da precedencia sobre las reglas genéricas heredadas de panel.module.css.
+  Componentes del panel (LV-09, paleta del 14/11/2026): esquinas de 10 px en controles y 12 px
+  en tarjetas, sombras casi nulas y la acción principal rellena en borgoña. Usan los tokens de
+  panel-base.css; el prefijo :global(.admin-root), clase global del contenedor del panel, les da
+  precedencia sobre las reglas base de panel-base.css.
 */
 
 /* Botones */

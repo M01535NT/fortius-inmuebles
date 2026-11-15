@@ -3,7 +3,7 @@
   personas, Agenda, Herramientas, Administración, Mi perfil): las tarjetas, botones, campos y
   títulos construidos con las utilidades anteriores toman la escala admin-* (esquinas 10/16/20 px,
   borde al 6 %, sombra en reposo y acción principal en guinda). Se retira cuando cada pantalla
-  reciba su rediseño. Vive aparte de panel.module.css, que se está retirando.
+  reciba su rediseño. Las reglas base del panel viven en panel-base.css.
 */
 
 /* Tarjetas y secciones con borde */
