@@ -36,7 +36,8 @@
 .route { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--card); }
 .rstep { border: 0; background: transparent; font: inherit; color: var(--muted-foreground); cursor: pointer; display: grid; gap: 7px; text-align: left; padding: 6px; border-radius: 10px; min-width: 0; min-height: 44px; }
 .rstep:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
-.rstep[aria-selected="true"] { background: var(--panel-selected); }
+.rstep[data-state="on"] { background: var(--panel-selected); }
+.rstep:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 1px; }
 .rnum { font-size: var(--admin-text-minimo); font-variant-numeric: tabular-nums; }
 .rbar { height: 5px; border-radius: 99px; background: var(--track); position: relative; overflow: hidden; }
 .rbar::after { content: ""; position: absolute; inset: 0; background: var(--foreground); transform: scaleX(0); transform-origin: left; transition: transform .5s var(--ease-out); }
