@@ -26,6 +26,11 @@
 .sechead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
 .sechead h3 { margin: 0; font-size: var(--admin-text-grupo); font-weight: 600; }
 .sechead > [role="radiogroup"] { margin-left: auto; }
+.secAction { margin-left: auto; }
+.pwrap { position: relative; min-width: 0; }
+.pwrap .pcard { height: 100%; }
+.pmenu { position: absolute; top: 4px; right: 4px; }
+.pwrap:has(.pmenu) .ptext { padding-right: 48px; }
 .thead, .trow { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(120px, 1fr) 72px 44px; align-items: center; gap: 0 10px; border-bottom: 1px solid var(--border); font-size: var(--admin-text-detalle); }
 .thead { padding: 8px 0 8px 4px; font-size: var(--admin-text-pastilla); font-weight: 540; color: var(--muted-foreground); }
 .trow { min-height: 56px; padding: 4px 0 4px 4px; }
