@@ -92,8 +92,8 @@ test("un asesor no ve Administración y conserva las 17 herramientas", async ({ 
   await expect(page.locator("#admin-account-menu").getByText("Asesor", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   // HER-01 (12/11/2026): catálogo depurado en tres grupos; desde el 14/11 en un solo panel, cada herramienta una vez
-  // (las 9 apps más la opinión de valor, Trámites y el inmueble compartido).
-  await expect(page.getByRole("main").locator("section li")).toHaveCount(12);
+  // (las 9 apps más la opinión de valor, Trámites y el inmueble compartido). Las «Ligas útiles» del pie no cuentan.
+  await expect(page.getByRole("main").locator('section[aria-labelledby^="grupo-"] li')).toHaveCount(12);
 });
 
 test("en celular la barra inferior y el menú llevan a todas las secciones", async ({ page }) => {
@@ -309,12 +309,17 @@ test("mobile editor reveals collapsed sections and confirms leaving through the 
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.screenshot({path:info.outputPath("mobile-task.png"),fullPage:true});
 });
-test("Herramientas es solo el catálogo y la dirección anterior de Documentos lleva a él (C45)", async ({ page }) => {
+test("Herramientas es un lanzador y la dirección anterior de Documentos lleva a él (C45, LV-10f)", async ({ page }) => {
   await page.goto("/admin/documentos");
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
   await expect(page.getByRole("tab", { name: "Documentos" })).toHaveCount(0);
   for (const name of ["Documentos", "Calcular", "Presentar"]) await expect(page.getByRole("heading", { name, level: 2 })).toBeVisible();
-  await expect(page.getByRole("searchbox", { name: "Buscar herramienta" })).toHaveCount(0);
+  // LV-10f (14/11/2026) reemplaza el «sin buscador» de C45: filtra al escribir y Enter abre lo primero.
+  const buscador = page.getByRole("searchbox", { name: "Buscar herramienta o sección" });
+  await buscador.fill("neto");
+  await expect(page.getByRole("heading", { name: "Documentos", level: 2 })).toHaveCount(0);
+  await buscador.press("Enter");
+  await expect(page).toHaveURL(/\/admin\/apps\//);
 });
 test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días sin desbordar", async ({ page }) => {
   for (const width of [390, 1440]) {
