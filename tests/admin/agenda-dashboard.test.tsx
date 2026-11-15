@@ -6,6 +6,7 @@ import AdminDashboard from "@/app/admin/page";
 import { AgendaCalendar as CalendarioPage } from "@/components/admin/agenda/calendar";
 import { clearAdminCache, type Evento } from "@/lib/admin/store";
 import type { Task } from "@/lib/tasks";
+import { dateValue } from "./agenda-helpers";
 
 let events: Evento[] = [];
 let tasks: Task[] = [];
@@ -117,7 +118,7 @@ test("Hoy's agenda includes earlier and untimed events from the operating day, u
    que tomará la captura se abre, se lee y se cierra. */
 const formDate = () => {
   fireEvent.click(screen.getByRole("button", { name: "Agendar" }));
-  const value = (screen.getByLabelText("Fecha") as HTMLInputElement).value;
+  const value = dateValue();
   fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
   return value;
 };

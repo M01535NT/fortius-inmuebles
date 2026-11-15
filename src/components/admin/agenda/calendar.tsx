@@ -1,35 +1,56 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Trash2 } from "@/components/admin/icons";
-import { Button, Notice, Sheet } from "@/components/admin/kit";
-import { AsyncButton, AsyncForm, ErrorNotice, Field, inputClass, selectClass } from "@/components/admin/ui";
+import { AnimatePresence, motion } from "motion/react";
+import type { DayButtonProps } from "react-day-picker";
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from "@/components/admin/icons";
+import { ActionsMenu, Avatar, Button, Kbd, Segmented, Sheet } from "@/components/admin/kit";
+import { AsyncForm, ErrorNotice, Field, inputClass } from "@/components/admin/ui";
+import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
+import { DateField } from "@/components/ui/date-field";
+import { Combobox } from "@/components/ui/combobox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/admin/store";
 import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 import { LinkPicker, type LinkValue } from "@/components/admin/workspace/link-picker";
+import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
+import { useSingleKeyShortcuts } from "@/components/admin/workspace/shortcuts";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { followupLabel, projectFollowups } from "@/lib/admin/followups";
 import { useTodayData } from "@/components/admin/workspace/use-today-queue";
 import { calendarWeekDays, isCalendarDate, shiftCalendarDate } from "@/lib/admin/calendar-dates";
 import { HOUR_HEIGHT, dayLabel, daySummary, dayTitle, hourRange, placeEvents, weekTitle, weekdayShort } from "@/lib/admin/agenda-view";
 import { isTaskOpen, TASK_STATUSES } from "@/lib/tasks";
-import { EVENTO_TIPOS, EVENTO_TIPO_LABELS, db, removeById, uid, upsert, useCollection, type AdminProperty, type Asesor, type Cliente, type Evento, type EventoTipo, type Lead } from "@/lib/admin/store";
+import { EVENTO_TIPOS, EVENTO_TIPO_LABELS, db, removeById, uid, upsert, useCollection, type Evento, type EventoTipo } from "@/lib/admin/store";
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
+import { adviserPhoto, RefLinks, RefMedia, resolveRefs, useAgendaKeys, type AgendaContext, type AgendaExpediente } from "./agenda-parts";
+import { EventDetail } from "./event-detail";
+import { useNotify } from "./notify";
 import s from "./agenda.module.css";
 
 /*
-  Agenda (lienzo: AgendaEscritorio y AgendaMovil). Semana por horas en computadora; en
-  celular, la tira de días y la lista del día elegido. Las visitas van en el azul de información. Las
-  tareas con fecha y los próximos contactos se muestran sin crear eventos. Agendar es un panel
-  (SIM-09, C25) que se abre con «Agendar», con «+ Nuevo» o al tocar un hueco de la semana, con
-  la fecha y la hora ya puestas; el asesor es quien agenda, salvo que lo cambie. Cerrar el panel
-  no borra lo escrito. «?fecha=», «?expediente=», «?leadId=», «?clienteId=», «?propiedadSlug=»,
-  «?asesorId=» y «?nueva=1» preparan la captura y la abren.
+  Agenda (LV-10g, sistema de DEC-51 con el lenguaje de Trámites). Semana por horas o mes en
+  computadora; en celular, la tira de días (o el mes) y la lista del día elegido. Las visitas van en
+  el azul de información (RP-70). Cada cita lleva la cara de la persona y la foto del inmueble, y al
+  tocarla abre su detalle en el panel del kit con «Lo que sigue». Las tareas con fecha y los próximos
+  contactos se muestran sin crear eventos. Agendar es un panel (SIM-09, C25) que se abre con
+  «Agendar», con «+ Nuevo», con la tecla A o al tocar un hueco de la semana, con la fecha y la hora ya
+  puestas; el asesor es quien agenda, salvo que lo cambie. Cerrar el panel no borra lo escrito.
+  «?fecha=», «?expediente=», «?leadId=», «?clienteId=», «?propiedadSlug=», «?asesorId=» y «?nueva=1»
+  preparan la captura y la abren. Atajos (apagables con los de una tecla): T hoy, ← → semana o mes,
+  S semana, M mes, A agendar.
 */
 
-type Expediente = { id: string; folio: string; cliente_id: string; propiedad_slug: string | null; asesor_id: string };
-type References = Pick<Evento, "leadId" | "clienteId" | "propiedadSlug" | "expedienteId" | "asesorId">;
-type Context = { leads: Lead[]; clientes: Cliente[]; propiedades: AdminProperty[]; asesores: Asesor[]; expedientes: Expediente[] };
+type View = "semana" | "mes";
+const toDate = (iso: string) => new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
+const toIso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const shiftMonth = (iso: string, by: number) => {
+  const y = Number(iso.slice(0, 4)), m = Number(iso.slice(5, 7)) - 1 + by, d = Number(iso.slice(8, 10));
+  const last = new Date(y, m + 1, 0).getDate();
+  return toIso(new Date(y, m, Math.min(d, last)));
+};
+const MONTH_TITLE = (iso: string) => { const t = toDate(iso).toLocaleDateString("es-MX", { month: "long", year: "numeric" }); return t.charAt(0).toUpperCase() + t.slice(1); };
 
 export function AgendaCalendar() {
   useQuickCreate("visita", () => openCapture());
@@ -40,7 +61,9 @@ export function AgendaCalendar() {
   const asesores = useCollection(db.asesores);
   const todasLasTareas = useCollection(db.tareas);
   const tareas = todasLasTareas.filter(isTaskOpen);
-  const [expedientes, setExpedientes] = React.useState<Expediente[]>([]);
+  const reduce = useReducedMotionSafe();
+  const { value: keysOn } = useSingleKeyShortcuts();
+  const [expedientes, setExpedientes] = React.useState<AgendaExpediente[]>([]);
   const [selectedExpedienteId, setSelectedExpedienteId] = React.useState("");
   const referencesEdited = React.useRef(false);
   const draftEdited = React.useRef(false);
@@ -67,11 +90,15 @@ export function AgendaCalendar() {
   const { dossiers } = useTodayData(60_000);
   const followups = projectFollowups(leads, clientes, dossiers, todasLasTareas);
   const hoy = operationalDate();
+  const [view, setView] = React.useState<View>("semana");
   const [seleccion, setSeleccion] = React.useState(hoy);
   const [captureDate, setCaptureDate] = React.useState(hoy);
   const [captureTime, setCaptureTime] = React.useState("");
+  const [captureTipo, setCaptureTipo] = React.useState<EventoTipo>(EVENTO_TIPOS[0]);
   const [captureOpen, setCaptureOpen] = React.useState(false);
-  const [removed, setRemoved] = React.useState<Evento | null>(null);
+  const [detailId, setDetailId] = React.useState<string | null>(null);
+  const undo = useUndo();
+  const { notify, node: inlineNotice } = useNotify();
   const [me, setMe] = React.useState<string>();
   React.useEffect(() => {
     let alive = true;
@@ -99,13 +126,15 @@ export function AgendaCalendar() {
   const weekEvents = eventos.filter(e => semana.includes(e.fecha));
   const range = hourRange(weekEvents);
   const hours = Array.from({ length: range.end - range.start }, (_, i) => range.start + i);
-  const visits = weekEvents.filter(e => e.tipo === "visita").length;
+  const monthPrefix = seleccion.slice(0, 7);
+  const visits = (view === "mes" ? eventos.filter(e => e.fecha.startsWith(monthPrefix)) : weekEvents).filter(e => e.tipo === "visita").length;
   const counts = (fecha: string) => ({ events: eventos.filter(e => e.fecha === fecha).length, tasks: tareas.filter(t => t.vence === fecha).length, contacts: followups.filter(f => f.fecha === fecha).length });
   const delDia = eventos.filter(e => e.fecha === seleccion).sort((a, b) => (a.hora || "24:00").localeCompare(b.hora || "24:00") || a.titulo.localeCompare(b.titulo, "es"));
   const tareasDelDia = tareas.filter(t => t.vence === seleccion);
   const contactosDelDia = followups.filter(f => f.fecha === seleccion);
+  const detail = eventos.find(e => e.id === detailId) ?? null;
 
-  const calendarContext: Context = { leads, clientes, propiedades, asesores, expedientes };
+  const calendarContext: AgendaContext = { leads, clientes, propiedades, asesores, expedientes };
   const selectedExpediente = expedientes.find(row => row.id === selectedExpedienteId);
   const requestedExpedienteUnresolved = !!requestedExpedienteId && !selectedExpediente;
   const requestedExpedienteUnavailable = requestedExpedienteUnresolved && expedientesStatus === "ready";
@@ -122,6 +151,7 @@ export function AgendaCalendar() {
   function openCapture(fecha?: string, hora?: string) {
     if (fecha && !draftEdited.current) setCaptureDate(fecha);
     if (hora && !draftEdited.current) setCaptureTime(hora);
+    setDetailId(null);
     setCaptureOpen(true);
   }
   function slotAt(fecha: string, event: React.MouseEvent<HTMLDivElement>) {
@@ -132,24 +162,24 @@ export function AgendaCalendar() {
     openCapture(fecha, `${String(Math.min(23, Math.floor(minutes / 60))).padStart(2, "0")}:${minutes % 60 === 0 ? "00" : "30"}`);
   }
   async function removeEvent(evento: Evento) {
-    await removeById(db.eventos, evento.id, db.eventos.version(evento));
-    setRemoved(evento);
-  }
-  async function undoRemove() {
-    if (!removed) return;
-    // Se vuelve a crear con los mismos datos (RP-16): el borrado no se deshace sobre el registro anterior.
-    await upsert(db.eventos, { ...removed, id: uid() }, null);
-    setRemoved(null);
+    undo.clear();
+    try {
+      await removeById(db.eventos, evento.id, db.eventos.version(evento));
+      setDetailId(current => current === evento.id ? null : current);
+      // RP-16: se vuelve a crear con los mismos datos; el borrado no se deshace sobre el registro anterior.
+      undo.offer({ text: `Se eliminó «${evento.titulo}».`, undo: () => upsert(db.eventos, { ...evento, id: uid() }, null) });
+    } catch (error) {
+      notify(`No se pudo eliminar: ${error instanceof Error ? error.message : "intenta de nuevo"}`, "error");
+    }
   }
   function selectDay(fecha: string) {
     setSeleccion(fecha);
     if (!draftEdited.current) setCaptureDate(fecha);
   }
-  function openEvent(fecha: string) {
-    setSeleccion(fecha);
-    const heading = document.getElementById("calendar-selected-day");
-    heading?.focus({ preventScroll: true });
-    heading?.scrollIntoView?.({ block: "start" });
+  function step(by: number) { selectDay(view === "mes" ? shiftMonth(seleccion, by) : shiftCalendarDate(seleccion, 7 * by)); }
+  function openEvent(evento: Evento) {
+    setSeleccion(evento.fecha);
+    setDetailId(evento.id);
   }
   function withdrawRequestedExpediente() {
     referencesEdited.current = true;
@@ -160,15 +190,15 @@ export function AgendaCalendar() {
     setExpedientesStatus("loading");
     setExpedientesRetry(current => current + 1);
   }
-  function updateReference(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { name, value } = event.currentTarget;
+  function updateReference(name: "asesorId", value: string) {
     referencesEdited.current = true;
+    draftEdited.current = true;
     setRequestedExpedienteId("");
     setFormContext(current => ({ ...(current ?? formReferences), [name]: value }));
     setSelectedExpedienteId("");
   }
-  /** «¿Con quién o sobre qué?»: una operación trae cliente, inmueble y asesor; lo demás la desvincula. */
-  function updateLinks(next: LinkValue, operation?: Expediente) {
+  /** «¿Con quién o sobre qué?»: un asunto trae cliente, inmueble y asesor; lo demás lo desvincula. */
+  function updateLinks(next: LinkValue, operation?: AgendaExpediente) {
     referencesEdited.current = true;
     draftEdited.current = true;
     setRequestedExpedienteId("");
@@ -176,18 +206,28 @@ export function AgendaCalendar() {
     setFormContext({ leadId: next.leadId ?? "", clienteId: next.clienteId ?? "", propiedadSlug: next.propiedadSlug ?? "", asesorId: operation ? operation.asesor_id : (formReferences.asesorId ?? "") });
   }
 
+  useAgendaKeys(keysOn, {
+    t: () => selectDay(hoy),
+    a: () => openCapture(seleccion),
+    s: () => setView("semana"),
+    m: () => setView("mes"),
+    ArrowLeft: () => step(-1),
+    ArrowRight: () => step(1),
+  });
+
   async function agendar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (requestedExpedienteUnresolved) throw new Error("Confirma el asunto solicitado o quita ese vínculo antes de agendar.");
     const form = e.currentTarget;
     const data = new FormData(form);
     const expediente = expedientes.find(x => x.id === data.get("expedienteId"));
+    const titulo = String(data.get("titulo") ?? "");
     await upsert(db.eventos, {
       id: uid(),
-      titulo: String(data.get("titulo") ?? ""),
-      fecha: String(data.get("fecha") ?? captureDate),
+      titulo,
+      fecha: captureDate,
       hora: captureTime || undefined,
-      tipo: String(data.get("tipo") ?? "otro") as EventoTipo,
+      tipo: captureTipo,
       leadId: expediente ? undefined : String(data.get("leadId") ?? "") || undefined,
       clienteId: (expediente?.cliente_id ?? String(data.get("clienteId") ?? "")) || undefined,
       propiedadSlug: (expediente?.propiedad_slug ?? String(data.get("propiedadSlug") ?? "")) || undefined,
@@ -196,25 +236,38 @@ export function AgendaCalendar() {
     }, null);
     form.reset();
     setFormContext(selectedExpediente ? { clienteId: selectedExpediente.cliente_id, propiedadSlug: selectedExpediente.propiedad_slug ?? "", asesorId: selectedExpediente.asesor_id, leadId: "" } : { ...baseContext });
-    setCaptureDate(seleccion);
+    setSeleccion(captureDate);
+    setCaptureDate(captureDate);
     setCaptureTime("");
+    setCaptureTipo(EVENTO_TIPOS[0]);
     draftEdited.current = false;
     setCaptureOpen(false);
+    notify(`Agendado: ${titulo}.`);
   }
+
+  const visitDays = React.useMemo(() => [...new Set(eventos.filter(e => e.tipo === "visita").map(e => e.fecha))].map(toDate), [eventos]);
+  const busyDays = React.useMemo(() => [...new Set([...eventos.filter(e => e.tipo !== "visita").map(e => e.fecha), ...tareas.map(t => t.vence).filter(Boolean) as string[], ...followups.map(f => f.fecha)])].map(toDate), [eventos, tareas, followups]);
+
+  const prevLabel = view === "mes" ? "Mes anterior" : "Semana anterior";
+  const nextLabel = view === "mes" ? "Mes siguiente" : "Semana siguiente";
+  const fade = reduce ? {} : { initial: { opacity: 0, y: 4 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0 }, transition: { duration: 0.18, ease: [0.23, 1, 0.32, 1] as const } };
 
   return <div className="flex min-w-0 flex-col gap-5">
     <div className={s.toolbar}>
-      <p className="text-muted-foreground"><span className="font-semibold text-foreground">{weekTitle(semana)}</span>{` · ${visits} ${visits === 1 ? "visita" : "visitas"}`}</p>
+      <p className="text-muted-foreground"><span className="font-semibold text-foreground">{view === "mes" ? MONTH_TITLE(seleccion) : weekTitle(semana)}</span>{` · ${visits} ${visits === 1 ? "visita" : "visitas"}`}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <Button iconOnly aria-label="Semana anterior" onClick={() => selectDay(shiftCalendarDate(seleccion, -7))}><ChevronLeft size={20} aria-hidden="true" /></Button>
-        <Button onClick={() => selectDay(hoy)}>Hoy</Button>
-        <Button iconOnly aria-label="Semana siguiente" onClick={() => selectDay(shiftCalendarDate(seleccion, 7))}><ChevronRight size={20} aria-hidden="true" /></Button>
-        <Button className="ml-2" aria-haspopup="dialog" onClick={() => openCapture(seleccion)}><Plus size={16} aria-hidden="true" />Agendar</Button>
+        <Segmented label="Vista de la agenda" value={view} onChange={setView} options={[{ id: "semana", label: "Semana" }, { id: "mes", label: "Mes" }]} />
+        <span className="flex items-center gap-1">
+          <Button iconOnly aria-label={prevLabel} title={`${prevLabel} (←)`} onClick={() => step(-1)}><ChevronLeft size={20} aria-hidden="true" /></Button>
+          <Button onClick={() => selectDay(hoy)} title="Ir a hoy (T)">Hoy</Button>
+          <Button iconOnly aria-label={nextLabel} title={`${nextLabel} (→)`} onClick={() => step(1)}><ChevronRight size={20} aria-hidden="true" /></Button>
+        </span>
+        <Button variant="primary" aria-haspopup="dialog" title="Agendar (A)" onClick={() => openCapture(seleccion)}><Plus size={16} aria-hidden="true" />Agendar</Button>
       </div>
     </div>
-    <div className={s.legend} aria-hidden="true"><span><i className={s.swatchVisit} />Visita</span><span><i className={s.swatchOther} />Cita o llamada</span><span><i className={s.swatchTask} />Tarea o seguimiento</span></div>
+    {view === "semana" && <div className={s.legend} aria-hidden="true"><span><i className={s.swatchVisit} />Visita</span><span><i className={s.swatchOther} />Cita o llamada</span><span><i className={s.swatchTask} />Tarea o seguimiento</span>{keysOn && <span className={s.keys}><Kbd>T</Kbd> hoy <Kbd>←</Kbd><Kbd>→</Kbd> semana <Kbd>A</Kbd> agendar</span>}</div>}
 
-    <section aria-label="Agenda semanal" className={s.weekCard}>
+    {view === "semana" ? <section aria-label="Agenda semanal" className={s.weekCard}>
       <div className={s.scroller}><div className={s.weekInner}>
         <div className={s.dayRow}>
           <span className={s.gutter} aria-hidden="true" />
@@ -231,24 +284,33 @@ export function AgendaCalendar() {
         <div className={s.allDay}>
           <span className={s.gutter}>Sin hora</span>
           {semana.map(fecha => <ul key={fecha} className={s.allDayCell} aria-label={`Sin hora el ${dayLabel(fecha)}`}>
-            {eventos.filter(e => e.fecha === fecha && !e.hora).map(e => <li key={e.id}><button type="button" className={cn(s.chip, e.tipo === "visita" && s.chipVisit)} aria-label={`Ver evento: ${e.titulo}`} onClick={() => openEvent(fecha)}>{e.titulo}</button></li>)}
+            {eventos.filter(e => e.fecha === fecha && !e.hora).map(e => <li key={e.id}><button type="button" className={cn(s.chip, e.tipo === "visita" && s.chipVisit)} aria-label={`Ver evento: ${e.titulo}`} onClick={() => openEvent(e)}>{e.titulo}</button></li>)}
             {tareas.filter(t => t.vence === fecha).map(t => <li key={t.id}><Link className={cn(s.chip, s.chipTask)} href={`/admin/tareas/${encodeURIComponent(t.id)}`}>Tarea: {t.titulo}</Link></li>)}
             {followups.filter(f => f.fecha === fecha).map(f => <li key={f.id}><Link className={cn(s.chip, s.chipTask)} href={f.href}>Seguimiento: {f.personName}</Link></li>)}
           </ul>)}
         </div>
         <div className={s.grid}>
           <div className={s.hours} aria-hidden="true">{hours.map(h => <span key={h} style={{ height: HOUR_HEIGHT }}>{String(h).padStart(2, "0")}:00</span>)}</div>
-          {/* Tocar un hueco abre «Agendar» con ese día y esa hora; con teclado, el botón «Agendar» hace lo mismo. */}
+          {/* Tocar un hueco abre «Agendar» con ese día y esa hora; con teclado, el botón «Agendar» (o la tecla A) hace lo mismo. */}
           {semana.map(fecha => <div key={fecha} className={cn(s.column, fecha === hoy && s.columnToday)} title="Toca un hueco para agendar a esa hora" onClick={event => slotAt(fecha, event)} style={{ height: hours.length * HOUR_HEIGHT, backgroundSize: `100% ${HOUR_HEIGHT}px` }}>
-            {placeEvents(eventos.filter(e => e.fecha === fecha), range.start).map(p => <button key={p.event.id} type="button" aria-label={`Ver evento: ${p.event.titulo}`} onClick={() => openEvent(fecha)}
-              className={cn(s.block, p.event.tipo === "visita" && s.blockVisit)}
-              style={{ top: p.top, height: p.height, left: `calc(${(p.lane / p.lanes) * 100}% + 4px)`, width: `calc(${100 / p.lanes}% - 8px)` }}>
-              <span className={s.blockTitle} title={p.event.titulo}><span className="tabular-nums">{p.event.hora}</span> {p.event.titulo}</span>
-            </button>)}
+            {placeEvents(eventos.filter(e => e.fecha === fecha), range.start).map(p => {
+              const refs = resolveRefs(p.event, calendarContext);
+              return <button key={p.event.id} type="button" aria-label={`Ver evento: ${p.event.titulo}`} onClick={() => openEvent(p.event)}
+                className={cn(s.block, p.event.tipo === "visita" && s.blockVisit)}
+                style={{ top: p.top, height: p.height, left: `calc(${(p.lane / p.lanes) * 100}% + 4px)`, width: `calc(${100 / p.lanes}% - 8px)` }}>
+                <span className={s.blockTitle} title={p.event.titulo}><span className="tabular-nums">{p.event.hora}</span> {p.event.titulo}</span>
+                {refs.person && p.lanes === 1 && <span className={s.blockWho}><Avatar name={refs.person.name} size={16} />{refs.person.name}</span>}
+              </button>;
+            })}
           </div>)}
         </div>
       </div></div>
-    </section>
+    </section> : <section aria-label="Agenda del mes" className={s.monthCard}>
+      <DayCounts.Provider value={counts}><Calendar mode="single" required selected={toDate(seleccion)} month={toDate(seleccion)} onMonthChange={month => selectDay(toIso(new Date(month.getFullYear(), month.getMonth(), 1)))}
+        onSelect={(day?: Date) => { if (day) selectDay(toIso(day)); }} hideNavigation
+        modifiers={{ visita: visitDays, ocupado: busyDays }} components={MONTH_COMPONENTS}
+        className={s.month} classNames={{ root: "w-full", months: "relative flex w-full flex-col", month: "flex w-full flex-col gap-2", month_caption: "sr-only" }} /></DayCounts.Provider>
+    </section>}
 
     <div className={s.bottom}>
       <section aria-labelledby="calendar-selected-day" className="flex min-w-0 flex-col gap-3">
@@ -256,68 +318,98 @@ export function AgendaCalendar() {
           <h2 id="calendar-selected-day" tabIndex={-1} className="m-0 scroll-mt-24 text-xl">{dayTitle(seleccion)}</h2>
           <p className="text-sm text-muted-foreground">{daySummary(delDia) ?? "Sin citas"}{tareasDelDia.length ? ` · ${tareasDelDia.length} ${tareasDelDia.length === 1 ? "tarea vence" : "tareas vencen"}` : ""}</p>
         </div>
-        {delDia.length > 0 ? <ol className="flex flex-col gap-2.5">{delDia.map(evento => <li key={evento.id} className={cn(s.dayItem, evento.tipo === "visita" && s.dayItemVisit)}>
-          <span className={s.dayTime}>{evento.hora ?? "Sin hora"}<span className={s.dayKind}>{EVENTO_TIPO_LABELS[evento.tipo]}</span></span>
-          <span className="flex min-w-0 flex-1 flex-col gap-1">
-            <span className="font-semibold [overflow-wrap:anywhere]">{evento.titulo}</span>
-            <EventContext references={evento} context={calendarContext} />
-          </span>
-          <details className={s.eventMenu}>
-            <summary aria-label={`Más opciones de ${evento.titulo}`}><MoreHorizontal size={18} aria-hidden="true" /></summary>
-            <div className={s.eventMenuBody}><AsyncButton type="button" aria-label={`Eliminar ${evento.titulo}`} className={s.eventDelete} onClick={() => removeEvent(evento)}><Trash2 size={16} aria-hidden="true" />Eliminar</AsyncButton></div>
-          </details>
-        </li>)}</ol> : <div className={s.free}><p className="font-semibold text-foreground">Sin citas este día</p><Button onClick={() => openCapture(seleccion)}>Agendar algo</Button></div>}
-        {removed && <Notice tone="info" title={`Se eliminó «${removed.titulo}».`} actions={<><AsyncButton type="button" className="min-h-11 rounded-md px-3 text-sm font-semibold underline underline-offset-4" onClick={undoRemove}>Deshacer</AsyncButton><Button variant="ghost" onClick={() => setRemoved(null)}>Cerrar aviso</Button></>} />}
-        {tareasDelDia.length > 0 && <section aria-label="Vencimientos de tareas"><h3 className="text-sm font-semibold">Tareas que vencen este día</h3>
-          <ul className="mt-1">{tareasDelDia.map(t => <li key={t.id}><Link href={`/admin/tareas/${t.id}`} className={s.link}><span>{t.titulo}</span><span className="text-xs text-muted-foreground">{TASK_STATUSES[t.estado]}</span></Link></li>)}</ul>
-        </section>}
-        {contactosDelDia.length > 0 && <section aria-label="Próximos contactos"><h3 className="text-sm font-semibold">Seguimientos previstos este día</h3>
-          <ul className="mt-1">{contactosDelDia.map(f => <li key={f.id}><Link href={f.href} className={s.link}><span>{f.personName}</span><span className="text-xs text-muted-foreground">{followupLabel(f)} · {asesores.find(a => a.id === f.asesorId)?.nombre ?? "Sin asesor"}</span></Link></li>)}</ul>
-        </section>}
+        {delDia.length > 0 ? <ol className="flex flex-col gap-2.5"><AnimatePresence initial={false}>{delDia.map(evento => {
+          const refs = resolveRefs(evento, calendarContext);
+          const past = evento.fecha === hoy && !!evento.hora && evento.hora < nowTime();
+          return <motion.li layout={!reduce} key={evento.id} {...fade} className={cn(s.dayItem, evento.tipo === "visita" && s.dayItemVisit, past && s.dayItemPast)}>
+            <span className={s.dayTime}>{evento.hora ?? "Sin hora"}<span className={s.dayKind}>{EVENTO_TIPO_LABELS[evento.tipo]}</span></span>
+            <RefMedia refs={refs} />
+            <span className="flex min-w-0 flex-1 flex-col gap-1">
+              <button type="button" className={s.dayOpen} onClick={() => openEvent(evento)} aria-label={`Abrir ${evento.titulo}`}><span className="font-semibold [overflow-wrap:anywhere]">{evento.titulo}</span></button>
+              <RefLinks refs={refs} />
+            </span>
+            <ActionsMenu label={`Más opciones de ${evento.titulo}`} actions={[
+              { label: "Ver detalle", onSelect: () => openEvent(evento) },
+              { label: "Eliminar", icon: <Trash2 size={16} aria-hidden="true" />, danger: true, separated: true, onSelect: () => void removeEvent(evento) },
+            ]} />
+          </motion.li>;
+        })}</AnimatePresence></ol> : <div className={s.free}><p className="font-semibold text-foreground">Sin citas este día</p><Button onClick={() => openCapture(seleccion)}>Agendar algo</Button></div>}
+        <UndoNotice {...undo} onError={message => notify(message, "error")} />
+        {inlineNotice}
       </section>
 
-      <Sheet open={captureOpen} onClose={() => setCaptureOpen(false)} title="Agendar" keepMounted>
-        <AsyncForm onSubmit={agendar} onChange={() => { draftEdited.current = true; }} className="space-y-3">
-          <Field label="Nuevo evento" htmlFor="cal-titulo"><input id="cal-titulo" name="titulo" required placeholder="Visita a la casa de…" className={inputClass} /></Field>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Field label="Tipo" htmlFor="cal-tipo"><select id="cal-tipo" name="tipo" className={selectClass}>{EVENTO_TIPOS.map(t => <option key={t} value={t}>{EVENTO_TIPO_LABELS[t]}</option>)}</select></Field>
-            <Field label="Fecha" htmlFor="cal-fecha"><input id="cal-fecha" name="fecha" type="date" value={captureDate} onChange={event => setCaptureDate(event.currentTarget.value)} required className={inputClass} /></Field>
-            <Field label="Hora" htmlFor="cal-hora"><input id="cal-hora" name="hora" type="time" value={captureTime} onChange={event => setCaptureTime(event.currentTarget.value)} className={inputClass} /></Field>
-          </div>
-          <section aria-label="Contexto del evento" className={s.formContext}>
-            <LinkPicker id="cal-vinculo" leads={leads} clientes={clientes} propiedades={propiedades} operations={expedientes}
-              value={{ leadId: formReferences.leadId || undefined, clienteId: formReferences.clienteId || undefined, propiedadSlug: formReferences.propiedadSlug || undefined, expedienteId: selectedExpedienteId || requestedExpedienteId || undefined }}
-              onChange={(next, operation) => updateLinks(next, operation as Expediente | undefined)} unavailable={requestedExpedienteUnresolved && !requestedExpedienteUnavailable ? { expediente: "Consultando…" } : undefined}
-              hint={formReferences.leadId || formReferences.clienteId || formReferences.propiedadSlug || selectedExpedienteId || requestedExpedienteUnresolved ? undefined : "Opcional."} />
-            {["leadId", "clienteId", "propiedadSlug"].map(name => <input key={name} type="hidden" name={name} value={formReferences[name as "leadId"] ?? ""} />)}
-            <input type="hidden" name="expedienteId" value={selectedExpedienteId} />
-            {expedientesStatus === "loading" && <p role="status" className="mt-2 text-xs text-muted-foreground">{requestedExpedienteUnresolved ? "Consultando el asunto solicitado. Puedes seguir capturando mientras se confirma." : "Consultando asuntos…"}</p>}
-            <div className="mt-2"><ErrorNotice error={expedientesError} /></div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {(expedientesStatus === "error" || requestedExpedienteUnavailable) && <Button onClick={retryExpedientes}>Reintentar consulta de asuntos</Button>}
-              {requestedExpedienteUnresolved && <Button onClick={withdrawRequestedExpediente}>Quitar asunto solicitado</Button>}
-            </div>
-          </section>
-          <Field label="Asesor (opcional)" htmlFor="cal-asesor" hint={selectedExpedienteId ? "Lo pone el asunto; si lo cambias, el asunto se desvincula." : formReferences.asesorId && formReferences.asesorId === me ? "Tú, salvo que elijas a otra persona." : undefined}><select value={formReferences.asesorId ?? ""} onChange={updateReference} id="cal-asesor" name="asesorId" className={selectClass}><option value="">Ninguno</option>{asesores.filter(a => a.activo || a.id === formReferences.asesorId).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
-          <Button type="submit" variant="primary" disabled={requestedExpedienteUnresolved} className="w-full">Guardar en la agenda</Button>
-        </AsyncForm>
-      </Sheet>
+      <aside className="flex min-w-0 flex-col gap-4" aria-label="También este día">
+        {tareasDelDia.length > 0 && <section aria-label="Vencimientos de tareas" className={s.sideCard}><h3>Tareas que vencen este día</h3>
+          <ul>{tareasDelDia.map(t => { const refs = resolveRefs(t, calendarContext); return <li key={t.id}><Link href={`/admin/tareas/${t.id}`} className={s.link}><RefMedia refs={refs} size={32} /><span className="flex min-w-0 flex-col"><span>{t.titulo}</span><span className="text-xs text-muted-foreground">{TASK_STATUSES[t.estado]}</span></span></Link></li>; })}</ul>
+        </section>}
+        {contactosDelDia.length > 0 && <section aria-label="Próximos contactos" className={s.sideCard}><h3>Seguimientos previstos este día</h3>
+          <ul>{contactosDelDia.map(f => <li key={f.id}><Link href={f.href} className={s.link}><Avatar name={f.personName} size={32} /><span className="flex min-w-0 flex-col"><span>{f.personName}</span><span className="text-xs text-muted-foreground">{followupLabel(f)} · {asesores.find(a => a.id === f.asesorId)?.nombre ?? "Sin asesor"}</span></span></Link></li>)}</ul>
+        </section>}
+      </aside>
     </div>
+
+    <EventDetail evento={detail} eventos={eventos} tareas={tareas} followups={followups} context={calendarContext} today={hoy} onClose={() => setDetailId(null)} onDelete={evento => void removeEvent(evento)} />
+
+    <Sheet open={captureOpen} onClose={() => setCaptureOpen(false)} title="Agendar" keepMounted>
+      <AsyncForm onSubmit={agendar} onChange={() => { draftEdited.current = true; }} className="space-y-3">
+        <Field label="Nuevo evento" htmlFor="cal-titulo"><input id="cal-titulo" name="titulo" required placeholder="Visita a la casa de…" className={inputClass} /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Fecha" htmlFor="cal-fecha" className="col-span-2"><DateField id="cal-fecha" name="fecha" value={captureDate} onChange={value => { draftEdited.current = true; setCaptureDate(value || captureDate); }} required /></Field>
+          <Field label="Tipo" htmlFor="cal-tipo">
+            <Select value={captureTipo} onValueChange={value => { draftEdited.current = true; setCaptureTipo(value as EventoTipo); }}>
+              <SelectTrigger id="cal-tipo"><SelectValue /></SelectTrigger>
+              <SelectContent>{EVENTO_TIPOS.map(t => <SelectItem key={t} value={t}><i aria-hidden="true" className={cn(s.kindDot, t === "visita" && s.dotVisit)} />{EVENTO_TIPO_LABELS[t]}</SelectItem>)}</SelectContent>
+            </Select>
+          </Field>
+          <Field label="Hora" htmlFor="cal-hora"><input id="cal-hora" name="hora" type="time" value={captureTime} onChange={event => setCaptureTime(event.currentTarget.value)} className={inputClass} /></Field>
+        </div>
+        <section aria-label="Contexto del evento" className={s.formContext}>
+          <LinkPicker id="cal-vinculo" leads={leads} clientes={clientes} propiedades={propiedades} operations={expedientes}
+            value={{ leadId: formReferences.leadId || undefined, clienteId: formReferences.clienteId || undefined, propiedadSlug: formReferences.propiedadSlug || undefined, expedienteId: selectedExpedienteId || requestedExpedienteId || undefined }}
+            onChange={(next, operation) => updateLinks(next, operation as AgendaExpediente | undefined)} unavailable={requestedExpedienteUnresolved && !requestedExpedienteUnavailable ? { expediente: "Consultando…" } : undefined}
+            hint={formReferences.leadId || formReferences.clienteId || formReferences.propiedadSlug || selectedExpedienteId || requestedExpedienteUnresolved ? undefined : "Opcional."} />
+          {["leadId", "clienteId", "propiedadSlug"].map(name => <input key={name} type="hidden" name={name} value={formReferences[name as "leadId"] ?? ""} />)}
+          <input type="hidden" name="expedienteId" value={selectedExpedienteId} />
+          {expedientesStatus === "loading" && <p role="status" className="mt-2 text-xs text-muted-foreground">{requestedExpedienteUnresolved ? "Consultando el asunto solicitado. Puedes seguir capturando mientras se confirma." : "Consultando asuntos…"}</p>}
+          <div className="mt-2"><ErrorNotice error={expedientesError} /></div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(expedientesStatus === "error" || requestedExpedienteUnavailable) && <Button onClick={retryExpedientes}>Reintentar consulta de asuntos</Button>}
+            {requestedExpedienteUnresolved && <Button onClick={withdrawRequestedExpediente}>Quitar asunto solicitado</Button>}
+          </div>
+        </section>
+        <Field label="Asesor (opcional)" htmlFor="cal-asesor" hint={selectedExpedienteId ? "Lo pone el asunto; si lo cambias, el asunto se desvincula." : formReferences.asesorId && formReferences.asesorId === me ? "Tú, salvo que elijas a otra persona." : undefined}>
+          <Combobox id="cal-asesor" name="asesorId" value={formReferences.asesorId ?? ""} onChange={value => updateReference("asesorId", value)} placeholder="Ninguno" searchPlaceholder="Buscar asesor…"
+            options={[{ value: "", label: "Ninguno" }, ...asesores.filter(a => a.activo || a.id === formReferences.asesorId).map(a => ({ value: a.id, label: a.nombre, media: <Avatar name={a.nombre} src={adviserPhoto(a)} size={24} /> }))]} />
+        </Field>
+        <Button type="submit" variant="primary" disabled={requestedExpedienteUnresolved} className="w-full">Guardar en la agenda</Button>
+      </AsyncForm>
+    </Sheet>
   </div>;
 }
 
-function EventContext({ references, context }: { references: References; context: Context }) {
-  const lead = context.leads.find(row => row.id === references.leadId);
-  const cliente = context.clientes.find(row => row.id === references.clienteId);
-  const propiedad = context.propiedades.find(row => row.slug === references.propiedadSlug);
-  const expediente = context.expedientes.find(row => row.id === references.expedienteId);
-  const asesor = context.asesores.find(row => row.id === references.asesorId);
-  if (!lead && !cliente && !propiedad && !expediente && !asesor) return null;
-  return <span className={s.context}>
-    {lead && <Link href={`/admin/leads/${encodeURIComponent(lead.id)}`}>{lead.nombre}</Link>}
-    {cliente && <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`}>Cliente: {cliente.nombre}</Link>}
-    {propiedad && <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`}>{propiedad.titulo}</Link>}
-    {expediente && <Link href={`/admin/operaciones/${encodeURIComponent(expediente.id)}`}>Asunto: {expediente.folio}</Link>}
-    {asesor && <span>Asesor: {asesor.nombre}</span>}
-  </span>;
+/* El día del mes con su punto y su nombre accesible con lo que tiene. Es un componente estable (no se
+   vuelve a montar en cada render, para no perder el foco); lee las cuentas del día por contexto. */
+type Counts = { events: number; tasks: number; contacts: number };
+const DayCounts = React.createContext<(iso: string) => Counts>(() => ({ events: 0, tasks: 0, contacts: 0 }));
+function MonthDayButton(props: DayButtonProps) {
+  const counts = React.useContext(DayCounts);
+  const iso = toIso(props.day.date);
+  const c = counts(iso);
+  const total = c.events + c.tasks + c.contacts;
+  return <CalendarDayButton {...props} aria-label={`${dayLabel(iso)}${c.events ? `, ${c.events} eventos` : ""}${c.tasks ? `, ${c.tasks} tareas` : ""}${c.contacts ? `, ${c.contacts} contactos` : ""}`}>
+    {props.children}
+    <i aria-hidden="true" className={cn(s.monthDot, props.modifiers.visita ? s.dotVisit : total ? s.dotOther : "")} />
+  </CalendarDayButton>;
+}
+
+/* El calendario del kit define su raíz en línea y se volvería a montar en cada render (los datos de la
+   agenda se refrescan solos); aquí va una raíz estable para no perder el foco ni el clic. */
+function MonthRoot({ className, rootRef, ...rest }: React.ComponentProps<"div"> & { rootRef?: React.Ref<HTMLDivElement> }) {
+  return <div data-slot="calendar" ref={rootRef} className={className} {...rest} />;
+}
+const MONTH_COMPONENTS = { Root: MonthRoot, DayButton: MonthDayButton };
+
+/** Hora de Tijuana «HH:mm», para atenuar las citas de hoy que ya pasaron. */
+function nowTime() {
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "America/Tijuana", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
 }
