@@ -64,7 +64,7 @@
 :global(.admin-root) .list { margin: 0; padding: 0; list-style: none; }
 :global(.admin-root) .list > li + li, :global(.admin-root) .nextSection + .list > li:first-child, :global(.admin-root) .nextSection + h3 + * { border-top: 1px solid var(--border); }
 :global(.admin-root) .qrow { display: flex; align-items: center; gap: .75rem; }
-:global(.admin-root) .row { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto auto; align-items: center; gap: .25rem 1rem; min-width: 0; flex: 1; padding: .75rem .5rem; margin-inline: -.5rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .row { display: grid; grid-template-columns: 1.5rem 2.75rem minmax(0, 1fr) auto auto; align-items: center; gap: .25rem 1rem; min-width: 0; flex: 1; padding: .75rem .5rem; margin-inline: -.5rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .row:hover { background: color-mix(in srgb, var(--foreground) 3%, transparent); }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .row, :global(.admin-root) .rowGo { transition: background-color 150ms, border-color 150ms; } }
 :global(.admin-root) .si { display: flex; color: var(--muted-foreground); }
@@ -78,21 +78,22 @@
 :global(.admin-root) .row:hover .rowGo { border-color: var(--foreground); }
 :global(.admin-root) .rowChevron { display: none; color: var(--muted-foreground); }
 /* La fila de un prospecto nuevo lleva su botón «Registrar contacto» fuera del enlace. */
-:global(.admin-root) .qrowLead .row { grid-template-columns: 1.5rem minmax(0, 1fr) auto; }
+:global(.admin-root) .qrowLead .row { grid-template-columns: 1.5rem 2.75rem minmax(0, 1fr) auto; }
 :global(.admin-root) .rowAction { flex: none; }
 @media (max-width: 639px) {
   /* Celular: cuándo va bajo el contexto y una flecha sustituye al botón. */
-  :global(.admin-root) .row { grid-template-columns: 1.5rem minmax(0, 1fr) auto; grid-template-areas: "icon body chev" "icon when chev"; align-items: start; gap: .125rem .75rem; }
+  :global(.admin-root) .row { grid-template-columns: 1.25rem 2.75rem minmax(0, 1fr) auto; grid-template-areas: "icon media body chev" "icon media when chev"; align-items: start; gap: .125rem .75rem; }
+  :global(.admin-root) .mediaCell { grid-area: media; }
   :global(.admin-root) .si { grid-area: icon; padding-top: .125rem; }
   :global(.admin-root) .rowBody { grid-area: body; }
   :global(.admin-root) .when { grid-area: when; text-align: left; white-space: normal; }
   :global(.admin-root) .rowGo { display: none; }
   :global(.admin-root) .rowChevron { display: block; grid-area: chev; align-self: center; }
   :global(.admin-root) .qrowLead { flex-wrap: wrap; padding-bottom: .625rem; }
-  :global(.admin-root) .qrowLead .row { grid-template-columns: 1.5rem minmax(0, 1fr); grid-template-areas: "icon body" "icon when"; }
+  :global(.admin-root) .qrowLead .row { grid-template-columns: 1.25rem 2.75rem minmax(0, 1fr); grid-template-areas: "icon media body" "icon media when"; }
   :global(.admin-root) .qrowLead .row { flex-basis: 100%; }
   :global(.admin-root) .qrowLead .rowChevron { display: none; }
-  :global(.admin-root) .qrowLead .rowAction { margin-left: 2.25rem; }
+  :global(.admin-root) .qrowLead .rowAction { margin-left: 5.25rem; }
 }
 
 /* Agenda de hoy: línea de tiempo con la raya de «Ahora»; las tareas del día debajo. */
@@ -152,3 +153,36 @@
   :global(.admin-root) .pcol:first-child { border-top: 0; }
   :global(.admin-root) .pbar, :global(.admin-root) .pphases { display: none; }
 }
+
+/* DEC-51 (LV-10b): foto o cara en cada fila. */
+:global(.admin-root) .mediaCell { display: flex; align-items: center; justify-content: center; width: 2.75rem; }
+:global(.admin-root) .media { border-radius: 10px; }
+
+/* «Lo siguiente» en grande: foto del inmueble a la izquierda y el bloque azul con la acción. */
+:global(.admin-root) .hero { --hero-bg: #061f3f; display: grid; grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr); min-height: 12rem; overflow: hidden; border-radius: var(--radius-card); background: var(--hero-bg); color: #f8f8ff; margin-bottom: .5rem; }
+:global(.dark) :global(.admin-root) .hero { --hero-bg: #1a2331; }
+:global(.admin-root) .heroMedia { display: flex; min-height: 100%; }
+:global(.admin-root) .heroThumb { width: 100% !important; height: 100% !important; aspect-ratio: auto !important; border-radius: 0; background: rgba(248,248,255,.08); color: #b0b8c4; }
+:global(.admin-root) .heroFace { display: flex; flex: 1; align-items: center; justify-content: center; background: rgba(248,248,255,.06); }
+:global(.admin-root) .heroBody { display: flex; min-width: 0; flex-direction: column; gap: .375rem; padding: 1.25rem 1.375rem; }
+:global(.admin-root) .heroLabel { display: inline-flex; align-items: center; gap: .375rem; margin: 0; font-size: var(--admin-text-pastilla); font-weight: 650; color: #f6b66b; }
+:global(.admin-root) .heroH3 { margin: 0; font: inherit; color: inherit; }
+:global(.admin-root) .heroLink { display: flex; flex-direction: column; gap: .375rem; color: inherit; text-decoration: none; border-radius: 8px; }
+:global(.admin-root) .heroLink:hover .heroTitle { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+:global(.admin-root) .heroTitle { display: block; margin: 0; font-size: 1.375rem; line-height: 1.25; font-weight: 640; letter-spacing: -.01em; text-wrap: balance; overflow-wrap: anywhere; }
+:global(.admin-root) .heroText { margin: 0; font-size: var(--admin-text-detalle); color: #b0b8c4; overflow-wrap: anywhere; }
+:global(.admin-root) .heroActions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: auto; padding-top: .75rem; }
+:global(.admin-root) .hero .heroSecondary { background: rgba(248,248,255,.08); border-color: rgba(248,248,255,.24); color: #f8f8ff; }
+:global(.admin-root) .hero .heroSecondary:hover { background: rgba(248,248,255,.16); }
+:global(.admin-root) .hero :focus-visible { outline-color: #92c1fd; }
+@media (max-width: 639px) {
+  :global(.admin-root) .hero { grid-template-columns: minmax(0, 1fr); }
+  :global(.admin-root) .heroMedia { height: 9.5rem; }
+  :global(.admin-root) .heroActions > * { flex: 1 1 auto; }
+}
+
+/* Compacto (DEC-51): filas más juntas y fotos más chicas; la foto grande de «Lo siguiente» se queda. */
+:global(.admin-root[data-density=compacto]) .row { padding-block: .375rem; }
+:global(.admin-root[data-density=compacto]) .mediaCell > * { transform: scale(.75); }
+:global(.admin-root[data-density=compacto]) .hero { min-height: 9rem; }
+:global(.admin-root[data-density=compacto]) .heroTitle { font-size: 1.125rem; }

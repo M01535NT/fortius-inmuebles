@@ -5,5 +5,6 @@ module.exports = {
     include: ["tests/admin/**/*.test.{ts,tsx}"],
     environment: "jsdom",
     fileParallelism: false,
+    setupFiles: ["tests/admin/setup.ts"],
   },
 } satisfies Parameters<typeof import("vitest/config").defineConfig>[0];

@@ -63,23 +63,23 @@ test("la barra guarda el registro abierto en Recientes, ofrece acciones y marca 
   await waitFor(() => expect(patches).toEqual([{ panel: { recientes: ["/admin/tareas/t1", "/admin/leads/borrado"] } }]));
   fireEvent.keyDown(window, { key: "k", ctrlKey: true });
   const dialog = within(screen.getByRole("dialog", { name: "Buscar en el panel", hidden: true }));
-  expect(await dialog.findByRole("list", { name: "Recientes", hidden: true })).toBeTruthy();
-  fireEvent.change(dialog.getByRole("searchbox", { hidden: true }), { target: { value: "predial" } });
-  fireEvent.click(await dialog.findByRole("button", { name: "Marcar como hecha: Pedir el predial", hidden: true }));
+  expect(await dialog.findByRole("group", { name: "Recientes", hidden: true })).toBeTruthy();
+  fireEvent.change(dialog.getByRole("combobox", { hidden: true }), { target: { value: "predial" } });
+  fireEvent.click(await dialog.findByRole("option", { name: "Marcar como hecha: Pedir el predial", hidden: true }));
   await waitFor(() => expect(puts).toHaveLength(1));
   expect(puts[0]).toMatchObject({ version: 1, data: { id: "t1", estado: "completada" } });
   expect(await dialog.findByText("Completaste «Pedir el predial».")).toBeTruthy();
-  fireEvent.change(dialog.getByRole("searchbox", { hidden: true }), { target: { value: "nueva tarea" } });
-  expect(dialog.getByRole("list", { name: "Acciones", hidden: true }).textContent).toContain("Nueva tarea");
+  fireEvent.change(dialog.getByRole("combobox", { hidden: true }), { target: { value: "nueva tarea" } });
+  expect(dialog.getByRole("group", { name: "Acciones", hidden: true }).textContent).toContain("Nueva tarea");
 });
 
 test("«/» abre la barra fuera de un campo y no dentro de uno", async () => {
   await isLoggedIn();
   render(<><input aria-label="Campo" /><WorkspaceSearch variant="field" /></>);
   const field = screen.getByRole("textbox", { name: "Campo" });
-  const palette = () => document.querySelectorAll("dialog")[0];
+  const palette = () => screen.queryByRole("dialog", { name: "Buscar en el panel" });
   fireEvent.keyDown(field, { key: "/" });
-  expect(palette().hasAttribute("open")).toBe(false);
+  expect(palette()).toBeNull();
   fireEvent.keyDown(document.body, { key: "/" });
-  expect(palette().hasAttribute("open")).toBe(true);
+  expect(palette()).toBeTruthy();
 });

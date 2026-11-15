@@ -16,6 +16,7 @@ export type PanelPreferences = {
   vistasInventario?: Array<{ name: string; filters: Record<string, string> }>;
   recientes?: string[];
   atajos?: boolean;
+  densidad?: "comodo" | "compacto";
 };
 export type UserPreferences = { bandeja?: { leidos?: InboxRead }; panel?: PanelPreferences };
 type State = { session: string; data: UserPreferences | null } | undefined; // null: no se pudo consultar

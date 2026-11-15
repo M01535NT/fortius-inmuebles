@@ -91,7 +91,7 @@ export function TramitesApp({ initialId = null }: { initialId?: string | null })
         : <div className={s.center}><p className={s.empty}>{selected ? "Este trámite no existe o no tienes acceso." : "Elige un trámite de la lista."}</p></div>}
     </main>
     <NuevoTramite open={creating} onClose={() => setCreating(false)} me={me} clientes={clientes} propiedades={propiedades.map(p => ({ slug: p.slug, titulo: p.titulo, asesorId: p.asesorId }))} onCreated={id => { setCreating(false); setFiltro("curso"); open(id); }} />
-    {undo.current && <div className={s.toast}><UndoNotice current={undo.current} clear={undo.clear} ms={undo.ms} onError={setError} /></div>}
+    <UndoNotice current={undo.current} clear={undo.clear} ms={undo.ms} onError={setError} className={s.toast} />
   </div>;
 }
 

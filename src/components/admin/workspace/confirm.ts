@@ -18,8 +18,18 @@ export function confirmDeleteOperation(folio: string, who?: string) {
   return confirmDelete("operación", `La operación ${folio}${who && who !== folio ? ` de ${who}` : ""} se mueve a Eliminados con sus documentos, PDF y tareas.`, "a");
 }
 export type ConfirmOptions = { title?: string; confirmLabel?: string; danger?: boolean };
+export type ConfirmRequest = { message: string; options: ConfirmOptions; resolve: (accepted: boolean) => void };
+/*
+  DEC-52: dentro del panel, la confirmación es una ventana de Radix (AlertDialog) que dibuja
+  `ConfirmHost` (admin-shell). Así convive con los paneles y menús de Radix: Escape cierra solo la
+  de arriba y el foco no se pelea entre capas. Sin host montado (pantallas sueltas, pruebas) se usa
+  el <dialog> nativo de siempre, con el mismo texto y las mismas respuestas.
+*/
+let host: ((request: ConfirmRequest) => void) | null = null;
+export function registerConfirmHost(show: ((request: ConfirmRequest) => void) | null) { host = show; }
 export function confirmAction(message: string, options: ConfirmOptions = {}): Promise<boolean> {
-  const result = queue.then(() => new Promise<boolean>((resolve) => {
+  const show = host;
+  const result = show ? queue.then(() => new Promise<boolean>(resolve => show({ message, options, resolve }))) : queue.then(() => new Promise<boolean>((resolve) => {
     const previous = document.activeElement as HTMLElement | null;
     const dialog = document.createElement("dialog");
     dialog.className = "admin-confirm";

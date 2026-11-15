@@ -1,19 +1,17 @@
 "use client";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
-import { FirstDay } from "./first-day";
 import * as React from "react";
 import Link from "next/link";
-import { AlertTriangle, Building2, ChevronRight, Circle, Plus, Star } from "@/components/admin/icons";
-import { Button, ButtonLink, Surface, Thumb } from "@/components/admin/kit";
-import { db, upsert, useCollection, type Evento } from "@/lib/admin/store";
+import { AlertTriangle, Building2, Check, ChevronRight, Circle, Plus, Star } from "@/components/admin/icons";
+import { Avatar, Button, ButtonLink, Surface, Swap, Thumb } from "@/components/admin/kit";
+import { db, upsert, useCollection, useSession, type Evento } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { isTaskOpen, type Task } from "@/lib/tasks";
-import { longDate, shortDate, todayTasks, upcomingItems, weekDays, weekdayDate, type QueueItem, type TodayDossier } from "@/lib/admin/today";
+import { greeting as greetingFor, longDate, shortDate, todayTasks, upcomingItems, weekDays, weekdayDate, type QueueItem, type TodayDossier } from "@/lib/admin/today";
 import { operationTags, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { stageIcon } from "@/components/admin/icons";
 import { useConditions } from "@/lib/admin/conditions";
 import { cn } from "@/lib/utils";
-import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 import { SectionBoundary } from "@/components/admin/section-boundary";
 import { useTodayQueue } from "@/components/admin/workspace/use-today-queue";
 import { FirstContactButton } from "@/components/admin/workspace/first-contact";
@@ -34,6 +32,8 @@ import s from "./hoy.module.css";
   Todo se calcula con datos que el panel ya carga; nada se inventa.
 */
 
+const noSubscribe = () => () => undefined;
+const greetingNow = () => greetingFor(new Date().getHours());
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const LIST_ROWS = 7, TASK_ROWS = 5;
 const PHASES = [["Captar", 3], ["Preparar", 4], ["Comercializar", 2], ["Cerrar", 1]] as const;
@@ -83,6 +83,12 @@ export function HoyScreen() {
   const today = operationalDate();
   const conditions = useConditions();
   const [showAll, setShowAll] = React.useState(false);
+  const [heroBusy, setHeroBusy] = React.useState(false);
+  const [heroMessage, setHeroMessage] = React.useState("");
+  const heroUndo = useUndo();
+  const firstName = (useSession()?.name ?? "").trim().split(/\s+/)[0];
+  // El saludo usa la hora del navegador, no la del servidor.
+  const greeting = React.useSyncExternalStore(noSubscribe, greetingNow, () => "Hola");
   // La cola y sus datos vienen del mismo cálculo que el número del menú (COR-05, RP-84).
   const { queue, dossiers, staged, interviews, reports, contracts, expiring, names } = useTodayQueue();
   const photo = (slug?: string | null) => slug ? properties.find(p => p.slug === slug)?.galeria[0]?.src : undefined;
@@ -118,11 +124,19 @@ export function HoyScreen() {
   const hidden = groups.length - lateShown.length - otherShown.length;
   const lateTotal = lateGroups.length + (next?.late ? 1 : 0), todayTotal = otherGroups.length + (next && !next.late ? 1 : 0);
 
+  // DEC-51: cada pendiente con la foto de su inmueble o, si no tiene, con la cara de la persona.
+  const slugOf = (item: QueueItem) => item.propertySlug ?? (item.folio ? dossiers?.find(x => x.folio === item.folio)?.propiedad_slug : undefined);
+  const personOf = (item: QueueItem) => item.who.split(" · ")[0].trim() || item.who;
+  const media = (item: QueueItem, size = 44) => {
+    const slug = slugOf(item);
+    return slug ? <Thumb src={photo(slug)} size={size} className={s.media} /> : <Avatar name={personOf(item)} size={size - 4} />;
+  };
   const row = (group: QueueItem[], label?: string) => {
     const item = group[0], lead = leadOf(item), others = group.length - 1, tags = tagsOf(item);
     return <li key={item.id}><article className={cn(s.qrow, lead && s.qrowLead)}>
       <Link href={item.href} className={s.row} aria-label={label ?? `Continuar con ${item.who}`}>
         <StateIcon item={item} />
+        <span className={s.mediaCell}>{media(item)}</span>
         <span className={s.rowBody}>
           <span className={s.rowTitle}>{item.text}</span>
           <span className={s.rowText}>{item.who}{item.detail ? ` · ${item.detail}` : ""}{tags.map(tag => <span key={tag} className={s.warnText}> · {tag}</span>)}{others > 0 && ` · ${others} más`}</span>
@@ -134,9 +148,37 @@ export function HoyScreen() {
       {lead && <FirstContactButton lead={lead} className={s.rowAction} />}
     </article></li>;
   };
+  // «Lo siguiente» en grande (DEC-51): foto del inmueble, qué hacer y, si es una tarea, «Ya lo hice» con deshacer.
+  const nextTask = next?.taskId ? tasks.find(t => t.id === next.taskId) : undefined;
+  const nextSlug = next ? slugOf(next) : undefined;
+  const nextLead = next ? leadOf(next) : undefined;
+  async function completeNext() {
+    if (!nextTask) return;
+    setHeroBusy(true); setHeroMessage(""); heroUndo.clear();
+    try {
+      const saved = await upsert(db.tareas, { ...nextTask, estado: "completada" }, db.tareas.version(nextTask));
+      heroUndo.offer({ text: `Completaste «${nextTask.titulo}».`, undo: () => upsert(db.tareas, { ...saved, estado: nextTask.estado as typeof saved.estado }, db.tareas.version(saved.id)) });
+    } catch (error) { setHeroMessage(`No se pudo guardar: ${error instanceof Error ? error.message : "intenta de nuevo"}`); }
+    finally { setHeroBusy(false); }
+  }
   const nextBlock = next && <section aria-labelledby="hoy-cola" className={s.nextSection}>
-    <h3 id="hoy-cola" className="sr-only">Lo siguiente</h3>
-    <ul className={s.list} data-tour="hoy-siguiente">{row([next], `Lo siguiente: ${next.text} ${next.who}`)}</ul>
+    <Swap as="article" id={next.id} className={s.hero}>
+      <span className={s.heroMedia}>{nextSlug ? <Thumb src={photo(nextSlug)} ratio="4 / 3" className={s.heroThumb} /> : <span className={s.heroFace}><Avatar name={personOf(next)} size={72} onDark /></span>}</span>
+      <div className={s.heroBody}>
+        <div className={s.heroLabel}>{next.late ? <AlertTriangle size={16} aria-hidden="true" /> : null}<h3 id="hoy-cola" className={s.heroH3}>Lo siguiente</h3>{next.when ? <><span aria-hidden="true">·</span><span>{next.when}</span></> : null}</div>
+        <Link href={next.href} className={s.heroLink} aria-label={`Lo siguiente: ${next.text} ${next.who}`}>
+          <span className={s.heroTitle}>{next.text}</span>
+          <span className={s.heroText}>{next.who}{next.detail ? ` · ${next.detail}` : ""}{tagsOf(next).map(tag => ` · ${tag}`)}</span>
+        </Link>
+        <div className={s.heroActions}>
+          {nextTask && isTaskOpen(nextTask) && <Button variant="primary" disabled={heroBusy} onClick={() => void completeNext()}><Check size={18} aria-hidden="true" />Ya lo hice</Button>}
+          {nextLead ? <FirstContactButton lead={nextLead} className={s.heroSecondary} />
+            : <ButtonLink href={next.href} variant={nextTask ? "secondary" : "primary"} className={nextTask ? s.heroSecondary : undefined}>{actionOf(next)}</ButtonLink>}
+        </div>
+      </div>
+    </Swap>
+    {heroMessage && <p role="alert" className="text-sm text-destructive">{heroMessage}</p>}
+    <UndoNotice {...heroUndo} onError={setHeroMessage} />
     {rest.length === 0 && <p className={s.note}>Nada más espera por ti.</p>}
   </section>;
 
@@ -161,17 +203,17 @@ export function HoyScreen() {
     <header className={s.top}>
       <div className={s.titleRow}>
         <div className={s.titleText}>
-          <h1 className={s.helloTitle}>Hoy</h1>
+          {/* El título de la pantalla sigue siendo «Hoy» para el lector de pantalla; a la vista va el saludo. */}
+          <h1 className="sr-only">Hoy</h1>
+          <p className={s.helloTitle} aria-hidden="true">{greeting}{firstName ? `, ${firstName}` : ""}</p>
           <p className={s.finding}>{finding}</p>
         </div>
         <div className={s.titleAction}><NewMenu /></div>
       </div>
-      <SectionBoundary what="«Preparar tu espacio»"><SetupChecklist compact /></SectionBoundary>
     </header>
 
     <div className={s.main}>
       <div className={s.notices}>
-        <SectionBoundary what="«Tu primer día»"><FirstDay operations={dossiers} /></SectionBoundary>
         <SectionBoundary what="«Avisos»"><Announcements /></SectionBoundary>
         <SectionBoundary what="«Para ti»"><Inbox /></SectionBoundary>
       </div>

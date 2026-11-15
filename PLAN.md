@@ -143,11 +143,18 @@ Sin orden detallado: el titular elige qué sigue según lo que muestre el uso re
 
 ## Lenguaje visual (LV)
 
-**Origen:** paquete del 17/10/2026 (V01–V10, RP-70 a RP-74). Lo construido (LV-01, LV-02, LV-04 a LV-08) y el panel desde cero (LV-09, publicado con el PR #76 el 14/11/2026) están en el historial (§20, §27 y §28). Queda LV-03.
+**Origen:** paquete del 17/10/2026 (V01–V10, RP-70 a RP-74). Lo construido (LV-01, LV-02, LV-04 a LV-08) y el panel desde cero (LV-09, publicado con el PR #76 el 14/11/2026) están en el historial (§20, §27 y §28). Queda LV-03.  El 14/11/2026 el titular aprobó el sistema combinado (DEC-51), que se construye en LV-10a a LV-10f.
 
 | ID | Mejoras | Depende de | Aceptación |
 |---|---|---|---|
 | LV-03 | V06: animaciones pequeñas que confirman (la palomita que se dibuja, la barra que se llena, el panel que se desliza, «Etapa completada») | LV-02, UX-04 | Animaciones de confirmación de 300 ms o menos, sin bucles; con «reducir movimiento» no hay transiciones; los mensajes de guardado siguen apareciendo. |
+| LV-10a | **Sistema combinado (DEC-51), base:** cara de cada persona con su color fijo, riel compacto de diez etapas para filas, densidad Cómodo/Compacto guardada por usuario (UX-02). | LV-09 | Mismo color para la misma persona en todas las pantallas; contraste AA en claro y oscuro; la densidad sigue al usuario y no cambia permisos. |
+| LV-10t | **Tecnologías de interfaz (DEC-52), base:** shadcn/ui sobre Radix (radix-ui 1.8.1) en `src/components/ui/` (ventana, confirmación, panel lateral, menú, ventanita), cmdk 1.1.1 en Ctrl K, Sonner 2.0.8 en los avisos con «Deshacer», Motion en el cambio de «Lo siguiente»; todo entra por el kit con los mismos nombres. Sin guía superpuesta, sin «Empieza aquí», sin «Tu primer día» ni «Preparar tu espacio». | LV-10a | Hecho en la rama el 14/11/2026: lint, tipos, 638 de 639 pruebas del panel (el fallo de «Más» ya existía) y 1253 del servidor; revisado en localhost:3003 en claro, oscuro, computadora y celular. Falta: pestañas (`Tabs`) sobre Radix, las ventanas de conflicto, sesión vencida y atajos, y aplicar el sistema a Operaciones, Bandeja, Personas, Inmuebles, Trámites y Más (LV-10c–f). |
+| LV-10b | **Hoy:** lo siguiente en grande con foto del inmueble y «Ya lo hice»; el resto con foto o cara; se palomea sin salir y se puede deshacer. | LV-10a | Sin pendientes no queda hueco; reglas de volumen de Hoy (abajo) intactas; teclado y lector de pantalla. |
+| LV-10c | **Operaciones y la operación:** fila con foto, quién, riel y lo que sigue; vencido arriba; encabezado de la operación con foto y riel clicable; barra fija con lo que falta. | LV-10a | Lista y tablero conservan filtros y vista guardada; la barra fija no tapa acciones en celular. |
+| LV-10d | **Bandeja como correo:** lista, vista grande del documento y «¿Dónde se guarda?» con la sugerencia; J/K para moverse y E para archivar. | LV-10a, FLX-01 | Archivar avisa con «Deshacer»; atajos apagables (UX-03) y sin actuar dentro de campos. |
+| LV-10e | **Personas como agenda con cara:** a quién le toca hoy primero; ficha con «en qué quedamos», sus inmuebles con foto, operaciones con riel e historial; campos editables en su lugar. | LV-10a, FLX-01 | Edición con control de versión y 409; deshacer donde el servidor restaura. |
+| LV-10f | **Inmuebles, Trámites, Más y Ctrl K:** vitrina de lo que pide algo hoy; precio editable en la fila; Trámites con foto y caras; Más como lanzador; Ctrl K con caras, fotos y acciones. | LV-10a | Ctrl K solo muestra lo permitido; Más se maneja completo con teclado. |
 
 **Reglas de volumen de Hoy (acordadas el 29/10/2026, siguen en «Tu día» de LV-09):** Hoy no muestra el inventario, solo lo que espera algo del usuario, así que mide lo mismo con 12 pendientes que con 200:
 

@@ -45,6 +45,15 @@ afterEach(() => {
   clearAdminCache();
 });
 
+/* «Agendar» es un panel modal (Radix, DEC-52): su formulario existe solo abierto. Para leer la fecha
+   que tomará la captura se abre, se lee y se cierra. */
+const formDate = () => {
+  fireEvent.click(screen.getByRole("button", { name: "Agendar" }));
+  const value = (screen.getByLabelText("Fecha") as HTMLInputElement).value;
+  fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
+  return value;
+};
+
 test("the week runs Monday to Sunday, navigates across the year and keeps the form date in sync", async () => {
   render(<CalendarioPage />);
   expect(screen.getByText("Semana del 28 dic 2026 al 3 ene 2027")).toBeTruthy();
@@ -54,7 +63,7 @@ test("the week runs Monday to Sunday, navigates across the year and keeps the fo
     "31 de diciembre de 2026", "1 de enero de 2027", "2 de enero de 2027", "3 de enero de 2027",
   ]);
   fireEvent.click(within(week).getByRole("button", { name: "1 de enero de 2027" }));
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-01");
+  expect(formDate()).toBe("2027-01-01");
   expect(screen.getByRole("heading", { name: "Viernes 1 de enero" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Semana siguiente" }));
   expect(within(week).getByRole("button", { name: "4 de enero de 2027" })).toBeTruthy();
@@ -135,11 +144,14 @@ test("URL context is visible before saving and a rejected draft survives view ch
   failSave = true;
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await screen.findByRole("alert");
-  fireEvent.click(screen.getByRole("button", { name: "Semana siguiente" }));
+  // El panel es modal: se cierra para cambiar de semana y al volver a abrirlo sigue lo escrito.
+  fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
+  fireEvent.click(await screen.findByRole("button", { name: "Semana siguiente" }));
   fireEvent.click(screen.getByRole("button", { name: "Hoy" }));
+  openCapture();
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Mi visita pendiente");
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-02");
-  expect(screen.getByRole("alert")).toBeTruthy();
+  // El aviso de que no se guardó se muestra al intentar guardar; al reabrir queda el borrador, sin aviso.
   await waitFor(() => expect(writes).toBe(1));
 });
 
@@ -168,7 +180,7 @@ test("opening an event in the week selects its day and focuses the detail indepe
   const week = within(screen.getByRole("region", { name: "Agenda semanal" }));
   fireEvent.click(await week.findByRole("button", { name: "Ver evento: Firma futura" }));
   expect(screen.getByRole("heading", { name: "Sábado 2 de enero" })).toBeTruthy();
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-12-31");
+  // Abrir un evento no toca la captura: el día queda elegido y el foco va al detalle.
   expect(document.activeElement).toBe(document.getElementById("calendar-selected-day"));
 });
 
@@ -204,7 +216,8 @@ test("opening an event in the week preserves the date being captured", async () 
   openCapture();
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Visita aún sin guardar");
-  expect(screen.getByRole("heading", { name: "Sábado 2 de enero" })).toBeTruthy();
+  // El día elegido sigue detrás del panel abierto (oculto al lector mientras el panel es modal).
+  expect(screen.getByRole("heading", { name: "Sábado 2 de enero", hidden: true })).toBeTruthy();
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(savedEvent).toMatchObject({ titulo: "Visita aún sin guardar", fecha: "2026-11-20" }));
 });

@@ -4,6 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { AlertTriangle, Building2, Check, CircleHelp, Info, Plus, Search, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem, Upload, X } from "@/components/admin/icons";
 import { cn } from "@/lib/utils";
+import { motion } from "motion/react";
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
+import { SheetClose, SheetDescription, SheetOverlay, SheetPanel, SheetPortal, SheetRoot, SheetTitle } from "@/components/ui/sheet";
 import s from "./kit.module.css";
 
 /*
@@ -87,13 +90,37 @@ export function Thumb({ src, alt = "", size = 52, ratio, icon, className, childr
   </span>;
 }
 
-/** Iniciales (o foto) de una persona, en un círculo neutro para no competir con los colores de estado. */
+/** Iniciales de una persona («Iliana Tonalá» → «IT»). */
 export function initialsOf(name: string) {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "·";
 }
-/** El círculo único de una persona (LV-02, V09): neutro, en tres tamaños de uso (24, 32, 48) y en `onDark` sobre el azul. */
+/*
+  Tonos de las caras (DEC-51): azules, verdes, ocres y cian; sin rojos ni rosas para no confundirse
+  con una alerta ni con la marca. El mismo nombre da siempre el mismo tono en todas las pantallas.
+*/
+const FACE_HUES = [212, 158, 32, 96, 188, 54, 128, 232, 74, 142, 200, 40] as const;
+export function faceHue(name: string) {
+  let h = 0;
+  for (const ch of name.trim().toLocaleLowerCase("es-MX")) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
+  return FACE_HUES[h % FACE_HUES.length];
+}
+/** La cara de una persona (DEC-51): su foto o sus iniciales sobre su color propio; `onDark` sobre el azul. */
 export function Avatar({ name, src, size = 36, onDark, className }: { name: string; src?: string | null; size?: number; onDark?: boolean; className?: string }) {
-  return <span className={cn(s.avatar, className)} data-tone={onDark ? "onDark" : undefined} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size / 3)) }} aria-hidden="true">{src ? <Image unoptimized fill sizes="64px" src={src} alt="" /> : initialsOf(name)}</span>;
+  const style = { width: size, height: size, fontSize: Math.max(10, Math.round(size / 2.7)), "--face-h": faceHue(name) } as React.CSSProperties;
+  return <span className={cn(s.avatar, className)} data-tone={onDark ? "onDark" : undefined} style={style} aria-hidden="true">{src ? <Image unoptimized fill sizes="64px" src={src} alt="" /> : initialsOf(name)}</span>;
+}
+/** Varias caras encimadas (propietario y asesor, por ejemplo). */
+export function Faces({ people, size = 28, className }: { people: Array<{ name: string; src?: string | null }>; size?: number; className?: string }) {
+  return <span className={cn(s.faces, className)}>{people.map(p => <Avatar key={p.name} name={p.name} src={p.src} size={size} />)}</span>;
+}
+/**
+  Riel compacto de etapas para filas y tarjetas (DEC-51): un segmento por etapa, las hechas en azul,
+  la actual en borgoña. El texto va aparte; el riel es decorativo para el lector de pantalla.
+*/
+export function StageRail({ total = 10, current, className }: { total?: number; current: number; className?: string }) {
+  return <span className={cn(s.rail, className)} style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }} aria-hidden="true">
+    {Array.from({ length: total }, (_, i) => <i key={i} data-state={i < current ? "done" : i === current ? "now" : undefined} />)}
+  </span>;
 }
 
 /** Anillo de avance pequeño («6 de 10»), con el texto para lectores de pantalla. */
@@ -152,28 +179,14 @@ export function Hint({ term, children, className }: { term: string; children: Re
 }
 
 /**
-  Punto «Empieza aquí» (LV-04, V07): late tres veces la primera vez y se queda quieto hasta que la
-  persona pulsa lo que señala; desde entonces no vuelve a salir para ella. `storageKey` lleva su id.
-  Es una preferencia de interfaz en este navegador; sin almacenamiento no se muestra.
+  Cambio de contenido con Motion (DEC-52): cuando `id` cambia (otro «Lo siguiente», por ejemplo), lo
+  nuevo entra en 180 ms subiendo 6 px. Con «reducir movimiento» aparece sin animación. Lo viejo se va
+  al instante: la salida no se anima para que la pantalla responda enseguida.
 */
-const START_EVENT = "fortius:empieza-aqui";
-function startSeen(key: string) { try { return localStorage.getItem(key) === "1"; } catch { return true; } }
-function subscribeStart(cb: () => void) {
-  window.addEventListener("storage", cb); window.addEventListener(START_EVENT, cb);
-  return () => { window.removeEventListener("storage", cb); window.removeEventListener(START_EVENT, cb); };
-}
-/** `side`: en el menú lateral, el aviso sale a la derecha y el botón ocupa todo el ancho. */
-export function StartHere({ storageKey, above, side, children }: { storageKey?: string; above?: boolean; side?: boolean; children: React.ReactNode }) {
-  const seen = React.useSyncExternalStore(subscribeStart, () => !storageKey || startSeen(storageKey), () => true);
-  const done = () => {
-    if (seen || !storageKey) return;
-    try { localStorage.setItem(storageKey, "1"); } catch { /* sin almacenamiento */ }
-    window.dispatchEvent(new Event(START_EVENT));
-  };
-  return <span className={s.startHere} data-side={side || undefined} onClickCapture={done}>
-    {children}
-    {!seen && <><span className={s.startDot} aria-hidden="true" /><span className={s.startTip} data-above={above || undefined} data-side={side || undefined}>Empieza aquí</span></>}
-  </span>;
+export function Swap({ id, as = "div", className, children, ...rest }: { id: string; as?: "div" | "article"; className?: string; children: React.ReactNode } & React.AriaAttributes) {
+  const reduce = useReducedMotionSafe();
+  const Tag = as === "article" ? motion.article : motion.div;
+  return <Tag key={id} className={className} {...rest} initial={reduce ? false : { opacity: 0, transform: "translateY(6px)" }} animate={{ opacity: 1, transform: "translateY(0px)" }} transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}>{children}</Tag>;
 }
 
 export function Kbd({ children }: { children: React.ReactNode }) { return <kbd className={s.kbd}>{children}</kbd>; }
@@ -279,54 +292,59 @@ export function EmptyBox({ icon, art, title, children, steps, action }: { icon?:
 
 /**
   Panel que se abre a la derecha en computadora y desde abajo en celular. Escape y el velo lo cierran.
-  Con `keepMounted`, cerrado solo se oculta: lo escrito sigue ahí al volver a abrirlo.
+  Con `keepMounted`, lo escrito sigue ahí al volver a abrirlo (el panel lo recuerda hasta guardar).
 */
 export function Sheet({ open, onClose, eyebrow, title, description, children, footer, keepMounted }: { open: boolean; onClose: () => void; eyebrow?: string; title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode; keepMounted?: boolean }) {
-  const panel = React.useRef<HTMLDivElement>(null);
-  const titleId = React.useId();
-  // onClose suele llegar como función nueva en cada render: se guarda aparte para que el foco
-  // solo se mueva al abrir y al cerrar, no cada vez que el padre se vuelve a pintar (C-06).
-  const closeRef = React.useRef(onClose);
-  React.useEffect(() => { closeRef.current = onClose; });
-  React.useEffect(() => {
-    if (!open) return;
-    const previous = document.activeElement as HTMLElement | null;
-    panel.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-sheet-close])")?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        // Escape dentro de una confirmación (<dialog> nativo) la cancela a ella, no al panel de abajo.
-        const target = event.target instanceof Element ? event.target : null;
-        if (!event.defaultPrevented && !target?.closest("dialog[open]")) closeRef.current();
-        return;
-      }
-      if (event.key !== "Tab" || !panel.current) return;
-      // El panel es modal: Tab y Shift+Tab dan la vuelta dentro de él y no salen al fondo (C-26).
-      const controls = Array.from(panel.current.querySelectorAll<HTMLElement>("button:not([tabindex='-1']), input, select, textarea, a[href]"))
-        .filter((el) => !el.hasAttribute("disabled") && !el.closest("[hidden]"));
-      if (!controls.length) return;
-      const first = controls[0], last = controls[controls.length - 1];
-      const active = document.activeElement;
-      const inside = active instanceof Node && panel.current.contains(active);
-      if (event.shiftKey && (active === first || !inside)) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && (active === last || !inside)) { event.preventDefault(); first.focus(); }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("keydown", onKey); previous?.focus?.(); };
-  }, [open]);
-  if (!open && !keepMounted) return null;
-  return <>
-    {open && <button type="button" className={s.scrim} aria-label="Cerrar" tabIndex={-1} onClick={onClose} />}
-    <div ref={panel} className={s.sheet} role="dialog" aria-modal="true" aria-labelledby={titleId} hidden={!open}>
-      <div className="flex items-start justify-between gap-3 border-b border-border px-5 pb-4 pt-5 sm:px-7 sm:pt-7">
-        <div className="flex flex-col gap-1.5">
-          {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-          <h2 id={titleId} className="text-xl font-bold leading-tight">{title}</h2>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
-        </div>
-        <button type="button" data-sheet-close className={buttonClass({ variant: "ghost", iconOnly: true })} aria-label="Cerrar" onClick={onClose}><X size={20} aria-hidden="true" /></button>
+  // Sobre Radix (DEC-52): Radix encierra el foco, cierra con Escape y con el velo, y bloquea el fondo.
+  // El foco vuelve a donde estaba antes de abrir (las pantallas abren el panel sin un «Trigger» de Radix).
+  const previous = React.useRef<HTMLElement | null>(null);
+  // `keepMounted`: lo escrito se guarda mientras se llena y vuelve al reabrir; un `reset` del formulario
+  // (por ejemplo, tras guardar) lo olvida. Solo campos sin estado propio en React; los controlados ya
+  // los conserva la pantalla.
+  const draft = React.useRef(new Map<string, string | boolean>());
+  const fieldKey = (el: Element) => el.id || el.getAttribute("name") || "";
+  const remember = (event: React.FormEvent) => {
+    const el = event.target;
+    if (!keepMounted || !(el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) || !fieldKey(el)) return;
+    draft.current.set(fieldKey(el), el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value);
+  };
+  const restore = (panel: HTMLElement) => {
+    for (const el of panel.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("input, select, textarea")) {
+      const value = draft.current.get(fieldKey(el));
+      if (value === undefined) continue;
+      if (typeof value === "boolean" && el instanceof HTMLInputElement) el.checked = value; else if (typeof value === "string") el.value = value;
+    }
+  };
+  const content = <>
+    <div className="flex items-start justify-between gap-3 border-b border-border px-5 pb-4 pt-5 sm:px-7 sm:pt-7">
+      <div className="flex flex-col gap-1.5">
+        {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+        <SheetTitle className="text-xl font-bold leading-tight">{title}</SheetTitle>
+        {description ? <SheetDescription className="text-sm text-muted-foreground">{description}</SheetDescription> : null}
       </div>
-      <div className="flex flex-1 flex-col gap-5 overflow-auto px-5 py-5 sm:px-7 sm:py-6">{children}</div>
-      {footer && <div className="flex flex-col-reverse gap-2.5 border-t border-border px-5 py-4 sm:flex-row sm:justify-end sm:px-7">{footer}</div>}
+      <SheetClose data-sheet-close className={buttonClass({ variant: "ghost", iconOnly: true })} aria-label="Cerrar"><X size={20} aria-hidden="true" /></SheetClose>
     </div>
+    <div className="flex flex-1 flex-col gap-5 overflow-auto px-5 py-5 sm:px-7 sm:py-6">{children}</div>
+    {footer && <div className="flex flex-col-reverse gap-2.5 border-t border-border px-5 py-4 sm:flex-row sm:justify-end sm:px-7">{footer}</div>}
   </>;
+  const panelProps = {
+    className: s.sheet,
+    // Sin descripción, Radix no debe buscar una (evita el aviso y un aria-describedby vacío).
+    ...(description ? {} : { "aria-describedby": undefined }),
+    // El primer campo recibe el foco al abrir; si no hay, el primer botón que no sea «Cerrar».
+    onOpenAutoFocus: (event: Event) => {
+      previous.current = document.activeElement as HTMLElement | null;
+      const panel = event.currentTarget as HTMLElement | null;
+      if (keepMounted && panel) restore(panel);
+      const first = panel?.querySelector<HTMLElement>("input, select, textarea, button:not([data-sheet-close])");
+      if (first) { event.preventDefault(); first.focus(); }
+    },
+    onCloseAutoFocus: (event: Event) => { event.preventDefault(); previous.current?.focus?.(); previous.current = null; },
+    // Escape dentro de una confirmación nativa (<dialog>) la cancela a ella, no al panel de abajo.
+    onEscapeKeyDown: (event: KeyboardEvent) => { if (event.target instanceof Element && event.target.closest("dialog[open]")) event.preventDefault(); },
+    onInput: remember, onChange: remember, onReset: () => draft.current.clear(),
+  };
+  return <SheetRoot open={open} onOpenChange={next => { if (!next) onClose(); }}>
+    <SheetPortal><SheetOverlay className={s.scrim} /><SheetPanel {...panelProps}>{content}</SheetPanel></SheetPortal>
+  </SheetRoot>;
 }

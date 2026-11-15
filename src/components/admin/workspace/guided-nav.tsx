@@ -2,18 +2,20 @@
 import * as React from "react";
 import { usePendingCount } from "@/components/admin/workspace/use-today-queue";
 import Link from "next/link";
-import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, Inbox, LayoutGrid, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserRound, UserRoundCheck } from "@/components/admin/icons";
-import { HelpDot, TourLauncher, openTour, useHelpPending } from "./tour";
+import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, ClipboardList, Columns3, Contact, ExternalLink, House, Inbox, LayoutGrid, List, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserRound, UserRoundCheck } from "@/components/admin/icons";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { AsyncButton } from "@/components/admin/ui";
-import { Avatar, StartHere } from "@/components/admin/kit";
+import { Avatar } from "@/components/admin/kit";
 import { PAPELERA } from "@/components/admin/papelera/textos";
-import { db, useCollection, useSession } from "@/lib/admin/store";
+import { db, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { INTAKE_TITLE } from "@/lib/intake/wizard";
 import { cn } from "@/lib/utils";
+import { DensityToggle } from "./density";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import s from "./guided-nav.module.css";
 
 /*
@@ -82,17 +84,6 @@ function Count({ value }: { value: number }) {
 type User = { name: string; email: string; initials: string; avatar?: string };
 const roleLabel = (role: string) => role === "admin" ? "Administrador" : "Asesor";
 
-/** Un menú flotante que se cierra con Escape, al tocar fuera o al mover el foco fuera. */
-function useDismiss(open: boolean, close: () => void, container: React.RefObject<HTMLElement | null>) {
-  React.useEffect(() => {
-    if (!open) return;
-    const outside = (event: Event) => { if (event.target instanceof Node && !container.current?.contains(event.target)) close(); };
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { close(); container.current?.querySelector("button")?.focus(); } };
-    document.addEventListener("pointerdown", outside); document.addEventListener("focusin", outside); document.addEventListener("keydown", escape);
-    return () => { document.removeEventListener("pointerdown", outside); document.removeEventListener("focusin", outside); document.removeEventListener("keydown", escape); };
-  }, [open, close, container]);
-}
-
 /** Menú lateral de la computadora. */
 export function SideNav({ pathname, role, user, onLogout, search }: { pathname: string; role: string; user: User; onLogout: () => Promise<void>; search: React.ReactNode }) {
   const pending = usePendingCount();
@@ -102,14 +93,13 @@ export function SideNav({ pathname, role, user, onLogout, search }: { pathname: 
   return <header className={s.side} aria-label="Barra del panel">
     <Link href="/admin" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className={s.logoFull} /><BrandMark variant="symbol" className={s.logoCompact} /></Link>
     <div className={s.sideTools}>{search}</div>
-    <nav aria-label="Módulos del panel" data-tour="nav" className={s.navlist}>
+    <nav aria-label="Módulos del panel" className={s.navlist}>
       {MAIN_NAV.map(item => link(item, item.href === "/admin" ? pending : 0))}
       <span className={s.navsep} aria-hidden="true" />
       {link(TOOLS_NAV)}
       {role === "admin" && link(ADMIN_ENTRY)}
     </nav>
     <div className={s.sideFoot}>
-      <TourLauncher />
       <AccountMenu pathname={pathname} role={role} user={user} onLogout={onLogout} />
     </div>
   </header>;
@@ -120,42 +110,44 @@ export function SideNav({ pathname, role, user, onLogout, search }: { pathname: 
   principal en el encabezado de Hoy (boceto del 14/11/2026); en el celular, el «+» abre el mismo menú hacia arriba.
 */
 export function NewMenu({ mobile = false }: { mobile?: boolean }) {
-  const [open, setOpen] = React.useState(false);
-  // LV-04: «Empieza aquí» sobre «Nuevo» la primera vez de cada persona; se recuerda por su id.
-  const userId = useSession()?.id;
-  const wrap = React.useRef<HTMLDivElement>(null);
-  const close = React.useCallback(() => setOpen(false), []);
-  useDismiss(open, close, wrap);
-  return <div ref={wrap} className={s.menuWrap}>
-    <StartHere storageKey={userId ? `fortius.empieza-aqui.v1:${userId}` : undefined} above={mobile}>{mobile
-      ? <button type="button" data-tour="nuevo" className={s.plus} aria-label="Nuevo" aria-expanded={open} aria-controls="admin-new-menu-movil" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={24} aria-hidden="true" /></button>
-      : <button type="button" data-tour="nuevo" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={16} aria-hidden="true" />Nuevo</button>}</StartHere>
-    {open && <div id={mobile ? "admin-new-menu-movil" : "admin-new-menu"} role="menu" aria-label="Qué quieres crear" className={cn(s.pop, mobile ? s.popUp : s.popRight)}>
-      {QUICK_CREATE.map(item => <Link key={item.href} role="menuitem" href={item.href} className={cn(s.link, s.sub)} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action })); }}><item.icon size={18} aria-hidden={true} />{item.label}</Link>)}
-    </div>}
-  </div>;
+  // Radix DropdownMenu (DEC-52): flechas, Enter, Escape y foco de vuelta al botón. Sin portal, el menú
+  // queda junto a su botón (en la barra inferior del celular, dentro de ella) y Radix lo coloca.
+  return <DropdownMenu modal={false}>
+    <DropdownMenuTrigger asChild>
+      {mobile
+        ? <button type="button" className={s.plus} aria-label="Nuevo"><Plus size={24} aria-hidden="true" /></button>
+        : <button type="button" className={s.newButton}><Plus size={16} aria-hidden="true" />Nuevo</button>}
+    </DropdownMenuTrigger>
+    <DropdownMenuContent portal={false} id={mobile ? "admin-new-menu-movil" : "admin-new-menu"} aria-label="Qué quieres crear" aria-labelledby={undefined} side={mobile ? "top" : "bottom"} align={mobile ? "center" : "end"} className={cn(s.pop, s.popFloat)}>
+      {QUICK_CREATE.map(item => <DropdownMenuItem key={item.href} asChild className={cn(s.link, s.sub)} onSelect={() => window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action }))}>
+        <Link href={item.href}><item.icon size={18} aria-hidden={true} />{item.label}</Link>
+      </DropdownMenuItem>)}
+    </DropdownMenuContent>
+  </DropdownMenu>;
 }
 
 /** La cuenta: foto o iniciales; al abrir, Mi perfil, Administración (administrador), Ver sitio, tema y Cerrar sesión. */
 function AccountMenu({ pathname, role, user, onLogout }: { pathname: string; role: string; user: User; onLogout: () => Promise<void> }) {
+  // Radix Popover y no un menú: lleva interruptores (tema y densidad) que se alcanzan con Tab.
   const [open, setOpen] = React.useState(false);
-  const wrap = React.useRef<HTMLDivElement>(null);
-  const close = React.useCallback(() => setOpen(false), []);
-  useDismiss(open, close, wrap);
-  return <div ref={wrap} className={s.menuWrap}>
-    <button type="button" className={s.account} aria-expanded={open} aria-controls="admin-account-menu" aria-label={`${user.name}, ${roleLabel(role)}. Cuenta y sesión`} onClick={() => setOpen(value => !value)}>
-      <Avatar name={user.name} src={user.avatar} size={36} />
-      <span className={s.accountText} aria-hidden="true"><span className="truncate font-semibold">{user.name}</span><span className={s.accountRole}>{roleLabel(role)}</span></span>
-    </button>
-    {open && <div id="admin-account-menu" className={cn(s.pop, s.popAccount)}>
+  const close = () => setOpen(false);
+  return <Popover open={open} onOpenChange={setOpen}>
+    <PopoverTrigger asChild>
+      <button type="button" className={s.account} aria-label={`${user.name}, ${roleLabel(role)}. Cuenta y sesión`}>
+        <Avatar name={user.name} src={user.avatar} size={36} />
+        <span className={s.accountText} aria-hidden="true"><span className="truncate font-semibold">{user.name}</span><span className={s.accountRole}>{roleLabel(role)}</span></span>
+      </button>
+    </PopoverTrigger>
+    <PopoverContent id="admin-account-menu" side="top" align="start" aria-label="Cuenta y sesión" className={cn(s.pop, s.popFloat)}>
       <p className={s.popHead}><span className="truncate font-semibold">{user.name}</span><span className="text-xs text-muted-foreground">{roleLabel(role)}</span></p>
       <Link href="/admin/perfil" className={cn(s.link, s.sub)} aria-current={pathname.startsWith("/admin/perfil") ? "page" : undefined} onClick={close}><UserRound size={18} aria-hidden="true" />Mi perfil</Link>
       {role === "admin" && <Link href={ADMIN_NAV[0].href} className={cn(s.link, s.sub)} aria-current={ADMIN_NAV.some(item => isNavActive(pathname, item)) ? "page" : undefined} onClick={close}><ShieldCheck size={18} aria-hidden="true" />Administración</Link>}
       <DocumentLink href="/" className={cn(s.link, s.sub)}><ExternalLink size={18} aria-hidden="true" />Ver sitio</DocumentLink>
       <div className={cn(s.link, s.sub, "cursor-default hover:bg-transparent")}><Moon size={18} aria-hidden="true" /><span className="flex-1">Modo oscuro</span><ThemeToggle className="h-9 w-9 rounded-[8px]" /></div>
+      <div className={cn(s.link, s.sub, "cursor-default hover:bg-transparent")}><List size={18} aria-hidden="true" /><span className="flex-1">Densidad</span><DensityToggle /></div>
       <AsyncButton type="button" onClick={onLogout} className={cn(s.link, s.sub)}><LogOut size={18} aria-hidden="true" />Cerrar sesión</AsyncButton>
-    </div>}
-  </div>;
+    </PopoverContent>
+  </Popover>;
 }
 
 /** Encabezado del celular: logotipo, búsqueda y la cuenta. */
@@ -188,7 +180,6 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
 
 export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: User; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
   const [bandeja, personas, inmuebles, agenda, tramites] = ["/admin/bandeja", "/admin/personas", "/admin/propiedades", "/admin/agenda", "/admin/tramites"].map(mainNav);
-  const helpPending = useHelpPending();
   const events = useCollection(db.eventos);
   const today = operationalDate();
   const visits = events.filter(event => event.tipo === "visita" && event.fecha === today).length;
@@ -216,7 +207,7 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
     </div>}
     <div className={s.menuGroup}>
       <div className={s.menuRow}><Moon size={20} aria-hidden="true" /><span className="flex-1">Modo oscuro</span><ThemeToggle /></div>
-      <button type="button" className={s.menuRow} onClick={() => { onNavigate(); window.setTimeout(openTour, 250); }}><CircleHelp size={20} aria-hidden="true" /><span className="flex-1">Ayuda: guía de esta pantalla</span>{helpPending && <HelpDot inline />}</button>
+      <div className={s.menuRow}><List size={20} aria-hidden="true" /><span className="flex-1">Densidad</span><DensityToggle /></div>
       {row("/admin/perfil", "Mi perfil", <UserRound size={20} aria-hidden="true" />, pathname.startsWith("/admin/perfil"))}
       <DocumentLink href="/" className={s.menuRow} onClick={onNavigate}><ExternalLink size={20} aria-hidden="true" /><span className="flex-1">Ver sitio</span></DocumentLink>
       <AsyncButton type="button" onClick={onLogout} className={s.menuRow}><LogOut size={20} aria-hidden="true" />Cerrar sesión</AsyncButton>

@@ -113,12 +113,21 @@ test("Hoy's agenda includes earlier and untimed events from the operating day, u
   expect(agenda.queryByText("Visita", {exact:true})).toBeNull();
 });
 
+/* «Agendar» es un panel modal (Radix, DEC-52): su formulario existe solo abierto. Para leer la fecha
+   que tomará la captura se abre, se lee y se cierra. */
+const formDate = () => {
+  fireEvent.click(screen.getByRole("button", { name: "Agendar" }));
+  const value = (screen.getByLabelText("Fecha") as HTMLInputElement).value;
+  fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
+  return value;
+};
+
 test("calendar opens the operating day and week even when UTC has crossed the year", async () => {
   vi.setSystemTime(new Date("2027-01-01T07:30:00Z"));
   events = [{ id: "year-end", titulo: "Firma de cierre", fecha: "2026-12-31", hora: "23:59", tipo: "firma" }];
   render(<CalendarioPage />);
 
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-12-31");
+  expect(formDate()).toBe("2026-12-31");
   expect(screen.getByRole("heading", { name: "Jueves 31 de diciembre" })).toBeTruthy();
   expect((await screen.findAllByText("Firma de cierre")).length).toBeGreaterThan(0);
 });
@@ -128,10 +137,10 @@ test("calendar lets staff select a day across the year and keeps the form date i
   render(<CalendarioPage />);
 
   fireEvent.click(screen.getByRole("button", { name: "1 de enero de 2027" }));
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-01");
+  expect(formDate()).toBe("2027-01-01");
   fireEvent.click(screen.getByRole("button", { name: "Semana siguiente" }));
   expect(screen.getByRole("button", { name: "4 de enero de 2027" })).toBeTruthy();
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-08");
+  expect(formDate()).toBe("2027-01-08");
   fireEvent.click(screen.getByRole("button", { name: "Semana anterior" }));
   expect(screen.getByRole("button", { name: "28 de diciembre de 2026" })).toBeTruthy();
 });

@@ -52,9 +52,15 @@
 /* Fotos, iniciales y teclas */
 :global(.admin-root) .thumb { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; overflow: hidden; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--muted-foreground); }
 :global(.admin-root) .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-:global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: var(--secondary); color: var(--foreground); font-size: var(--admin-text-minimo); font-weight: 620; letter-spacing: .02em; overflow: hidden; }
-:global(.dark) :global(.admin-root) .avatar { background: var(--secondary); color: var(--foreground); }
-:global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: #f8f8ff; }
+:global(.admin-root) .avatar { --face-h: 212; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: hsl(var(--face-h) 58% 88%); color: hsl(var(--face-h) 60% 24%); font-size: var(--admin-text-minimo); font-weight: 650; letter-spacing: .02em; overflow: hidden; box-shadow: 0 0 0 2px var(--card); }
+:global(.dark) :global(.admin-root) .avatar { background: hsl(var(--face-h) 38% 27%); color: hsl(var(--face-h) 60% 88%); }
+:global(.admin-root) .faces { display: inline-flex; flex: none; }
+:global(.admin-root) .faces > .avatar + .avatar { margin-left: -.5rem; }
+:global(.admin-root) .rail { display: grid; gap: 3px; min-width: 0; }
+:global(.admin-root) .rail > i { height: 5px; border-radius: 3px; background: var(--track); }
+:global(.admin-root) .rail > i[data-state=done] { background: var(--foreground); }
+:global(.admin-root) .rail > i[data-state=now] { background: var(--primary); }
+:global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: #f8f8ff; box-shadow: none; }
 :global(.admin-root) .avatar { position: relative; }
 :global(.admin-root) .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 :global(.admin-root) .kbd { display: inline-flex; align-items: center; padding: .25rem .5rem; border-radius: 8px; background: var(--track); color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-minimo); font-weight: 600; letter-spacing: .02em; }
@@ -161,14 +167,3 @@
 :global(.admin-root) .hint:hover, :global(.admin-root) .hint[aria-expanded=true] { background: var(--track); color: var(--foreground); }
 :global(.admin-root) .hintText { display: block; order: 99; flex-basis: 100%; width: fit-content; max-width: 52ch; margin-top: .375rem; padding: .5rem .75rem; border-radius: var(--radius-control); background: var(--track); color: var(--foreground); font-size: var(--admin-text-detalle); font-weight: 400; line-height: 1.45; text-align: left; }
 :global(.admin-root) .hintText[hidden] { display: none; }
-:global(.admin-root) .startHere { position: relative; display: inline-flex; }
-:global(.admin-root) .startDot { position: absolute; top: -3px; right: -3px; width: .875rem; height: .875rem; border-radius: 999px; background: var(--info); box-shadow: 0 0 0 3px var(--background); pointer-events: none; }
-:global(.admin-root) .startTip { position: absolute; top: calc(100% + .5rem); right: 0; padding: .25rem .625rem; border-radius: 999px; background: var(--info-surface); color: var(--info); font-size: var(--admin-text-pastilla); font-weight: 540; white-space: nowrap; pointer-events: none; animation: start-tip 300ms linear 5s both; }
-:global(.admin-root) .startHere[data-side] { display: flex; width: 100%; }
-:global(.admin-root) .startTip[data-side] { top: 50%; right: auto; left: calc(100% + .75rem); transform: translateY(-50%); z-index: 41; }
-:global(.admin-root) .startTip[data-above] { top: auto; bottom: calc(100% + .5rem); right: 50%; transform: translateX(50%); }
-@keyframes start-tip { to { opacity: 0; visibility: hidden; } }
-@media (prefers-reduced-motion: no-preference) {
-  :global(.admin-root) .startDot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; border: 2px solid var(--info); animation: start-here 1.2s var(--ease-out) 600ms 3 both; }
-}
-@keyframes start-here { from { transform: scale(1); opacity: .7; } to { transform: scale(2.6); opacity: 0; } }

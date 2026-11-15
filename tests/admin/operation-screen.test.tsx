@@ -91,10 +91,11 @@ function intakeDone() {
 async function openOperation(tab?: string) {
   nav.path = `/admin/operaciones/${ID}`; nav.search = new URLSearchParams(tab ? { tab } : {});
   render(<OperationScreen id={ID} />);
-  await screen.findByRole("heading", { level: 1, name: "Familia Castañeda Ortiz" });
+  // Con «Ajustes» abierto (panel lateral modal de Radix), el fondo queda oculto al lector de pantalla.
+  await screen.findByRole("heading", { level: 1, name: "Familia Castañeda Ortiz", hidden: !!tab });
 }
 /** Eliminar vive en «Más opciones» del encabezado (DEC-37). */
-const eliminar = () => { fireEvent.click(screen.getByRole("button", { name: "Más opciones" })); fireEvent.click(screen.getByRole("menuitem", { name: "Eliminar operación" })); };
+const eliminar = () => { fireEvent.click(screen.getByRole("button", { name: "Más opciones", hidden: true })); fireEvent.click(screen.getByRole("menuitem", { name: "Eliminar operación", hidden: true })); };
 const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(-1)!.body;
 /** La etapa en curso se lee en la tarjeta de avance («Etapa N de 10 · fase»). */
 const stage = (n: number) => screen.findAllByText(new RegExp(`^Etapa ${n} de 10`));

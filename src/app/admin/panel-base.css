@@ -142,3 +142,11 @@
   --admin-text-cifra-grande: clamp(4.5rem, 10vw, 9.5rem);
 }
 @media (max-width: 767px) { :root { --admin-text-pantalla: 1.625rem; } }
+
+/* DEC-52: entradas cortas de las ventanas y menús de Radix (solo si no se pidió reducir movimiento). */
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes fadeOut { to { opacity: 0; } }
+@keyframes dialogIn { from { opacity: 0; transform: translate(-50%, -48%) scale(.97); } }
+@keyframes menuIn { from { opacity: 0; transform: scale(.96); } }
+@keyframes sheetInRight { from { transform: translateX(100%); } }
+@keyframes sheetInUp { from { transform: translateY(100%); } }

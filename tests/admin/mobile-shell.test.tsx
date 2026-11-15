@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { clearAdminCache } from "@/lib/admin/store";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin", useRouter: () => ({ push: () => undefined }) }));
 
 beforeEach(() => {
   clearAdminCache();

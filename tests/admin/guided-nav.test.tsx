@@ -1,6 +1,6 @@
 import * as React from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 const { tasks, leads, clients } = vi.hoisted(() => ({ tasks: [] as Array<Record<string, unknown>>, leads: [] as Array<Record<string, unknown>>, clients: [] as Array<Record<string, unknown>> }));
 vi.mock("@/lib/admin/store", async original => {
@@ -34,14 +34,15 @@ test("el menú lateral lleva las ocho secciones y Herramientas, el buscador y la
   expect(within(menu).getByText("Asesor")).toBeTruthy();
 });
 
-test("«+ Nuevo» abre las cinco altas y «Agregar archivo» (FLX-01), la operación primero, y avisa a la pantalla destino", () => {
+test("«+ Nuevo» abre las cinco altas y «Agregar archivo» (FLX-01), la operación primero, y avisa a la pantalla destino", async () => {
   // Desde el 14/11/2026 «+ Nuevo» va en el encabezado de Hoy, no en el menú lateral.
   render(<NewMenu />);
   const heard: string[] = [];
   window.addEventListener("fortius:quick-create", event => heard.push((event as CustomEvent<string>).detail));
   const trigger = screen.getByRole("button", { name: "Nuevo" });
   expect(trigger.getAttribute("aria-expanded")).toBe("false");
-  fireEvent.click(trigger);
+  // Radix abre el menú al presionar (no al soltar) o con Enter; en la prueba se abre con Enter.
+  fireEvent.keyDown(trigger, { key: "Enter" });
   const menu = screen.getByRole("menu", { name: "Qué quieres crear" });
   expect(within(menu).getAllByRole("menuitem").map(item => [item.textContent, item.getAttribute("href")])).toEqual([
     ["Atender a alguien", "/admin/operaciones/nueva"], ["Nueva operación", "/admin/operaciones/nueva?intencion=vender"], ["Nuevo inmueble", "/admin/propiedades/nueva"], ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1"], ["Agendar visita", "/admin/agenda?nueva=1"], ["Agregar archivo", "/admin/bandeja"],
@@ -49,10 +50,10 @@ test("«+ Nuevo» abre las cinco altas y «Agregar archivo» (FLX-01), la operac
   fireEvent.click(within(menu).getByRole("menuitem", { name: "Nueva tarea" }));
   expect(heard).toEqual(["tarea"]);
   expect(screen.queryByRole("menu")).toBeNull();
-  fireEvent.click(trigger);
-  fireEvent.keyDown(document, { key: "Escape" });
+  fireEvent.keyDown(trigger, { key: "Enter" });
+  fireEvent.keyDown(document.activeElement!, { key: "Escape" });
   expect(screen.queryByRole("menu")).toBeNull();
-  expect(document.activeElement).toBe(trigger);
+  await waitFor(() => expect(document.activeElement).toBe(trigger));
 });
 
 test("el administrador encuentra Administración en el menú lateral y en su cuenta, marcada dentro de esas páginas", () => {
@@ -112,7 +113,7 @@ test("la barra inferior del celular marca la sección y abre el menú «Más»",
   const tabs = screen.getByRole("navigation", { name: "Secciones principales" });
   expect(within(tabs).getByRole("link", { name: "Contactos" }).getAttribute("aria-current")).toBe("page");
   // SIM-17: el «+» abre el mismo menú que «+ Nuevo».
-  fireEvent.click(within(tabs).getByRole("button", { name: "Nuevo" }));
+  fireEvent.keyDown(within(tabs).getByRole("button", { name: "Nuevo" }), { key: "Enter" });
   expect(within(tabs).getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Atender a alguien", "Nueva operación", "Nuevo inmueble", "Nueva tarea", "Agendar visita", "Agregar archivo"]);
   const more = within(tabs).getByRole("button", { name: "Menú del panel" });
   expect(more.textContent).toBe("Más");

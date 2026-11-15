@@ -126,3 +126,10 @@
 :global(.admin-root) .menuRow[aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); }
 :global(.admin-root) .menuMeta { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
 :global(.admin-root) .menuChevron { color: var(--muted-foreground); flex: none; }
+/* Ctrl K sobre cmdk (DEC-52): la opción activa la marca cmdk con data-selected. */
+:global(.admin-root) .result[data-selected=true] { background: var(--secondary); }
+:global(.admin-root) .result { cursor: pointer; }
+:global(.admin-root) .paletteGroup [cmdk-group-heading] { padding: .75rem .875rem .25rem; font-size: var(--admin-text-pastilla); font-weight: 600; color: var(--muted-foreground); }
+/* Menús sobre Radix (DEC-52): Radix los coloca junto a su botón; aquí solo se quita la posición fija. */
+:global(.admin-root) .pop.popFloat { position: relative; inset: auto; transform: none; animation: none; }
+:global(.admin-root) .popFloat [role=menuitem][data-highlighted] { background: var(--secondary); outline: none; }
