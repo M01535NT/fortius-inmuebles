@@ -26,13 +26,13 @@ export function pidenAlgoHoy(properties: AdminProperty[], seekers: Seeker[], tod
   const out: Pendiente[] = [];
   for (const p of properties) {
     if (p.estado === "vendida" || p.estado === "rentada") continue;
-    const base = `/admin/propiedades/${encodeURIComponent(p.slug)}`;
+    const slug = encodeURIComponent(p.slug);
     const tarde = openKeyLoans(p.llaves).find(loan => keyLoanLate(loan, today, toDay));
-    if (tarde) { out.push({ property: p, motivo: `Las llaves siguen con ${tarde.persona}`, accion: "Ver las llaves", href: `${base}/seguimiento`, tono: "alert" }); continue; }
+    if (tarde) { out.push({ property: p, motivo: `Las llaves siguen con ${tarde.persona}`, accion: "Ver las llaves", href: `/admin/propiedades/${slug}/seguimiento`, tono: "alert" }); continue; }
     const avisar = p.publicada ? buyersFor(p, seekers).filter(match => needsNotice(p, match.seeker)).length : 0;
-    if (avisar) { out.push({ property: p, motivo: `${avisar} ${avisar === 1 ? "persona busca" : "personas buscan"} algo así y no se le${avisar === 1 ? "" : "s"} ha avisado`, accion: "Avisar", href: `${base}/seguimiento`, tono: "info" }); continue; }
+    if (avisar) { out.push({ property: p, motivo: `${avisar} ${avisar === 1 ? "persona busca" : "personas buscan"} algo así y no se le${avisar === 1 ? "" : "s"} ha avisado`, accion: "Avisar", href: `/admin/propiedades/${slug}/seguimiento`, tono: "info" }); continue; }
     const gaps = faltantes(p);
-    if (gaps.length) out.push({ property: p, motivo: `${gaps.length === 1 ? "Le falta" : "Le faltan"} ${lista(gaps)}`, accion: "Completar", href: `${base}/editar`, tono: "warn" });
+    if (gaps.length) out.push({ property: p, motivo: `${gaps.length === 1 ? "Le falta" : "Le faltan"} ${lista(gaps)}`, accion: "Completar", href: `/admin/propiedades/${slug}/editar`, tono: "warn" });
   }
   const orden = { alert: 0, info: 1, warn: 2 } as const;
   return out.sort((a, b) => orden[a.tono] - orden[b.tono] || a.property.titulo.localeCompare(b.property.titulo, "es"));
