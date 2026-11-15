@@ -248,9 +248,11 @@ test("inventory saved view, related tasks and global search navigate with contex
     "borrador",
   );
   await page.getByRole("button", { name: "Buscar en el panel" }).click();
-  // LV-10b: la búsqueda es una paleta de cmdk; el campo es un combobox y cada resultado una opción.
+  // LV-10b: la búsqueda es una paleta de cmdk; el campo es un combobox (cmdk lo nombra con la
+  // etiqueta de la paleta) y cada resultado una opción.
   await page
-    .getByRole("combobox", { name: /^Buscar personas, inmuebles o folios/ })
+    .getByRole("dialog", { name: "Buscar en el panel" })
+    .getByRole("combobox", { name: "Buscar en el panel", exact: true })
     .fill("MNT-PRUEBA");
   await page.getByRole("dialog").getByRole("option", { name: /MNT-PRUEBA-001/ }).click();
   await expect(page).toHaveURL(/audit-casa\/editar/);
