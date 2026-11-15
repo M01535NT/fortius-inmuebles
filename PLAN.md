@@ -238,7 +238,43 @@ Sin orden detallado: el titular elige qué sigue según lo que muestre el uso re
 | FLX-09 | **Gastos de cada asunto (DEC-54):** cada gasto con concepto, monto, fecha, quién lo paga y su comprobante privado; total por asunto y por quien paga. | FLX-03 | En el asunto de desahucio, los gastos que cubre el comprador a plazos se suman aparte y cada uno lleva su comprobante; nada de esto sale en el sitio público. |
 | FLX-06 | **Cierre:** manual, registro de privacidad (documentos de compradores y arrendatarios), revisión con crítico en contexto limpio y propuesta de verificación completa. Absorbe COR-26 (manual con capturas actuales; la prueba de uso es USO-02). | FLX-05, FLX-07, FLX-08, FLX-09 | Documentos al día; PRV-01 actualizado para el abogado. |
 
-**Por replantear en su etapa** (las reglas siguen vigentes hasta entonces): candado de arranque (FLUJO-04a) y «avanzar sí espera» (B-04, RP-87); DEC-42 (siguiente paso con tarea y fecha); el freno de la firma de TRA-01, que pasaría a aviso con Trámites como guía; las entregas que absorbe cada etapa están anotadas en su fila (poda del 14/11/2026; textos anteriores en el historial, §28).
+**Lista aprobada de FLX-03 (titular, 15/11/2026).** Es la lista de lo que hoy frena en el panel y en la base, y en qué se convierte. Un aviso se muestra en la operación y en Hoy, y queda anotado en el historial con la fecha, quién siguió adelante y, si lo escribe, el motivo. El cambio se hace igual en TypeScript y en la base.
+
+*Pasan a aviso:*
+
+1. Requisitos de la etapa sin revisar.
+2. Observaciones abiertas.
+3. Contrato de intermediación sin firma, incompleto, sin revisión del director o terminado.
+4. Decisión de tomar el encargo sin registrar, o una aceptación condicionada que no permite la etapa.
+5. Inmueble sin ligar antes de negociar.
+6. Contraparte sin identificar.
+7. Próxima tarea con fecha y responsable (DEC-42).
+8. Candado de arranque: entrevista sin terminar (FLUJO-04a).
+9. Operación pausada o descartada.
+10. Archivar con tareas pendientes o sin marcar quién captó y quién vendió.
+11. Publicar sin lo de comercialización o sin estar en esa etapa.
+12. Identificación LFPIORPI.
+13. Firma y pagos pendientes al entregar.
+14. Operación de la contraparte sin revisar antes del cierre.
+15. Firmar una venta con hipoteca sin la cancelación inscrita (el freno de la firma de TRA-01).
+16. Publicar un inmueble compartido sin la autorización escrita de la otra inmobiliaria (RP-95).
+17. Enseñar un inmueble antes de la firma sin la carta del propietario (DEC-41).
+18. Saltar etapas: se puede pasar a cualquier etapa, con aviso de lo que quedó atrás (antes se avanzaba de una en una).
+19. La promesa (15) se descarga en PDF aunque esté incompleta, marcada como incompleta.
+20. Las revisiones del director dejan de detener: se muestra «Falta que el director lo revise».
+21. Las excepciones del director ya no hacen falta: se sigue con el aviso y el motivo.
+
+*Se quedan:*
+
+- **Permisos:** solo el director publica, marca sus revisiones, decide tomar el encargo, reasigna y da de alta un inmueble heredado (DEC-43).
+- **Privacidad:** la dirección exacta no sale en el sitio y un inmueble en evaluación queda privado.
+- **Sitio:** no se publica un inmueble sin galería.
+- **Documentos:** el 01 no se descarga incompleto; el PDF del 09 sigue esperando el visto bueno del abogado.
+- **Integridad:** el aviso de versión (409), los registros ajenos, la sesión, las validaciones de cada campo y la revisión del contacto que coincide con otro.
+
+Las pruebas que hoy dicen «rechaza» pasan a «permite y anota», sin borrarse.
+
+Mientras FLX-03 no esté construida siguen los frenos actuales. Las entregas que absorbe cada etapa están anotadas en su fila (poda del 14/11/2026; textos anteriores en el historial, §28).
 
 ## Regla de actualización en cada publicación
 
