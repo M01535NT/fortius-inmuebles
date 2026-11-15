@@ -93,7 +93,7 @@ Todos pasan AA (4.5:1 o más) sobre tarjeta, fondo y su propia superficie. El be
 
 #### Estructura del panel (14/11/2026)
 
-- **Menú lateral** (reemplaza la barra superior de LV-08): buscador, «Nuevo», los seis módulos, Herramientas y, para el director, Administración; la cuenta abajo. De 768 a 1279 px se recoge a íconos; en celular sigue la barra inferior.
+- **Menú lateral** (reemplaza la barra superior de LV-08): buscador, «Nuevo», los siete módulos (Hoy, Bandeja, Operaciones, Contactos, Inmuebles, Agenda y Trámites; RP-58), Herramientas y, para el director, Administración; la cuenta abajo. De 768 a 1279 px se recoge a íconos; en celular sigue la barra inferior.
 - **Hoy:** saludo con una frase que dice lo vencido, lo de hoy y lo de la semana; «Tu día» en una tarjeta (lo siguiente destacado y lo demás en «Vencido» y «Por atender»); a la derecha «Hoy» y «Esta semana».
 - **Una operación** (reemplaza el panel azul de LV-06): encabezado claro con quién es, la etapa actual y el riel de las diez etapas. Listas en tinta, con algo pendiente en ámbar, la actual en borgoña y lo que falta en gris. La lista de Operaciones usa el mismo riel en cada fila.
 

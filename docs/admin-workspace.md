@@ -1,12 +1,14 @@
 # Panel operativo Fortius
 
-Corte documental: 17/10/2026, después del rediseño guiado (PR #39). El desarrollo se dirige desde [el plan único](../PLAN.md); las reglas de producto, desde «Dirección del producto y reglas vigentes» en [`SPEC.md`](../SPEC.md).
+Corte documental: 14/11/2026, con el «panel desde cero» (LV-09) y la Bandeja (FLX-01). El desarrollo se dirige desde [el plan único](../PLAN.md); las reglas de producto, desde «Dirección del producto y reglas vigentes» en [`SPEC.md`](../SPEC.md). La estructura visual está en [la guía de marca](brand.md#estructura-del-panel-14112026).
 
 ## Navegación
 
-La barra superior (versión 2, 30/10/2026) lleva el logotipo y seis píldoras: **Hoy** (con el número de pendientes), **Operaciones**, **Contactos**, **Inmuebles**, **Agenda** y **Más**, que abre Herramientas (las 17, incluida «Documentos sin expediente», y la pestaña Documentos). A la derecha están el buscador (Ctrl K), **«+ Nuevo»** con un menú corto (operación, prospecto, inmueble, tarea, visita) y la cuenta: Mi perfil, **Administración** (solo el administrador: Equipo, Sitio web, Reportes, Historial y Configuración), Ver sitio, Modo oscuro y Cerrar sesión. En celular, la barra inferior es Hoy · Operaciones · + · Contactos · Más.
+El **menú lateral** lleva el logotipo, el buscador, «Nuevo» y las siete secciones principales, que no se mueven ni se ocultan (RP-58): **Hoy** (con el número de pendientes), **Bandeja**, **Operaciones**, **Contactos**, **Inmuebles**, **Agenda** y **Trámites**. Después de una línea van **Herramientas** y, solo para el director, **Administración** (Equipo, Sitio web, Reportes, Historial, Eliminados y Configuración). La cuenta queda abajo. De 768 a 1279 px el menú se recoge a íconos.
 
-En celular, la barra inferior lleva Hoy, Operaciones, «+», Contactos y Menú. El menú reúne Inmuebles, Agenda, Herramientas, Administración, Mi perfil, Ver sitio y Cerrar sesión.
+«Nuevo» abre un menú corto: Atender a alguien, Nueva operación, Nuevo inmueble, Nueva tarea, Agendar visita y Agregar archivo (este último lleva a la Bandeja).
+
+En celular, la barra inferior lleva Hoy, Operaciones, «+», Contactos y Más. «Más» reúne Bandeja, Inmuebles, Agenda, Trámites, Herramientas, Administración (solo el director) y la cuenta.
 
 Las direcciones anteriores (prospectos, clientes, calendario, tareas, expedientes, apps, proceso por etapa y entrevistas) redirigen a la sección nueva sin perder la consulta.
 
