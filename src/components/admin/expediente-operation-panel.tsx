@@ -59,8 +59,8 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
         body: JSON.stringify({ version: expediente.version, etapa, fechaObjetivo: fecha || null, checklist }),
       });
       onSaved(result.expediente);
-      setNotice("Operación guardada.");
-      await refreshActivity().catch(() => setError("La operación se guardó, pero no se pudo actualizar la actividad."));
+      setNotice("Asunto guardado.");
+      await refreshActivity().catch(() => setError("El asunto se guardó, pero no se pudo actualizar la actividad."));
     } catch (cause) { setError(String(cause)); }
     finally { setBusy(false); }
   }
@@ -77,8 +77,8 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
     } catch (cause) { setError(String(cause)); }
     finally { setBusy(false); }
   }
-  return <section className="rounded-lg border border-border bg-card p-5" aria-label="Seguimiento de la operación">
-    <h3 className="display-soft text-xl">{guided?"Guía de operación":"Seguimiento de la operación"}</h3>
+  return <section className="rounded-lg border border-border bg-card p-5" aria-label="Seguimiento del asunto">
+    <h3 className="display-soft text-xl">{guided?"Guía del asunto":"Seguimiento del asunto"}</h3>
     <details open={!guided||view==="activity"?true:undefined} className="mt-3"><summary className="cursor-pointer text-sm text-muted-foreground">Datos de seguimiento</summary><div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
       <p><strong>Responsable:</strong> {responsable}</p>
       <p><strong>Abierto:</strong> {shownDate(expediente.created_at)}</p>

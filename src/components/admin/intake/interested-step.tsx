@@ -81,7 +81,7 @@ export function InterestedStep({ intent, contact, origin, onBack, onSaved, onDir
     setBusy(true); setError("");
     try {
       const now = new Date().toISOString();
-      const note = { id: uid(), fecha: now, texto: `${label(intent)}. Llegó por: ${origin}. Perfil capturado en Nueva operación, sin abrir operación: Fortius representa al propietario.${contact.kind === "cliente" ? " También es cliente de Fortius en otra operación." : ""}` };
+      const note = { id: uid(), fecha: now, texto: `${label(intent)}. Llegó por: ${origin}. Perfil capturado en Nuevo asunto, sin abrir asunto: Fortius representa al propietario.${contact.kind === "cliente" ? " También es cliente de Fortius en otro asunto." : ""}` };
       let lead: Lead;
       if (contact.kind === "lead") {
         const before = contact.lead;
@@ -107,7 +107,7 @@ export function InterestedStep({ intent, contact, origin, onBack, onSaved, onDir
   return <form onSubmit={save} className="contents" aria-label="Lo que busca">
     <div className={s.body}>
       <h1 className={s.title}>¿Qué busca?</h1>
-      <p className={s.lead}>{label(intent)}. Se guarda como interesado con su próxima acción; no se abre operación, porque Fortius representa al propietario. Lo que no sepas, déjalo en blanco.</p>
+      <p className={s.lead}>{label(intent)}. Se guarda como interesado con su próxima acción; no se abre asunto, porque Fortius representa al propietario. Lo que no sepas, déjalo en blanco.</p>
       <fieldset disabled={busy} className="grid min-w-0 gap-5 sm:grid-cols-2">
         <label className="flex flex-col gap-2 text-sm font-semibold">Tipo de inmueble<select className={selectClass} value={form.tipo} onChange={e => set("tipo", e.target.value)}><option value="">Por confirmar</option>{Object.entries(TIPO_INMUEBLE_LABELS).map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select></label>
         {choice("uso", "Uso")}
@@ -140,12 +140,12 @@ export function InterestedDone({ intent, lead }: { intent: Intent; lead: Lead })
   return <div className={s.body}>
     <span className={s.doneMark} aria-hidden="true"><Check size={28} /></span>
     <h1 ref={heading} tabIndex={-1} className={s.title}>Listo, {lead.nombre} quedó como interesado</h1>
-    <p className={s.lead}>Sin operación: Fortius representa al propietario. Está en Contactos.</p>
+    <p className={s.lead}>Sin asunto: Fortius representa al propietario. Está en Contactos.</p>
     <Card as="div" className="overflow-hidden"><dl className={s.summary} aria-label="Resumen del interesado">
       <dt>Interesado</dt><dd>{lead.nombre}</dd>
       <dt>Quiere</dt><dd>{label(intent)}</dd>
       <dt>Próxima acción</dt><dd>{lead.perfil?.proximaAccion} · {humanDate(lead.perfil?.proximoContacto)}</dd>
-      <dt>Lo que sigue</dt><dd>Sus visitas y ofertas van en la operación del propietario. Si firma, queda como contraparte.</dd>
+      <dt>Lo que sigue</dt><dd>Sus visitas y ofertas van en el asunto del propietario. Si firma, queda como contraparte.</dd>
     </dl></Card>
     <div className="flex flex-wrap items-center gap-3">
       <ButtonLink variant="primary" href={`/admin/leads/${encodeURIComponent(lead.id)}`}>Ver su ficha<ArrowRight size={16} aria-hidden="true" /></ButtonLink>

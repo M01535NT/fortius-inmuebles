@@ -28,7 +28,7 @@ export function DirectCreate({ onDirtyChange }: { onDirtyChange?: (dirty: boolea
       const data = new FormData(event.currentTarget);
       const clienteId = String(data.get("clienteId") ?? "");
       const cliente = clientes.find(item => item.id === clienteId);
-      if (!cliente?.asesorId) throw new Error("Asigna un asesor responsable al cliente antes de abrir su operación.");
+      if (!cliente?.asesorId) throw new Error("Asigna un asesor responsable al cliente antes de abrir su asunto.");
       const result = await json<{ expediente: OperationRecord }>("/api/admin/expedientes", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clienteId, asesorId: cliente.asesorId, operacion: operation, propiedadSlug: property || undefined, unidad: String(data.get("unidad") ?? ""), ...(["venta", "renta", "inversion"].includes(operation) ? { flujo: emptyWorkflow(route) } : {}) }),
@@ -38,11 +38,11 @@ export function DirectCreate({ onDirtyChange }: { onDirtyChange?: (dirty: boolea
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); setBusy(false); }
   }
   async function discard() {
-    if (!await confirmAction("¿Descartar la nueva operación sin guardar?")) return;
+    if (!await confirmAction("¿Descartar el nuevo asunto sin guardar?")) return;
     form.current?.reset(); setClient(""); setProperty(""); setOperation("venta"); setRoute("captacion"); setDirty(false); setError("");
   }
   return <form ref={form} id="alta-directa" onChange={() => setDirty(true)} onSubmit={create} className="grid gap-4 md:grid-cols-2" aria-label="Alta directa">
-    <p className="text-sm text-muted-foreground md:col-span-2">Sin entrevista. El inmueble se liga después y la operación te dice qué falta.</p>
+    <p className="text-sm text-muted-foreground md:col-span-2">Sin entrevista. El inmueble se liga después y el asunto te dice qué falta.</p>
     {error && <p role="alert" className="text-sm text-destructive md:col-span-2">{error}</p>}
     <label className="text-sm">Cliente<select name="clienteId" required disabled={busy} value={client} onChange={e => { setClient(e.target.value); setRoute(clientes.find(c => c.id === e.target.value)?.tipo === "comprador" ? "compra" : "captacion"); }} className={selectClass}><option value="">Selecciona</option>{clientes.map(item => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
     <label className="text-sm">Operación<select name="operacion" disabled={busy} value={operation} onChange={e => { setOperation(e.target.value); setRoute(e.target.value === "inversion" ? "inversion" : e.target.value === "renta" ? "arrendador" : "captacion"); }} className={selectClass}>{Object.entries(EXPEDIENTE_OPERACIONES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -51,7 +51,7 @@ export function DirectCreate({ onDirtyChange }: { onDirtyChange?: (dirty: boolea
     <label className="text-sm">Unidad, si aplica<input name="unidad" disabled={busy} className={inputClass} /></label>
     <p className="text-sm text-muted-foreground md:col-span-2">El folio se asigna al guardar.</p>
     <div className="flex flex-wrap gap-2 md:col-span-2">
-      <button type="submit" disabled={busy} className={btnPrimary}>{busy ? "Abriendo…" : "Abrir operación"}</button>
+      <button type="submit" disabled={busy} className={btnPrimary}>{busy ? "Abriendo…" : "Abrir asunto"}</button>
       {dirty && <button type="button" disabled={busy} className={btnGhost} onClick={() => void discard()}>Descartar</button>}
     </div>
   </form>;

@@ -82,9 +82,9 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
     nombre; debajo, el riel en su propia tarjeta con las fases arriba, los números abajo y solo la etapa
     actual con ícono y nombre. Lo pendiente de etapas anteriores va en una línea al pie del riel.
   */
-  if (!compact) return <section className={s.opHead} aria-label="Avance de la operación">
+  if (!compact) return <section className={s.opHead} aria-label="Avance del asunto">
     <nav aria-label="Dónde estás" className={s.crumbs}>
-      <Link href={back} aria-label="Volver a Operaciones">Operaciones</Link>
+      <Link href={back} aria-label="Volver a Asuntos">Asuntos</Link>
       <ChevronRight size={14} aria-hidden="true" />
       <span aria-current="page">{op.folio}</span>
     </nav>
@@ -133,9 +133,9 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
     </div>}
     {children}
   </section>;
-  return <section className={cn(s.navy, compact && s.navyCompact)} aria-label="Avance de la operación">
+  return <section className={cn(s.navy, compact && s.navyCompact)} aria-label="Avance del asunto">
     <div className={s.navyTop}>
-      <Link href={back} className={s.round} aria-label="Volver a Operaciones"><ChevronLeft size={20} aria-hidden="true" /></Link>
+      <Link href={back} className={s.round} aria-label="Volver a Asuntos"><ChevronLeft size={20} aria-hidden="true" /></Link>
       <span className={s.onNavyMuted}>{op.folio}</span>
       <span className="flex-1" />
       {moreMenu}
@@ -217,7 +217,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
   }
   return <Sheet open onClose={onClose} title="Etapas" description="Abre el documento de cada etapa.">
     {(() => {
-      return <section aria-label="Etapas de la operación" className="flex flex-col gap-1">
+      return <section aria-label="Etapas del asunto" className="flex flex-col gap-1">
         <ol className="flex flex-col gap-1">{stages.map(stage => {
           const i = stage.n - 1, gap = gaps.get(stage.n), now = i === current, done = i < current;
           return <li key={stage.n}>
@@ -239,7 +239,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
 /** Documentos de toda la operación, por etapa, para la pestaña Expediente. */
 export function DocumentsByStage({ docs, folio }: { docs: DocumentsController; folio: string }) {
   if (docs.documents === undefined) return <p role="status" className="text-sm text-muted-foreground">Consultando documentos…</p>;
-  if (!docs.list.length) return <p className="text-sm text-muted-foreground">Todavía no hay documentos en esta operación ({folio}).</p>;
+  if (!docs.list.length) return <p className="text-sm text-muted-foreground">Todavía no hay documentos en este asunto ({folio}).</p>;
   const sorted = [...docs.list].sort((a, b) => a.formato_id.localeCompare(b.formato_id) || b.updated_at.localeCompare(a.updated_at));
   return <ul className={s.items}>{sorted.map(doc => {
     const pdf = docs.pdfOf(doc), latest = docs.latest(doc.formato_id.startsWith("04") ? "04" : doc.formato_id)?.id === doc.id;

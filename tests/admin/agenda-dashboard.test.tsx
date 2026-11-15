@@ -178,7 +178,7 @@ test("calendar saves a linked event with client, property, expediente and advise
   });
   render(<CalendarioPage />);
   // SIM-17: la operación de la dirección se ve como vínculo elegido en «¿Con quién o sobre qué?».
-  await screen.findByText("Operación: EXP-1");
+  await screen.findByText("Asunto: EXP-1");
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita vinculada" } });
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(saved).toMatchObject({ titulo: "Visita vinculada", clienteId: "c1", propiedadSlug: "p1", expedienteId, asesorId: "a1" }));

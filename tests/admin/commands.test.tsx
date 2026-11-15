@@ -14,7 +14,7 @@ const source = { quick: QUICK_CREATE, nav: [...MAIN_NAV, TOOLS_NAV], admin: ADMI
 test("las acciones se buscan por palabras y lo de administración solo lo ve el administrador", () => {
   const editor = commandsFor("editor", source), admin = commandsFor("admin", source);
   expect(filterCommands(editor, "nueva tarea").map(c => c.label)).toEqual(["Nueva tarea"]);
-  expect(filterCommands(editor, "ir operaciones").map(c => c.href)).toEqual(["/admin/operaciones"]);
+  expect(filterCommands(editor, "ir asuntos").map(c => c.href)).toEqual(["/admin/operaciones"]);
   expect(filterCommands(editor, "configuración")).toEqual([]);
   expect(filterCommands(admin, "configuracion").map(c => c.href)).toEqual(["/admin/configuracion"]);
   expect(filterCommands(editor, "")).toEqual([]);
@@ -99,4 +99,11 @@ test("«/» abre la barra fuera de un campo y no dentro de uno", async () => {
   expect(palette()).toBeNull();
   fireEvent.keyDown(document.body, { key: "/" });
   expect(palette()).toBeTruthy();
+});
+
+test("Ctrl K encuentra Asuntos también con el nombre anterior (DEC-53)", async () => {
+  const { commandsFor, filterCommands } = await import("@/lib/admin/commands");
+  const list = commandsFor("asesor", { quick: [{ label: "Nuevo asunto", href: "/admin/operaciones/nueva" }], nav: [{ label: "Asuntos", href: "/admin/operaciones" }], admin: [] });
+  expect(filterCommands(list, "operaciones").map(c => c.label)).toEqual(["Nuevo asunto", "Ir a Asuntos"]);
+  expect(filterCommands(list, "asuntos").map(c => c.label)).toEqual(["Ir a Asuntos"]);
 });

@@ -134,7 +134,7 @@ export function OperationsBoard() {
   async function reassign(id: string, asesorId: string, motivo: string): Promise<"aplicado" | "sin-cambio"> {
     if (movedAlong.current.get(id) === asesorId) return "aplicado";
     const op = (records ?? []).find(item => item.id === id);
-    if (!op) throw new Error("Ya no aparece en Operaciones.");
+    if (!op) throw new Error("Ya no aparece en Asuntos.");
     if (op.asesor_id === asesorId) return "sin-cambio";
     try {
       const { movidas } = await apiRequest<{ movidas: string[] }>(`/api/admin/expedientes/${id}/reasignar`, "POST", { asesorId, motivo });
@@ -153,7 +153,7 @@ export function OperationsBoard() {
   const bulkActions: BulkAction[] = [{
     id: "asesor", label: "Pasar a…", verb: "Se reasignaron", apply: reassign,
     options: advisers.filter(a => a.activo).map(a => ({ value: a.id, label: a.nombre })),
-    note: { label: "Motivo de la reasignación", min: 10, max: 1000, placeholder: "Motivo (queda en la nota de la operación)" },
+    note: { label: "Motivo de la reasignación", min: 10, max: 1000, placeholder: "Motivo (queda en la nota del asunto)" },
   }];
 
   function chooseStage(label: string) {
@@ -164,36 +164,36 @@ export function OperationsBoard() {
     router.replace(search ? `/admin/operaciones?${search}` : "/admin/operaciones", { scroll: false });
   }
   async function restore(op: OperationRecord) {
-    if (!await confirmAction(`¿Restaurar la operación ${op.folio}? Volverá a Operaciones con sus documentos y tareas.`)) return;
+    if (!await confirmAction(`¿Restaurar el asunto ${op.folio}? Volverá a Asuntos con sus documentos y tareas.`)) return;
     setError(""); setNotice("");
     try {
       await json(`/api/admin/expedientes/${op.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: op.version }) });
       setRecords(items => items?.filter(item => item.id !== op.id));
-      setNotice(`Operación ${op.folio} restaurada.`);
+      setNotice(`Asunto ${op.folio} restaurado.`);
     } catch (cause) { setError(errorMessage(cause)); }
   }
 
   return <Surface className="pb-4">
-    {/* Boceto «desde cero» (14/11/2026): título con el hallazgo y «+ Nueva operación» a la derecha. */}
+    {/* Boceto «desde cero» (14/11/2026): título con el hallazgo y «+ Nuevo asunto» a la derecha. */}
     <header className={s.top}>
       <div className="flex min-w-0 flex-col gap-1.5">
-        <h1 className={s.head1}>{deleted ? `${PAPELERA.operaciones} · ${PAPELERA.nombre}` : "Operaciones"}</h1>
-        {records && <p className={s.finding}>{deleted ? `${records.length} ${records.length === 1 ? "operación" : "operaciones"} que puedes restaurar` : <>{active.length} en curso.{lateCount > 0 && <> <b className={s.late}>{lateCount === 1 ? "1 tiene algo vencido" : `${lateCount} tienen algo vencido`}</b>{waitingCount > lateCount ? ` y ${waitingCount - lateCount} más ${waitingCount - lateCount === 1 ? "espera" : "esperan"} algo de ti.` : "."}</>}{lateCount === 0 && waitingCount > 0 && ` ${waitingCount === 1 ? "1 espera" : `${waitingCount} esperan`} algo de ti.`}</>}</p>}
+        <h1 className={s.head1}>{deleted ? `${PAPELERA.operaciones} · ${PAPELERA.nombre}` : "Asuntos"}</h1>
+        {records && <p className={s.finding}>{deleted ? `${records.length} ${records.length === 1 ? "asunto" : "asuntos"} que puedes restaurar` : <>{active.length} en curso.{lateCount > 0 && <> <b className={s.late}>{lateCount === 1 ? "1 tiene algo vencido" : `${lateCount} tienen algo vencido`}</b>{waitingCount > lateCount ? ` y ${waitingCount - lateCount} más ${waitingCount - lateCount === 1 ? "espera" : "esperan"} algo de ti.` : "."}</>}{lateCount === 0 && waitingCount > 0 && ` ${waitingCount === 1 ? "1 espera" : `${waitingCount} esperan`} algo de ti.`}</>}</p>}
       </div>
-      {!deleted && !!records?.length && <ButtonLink variant="primary" href="/admin/operaciones/nueva" className={s.newOp}><Plus size={16} aria-hidden="true" />Nueva operación</ButtonLink>}
+      {!deleted && !!records?.length && <ButtonLink variant="primary" href="/admin/operaciones/nueva" className={s.newOp}><Plus size={16} aria-hidden="true" />Nuevo asunto</ButtonLink>}
     </header>
     {error && <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 text-sm text-destructive"><span>{error}</span>{records === null && <Button onClick={() => setAttempt(n => n + 1)}>Reintentar</Button>}</div>}
     {notice && <p role="status" className="mb-4 text-sm">{notice}</p>}
     {viewError && <p role="alert" className="mb-4 text-sm text-destructive">{viewError}</p>}
 
     {deleted ? <DeletedList records={records} names={names} onRestore={op => void restore(op)} />
-      : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando operaciones…</p>
-      : records !== null && records.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Todavía no hay operaciones" steps={["Atiende a la persona con «Nueva operación».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: la operación se crea sola y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nueva operación</ButtonLink>}>Una operación reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
+      : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando asuntos…</p>
+      : records !== null && records.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Todavía no hay asuntos" steps={["Atiende a la persona con «Nuevo asunto».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: el asunto se crea solo y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nuevo asunto</ButtonLink>}>Un asunto reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
-          {admin && me && <Segmented label="Operaciones que se muestran" options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} value={scope} onChange={setScope} />}
-          <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
-          {listed.length > 0 && <SelectToggle selection={selection} noun="operaciones" />}
+          {admin && me && <Segmented label="Asuntos que se muestran" options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} value={scope} onChange={setScope} />}
+          <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar asunto</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
+          {listed.length > 0 && <SelectToggle selection={selection} noun="asuntos" />}
           <div className={s.viewSwitch}><Segmented label="Vista" value={view} onChange={setView} options={[{ id: "lista", label: "Lista", icon: <List size={16} aria-hidden="true" /> }, { id: "tablero", label: "Tablero", icon: <Columns3 size={16} aria-hidden="true" /> }]} /></div>
         </div>
         <div className={s.stageRow}>
@@ -208,17 +208,17 @@ export function OperationsBoard() {
               <div className={s.head} aria-hidden="true"><span>Quién y qué</span><span>Etapa</span><span>Lo que sigue</span><span className="text-right">Fecha</span><span /></div>
               {waiting.length > 0 && <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} selection={selection} />}
               {fine.length > 0 && <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} selection={selection} />}
-              {!waiting.length && !fine.length && <p className={s.emptyNote}>Sin operaciones en esta etapa.</p>}
-              <p className={s.listFoot}>{inGroup.length === 1 ? "1 operación" : `${inGroup.length} operaciones`}</p>
+              {!waiting.length && !fine.length && <p className={s.emptyNote}>Sin asuntos en esta etapa.</p>}
+              <p className={s.listFoot}>{inGroup.length === 1 ? "1 asunto" : `${inGroup.length} asuntos`}</p>
             </Card>
-            {admin && <BulkBar selection={selection} targets={listed.map(row => ({ id: row.op.id, label: `${row.who} · ${row.op.folio}` }))} actions={bulkActions} noun={{ one: "operación seleccionada", many: "operaciones seleccionadas", empty: "Elige operaciones en la lista" }} />}
+            {admin && <BulkBar selection={selection} targets={listed.map(row => ({ id: row.op.id, label: `${row.who} · ${row.op.folio}` }))} actions={bulkActions} noun={{ one: "asunto seleccionado", many: "asuntos seleccionados", empty: "Elige asuntos en la lista" }} />}
           </>}
-        {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide. Borra la búsqueda o cambia el filtro.</p>}
+        {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ningún asunto coincide. Borra la búsqueda o cambia el filtro.</p>}
         {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="tabular-nums text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
       </>}
 
     <footer className="mt-8 flex flex-col gap-4">
-      {/* C38: sin tarjeta fija al pie; la alta directa se abre desde «Alta rápida, sin entrevista» de Nueva operación (?nuevo=1). */}
+      {/* C38: sin tarjeta fija al pie; la alta directa se abre desde «Alta rápida, sin entrevista» de Nuevo asunto (?nuevo=1). */}
       {!deleted && creating && <Card as="div" id="alta-directa" className="p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Alta directa, sin entrevista</h2><button type="button" className={s.toggle} onClick={() => setCreating(false)}>Cerrar</button></div>
         <div className="mt-4"><DirectCreate onDirtyChange={setDraftDirty} /></div>
@@ -228,7 +228,7 @@ export function OperationsBoard() {
         <div className="mt-4"><InheritedCreate onDirtyChange={setInheritDirty} taken={new Set((records ?? []).filter(op => op.propiedad_slug && ["captacion", "arrendador"].includes(op.flujo?.ruta ?? "") && op.flujo?.estado !== "descartada").map(op => op.propiedad_slug!))} /></div>
       </Card>}
       {/* NAV-13: lo eliminado se recupera en la papelera única; «?eliminadas=1» sigue funcionando. */}
-      <Link href={deleted ? "/admin/operaciones" : PAPELERA.href} className="inline-flex min-h-11 items-center self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : PAPELERA.enlace}</Link>
+      <Link href={deleted ? "/admin/operaciones" : PAPELERA.href} className="inline-flex min-h-11 items-center self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a los asuntos en curso" : PAPELERA.enlace}</Link>
     </footer>
   </Surface>;
 }
@@ -278,7 +278,7 @@ function RowBody({ row, today, selecting }: { row: Row; today: string; selecting
 /** Tablero: una columna por etapa presente; cada tarjeta lleva la foto, lo que sigue, su fecha y el responsable. */
 function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
   const byDate = (a: Row, b: Row) => Number(isLate(b)) - Number(isLate(a)) || (a.attention?.rank ?? 9) - (b.attention?.rank ?? 9) || (a.date ?? "9999").localeCompare(b.date ?? "9999");
-  return <div className={s.boardScroll}><div className={s.board} role="list" aria-label="Operaciones por etapa">
+  return <div className={s.boardScroll}><div className={s.board} role="list" aria-label="Asuntos por etapa">
     {stagesOf(rows).map((stage, index) => {
       const cards = rows.filter(row => row.stage === stage.label).sort(byDate);
       return <section key={stage.label} role="listitem" aria-labelledby={`columna-${index}`} className={s.column}>
@@ -300,9 +300,9 @@ function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
 }
 
 function DeletedList({ records, names, onRestore }: { records: OperationRecord[] | null | undefined; names: { client: (id?: string) => string | undefined; property: (slug?: string | null) => string | undefined }; onRestore: (op: OperationRecord) => void }) {
-  if (records === undefined) return <p role="status" className="text-sm text-muted-foreground">Consultando operaciones eliminadas…</p>;
-  if (!records?.length) return records === null ? null : <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="No hay operaciones eliminadas">Cuando elimines una operación aparecerá aquí y podrás restaurarla.</EmptyBox>;
-  return <><p className="mb-3 text-sm text-muted-foreground">Se conservan con sus documentos y tareas. Restaurar las devuelve a Operaciones.</p><Card as="div" className="overflow-hidden"><ul className="m-0 list-none p-0">{records.map(op => <li key={op.id} className={s.deletedRow}>
+  if (records === undefined) return <p role="status" className="text-sm text-muted-foreground">Consultando asuntos eliminados…</p>;
+  if (!records?.length) return records === null ? null : <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="No hay asuntos eliminados">Cuando elimines un asunto aparecerá aquí y podrás restaurarlo.</EmptyBox>;
+  return <><p className="mb-3 text-sm text-muted-foreground">Se conservan con sus documentos y tareas. Restaurar los devuelve a Asuntos.</p><Card as="div" className="overflow-hidden"><ul className="m-0 list-none p-0">{records.map(op => <li key={op.id} className={s.deletedRow}>
     <span className="flex min-w-0 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{names.client(op.cliente_id) ?? op.folio}</strong><small className="text-muted-foreground">{op.folio} · {names.property(op.propiedad_slug) ?? "Sin inmueble vinculado"}</small></span>
     <Button onClick={() => onRestore(op)} aria-label={`Restaurar ${op.folio}`}>Restaurar</Button>
   </li>)}</ul></Card></>;

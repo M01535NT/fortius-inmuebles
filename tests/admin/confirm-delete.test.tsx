@@ -14,8 +14,8 @@ const dialog = () => document.querySelector("dialog.admin-confirm") as HTMLDialo
 it("dice qué se elimina, que se puede restaurar desde Eliminados y confirma con «Eliminar» en rojo", async () => {
   const answer = confirmDeleteOperation("EXP-0001", "Familia de ejemplo");
   await Promise.resolve(); await Promise.resolve();
-  expect(dialog().querySelector("h2")?.textContent).toBe("Eliminar operación");
-  expect(dialog().querySelector("p")?.textContent).toBe("La operación EXP-0001 de Familia de ejemplo se mueve a Eliminados con sus documentos, PDF y tareas. Podrás restaurarla desde Eliminados.");
+  expect(dialog().querySelector("h2")?.textContent).toBe("Eliminar asunto");
+  expect(dialog().querySelector("p")?.textContent).toBe("El asunto EXP-0001 de Familia de ejemplo se mueve a Eliminados con sus documentos, PDF y tareas. Podrás restaurarlo desde Eliminados.");
   const accept = [...dialog().querySelectorAll("button")].find(b => b.textContent === "Eliminar")!;
   expect(accept.className).toContain("admin-button-danger");
   accept.click();

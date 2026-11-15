@@ -101,7 +101,7 @@ for (const width of [320, 390, 768, 1440]) {
     if (width === 1440) await noAxeViolations(page);
     await page.getByRole("button", { name: /Guardar prospecto/ }).click();
 
-    await expect(page.getByRole("heading", { name: "Listo, la operación está creada" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Listo, el asunto está creado" })).toBeVisible();
     await expect(page.getByText("Paso 4 de 4")).toBeVisible();
     await expect(page.getByText("EXP-2030-001")).toBeVisible();
     await expect(page.getByRole("link", { name: /Abrir la operación/ })).toHaveAttribute("href", "/admin/operaciones/exp-qa");

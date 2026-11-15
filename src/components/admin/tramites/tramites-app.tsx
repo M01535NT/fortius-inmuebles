@@ -357,7 +357,7 @@ function VentaLigada({ t, busy, director, sessionId, today, save }: { t: Tramite
             </select></label>
         : <p className={s.meta}>El propietario no tiene ventas en el panel.</p>
       : <div className={s.firma} data-estado={cancelacionInscrita(t) ? "inscrita" : decision ? "autorizada" : "frena"}>
-          <p className={s.firmaVenta}>{venta ? <Link href={operationHref(venta.id)}>Venta {venta.folio}</Link> : "Venta de la operación"}</p>
+          <p className={s.firmaVenta}>{venta ? <Link href={operationHref(venta.id)}>Venta {venta.folio}</Link> : "Venta del asunto"}</p>
           {cancelacionInscrita(t) ? <p>La cancelación quedó inscrita; la firma puede seguir.</p>
             : decision ? <>
                 <p><b>Se firma sin la cancelación inscrita.</b> {decision.motivo}</p>

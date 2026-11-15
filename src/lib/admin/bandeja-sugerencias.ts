@@ -36,7 +36,7 @@ export function sugerirDestinos(doc: Doc, inmuebles: Inmueble[], operaciones: Op
   for (const op of operaciones) {
     const cliente = op.cliente_id ? persona.get(op.cliente_id) : undefined, casa = op.propiedad_slug ? inmueble.get(op.propiedad_slug) : undefined;
     const puntos = coincidencias(archivo, op.folio, op.unidad, cliente?.nombre, casa?.titulo, casa?.codigo);
-    if (puntos) opciones.push({ puntos, orden: 0, s: { id: `op:${op.id}`, tipo: "operacion", label: op.unidad || op.folio, detail: ["Operación", op.unidad ? op.folio : null, cliente?.nombre].filter(Boolean).join(" · "), destino: { expedienteId: op.id, propiedadSlug: op.propiedad_slug ?? null, clienteId: op.cliente_id ?? null } } });
+    if (puntos) opciones.push({ puntos, orden: 0, s: { id: `op:${op.id}`, tipo: "operacion", label: op.unidad || op.folio, detail: ["Asunto", op.unidad ? op.folio : null, cliente?.nombre].filter(Boolean).join(" · "), destino: { expedienteId: op.id, propiedadSlug: op.propiedad_slug ?? null, clienteId: op.cliente_id ?? null } } });
   }
   for (const casa of inmuebles) {
     const puntos = coincidencias(archivo, casa.titulo, casa.codigo);

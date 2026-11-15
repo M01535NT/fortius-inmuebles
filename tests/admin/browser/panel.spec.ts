@@ -54,7 +54,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       ).toBeVisible();
       if (width < 768) {
         const tabs = page.getByRole("navigation", { name: "Secciones principales" });
-        for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+        for (const name of ["Hoy", "Asuntos", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
         await page.getByRole("button", { name: "Menú del panel" }).click();
         const menu = page.getByRole("navigation", { name: "Módulos móviles" });
         await menu.getByRole("button", { name: /Administración/ }).click();
@@ -66,7 +66,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         await tabs.getByRole("link", { name: "Contactos" }).click();
       } else {
         const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-        for (const name of ["Hoy", "Bandeja", "Operaciones", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"])
+        for (const name of ["Hoy", "Bandeja", "Asuntos", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"])
           await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
         await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
         await expect(page.locator("#admin-account-menu").getByRole("link", { name: "Administración", exact: true })).toHaveAttribute("href", "/admin/asesores");

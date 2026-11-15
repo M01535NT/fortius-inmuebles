@@ -13,7 +13,7 @@ vi.mock("next/navigation", async () => {
 });
 vi.mock("@/components/admin/workspace/confirm", () => {
   const confirmAction = vi.fn().mockResolvedValue(true);
-  return { confirmAction, confirmDeleteOperation: (folio: string, who?: string) => confirmAction(`¿Eliminar la operación ${folio}${who ? ` de ${who}` : ""}? Puedes restaurarla.`, { title: "Eliminar operación", confirmLabel: "Eliminar", danger: true }) };
+  return { confirmAction, confirmDeleteOperation: (folio: string, who?: string) => confirmAction(`¿Eliminar el asunto ${folio}${who ? ` de ${who}` : ""}? Puedes restaurarlo.`, { title: "Eliminar asunto", confirmLabel: "Eliminar", danger: true }) };
 });
 vi.mock("@/lib/admin/store", async original => ({ ...await original<typeof import("@/lib/admin/store")>(), useSession: () => ({ id: "u1", email: "mariana@example.test", role: "admin", name: "Mariana Ruiz" }) }));
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -95,7 +95,7 @@ async function openOperation(tab?: string) {
   await screen.findByRole("heading", { level: 1, name: "Familia Castañeda Ortiz", hidden: !!tab });
 }
 /** Eliminar vive en «Más opciones» del encabezado (DEC-37). */
-const eliminar = () => { fireEvent.keyDown(screen.getByRole("button", { name: "Más opciones", hidden: true }), { key: "Enter" }); fireEvent.click(screen.getByRole("menuitem", { name: "Eliminar operación", hidden: true })); };
+const eliminar = () => { fireEvent.keyDown(screen.getByRole("button", { name: "Más opciones", hidden: true }), { key: "Enter" }); fireEvent.click(screen.getByRole("menuitem", { name: "Eliminar asunto", hidden: true })); };
 const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(-1)!.body;
 /** La etapa en curso se lee en la tarjeta de avance («Etapa N de 10 · fase»). */
 const stage = (n: number) => screen.findAllByText(new RegExp(`^Etapa ${n} de 10`));
@@ -321,7 +321,7 @@ it("«Pasar a» se habilita solo con todo listo y registra el avance", async () 
   await waitFor(() => expect((screen.getByRole("button", { name: /Pasar a: Dictamen jurídico/ }) as HTMLButtonElement).disabled).toBe(false));
   expect(screen.getAllByRole("button", { name: /Pasar a: Dictamen jurídico/ })).toHaveLength(1);
   fireEvent.click(screen.getByRole("button", { name: /Pasar a: Dictamen jurídico/ }));
-  expect(await screen.findByText("Listo: la operación pasó a «Dictamen jurídico».")).toBeTruthy();
+  expect(await screen.findByText("Listo: el asunto pasó a «Dictamen jurídico».")).toBeTruthy();
   expect(lastFlow()).toMatchObject({ etapa: "documentacion", version: 3 });
   await stage(5);
 });
@@ -354,7 +354,7 @@ it("Ajustes ofrece como contraparte al interesado que busca esa operación, no u
   await openOperation("ajustes");
   const select = screen.getByLabelText("Interesado que firma");
   expect(within(select).getAllByRole("option").map(o => o.textContent)).toEqual(["Ninguno del panel", "Lucía Interesada · 6640001111"]);
-  expect(screen.queryByLabelText("Operación de la contraparte")).toBeNull();
+  expect(screen.queryByLabelText("Asunto de la contraparte")).toBeNull();
   // Las rutas de búsqueda ya no se ofrecen para una operación del propietario.
   expect(within(screen.getByLabelText("Ruta")).getAllByRole("option").map(o => o.textContent)).not.toContain("Arrendatario");
   fireEvent.change(select, { target: { value: "lead-renta" } });
@@ -370,27 +370,27 @@ it("una operación de búsqueda de renta ya abierta se muestra como histórica y
     base({ id: ID2, folio: "EXP-RENTA", operacion: "renta", cliente_id: "c2", flujo: flow({}, { ruta: "arrendador" }) }),
   ];
   await openOperation("ajustes");
-  expect(screen.getByText("Operación histórica")).toBeTruthy();
-  expect(within(screen.getByLabelText("Operación de la contraparte")).getAllByRole("option").map(o => o.textContent)).toEqual(["Ninguna del panel", "EXP-RENTA · Propietario arrendador"]);
+  expect(screen.getByText("Asunto histórico")).toBeTruthy();
+  expect(within(screen.getByLabelText("Asunto de la contraparte")).getAllByRole("option").map(o => o.textContent)).toEqual(["Ninguno del panel", "EXP-RENTA · Propietario arrendador"]);
 });
 
 it("eliminar pide confirmación, se puede restaurar y no procede con cambios sin guardar", async () => {
   await openOperation("ajustes");
   // SIM-18: eliminar ya no es una tarjeta de Ajustes; vive solo en «Más opciones» del panel.
-  expect(screen.queryByRole("button", { name: "Eliminar operación" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Eliminar asunto" })).toBeNull();
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
   eliminar();
-  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Puedes restaurarla"), expect.objectContaining({ title: "Eliminar operación" })));
+  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Puedes restaurarlo"), expect.objectContaining({ title: "Eliminar asunto" })));
   expect(server.methods).toEqual([]);
   fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-12-01" } });
   eliminar();
-  expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar la operación.")).toBeTruthy();
+  expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar el asunto.")).toBeTruthy();
   expect(server.methods).toEqual([]);
   fireEvent.click(screen.getByRole("button", { name: "Descartar cambios" }));
   eliminar();
-  expect(await screen.findByText("Esta operación está eliminada")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Restaurar operación" }));
-  expect(await screen.findByText("Operación restaurada.")).toBeTruthy();
+  expect(await screen.findByText("Este asunto está eliminado")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Restaurar asunto" }));
+  expect(await screen.findByText("Asunto restaurado.")).toBeTruthy();
   expect(server.methods).toEqual(["DELETE", "PATCH"]);
 });
 
@@ -398,22 +398,22 @@ it("el encabezado elimina la operación tras confirmarlo en su ventana, y no con
   await openOperation("ajustes");
   fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-12-01" } });
   eliminar();
-  expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar la operación.")).toBeTruthy();
+  expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar el asunto.")).toBeTruthy();
   expect(confirmAction).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Descartar cambios" }));
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
   eliminar();
-  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("de Familia Castañeda Ortiz"), expect.objectContaining({ title: "Eliminar operación", confirmLabel: "Eliminar" })));
+  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("de Familia Castañeda Ortiz"), expect.objectContaining({ title: "Eliminar asunto", confirmLabel: "Eliminar" })));
   expect(server.methods).toEqual([]);
   eliminar();
-  expect(await screen.findByText("Esta operación está eliminada")).toBeTruthy();
+  expect(await screen.findByText("Este asunto está eliminado")).toBeTruthy();
   expect(server.methods).toEqual(["DELETE"]);
 });
 
 it("la lista de operaciones ya no trae un bote por renglón: eliminar vive dentro de la operación", async () => {
   render(<OperationsBoard />);
   await screen.findByRole("link", { name: /Familia Castañeda Ortiz/ });
-  expect(screen.queryByRole("button", { name: /^Eliminar la operación de/ })).toBeNull();
+  expect(screen.queryByRole("button", { name: /^Eliminar el asunto de/ })).toBeNull();
 });
 
 it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña", async () => {
@@ -421,7 +421,7 @@ it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña
   const note = await screen.findByLabelText("Nueva nota");
   fireEvent.change(note, { target: { value: "Comprobar antecedente original" } });
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
-  fireEvent.click(screen.getByRole("link", { name: "Volver a Operaciones" }));
+  fireEvent.click(screen.getByRole("link", { name: "Volver a Asuntos" }));
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Descartar los cambios y salir")));
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
   fireEvent.click(screen.getByRole("tab", { name: "Etapa" }));
@@ -502,10 +502,10 @@ it("la lista separa lo que espera algo de ti, filtra por etapa, busca sin acento
   fireEvent.click(screen.getByRole("radio", { name: "Mías" }));
   expect(screen.queryByRole("link", { name: /Ángel Martínez/ })).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: "Todo el equipo" }));
-  fireEvent.change(screen.getByRole("textbox", { name: "Buscar operación" }), { target: { value: "martinez" } });
+  fireEvent.change(screen.getByRole("textbox", { name: "Buscar asunto" }), { target: { value: "martinez" } });
   expect(screen.queryByRole("link", { name: /Castañeda/ })).toBeNull();
   expect(screen.getByRole("link", { name: /Ángel Martínez/ })).toBeTruthy();
-  fireEvent.change(screen.getByRole("textbox", { name: "Buscar operación" }), { target: { value: "" } });
+  fireEvent.change(screen.getByRole("textbox", { name: "Buscar asunto" }), { target: { value: "" } });
   fireEvent.click(screen.getByText("Archivadas (1)"));
   expect(screen.getByRole("link", { name: /EXP-CERRADO/ })).toBeTruthy();
 });
@@ -515,7 +515,7 @@ it("un fallo del tablero se distingue de un tablero vacío y permite reintentar"
   server.fail = url => down && url.startsWith("/api/admin/expedientes") ? Response.json({ error: "Consulta no disponible" }, { status: 503 }) : undefined;
   render(<OperationsBoard />);
   expect((await screen.findByRole("alert")).textContent).toContain("Consulta no disponible");
-  expect(screen.queryByText("Sin operaciones en esta etapa.")).toBeNull();
+  expect(screen.queryByText("Sin asuntos en esta etapa.")).toBeNull();
   down = false;
   fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
   expect(await screen.findByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeTruthy();
@@ -531,7 +531,7 @@ it("restaura desde Operaciones eliminadas con confirmación", async () => {
   await waitFor(() => expect(confirmAction).toHaveBeenCalled());
   expect(server.methods).toEqual([]);
   fireEvent.click(restore);
-  expect(await screen.findByText("Operación EXP-2026-041 restaurada.")).toBeTruthy();
+  expect(await screen.findByText("Asunto EXP-2026-041 restaurado.")).toBeTruthy();
   expect(server.methods).toEqual(["PATCH"]);
 });
 
@@ -550,7 +550,7 @@ it("Alta directa no pide folio, protege la captura al salir, permite descartar y
   await waitFor(() => expect((unit as HTMLInputElement).value).toBe(""));
   await screen.findByRole("option", { name: "Familia Castañeda Ortiz" });
   fireEvent.change(screen.getByLabelText("Cliente"), { target: { value: "c1" } });
-  fireEvent.click(screen.getByRole("button", { name: "Abrir operación" }));
+  fireEvent.click(screen.getByRole("button", { name: "Abrir asunto" }));
   await waitFor(() => expect(nav.push).toHaveBeenCalledWith(`/admin/operaciones/${ID2}`));
 });
 
@@ -600,9 +600,9 @@ it("SIM-18: la operación tiene tres partes y las direcciones anteriores siguen 
   // «Más opciones» reúne las notas (DEC-42), los datos de la operación, corregir etapa y eliminar.
   fireEvent.keyDown(screen.getByRole("button", { name: "Más opciones" }), { key: "Enter" });
   // «Corregir etapa» solo aparece cuando hay una etapa anterior a la cual regresar; esta operación está en la primera.
-  expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Notas", "Datos de la operación", "Eliminar operación"]);
-  fireEvent.click(screen.getByRole("menuitem", { name: "Datos de la operación" }));
-  expect(within(screen.getByRole("dialog", { name: "Datos de la operación" })).getByLabelText("Fecha objetivo")).toBeTruthy();
+  expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Notas", "Datos del asunto", "Eliminar asunto"]);
+  fireEvent.click(screen.getByRole("menuitem", { name: "Datos del asunto" }));
+  expect(within(screen.getByRole("dialog", { name: "Datos del asunto" })).getByLabelText("Fecha objetivo")).toBeTruthy();
   cleanup();
   for (const [old, part] of [["cliente", "Documentos"], ["tareas", "Actividad"], ["historial", "Actividad"], ["documentos", "Documentos"]] as const) {
     await openOperation(old);
@@ -649,8 +649,8 @@ it("la decisión del encargo se toma en el panel de la etapa y ya no en los dato
   fireEvent.click(within(card).getByRole("button", { name: "Guardar decisión" }));
   await waitFor(() => expect(lastFlow()).toMatchObject({ flujo: { resolucion: { tipo: "aceptada", motivo: "Documentos completos; se toma la venta", siguienteAccion: "Firmar el contrato", fecha: "2026-10-16" }, requisitos: { precio: { estado: "revisado" } } } }));
   fireEvent.keyDown(screen.getByRole("button", { name: "Más opciones" }), { key: "Enter" });
-  fireEvent.click(screen.getByRole("menuitem", { name: "Datos de la operación" }));
-  const datos = await screen.findByRole("dialog", { name: "Datos de la operación" });
+  fireEvent.click(screen.getByRole("menuitem", { name: "Datos del asunto" }));
+  const datos = await screen.findByRole("dialog", { name: "Datos del asunto" });
   expect(within(datos).queryByLabelText("Decisión")).toBeNull();
 });
 

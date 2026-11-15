@@ -91,7 +91,7 @@ test("the selected day lists its events by time, untimed last, with the operatio
   ]);
   expect(day.getByText("2 visitas y 1 cita")).toBeTruthy();
   expect(day.queryByText("Evento de ayer")).toBeNull();
-  expect((await day.findByRole("link", { name: "Operación: EXP-PRUEBA" })).getAttribute("href")).toBe("/admin/operaciones/exp1");
+  expect((await day.findByRole("link", { name: "Asunto: EXP-PRUEBA" })).getAttribute("href")).toBe("/admin/operaciones/exp1");
   expect(day.getByText("Sin hora")).toBeTruthy();
   const week = within(screen.getByRole("region", { name: "Agenda semanal" }));
   expect(week.getByRole("button", { name: "Ver evento: Evento de ayer" })).toBeTruthy();
@@ -137,7 +137,7 @@ test("URL context is visible before saving and a rejected draft survives view ch
   window.history.replaceState(null, "", "/admin/agenda?fecha=2027-01-02&expediente=exp1&nueva=1");
   render(<CalendarioPage />);
   const context = within(screen.getByRole("region", { name: "Contexto del evento" }));
-  expect(await context.findByText("Operación: EXP-PRUEBA")).toBeTruthy();
+  expect(await context.findByText("Asunto: EXP-PRUEBA")).toBeTruthy();
   expect(context.getByText("Cliente: Cliente de prueba")).toBeTruthy();
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-02");
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Mi visita pendiente" } });
@@ -236,7 +236,7 @@ test("a late URL expediente cannot replace a client explicitly chosen while load
   await settled();
   const context = within(screen.getByRole("region", { name: "Contexto del evento" }));
   expect(context.getByText("Cliente: Cliente elegido")).toBeTruthy();
-  expect(context.queryByText(/^Operación:/)).toBeNull();
+  expect(context.queryByText(/^Asunto:/)).toBeNull();
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita elegida" } });
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(savedEvent).toMatchObject({ titulo: "Visita elegida", clienteId: "c2" }));
@@ -252,10 +252,10 @@ test("editing a relation detaches the selected expediente and saves the visible 
   window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   const context = within(screen.getByRole("region", { name: "Contexto del evento" }));
-  await context.findByText("Operación: EXP-PRUEBA");
+  await context.findByText("Asunto: EXP-PRUEBA");
   await pick("elegido", /Cliente elegido/);
   expect(context.getByText("Cliente: Cliente elegido")).toBeTruthy();
-  expect(context.queryByText("Operación: EXP-PRUEBA")).toBeNull();
+  expect(context.queryByText("Asunto: EXP-PRUEBA")).toBeNull();
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita elegida" } });
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(savedEvent).toMatchObject({ titulo: "Visita elegida", clienteId: "c2" }));
@@ -283,8 +283,8 @@ test("a failed URL expediente lookup exposes error retry and explicit withdrawal
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita por recuperar" } });
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
   expect(await screen.findByRole("alert")).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Reintentar consulta de operaciones" })).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Quitar operación solicitada" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Reintentar consulta de asuntos" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Quitar asunto solicitado" })).toBeTruthy();
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Visita por recuperar");
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
@@ -301,9 +301,9 @@ test("retry resolves the requested expediente and saves its context with the pre
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
   await screen.findByRole("alert");
   expedienteResponse = null;
-  fireEvent.click(screen.getByRole("button", { name: "Reintentar consulta de operaciones" }));
+  fireEvent.click(screen.getByRole("button", { name: "Reintentar consulta de asuntos" }));
   const context = within(screen.getByRole("region", { name: "Contexto del evento" }));
-  await context.findByText("Operación: EXP-PRUEBA");
+  await context.findByText("Asunto: EXP-PRUEBA");
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(false);
   expect((screen.getByLabelText("Nuevo evento") as HTMLInputElement).value).toBe("Visita por recuperar");
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
@@ -319,7 +319,7 @@ test("an absent requested expediente stays blocked until explicit withdrawal", a
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
   await screen.findByRole("alert");
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(true);
-  fireEvent.click(screen.getByRole("button", { name: "Quitar operación solicitada" }));
+  fireEvent.click(screen.getByRole("button", { name: "Quitar asunto solicitado" }));
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(false);
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-11-20");
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
@@ -334,7 +334,7 @@ test("explicit withdrawal while loading prevents later reattachment", async () =
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Evento retirado explícitamente" } });
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
-  fireEvent.click(screen.getByRole("button", { name: "Quitar operación solicitada" }));
+  fireEvent.click(screen.getByRole("button", { name: "Quitar asunto solicitado" }));
   expect((screen.getByRole("button", { name: "Guardar en la agenda" }) as HTMLButtonElement).disabled).toBe(false);
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(savedEvent).toMatchObject({ titulo: "Evento retirado explícitamente", fecha: "2026-11-20" }));
@@ -344,7 +344,7 @@ test("explicit withdrawal while loading prevents later reattachment", async () =
   // Guardar cierra el panel; al abrirlo de nuevo la operación retirada no vuelve.
   expect(screen.queryByRole("dialog", { name: "Agendar" })).toBeNull();
   openCapture();
-  expect(within(screen.getByRole("region", { name: "Contexto del evento" })).queryByText(/^Operación:/)).toBeNull();
+  expect(within(screen.getByRole("region", { name: "Contexto del evento" })).queryByText(/^Asunto:/)).toBeNull();
 });
 
 test("SIM-09: un hueco de la semana abre «Agendar» con su día y su hora, y eliminar se deshace", async () => {

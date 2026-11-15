@@ -52,7 +52,7 @@ export function PriorVisitCard({ op, disabled, onSave, className }: { op: Operat
     const name = form.interesado.trim();
     const lead = leads.find(item => item.nombre.trim().toLocaleLowerCase("es-MX") === name.toLocaleLowerCase("es-MX"));
     const visit: PriorVisit = { id: uid(), interesado: name.slice(0, 160), ...(lead ? { leadId: lead.id } : {}), carta: { path: form.carta!.path, ...(form.carta!.nombre ? { nombre: form.carta!.nombre } : {}) }, motivo: form.motivo.trim().slice(0, 1000) };
-    void save([...visits, visit], "Visita autorizada. Queda en el historial de la operación.");
+    void save([...visits, visit], "Visita autorizada. Queda en el historial del asunto.");
   }
 
   return <Card id="visita-previa" className={`flex flex-col gap-3 p-5 ${className ?? ""}`} aria-labelledby={`${id}-titulo`}>

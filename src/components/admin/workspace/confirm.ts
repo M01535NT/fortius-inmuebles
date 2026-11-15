@@ -15,7 +15,7 @@ export function confirmDelete(cosa: string, mensaje: string, restaurable: "o" | 
 }
 /** Eliminar una operación: ventana propia; vuelve desde Eliminados con todo lo suyo. */
 export function confirmDeleteOperation(folio: string, who?: string) {
-  return confirmDelete("operación", `La operación ${folio}${who && who !== folio ? ` de ${who}` : ""} se mueve a Eliminados con sus documentos, PDF y tareas.`, "a");
+  return confirmDelete("asunto", `El asunto ${folio}${who && who !== folio ? ` de ${who}` : ""} se mueve a Eliminados con sus documentos, PDF y tareas.`, "o");
 }
 export type ConfirmOptions = { title?: string; confirmLabel?: string; danger?: boolean };
 export type ConfirmRequest = { message: string; options: ConfirmOptions; resolve: (accepted: boolean) => void };

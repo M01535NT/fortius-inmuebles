@@ -57,7 +57,7 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
     setOpen(true); setOpened(true); setError(""); setDone("");
     apiRequest<{ expedientes: { id: string; folio: string; cliente_id?: string }[] }>("/api/admin/expedientes")
       .then(result => setDossiers(result.expedientes ?? []))
-      .catch(() => setError("No se pudieron buscar operaciones. Los demás resultados siguen disponibles."));
+      .catch(() => setError("No se pudieron buscar asuntos. Los demás resultados siguen disponibles."));
   }, []);
   const onOpenChange = (next: boolean) => { if (next) show(); else { setOpen(false); setQuery(""); setDone(""); } };
   // Ctrl K (o ⌘K) abre desde cualquier pantalla; «/» y «?» solo fuera de campos y si los atajos de una
@@ -92,7 +92,7 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
     ...leads.filter(l => !l.clienteId).map(l => ({ id: `l:${l.id}`, label: l.nombre, detail: PERSON_STATUS_LABEL[status.ofLead(l) ?? "prospecto"], text: `${l.nombre} ${l.telefono} ${l.email ?? ""}`, href: `/admin/leads/${l.id}`, tipo: "persona" as const })),
     ...clients.map(c => ({ id: `c:${c.id}`, label: c.nombre, detail: (s => s ? PERSON_STATUS_LABEL[s] : "Contacto")(status.ofClient(c.id)), text: `${c.nombre} ${c.telefono} ${c.email ?? ""}`, href: `/admin/clientes/${c.id}`, tipo: "persona" as const })),
     ...tasks.map(t => ({ id: `t:${t.id}`, label: t.titulo, detail: isTaskOpen(t) ? "Tarea" : "Tarea hecha", text: t.titulo, href: `/admin/tareas/${t.id}`, taskId: isTaskOpen(t) ? t.id : undefined, tipo: "tarea" as const })),
-    ...dossiers.map(e => ({ id: `e:${e.id}`, label: clientName(e.cliente_id) ?? e.folio, detail: `Operación · ${e.folio}`, text: `${e.folio} ${clientName(e.cliente_id) ?? ""}`, href: `/admin/operaciones/${encodeURIComponent(e.id)}`, tipo: "operacion" as const, cara: clientName(e.cliente_id) })),
+    ...dossiers.map(e => ({ id: `e:${e.id}`, label: clientName(e.cliente_id) ?? e.folio, detail: `Asunto · ${e.folio}`, text: `${e.folio} ${clientName(e.cliente_id) ?? ""}`, href: `/admin/operaciones/${encodeURIComponent(e.id)}`, tipo: "operacion" as const, cara: clientName(e.cliente_id) })),
   ];
   // El filtro es el del panel (sin acentos ni mayúsculas), no el de cmdk: cmdk solo dibuja y recorre.
   const results = all.filter(item => normalizedText(item.text).includes(normalizedText(query)));
@@ -101,7 +101,7 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
   const allCommands = commandsFor(session?.role, { quick: QUICK_CREATE, nav: [...MAIN_NAV, TOOLS_NAV], admin: ADMIN_NAV });
   const commands = filterCommands(allCommands, query).slice(0, 6);
   // Sin escribir: las altas más usadas, para crear sin buscar.
-  const starters = allCommands.filter(command => command.id.startsWith("nuevo:")).slice(0, 4);
+  const starters = allCommands.filter(command => command.id.startsWith("nuevo:")).slice(0, 5);
   const stores = [db.propiedades, db.leads, db.clientes, db.tareas];
   const go = (href: string) => { onOpenChange(false); router.push(href); };
 

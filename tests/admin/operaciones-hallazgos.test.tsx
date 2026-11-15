@@ -94,7 +94,7 @@ it("BUG-C90: sin informes, la tarjeta dice que no hay informe, no «Al día» co
   const informe = await screen.findByRole("region", { name: "Informe al propietario" });
   await waitFor(() => expect(within(informe).queryByText("Consultando informes…")).toBeNull());
   expect(within(informe).queryByText(/^Al día/), "no hay informe: no puede estar «Al día»").toBeNull();
-  expect(within(informe).getByText("Todavía no hay un informe preparado para esta operación.")).toBeTruthy();
+  expect(within(informe).getByText("Todavía no hay un informe preparado para este asunto.")).toBeTruthy();
 });
 
 /*

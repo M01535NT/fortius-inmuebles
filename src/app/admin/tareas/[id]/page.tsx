@@ -77,7 +77,7 @@ function TaskDetail({ id }: { id: string }) {
                 <div><dt className="font-medium">Prospecto</dt><dd>{leads.find((l) => l.id === conflict.task.leadId)?.nombre ?? (conflict.task.leadId ? "Prospecto no disponible" : "Sin vínculo")}</dd></div>
                 <div><dt className="font-medium">Cliente</dt><dd>{clientes.find((c) => c.id === conflict.task.clienteId)?.nombre ?? (conflict.task.clienteId ? "Cliente no disponible" : "Sin vínculo")}</dd></div>
                 <div><dt className="font-medium">Inmueble</dt><dd>{propiedades.find((p) => p.slug === conflict.task.propiedadSlug)?.titulo ?? (conflict.task.propiedadSlug ? "Inmueble no disponible" : "Sin vínculo")}</dd></div>
-                <div><dt className="font-medium">Operación vinculada</dt><dd>{conflict.task.expedienteId ? "Vínculo directo registrado" : "Sin operación vinculada"}</dd></div>
+                <div><dt className="font-medium">Asunto vinculado</dt><dd>{conflict.task.expedienteId ? "Vínculo directo registrado" : "Sin asunto vinculado"}</dd></div>
                 <div><dt className="font-medium">Motivo de espera</dt><dd>{conflict.task.motivoEspera || "Sin motivo registrado"}</dd></div>
                 <div className="sm:col-span-2"><dt className="font-medium">Pasos</dt><dd>{conflict.task.pasos.length ? <ul className="space-y-1">{conflict.task.pasos.map((paso) => <li key={paso.id}>{paso.hecho ? "Completado" : "Pendiente"}: {paso.texto}</li>)}</ul> : "Sin pasos"}</dd></div>
               </dl>
@@ -109,7 +109,7 @@ function TaskDetail({ id }: { id: string }) {
         {task && (task.expedienteId || task.leadId || task.clienteId || task.propiedadSlug) && <Card className="flex flex-col gap-3 p-5">
           <h2 className="m-0 text-lg font-[600]">Relacionado</h2>
           <nav aria-label="Registros relacionados" className={s.related}>
-            {task.expedienteId && <ButtonLink href={`/admin/operaciones/${encodeURIComponent(task.expedienteId)}`}>Ver operación</ButtonLink>}
+            {task.expedienteId && <ButtonLink href={`/admin/operaciones/${encodeURIComponent(task.expedienteId)}`}>Ver asunto</ButtonLink>}
             {task.leadId && <ButtonLink href={`/admin/leads/${task.leadId}`}>Ver prospecto</ButtonLink>}
             {task.clienteId && <ButtonLink href="/admin/contactos?tab=clientes">Ver clientes</ButtonLink>}
             {task.propiedadSlug && <ButtonLink href={`/admin/propiedades/${task.propiedadSlug}/editar`}>Ver inmueble</ButtonLink>}

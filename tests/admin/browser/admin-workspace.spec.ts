@@ -63,7 +63,7 @@ test("el menú lateral guía por ocho secciones y Herramientas; «Nuevo» y la c
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
   const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  for (const name of ["Hoy", "Bandeja", "Operaciones", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  for (const name of ["Hoy", "Bandeja", "Asuntos", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
   await expect(nav.getByRole("link", { name: /^Hoy/ })).toHaveAttribute("aria-current", "page");
   for (const gone of ["Organizar módulos", "Abrir aplicaciones"]) await expect(page.getByRole("button", { name: gone, exact: true })).toHaveCount(0);
   await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);
@@ -102,7 +102,7 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
     await page.goto("/admin");
     await expect(page.getByRole("heading", { level: 1, name: "Hoy" })).toBeVisible();
     const tabs = page.getByRole("navigation", { name: "Secciones principales" });
-    for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+    for (const name of ["Hoy", "Asuntos", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
     await fits(page);
     // El sitio usa desplazamiento suave; se mide al llegar al final, no a mitad de la animación.
     await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));

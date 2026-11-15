@@ -32,7 +32,7 @@ export function NextStepPrompt({ person, name, today, onClose }: { person: NextR
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
 
-  const question = person.kind === "operacion" ? `¿Qué sigue en la operación${name ? ` de ${name}` : ""}?` : `¿Qué sigue${name ? ` con ${name}` : ""}?`;
+  const question = person.kind === "operacion" ? `¿Qué sigue en el asunto${name ? ` de ${name}` : ""}?` : `¿Qué sigue${name ? ` con ${name}` : ""}?`;
   return <form onSubmit={save} aria-label={`Siguiente paso${name ? ` con ${name}` : ""}`} className="grid gap-3 rounded-[12px] border border-border bg-card p-3 sm:grid-cols-2">
     <p className="m-0 text-[.9375rem] font-semibold sm:col-span-2">{question}</p>
     <label className="flex flex-col gap-1 text-sm">Siguiente paso<input ref={first} className={inputClass} value={accion} maxLength={160} required placeholder="Llamar para confirmar la visita" onChange={e => setAccion(e.target.value)} /></label>

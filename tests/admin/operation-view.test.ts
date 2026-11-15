@@ -105,7 +105,7 @@ test("pide vincular el inmueble antes de negociar y los requisitos abiertos de e
 test("el cierre pasa paso a paso hasta archivar", () => {
   const closing = (etapa: OperationRecord["etapa"]) => op({ etapa, flujo: flow({}, accepted) });
   expect(advanceTarget(closing("cierre"), today)?.label).toBe("Entrega");
-  expect(advanceTarget(closing("postventa"), today)?.label).toBe("Archivar la operación");
+  expect(advanceTarget(closing("postventa"), today)?.label).toBe("Archivar el asunto");
   expect(advanceTarget(closing("cerrado"), today)).toBeNull();
 });
 

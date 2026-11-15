@@ -60,7 +60,7 @@ it("el perfil junta la guía de su operación y los documentos de la persona y d
   servidor();
   render(<PersonasApp initialId="cliente:cli-1" />);
   expect(await screen.findByRole("heading", { name: "Laura Méndez" })).toBeTruthy();
-  const guia = await screen.findByRole("navigation", { name: "Guía de la operación EXP-000342" });
+  const guia = await screen.findByRole("navigation", { name: "Guía del asunto EXP-000342" });
   expect(within(guia).getAllByRole("link").length).toBeGreaterThan(5);
   expect(guia.querySelector("[aria-current='step']")).toBeTruthy();
   expect(await screen.findByText("Identificación oficial")).toBeTruthy();
@@ -68,7 +68,7 @@ it("el perfil junta la guía de su operación y los documentos de la persona y d
   expect(await screen.findByText("Versión 2")).toBeTruthy();
   fireEvent.click(screen.getByRole("radio", { name: "Hechos aquí" }));
   expect(screen.queryByText("Escritura pública")).toBeNull();
-  expect(screen.getByRole("link", { name: "Abrir la operación" }).getAttribute("href")).toBe(`/admin/operaciones/${OP}`);
+  expect(screen.getByRole("link", { name: "Abrir el asunto" }).getAttribute("href")).toBe(`/admin/operaciones/${OP}`);
 });
 
 it("«Agregar archivo» lo guarda y lo liga a la persona; un prospecto todavía no recibe archivos", async () => {
@@ -103,8 +103,8 @@ it("si fallan solo los documentos de la persona, el perfil se ve y la sección l
 it("sin pendiente anotado, el bloque muestra el paso de la guía con su número y no se contradice", async () => {
   servidor();
   render(<PersonasApp initialId="cliente:cli-1" />);
-  const bloque = (await screen.findByRole("link", { name: "Abrir la operación" })).closest("section")!;
-  const actual = (await screen.findByRole("navigation", { name: /Guía de la operación/ })).querySelector("[aria-current='step']")!.textContent!;
+  const bloque = (await screen.findByRole("link", { name: "Abrir el asunto" })).closest("section")!;
+  const actual = (await screen.findByRole("navigation", { name: /Guía del asunto/ })).querySelector("[aria-current='step']")!.textContent!;
   expect(within(bloque).getByRole("heading", { level: 3 }).textContent).toBe(actual);
   expect(bloque.textContent).toMatch(/Es el paso \d+ de \d+ de la guía de venta/);
 });
@@ -131,7 +131,7 @@ it("LV-10e · la ficha junta sus inmuebles con foto, sus operaciones con su etap
   expect(tarjeta.getAttribute("href")).toBe("/admin/propiedades/casa-chapultepec/editar");
   expect(tarjeta.textContent).toContain("$4,200,000 MXN");
   expect(tarjeta.textContent).toMatch(/Lo vende/);
-  const operaciones = screen.getByRole("region", { name: "Operaciones" });
+  const operaciones = screen.getByRole("region", { name: "Asuntos" });
   const fila = within(operaciones).getByRole("link", { name: /EXP-000342/ });
   expect(fila.getAttribute("href")).toBe(`/admin/operaciones/${OP}`);
   expect(fila.textContent).toMatch(/^\d+ · /);

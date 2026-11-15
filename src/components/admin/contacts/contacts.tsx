@@ -177,24 +177,24 @@ export function ContactsScreen() {
       <div className="hidden lg:block">{searchField}</div>
     </div>
     <div className="mt-5 min-w-0">
-      {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
+      {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su asunto desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : "Aquí están las personas que buscan a Fortius y los clientes, con lo que sigue con cada una. Las que escriben desde el sitio llegan solas."}
       </EmptyBox> : <div className={s.frame}>
         <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} current={previewRow ? keyOf(previewRow) : undefined} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={stageText} selection={selection} keyOf={keyOf} />
         {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} blocking={previewRow.kind === "cliente" ? deleteBlock(openFolios, previewRow.id) : ""} wait={waiting(previewRow)} limitHours={limitHours} me={me} />}
       </div>}
       {rows.length > 0 && <BulkBar selection={selection} targets={ordered.map(r => ({ id: keyOf(r), label: r.name }))} actions={bulkActions} noun={{ one: "persona seleccionada", many: "personas seleccionadas", empty: "Elige personas en la lista" }} />}
-      {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir una operación.</p>}
+      {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir un asunto.</p>}
     </div>
   </GuidedPage>;
 }
 
 /** Por qué no se puede eliminar a un cliente todavía (la misma regla que su ficha y el servidor); vacío si se puede. */
 function deleteBlock(open: Array<{ clienteId?: string; folio: string }> | null | undefined, clientId: string) {
-  if (open === undefined) return "Consultando sus operaciones…";
-  if (open === null) return "No se pudieron revisar sus operaciones";
+  if (open === undefined) return "Consultando sus asuntos…";
+  if (open === null) return "No se pudieron revisar sus asuntos";
   const mine = open.filter(o => o.clienteId === clientId);
-  return mine.length ? `Tiene ${mine.length === 1 ? `la operación ${mine[0].folio}` : `${mine.length} operaciones`} en curso` : "";
+  return mine.length ? `Tiene ${mine.length === 1 ? `el asunto ${mine[0].folio}` : `${mine.length} asuntos`} en curso` : "";
 }
 
 function ContactList({ groups, waiting, limitHours, onPreview, stageOf, conditionOf, selection, keyOf, current }: { current?: string; groups: Array<{ id: string; label: string; rows: ContactRow[] }>; waiting: (row: ContactRow) => Waiting | null; limitHours: number; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string; conditionOf: (row: ContactRow) => string | undefined; selection: Selection; keyOf: (row: ContactRow) => string }) {

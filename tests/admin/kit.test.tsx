@@ -1,6 +1,6 @@
 import * as React from "react";
 import { afterEach, expect, test, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Button, ProgressBar, Segmented, Sheet, StageProgress, StatusChip, Tabs } from "@/components/admin/kit";
 
 afterEach(cleanup);
@@ -40,14 +40,15 @@ test("la barra de progreso no se sale de sus límites", () => {
   expect((screen.getByRole("progressbar").firstChild as HTMLElement).style.width).toBe("100%");
 });
 
-test("las pestañas cambian con clic y con flechas, y solo la activa recibe foco con Tab", () => {
+test("las pestañas cambian con clic y con flechas, y solo la activa recibe foco con Tab", async () => {
   const Demo = () => { const [v, setV] = React.useState<"a" | "b" | "c">("a"); return <Tabs idPrefix="t" label="Secciones" value={v} onChange={setV} items={[{ id: "a", label: "Lo que sigue" }, { id: "b", label: "Documentos", count: 6 }, { id: "c", label: "Ajustes" }]} />; };
   render(<Demo />);
   const [a, b, c] = screen.getAllByRole("tab");
   expect(a.getAttribute("aria-selected")).toBe("true"); expect(b.tabIndex).toBe(-1);
   fireEvent.click(b); expect(b.getAttribute("aria-selected")).toBe("true");
-  fireEvent.keyDown(b, { key: "ArrowRight" }); expect(c.getAttribute("aria-selected")).toBe("true");
-  fireEvent.keyDown(c, { key: "ArrowRight" }); expect(a.getAttribute("aria-selected")).toBe("true");
+  // Radix (DEC-52) mueve el foco con las flechas en el siguiente ciclo y la pestaña con foco queda elegida.
+  fireEvent.keyDown(b, { key: "ArrowRight" }); await waitFor(() => expect(c.getAttribute("aria-selected")).toBe("true"));
+  fireEvent.keyDown(c, { key: "ArrowRight" }); await waitFor(() => expect(a.getAttribute("aria-selected")).toBe("true"));
   expect(b.textContent).toBe("Documentos6");
 });
 

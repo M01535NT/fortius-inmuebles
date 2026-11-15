@@ -288,14 +288,14 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   if (phase === "levantamiento") return { label: label("documentos") };
   if (phase === "dictamen") return { label: label("verificacion") };
   if (phase === "verificacion") return { label: label("contrato") };
-  if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar la operación" : stageLabel(next, flow.ruta).replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
+  if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar el asunto" : stageLabel(next, flow.ruta).replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
   const following = process[process.findIndex(p => p.key === phase) + 1];
   return { target: next, label: following?.label ?? stageLabel(next, flow.ruta) };
 }
 
 export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "encargo" | "tarea" | "operacion" | "firma" | "cierre"; /** El documento que abre el pendiente (SIM-05: sin su número en el texto). */ formato?: "02" | "04" };
 const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
-  "Reactivar la operación antes de avanzar.": { text: "Reactivar la operación", why: "está en pausa, en regularización o descartada", place: "ajustes" },
+  "Reactivar la operación antes de avanzar.": { text: "Reactivar el asunto", why: "está en pausa, en regularización o descartado", place: "ajustes" },
   "Resolver las observaciones que bloquean esta actividad.": { text: "Resolver los problemas marcados", why: "un requisito dice «Hay un problema»", place: "requisito" },
   "Revisar la resolución y reactivar el encargo antes de avanzar.": { text: "Revisar la decisión del encargo", why: "está en pausa, rechazada, referida o cancelada", place: "encargo" },
   "La aceptación condicionada no autoriza esta actividad.": { text: "Revisar las condiciones del encargo", why: "la decisión con condiciones no permite este paso", place: "encargo" },
@@ -306,8 +306,8 @@ const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
   "El director debe revisar la firma del contrato.": { text: "Revisión de la firma por el director", why: "sin ella no se publica", place: "firma" },
   "El contrato de intermediación terminó: registra uno nuevo para seguir.": { text: "Registrar un contrato nuevo", why: "el anterior terminó", place: "firma" },
   "Registrar quién captó y quién vendió antes de archivar.": { text: "Registrar quién captó y quién vendió", why: "para el reparto de la comisión", place: "cierre" },
-  "Captura los datos del inmueble.": { text: "Vincular el inmueble", why: "se hace en los datos de la operación", place: "ajustes" },
-  "Identificar la contraparte interna o externa.": { text: "Identificar al comprador o contraparte", why: "se hace en los datos de la operación", place: "ajustes" },
+  "Captura los datos del inmueble.": { text: "Vincular el inmueble", why: "se hace en los datos del asunto", place: "ajustes" },
+  "Identificar la contraparte interna o externa.": { text: "Identificar al comprador o contraparte", why: "se hace en los datos del asunto", place: "ajustes" },
   "Resolver o descartar las tareas pendientes antes de archivar.": { text: "Cerrar las tareas pendientes", why: "antes de archivar", place: "tarea" },
   "Agendar una próxima tarea con fecha y responsable.": { text: "Agendar la próxima tarea", why: "con fecha y responsable", place: "tarea" },
 };

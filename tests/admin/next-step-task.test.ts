@@ -52,5 +52,5 @@ test("en una operación, completar su última tarea abierta pide la siguiente; l
   expect(askNextAfter(done, [done])).toEqual({ kind: "operacion", id: op, asesorId: "a1", clienteId: "c1", propiedadSlug: "casa" });
   expect(askNextAfter(done, [done, task({ id: "o2", leadId: undefined, expedienteId: op })])).toBeNull();
   expect(operationNextStep({ kind: "operacion", id: op, clienteId: "c1" }, { accion: " Firmar la intermediación ", fecha: "2026-11-16", id: "n" }))
-    .toMatchObject({ id: "n", titulo: "Firmar la intermediación", vence: "2026-11-16", expedienteId: op, clienteId: "c1", estado: "pendiente", descripcion: "Próxima acción de la operación" });
+    .toMatchObject({ id: "n", titulo: "Firmar la intermediación", vence: "2026-11-16", expedienteId: op, clienteId: "c1", estado: "pendiente", descripcion: "Próxima acción del asunto" });
 });

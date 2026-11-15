@@ -51,7 +51,7 @@ export function AgendaCalendar() {
     let active = true;
     fetch("/api/admin/expedientes", { credentials: "same-origin", cache: "no-store" })
       .then(response => {
-        if (!response.ok) throw new Error("No se pudieron consultar las operaciones.");
+        if (!response.ok) throw new Error("No se pudieron consultar los asuntos.");
         return response.json();
       })
       .then(result => { if (active) {
@@ -110,9 +110,9 @@ export function AgendaCalendar() {
   const requestedExpedienteUnresolved = !!requestedExpedienteId && !selectedExpediente;
   const requestedExpedienteUnavailable = requestedExpedienteUnresolved && expedientesStatus === "ready";
   const expedientesError = expedientesStatus === "error"
-    ? "No se pudieron consultar las operaciones. Reintenta la consulta."
+    ? "No se pudieron consultar los asuntos. Reintenta la consulta."
     : requestedExpedienteUnavailable
-      ? "Esa operación no está disponible. Reintenta o quita el vínculo."
+      ? "Ese asunto no está disponible. Reintenta o quita el vínculo."
       : null;
   // Sin asesor en la dirección ni elegido, el evento queda a nombre de quien agenda.
   const baseContext = context.asesorId || !me ? context : { ...context, asesorId: me };
@@ -178,7 +178,7 @@ export function AgendaCalendar() {
 
   async function agendar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (requestedExpedienteUnresolved) throw new Error("Confirma la operación solicitada o quita ese vínculo antes de agendar.");
+    if (requestedExpedienteUnresolved) throw new Error("Confirma el asunto solicitado o quita ese vínculo antes de agendar.");
     const form = e.currentTarget;
     const data = new FormData(form);
     const expediente = expedientes.find(x => x.id === data.get("expedienteId"));
@@ -291,14 +291,14 @@ export function AgendaCalendar() {
               hint={formReferences.leadId || formReferences.clienteId || formReferences.propiedadSlug || selectedExpedienteId || requestedExpedienteUnresolved ? undefined : "Opcional."} />
             {["leadId", "clienteId", "propiedadSlug"].map(name => <input key={name} type="hidden" name={name} value={formReferences[name as "leadId"] ?? ""} />)}
             <input type="hidden" name="expedienteId" value={selectedExpedienteId} />
-            {expedientesStatus === "loading" && <p role="status" className="mt-2 text-xs text-muted-foreground">{requestedExpedienteUnresolved ? "Consultando la operación solicitada. Puedes seguir capturando mientras se confirma." : "Consultando operaciones…"}</p>}
+            {expedientesStatus === "loading" && <p role="status" className="mt-2 text-xs text-muted-foreground">{requestedExpedienteUnresolved ? "Consultando el asunto solicitado. Puedes seguir capturando mientras se confirma." : "Consultando asuntos…"}</p>}
             <div className="mt-2"><ErrorNotice error={expedientesError} /></div>
             <div className="mt-2 flex flex-wrap gap-2">
-              {(expedientesStatus === "error" || requestedExpedienteUnavailable) && <Button onClick={retryExpedientes}>Reintentar consulta de operaciones</Button>}
-              {requestedExpedienteUnresolved && <Button onClick={withdrawRequestedExpediente}>Quitar operación solicitada</Button>}
+              {(expedientesStatus === "error" || requestedExpedienteUnavailable) && <Button onClick={retryExpedientes}>Reintentar consulta de asuntos</Button>}
+              {requestedExpedienteUnresolved && <Button onClick={withdrawRequestedExpediente}>Quitar asunto solicitado</Button>}
             </div>
           </section>
-          <Field label="Asesor (opcional)" htmlFor="cal-asesor" hint={selectedExpedienteId ? "Lo pone la operación; si lo cambias, la operación se desvincula." : formReferences.asesorId && formReferences.asesorId === me ? "Tú, salvo que elijas a otra persona." : undefined}><select value={formReferences.asesorId ?? ""} onChange={updateReference} id="cal-asesor" name="asesorId" className={selectClass}><option value="">Ninguno</option>{asesores.filter(a => a.activo || a.id === formReferences.asesorId).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
+          <Field label="Asesor (opcional)" htmlFor="cal-asesor" hint={selectedExpedienteId ? "Lo pone el asunto; si lo cambias, el asunto se desvincula." : formReferences.asesorId && formReferences.asesorId === me ? "Tú, salvo que elijas a otra persona." : undefined}><select value={formReferences.asesorId ?? ""} onChange={updateReference} id="cal-asesor" name="asesorId" className={selectClass}><option value="">Ninguno</option>{asesores.filter(a => a.activo || a.id === formReferences.asesorId).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
           <Button type="submit" variant="primary" disabled={requestedExpedienteUnresolved} className="w-full">Guardar en la agenda</Button>
         </AsyncForm>
       </Sheet>
@@ -317,7 +317,7 @@ function EventContext({ references, context }: { references: References; context
     {lead && <Link href={`/admin/leads/${encodeURIComponent(lead.id)}`}>{lead.nombre}</Link>}
     {cliente && <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`}>Cliente: {cliente.nombre}</Link>}
     {propiedad && <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`}>{propiedad.titulo}</Link>}
-    {expediente && <Link href={`/admin/operaciones/${encodeURIComponent(expediente.id)}`}>Operación: {expediente.folio}</Link>}
+    {expediente && <Link href={`/admin/operaciones/${encodeURIComponent(expediente.id)}`}>Asunto: {expediente.folio}</Link>}
     {asesor && <span>Asesor: {asesor.nombre}</span>}
   </span>;
 }

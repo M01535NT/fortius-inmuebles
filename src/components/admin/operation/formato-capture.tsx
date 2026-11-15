@@ -282,7 +282,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
             </div>
           </div>
 
-          <aside aria-label="Datos de la operación" className="hidden w-72 shrink-0 flex-col gap-4 overflow-auto border-l border-border px-5 py-6 xl:flex">
+          <aside aria-label="Datos del asunto" className="hidden w-72 shrink-0 flex-col gap-4 overflow-auto border-l border-border px-5 py-6 xl:flex">
             <dl className="flex flex-col gap-3 text-sm">
               {context.cliente && <div><dt className={s.asideLabel}>Cliente</dt><dd className="m-0">{context.cliente}</dd></div>}
               <div><dt className={s.asideLabel}>Inmueble</dt><dd className="m-0">{context.inmueble ?? "Sin inmueble vinculado"}</dd></div>

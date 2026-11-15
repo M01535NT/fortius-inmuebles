@@ -440,7 +440,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | FLX-05 | 5 | pendiente | FLX-04 |
 | FLX-07 | 5 | pendiente | FLX-04, IA-01; con clientes reales, PRV-01 |
 | FLX-06 | 6 | pendiente | FLX-05, FLX-07 |
-| NOM-01 | 4 | pendiente | LV-10 |
+| NOM-01 | 4 | en_curso | en `feat/integracion` (14/11/2026): menú, «+ Nuevo», Ctrl K (también encuentra «operaciones»), Hoy, tablero, el asunto por dentro, Eliminados, agenda, tareas, Personas, contactos, entrevista, Más, ayuda y los dos manuales dicen «asunto»; rutas, API y folios sin cambio; 669 pruebas del panel y 1253 del servidor. Quedan con «operación» lo que significa venta o renta, lo fiscal o jurídico, lo que se imprime en documentos y los mensajes que manda el servidor (`src/lib/backend`, fuera del alcance de pantalla). Falta revisarlo en computadora y celular. |
 | TRA-02 | 5 | pendiente | TRA-01; tipos por confirmar con el titular |
 | SOP-01 | 5 | parcial | OBS-01; guía por pantalla y `/admin/ayuda`; falta «Reportar un problema»; revisado contra el código el 14/11/2026 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |

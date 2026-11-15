@@ -37,9 +37,9 @@ export function DocumentsTab({ op, docs }: { op: OperationRecord; docs: Document
     try { await descargarExpediente(op.id, op.folio, formato); } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo reunir el expediente."); } finally { setBusy(null); }
   }
   return <div className="flex min-w-0 flex-col gap-5">
-    <Card className="flex flex-col gap-4 p-5 sm:p-6" aria-label="Documentos de la operación">
+    <Card className="flex flex-col gap-4 p-5 sm:p-6" aria-label="Documentos del asunto">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1"><h2 className="m-0 text-lg font-bold">Expediente</h2><p className="text-sm text-muted-foreground">Los formatos de la operación. Se inician desde su etapa; aquí se abren, se descargan en PDF o en copia editable.</p></div>
+        <div className="flex flex-col gap-1"><h2 className="m-0 text-lg font-bold">Expediente</h2><p className="text-sm text-muted-foreground">Los formatos del asunto. Se inician desde su etapa; aquí se abren, se descargan en PDF o en copia editable.</p></div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Descargar el expediente completo">
           <Button variant="ghost" disabled={!emitidos || !!busy} aria-busy={busy === "pdf"} onClick={() => void bajar("pdf")}><FileDown size={16} aria-hidden="true" />{busy === "pdf" ? "Reuniendo…" : "Expediente en PDF"}</Button>
           <Button variant="ghost" disabled={!emitidos || !!busy} aria-busy={busy === "zip"} onClick={() => void bajar("zip")}><FileDown size={16} aria-hidden="true" />{busy === "zip" ? "Reuniendo…" : "PDF originales en ZIP"}</Button>

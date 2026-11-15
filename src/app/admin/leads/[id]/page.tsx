@@ -82,7 +82,7 @@ function LeadDetail({ id }: { id: string }) {
   const duplicates = duplicateContacts(lead, leads);
   const step = lead.clienteId ? null : nextStep(lead, "lead", tareas, eventos, today);
   // COR-18: sus ofertas por escrito, con el inmueble de cada operación, y cómo paga.
-  const offers = (lead.ofertas ?? []).map(o => { const place = propiedades.find(p => p.slug === o.propiedadSlug)?.titulo ?? "Operación del propietario";
+  const offers = (lead.ofertas ?? []).map(o => { const place = propiedades.find(p => p.slug === o.propiedadSlug)?.titulo ?? "Asunto del propietario";
     return { ...o, label: place, href: `/admin/operaciones/${encodeURIComponent(o.expedienteId)}` }; }).sort((a, b) => b.fecha.localeCompare(a.fecha));
   const credit = creditSummary(lead.perfil);
   const { upcoming, past } = personTimeline({
@@ -131,7 +131,7 @@ function LeadDetail({ id }: { id: string }) {
   const menu: MenuItem[] = lead.clienteId ? hipoteca : [...hipoteca,
     { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: removeLead },
   ];
-  const prepare = busy ? <Button variant="primary" disabled>Abrir operación</Button> : <ButtonLink variant="primary" href={operationUrl}>Abrir operación<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
+  const prepare = busy ? <Button variant="primary" disabled>Abrir asunto</Button> : <ButtonLink variant="primary" href={operationUrl}>Abrir asunto<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
   const draft = interview.current?.estado === "borrador" ? interview.current : null;
 
   return <Surface className={s.page}>
@@ -139,7 +139,7 @@ function LeadDetail({ id }: { id: string }) {
       stage={condition && condition !== "prospecto" ? <Pill size="sm" tone={PERSON_STATUS_TONE[condition]}>{PERSON_STATUS_LABEL[condition]}</Pill> : <Pill size="sm" tone={stage === "descartado" || stage === "cerrado" ? "muted" : stage === "nuevo" ? "brand" : "info"}>{LEAD_STAGE_LABELS[stage]}</Pill>}
       sub={<span>Prospecto · llegó el {humanDay(lead.creadoEl)}</span>} />
 
-    {busy && <p role="status" className={s.muted}>Guarda o cancela los cambios pendientes antes de abrir su operación.</p>}
+    {busy && <p role="status" className={s.muted}>Guarda o cancela los cambios pendientes antes de abrir su asunto.</p>}
     {lead.clienteId && <p className={s.muted}>Ya es cliente. Esta ficha conserva su historial y su agenda como prospecto.</p>}
     {/* Si este es el que sobra, se elimina aquí mismo (titular, 14/11/2026); la fusión asistida es RP-40. */}
     {duplicates.length > 0 && <Notice title="Puede estar repetido" actions={lead.clienteId ? undefined : <AsyncButton className={buttonClass({ variant: "danger" })} onClick={removeLead}><Trash2 size={16} aria-hidden="true" />Eliminar este registro</AsyncButton>}>{lead.clienteId ? "Este ya es cliente; si sobra otro, elimínalo desde su ficha: " : "Revisa antes de crear otro registro: "}{duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/leads/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
@@ -206,7 +206,7 @@ function LeadDetail({ id }: { id: string }) {
             <div><dt>Forma de pago</dt><dd>{credit ?? "Sin registrar. Anótalo en su perfil."}</dd></div>
           </dl>
           {offers.length ? <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">{offers.map(o => <li key={o.documentoId}><Link className="font-semibold underline underline-offset-4" href={o.href}>{o.label}</Link> · oferta por escrito del {humanDay(o.fecha)}</li>)}</ul>
-            : <p className={s.muted}>Sin ofertas por escrito. Cuando haga una, se liga desde la operación del propietario.</p>}
+            : <p className={s.muted}>Sin ofertas por escrito. Cuando haga una, se liga desde el asunto del propietario.</p>}
         </PersonCard>}
 
         <PersonCard id="ficha-asignacion" title="Etapa y responsable">

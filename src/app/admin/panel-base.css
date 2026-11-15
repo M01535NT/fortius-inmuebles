@@ -156,6 +156,10 @@
 @keyframes menuIn { from { opacity: 0; transform: scale(.96); } }
 @keyframes sheetInRight { from { transform: translateX(100%); } }
 @keyframes sheetInUp { from { transform: translateY(100%); } }
+@keyframes collapsibleDown { from { height: 0; opacity: 0; } to { height: var(--radix-collapsible-content-height); } }
+@keyframes collapsibleUp { from { height: var(--radix-collapsible-content-height); } to { height: 0; opacity: 0; } }
+@keyframes accordionDown { from { height: 0; opacity: 0; } to { height: var(--radix-accordion-content-height); } }
+@keyframes accordionUp { from { height: var(--radix-accordion-content-height); } to { height: 0; opacity: 0; } }
 
 /* Reglas base del panel (antes en panel.module.css, retirado el 14/11/2026 en la limpieza previa a LV-10). */
 .admin-root {

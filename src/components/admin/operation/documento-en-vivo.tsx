@@ -340,7 +340,7 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
         : <div className="min-h-0 flex-1 overflow-auto bg-[color:var(--muted)] p-2"><img src={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} alt={archivoAbierto.titulo} className="mx-auto h-auto max-w-full" /></div>
         : <div className="min-h-0 flex-1 overflow-auto px-3 py-3">
           {!archivos ? <p role="status" className="px-2 text-sm text-muted-foreground">Consultando…</p>
-            : !archivos.length ? <p className="px-2 text-sm text-muted-foreground">Este expediente todavía no tiene documentos del cliente. Se suben en la operación, en «Documentos del cliente».</p>
+            : !archivos.length ? <p className="px-2 text-sm text-muted-foreground">Este expediente todavía no tiene documentos del cliente. Se suben en el asunto, en «Documentos del cliente».</p>
             : <ul className="flex flex-col gap-0.5">{archivos.map(archivo => <li key={archivo.id}><button type="button" className={s.missingItem} onClick={() => setArchivoAbierto(archivo)}><span className="flex-1 [overflow-wrap:anywhere]">{archivo.titulo}</span><span className="text-xs text-muted-foreground">{archivo.mime === "application/pdf" ? "PDF" : "Imagen"}</span></button></li>)}</ul>}
         </div>}
     </section>}
