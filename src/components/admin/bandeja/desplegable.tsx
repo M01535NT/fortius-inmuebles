@@ -4,7 +4,8 @@ import { Check, ChevronDown } from "@/components/admin/icons";
 import s from "./bandeja.module.css";
 
 /*
-  FLX-01 · Desplegable del panel flexible (el titular pidió controles de app).
+  FLX-01 · Desplegable del panel flexible (el titular pidió controles de app). La Bandeja ya no lo usa
+  (LV-10d: Combobox, Select y ActionsMenu de DEC-52); queda mientras Personas lo reemplace.
   Se cierran con Escape, al pulsar fuera o al mover el foco fuera; las flechas recorren las opciones
   y al cerrar el foco vuelve al botón. Sin dependencias nuevas.
 */

@@ -113,22 +113,33 @@
 .paper img { width: 100%; height: auto; max-height: 78dvh; object-fit: contain; display: block; }
 @media (max-width: 900px) { .paper img { max-height: 56dvh; } }
 
-.mailStep { padding: 16px; gap: 12px; }
-.mailStep h3 { font-size: 1.15rem; line-height: 1.2; }
-.mailStep p { font-size: var(--admin-text-detalle); line-height: 1.45; }
-.mailStep .stepFoot { display: grid; gap: 8px; }
-.picks, .destStack { display: grid; gap: 8px; }
-.step .pick { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 6px 10px; border: 1px solid var(--on-navy-edge); border-radius: 10px; background: rgba(248, 248, 255, .06); color: var(--on-navy); font: inherit; text-align: left; cursor: pointer; }
-.step .pick:hover:not(:disabled) { background: rgba(248, 248, 255, .12); }
-.step .pick[aria-pressed="true"] { background: rgba(248, 248, 255, .16); color: var(--on-navy); border-color: var(--on-navy); box-shadow: inset 0 0 0 1px var(--on-navy); }
-.step .pick:focus-visible, .link:focus-visible { outline: 3px solid var(--on-navy-focus); outline-offset: 2px; }
-.step .pick:disabled { opacity: .55; cursor: not-allowed; }
-.pickIcon { flex: none; width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; background: rgba(248, 248, 255, .1); }
-.pickText { display: grid; gap: 2px; min-width: 0; }
+/* «¿Dónde se guarda?» como el boceto: tarjeta clara, cada destino con su foto o su cara y la acción principal en borgoña (RP-104). */
+.donde { display: grid; gap: 12px; }
+.donde h3 { margin: 0; font-size: 1.15rem; font-weight: 620; font-stretch: 92%; line-height: 1.2; text-wrap: balance; }
+.donde p { margin: 4px 0 0; font-size: var(--admin-text-detalle); line-height: 1.45; color: var(--muted-foreground); }
+.destStack { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--card-edge); border-radius: var(--radius-card); background: var(--canvas); }
+.picks { display: grid; gap: 8px; }
+.pick { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 6px 10px; border: 1px solid var(--control-edge); border-radius: 10px; background: var(--card); color: var(--foreground); cursor: pointer; }
+.pick:hover { border-color: var(--foreground); }
+.pick:has([data-state="checked"]) { border-color: var(--brand-navy); box-shadow: inset 0 0 0 1px var(--brand-navy); }
+:global(.dark) .pick:has([data-state="checked"]) { border-color: var(--on-navy-focus); box-shadow: inset 0 0 0 1px var(--on-navy-focus); }
+.pick:has([data-disabled]) { opacity: .6; cursor: not-allowed; }
+.pickText { flex: 1; display: grid; gap: 2px; min-width: 0; }
 .pickText b { font-size: var(--admin-text-interfaz); font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
-.pickText small { font-size: var(--admin-text-pastilla); color: var(--on-navy-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.link { justify-self: start; min-height: 44px; padding: 0 2px; border: 0; background: none; color: var(--on-navy); font: inherit; font-size: var(--admin-text-detalle); font-weight: 540; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.kbdOnDark { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 5px; border: 1px solid color-mix(in srgb, var(--brand-navy) 30%, transparent); font-size: var(--admin-text-minimo); font-weight: 600; }
-@media (hover: none) { .kbdOnDark { display: none; } }
-@media (prefers-reduced-motion: no-preference) { .pick { transition: transform 160ms var(--ease-out), background-color 150ms, border-color 150ms; } .pick:active:not(:disabled) { transform: scale(.97); } }
+.pickText small { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fieldLabel { min-height: 0; font-size: var(--admin-text-detalle); font-weight: 540; color: var(--muted-foreground); }
+.otro { justify-self: start; }
+.donde .stepFoot { display: grid; gap: 8px; }
+.kbdOn { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; margin-left: 4px; border-radius: 5px; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); font-size: var(--admin-text-minimo); font-weight: 600; }
+@media (hover: none) { .kbdOn { display: none; } }
+.ftype img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; }
+.ftype:has(img) { overflow: hidden; }
+
+/* Vista grande: el documento ocupa casi toda la pantalla, como hoja. */
+.grande { width: min(64rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); gap: 14px; padding: 18px 18px 22px; }
+.grandeHead { display: grid; gap: 2px; padding-right: 52px; }
+.grande .paper img, .paper[data-full] img { max-height: none; }
 .undo { grid-column: 1 / -1; padding: 8px 16px; border-top: 1px solid var(--border); background: var(--card); }
+/* La etiqueta entera es el objetivo táctil (44 px o más); el círculo se queda de 20 px. */
+.pick .pickRadio { width: 20px; height: 20px; min-width: 0; min-height: 0; padding: 0; flex: none; }
+@media (max-width: 600px) { .viewbar .title h2 { font-size: 1.3rem; } .viewbar .actions { gap: 0; } }
