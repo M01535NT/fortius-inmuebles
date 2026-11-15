@@ -10,7 +10,7 @@ import type { Archivo, Evento } from "@/lib/domain/records";
 import type { Task } from "@/lib/tasks";
 import { ACREEDORES, PASO_CLAVES, conNotario, TOTAL_PASOS, documentoDelPaso, faltanParaCerrar, nuevoTramite, pasosDe, textoDelAvance, type Acreedor, type Tramite, type TramiteNota } from "@/lib/tramites";
 import { cn } from "@/lib/utils";
-import { Popover as PopoverPrimitive } from "radix-ui";
+import { Popover as PopoverPrimitive, ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Label, Switch } from "@/components/ui/controls";
@@ -195,12 +195,14 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
         <Button variant="primary" onClick={() => setReport(true)}><MessageCircle size={16} aria-hidden />Enviar avance</Button>
       </div>
     </div>
-    <div className={s.route} role="tablist" aria-label="Pasos del trámite">
-      {pasos.map((p, i) => <button key={p.clave} type="button" role="tab" className={s.rstep} aria-selected={shown === i && !terminado}
-        data-s={i < t.pasoActual ? "d" : i === t.pasoActual ? "n" : ""} onClick={() => setVer(i === actual ? null : i)}>
+    {/* Los pasos como grupo de botones de Radix (DEC-52): flechas para moverse y el elegido marcado. */}
+    <ToggleGroupPrimitive.Root type="single" loop className={s.route} aria-label="Pasos del trámite"
+      value={terminado ? "" : String(shown)} onValueChange={v => { if (v !== "") { const i = Number(v); setVer(i === actual ? null : i); } }}>
+      {pasos.map((p, i) => <ToggleGroupPrimitive.Item key={p.clave} value={String(i)} className={s.rstep} aria-label={`Paso ${i + 1}: ${p.nombre}`}
+        data-s={i < t.pasoActual ? "d" : i === t.pasoActual ? "n" : ""}>
         <span className={s.rnum}>{i + 1}</span><span className={s.rbar} /><span className={s.rlab}>{p.nombre}</span>
-      </button>)}
-    </div>
+      </ToggleGroupPrimitive.Item>)}
+    </ToggleGroupPrimitive.Root>
     <div className={s.body}>
       <div className={s.center} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); void upload(e.dataTransfer.files); }}>
         {error && <Notice title="No se guardó">{error}</Notice>}
