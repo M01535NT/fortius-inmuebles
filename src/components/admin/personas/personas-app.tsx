@@ -8,6 +8,7 @@ import { DateField } from "@/components/ui/date-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAviso } from "./aviso";
 import { NuevoPerfil } from "./nuevo-perfil";
+import { AgregarInmueble } from "./agregar-inmueble";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { confirmDelete } from "@/components/admin/workspace/confirm";
@@ -18,7 +19,7 @@ import { clientRows, leadRows, matches, type ContactRow } from "@/lib/admin/cont
 import { operationalDate } from "@/lib/admin/operational-date";
 import { leadStage, LEAD_STAGE_LABELS } from "@/lib/admin/person-view";
 import { PERSON_STATUS_LABEL } from "@/lib/admin/person-status";
-import { CANALES_PREFERIDOS, GRUPOS, canalEnFrase, canalPreferido, grupoDe, sucesos, type CanalPreferido, type Suceso } from "@/lib/admin/personas-vista";
+import { CANALES_PREFERIDOS, GRUPOS, canalEnFrase, canalPreferido, conInteres, grupoDe, interesDe, sinInteres, sucesos, type CanalPreferido, type Suceso } from "@/lib/admin/personas-vista";
 import { db, errorMessage, fetchJson, loadAllDossiers, removeById, upsert, useCollection, type AdminProperty, type Cliente, type Evento, type Lead, type Nota } from "@/lib/admin/store";
 import { stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { formatoById } from "@/lib/formatos/catalog";
@@ -221,11 +222,22 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
   const opHref = op ? `/admin/operaciones/${op.id}` : "";
   const ref = `${row.kind === "cliente" ? "clienteId" : "leadId"}=${encodeURIComponent(row.id)}`;
 
-  // Sus inmuebles: los de sus operaciones (los suyos o los que busca) y aquel por el que preguntó.
+  // Sus inmuebles: los de sus asuntos (los suyos o los que busca), los que el asesor agregó como de su interés y aquel por el que preguntó.
   const papeles = new Map<string, string>();
+  const interes = interesDe(persona);
   if (persona?.propiedadSlug) papeles.set(persona.propiedadSlug, "Preguntó por él");
   for (const o of operaciones) if (o.propiedad_slug) papeles.set(o.propiedad_slug, isOwnerRoute(o.flujo?.ruta) ? (o.operacion === "renta" ? "Lo ofrece en renta" : "Lo vende") : "Le interesa");
-  const inmuebles = [...papeles].flatMap(([slug, papel]) => { const p = propiedades.find(x => x.slug === slug); return p ? [{ p, papel }] : []; });
+  for (const slug of interes) if (!papeles.has(slug)) papeles.set(slug, "Le interesa");
+  const inmuebles = [...papeles].flatMap(([slug, papel]) => { const p = propiedades.find(x => x.slug === slug); return p ? [{ p, papel, quitable: interes.includes(slug) && papel === "Le interesa" }] : []; });
+  const [agregando, setAgregando] = React.useState(false);
+  async function agregarInteres(p: AdminProperty) {
+    setAgregando(true); setError(null);
+    try { await guardar(actual => ({ inmueblesInteres: conInteres(actual, p.slug) }) as Partial<Persona>, `${p.titulo} quedó en sus inmuebles.`); }
+    catch (e) { setError(errorMessage(e)); } finally { setAgregando(false); }
+  }
+  function quitarInteres(p: AdminProperty) {
+    void guardar(actual => ({ inmueblesInteres: sinInteres(actual, p.slug) }) as Partial<Persona>, `${p.titulo} salió de sus inmuebles.`).catch(e => setError(errorMessage(e)));
+  }
   const notasContacto = row.kind === "lead" ? (persona as Lead | undefined)?.notas ?? [] : (persona as Cliente | undefined)?.leadOriginal?.notas ?? [];
   const historia = sucesos({ kind: row.kind, id: row.id, operaciones: operaciones.map(o => o.id) }, { notas, eventos, tareas, notasContacto }, today);
   const cliente = row.kind === "cliente" ? persona as Cliente | undefined : undefined;
@@ -304,15 +316,20 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
           </div>
         </section>
 
-        {(inmuebles.length > 0 || esCliente) && <section aria-labelledby="persona-inmuebles">
-          <div className={s.sechead}><h3 id="persona-inmuebles">Sus inmuebles</h3><Pill size="sm" tone="muted">{inmuebles.length}</Pill></div>
+        <section aria-labelledby="persona-inmuebles">
+          <div className={s.sechead}><h3 id="persona-inmuebles">Sus inmuebles</h3><Pill size="sm" tone="muted">{inmuebles.length}</Pill>
+            <span className={s.secAction}><AgregarInmueble propiedades={propiedades} ligados={inmuebles.map(x => x.p.slug)} onElegir={p => { void agregarInteres(p); }} disabled={!persona || agregando} /></span>
+          </div>
           {inmuebles.length ? <div className={s.pinm}>
-            {inmuebles.map(({ p, papel }) => { const estado = propertyState(p); return <Link key={p.slug} href={`/admin/propiedades/${encodeURIComponent(p.slug)}/editar`} className={s.pcard}>
-              <Thumb src={p.galeria[0]?.src} size={96} className={s.pthumb} />
-              <span className={s.ptext}><b>{p.titulo}</b><span className={s.price}>{formatPrecio(p.precio)}</span><span className={s.pmeta}><Pill size="sm" tone={estado.strong ? "warn" : "muted"}>{estado.label}</Pill><span>{papel}</span></span></span>
-            </Link>; })}
-          </div> : <p className={b.empty}>Todavía no hay inmuebles ligados a esta persona.</p>}
-        </section>}
+            {inmuebles.map(({ p, papel, quitable }) => { const estado = propertyState(p); return <div key={p.slug} className={s.pwrap}>
+              <Link href={`/admin/propiedades/${encodeURIComponent(p.slug)}/editar`} className={s.pcard}>
+                <Thumb src={p.galeria[0]?.src} size={96} className={s.pthumb} />
+                <span className={s.ptext}><b>{p.titulo}</b><span className={s.price}>{formatPrecio(p.precio)}</span><span className={s.pmeta}><Pill size="sm" tone={estado.strong ? "warn" : "muted"}>{estado.label}</Pill><span>{papel}</span></span></span>
+              </Link>
+              {quitable && <span className={s.pmenu}><ActionsMenu label={`Acciones de ${p.titulo}`} iconSize={16} actions={[{ label: "Quitar de sus inmuebles", icon: <Trash2 size={18} aria-hidden />, danger: true, onSelect: () => quitarInteres(p) }]} /></span>}
+            </div>; })}
+          </div> : <p className={b.empty}>Todavía no hay inmuebles ligados. Con «Agregar inmueble» anotas los que le interesan.</p>}
+        </section>
 
         {operaciones.length > 0 && <section aria-labelledby="persona-operaciones">
           <div className={s.sechead}><h3 id="persona-operaciones">Asuntos</h3><Pill size="sm" tone="muted">{operaciones.length}</Pill>

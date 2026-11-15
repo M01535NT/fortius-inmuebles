@@ -157,3 +157,21 @@ export function prospectoNuevo(r: Respuestas, ids: { id: string; nota: string },
     notas: [{ id: ids.nota, fecha: at, contacto: "llamada" as const, texto: `Primer contacto: ${motivo.toLowerCase()}${r.canal ? `. Prefiere ${canalEnFrase(r.canal)}` : ""}. Quedamos en: ${r.acuerdo.trim()}.` }],
   };
 }
+
+/*
+  Inmuebles de su interés: la lista que el asesor arma en la ficha de la persona con «Agregar
+  inmueble». Se guarda en la propia persona (prospecto o cliente) como `inmueblesInteres`, una
+  lista de claves de inmueble, sin repetir y con un tope de 50.
+*/
+export const TOPE_INTERES = 50;
+export function interesDe(persona?: object | null): string[] {
+  const lista = (persona as { inmueblesInteres?: unknown } | null | undefined)?.inmueblesInteres;
+  return Array.isArray(lista) ? [...new Set(lista.filter((x): x is string => typeof x === "string" && !!x))] : [];
+}
+export function conInteres(persona: object | null | undefined, slug: string): string[] {
+  const actual = interesDe(persona).filter(x => x !== slug);
+  return [...actual, slug].slice(-TOPE_INTERES);
+}
+export function sinInteres(persona: object | null | undefined, slug: string): string[] {
+  return interesDe(persona).filter(x => x !== slug);
+}

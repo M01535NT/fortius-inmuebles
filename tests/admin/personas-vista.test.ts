@@ -41,3 +41,14 @@ describe("Nuevo perfil (FLX-01)", () => {
     expect(canalPreferido({ canalPreferido: "fax" })).toBeUndefined();
   });
 });
+
+describe("Inmuebles de su interés", () => {
+  it("lee la lista sin repetir ni basura, agrega al final sin duplicar y quita", async () => {
+    const { interesDe, conInteres, sinInteres, TOPE_INTERES } = await import("@/lib/admin/personas-vista");
+    expect(interesDe({ inmueblesInteres: ["a", "a", "", 3, "b"] })).toEqual(["a", "b"]);
+    expect(interesDe(undefined)).toEqual([]);
+    expect(conInteres({ inmueblesInteres: ["a", "b"] }, "a")).toEqual(["b", "a"]);
+    expect(conInteres({ inmueblesInteres: Array.from({ length: TOPE_INTERES }, (_, i) => `x${i}`) }, "nuevo")).toHaveLength(TOPE_INTERES);
+    expect(sinInteres({ inmueblesInteres: ["a", "b"] }, "a")).toEqual(["b"]);
+  });
+});

@@ -11,7 +11,7 @@ vi.mock("@/lib/admin/store", async importOriginal => {
   const data = new Map<unknown, unknown[]>([
     [actual.db.clientes, [
       { id: "cli-1", nombre: "Laura Méndez", telefono: "6645550142", tipo: "propietario", asesorId: "a1", notas: "", creadoEl: "2026-11-01", actualizadoEl: "2026-11-01" },
-      { id: "cli-2", nombre: "Ana Robles", telefono: "6645550119", tipo: "comprador", asesorId: "a1", notas: "", creadoEl: "2026-11-01", actualizadoEl: "2026-11-01" }]],
+      { id: "cli-2", nombre: "Ana Robles", telefono: "6645550119", tipo: "comprador", inmueblesInteres: ["casa-chapultepec"], asesorId: "a1", notas: "", creadoEl: "2026-11-01", actualizadoEl: "2026-11-01" }]],
     [actual.db.leads, [{ id: "lead-1", nombre: "Carlos Vega", telefono: "6645550177", origen: "manual", estado: "nuevo", creadoEl: "2026-11-10T10:00:00Z", notas: [{ id: "ln1", texto: "Busca casa con patio", fecha: "2026-11-10T10:05:00Z" }], perfil: { proximoContacto: "2099-01-05", proximaAccion: "Mandarle opciones" } }]],
     [actual.db.tareas, [
       { id: "t1", titulo: "Llamar a Ana por la visita", estado: "pendiente", vence: "2026-01-02", clienteId: "cli-2", pasos: [] },
@@ -247,4 +247,28 @@ it("«Eliminar» dice por qué no se puede: un asunto en curso o una tarea en la
   const opcion = within(await abrirMenu()).getByRole("menuitem", { name: /Eliminar · tiene una tarea o cita en la Agenda/ });
   expect(opcion.getAttribute("aria-disabled")).toBe("true");
   expect(borrados).not.toHaveBeenCalled();
+});
+
+it("«Agregar inmueble» anota en la persona un inmueble de su interés, y se puede quitar", async () => {
+  servidor();
+  render(<PersonasApp initialId="lead:lead-1" />);
+  await screen.findByRole("heading", { level: 2, name: "Carlos Vega" });
+  const seccion = screen.getByRole("region", { name: "Sus inmuebles" });
+  expect(seccion.textContent).toContain("Con «Agregar inmueble» anotas los que le interesan");
+  fireEvent.click(within(seccion).getByRole("button", { name: "Agregar inmueble" }));
+  fireEvent.click(await screen.findByRole("option", { name: /Casa en Chapultepec/ }));
+  await waitFor(() => expect(guardados).toHaveBeenCalledTimes(1));
+  expect(guardados.mock.calls[0][1]).toMatchObject({ id: "lead-1", inmueblesInteres: ["casa-chapultepec"] });
+});
+
+it("un inmueble de su interés sale en «Sus inmuebles» con «Le interesa» y su opción para quitarlo", async () => {
+  servidor();
+  render(<PersonasApp initialId="cliente:cli-2" />);
+  await screen.findByRole("heading", { level: 2, name: "Ana Robles" });
+  const seccion = screen.getByRole("region", { name: "Sus inmuebles" });
+  expect(within(seccion).getByRole("link", { name: /Casa en Chapultepec/ }).textContent).toContain("Le interesa");
+  fireEvent.keyDown(within(seccion).getByRole("button", { name: "Acciones de Casa en Chapultepec" }), { key: "Enter" });
+  fireEvent.click(await screen.findByRole("menuitem", { name: "Quitar de sus inmuebles" }));
+  await waitFor(() => expect(guardados).toHaveBeenCalledTimes(1));
+  expect(guardados.mock.calls[0][1]).toMatchObject({ id: "cli-2", inmueblesInteres: [] });
 });
