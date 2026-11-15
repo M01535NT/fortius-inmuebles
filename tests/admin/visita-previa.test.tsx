@@ -9,6 +9,8 @@ vi.mock("@/lib/admin/store", async original => ({
   useCollection: () => [{ id: "lead-1", nombre: "Interesado de ensayo", estado: "nuevo" }],
   uploadFile: mocks.upload,
 }));
+const confirm = vi.hoisted(() => ({ confirmAction: vi.fn() }));
+vi.mock("@/components/admin/workspace/confirm", () => confirm);
 import { PriorVisitCard } from "@/components/admin/operation/prior-visit";
 import { operationTags, type OperationRecord } from "@/lib/admin/operation-view";
 import type { OperationWorkflow } from "@/lib/formatos/operation-workflow";
@@ -30,16 +32,45 @@ it("el director la autoriza con el interesado, la carta y el motivo", async () =
   const onSave = vi.fn(async () => undefined);
   render(<PriorVisitCard op={op(flow())} disabled={false} onSave={onSave} />);
   fireEvent.click(screen.getByRole("button", { name: "Autorizar una visita" }));
-  const authorize = screen.getByRole("button", { name: "Autorizar" }) as HTMLButtonElement;
-  expect(authorize.disabled).toBe(true);
+  expect((screen.getByRole("button", { name: "Autorizar sin la carta" }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.change(screen.getByLabelText("Interesado"), { target: { value: "Interesado de ensayo" } });
   fireEvent.change(screen.getByLabelText("Carta de autorización de visita firmada por el propietario"), { target: { files: [new File(["x"], "carta.pdf", { type: "application/pdf" })] } });
   await screen.findByText("Adjunta: carta.pdf");
   fireEvent.change(screen.getByLabelText("Por qué se autoriza"), { target: { value: "Busca en la colonia" } });
-  fireEvent.click(authorize);
+  confirm.confirmAction.mockClear();
+  fireEvent.click(screen.getByRole("button", { name: "Autorizar" }));
   await waitFor(() => expect(onSave).toHaveBeenCalled());
+  // Con la carta no pregunta.
+  expect(confirm.confirmAction).not.toHaveBeenCalled();
   const saved = (onSave.mock.calls[0] as unknown as [{ flujo: OperationWorkflow }])[0].flujo.visitasPrevias!;
   expect(saved).toEqual([expect.objectContaining({ interesado: "Interesado de ensayo", leadId: "lead-1", carta: { path: "u-1/carta.pdf", nombre: "carta.pdf" }, motivo: "Busca en la colonia" })]);
+});
+
+it("sin la carta se autoriza solo tras confirmarlo y la lista lo marca (FLX-03)", async () => {
+  mocks.role = "admin";
+  const onSave = vi.fn(async () => undefined);
+  const { unmount } = render(<PriorVisitCard op={op(flow())} disabled={false} onSave={onSave} />);
+  fireEvent.click(screen.getByRole("button", { name: "Autorizar una visita" }));
+  fireEvent.change(screen.getByLabelText("Interesado"), { target: { value: "Interesado de ensayo" } });
+  fireEvent.change(screen.getByLabelText("Por qué se autoriza"), { target: { value: "Viaja mañana" } });
+  const authorize = screen.getByRole("button", { name: "Autorizar sin la carta" }) as HTMLButtonElement;
+  expect(authorize.disabled).toBe(false);
+  confirm.confirmAction.mockResolvedValueOnce(false);
+  fireEvent.click(authorize);
+  await waitFor(() => expect(confirm.confirmAction).toHaveBeenCalledTimes(1));
+  expect(confirm.confirmAction.mock.calls[0][0]).toMatch(/Falta la carta.*quedará anotado en el historial del asunto/);
+  expect(onSave).not.toHaveBeenCalled();
+  confirm.confirmAction.mockResolvedValueOnce(true);
+  fireEvent.click(authorize);
+  await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+  const saved = (onSave.mock.calls[0] as unknown as [{ flujo: OperationWorkflow }])[0].flujo.visitasPrevias!;
+  expect(saved[0]).not.toHaveProperty("carta");
+  expect(await screen.findByText(/Visita autorizada sin la carta/)).toBeTruthy();
+  unmount();
+  const sinCarta = { ...visit, carta: undefined };
+  render(<PriorVisitCard op={op(flow({ visitasPrevias: [sinCarta] }))} disabled={false} onSave={vi.fn()} />);
+  expect(screen.getByText("Sin la carta del propietario")).toBeTruthy();
+  expect(screen.queryByRole("link", { name: "Ver la carta" })).toBeNull();
 });
 
 it("el asesor la ve, pero no la autoriza ni la retira", () => {
