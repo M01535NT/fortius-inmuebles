@@ -7,6 +7,9 @@
 
 /* Botones */
 :global(.admin-root) .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem; border-radius: var(--radius-control); border: 1px solid transparent; font-size: var(--admin-text-interfaz); font-weight: 540; line-height: 1; text-decoration: none; cursor: pointer; white-space: nowrap; background: none; color: var(--foreground); }
+/* Un botón nunca rebasa su contenedor: en celular angosto su texto pasa a dos líneas (FLX-02, 320 px). */
+:global(.admin-root) .btn { max-width: 100%; }
+@media (max-width: 480px) { :global(.admin-root) .btn:not(.iconOnly) { white-space: normal; text-wrap: balance; text-align: center; line-height: 1.2; padding-block: .5rem; } }
 :global(.admin-root) .lg { min-height: 3rem; padding: 0 1.375rem; font-size: var(--admin-text-cuerpo); }
 :global(.admin-root) .primary { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: var(--shadow-cta); }
 :global(.admin-root) .primary:not(:disabled):hover { background: var(--primary-hover); border-color: var(--primary-hover); }
