@@ -3,6 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Building2 } from "@/components/admin/icons";
 import { Avatar, Thumb } from "@/components/admin/kit";
+import { dialogOpen } from "@/components/admin/workspace/search";
 import type { AdminProperty, Asesor, Cliente, Evento, Lead } from "@/lib/admin/store";
 import { cn } from "@/lib/utils";
 import s from "./agenda.module.css";
@@ -69,7 +70,7 @@ export function useAgendaKeys(enabled: boolean, keys: Record<string, () => void>
       if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
       const at = event.target instanceof Element ? event.target : null;
       if (at?.closest("input, textarea, select, [contenteditable=true], [role=menu], [role=listbox], [role=dialog], [role=grid], [role=combobox]")) return;
-      if (document.querySelector("[role=dialog][data-state=open], [role=alertdialog]")) return;
+      if (dialogOpen()) return;
       const run = latest.current[event.key.length === 1 ? event.key.toLowerCase() : event.key];
       if (!run) return;
       event.preventDefault();
