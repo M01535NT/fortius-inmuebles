@@ -25,6 +25,8 @@ import { HistoryTab } from "./history-tab";
 import { NextStepTab } from "./next-step";
 import { SettingsTab } from "./settings-tab";
 import { StagePanel, StagesSheet } from "./stages";
+import { GuideStepTab } from "./guide-step";
+import { GUIA_NOMBRE } from "@/lib/guias";
 import { useOperationDocuments } from "./use-documents";
 import { useLeaveGuard, useOperation } from "./use-operation";
 import s from "./operation.module.css";
@@ -175,9 +177,10 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
 
   const reviewer = advisers.find(a => a.id === me)?.nombre ?? session?.name ?? session?.email ?? "";
   const docsCount = docs.list.length, taskCount = tasks.filter(t => t.expedienteId === op.id && !["completada", "cancelada"].includes(t.estado)).length;
-  const verb = isGuided(op) ? VERB[flow.ruta] : (EXPEDIENTE_OPERACIONES[op.operacion as keyof typeof EXPEDIENTE_OPERACIONES] ?? op.operacion).toLowerCase();
+  // FLX-03 B: una guía propia se nombra por su tipo («Inspección de su casa»).
+  const verb = flow.guia ? GUIA_NOMBRE[flow.guia.clave] : isGuided(op) ? VERB[flow.ruta] : (EXPEDIENTE_OPERACIONES[op.operacion as keyof typeof EXPEDIENTE_OPERACIONES] ?? op.operacion).toLowerCase();
   const thing = property && TIPO_LABELS[property.tipo] ? `su ${TIPO_LABELS[property.tipo].toLowerCase()}` : isOwnerRoute(flow.ruta) ? "su inmueble" : "";
-  const wants = [verb, isOwnerRoute(flow.ruta) ? thing : ""].filter(Boolean).join(" ");
+  const wants = flow.guia ? (thing ? `${verb} de ${thing}` : verb) : [verb, isOwnerRoute(flow.ruta) ? thing : ""].filter(Boolean).join(" ");
   const stageName = track.stages[track.current]?.label;
   // COR-14: la situación (con su motivo) y la condición de la llamada (con lo que contó).
   const condition = conditionWith02(interview?.respuestas, docs.latest("02")?.data);
@@ -218,7 +221,8 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
           {!adviser && <span className={s.footWho}>Sin responsable</span>}
         </div>}
         <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
-          {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}
+          {tab === "sigue" && flow.guia && <GuideStepTab key={op.id} op={view} clientName={client?.nombre} onSave={saveAndTrack} />}
+          {tab === "sigue" && !flow.guia && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}
             evidence={{ documents: docs.list, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer, expedienteId: op.id }} interview={interview}
             onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={goTo} onDirtyChange={markDirty.sigue} />}
           {tab === "documentos" && <div className="flex min-w-0 flex-col gap-4">
@@ -240,9 +244,9 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     </div></>}
     {!op.deleted_at && <RecordNotes link={noteLink} open={notesOpen} onClose={() => setNotesOpen(false)} title="Notas del asunto" description="Lo que se acordó o hay que recordar de este asunto. Las ve quien puede ver a su cliente." />}
     {!op.deleted_at && <Sheet open={settings} onClose={() => void closeSettings()} title="Datos del asunto" description="Ruta, situación, inmueble, contraparte y corrección de etapa.">
-      <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onDirtyChange={markDirty.ajustes} />
+      <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onReplaced={value => { setOp(value); setChanges(n => n + 1); }} onDirtyChange={markDirty.ajustes} />
     </Sheet>}
-    {stagesOpen && isGuided(op) && <StagesSheet op={view} today={today} docs={docs} checklist={checklist} focus={stagesOpen.focus} onClose={() => setStagesOpen(null)} />}
+    {stagesOpen && isGuided(op) && !flow.guia && <StagesSheet op={view} today={today} docs={docs} checklist={checklist} focus={stagesOpen.focus} onClose={() => setStagesOpen(null)} />}
     {docs.capture({ cliente: client?.nombre, inmueble: property?.titulo, etapa: stageName })}
   </Surface>;
 }

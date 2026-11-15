@@ -213,7 +213,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       } else if (!director && directorReview(now.key)) {
         // COR-23: el asesor lo deja listo y el director lo marca revisado.
         title = `Para el director: ${name}`;
-        text = now.state === "recibido" ? "Ya está listo. Falta que el director lo revise para seguir." : "Cuando tengas el documento, márcalo «Lo tengo»; el director lo revisa.";
+        text = now.state === "recibido" ? "Ya está listo. Falta que el director lo revise; puedes seguir igual." : "Cuando tengas el documento, márcalo «Lo tengo»; el director lo revisa.";
         action = now.state === "recibido" ? null : <Button variant="primary" disabled={held} onClick={() => quick(now.key, "recibido")}>Lo tengo</Button>;
       } else {
         title = `Confirmar: ${name}`; text = now.state === "recibido" ? "Ya tienes el documento; escribe qué encontraste." : "Su documento ya viene elegido; escribe qué encontraste.";

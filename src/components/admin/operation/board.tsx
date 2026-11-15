@@ -18,6 +18,7 @@ import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DirectCreate } from "./direct-create";
 import { InheritedCreate } from "./inherited-create";
 import { useOperationFormats } from "./use-operation-formats";
+import { GUIA_NOMBRE, tipoDeAsunto, type GuiaClave } from "@/lib/guias";
 import { useTodayData } from "@/components/admin/workspace/use-today-queue";
 import { useLeaveGuard } from "./use-operation";
 import { PAPELERA } from "@/components/admin/papelera/textos";
@@ -36,7 +37,7 @@ import s from "./board.module.css";
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const VERB: Record<string, string> = { captacion: "Vende", arrendador: "Renta su inmueble", compra: "Compra", arrendatario: "Busca una renta", inversion: "Invierte" };
-type Row = { op: OperationRecord; who: string; client?: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string; tags: string[] };
+type Row = { op: OperationRecord; who: string; client?: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string; tags: string[]; tipo: GuiaClave };
 /** Etapas presentes entre las operaciones, en su orden (las de venta y las de cada ruta conviven). */
 function stagesOf(rows: Row[]) {
   const seen = new Map<string, number>();
@@ -58,6 +59,7 @@ export function OperationsBoard() {
   const legacyView = React.useMemo(() => ({ key: `fortius:operaciones:vista:${session?.id ?? "anon"}`, parse: (raw: string) => { try { return asView(JSON.parse(raw)); } catch { return undefined; } } }), [session?.id]);
   const { value: view, save: saveView, error: viewError } = usePanelPreference("operacionesVista", "lista", legacyView);
   const setView = (next: View) => { void saveView(next); };
+  const [boardType, setBoardType] = React.useState<GuiaClave>("venta");
   const today = operationalDate();
   const [records, setRecords] = React.useState<OperationRecord[] | null | undefined>(undefined);
   const [error, setError] = React.useState("");
@@ -107,17 +109,20 @@ export function OperationsBoard() {
     const gaps = pastGaps(view, today, formato => formats?.has(formato) ? "terminado" : undefined);
     const flow = flowOf(op);
     return {
-      op, who: card.who, client: names.client(op.cliente_id), meta: [VERB[flow.ruta] ?? "", card.property].filter(Boolean).join(" · "),
+      op, who: card.who, client: names.client(op.cliente_id), meta: [flow.guia ? GUIA_NOMBRE[flow.guia.clave] : VERB[flow.ruta] ?? "", card.property].filter(Boolean).join(" · "),
       photo: op.propiedad_slug ? properties.find(p => p.slug === op.propiedad_slug)?.galeria[0]?.src : undefined, adviser: advisers.find(a => a.id === op.asesor_id)?.nombre,
       n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", gapAt: new Set(gaps.map(g => g.n)),
       next: card.next, date: card.date, late: card.late, attention: attentionOf(view, tasks, today, gaps[0]?.gap, !!recentOfferOf(op.id, offers, today)), mine: card.mine, href: card.href,
-      tags: operationTags(op, conditions.ofOperation(op.id)),
+      tags: operationTags(op, conditions.ofOperation(op.id)), tipo: tipoDeAsunto(op.flujo, op.operacion),
     };
   });
   const visible = rows.filter(row => (!admin || scope === "equipo" || !me || row.mine) && (!query.trim() || normalize(`${row.who} ${row.op.folio} ${row.meta}`).includes(normalize(query.trim()))));
   const active = visible.filter(row => row.op.etapa !== "cerrado");
   const archived = visible.filter(row => row.op.etapa === "cerrado");
   const inGroup = active.filter(row => stageFilter === "todas" || row.stage === stageFilter);
+  // FLX-03 B (DEC-55): cada tipo tiene sus etapas, así que el tablero muestra un tipo a la vez (Venta de entrada).
+  const boardTypes = [...new Set<GuiaClave>(["venta", ...inGroup.map(row => row.tipo)])];
+  const shownType = boardTypes.includes(boardType) ? boardType : "venta";
   const byDate = (a: Row, b: Row) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.who.localeCompare(b.who, "es");
   // LV-10c: lo vencido va arriba, luego por motivo y fecha.
   const waiting = inGroup.filter(row => row.attention).sort((a, b) => Number(isLate(b)) - Number(isLate(a)) || a.attention!.rank - b.attention!.rank || byDate(a, b));
@@ -205,7 +210,10 @@ export function OperationsBoard() {
             {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <button key={stage.label} type="button" className={s.filter} aria-pressed={stageFilter === stage.label} onClick={() => chooseStage(stage.label)}>{stage.label}<span className={s.count}>{active.filter(row => row.stage === stage.label).length}</span></button>)}
           </div>
         </div>
-        {view === "tablero" ? <PhaseBoard rows={inGroup} today={today} />
+        {view === "tablero" ? <>
+          {boardTypes.length > 1 && <Segmented label="Tipo de asunto" value={shownType} onChange={setBoardType} options={boardTypes.map(id => ({ id, label: `${GUIA_NOMBRE[id]} ${inGroup.filter(row => row.tipo === id).length}` }))} />}
+          <PhaseBoard rows={inGroup.filter(row => row.tipo === shownType)} today={today} />
+        </>
           : <>
             <Card as="div" className={s.list}>
               <div className={s.head} aria-hidden="true"><span>Quién y qué</span><span>Etapa</span><span>Lo que sigue</span><span className="text-right">Fecha</span><span /></div>

@@ -18,6 +18,7 @@ import { FirstContactButton } from "@/components/admin/workspace/first-contact";
 import { NewMenu } from "@/components/admin/workspace/guided-nav";
 import { NextStepPrompt } from "@/components/admin/contacts/next-step-prompt";
 import { Announcements } from "@/components/admin/workspace/announcements";
+import { AsuntoAvisos } from "@/components/admin/workspace/asunto-avisos";
 import { Inbox } from "@/components/admin/workspace/inbox";
 import { useTaskDone, type TaskDone } from "@/components/admin/workspace/hoy/use-task-done";
 import { actionOf, QueueList, TaskCheck, type RowHelpers } from "@/components/admin/workspace/hoy/queue-list";
@@ -191,6 +192,7 @@ export function HoyScreen() {
       <div className={s.notices}>
         <SectionBoundary what="«Avisos»"><Announcements /></SectionBoundary>
         <SectionBoundary what="«Para ti»"><Inbox /></SectionBoundary>
+        <SectionBoundary what="«Avisos de tus asuntos»"><AsuntoAvisos /></SectionBoundary>
       </div>
 
       <section aria-labelledby="hoy-dia" className={cn(s.panel, s.nextBox)} onClickCapture={done.guardClick}>

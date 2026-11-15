@@ -46,7 +46,7 @@ export const HELP_SECTIONS: HelpSection[] = [
   ] },
   { id: "director", title: "Si eres el director", director: true, intro: "Lo que solo marca o decide el director.", tasks: [
     { q: "¿Cómo reviso lo que me deja un asesor?", steps: ["En el asunto, los requisitos en «Lo tengo» dicen «falta que lo revise el director».", "Pulsa «Confirmar», revisa el respaldo y escribe qué encontraste."] },
-    { q: "¿Cómo autorizo avanzar sin un requisito?", steps: ["En «⋯» del requisito, elige «Autorizar excepción» y escribe el motivo.", "Queda en el historial con la fecha y tu nombre.", "Lo que protege al cliente (titularidad, factibilidad, valor, revisión para cerrar, firma y pago) no admite excepción."] },
+    { q: "¿Hace falta autorizar avanzar sin un requisito?", steps: ["No: el asunto avanza aunque falte algo y lo que faltó queda como aviso en el historial.", "Las excepciones que ya existían se cambian o quitan en «⋯» del requisito."] },
     { q: "Un asesor trae inmuebles con contrato firmado, ¿cómo los doy de alta?", steps: ["En «Atender a alguien», pulsa «Inventario heredado».", "Elige el inmueble, escribe el propietario y la fecha del contrato.", "El asunto queda en verificación: registra la firma y revisa titularidad, factibilidad, valor y precio antes de publicar."] },
   ] },
 ];

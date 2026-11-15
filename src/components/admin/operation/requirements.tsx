@@ -61,7 +61,8 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   const reserved = !director && directorReview(requirement);
   // COR-20 (RP-31): el director cubre el requisito con una excepción y su motivo; nunca en los de protección.
   const excepted = exceptionCovers(flow, requirement);
-  const canExcept = director && exceptionAllowed(requirement) && (excepted || !done);
+  // FLX-03 B (DEC-55): nada frena, así que ya no hace falta autorizar excepciones nuevas; la que ya existe se puede cambiar o quitar.
+  const canExcept = director && exceptionAllowed(requirement) && excepted;
   // COR-17: el valor respaldado con el avalúo del propietario vence con el avalúo.
   const appraisalEnd = requirement === "valor" && review?.evidencia?.tipo === "cliente" ? flow.avaluo?.vigenteHasta : undefined;
   const detail = excepted ? `Con excepción autorizada: ${review?.excepcion?.motivo}` : expired ? (appraisalEnd && appraisalEnd < today ? `El avalúo venció el ${shortDate(appraisalEnd)}. Registra uno actualizado o haz la opinión de valor.`
@@ -97,7 +98,7 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
             {options.map(st => { const { icon: Icon, label } = REVIEW_STATE_UI[st]; return <DropdownMenuItem key={st} role="menuitemradio" aria-checked={st === state} className={s[`stMenu_${st}`]} onSelect={() => choose(st)}>
               <Icon size={18} aria-hidden="true" />{label.replace(" ✓", "")}{st === state && <Check size={16} aria-hidden="true" className="ml-auto" />}
             </DropdownMenuItem>; })}
-            {canExcept && <><DropdownMenuSeparator /><DropdownMenuItem onSelect={exception}><ShieldCheck size={18} aria-hidden="true" /><span className="flex min-w-0 flex-col py-1"><span>{excepted ? "Cambiar o quitar la excepción" : "Autorizar excepción"}</span><span className="text-xs font-normal text-muted-foreground">El director deja avanzar sin este punto; el motivo queda en el historial.</span></span></DropdownMenuItem></>}
+            {canExcept && <><DropdownMenuSeparator /><DropdownMenuItem onSelect={exception}><ShieldCheck size={18} aria-hidden="true" /><span className="flex min-w-0 flex-col py-1"><span>Cambiar o quitar la excepción</span><span className="text-xs font-normal text-muted-foreground">El motivo queda en el historial.</span></span></DropdownMenuItem></>}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

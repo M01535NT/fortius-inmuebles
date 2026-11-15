@@ -1,3 +1,4 @@
+import { etapasDeGuia } from "@/lib/guias";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { COMPARABLES_HREF } from "@/lib/apps/catalog";
 import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
@@ -47,6 +48,8 @@ export function initialStatus(formats: ReadonlyMap<string, boolean> | undefined,
 /** Etapas del avance: las 10 del propietario, de venta o de renta (COR-04); las demás rutas usan sus propios pasos (sin «archivado»). */
 export function routeStages(op: OperationRecord, today: string) {
   const flow = flowOf(op), stage = stageOf(op);
+  // FLX-03 B (DEC-55): una guía propia dibuja sus etapas y su paso; la etapa de la base no cuenta.
+  if (flow.guia) { const labels = etapasDeGuia(flow.guia); return { labels: [...labels], current: Math.min(flow.guia.paso, labels.length - 1), phase: undefined }; }
   if (isOwnerRoute(flow.ruta)) {
     const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial), process = ownerProcess(flow.ruta);
     return { labels: process.map(p => p.label), current: process.findIndex(p => p.key === phase), phase };
@@ -108,7 +111,7 @@ export function closeSteps(op: OperationRecord): CloseStep[] {
 
 /** Etapas de la operación con su número y su fase: las 10 del propietario o los pasos de su ruta. */
 export function stageTrack(op: OperationRecord, today: string) {
-  const flow = flowOf(op), owner = isOwnerRoute(flow.ruta);
+  const flow = flowOf(op), owner = isOwnerRoute(flow.ruta) && !flow.guia;
   const { labels, current, phase } = routeStages(op, today);
   const stages: TrackStage[] = labels.map((label, i) => {
     if (!owner) return { n: i + 1, label };

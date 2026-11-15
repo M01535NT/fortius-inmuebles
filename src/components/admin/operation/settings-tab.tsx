@@ -10,6 +10,7 @@ import { discardReasonOf, DISCARD_REASONS, stageLabel, WORKFLOW_ROUTES, WORKFLOW
 import { flowOf, isGuided, routeStages, stageOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { saveError } from "./use-operation";
 import { Combobox, faceOption, OptionSelect, photoOption } from "./pickers";
+import { TypeCard } from "./type-card";
 
 type Save = (changes: { flujo?: OperationWorkflow; etapa?: WorkflowStage; propiedadSlug?: string | null; fechaObjetivo?: string | null }) => Promise<unknown>;
 const ROLE: Record<string, string> = { captacion: "Propietario vendedor", compra: "Comprador", arrendador: "Propietario arrendador", arrendatario: "Arrendatario", inversion: "Inversionista" };
@@ -22,7 +23,7 @@ const OPPOSITE: Record<string, string> = { captacion: "compra", compra: "captaci
   ruta y situación, el inmueble, la fecha objetivo, la contraparte y corregir la etapa con motivo.
   Eliminar está en el mismo menú. La decisión del encargo pasó al panel de la etapa (COR-14, DEC-38).
 */
-export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: OperationRecord; all: OperationRecord[]; today: string; onSave: Save; onDirtyChange: (dirty: boolean) => void }) {
+export function SettingsTab({ op, all, today, onSave, onReplaced, onDirtyChange }: { op: OperationRecord; all: OperationRecord[]; today: string; onSave: Save; onReplaced?: (op: OperationRecord) => void; onDirtyChange: (dirty: boolean) => void }) {
   const session = useSession();
   const properties = useCollection(db.propiedades), leads = useCollection(db.leads);
   const original = flowOf(op), stage = stageOf(op);
@@ -63,7 +64,7 @@ export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: Ope
     <fieldset disabled={busy} className="flex min-w-0 flex-col gap-5">
       <Card className="grid gap-4 p-5 sm:grid-cols-2" aria-label="Datos del asunto">
         <h2 className="m-0 text-lg sm:col-span-2">Datos del asunto</h2>
-        {guided && <label className="text-sm font-semibold">Ruta<select className={selectClass} value={flow.ruta} onChange={e => setFlow(old => ({ ...old, ruta: e.target.value as OperationWorkflow["ruta"] }))}>{routeChoices.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
+        {guided && !flow.guia && <label className="text-sm font-semibold">Ruta<select className={selectClass} value={flow.ruta} onChange={e => setFlow(old => ({ ...old, ruta: e.target.value as OperationWorkflow["ruta"] }))}>{routeChoices.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
         {guided && <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Situación</span><OptionSelect aria-label="Situación" className="font-normal" value={flow.estado} onChange={estado => setFlow(old => ({ ...old, estado }))}
           options={(Object.entries(WORKFLOW_STATES) as Array<[OperationWorkflow["estado"], string]>).map(([k, v]) => ({ value: k, label: v, icon: <span aria-hidden="true" className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: STATE_TONE[k] }} /> }))} /></span>}
         <span className="flex flex-col gap-1.5 text-sm font-semibold sm:col-span-2"><span>Inmueble</span><Combobox aria-label="Inmueble" className="font-normal" placeholder="Sin vincular todavía" searchPlaceholder="Buscar inmueble…" value={property} onChange={setProperty}
@@ -92,7 +93,10 @@ export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: Ope
       </div>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
-      {guided && WORKFLOW_STAGES.indexOf(stage) > 0 && <Card className="flex flex-col gap-3 p-5" aria-label="Corregir etapa">
+      {/* FLX-03 B: cambiar el tipo no espera a «Guardar ajustes»; con cambios sin guardar se pide guardarlos antes. */}
+      {guided && onReplaced && (dirty ? <p className="m-0 text-sm text-muted-foreground">Guarda o descarta los cambios para cambiar el tipo del asunto.</p> : <TypeCard op={op} disabled={busy} onReplaced={onReplaced} />)}
+
+      {guided && !flow.guia && WORKFLOW_STAGES.indexOf(stage) > 0 && <Card className="flex flex-col gap-3 p-5" aria-label="Corregir etapa">
         <div><h2 className="m-0 text-lg">Corregir etapa</h2><p className="mt-1 text-sm text-muted-foreground">Regresa a una etapa anterior si avanzó por error. El motivo va en «Datos del asunto».</p></div>
         <label className="text-sm font-semibold">Regresar a<select className={selectClass} value={back} onChange={e => setBack(e.target.value as WorkflowStage | "")}><option value="">Elige la etapa</option>{WORKFLOW_STAGES.slice(0, WORKFLOW_STAGES.indexOf(stage)).map(st => <option key={st} value={st}>{stageLabel(st, flow.ruta)}</option>)}</select></label>
         <Button className="self-start" disabled={!back || flow.motivo.trim().length < 3 || busy} onClick={() => void goBack()}>Regresar con este motivo</Button>
