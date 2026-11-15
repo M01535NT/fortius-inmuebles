@@ -2,6 +2,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/admin/workspace/use-person-status", () => ({ usePersonStatus: () => ({ ofClient: (id: string) => id === "cli-2" ? "cliente" : "prospecto", ofLead: () => undefined }) }));
+const guardados = vi.hoisted(() => vi.fn(async (_col: unknown, item: unknown) => item));
 vi.mock("@/lib/admin/store", async importOriginal => {
   const actual = await importOriginal<typeof import("@/lib/admin/store")>();
   const OP = "51000000-0000-4000-8000-000000000001";
@@ -9,11 +10,15 @@ vi.mock("@/lib/admin/store", async importOriginal => {
     [actual.db.clientes, [
       { id: "cli-1", nombre: "Laura Méndez", telefono: "6645550142", tipo: "propietario", asesorId: "a1", notas: "", creadoEl: "2026-11-01", actualizadoEl: "2026-11-01" },
       { id: "cli-2", nombre: "Ana Robles", telefono: "6645550119", tipo: "comprador", asesorId: "a1", notas: "", creadoEl: "2026-11-01", actualizadoEl: "2026-11-01" }]],
-    [actual.db.leads, [{ id: "lead-1", nombre: "Carlos Vega", telefono: "6645550177", origen: "manual", estado: "nuevo", creadoEl: "2026-11-10T10:00:00Z", notas: [] }]],
-    [actual.db.propiedades, [{ slug: "casa-chapultepec", titulo: "Casa en Chapultepec", codigo: "FORTIUS-000209" }]],
+    [actual.db.leads, [{ id: "lead-1", nombre: "Carlos Vega", telefono: "6645550177", origen: "manual", estado: "nuevo", creadoEl: "2026-11-10T10:00:00Z", notas: [{ id: "ln1", texto: "Busca casa con patio", fecha: "2026-11-10T10:05:00Z" }], perfil: { proximoContacto: "2099-01-05", proximaAccion: "Mandarle opciones" } }]],
+    [actual.db.tareas, [
+      { id: "t1", titulo: "Llamar a Ana por la visita", estado: "pendiente", vence: "2026-01-02", clienteId: "cli-2", pasos: [] },
+      { id: "t2", titulo: "Pedir el predial", estado: "completada", completadoEl: "2026-11-11T18:00:00Z", expedienteId: OP, pasos: [] }]],
+    [actual.db.notas, [{ id: "n1", titulo: "", texto: "Quiere vender antes de fin de año", actualizadoEl: "2026-11-12T17:00:00Z", clienteId: "cli-1", autor: "Nallely Díaz" }]],
+    [actual.db.propiedades, [{ slug: "casa-chapultepec", titulo: "Casa en Chapultepec", codigo: "FORTIUS-000209", precio: { modalidad: "publico", monto: 4200000, moneda: "MXN" }, galeria: [], estado: "evaluacion", publicada: false }]],
   ]);
   return {
-    ...actual, useCollection: (col: unknown) => data.get(col) ?? [],
+    ...actual, useCollection: (col: unknown) => data.get(col) ?? [], upsert: guardados,
     loadAllDossiers: async () => [{ id: OP, folio: "EXP-000342", version: 1, cliente_id: "cli-1", asesor_id: "a1", operacion: "venta", propiedad_slug: "casa-chapultepec", etapa: "documentacion", flujo: { version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: {} } }],
   };
 });
@@ -21,7 +26,7 @@ import { PersonasApp } from "@/components/admin/personas/personas-app";
 
 /* FLX · Personas: lista y perfil en una pantalla, con la guía, lo que sigue y sus documentos. */
 const OP = "51000000-0000-4000-8000-000000000001";
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); guardados.mockClear(); });
 
 function servidor() {
   const calls: Array<{ method: string; url: string; body?: Record<string, unknown> }> = [];
@@ -102,4 +107,72 @@ it("sin pendiente anotado, el bloque muestra el paso de la guía con su número 
   const actual = (await screen.findByRole("navigation", { name: /Guía de la operación/ })).querySelector("[aria-current='step']")!.textContent!;
   expect(within(bloque).getByRole("heading", { level: 3 }).textContent).toBe(actual);
   expect(bloque.textContent).toMatch(/Es el paso \d+ de \d+ de la guía de venta/);
+});
+
+it("LV-10e · la lista va como agenda: primero a quién le toca, con su cara, y al final quien no tiene fecha", async () => {
+  servidor();
+  render(<PersonasApp initialId={null} />);
+  const lista = screen.getByRole("complementary", { name: "Personas" });
+  const grupos = within(lista).getAllByRole("group");
+  expect(grupos.map(g => g.querySelector("h2")!.firstChild!.textContent)).toEqual(["Te toca hoy o antes", "Más adelante", "Sin fecha"]);
+  expect(within(grupos[0]).getByRole("button", { name: /Ana Robles/ }).textContent).toMatch(/Vencido/);
+  expect(within(grupos[1]).getByRole("button", { name: /Carlos Vega/ })).toBeTruthy();
+  expect(within(grupos[2]).getByRole("button", { name: /Laura Méndez/ })).toBeTruthy();
+  // La primera persona que se abre es a quien le toca primero.
+  expect(await screen.findByRole("heading", { level: 2, name: "Ana Robles" })).toBeTruthy();
+});
+
+it("LV-10e · la ficha junta sus inmuebles con foto, sus operaciones con su etapa y lo que ha pasado", async () => {
+  servidor();
+  render(<PersonasApp initialId="cliente:cli-1" />);
+  await screen.findByRole("heading", { level: 2, name: "Laura Méndez" });
+  const inmuebles = screen.getByRole("region", { name: "Sus inmuebles" });
+  const tarjeta = within(inmuebles).getByRole("link", { name: /Casa en Chapultepec/ });
+  expect(tarjeta.getAttribute("href")).toBe("/admin/propiedades/casa-chapultepec/editar");
+  expect(tarjeta.textContent).toContain("$4,200,000 MXN");
+  expect(tarjeta.textContent).toMatch(/Lo vende/);
+  const operaciones = screen.getByRole("region", { name: "Operaciones" });
+  const fila = within(operaciones).getByRole("link", { name: /EXP-000342/ });
+  expect(fila.getAttribute("href")).toBe(`/admin/operaciones/${OP}`);
+  expect(fila.textContent).toMatch(/^\d+ · /);
+  const historia = screen.getByRole("region", { name: "Lo que ha pasado" });
+  const sucesos = within(historia).getAllByRole("listitem").map(li => li.textContent);
+  expect(sucesos[0]).toMatch(/Nallely Díaz anotó: «Quiere vender antes de fin de año»/);
+  expect(sucesos[1]).toMatch(/Se terminó: Pedir el predial/);
+  expect(screen.getByRole("link", { name: "Agendar" }).getAttribute("href")).toBe("/admin/agenda?nueva=1&clienteId=cli-1");
+});
+
+it("LV-10e · un dato se cambia en su lugar con su versión y se puede deshacer", async () => {
+  servidor();
+  render(<PersonasApp initialId="cliente:cli-1" />);
+  await screen.findByRole("heading", { level: 2, name: "Laura Méndez" });
+  fireEvent.click(screen.getByRole("button", { name: "Cambiar teléfono: 6645550142" }));
+  const campo = screen.getByRole("textbox", { name: "Teléfono" });
+  fireEvent.change(campo, { target: { value: " 6641112233 " } });
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+  await waitFor(() => expect(guardados).toHaveBeenCalledTimes(1));
+  const [, nuevo] = guardados.mock.calls[0] as unknown as [unknown, { telefono: string; nombre: string; actualizadoEl: string }];
+  expect(nuevo).toMatchObject({ id: "cli-1", nombre: "Laura Méndez", telefono: "6641112233" });
+  expect(nuevo.actualizadoEl).not.toBe("2026-11-01");
+  fireEvent.click(await screen.findByRole("button", { name: "Deshacer" }));
+  await waitFor(() => expect(guardados).toHaveBeenCalledTimes(2));
+  expect(guardados.mock.calls[1][1]).toMatchObject({ id: "cli-1", telefono: "6645550142" });
+});
+
+it("LV-10e · si el servidor no acepta el cambio, el campo sigue abierto con el motivo; Escape lo deja como estaba", async () => {
+  servidor();
+  guardados.mockRejectedValueOnce(new Error("Registra teléfono o correo electrónico"));
+  render(<PersonasApp initialId="lead:lead-1" />);
+  await screen.findByRole("heading", { level: 2, name: "Carlos Vega" });
+  // Sin operación, el próximo contacto del prospecto se ve y se cambia aquí.
+  expect(screen.getByRole("button", { name: /Cambiar próximo contacto: .*Mandarle opciones/ })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Cambiar teléfono: 6645550177" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Teléfono" }), { target: { value: "" } });
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+  expect((await screen.findByRole("alert")).textContent).toBe("Registra teléfono o correo electrónico");
+  expect(screen.queryByRole("button", { name: "Deshacer" })).toBeNull();
+  fireEvent.keyDown(screen.getByRole("textbox", { name: "Teléfono" }), { key: "Escape" });
+  expect(screen.getByRole("button", { name: "Cambiar teléfono: 6645550177" })).toBeTruthy();
+  // Lo del primer contacto también cuenta en lo que ha pasado.
+  expect(within(screen.getByRole("region", { name: "Lo que ha pasado" })).getByText("«Busca casa con patio»")).toBeTruthy();
 });

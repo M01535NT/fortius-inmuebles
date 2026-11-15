@@ -25,7 +25,7 @@
 /* Documentos */
 .sechead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
 .sechead h3 { margin: 0; font-size: var(--admin-text-grupo); font-weight: 600; }
-.sechead > :last-child { margin-left: auto; }
+.sechead > [role="radiogroup"] { margin-left: auto; }
 .thead, .trow { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(120px, 1fr) 72px 44px; align-items: center; gap: 0 10px; border-bottom: 1px solid var(--border); font-size: var(--admin-text-detalle); }
 .thead { padding: 8px 0 8px 4px; font-size: var(--admin-text-pastilla); font-weight: 540; color: var(--muted-foreground); }
 .trow { min-height: 56px; padding: 4px 0 4px 4px; }
@@ -43,3 +43,74 @@
 .lrow svg { flex: none; color: var(--muted-foreground); }
 .lrow > span { display: grid; min-width: 0; }
 .contact { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* LV-10e · Personas como agenda con cara */
+.grupo { display: grid; gap: 2px; }
+.grpt { position: sticky; top: 0; z-index: 1; display: flex; align-items: baseline; gap: 8px; margin: 0; padding: 12px 12px 6px; background: var(--card); color: var(--muted-foreground); font-size: var(--admin-text-pastilla); font-weight: 600; }
+.grpt span { font-weight: 540; font-variant-numeric: tabular-nums; }
+.grpt[data-late] { color: var(--alert); }
+.prow { grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 12px; }
+.prowText { display: grid; gap: 2px; min-width: 0; }
+.prowText b { font-weight: 600; font-size: var(--admin-text-interfaz); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prowText span { font-size: var(--admin-text-detalle); color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prowWhen { font-size: var(--admin-text-pastilla); font-weight: 600; color: var(--muted-foreground); text-align: right; white-space: nowrap; }
+.prowWhen[data-late] { color: var(--alert); }
+
+.cover { gap: 16px; padding: 22px 24px 18px; }
+.coverFace { flex: none; }
+.coverTitle h2 { font-size: 1.75rem; }
+.coverSub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 2px 0 0; }
+.atiende { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 700px) {
+  .cover { gap: 12px; padding: 14px 16px 16px; }
+  .coverFace { width: 52px !important; height: 52px !important; font-size: 19px !important; }
+  .coverTitle { flex: 1 1 0; min-width: 0; }
+  .coverTitle h2 { font-size: 1.375rem; }
+  .cover > :last-child { width: 100%; }
+}
+.kicker { margin: 0 0 4px !important; color: var(--on-navy-muted); font-size: var(--admin-text-pastilla); font-weight: 540; }
+
+/* Sus inmuebles: tarjetas con foto */
+.pinm { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.pcard { display: grid; grid-template-columns: 96px minmax(0, 1fr); min-height: 96px; overflow: hidden; border: 1px solid var(--card-edge); border-radius: var(--radius-card); background: var(--card); color: var(--foreground); text-decoration: none; transition: box-shadow 160ms ease-out, border-color 160ms ease-out; }
+.pcard:hover { border-color: var(--control-edge); box-shadow: var(--shadow-raised); }
+.pthumb { border-radius: 0 !important; width: 96px !important; height: 100% !important; min-height: 96px; }
+.ptext { display: grid; gap: 4px; align-content: center; min-width: 0; padding: 10px 12px; }
+.ptext b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.price { font-size: var(--admin-text-detalle); font-weight: 540; font-variant-numeric: tabular-nums; }
+.pmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
+
+/* Operaciones con su riel */
+.opPick { margin-left: auto; min-width: 220px; }
+.ops { display: grid; border: 1px solid var(--card-edge); border-radius: var(--radius-card); background: var(--card); overflow: hidden; }
+.oprow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 56px; padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--foreground); text-decoration: none; }
+.oprow:last-child { border-bottom: 0; }
+.oprow:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
+.opmain { display: grid; gap: 6px; min-width: 0; }
+.opline { font-size: var(--admin-text-detalle); color: var(--muted-foreground); overflow-wrap: anywhere; }
+.opline b { color: var(--foreground); font-weight: 600; }
+
+/* Lo que ha pasado */
+.timeline { display: grid; margin: 0; padding: 4px 14px; list-style: none; border: 1px solid var(--card-edge); border-radius: var(--radius-card); background: var(--card); }
+.timeline li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.timeline li:last-child { border-bottom: 0; }
+.timeline li > span:last-child { display: grid; gap: 2px; min-width: 0; }
+.tltext { overflow-wrap: anywhere; line-height: 1.4; }
+.timeline .sub { white-space: normal; }
+.tlicon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); }
+
+/* Datos que se cambian en su lugar */
+.datos { display: grid; }
+.dato { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 48px; border-bottom: 1px solid var(--border); }
+.datoLabel { font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
+.inline { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; min-height: 44px; margin: 0 -8px; padding: 4px 8px; border: 0; border-radius: 10px; background: none; color: var(--foreground); font: inherit; font-weight: 540; text-align: left; cursor: pointer; }
+.inline > span { overflow-wrap: anywhere; }
+.inline > span[data-empty] { color: var(--muted-foreground); font-weight: 400; }
+.inline svg { flex: none; color: var(--muted-foreground); opacity: .55; transition: opacity 160ms ease-out; }
+.inline:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
+.inline:hover svg, .inline:focus-visible svg { opacity: 1; }
+.datoEdit { display: grid; gap: 8px; padding: 10px 0 12px; border-bottom: 1px solid var(--border); }
+.datoEdit input { min-height: 44px; width: 100%; padding: 8px 10px; border: 1px solid var(--control-edge); border-radius: var(--radius-control); background: var(--field-surface); color: var(--foreground); font: inherit; }
+.datoError { margin: 0; color: var(--alert); font-size: var(--admin-text-detalle); }
+.datoActs { display: flex; gap: 6px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { .pcard, .inline svg { transition: none; } }
