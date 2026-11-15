@@ -1,22 +1,25 @@
 "use client";
+import * as React from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Building2, ExternalLink, Link2, Route, ShieldCheck } from "@/components/admin/icons";
+import { useRouter } from "next/navigation";
+import { Building2, ExternalLink, Link2, Route, Search, ShieldCheck } from "@/components/admin/icons";
 import { SELLER_ISR_RULES } from "@/data/financial-rules";
 import { APP_GROUPS, RETIRED_APPS, activeApps, appHref, type AppGroup } from "@/lib/apps/catalog";
-import { ButtonLink } from "@/components/admin/kit";
-import { ADMIN_NAV } from "@/components/admin/workspace/guided-nav";
+import { matchesQuery } from "@/lib/admin/commands";
+import { ButtonLink, Kbd } from "@/components/admin/kit";
+import { ADMIN_ENTRY, ADMIN_NAV, MAIN_NAV } from "@/components/admin/workspace/guided-nav";
 import { useSession } from "@/lib/admin/store";
 import { AppIcon } from "./app-icon";
 import styles from "./catalog.module.css";
 
 /*
-  Herramientas (dirección B del boceto «Más», elegida por el titular el 14/11/2026): un solo panel
-  con tres columnas (Documentos · Calcular · Presentar y publicar); cada herramienta aparece una
-  vez, con su ícono pequeño y una línea de explicación. Sin tarjetas por herramienta, sin buscador,
-  filtros, contador ni estrellas (C45). Los antiguos accesos directos se integraron a su grupo:
-  «Machotes en blanco» es la vista «En blanco» de Documentos sueltos e «ISR y neto» ya estaba en
-  Calcular. Las ligas útiles y los trabajos de herramientas retiradas van discretos al pie.
+  Herramientas como lanzador (LV-10f, sistema combinado aprobado el 14/11/2026; reemplaza el «sin
+  buscador» de C45): arriba un buscador grande que filtra herramientas y secciones mientras se
+  escribe, las últimas que se abrieron en este navegador y, abajo, el panel de tres columnas de la
+  dirección B (Documentos · Calcular · Presentar y publicar). Se maneja completo con teclado: las
+  flechas recorren lo que se ve, Enter abre, Escape borra la búsqueda. Las secciones que aparecen son
+  las del menú de cada quien (Administración solo para el administrador).
 */
 
 type Entry = { key: string; href: string; title: string; text: string; icon: ReactNode };
@@ -46,6 +49,13 @@ const USEFUL_LINKS = [
   { href: "/herramientas/gastos-de-cierre", title: "Gastos de cierre del sitio", text: "La calculadora pública, para mandarla al cliente." },
 ] as const;
 
+/* Recientes de este navegador: es una comodidad de la pantalla, no un dato del panel. */
+const RECENT_KEY = "fortius.herramientas.recientes.v1";
+const crudo = () => { try { return localStorage.getItem(RECENT_KEY) ?? "[]"; } catch { return "[]"; } };
+const leerRecientes = (raw = crudo()): string[] => { try { const v = JSON.parse(raw); return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(0, 4) : []; } catch { return []; } };
+const anotarReciente = (href: string) => { try { localStorage.setItem(RECENT_KEY, JSON.stringify([href, ...leerRecientes().filter(x => x !== href)].slice(0, 4))); } catch { /* sin almacenamiento, sin recientes */ } };
+const suscribir = (cambio: () => void) => { window.addEventListener("storage", cambio); return () => window.removeEventListener("storage", cambio); };
+
 /** «Administración» junto al título de la pantalla, solo para el administrador. */
 export function CatalogActions() {
   const session = useSession();
@@ -53,23 +63,78 @@ export function CatalogActions() {
 }
 
 export function AppsCatalog() {
+  const router = useRouter();
+  const session = useSession();
+  const [query, setQuery] = React.useState("");
+  const raw = React.useSyncExternalStore(suscribir, crudo, () => "[]");
+  const recientes = React.useMemo(() => leerRecientes(raw), [raw]);
+  const zona = React.useRef<HTMLDivElement>(null);
   const entries = (group: AppGroup): Entry[] => {
     const apps = activeApps(group).map(app => ({ key: app.slug, href: appHref(app.slug), title: app.title, text: app.description, icon: <AppIcon name={app.icon} /> }));
     // La opinión de valor va junto a Documentos sueltos; lo demás, al final de su grupo.
     return group === "Documentos" ? [apps[0], ...EXTRA[group], ...apps.slice(1)].filter(Boolean) : [...apps, ...EXTRA[group]];
   };
-  return <div className="flex flex-col gap-6">
-    <div className={styles.panel}>
-      {APP_GROUPS.map(group => <section key={group} className={styles.column} aria-labelledby={`grupo-${group}`}>
-        <h2 id={`grupo-${group}`} className={styles.columnHead}>{GROUP_TITLE[group]}</h2>
-        <ul className={styles.items}>{entries(group).map(entry => <li key={entry.key}>
-          <Link href={entry.href} className={styles.item}>
-            <span className={styles.icon}>{entry.icon}</span>
-            <span className={styles.itemBody}><strong>{entry.title}</strong><span>{entry.text}</span></span>
-          </Link>
-        </li>)}</ul>
-      </section>)}
+  const grupos = APP_GROUPS.map(group => ({ group, items: entries(group).filter(entry => matchesQuery(`${entry.title} ${entry.text} ${GROUP_TITLE[group]}`, query)) }));
+  const todas = APP_GROUPS.flatMap(group => entries(group));
+  const secciones = [...MAIN_NAV.filter(item => item.href !== "/admin"), ...(session?.role === "admin" ? [ADMIN_ENTRY] : [])]
+    .filter(item => matchesQuery(item.label, query));
+  const recent = recientes.map(href => todas.find(entry => entry.href === href)).filter((entry): entry is Entry => !!entry);
+  const hay = grupos.some(g => g.items.length) || secciones.length > 0;
+
+  // Las flechas recorren todo lo que se puede abrir en el lanzador, en el orden en que se ve.
+  const destinos = () => [...(zona.current?.querySelectorAll<HTMLAnchorElement>("a[data-lanzador]") ?? [])];
+  function mover(event: React.KeyboardEvent) {
+    const lista = destinos();
+    if (!lista.length) return;
+    const i = lista.indexOf(document.activeElement as HTMLAnchorElement);
+    const ir = (n: number) => { event.preventDefault(); lista[(n + lista.length) % lista.length].focus(); };
+    if (event.key === "ArrowDown") ir(i + 1);
+    else if (event.key === "ArrowUp") { if (i <= 0) { event.preventDefault(); zona.current?.querySelector<HTMLInputElement>("input")?.focus(); } else ir(i - 1); }
+    else if (event.key === "Home" && i >= 0) ir(0);
+    else if (event.key === "End" && i >= 0) ir(lista.length - 1);
+  }
+  function enBuscador(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape" && query) { event.preventDefault(); event.stopPropagation(); setQuery(""); return; }
+    if (event.key === "Enter") {
+      const primero = destinos().find(a => !a.closest("[data-recientes]"));
+      if (primero) { event.preventDefault(); const href = primero.getAttribute("href")!; anotarReciente(href); router.push(href); }
+      return;
+    }
+    // Sin stopPropagation la flecha llegaría también al contenedor y saltaría al segundo destino.
+    if (event.key === "ArrowDown") { const primero = destinos()[0]; if (primero) { event.preventDefault(); event.stopPropagation(); primero.focus(); } }
+  }
+
+  return <div ref={zona} className="flex flex-col gap-6" onKeyDown={mover}>
+    <div className={styles.launch}>
+      <label className={styles.big}>
+        <Search size={22} aria-hidden="true" />
+        <span className="sr-only">Buscar herramienta o sección</span>
+        <input type="search" autoComplete="off" placeholder="Busca «hipoteca», «reportes»…" value={query} onChange={event => setQuery(event.target.value)} onKeyDown={enBuscador} aria-describedby="lanzador-ayuda" />
+      </label>
+      <p id="lanzador-ayuda" className={styles.help}><span><Kbd>↑ ↓</Kbd> recorre</span><span><Kbd>Enter</Kbd> abre</span><span><Kbd>Esc</Kbd> borra</span><span><Kbd>Ctrl K</Kbd> busca en todo el panel</span></p>
+      {!query && recent.length > 0 && <nav aria-label="Abiertas hace poco" className={styles.chips} data-recientes>
+        <span className={styles.chipsLabel}>Recientes</span>
+        {recent.map(entry => <Link key={entry.href} href={entry.href} data-lanzador className={styles.chip} onClick={() => anotarReciente(entry.href)}><span className={styles.chipIcon}>{entry.icon}</span>{entry.title}</Link>)}
+      </nav>}
     </div>
+    {!hay ? <p className={styles.none} role="status">Nada coincide con «{query.trim()}». Prueba con otra palabra o busca en todo el panel con Ctrl K.</p>
+      : <>
+        {grupos.some(g => g.items.length) && <div className={styles.panel}>
+          {grupos.filter(g => g.items.length).map(({ group, items }) => <section key={group} className={styles.column} aria-labelledby={`grupo-${group}`}>
+            <h2 id={`grupo-${group}`} className={styles.columnHead}>{GROUP_TITLE[group]}</h2>
+            <ul className={styles.items}>{items.map(entry => <li key={entry.key}>
+              <Link href={entry.href} data-lanzador className={styles.item} onClick={() => anotarReciente(entry.href)}>
+                <span className={styles.icon}>{entry.icon}</span>
+                <span className={styles.itemBody}><strong>{entry.title}</strong><span>{entry.text}</span></span>
+              </Link>
+            </li>)}</ul>
+          </section>)}
+        </div>}
+        {secciones.length > 0 && <nav aria-label="Secciones del panel" className={styles.chips}>
+          <span className={styles.chipsLabel}>También</span>
+          {secciones.map(item => { const Icon = item.icon; return <Link key={item.href} href={item.href} data-lanzador className={styles.chip}><span className={styles.chipIcon}><Icon size={16} aria-hidden /></span>{item.label}</Link>; })}
+        </nav>}
+      </>}
     <footer className={styles.footer}>
       <section aria-labelledby="ligas-utiles" className={styles.links}>
         <h2 id="ligas-utiles">Ligas útiles</h2>
