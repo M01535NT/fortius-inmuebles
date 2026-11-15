@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { PropertyShareActions } from "./property-share";
 import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2, EMPTY_ART } from "@/components/admin/icons";
-import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
+import { Avatar, Button, ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
 import { AsyncButton, AsyncSelect, inputClass } from "@/components/admin/ui";
 import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
@@ -14,7 +14,10 @@ import { emptyInventoryFilters, filterInventory, type InventoryFilters } from "@
 import { CAPTURE_STATUS_LABEL, type CaptureStatus } from "@/lib/admin/person-status";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
 import { ESTADO_LABELS, ESTADOS_POR_OPERACION, OPERACION_LABELS, estadoValido, formatPrecio, type Property } from "@/data/propiedades";
-import { db, removePropiedad, upsertPropiedad, useCollection, type AdminProperty } from "@/lib/admin/store";
+import { db, errorMessage, removePropiedad, upsertPropiedad, useCollection, type AdminProperty } from "@/lib/admin/store";
+import { UndoNotice, useUndo, type Undoable } from "@/components/admin/workspace/undo-notice";
+import { operationalDate } from "@/lib/admin/operational-date";
+import { faltantes, montoDe, pidenAlgoHoy } from "@/lib/admin/inmuebles-vitrina";
 import { PREP_ITEMS, openKeyLoans, prepState, type PrepItem } from "@/lib/propiedad-seguimiento";
 import { seekersFrom } from "@/lib/admin/buyer-matches";
 import { demandGroups } from "@/lib/admin/demand";
@@ -36,11 +39,7 @@ const LEGACY_VIEW = { key: "fortius.inmuebles.vista.v1", parse: (raw: string) =>
 
 /** Lo que le falta a un inmueble para promoverse: «fotos», «medidas», «precio». Sin faltantes, lista vacía. */
 export function propertyGaps(p: Property) {
-  const gaps: string[] = [];
-  if (!p.galeria?.length) gaps.push("fotos");
-  if (p.ficha.construccionM2 === undefined && p.ficha.terrenoM2 === undefined) gaps.push("medidas");
-  if (p.precio.modalidad === "consulta") gaps.push("precio");
-  return gaps;
+  return faltantes(p);
 }
 const listText = (items: string[]) => items.length > 1 ? items.slice(0, -1).join(", ") + " y " + items.at(-1) : items[0];
 const gapText = (gaps: string[]) => `${gaps.length === 1 ? "Falta" : "Faltan"} ${listText(gaps)}`;
@@ -80,7 +79,13 @@ export function PropertyList() {
   // COR-19: «Buscan y no tenemos» cambia la lista por la demanda sin cubrir.
   const [demand, setDemand] = React.useState(false);
   const leads = useCollection(db.leads), clients = useCollection(db.clientes);
-  const groups = React.useMemo(() => demandGroups(seekersFrom(leads, clients), properties), [leads, clients, properties]);
+  const seekers = React.useMemo(() => seekersFrom(leads, clients), [leads, clients]);
+  const groups = React.useMemo(() => demandGroups(seekers, properties), [seekers, properties]);
+  // LV-10f: la vitrina de lo que pide algo hoy, con su motivo y la acción que lo resuelve.
+  const today = operationalDate();
+  const pendientes = pidenAlgoHoy(properties, seekers, today, instant => operationalDate(new Date(instant)));
+  const undo = useUndo();
+  const [undoError, setUndoError] = React.useState("");
   const incomplete = properties.filter(p => p.estado !== "vendida" && p.estado !== "rentada" && propertyGaps(p).length > 0);
   const results = filterInventory(properties, filters).filter(p => !missingOnly || propertyGaps(p).length > 0);
   const pages = Math.max(1, Math.ceil(results.length / PAGE));
@@ -110,18 +115,33 @@ export function PropertyList() {
       : shown.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.inmuebles, kind: "buscar" }} title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
       : <>
       {viewError && <p role="alert" className="m-0 text-sm text-destructive">{viewError}</p>}
+      {undoError && <p role="alert" className="m-0 text-sm text-destructive">{undoError}</p>}
+      {pendientes.length > 0 && !filters.q && <section className={s.vitrina} aria-labelledby="piden-hoy">
+        <h2 id="piden-hoy" className={s.vitrinaHead}>Piden algo hoy<span>{pendientes.length}</span></h2>
+        <ul className={s.vitrinaList}>{pendientes.slice(0, 3).map(x => { const adviser = advisers.find(a => a.id === x.property.asesorId); return <li key={x.property.slug} className={s.vcard}>
+          <Thumb src={x.property.galeria[0]?.src} size={92} className={s.vthumb} />
+          <span className={s.vbody}>
+            <span className={s.vwhy} data-tone={x.tono}>{x.motivo}</span>
+            <b>{x.property.titulo}</b>
+            {adviser && <span className={s.vwho}><Avatar name={adviser.nombre} src={adviser.perfilPublico?.foto} size={20} />{adviser.nombre}</span>}
+            <ButtonLink href={x.href} aria-label={`${x.accion}: ${x.property.titulo}`}>{x.accion}</ButtonLink>
+          </span>
+        </li>; })}</ul>
+        {pendientes.length > 3 && <p className={s.vmore}>Y {pendientes.length - 3} más con algo pendiente.</p>}
+      </section>}
       <button type="button" className={s.viewToggle} onClick={toggleView}>{view === "filas" ? <><LayoutGrid size={16} aria-hidden="true" />Ver en tarjetas</> : <><List size={16} aria-hidden="true" />Ver en filas</>}</button>
-      <ul aria-label="Inmuebles" data-view={view} className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul></>}
+      <ul aria-label="Inmuebles" data-view={view} className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} offer={undo.offer} />)}</ul></>}
 
     {!demand && results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
       <button type="button" className={s.pageButton} disabled={current === 0} onClick={() => setPage(current - 1)}>Anterior</button>
       <span className="text-sm">Página {current + 1} de {pages}</span>
       <button type="button" className={s.pageButton} disabled={current + 1 >= pages} onClick={() => setPage(current + 1)}>Siguiente</button>
     </nav>}
+    <UndoNotice current={undo.current} clear={undo.clear} ms={undo.ms} onError={setUndoError} />
   </GuidedPage>;
 }
 
-function PropertyItem({ property: p, duplicated, adviser }: { property: AdminProperty; duplicated: boolean; adviser?: string }) {
+function PropertyItem({ property: p, duplicated, adviser, offer }: { property: AdminProperty; duplicated: boolean; adviser?: string; offer: (u: Undoable) => void }) {
   const state = propertyState(p, usePersonStatus().ofProperty(p.slug));
   const lent = openKeyLoans(p.llaves)[0];
   const prep = p.estado === "evaluacion" || p.estado === "disponible" ? prepText(p) : "";
@@ -145,9 +165,10 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
         {propertyGaps(p).length > 0 && <span className={s.gap}>{gapText(propertyGaps(p))}</span>}
         {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
         {(lent || prep) && <span className={s.meta}>{[lent && `Llaves con ${lent.persona}`, prep].filter(Boolean).join(" · ")}</span>}
-        <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><Pill size="sm" className={s.rowPill} data-strong={state.strong || undefined}>{state.label}</Pill>{p.origen === "compartido" && <span className={s.meta}>Compartido</span>}{p.demo && <span className={s.meta}>Ejemplo</span>}</span>
       </span>
     </Link>
+    {/* LV-10f: el precio va fuera del enlace para poder cambiarlo en su lugar. */}
+    <div className={`${s.priceRow} ${s.priceOut}`}><PrecioEnFila property={p} editable={scope.edit && !pending} offer={offer} /><Pill size="sm" className={s.rowPill} data-strong={state.strong || undefined}>{state.label}</Pill>{p.origen === "compartido" && <span className={s.meta}>Compartido</span>}{p.demo && <span className={s.meta}>Ejemplo</span>}</div>
     <details className={s.options}>
       <summary aria-label={`Opciones de ${p.titulo}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
       <div className={s.optionsBody}>
@@ -185,4 +206,48 @@ function FeaturedButton({ property }: { property: Property }) {
     onClick={async () => await upsertPropiedad({ ...property, destacada: !property.destacada }, db.propiedades.version(property))}>
     <Star size={15} aria-hidden="true" fill={property.destacada ? "currentColor" : "none"} />{property.destacada ? "Destacada" : "Marcar destacada"}
   </AsyncButton>;
+}
+
+/*
+  LV-10f · Precio en su lugar: se pulsa, se escribe y se guarda con la versión del inmueble (un 409
+  abre la ventana de conflicto). «Deshacer» vuelve a guardar el precio de antes. «Valor a consulta»
+  y los inmuebles de otro asesor no se cambian aquí.
+*/
+function PrecioEnFila({ property: p, editable, offer }: { property: AdminProperty; editable: boolean; offer: (u: Undoable) => void }) {
+  const [texto, setTexto] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState("");
+  const boton = React.useRef<HTMLButtonElement>(null);
+  const id = React.useId();
+  const antes = p.precio;
+  const cerrar = () => { setTexto(null); setError(""); requestAnimationFrame(() => boton.current?.focus()); };
+  if (texto === null || antes.modalidad !== "publico") {
+    const amount = <span className={s.amount} data-pending={antes.modalidad === "consulta" || undefined}>{formatPrecio(antes)}</span>;
+    return editable && antes.modalidad === "publico"
+      ? <button ref={boton} type="button" className={s.priceEdit} aria-label={`Cambiar el precio de ${p.titulo}: ${formatPrecio(antes)}`} onClick={() => setTexto(String(antes.monto))}>{amount}<Pencil size={14} aria-hidden="true" /></button>
+      : amount;
+  }
+  const publico = antes;
+  async function guardar(event: React.FormEvent) {
+    event.preventDefault();
+    const monto = montoDe(texto ?? "");
+    if (!monto) { setError("Escribe el precio en números, sin centavos."); return; }
+    if (monto === publico.monto) { cerrar(); return; }
+    setBusy(true); setError("");
+    try {
+      await upsertPropiedad({ ...p, precio: { ...publico, monto } }, db.propiedades.version(p));
+      cerrar();
+      offer({ text: `Nuevo precio de «${p.titulo}»: ${formatPrecio({ ...publico, monto })}.`, undo: async () => {
+        const ahora = db.propiedades.list().find(x => x.slug === p.slug) ?? p;
+        await upsertPropiedad({ ...ahora, precio: publico }, db.propiedades.version(ahora));
+      } });
+    } catch (cause) { setError(errorMessage(cause)); }
+    finally { setBusy(false); }
+  }
+  return <form className={s.priceForm} onSubmit={guardar} onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); cerrar(); } }}>
+    <label htmlFor={id} className="sr-only">Precio de {p.titulo} en {publico.moneda}</label>
+    <span className={s.priceInput}><span aria-hidden="true">$</span><input id={id} inputMode="numeric" autoComplete="off" autoFocus value={texto} onChange={event => setTexto(event.target.value)} /><span aria-hidden="true">{publico.moneda}{publico.periodo === "mensual" ? " /mes" : ""}</span></span>
+    <span className={s.priceActs}><Button type="submit" variant="primary" disabled={busy}>{busy ? "Guardando…" : "Guardar"}</Button><Button variant="ghost" onClick={cerrar}>Cancelar</Button></span>
+    {error && <p role="alert" className={s.priceError}>{error}</p>}
+  </form>;
 }

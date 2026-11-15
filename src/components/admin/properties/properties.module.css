@@ -72,3 +72,36 @@
   :global(.admin-root) .grid[data-view=filas] .rowPill[data-strong] { background: var(--warning-surface); color: var(--warning); }
   :global(.admin-root) .grid[data-view=filas] .options > summary { top: 1.125rem; bottom: auto; right: .375rem; background: transparent; backdrop-filter: none; color: var(--foreground); }
 }
+
+/* LV-10f · Vitrina de lo que pide algo hoy */
+:global(.admin-root) .vitrina { display: grid; gap: .625rem; margin-bottom: 1rem; }
+:global(.admin-root) .vitrinaHead { display: flex; align-items: baseline; gap: .5rem; margin: 0; font-size: var(--admin-text-grupo); font-weight: 600; }
+:global(.admin-root) .vitrinaHead span { color: var(--muted-foreground); font-weight: 540; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .vitrinaList { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: .75rem; margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .vcard { display: grid; grid-template-columns: 92px minmax(0, 1fr); overflow: hidden; border: 1px solid var(--card-edge); border-radius: var(--radius-card); background: var(--card); }
+:global(.admin-root) .vthumb { width: 92px !important; height: 100% !important; min-height: 92px; border-radius: 0 !important; }
+:global(.admin-root) .vbody { display: grid; gap: .3rem; align-content: start; justify-items: start; min-width: 0; padding: .75rem .875rem; }
+:global(.admin-root) .vbody > b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+:global(.admin-root) .vwhy { font-size: var(--admin-text-detalle); font-weight: 600; }
+:global(.admin-root) .vwhy[data-tone=alert] { color: var(--alert); }
+:global(.admin-root) .vwhy[data-tone=warn] { color: var(--warning); }
+:global(.admin-root) .vwhy[data-tone=info] { color: var(--info); }
+:global(.admin-root) .vwho { display: inline-flex; align-items: center; gap: .375rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
+:global(.admin-root) .vmore { margin: 0; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
+
+/* LV-10f · Precio en su lugar */
+:global(.admin-root) .priceOut { margin-top: -.5rem; padding: 0 3.5rem .875rem 1rem; }
+:global(.admin-root) .priceEdit { display: inline-flex; align-items: center; gap: .375rem; min-height: 44px; margin: -.5rem -.5rem; padding: 0 .5rem; border: 0; border-radius: var(--radius-control); background: none; color: var(--foreground); font: inherit; cursor: pointer; }
+:global(.admin-root) .priceEdit svg { color: var(--muted-foreground); opacity: .55; transition: opacity 160ms ease-out; }
+:global(.admin-root) .priceEdit:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); }
+:global(.admin-root) .priceEdit:hover svg, :global(.admin-root) .priceEdit:focus-visible svg { opacity: 1; }
+:global(.admin-root) .priceForm { display: grid; gap: .5rem; width: 100%; }
+:global(.admin-root) .priceInput { display: flex; align-items: center; gap: .375rem; min-height: 44px; padding: 0 .625rem; border: 1px solid var(--control-edge); border-radius: var(--radius-control); background: var(--field-surface); color: var(--muted-foreground); }
+:global(.admin-root) .priceInput:focus-within { border-color: var(--focus-color); outline: 3px solid color-mix(in srgb, var(--focus-color) 30%, transparent); }
+:global(.admin-root) .priceInput input { flex: 1; min-width: 0; padding: 0; border: 0 !important; background: none !important; box-shadow: none; outline: none !important; color: var(--foreground); font: inherit; font-weight: 600; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .priceActs { display: flex; gap: .375rem; flex-wrap: wrap; }
+:global(.admin-root) .priceError { margin: 0; color: var(--alert); font-size: var(--admin-text-detalle); }
+@media (prefers-reduced-motion: reduce) { :global(.admin-root) .priceEdit svg { transition: none; } }
+@media (max-width: 767px) {
+  :global(.admin-root) .grid[data-view=filas] .priceOut { margin-top: -.375rem; padding: 0 3.5rem .5rem 5.75rem; }
+}
