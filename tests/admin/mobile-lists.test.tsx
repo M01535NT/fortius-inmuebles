@@ -110,6 +110,8 @@ test("mobile property deletion requires confirmation and retains the row when th
   render(<PropiedadesPage />);
   const list = await screen.findByRole("list", { name: "Inmuebles" });
   const confirm = vi.mocked(confirmAction).mockResolvedValue(false);
+  // Las opciones se abren con «⋯» (Radix Collapsible): cerradas no están en la página.
+  fireEvent.click(within(list).getByRole("button", { name: `Opciones de ${property.titulo}` }));
   const remove = within(list).getByRole("button", { name: `Eliminar ${property.titulo}` });
   fireEvent.click(remove);
   await waitFor(() => expect(remove.getAttribute("aria-busy")).toBe("false"));

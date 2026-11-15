@@ -181,10 +181,10 @@ test("SIM-19: la preparación se marca con una casilla y guarda al momento", asy
   window.history.replaceState(null, "", "/admin/propiedades/casa/editar?tab=material");
   render(<PropertyFile slug="casa" />);
   const list = within(await screen.findByRole("list", { name: "Lista de preparación" }));
-  expect((list.getByRole("checkbox", { name: /Sesión de fotos/ }) as HTMLInputElement).checked).toBe(true);
+  expect(list.getByRole("checkbox", { name: /Sesión de fotos/ }).getAttribute("aria-checked")).toBe("true");
   fireEvent.click(list.getByRole("checkbox", { name: /Video/ }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ preparacion: { video: { estado: "listo" } } });
-  await waitFor(() => expect((list.getByRole("checkbox", { name: /Video/ }) as HTMLInputElement).checked).toBe(true));
+  await waitFor(() => expect(list.getByRole("checkbox", { name: /Video/ }).getAttribute("aria-checked")).toBe("true"));
   expect(screen.queryByRole("button", { name: "Guardar preparación" })).toBeNull();
 });

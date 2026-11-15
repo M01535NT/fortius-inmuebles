@@ -10,6 +10,12 @@ import type { Archivo, Evento } from "@/lib/domain/records";
 import type { Task } from "@/lib/tasks";
 import { ACREEDORES, PASO_CLAVES, conNotario, TOTAL_PASOS, documentoDelPaso, faltanParaCerrar, nuevoTramite, pasosDe, textoDelAvance, type Acreedor, type Tramite, type TramiteNota } from "@/lib/tramites";
 import { cn } from "@/lib/utils";
+import { Popover as PopoverPrimitive } from "radix-ui";
+import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Label, Switch } from "@/components/ui/controls";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { useIsDirector } from "@/lib/admin/staff-scope";
 import { operationHref, type OperationRecord } from "@/lib/admin/operation-view";
 import { cancelacionInscrita, MOTIVO_MINIMO } from "@/lib/admin/tramite-firma";
@@ -97,7 +103,7 @@ export function TramitesApp({ initialId = null }: { initialId?: string | null })
             onBack={() => setShowDetail(false)} offer={undo.offer} onError={setError} error={error} />
         : <div className={s.center}><p className={s.empty}>{selected ? "Este trámite no existe o no tienes acceso." : "Elige un trámite de la lista."}</p></div>}
     </main>
-    <NuevoTramite open={creating} onClose={() => setCreating(false)} me={me} clientes={clientes} propiedades={propiedades.map(p => ({ slug: p.slug, titulo: p.titulo, asesorId: p.asesorId }))} onCreated={id => { setCreating(false); setFiltro("curso"); open(id); }} />
+    <NuevoTramite open={creating} onClose={() => setCreating(false)} me={me} clientes={clientes} propiedades={propiedades.map(p => ({ slug: p.slug, titulo: p.titulo, asesorId: p.asesorId, foto: p.galeria[0]?.src }))} onCreated={id => { setCreating(false); setFiltro("curso"); open(id); }} />
     <UndoNotice current={undo.current} clear={undo.clear} ms={undo.ms} onError={setError} className={s.toast} />
   </div>;
 }
@@ -113,8 +119,8 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
   const pasos = pasosDe(t.acreedor);
   const [ver, setVer] = React.useState<number | null>(null);
   const [busy, setBusy] = React.useState(false);
-  const [taskAt, setTaskAt] = React.useState<{ x: number; y: number; agenda: boolean } | null>(null);
-  const [waitAt, setWaitAt] = React.useState<{ x: number; y: number } | null>(null);
+  const [taskAt, setTaskAt] = React.useState<{ at: Anchor; agenda: boolean } | null>(null);
+  const [waitAt, setWaitAt] = React.useState<Anchor | null>(null);
   const [report, setReport] = React.useState(false);
   const [viewer, setViewer] = React.useState<number | null>(null);
   const noteRef = React.useRef<HTMLTextAreaElement>(null);
@@ -133,7 +139,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
       const tag = (e.target as HTMLElement | null)?.tagName?.toLowerCase();
       if (e.ctrlKey || e.metaKey || e.altKey || tag === "input" || tag === "textarea" || tag === "select" || document.querySelector("[role=dialog]")) return;
       const k = e.key.toLowerCase();
-      if (k === "t") { e.preventDefault(); setTaskAt({ x: window.innerWidth / 2 - 200, y: 120, agenda: false }); }
+      if (k === "t") { e.preventDefault(); setTaskAt({ at: null, agenda: false }); }
       else if (k === "n") { e.preventDefault(); noteRef.current?.focus(); }
       else if (k === "r") { e.preventDefault(); setReport(true); }
     }
@@ -145,7 +151,8 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
   const shown = ver ?? actual;
   const terminado = t.pasoActual >= TOTAL_PASOS;
   const faltan = terminado ? [] : faltanParaCerrar(t, documentos);
-  const anchor = (el: HTMLElement) => { const r = el.getBoundingClientRect(); return { x: Math.max(16, Math.min(r.right - 400, window.innerWidth - 416)), y: r.bottom + 8 }; };
+  // La ventanita sale pegada al botón que la abrió (con la tecla T, arriba al centro).
+  const anchor = (el: HTMLElement): Anchor => el.getBoundingClientRect();
 
   async function toggle(i: number) {
     const next: Tramite = { ...t, pasos: t.pasos.map((p, k) => k !== actual ? p : { ...p, pendientes: p.pendientes.map((x, j) => j === i ? { ...x, hecho: !x.hecho } : x) }) };
@@ -184,7 +191,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
         <span>Cancelación de hipoteca · {ACREEDORES[t.acreedor]}{cliente ? ` · ${cliente.nombre}` : ""}{propiedad ? ` · ${propiedad}` : ""}{t.creadoEl ? ` · lleva ${Math.max(0, daysBetween(t.creadoEl.slice(0, 10), today))} días` : ""}</span>
       </div>
       <div className={s.actions}>
-        <Button onClick={e => setTaskAt({ ...anchor(e.currentTarget), agenda: false })}><Plus size={16} aria-hidden />Tarea <Kbd>T</Kbd></Button>
+        <Button onClick={e => setTaskAt({ at: anchor(e.currentTarget), agenda: false })}><Plus size={16} aria-hidden />Tarea <Kbd>T</Kbd></Button>
         <Button variant="primary" onClick={() => setReport(true)}><MessageCircle size={16} aria-hidden />Enviar avance</Button>
       </div>
     </div>
@@ -269,7 +276,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
 
       <aside className={s.inspector} aria-label="Detalles del trámite">
         <div className={s.blk}>
-          <div className={s.blkHead}><h5>Tareas y citas</h5><Button variant="ghost" onClick={e => setTaskAt({ ...anchor(e.currentTarget), agenda: false })}><Plus size={14} aria-hidden />Agregar</Button></div>
+          <div className={s.blkHead}><h5>Tareas y citas</h5><Button variant="ghost" onClick={e => setTaskAt({ at: anchor(e.currentTarget), agenda: false })}><Plus size={14} aria-hidden />Agregar</Button></div>
           {!tareas.length && !citas.length && <p className={s.meta}>Sin tareas. Pulsa T para crear una.</p>}
           {[...tareas].sort((a, b) => (a.vence ?? "").localeCompare(b.vence ?? "")).map(x => <button key={x.id} type="button" role="checkbox" aria-checked={x.estado === "completada"} className={s.todo}
             onClick={async () => { try { const v = db.tareas.version(x); const was = x.estado; await upsert(db.tareas, { ...x, estado: was === "completada" ? "pendiente" : "completada" }, v); if (was !== "completada") offer({ text: "Tarea hecha", undo: async () => { const l = db.tareas.list().find(r => r.id === x.id); if (l) await upsert(db.tareas, { ...l, estado: "pendiente" }, db.tareas.version(l)); } }); } catch (e) { onError(errorMessage(e)); } }}>
@@ -313,7 +320,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
       </aside>
     </div>
 
-    {taskAt && <QuickTask at={taskAt} today={today} onClose={() => setTaskAt(null)} onSave={async (titulo, vence, hora) => {
+    {taskAt && <QuickTask at={taskAt.at} agenda={taskAt.agenda} today={today} onClose={() => setTaskAt(null)} onSave={async (titulo, vence, hora) => {
       try {
         if (hora) await upsert(db.eventos, { id: `ev-${uid()}`, titulo, fecha: vence, hora, tipo: "llamada", clienteId: t.clienteId, propiedadSlug: t.propiedadSlug || undefined, asesorId: t.asesorId, tramiteId: t.id }, null);
         else await upsert(db.tareas, { id: `ta-${uid()}`, titulo, descripcion: `Trámite: ${t.titulo}`, categoria: "documentacion", estado: "pendiente", prioridad: "normal", vence, pasos: [], clienteId: t.clienteId, asesorId: t.asesorId, propiedadSlug: t.propiedadSlug || undefined, tramiteId: t.id }, null);
@@ -351,10 +358,11 @@ function VentaLigada({ t, busy, director, sessionId, today, save }: { t: Tramite
     <div className={s.blkHead}><h5>Venta ligada</h5></div>
     {!t.expedienteId
       ? ventas === null ? <p className={s.meta}>Buscando ventas del propietario…</p>
-        : ventas.length ? <label className={s.kvRow}><span>Ligar a</span>
-            <select className={s.kvInput} disabled={busy} value="" onChange={e => { if (e.target.value) void save({ ...t, expedienteId: e.target.value }); }}>
-              <option value="">Elegir venta</option>{ventas.map(o => <option key={o.id} value={o.id}>{o.folio}{o.unidad ? ` · ${o.unidad}` : ""}</option>)}
-            </select></label>
+        : ventas.length ? <div className={s.kvRow}><span id={`ligar-${t.id}`}>Ligar a</span>
+            <Select value="" disabled={busy} onValueChange={v => { if (v) void save({ ...t, expedienteId: v }); }}>
+              <SelectTrigger size="sm" aria-labelledby={`ligar-${t.id}`} className="w-[58%]"><SelectValue placeholder="Elegir venta" /></SelectTrigger>
+              <SelectContent>{ventas.map(o => <SelectItem key={o.id} value={o.id}>{o.folio}{o.unidad ? ` · ${o.unidad}` : ""}</SelectItem>)}</SelectContent>
+            </Select></div>
         : <p className={s.meta}>El propietario no tiene ventas en el panel.</p>
       : <div className={s.firma} data-estado={cancelacionInscrita(t) ? "inscrita" : decision ? "autorizada" : "frena"}>
           <p className={s.firmaVenta}>{venta ? <Link href={operationHref(venta.id)}>Venta {venta.folio}</Link> : "Venta del asunto"}</p>
@@ -425,22 +433,25 @@ function CreditoField({ label, value, onSave }: { label: string; value?: string;
   </label>;
 }
 
-function Popover({ at, onClose, label, children }: { at: { x: number; y: number }; onClose: () => void; label: string; children: React.ReactNode }) {
-  React.useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k); }, [onClose]);
-  return <>
-    <button type="button" className={s.scrim} aria-label="Cerrar" tabIndex={-1} onClick={onClose} />
-    <div className={s.pop} role="dialog" aria-label={label} style={{ left: at.x, top: Math.min(at.y, window.innerHeight - 280) }}>{children}</div>
-  </>;
+type Anchor = Pick<DOMRect, "x" | "y" | "width" | "height"> | null;
+
+/** Ventanita de Tarea y de Espera sobre Radix Popover (DEC-52): el foco entra, Escape o tocar fuera la cierran y el foco vuelve. */
+function QuickPop({ at, onClose, label, children }: { at: Anchor; onClose: () => void; label: string; children: React.ReactNode }) {
+  const virtual = React.useMemo(() => ({ current: { getBoundingClientRect: () => at ? DOMRect.fromRect(at) : new DOMRect(window.innerWidth / 2, 112, 0, 0) } }), [at]);
+  return <Popover open onOpenChange={open => { if (!open) onClose(); }}>
+    <PopoverPrimitive.Anchor virtualRef={virtual} />
+    <PopoverContent aria-label={label} align={at ? "end" : "center"} className={s.pop}>{children}</PopoverContent>
+  </Popover>;
 }
 
-function QuickTask({ at, today, onClose, onSave }: { at: { x: number; y: number; agenda: boolean }; today: string; onClose: () => void; onSave: (titulo: string, vence: string, hora?: string) => Promise<void> }) {
+function QuickTask({ at, agenda: startAgenda, today, onClose, onSave }: { at: Anchor; agenda: boolean; today: string; onClose: () => void; onSave: (titulo: string, vence: string, hora?: string) => Promise<void> }) {
   const [titulo, setTitulo] = React.useState("");
   const [dias, setDias] = React.useState(1);
-  const [agenda, setAgenda] = React.useState(at.agenda);
+  const [agenda, setAgenda] = React.useState(startAgenda);
   const [hora, setHora] = React.useState("10:00");
   const [busy, setBusy] = React.useState(false);
   async function go() { if (!titulo.trim()) return; setBusy(true); await onSave(titulo.trim(), plusDays(today, dias), agenda ? hora : undefined); setBusy(false); }
-  return <Popover at={at} onClose={onClose} label="Nueva tarea">
+  return <QuickPop at={at} onClose={onClose} label="Nueva tarea">
     <input autoFocus className={s.popInput} value={titulo} maxLength={160} placeholder={agenda ? "¿Con quién y para qué?" : "¿Qué hay que hacer?"} onChange={e => setTitulo(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); void go(); } }} />
     <div className={s.chips} role="group" aria-label="Para cuándo">{[[0, "Hoy"], [1, "Mañana"], [3, "En 3 días"], [7, "En una semana"]].map(([n, l]) => <button key={n} type="button" className={s.chip} aria-pressed={dias === n} onClick={() => setDias(n as number)}>{l}</button>)}</div>
     <div className={s.chips}>
@@ -448,10 +459,10 @@ function QuickTask({ at, today, onClose, onSave }: { at: { x: number; y: number;
       {agenda && ["09:00", "10:00", "12:00", "17:00"].map(h => <button key={h} type="button" className={s.chip} aria-pressed={hora === h} onClick={() => setHora(h)}>{h}</button>)}
     </div>
     <div className={s.popFoot}><span>{agenda ? "Va a la agenda con hora" : "Aparece en «Hoy» el día que toca"}</span><Button variant="primary" disabled={busy || !titulo.trim()} onClick={() => void go()}>Guardar</Button></div>
-  </Popover>;
+  </QuickPop>;
 }
 
-function QuickWait({ at, today, acreedor, paso, onClose, onSave }: { at: { x: number; y: number }; today: string; acreedor: Acreedor; paso: string; onClose: () => void; onSave: (quien: string, volver: string) => Promise<void> }) {
+function QuickWait({ at, today, acreedor, paso, onClose, onSave }: { at: Anchor; today: string; acreedor: Acreedor; paso: string; onClose: () => void; onSave: (quien: string, volver: string) => Promise<void> }) {
   // Quién suele tener la respuesta en cada paso (Infonavit y Fovissste no pasan por notario).
   const sugerido = paso === "registro" || paso === "certificado" ? "Registro Público"
     : conNotario(acreedor) && (paso === "notario" || paso === "firma") ? "la notaría"
@@ -460,11 +471,11 @@ function QuickWait({ at, today, acreedor, paso, onClose, onSave }: { at: { x: nu
   const [quien, setQuien] = React.useState(sugerido);
   const [dias, setDias] = React.useState(paso === "registro" ? 14 : 7);
   const [busy, setBusy] = React.useState(false);
-  return <Popover at={at} onClose={onClose} label="Marcar en espera">
+  return <QuickPop at={at} onClose={onClose} label="Marcar en espera">
     <input autoFocus className={s.popInput} value={quien} maxLength={120} aria-label="¿De quién esperas respuesta?" onChange={e => setQuien(e.target.value)} />
     <div className={s.chips} role="group" aria-label="Volver a preguntar en">{[3, 7, 14, 30].map(n => <button key={n} type="button" className={s.chip} aria-pressed={dias === n} onClick={() => setDias(n)}>En {n} días</button>)}</div>
     <div className={s.popFoot}><span>Se crea la tarea para el {shortDate(plusDays(today, dias))}</span><Button variant="primary" disabled={busy || !quien.trim()} onClick={async () => { setBusy(true); await onSave(quien.trim(), plusDays(today, dias)); setBusy(false); }}>Guardar</Button></div>
-  </Popover>;
+  </QuickPop>;
 }
 
 function Avance({ open, onClose, t, propietario, firma, telefono, email, onSent }: { open: boolean; onClose: () => void; t: Tramite; propietario: string; firma: string; telefono?: string; email?: string; onSent: (m: "whatsapp" | "correo" | "pdf") => Promise<void> }) {
@@ -496,7 +507,7 @@ function Avance({ open, onClose, t, propietario, firma, telefono, email, onSent 
     <div className="grid gap-4">
       <Segmented label="Cómo lo mandas" value={medio} onChange={setMedio} options={[{ id: "whatsapp", label: "WhatsApp", disabled: !telefono }, { id: "correo", label: "Correo", disabled: !email }, { id: "pdf", label: "PDF" }]} />
       <div className={s.bubble}>{texto}</div>
-      <div>{(Object.keys(labels) as Array<keyof typeof labels>).map(k => <label key={k} className={s.sw}>{labels[k]}<input type="checkbox" checked={partes[k]} onChange={e => setPartes({ ...partes, [k]: e.target.checked })} /></label>)}</div>
+      <div role="group" aria-label="Qué incluye el mensaje">{(Object.keys(labels) as Array<keyof typeof labels>).map(k => <Label key={k} htmlFor={`avance-${k}`} className={s.sw}>{labels[k]}<Switch id={`avance-${k}`} checked={partes[k]} onCheckedChange={on => setPartes({ ...partes, [k]: on })} /></Label>)}</div>
       <p className={s.meta}>Las notas internas nunca se incluyen. El mensaje lo mandas tú desde tu WhatsApp o tu correo; aquí queda registrado que se envió.</p>
     </div>
   </Sheet>;
@@ -515,17 +526,17 @@ function Visor({ docs, index, onIndex, onClose }: { docs: Archivo[]; index: numb
     resolveFileUrl(d.url).then(u => { if (alive) setFile({ src: d.url, url: u }); }).catch(e => { if (alive) setFile({ src: d.url, err: errorMessage(e) }); });
     return () => { alive = false; };
   }, [d.url]);
-  React.useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); if (e.key === "ArrowRight") onIndex((index + 1) % docs.length); if (e.key === "ArrowLeft") onIndex((index - 1 + docs.length) % docs.length); };
-    document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k);
-  }, [index, docs.length, onClose, onIndex]);
-  return <div className={s.viewer} role="dialog" aria-modal="true" aria-label={`Documento: ${d.nombre}`}>
+  // Radix Dialog (DEC-52) encierra el foco, cierra con Escape y devuelve el foco al documento; las flechas cambian de documento.
+  const onKey = (e: React.KeyboardEvent) => { if (e.key === "ArrowRight") onIndex((index + 1) % docs.length); if (e.key === "ArrowLeft") onIndex((index - 1 + docs.length) % docs.length); };
+  return <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
+  <DialogContent instant hideClose onKeyDown={onKey}
+    className={cn(s.viewer, "left-0 top-0 h-dvh max-h-none w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none border-0 p-0")}>
     <div className={s.vHead}>
-      <div><b>{d.nombre}</b><span>{index + 1} de {docs.length} · ← → para cambiar · Esc para cerrar</span></div>
+      <div><DialogTitle asChild><b>{d.nombre}</b></DialogTitle><DialogDescription asChild><span>{index + 1} de {docs.length} · ← → para cambiar · Esc para cerrar</span></DialogDescription></div>
       {d.tipo === "imagen" && <><button type="button" className={s.vBtn} aria-label="Alejar" onClick={() => setZoom(z => Math.max(.5, z - .25))}><ZoomOut size={18} aria-hidden /></button>
         <button type="button" className={s.vBtn} aria-label="Acercar" onClick={() => setZoom(z => Math.min(3, z + .25))}><ZoomIn size={18} aria-hidden /></button></>}
       {url && <a className={s.vBtn} href={url} target="_blank" rel="noreferrer" aria-label="Abrir en otra pestaña"><FileText size={18} aria-hidden /></a>}
-      <button type="button" className={s.vBtn} aria-label="Cerrar" autoFocus onClick={onClose}><X size={18} aria-hidden /></button>
+      <button type="button" className={s.vBtn} aria-label="Cerrar" onClick={onClose}><X size={18} aria-hidden /></button>
     </div>
     <div className={s.vBody}>
       {docs.length > 1 && <span className={s.vNav} data-side="l"><button type="button" className={s.vBtn} aria-label="Anterior" onClick={() => onIndex((index - 1 + docs.length) % docs.length)}><ChevronLeft size={18} aria-hidden /></button></span>}
@@ -533,10 +544,11 @@ function Visor({ docs, index, onIndex, onClose }: { docs: Archivo[]; index: numb
         <img src={url} alt={d.nombre} style={{ transform: `scale(${zoom})` }} /> : <iframe src={url} title={d.nombre} />}
       {docs.length > 1 && <span className={s.vNav} data-side="r"><button type="button" className={s.vBtn} aria-label="Siguiente" onClick={() => onIndex((index + 1) % docs.length)}><ChevronRight size={18} aria-hidden /></button></span>}
     </div>
-  </div>;
+  </DialogContent>
+  </Dialog>;
 }
 
-function NuevoTramite({ open, onClose, me, clientes, propiedades, onCreated }: { open: boolean; onClose: () => void; me: string | null; clientes: Array<{ id: string; nombre: string; asesorId?: string; tipo: string }>; propiedades: Array<{ slug: string; titulo: string; asesorId: string }>; onCreated: (id: string) => void }) {
+function NuevoTramite({ open, onClose, me, clientes, propiedades, onCreated }: { open: boolean; onClose: () => void; me: string | null; clientes: Array<{ id: string; nombre: string; asesorId?: string; tipo: string }>; propiedades: Array<{ slug: string; titulo: string; asesorId: string; foto?: string }>; onCreated: (id: string) => void }) {
   const [acreedor, setAcreedor] = React.useState<Acreedor>("infonavit");
   const [clienteId, setClienteId] = React.useState("");
   const [slug, setSlug] = React.useState("");
@@ -562,12 +574,14 @@ function NuevoTramite({ open, onClose, me, clientes, propiedades, onCreated }: {
     footer={<div className="flex justify-end gap-2"><Button onClick={onClose}>Cancelar</Button><Button variant="primary" disabled={busy || !clienteId} onClick={() => void crear()}>{busy ? "Abriendo…" : "Abrir trámite"}</Button></div>}>
     <div className="grid gap-4">
       <Segmented label="Acreedor" value={acreedor} onChange={setAcreedor} options={(Object.keys(ACREEDORES) as Acreedor[]).map(id => ({ id, label: ACREEDORES[id] }))} />
-      <label className="grid gap-1.5 text-sm font-semibold">Propietario
-        <select className={field} value={clienteId} onChange={e => setClienteId(e.target.value)}><option value="">Elige un contacto</option>{opciones.map(c => <option key={c.id} value={c.id}>{c.nombre}{c.tipo !== "propietario" ? ` (${c.tipo})` : ""}</option>)}</select>
-      </label>
-      <label className="grid gap-1.5 text-sm font-semibold">Inmueble (opcional)
-        <select className={field} value={slug} onChange={e => setSlug(e.target.value)}><option value="">Sin inmueble en cartera</option>{propiedades.filter(p => !me || p.asesorId === me).map(p => <option key={p.slug} value={p.slug}>{p.titulo}</option>)}</select>
-      </label>
+      <div className="grid gap-1.5 text-sm font-semibold"><label htmlFor="nuevo-tramite-propietario">Propietario</label>
+        <Combobox id="nuevo-tramite-propietario" value={clienteId} onChange={setClienteId} placeholder="Elige un contacto" searchPlaceholder="Buscar por nombre…" empty="Nadie con ese nombre"
+          options={opciones.map(c => ({ value: c.id, label: c.nombre, detail: c.tipo === "propietario" ? "Propietario" : c.tipo, media: <Avatar name={c.nombre} size={24} /> }))} />
+      </div>
+      <div className="grid gap-1.5 text-sm font-semibold"><label htmlFor="nuevo-tramite-inmueble">Inmueble (opcional)</label>
+        <Combobox id="nuevo-tramite-inmueble" value={slug} onChange={setSlug} placeholder="Sin inmueble en cartera" searchPlaceholder="Buscar inmueble…" empty="Ningún inmueble con ese nombre"
+          options={[{ value: "", label: "Sin inmueble en cartera" }, ...propiedades.filter(p => !me || p.asesorId === me).map(p => ({ value: p.slug, label: p.titulo, media: <Thumb src={p.foto} size={24} /> }))]} />
+      </div>
       <label className="grid gap-1.5 text-sm font-semibold">Nombre corto (opcional)
         <input className={field} value={titulo} maxLength={160} placeholder="Ej.: Casa en Otay" onChange={e => setTitulo(e.target.value)} />
       </label>

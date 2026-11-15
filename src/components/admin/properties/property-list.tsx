@@ -22,6 +22,7 @@ import { PREP_ITEMS, openKeyLoans, prepState, type PrepItem } from "@/lib/propie
 import { seekersFrom } from "@/lib/admin/buyer-matches";
 import { demandGroups } from "@/lib/admin/demand";
 import { DemandView } from "./demand-view";
+import { Disclosure } from "./disclosure";
 import s from "./properties.module.css";
 
 /*
@@ -105,10 +106,9 @@ export function PropertyList() {
     <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia o calle" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>
     <ButtonLink href="/admin/propiedades/nueva" variant="primary"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
   </>}>
-    {!demand && <details className={s.more}>
-      <summary>Más filtros{extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}</summary>
+    {!demand && <Disclosure className={s.more} title={`Más filtros${extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}`}>
       <div className="mt-3"><InventoryControls value={filters} onChange={update} advisers={advisers} count={results.length} hideSearch /></div>
-    </details>}
+    </Disclosure>}
 
     {demand ? <DemandView groups={groups} />
       : properties.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.inmuebles, kind: "empezar" }} title="Todavía no hay inmuebles" steps={["Agrégalo aquí o al terminar la entrevista con el propietario.", "Sube sus fotos y completa la ficha.", "Publícalo en el sitio cuando el propietario lo autorice."]} action={<ButtonLink href="/admin/propiedades/nueva">Agregar inmueble</ButtonLink>}>Los inmuebles que Fortius vende o renta. Solo lo que publicas aparece en el sitio.</EmptyBox>
@@ -169,8 +169,8 @@ function PropertyItem({ property: p, duplicated, adviser, offer }: { property: A
     </Link>
     {/* LV-10f: el precio va fuera del enlace para poder cambiarlo en su lugar. */}
     <div className={`${s.priceRow} ${s.priceOut}`}><PrecioEnFila property={p} editable={scope.edit && !pending} offer={offer} /><Pill size="sm" className={s.rowPill} data-strong={state.strong || undefined}>{state.label}</Pill>{p.origen === "compartido" && <span className={s.meta}>Compartido</span>}{p.demo && <span className={s.meta}>Ejemplo</span>}</div>
-    <details className={s.options}>
-      <summary aria-label={`Opciones de ${p.titulo}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
+    {/* Se abre en su lugar, debajo de la tarjeta (Radix Collapsible, DEC-52): estado, datos y acciones del inmueble. */}
+    <Disclosure className={s.options} aria-label={`Opciones de ${p.titulo}`} title={null} icon={<MoreHorizontal size={20} aria-hidden="true" />}>
       <div className={s.optionsBody}>
         {scope.edit ? <label className="flex min-w-0 flex-col gap-1.5 text-sm font-semibold">Estado<PropertyStatus property={p} /></label>
           : <p className="text-sm text-muted-foreground">Este inmueble es de {adviser ?? "otro asesor"}: solo su asesor o el director lo cambian.</p>}
@@ -187,7 +187,7 @@ function PropertyItem({ property: p, duplicated, adviser, offer }: { property: A
           }}><Trash2 size={15} aria-hidden="true" />Eliminar</AsyncButton></>}
         </div>
       </div>
-    </details>
+    </Disclosure>
   </Card>;
 }
 

@@ -104,7 +104,7 @@ for (const width of [320, 390, 768, 1440]) {
     await expect(page.getByRole("heading", { name: "Listo, el asunto está creado" })).toBeVisible();
     await expect(page.getByText("Paso 4 de 4")).toBeVisible();
     await expect(page.getByText("EXP-2030-001")).toBeVisible();
-    await expect(page.getByRole("link", { name: /Abrir la operación/ })).toHaveAttribute("href", "/admin/operaciones/exp-qa");
+    await expect(page.getByRole("link", { name: /Abrir el asunto/ })).toHaveAttribute("href", "/admin/operaciones/exp-qa");
     await shot("paso-4");
     if (width === 1440) await noAxeViolations(page);
 

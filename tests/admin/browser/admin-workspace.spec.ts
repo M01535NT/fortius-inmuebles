@@ -70,7 +70,7 @@ test("el menú lateral guía por ocho secciones y Herramientas; «Nuevo» y la c
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
   const menu = page.getByRole("menu", { name: "Qué quieres crear" });
   await expect(menu.getByRole("menuitem", { name: "Atender a alguien" })).toHaveAttribute("href", "/admin/operaciones/nueva");
-  await expect(menu.getByRole("menuitem", { name: "Nueva operación" })).toHaveAttribute("href", "/admin/operaciones/nueva?intencion=vender");
+  await expect(menu.getByRole("menuitem", { name: "Nuevo asunto" })).toHaveAttribute("href", "/admin/operaciones/nueva?intencion=vender");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
   const cuenta = page.locator("#admin-account-menu");
@@ -233,9 +233,9 @@ test("inventory saved view, related tasks and global search navigate with contex
   await page.goto("/admin/propiedades");
   await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
-  await page
-    .getByLabel("Publicación", { exact: true })
-    .selectOption("borrador");
+  // Selector de Radix (DEC-52): se abre y se elige la opción.
+  await page.getByLabel("Publicación", { exact: true }).click();
+  await page.getByRole("option", { name: "Pendientes de publicar" }).click();
   await page.getByLabel("Nombre de la vista").fill("Pendientes");
   await page
     .getByRole("button", { name: "Guardar vista", exact: true })
@@ -244,14 +244,14 @@ test("inventory saved view, related tasks and global search navigate with contex
   await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
   await page.getByRole("button", { name: "Pendientes", exact: true }).click();
-  await expect(page.getByLabel("Publicación", { exact: true })).toHaveValue(
-    "borrador",
+  await expect(page.getByLabel("Publicación", { exact: true })).toHaveText(
+    "Pendientes de publicar",
   );
   await page.getByRole("button", { name: "Buscar en el panel" }).click();
   await page
-    .getByRole("searchbox", { name: "Buscar personas, inmuebles o folios" })
+    .getByRole("dialog").getByRole("combobox")
     .fill("MNT-PRUEBA");
-  await page.getByRole("dialog").getByRole("link").first().click();
+  await page.getByRole("dialog").getByRole("option").first().click();
   await expect(page).toHaveURL(/audit-casa\/editar/);
   await page.getByRole("link", { name: "Crear tarea relacionada" }).click();
   await expect(page).toHaveURL(/propiedadSlug=audit-casa/);
@@ -268,7 +268,7 @@ test("profile menu persists identity, photo and reading preferences", async ({ p
   });
   await page.goto("/admin");
   await page.getByRole("banner").getByRole("button",{name:/Cuenta y sesión/}).click();
-  await page.getByRole("banner").getByRole("link",{name:"Mi perfil"}).click();
+  await page.locator("#admin-account-menu").getByRole("link",{name:"Mi perfil"}).click();
   await page.getByLabel("Nombre visible").fill("Moisés Núñez");
   await page.getByLabel("Seleccionar fotografía").setInputFiles({
     name:"foto.png",mimeType:"image/png",
@@ -301,10 +301,10 @@ test("mobile editor reveals collapsed sections and confirms leaving through the 
   await page.getByLabel("Título",{exact:true}).fill("Casa con cambios");
   const newTask = async () => { await page.getByRole("button",{name:"Nuevo",exact:true}).click(); await page.getByRole("menu",{name:"Qué quieres crear"}).getByRole("menuitem",{name:"Nueva tarea"}).click(); };
   await newTask();
-  await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Cancelar",exact:true}).click();
+  await page.getByRole("alertdialog",{name:"Confirmar acción"}).getByRole("button",{name:"Cancelar",exact:true}).click();
   await expect(page).toHaveURL(/audit-casa/);
   await newTask();
-  await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Confirmar",exact:true}).click();
+  await page.getByRole("alertdialog",{name:"Confirmar acción"}).getByRole("button",{name:"Confirmar",exact:true}).click();
   await expect(page).toHaveURL(/admin\/agenda\?tab=tareas/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.screenshot({path:info.outputPath("mobile-task.png"),fullPage:true});

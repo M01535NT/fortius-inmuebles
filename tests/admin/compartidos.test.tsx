@@ -50,7 +50,7 @@ it("desde Herramientas el alta llega como compartido y guarda la inmobiliaria co
   fireEvent.change(screen.getByLabelText("Archivo de la autorización"), { target: { files: [new File(["x"], "carta.pdf", { type: "application/pdf" })] } });
   await screen.findByText("carta.pdf");
   expect(upload).toHaveBeenCalledWith(expect.any(File), "private");
-  fireEvent.change(screen.getByLabelText("Fecha de la autorización"), { target: { value: "2026-11-12" } });
+  fireEvent.input(document.querySelector('input[name="aliadoAutorizacionFecha"]')!, { target: { value: "2026-11-12" } });
   fireEvent.change(screen.getByLabelText("Quién la firmó o envió"), { target: { value: "Gerente de ensayo" } });
   fireEvent.click(screen.getByRole("button", { name: "Crear inmueble" }));
   await waitFor(() => expect(writes).toHaveLength(1));

@@ -4,7 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { Pencil } from "@/components/admin/icons";
 import { Button, Sheet } from "@/components/admin/kit";
-import { selectClass } from "@/components/admin/ui";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/controls";
 import { errorMessage, uploadFile } from "@/lib/admin/store";
 import { renderPhoto, type PhotoAdjust } from "@/lib/apps/photo";
 
@@ -78,11 +78,12 @@ function PhotoEditSheet({ src, label, inmueble, onClose, onSaved }: { src: strin
       {SLIDERS.map(s => <label key={s.key} className="flex flex-col gap-1.5 text-sm font-semibold">{s.label}: {adjust[s.key]}
         <input type="range" className="min-h-11 accent-[var(--primary)]" min={s.min} max={s.max} value={adjust[s.key]} onChange={e => setAdjust(a => ({ ...a, [s.key]: Number(e.target.value) }))} />
       </label>)}
-      <label className="flex flex-col gap-1.5 text-sm font-semibold">Giro
-        <select className={selectClass} value={adjust.rotation} onChange={e => setAdjust(a => ({ ...a, rotation: Number(e.target.value) }))}>
-          {[0, 90, 180, 270].map(v => <option key={v} value={v}>{v}°</option>)}
-        </select>
-      </label>
+      <div className="flex flex-col gap-1.5 text-sm font-semibold"><span id="foto-giro">Giro</span>
+        {/* Cuatro opciones a la vista (Radix ToggleGroup, DEC-52): flechas para moverse, una siempre elegida. */}
+        <ToggleGroup type="single" aria-labelledby="foto-giro" className="self-start" value={String(adjust.rotation)} onValueChange={v => { if (v) setAdjust(a => ({ ...a, rotation: Number(v) })); }}>
+          {[0, 90, 180, 270].map(v => <ToggleGroupItem key={v} value={String(v)} aria-label={`Girar ${v} grados`} className="min-h-11 min-w-14">{v}°</ToggleGroupItem>)}
+        </ToggleGroup>
+      </div>
     </fieldset>
     <p className="text-sm text-muted-foreground">La foto editada sale en JPEG, sin los datos de ubicación del archivo original. Recuerda guardar el inmueble después.</p>
     {error && <p role="alert" className="text-sm font-semibold text-destructive">{error}</p>}
