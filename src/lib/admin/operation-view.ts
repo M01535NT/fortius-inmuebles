@@ -232,8 +232,9 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
       const task = tasks.filter(t => t.expedienteId === op.id && isLawyerTask(t.titulo) && t.estado !== "cancelada").sort((a, b) => Number(isTaskOpen(b)) - Number(isTaskOpen(a)))[0];
       items.push({ kind: "abogado", ...(context.condition ? { condition: context.condition.text } : {}), ...(task ? { task } : {}), done: task?.estado === "completada" });
     }
-    if (phase === "captacion" && interviewed) items.push({ kind: "inicio", step: "levantamiento" });
-    if (phase === "levantamiento" && status("04") === "terminado") items.push({ kind: "inicio", step: "checklist" });
+    // FLX-02: el levantamiento se puede iniciar sin entrevista y la lista sin terminar el levantamiento (nada frena; la pantalla avisa).
+    if (phase === "captacion") items.push({ kind: "inicio", step: "levantamiento" });
+    if (phase === "levantamiento") items.push({ kind: "inicio", step: "checklist" });
   }
   for (const { key, earlier } of currentRequirements(op, today)) items.push({ kind: "requisito", key, earlier, state: reviewState(flow, key), done: reviewComplete(flow, key, today) });
   for (const m of missingItems(op, tasks, today)) {

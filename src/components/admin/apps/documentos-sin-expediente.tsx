@@ -17,6 +17,7 @@ import { VALOR_DEFAULTS } from "@/lib/formatos/valor-fields";
 import { downloadValorExcel } from "@/lib/admin/download-word";
 import { cn, humanDateTime } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { PasarAAsunto } from "./pasar-a-asunto";
 
 /*
   Documentos sueltos (HER-02): cualquier formato sin abrir una operación ni un prospecto.
@@ -58,6 +59,7 @@ export function DocumentosSinExpediente() {
   const [name, setName] = React.useState(""), [open, setOpen] = React.useState<Open | null>(null);
   const [vista, setVista] = React.useState<Vista>(() => search.get("vista") === "machotes" ? "blanco" : "llenar");
   const [busy, setBusy] = React.useState(""), [notice, setNotice] = React.useState("");
+  const [moving, setMoving] = React.useState<AppRun | null>(null);
 
   // Accesos directos (HER-01): «?formato=07» abre la opinión de valor; «&seccion=comparables», sus comparables.
   const pedido = React.useRef(false);
@@ -144,11 +146,12 @@ export function DocumentosSinExpediente() {
         : <Card as="ul" className="flex flex-col divide-y divide-border p-0">{runs.map(run => <li key={run.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 sm:px-5">
           <div className="min-w-0"><p className="m-0 font-semibold [overflow-wrap:anywhere]">{run.title}</p>
             <p className="m-0 text-xs text-muted-foreground">{formatoOf(run)} · Guardado · {humanDateTime(run.updatedAt)}</p></div>
-          <div className="flex gap-2">{!deleted && <Button variant="ghost" onClick={() => void openRun(run)}>Abrir</Button>}<Button variant="ghost" onClick={() => void toggle(run)}>{deleted ? "Restaurar" : "Eliminar"}</Button></div>
+          <div className="flex flex-wrap gap-2">{!deleted && <><Button variant="ghost" onClick={() => void openRun(run)}>Abrir</Button><Button variant="ghost" aria-label={`Pasar ${run.title} a un asunto`} onClick={() => setMoving(run)}>Pasar a un asunto</Button></>}<Button variant="ghost" onClick={() => void toggle(run)}>{deleted ? "Restaurar" : "Eliminar"}</Button></div>
         </li>)}</Card>}
       {next !== null && <Button variant="ghost" className="self-start" onClick={() => load(next).catch(e => setError(errorMessage(e)))}>Cargar más</Button>}
     </section>
 
+    {moving && <PasarAAsunto run={moving} onClose={() => setMoving(null)} />}
     {open && <Captura key={open.run?.id ?? open.formatoId} open={open} onSaved={() => void load().catch(() => undefined)} onClose={() => { setOpen(null); setName(""); }} />}
   </div>;
 }

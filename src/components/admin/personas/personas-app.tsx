@@ -6,6 +6,7 @@ import { ArrowLeft, CalendarDays, CalendarPlus, Check, FileText, MessageCircle, 
 import { ActionsMenu, Avatar, Button, ButtonLink, Notice, Pill, Segmented, StageRail, Thumb } from "@/components/admin/kit";
 import { DateField } from "@/components/ui/date-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CreateDocument } from "@/components/admin/operation/create-document";
 import { useAviso } from "./aviso";
 import { NuevoPerfil } from "./nuevo-perfil";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
@@ -335,6 +336,8 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
           <div className={s.sechead}><h3 id="persona-documentos">Documentos</h3><Pill size="sm" tone="muted">{documentos.length}</Pill>
             {esCliente && <><Button onClick={() => input.current?.click()} disabled={subiendo}><Upload size={16} aria-hidden />{subiendo ? "Guardando…" : "Agregar archivo"}</Button>
               <input ref={input} type="file" multiple hidden accept={ACEPTA.join(",")} aria-label={`Agregar archivos al perfil de ${row.name}`} onChange={event => { void agregar([...(event.target.files ?? [])]); event.target.value = ""; }} /></>}
+            {op ? <CreateDocument where={`el asunto ${op.folio}`} exists={id => borradores.some(d => d.formato_id === id)} onCreate={id => router.push(`/admin/operaciones/${op.id}?crear=${id}`)} />
+              : esCliente && persona && <ButtonLink href={`/admin/operaciones?nuevo=1&clienteId=${encodeURIComponent(persona.id)}`}><Plus size={16} aria-hidden />Abrir un asunto para sus documentos</ButtonLink>}
             <Segmented label="Mostrar documentos" value={tab} onChange={setTab} options={[{ id: "todos", label: "Todos" }, { id: "recibidos", label: "Recibidos" }, { id: "hechos", label: "Hechos aquí" }]} /></div>
           {docsError && <p className={b.hint} role="status">No se pudieron cargar los documentos de la persona. <button type="button" className="underline" onClick={() => setVuelta(n => n + 1)}>Reintentar</button></p>}
           {visibles.length ? <>

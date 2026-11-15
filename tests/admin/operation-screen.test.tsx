@@ -633,6 +633,51 @@ it("en el cierre, la etapa 10 dice en qué paso va y muestra los cuatro pasos (C
   expect(within(pasos).getByText("Entrega").closest("li")?.getAttribute("aria-current")).toBe("step");
 });
 
+it("FLX-02: «Crear documento» crea cualquier formato sin entrevista ni etapa y abre el que ya existe", async () => {
+  await openOperation("documentos");
+  const crear = await screen.findByRole("button", { name: "Crear documento" });
+  await waitFor(() => expect((crear as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(crear);
+  fireEvent.click(await screen.findByRole("option", { name: /Levantamiento de casa/ }));
+  const capture = await screen.findByRole("dialog", { name: "Levantamiento de casa" });
+  expect(server.docs.map(d => d.formato_id)).toEqual(["04B"]);
+  fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  // Ya existe: se abre el mismo, no se crea otro.
+  fireEvent.click(screen.getByRole("button", { name: "Crear documento" }));
+  const again = await screen.findByRole("option", { name: /Levantamiento de casa/ });
+  expect(again.textContent).toContain("Ya está en el asunto");
+  fireEvent.click(again);
+  await screen.findByRole("dialog", { name: "Levantamiento de casa" });
+  expect(server.docs.map(d => d.formato_id)).toEqual(["04B"]);
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cerrar" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  // El 06 ya no espera a que termine la revisión jurídica (05).
+  fireEvent.click(screen.getByRole("button", { name: "Crear documento" }));
+  fireEvent.click(await screen.findByRole("option", { name: /Opinión jurídica del inmueble/ }));
+  await screen.findByRole("dialog", { name: /Opinión jurídica/ });
+  expect(server.docs.map(d => d.formato_id)).toEqual(["06", "04B"]);
+  // El 03 es la cartera global y no se ofrece.
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cerrar" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  fireEvent.click(screen.getByRole("button", { name: "Crear documento" }));
+  await screen.findByRole("option", { name: /Aviso de privacidad/ });
+  expect(screen.queryByRole("option", { name: /Tablero y control comercial/ })).toBeNull();
+});
+it("FLX-02: ?crear=<formato> (desde la persona o el inmueble) crea y abre ese formato una vez y lo quita de la dirección", async () => {
+  nav.path = `/admin/operaciones/${ID}`; nav.search = new URLSearchParams({ crear: "07" });
+  render(<OperationScreen id={ID} />);
+  await screen.findByRole("dialog", { name: /Opinión de valor/ });
+  expect(server.docs.map(d => d.formato_id)).toEqual(["07"]);
+  await waitFor(() => expect(nav.search.has("crear")).toBe(false));
+  cleanup();
+  // Un formato que no se ofrece (el 03 es la cartera global) no crea nada.
+  nav.path = `/admin/operaciones/${ID}`; nav.search = new URLSearchParams({ crear: "03" });
+  render(<OperationScreen id={ID} />);
+  await screen.findByRole("button", { name: "Crear documento" });
+  await waitFor(() => expect(nav.search.has("crear")).toBe(false));
+  expect(server.docs.map(d => d.formato_id)).toEqual(["07"]);
+});
 it("SIM-18: la operación tiene tres partes y las direcciones anteriores siguen abriendo la suya", async () => {
   await openOperation();
   expect(screen.getAllByRole("tab").map(tab => tab.textContent?.replace(/\d+$/, "").trim())).toEqual(["Etapa", "Documentos", "Actividad"]);

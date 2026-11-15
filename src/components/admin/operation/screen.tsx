@@ -20,6 +20,7 @@ import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { TIPO_LABELS, formatPrecio } from "@/data/propiedades";
 import { ClientDocumentsTab } from "./client-documents-tab";
 import { DocumentsTab } from "./documents-tab";
+import { CREATABLE, REPEATABLE } from "./create-document";
 import { HistoryTab } from "./history-tab";
 import { NextStepTab } from "./next-step";
 import { SettingsTab } from "./settings-tab";
@@ -68,7 +69,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const clients = useCollection(db.clientes), properties = useCollection(db.propiedades), advisers = useCollection(db.asesores), tasks = useCollection(db.tareas);
   const today = operationalDate();
   const requested = params.get("tab");
-  const tab: TabId = TABS.some(t => t.id === requested) ? requested as TabId : requested && LEGACY_TAB[requested] ? LEGACY_TAB[requested] : params.has("documento") ? "documentos" : "sigue";
+  const tab: TabId = TABS.some(t => t.id === requested) ? requested as TabId : requested && LEGACY_TAB[requested] ? LEGACY_TAB[requested] : params.has("documento") || params.has("crear") ? "documentos" : "sigue";
   // La lista de pestañas cambia de lugar (fila de abajo en «Etapa», columna en las demás) y se vuelve a montar:
   // si el cambio vino desde las pestañas, el foco sigue a la elegida para que quien usa teclado no pierda su sitio.
   const tabFocus = React.useRef(false);
@@ -121,6 +122,17 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     const doc = docs.documents.find(d => d.id === wanted);
     if (doc) { opened.current = true; docs.openDocument(doc); }
   }, [wanted, docs]);
+
+  // FLX-02: ?crear=<formato> (desde la persona o el inmueble) abre ese formato una sola vez: el que ya hay o uno nuevo.
+  const creating = React.useRef(false);
+  const toCreate = params.get("crear");
+  React.useEffect(() => {
+    if (creating.current || !toCreate || !docs.documents) return;
+    creating.current = true;
+    const query = new URLSearchParams(params.toString()); query.delete("crear");
+    router.replace(`${pathname}${query.size ? `?${query}` : ""}`, { scroll: false });
+    if (CREATABLE.has(toCreate)) void docs.createAny(toCreate, !!REPEATABLE[toCreate]);
+  }, [toCreate, docs, params, pathname, router]);
 
   async function changeTab(next: TabId) {
     if (next === tab) return true;
