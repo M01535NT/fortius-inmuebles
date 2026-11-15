@@ -12,7 +12,7 @@ Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema**
 
 | # | Qué falta | Cómo va |
 |---|---|---|
-| 1 | **Panel flexible** (FLX-01 a FLX-09) | FLX-01 aprobada (15/11/2026). FLX-02 hecha en `feat/integracion` (localhost:3003): «Crear documento» en asunto, persona e inmueble, sin candados de pantalla, y «Pasar a un asunto» para los documentos sueltos; falta tu revisión. FLX-03 parte A (de frenos a avisos) hecha en la misma rama el 15/11; falta tu revisión y decidir los puntos de la lista que quedaron fuera. Después quedan FLX-03 B y C, FLX-04, FLX-05, FLX-07, FLX-08, FLX-09 y el cierre FLX-06. |
+| 1 | **Panel flexible** (FLX-01 a FLX-09) | FLX-01 aprobada (15/11/2026). FLX-02 hecha en `feat/integracion` (localhost:3003): «Crear documento» en asunto, persona e inmueble, sin candados de pantalla, y «Pasar a un asunto» para los documentos sueltos; falta tu revisión. FLX-03 parte A (de frenos a avisos) y parte B (guías por tipo de asunto: inspección, opinión de valor y cancelación de hipoteca con sus etapas; elegir y cambiar el tipo; empezar en cualquier etapa; tablero por tipo; avisos recientes en Hoy; sin excepciones del director) hechas en la misma rama el 15/11; falta tu revisión. Compra y búsqueda de renta se abren con FLX-04. Después quedan FLX-03 C (asunto libre sin guía, varias guías seguidas, «Nuevo asunto» desde la Bandeja), FLX-04, FLX-05, FLX-07, FLX-08, FLX-09 y el cierre FLX-06. |
 | 2 | **Respaldos restaurables y accesos seguros** (bloque 0) | La copia diaria corre desde el 13/11. Falta que actives los dos pasos de entrada (AUT-01), repetir la prueba de alertas desde producción (OBS-01), revisar la limpieza diaria de archivos y repetir el ensayo de restauración con un archivo de la Bandeja (REC-01). |
 | 3 | **Cuentas del equipo** (SEG-01 y USR-01) | Pendientes. Las necesitas desde el primer día (14/11/2026). |
 | 4 | **Revisión del abogado** | Pendiente: formatos 20 al 24, el umbral de 10,000 UMA del 24, la conservación de 10 años del expediente LFPIORPI, «nada frena, solo avisa» (RP-100) en antilavado y promesa, el aviso de privacidad y el registro de tratamiento (PRV-01) y la lectura con IA de documentos reales. Todo está reunido, con sus preguntas, en [`revision-abogado-2026-11-15.md`](docs/legal/revision-abogado-2026-11-15.md) (15/11/2026). |
@@ -477,7 +477,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); siluetas de carga (RP-18; 7d3dfe6) y «Deshacer» al completar una tarea, solo tras confirmar el servidor (RP-16; aa98fba); falta el conflicto en operaciones y formatos; la reversión optimista con motivo (RP-18) no aplica mientras el panel no tenga cambios optimistas; en `main` con el PR #75; revisado contra el código el 14/11/2026 |
 | FLX-01 | 4 | hecho | aprobada por el titular el 15/11/2026; historial §30 |
 | FLX-02 | 4 | en_curso | hecha en `feat/integracion` el 15/11/2026; falta la revisión del titular |
-| FLX-03 | 4 | pendiente | FLX-02; coordina con Metodología |
+| FLX-03 | 4 | en_curso (A y B en `feat/integracion`; falta C) | FLX-02; coordina con Metodología |
 | FLX-04 | 4 | pendiente | FLX-03 |
 | FLX-05 | 5 | pendiente | FLX-04 |
 | FLX-07 | 5 | pendiente | FLX-04, IA-01; con clientes reales, PRV-01 |
