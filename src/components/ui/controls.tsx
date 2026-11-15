@@ -8,11 +8,12 @@ import { cn } from "@/lib/utils";
   Controles del panel (shadcn/ui «Checkbox», «RadioGroup», «Switch», «ToggleGroup», «Label» y
   «Separator» sobre Radix, DEC-52). Objetivo táctil de 44 px: la caja se ve de 20 px pero la etiqueta
   que la acompaña amplía el área (úsese dentro de un <label> o con `Label`). Colores del panel:
-  marcado en azul de marca, foco con el anillo del panel.
+  marcado en azul de marca, foco con el anillo del panel. Llevan `min-h-0! min-w-0!` porque el marco del
+  panel da 44 px a todo <button> (admin-shell) y la caja de Radix es un botón: sin eso crecería.
 */
 export function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
   return <CheckboxPrimitive.Root data-slot="checkbox" className={cn(
-    "peer inline-flex size-5 shrink-0 items-center justify-center rounded-[6px] border-[1.5px] border-[var(--control-edge)] bg-[var(--field-surface)] text-[var(--on-navy)] outline-none",
+    "peer inline-flex size-5 min-h-0! min-w-0! shrink-0 items-center justify-center rounded-[6px] border-[1.5px] border-[var(--control-edge)] bg-[var(--field-surface)] text-[var(--on-navy)] outline-none",
     "data-[state=checked]:border-[var(--brand-navy)] data-[state=checked]:bg-[var(--brand-navy)] data-[state=indeterminate]:border-[var(--brand-navy)] data-[state=indeterminate]:bg-[var(--brand-navy)]",
     "dark:data-[state=checked]:border-[var(--on-navy-focus)] dark:data-[state=checked]:bg-[var(--on-navy-focus)] dark:data-[state=checked]:text-[var(--background)]",
     "disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-color)]",
@@ -26,7 +27,7 @@ export function Checkbox({ className, ...props }: React.ComponentProps<typeof Ch
 
 export function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return <SwitchPrimitive.Root data-slot="switch" className={cn(
-    "peer inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-transparent bg-[var(--edge-soft)] p-0.5 outline-none transition-colors duration-150",
+    "peer inline-flex h-6 w-10 min-h-0! min-w-0! shrink-0 items-center rounded-full border border-transparent bg-[var(--edge-soft)] p-0.5 outline-none transition-colors duration-150",
     "data-[state=checked]:bg-[var(--success)] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-color)]",
     className,
   )} {...props}>
@@ -38,7 +39,7 @@ export const RadioGroup = ({ className, ...props }: React.ComponentProps<typeof 
   <RadioPrimitive.Root data-slot="radio-group" className={cn("grid gap-2", className)} {...props} />;
 export function RadioGroupItem({ className, ...props }: React.ComponentProps<typeof RadioPrimitive.Item>) {
   return <RadioPrimitive.Item data-slot="radio-group-item" className={cn(
-    "peer inline-flex size-5 shrink-0 items-center justify-center rounded-full border-[1.5px] border-[var(--control-edge)] bg-[var(--field-surface)] outline-none",
+    "peer inline-flex size-5 min-h-0! min-w-0! shrink-0 items-center justify-center rounded-full border-[1.5px] border-[var(--control-edge)] bg-[var(--field-surface)] outline-none",
     "data-[state=checked]:border-[var(--brand-navy)] dark:data-[state=checked]:border-[var(--on-navy-focus)] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-color)]",
     className,
   )} {...props}>
