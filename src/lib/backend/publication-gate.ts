@@ -4,7 +4,7 @@ import { ApiError, databaseError } from "./http";
 import { propiedadVisible } from "./repository";
 import { operationWorkflowSchema, publicationBlockers, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { sharedPublicationBlockers } from "@/lib/admin/shared-property";
+import { sharedPublicationBlockers, sharedPublicationWarnings } from "@/lib/admin/shared-property";
 import type { PropertyAlly } from "@/lib/propiedad-seguimiento";
 
 type DatabaseClient = Pick<SupabaseClient, "from">;
@@ -28,7 +28,7 @@ export async function publicationReadiness(client: DatabaseClient, slug: string,
 /**
  * COR-16 y FLX-03 (RP-100): al guardar un inmueble con `publicada: true` se revisa la captación. Un inmueble
  * propio se publica aunque falte algo: devuelve lo que falta como aviso y la base lo anota en el historial del asunto.
- * Un compartido sigue sin publicarse sin la autorización escrita de la otra inmobiliaria (PUB-02).
+ * Un compartido necesita la inmobiliaria ligada (PUB-02); sin la autorización escrita se publica con aviso.
  * Un inmueble que ya estaba publicado conserva su publicación al guardarse.
  */
 export async function assertPropertyPublicationAllowed(client: Pick<SupabaseClient, "from" | "rpc">, slug: string, record: Record<string, unknown>): Promise<string[]> {
@@ -37,7 +37,7 @@ export async function assertPropertyPublicationAllowed(client: Pick<SupabaseClie
   if (record.origen === "compartido") {
     const faltantes = sharedPublicationBlockers(record.aliado as PropertyAlly | undefined);
     if (faltantes.length) throw new ApiError(400, `Para publicar falta: ${faltantes.join("; ")}`, { faltantes });
-    return [];
+    return sharedPublicationWarnings(record.aliado as PropertyAlly | undefined);
   }
   return (await publicationReadiness(client, slug, record.operacion)).faltantes;
 }

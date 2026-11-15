@@ -33,10 +33,12 @@ describe("inmueble compartido", () => {
     expect(() => parseRecord("propiedades", shared.slug, { ...shared, aliado: { ...aliado, telefonoPropietario: "664" } })).toThrow();
   });
 
-  it("se publica con la autorización y no pide captación; sin ella, dice qué falta", async () => {
+  it("se publica con la autorización y no pide captación; sin ella, avisa qué falta; sin la inmobiliaria, no", async () => {
     await expect(assertPropertyPublicationAllowed(client as never, shared.slug, shared)).resolves.toEqual([]);
     await expect(assertPropertyPublicationAllowed(client as never, shared.slug, { ...shared, aliado: { inmobiliaria: aliado.inmobiliaria } }))
-      .rejects.toMatchObject({ status: 400, message: expect.stringContaining("Adjunta la autorización escrita") });
+      .resolves.toEqual(expect.arrayContaining([expect.stringContaining("Adjunta la autorización escrita")]));
+    await expect(assertPropertyPublicationAllowed(client as never, shared.slug, { ...shared, aliado: { ...aliado, inmobiliaria: "" } }))
+      .rejects.toMatchObject({ status: 400, message: expect.stringContaining("Liga la inmobiliaria") });
     // Un inmueble propio sí se publica; lo que falta de su captación vuelve como aviso (FLX-03).
     await expect(assertPropertyPublicationAllowed(client as never, shared.slug, { ...shared, origen: undefined }))
       .resolves.toEqual([expect.stringContaining("captación")]);

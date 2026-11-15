@@ -138,9 +138,9 @@ export function valueFromAppraisal(flow: Pick<OperationWorkflow, "avaluo" | "req
  const e = flow.requisitos.valor?.evidencia;
  return !!flow.avaluo && e?.tipo === "cliente" && e.referencia === flow.avaluo.archivo;
 }
-// DEC-41 (excepción a RP-91): visita a un interesado concreto antes de la firma, con la carta del propietario y el visto bueno del director.
+// DEC-41 (excepción a RP-91): visita a un interesado concreto antes de la firma con el visto bueno del director. La carta del propietario se pide; sin ella queda un aviso (FLX-03).
 const priorVisit = z.object({ id: z.string().min(1).max(80), interesado: z.string().trim().min(2).max(160), leadId: z.string().max(160).optional(),
-  carta: z.object({ path: z.string().min(1).max(300), nombre: z.string().max(160).optional() }).strict(), motivo: z.string().trim().min(3).max(1000),
+  carta: z.object({ path: z.string().min(1).max(300), nombre: z.string().max(160).optional() }).strict().optional(), motivo: z.string().trim().min(3).max(1000),
   autorizadoPor: z.string().max(80).optional(), autorizadoEl: z.string().max(80).optional() }).strict();
 export type PriorVisit = z.infer<typeof priorVisit>;
 export const operationWorkflowSchema = z.object({
