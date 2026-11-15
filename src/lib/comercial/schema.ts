@@ -28,7 +28,7 @@ export const comercialDataSchema=z.object({config:z.object({modoCorte:z.enum(["F
 export function canonicalJson(value:unknown):string { if(Array.isArray(value))return `[${value.map(canonicalJson).join(",")}]`; if(value && typeof value === "object") return `{${Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${JSON.stringify(k)}:${canonicalJson(v)}`).join(",")}}`; return JSON.stringify(value); }
 export function validateComercialTransition(previous:ComercialBookData,next:ComercialBookData):string[] {
  const errors:string[]=[];
- for(const o of previous.oportunidades) if(!next.oportunidades.some(n=>n.id===o.id && n.segmento===o.segmento))errors.push(`Conservar ID y segmento de ${o.id}`);
+ for(const o of previous.oportunidades) if(!next.oportunidades.some(n=>n.id===o.id && n.segmento===o.segmento))errors.push(`Conservar folio y segmento de ${o.id}`);
  for(const key of ["eventos","documentos"] as const)for(const row of previous[key])if(!next[key].some(n=>n.id===row.id && canonicalJson(n)===canonicalJson(row)))errors.push(`Conservar ${key}: ${row.id}`);
  return errors;
 }
