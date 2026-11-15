@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { choose } from "./fixtures/controls";
 import AxeBuilder from "@axe-core/playwright";
 
 // Recorre los cuatro pasos de Nueva operación sin escribir en ninguna base: las respuestas del servidor son de ensayo.
@@ -86,7 +87,7 @@ for (const width of [320, 390, 768, 1440]) {
     await expect(page.getByRole("heading", { name: "¿Quién es?" })).toBeVisible();
     await page.getByLabel("Nombre completo").fill("Propietaria de ensayo");
     await page.getByLabel("Teléfono").fill("6640000000");
-    await page.getByRole("combobox", { name: "Asesor responsable" }).selectOption(adviser.id);
+    await choose(page, page.getByRole("combobox", { name: "Asesor responsable" }), adviser.nombre);
     await shot("paso-2");
     if (width === 1440) await noAxeViolations(page);
     // El propietario que vende se registra primero como prospecto (decisión del titular, 16/10/2026):

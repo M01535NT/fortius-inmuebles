@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {pickNextMonthDay} from "./fixtures/controls";
 import {emptyWorkflow} from '../../../src/lib/formatos/operation-workflow';
 for(const width of [390,768,1440]) {
  test('captación y rutas propias visibles a '+width,async({page},info)=>{
@@ -30,7 +31,7 @@ for(const width of [390,768,1440]) {
   await page.getByText('Siguiente acción mientras terminas de capturarlo').click();
   await expect(page.getByLabel('Siguiente acción',{exact:true})).toHaveValue('Terminar la entrevista');
   await page.getByLabel('Siguiente acción',{exact:true}).fill('Entrevistar al titular');
-  await page.getByLabel('Fecha de la siguiente acción').fill('2030-12-31');
+  await pickNextMonthDay(page,page.getByLabel('Fecha de la siguiente acción'));
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:info.outputPath('contacto-'+width+'.png'),fullPage:true});
   for(const [i,r] of routes.entries()){
@@ -41,10 +42,11 @@ for(const width of [390,768,1440]) {
    const guide=page.getByRole('region',{name:'Esta etapa'});await expect(guide).toBeVisible();
    // Los estados de cada requisito están en «Más», junto a «Confirmar».
    await guide.getByRole('button',{name:/^Más estados de/}).first().click();
-   const states=guide.getByRole('radiogroup').first();await expect(states).toBeVisible();
+   // LV-10c: los estados son un menú de Radix (menuitemradio) que se abre fuera de la región.
+   const states=page.getByRole('menu',{name:/^Más estados de/});await expect(states).toBeVisible();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
    await guide.screenshot({path:info.outputPath(r+'-'+width+'.png')});
-   await states.getByRole('radio',{name:/Revisado/}).click();
+   await states.getByRole('menuitemradio',{name:/Revisado/}).click();
    const sheet=page.getByRole('dialog');await expect(sheet.getByText('Documento fuera del sistema',{exact:true})).toBeVisible();
    const outside=sheet.getByRole('radio',{name:/Documento fuera del sistema/});
    await outside.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
