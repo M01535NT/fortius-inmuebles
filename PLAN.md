@@ -12,7 +12,7 @@ Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema**
 
 | # | Qué falta | Cómo va |
 |---|---|---|
-| 1 | **Panel flexible** (FLX-01 a FLX-09) | FLX-01 aprobada (15/11/2026). FLX-02 hecha en `feat/integracion` (localhost:3003): «Crear documento» en asunto, persona e inmueble, sin candados de pantalla, y «Pasar a un asunto» para los documentos sueltos; falta tu revisión. Después quedan siete etapas: FLX-03, FLX-04, FLX-05, FLX-07, FLX-08, FLX-09 y el cierre FLX-06. |
+| 1 | **Panel flexible** (FLX-01 a FLX-09) | FLX-01 aprobada (15/11/2026). FLX-02 hecha en `feat/integracion` (localhost:3003): «Crear documento» en asunto, persona e inmueble, sin candados de pantalla, y «Pasar a un asunto» para los documentos sueltos; falta tu revisión. FLX-03 parte A (de frenos a avisos) hecha en la misma rama el 15/11; falta tu revisión y decidir los puntos de la lista que quedaron fuera. Después quedan FLX-03 B y C, FLX-04, FLX-05, FLX-07, FLX-08, FLX-09 y el cierre FLX-06. |
 | 2 | **Respaldos restaurables y accesos seguros** (bloque 0) | La copia diaria corre desde el 13/11. Falta que actives los dos pasos de entrada (AUT-01), repetir la prueba de alertas desde producción (OBS-01), revisar la limpieza diaria de archivos y repetir el ensayo de restauración con un archivo de la Bandeja (REC-01). |
 | 3 | **Cuentas del equipo** (SEG-01 y USR-01) | Pendientes. Las necesitas desde el primer día (14/11/2026). |
 | 4 | **Revisión del abogado** | Pendiente: formatos 20 al 24, el umbral de 10,000 UMA del 24, la conservación de 10 años del expediente LFPIORPI, «nada frena, solo avisa» (RP-100) en antilavado y promesa, el aviso de privacidad y el registro de tratamiento (PRV-01) y la lectura con IA de documentos reales. |
@@ -274,7 +274,10 @@ Sin orden detallado: el titular elige qué sigue según lo que muestre el uso re
 
 Las pruebas que hoy dicen «rechaza» pasan a «permite y anota», sin borrarse.
 
-Mientras FLX-03 no esté construida siguen los frenos actuales. Las entregas que absorbe cada etapa están anotadas en su fila (poda del 14/11/2026; textos anteriores en el historial, §28).
+**Parte A hecha en `feat/integracion` (15/11/2026), falta la revisión del titular.** La migración `20261115200000_nada_frena_solo_avisa.sql` cambia la base: al pasar de etapa, guardar, publicar o cerrar un paso de trámite con algo pendiente, se guarda igual y queda una línea «Aviso» en el historial del asunto (o del trámite) con lo que faltaba y quién siguió. Cubre los puntos 1 a 12, 14, 15, 18 y 19 de la lista. En el panel, «Pasar a», «Guardar y publicar» y «Cerrar el paso» ya no se apagan: si falta algo piden confirmarlo una vez, con la lista de lo que falta. El historial muestra los avisos. La ruta del servidor dejó de frenar el arranque (02, 04 y lista de documentos) y la hipoteca. La migración se aplica sola al integrar en `main`; hasta entonces el sitio publicado sigue frenando.
+*Quedan fuera de la parte A, por decidir:* el compartido sin autorización (16) y la visita antes de la firma (17), que en la propuesta del 15/11 seguían frenando y la lista aprobada pasa a aviso. También las revisiones del director (20) y sus excepciones (21), firma y pagos al entregar (13), el aviso en Hoy, empezar en otra etapa y cambiar el tipo de un asunto avanzado. Estos últimos van con la parte B.
+
+Mientras FLX-03 no esté integrada en `main` siguen los frenos actuales en el sitio publicado. Las entregas que absorbe cada etapa están anotadas en su fila (poda del 14/11/2026; textos anteriores en el historial, §28).
 
 ## Regla de actualización en cada publicación
 
