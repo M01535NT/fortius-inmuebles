@@ -248,10 +248,11 @@ test("inventory saved view, related tasks and global search navigate with contex
     "borrador",
   );
   await page.getByRole("button", { name: "Buscar en el panel" }).click();
+  // LV-10b: la búsqueda es una paleta de cmdk; el campo es un combobox y cada resultado una opción.
   await page
-    .getByRole("searchbox", { name: "Buscar personas, inmuebles o folios" })
+    .getByRole("combobox", { name: /^Buscar personas, inmuebles o folios/ })
     .fill("MNT-PRUEBA");
-  await page.getByRole("dialog").getByRole("link").first().click();
+  await page.getByRole("dialog").getByRole("option", { name: /MNT-PRUEBA-001/ }).click();
   await expect(page).toHaveURL(/audit-casa\/editar/);
   await page.getByRole("link", { name: "Crear tarea relacionada" }).click();
   await expect(page).toHaveURL(/propiedadSlug=audit-casa/);
@@ -268,7 +269,8 @@ test("profile menu persists identity, photo and reading preferences", async ({ p
   });
   await page.goto("/admin");
   await page.getByRole("banner").getByRole("button",{name:/Cuenta y sesión/}).click();
-  await page.getByRole("banner").getByRole("link",{name:"Mi perfil"}).click();
+  // LV-09: la cuenta está al pie del menú lateral y su ventana se abre fuera de él.
+  await page.locator("#admin-account-menu").getByRole("link",{name:"Mi perfil",exact:true}).click();
   await page.getByLabel("Nombre visible").fill("Moisés Núñez");
   await page.getByLabel("Seleccionar fotografía").setInputFiles({
     name:"foto.png",mimeType:"image/png",
@@ -300,13 +302,15 @@ test("mobile editor reveals collapsed sections and confirms leaving through the 
   await expect(page.getByLabel("Monto",{exact:true})).toBeVisible();
   await page.getByLabel("Título",{exact:true}).fill("Casa con cambios");
   const newTask = async () => { await page.getByRole("button",{name:"Nuevo",exact:true}).click(); await page.getByRole("menu",{name:"Qué quieres crear"}).getByRole("menuitem",{name:"Nueva tarea"}).click(); };
+  // DEC-52: la confirmación es un AlertDialog de Radix (role «alertdialog»).
   await newTask();
-  await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Cancelar",exact:true}).click();
+  await page.getByRole("alertdialog",{name:"Confirmar acción"}).getByRole("button",{name:"Cancelar",exact:true}).click();
   await expect(page).toHaveURL(/audit-casa/);
   await newTask();
-  await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Confirmar",exact:true}).click();
+  await page.getByRole("alertdialog",{name:"Confirmar acción"}).getByRole("button",{name:"Confirmar",exact:true}).click();
   await expect(page).toHaveURL(/admin\/agenda\?tab=tareas/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
   await page.screenshot({path:info.outputPath("mobile-task.png"),fullPage:true});
 });
 test("Herramientas es un lanzador y la dirección anterior de Documentos lleva a él (C45, LV-10f)", async ({ page }) => {

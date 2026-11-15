@@ -23,12 +23,13 @@ for(const width of [390,1440]){
   await page.goto("/admin/operaciones/"+exp.id);
   const eliminar=async()=>{await page.getByRole("button",{name:"Más opciones",exact:true}).click();await page.getByRole("menuitem",{name:"Eliminar operación",exact:true}).click();};
   await eliminar();
-  const dialog=page.getByRole("dialog").filter({hasText:"Podrás restaurarla desde Eliminados"});
+  // DEC-52: la confirmación de borrado es un AlertDialog de Radix (role «alertdialog»).
+  const dialog=page.getByRole("alertdialog").filter({hasText:"Podrás restaurarla desde Eliminados"});
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button",{name:"Cancelar",exact:true}).click();
   expect(removed).toBe(false);
   await eliminar();
-  await page.getByRole("dialog").filter({hasText:"Podrás restaurarla desde Eliminados"}).getByRole("button",{name:"Eliminar",exact:true}).click();
+  await page.getByRole("alertdialog").filter({hasText:"Podrás restaurarla desde Eliminados"}).getByRole("button",{name:"Eliminar",exact:true}).click();
   await expect(page.getByText("Esta operación está eliminada")).toBeVisible();
   await page.reload();
   await expect(page.getByRole("button",{name:"Restaurar operación",exact:true})).toBeVisible();
