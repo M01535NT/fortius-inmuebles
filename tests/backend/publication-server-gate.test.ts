@@ -38,32 +38,35 @@ function database(stored: Record<string, unknown> | null, expedientes: unknown[]
 
 beforeEach(() => auth.requireStaff.mockReset());
 
-test("rechaza publicar un inmueble propio sin operación de captación y devuelve la lista de faltantes", async () => {
+// FLX-03 (RP-100): un inmueble propio se publica aunque falte algo; la respuesta trae los avisos y la base los anota.
+test("publica un inmueble propio sin operación de captación y devuelve lo que falta como aviso", async () => {
   const client = database({ ...property, publicada: false }, []);
-  const response = await PUT(request(published()), context);
-  expect(response.status).toBe(400);
+  const response = await PUT(request(published(), 1), context);
+  expect(response.status).toBe(200);
   const body = await response.json();
-  expect(body.faltantes).toEqual(["Abrir una operación de captación vinculada y completar sus revisiones y autorización."]);
-  expect(body.error).toContain("Para publicar falta");
-  expect(client.rpc).not.toHaveBeenCalledWith("fortius_inmuebles_put_record", expect.anything());
+  expect(body.record.data.publicada).toBe(true);
+  expect(body.avisos).toEqual(["Abrir una operación de captación vinculada y completar sus revisiones y autorización."]);
+  expect(client.rpc.mock.calls.filter(([name]) => name === "fortius_inmuebles_put_record")).toHaveLength(1);
 });
 
-test("rechaza publicar con la captación incompleta o fuera de comercialización", async () => {
+test("publica con la captación incompleta o fuera de comercialización y lo anota como aviso", async () => {
   const flow = completeFlow(); delete flow.requisitos.plan;
   const client = database(null, [{ id: "e1", etapa: "documentacion", flujo: flow }]);
   const response = await PUT(request(published()), context);
-  expect(response.status).toBe(400);
-  const { faltantes } = await response.json();
-  expect(faltantes).toContain("Llevar la captación a comercialización antes de publicar.");
-  expect(faltantes.length).toBeGreaterThan(1);
-  expect(client.rpc).not.toHaveBeenCalledWith("fortius_inmuebles_put_record", expect.anything());
+  expect(response.status).toBe(200);
+  const { avisos } = await response.json();
+  expect(avisos).toContain("Llevar la captación a comercialización antes de publicar.");
+  expect(avisos.length).toBeGreaterThan(1);
+  expect(client.rpc.mock.calls.filter(([name]) => name === "fortius_inmuebles_put_record")).toHaveLength(1);
 });
 
 test("acepta publicar con la captación en comercialización y sus revisiones completas", async () => {
   const client = database({ ...property, publicada: false }, [{ id: "e1", etapa: "comercializacion", flujo: completeFlow() }]);
   const response = await PUT(request(published(), 1), context);
   expect(response.status).toBe(200);
-  expect((await response.json()).record.data.publicada).toBe(true);
+  const body = await response.json();
+  expect(body.record.data.publicada).toBe(true);
+  expect(body.avisos).toBeUndefined();
   expect(client.rpc.mock.calls.filter(([name]) => name === "fortius_inmuebles_put_record")).toHaveLength(1);
 });
 

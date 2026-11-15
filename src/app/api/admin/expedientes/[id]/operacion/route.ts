@@ -14,11 +14,11 @@ const workflowMessages = new Set([
  "Esta revisión la marca el director; déjala como «Lo tengo»", "Tomar el encargo lo decide el director",
  "Solo el director autoriza una excepción", "Este requisito protege al cliente y no admite excepción",
  "Escribe el motivo de la excepción (al menos 10 caracteres)",
- // TRA-01: el mismo freno de la firma, si la base lo aplica antes que la ruta (20261114212000).
+ // TRA-01: el freno de la firma, por si una base aún no tiene la migración de FLX-03 (20261115200000).
  MORTGAGE_GATE_MESSAGE,
 ]);
 import { discardReasonOf, DISCARD_REASONS, WORKFLOW_REQUIREMENTS, type RequirementKey } from "@/lib/formatos/operation-workflow";
-import { initialBlockers, loadInitialStatus, loadMortgageBlockers, MORTGAGE_GATE_MESSAGE, needsInitialGate, needsMortgageGate } from "@/lib/formatos/operation-gates";
+import { MORTGAGE_GATE_MESSAGE } from "@/lib/formatos/operation-gates";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -28,7 +28,7 @@ export async function PUT(request: Request, context: Context) {
     const { client } = await requireStaff();
     const id = z.uuid().parse((await context.params).id);
     const input = expedienteOperationWrite.parse(await readJson(request));
-    // Candado del arranque del propietario (02, 04 y checklist), el mismo que aplica el panel.
+    // Estado actual del asunto: el descarte compara con él.
     const current = await client.from("fortius_inmuebles_expedientes").select("etapa,operacion,flujo").eq("id", id).is("deleted_at", null).maybeSingle();
     if (current.error) databaseError(current.error);
     if (!current.data) throw new ApiError(404, "Expediente no encontrado");
@@ -36,12 +36,8 @@ export async function PUT(request: Request, context: Context) {
     const before = (current.data.flujo as { estado?: string } | null)?.estado;
     if (input.flujo?.estado === "descartada" && before !== "descartada" && !discardReasonOf(input.flujo.motivo.trim()))
       throw new ApiError(400, `Elige el motivo del descarte: ${DISCARD_REASONS.join(", ")}.`);
-    if (needsInitialGate(current.data, input.etapa, input.flujo)) {
-      const pending = initialBlockers(await loadInitialStatus(client, id));
-      if (pending.length) throw new ApiError(409, `Antes de avanzar: ${pending.join("; ")}`);
-    }
-    // TRA-01: la hipoteca del vendedor frena la firma hasta inscribir su cancelación o la decisión del director.
-    if (needsMortgageGate(current.data, input.etapa) && await loadMortgageBlockers(client, id) > 0) throw new ApiError(409, MORTGAGE_GATE_MESSAGE);
+    // FLX-03 (RP-100): el arranque del propietario (02, 04, checklist) y la hipoteca de la firma (TRA-01) ya no frenan;
+    // la base anota en el historial lo que faltaba al pasar de etapa.
     const { data, error } = await client.rpc("fortius_inmuebles_update_operation", {
       p_id:id,p_version:input.version,p_stage:input.etapa,p_date:input.fechaObjetivo,p_checklist:input.checklist,
       p_flow:input.flujo??null,p_slug:input.propiedadSlug??null,p_property_specified:input.propiedadSlug!==undefined,

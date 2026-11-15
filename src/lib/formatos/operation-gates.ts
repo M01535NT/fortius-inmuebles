@@ -9,6 +9,8 @@ import { isOwnerRoute, WORKFLOW_STAGES, type InitialInterviewStatus, type Operat
   el panel en «Te falta». Para salir de captación hacia el dictamen se exige la entrevista
   inicial (02) y el levantamiento (04) emitidos en su versión vigente, y el checklist de
   documentos completo. Lo demás (requisitos, una etapa a la vez) lo valida la base.
+  Desde FLX-03 (RP-100) la ruta ya no frena con esto: la base anota en el historial lo que faltaba.
+  Las funciones quedan para mostrar esos avisos en la operación y en Hoy.
 */
 
 type Expediente = { etapa: string | null; operacion: string; flujo: OperationWorkflow | null };

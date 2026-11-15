@@ -13,6 +13,7 @@ export async function GET(_request: Request,context:{params:Promise<{slug:string
   if(d.publicada===true)return {permitida:true,publicacionAnterior:true,faltantes:[]};
   if(d.origen==="compartido"){const faltantes=sharedPublicationBlockers(d.aliado as PropertyAlly|undefined);return {permitida:!faltantes.length,publicacionAnterior:false,compartido:true,faltantes};}
   const best=await publicationReadiness(client,slug,d.operacion);
-  return {permitida:!best.faltantes.length,publicacionAnterior:false,expedienteId:best.expedienteId,faltantes:best.faltantes};
+  // FLX-03 (RP-100): un inmueble propio se publica aunque falte algo; lo que falta se muestra y queda anotado.
+  return {permitida:true,publicacionAnterior:false,expedienteId:best.expedienteId,faltantes:best.faltantes};
  });
 }

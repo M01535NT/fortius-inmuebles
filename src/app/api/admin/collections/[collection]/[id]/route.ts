@@ -29,13 +29,13 @@ export async function PUT(request: Request, context: Context) {
     }
     if (collection === "propiedades") {
       const { data } = parseWrite(input);
-      await assertPropertyPublicationAllowed(client, id, parseRecord(collection, id, data));
+      const avisos = await assertPropertyPublicationAllowed(client, id, parseRecord(collection, id, data));
       // Lo público que se quita pasa al almacenamiento privado después de guardar (titular, 13/11/2026).
       const before = await publicFilesBeforeSave(id);
       const record = await putRecord(client, collection, id, input);
       await syncPublicFiles(before, id, record.data);
       if (before) await purgeRetiredPublicFiles(before.service);
-      return { record };
+      return avisos.length ? { record, avisos } : { record };
     }
     return { record: await putRecord(client, collection, id, input) };
   });

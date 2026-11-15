@@ -73,16 +73,12 @@ const owner = { etapa: "captacion", operacion: "venta", flujo: null };
 const advance = { version: 3, etapa: "documentacion", fechaObjetivo: null, checklist: {} };
 const fullTask = { pasos: [{ id: "D01", texto: "Escritura", hecho: true }] };
 
-it("no deja salir de captación sin 02 y 04 emitidos ni el checklist completo", async () => {
+// FLX-03 (RP-100): la ruta ya no frena el arranque; la base anota en el historial lo que faltaba.
+it("sale de captación aunque falten 02, 04 o el checklist: la ruta no frena y deja el aviso a la base", async () => {
   const rpc = vi.fn(async () => ({ data: { id }, error: null }));
   requireStaff.mockResolvedValue({ client: fakeClient({ expediente: owner, drafts: [{ id: "d02", formato_id: "02", version: 2, updated_at: "2026-10-01" }], emissions: [{ draft_id: "d02", draft_version: 1 }], task: { pasos: [{ id: "D01", texto: "Escritura", hecho: false }] } }, rpc), user: { id: "u" } });
-  const response = await PUT(request(advance), context);
-  expect(response.status).toBe(409);
-  const message = (await response.json()).error;
-  expect(message).toContain("checklist");
-  expect(message).toContain("entrevista inicial (02)");
-  expect(message).toContain("levantamiento (04)");
-  expect(rpc).not.toHaveBeenCalled();
+  expect((await PUT(request(advance), context)).status).toBe(200);
+  expect(rpc).toHaveBeenCalledOnce();
 });
 
 it("avanza cuando 02 y 04 están emitidos en su versión vigente y el checklist está completo", async () => {
@@ -95,7 +91,7 @@ it("avanza cuando 02 y 04 están emitidos en su versión vigente y el checklist 
   expect(rpc).toHaveBeenCalledOnce();
 });
 
-it("el candado no aplica a compradores, inversión ni a quien sigue en captación", async () => {
+it("compradores, inversión y quien sigue en captación avanzan igual", async () => {
   for (const [expediente, etapa] of [
     [{ ...owner, flujo: { ruta: "compra" } }, "documentacion"],
     [{ ...owner, operacion: "inversion" }, "documentacion"],
@@ -114,28 +110,14 @@ it("responde 404 si el expediente no existe o está eliminado", async () => {
   expect((await PUT(request(advance), context)).status).toBe(404);
 });
 
-it("en una venta, una cancelación de hipoteca abierta frena la firma hasta inscribirse o hasta la decisión del director", async () => {
+it("en una venta, la hipoteca pendiente ya no frena la firma en la ruta (TRA-01 · FLX-03)", async () => {
   const sale = { etapa: "negociacion", operacion: "venta", flujo: null };
-  const rpcWith = (frenan: number) => vi.fn(async (name: unknown) => name === "fortius_inmuebles_tramites_que_frenan_firma" ? { data: frenan, error: null } : { data: { id }, error: null });
-  let rpc = rpcWith(1);
-  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: sale }, rpc), user: { id: "u" } });
-  const blocked = await PUT(request({ ...advance, etapa: "cierre" }), context);
-  expect(blocked.status).toBe(409);
-  expect((await blocked.json()).error).toMatch(/cancelación de hipoteca.*Registro Público.*director/);
-  expect(rpc).not.toHaveBeenCalledWith("fortius_inmuebles_update_operation", expect.anything());
-  // También frena saltar a etapas posteriores desde la firma.
-  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: { ...sale, etapa: "cierre" } }, rpcWith(1)), user: { id: "u" } });
-  expect((await PUT(request({ ...advance, etapa: "entrega" }), context)).status).toBe(409);
-  // Inscrita o con la decisión del director, la base ya no la cuenta y la firma avanza.
-  rpc = rpcWith(0);
-  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: sale }, rpc), user: { id: "u" } });
-  expect((await PUT(request({ ...advance, etapa: "cierre" }), context)).status).toBe(200);
-  expect(rpc).toHaveBeenCalledWith("fortius_inmuebles_tramites_que_frenan_firma", { p_expediente: id });
-  // No aplica a rentas ni a quien sigue antes de la firma.
-  for (const [expediente, etapa] of [[{ ...sale, operacion: "renta" }, "cierre"], [{ ...sale, etapa: "comercializacion" }, "negociacion"]] as const) {
-    const other = rpcWith(1);
-    requireStaff.mockResolvedValue({ client: fakeClient({ expediente }, other), user: { id: "u" } });
+  for (const [expediente, etapa] of [[sale, "cierre"], [{ ...sale, etapa: "cierre" }, "entrega"], [{ ...sale, operacion: "renta" }, "cierre"]] as const) {
+    const rpc = vi.fn(async (name: unknown) => name === "fortius_inmuebles_tramites_que_frenan_firma" ? { data: 1, error: null } : { data: { id }, error: null });
+    requireStaff.mockResolvedValue({ client: fakeClient({ expediente }, rpc), user: { id: "u" } });
     expect((await PUT(request({ ...advance, etapa }), context)).status).toBe(200);
-    expect(other).toHaveBeenCalledOnce();
+    // La ruta ya no consulta los trámites: la base anota el aviso de la hipoteca al pasar.
+    expect(rpc).toHaveBeenCalledOnce();
+    expect(rpc).toHaveBeenCalledWith("fortius_inmuebles_update_operation", expect.anything());
   }
 });

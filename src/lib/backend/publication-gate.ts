@@ -26,13 +26,18 @@ export async function publicationReadiness(client: DatabaseClient, slug: string,
 }
 
 /**
- * COR-16: al guardar un inmueble con `publicada: true`, el servidor exige la captación en comercialización
- * con sus revisiones completas. Un inmueble que ya estaba publicado conserva su publicación al guardarse.
+ * COR-16 y FLX-03 (RP-100): al guardar un inmueble con `publicada: true` se revisa la captación. Un inmueble
+ * propio se publica aunque falte algo: devuelve lo que falta como aviso y la base lo anota en el historial del asunto.
+ * Un compartido sigue sin publicarse sin la autorización escrita de la otra inmobiliaria (PUB-02).
+ * Un inmueble que ya estaba publicado conserva su publicación al guardarse.
  */
-export async function assertPropertyPublicationAllowed(client: Pick<SupabaseClient, "from" | "rpc">, slug: string, record: Record<string, unknown>): Promise<void> {
-  if (record.publicada !== true) return;
-  if ((await propiedadVisible(client, slug))?.publicada === true) return;
-  // PUB-02: un compartido no tiene captación; pide la inmobiliaria y su autorización (la base exige además al director).
-  const { faltantes } = record.origen === "compartido" ? { faltantes: sharedPublicationBlockers(record.aliado as PropertyAlly | undefined) } : await publicationReadiness(client, slug, record.operacion);
-  if (faltantes.length) throw new ApiError(400, `Para publicar falta: ${faltantes.join("; ")}`, { faltantes });
+export async function assertPropertyPublicationAllowed(client: Pick<SupabaseClient, "from" | "rpc">, slug: string, record: Record<string, unknown>): Promise<string[]> {
+  if (record.publicada !== true) return [];
+  if ((await propiedadVisible(client, slug))?.publicada === true) return [];
+  if (record.origen === "compartido") {
+    const faltantes = sharedPublicationBlockers(record.aliado as PropertyAlly | undefined);
+    if (faltantes.length) throw new ApiError(400, `Para publicar falta: ${faltantes.join("; ")}`, { faltantes });
+    return [];
+  }
+  return (await publicationReadiness(client, slug, record.operacion)).faltantes;
 }
