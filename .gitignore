@@ -40,6 +40,9 @@ next-env.d.ts
 /supabase/.temp/
 /financial-source-report.json
 /test-results/
+/playwright-report/
+/blob-report/
+/coverage/
 /_local/
 
 # Configuraciones temporales de pruebas locales
