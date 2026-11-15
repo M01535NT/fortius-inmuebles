@@ -205,7 +205,7 @@ test("las casillas y la fecha del inmueble (Radix, DEC-52) viajan en el formular
   const mounted = render(<PropertyForm initial={source} />);
   fireEvent.click(screen.getByRole("checkbox", { name: "Es un ejemplo (no es una oferta real)" }));
   // Se espera a que la ficha termine de cargar lo vinculado (permisos y publicación) antes de abrir el calendario.
-  await screen.findByText(/La guía vinculada permite/);
+  await screen.findByText(/La captación vinculada está lista para publicar/);
   fireEvent.click(screen.getByRole("button", { name: "Fecha de publicación" }));
   fireEvent.click(await screen.findByRole("button", { name: /\b15 de \p{L}+ de \d{4}/iu }));
   const fecha = (document.querySelector('input[name="publicadaEl"]') as HTMLInputElement).value;

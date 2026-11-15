@@ -180,7 +180,8 @@ it("el checklist de documentos se arma con la entrevista y se marca al recibir c
   expect(screen.getByText(`0 de ${created.pasos.length} listos`)).toBeTruthy();
   fireEvent.click(screen.getByRole("checkbox", { name: /D01 · Escritura/ }));
   await waitFor(() => expect((server.tasks.at(-1) as { pasos: Array<{ id: string; hecho: boolean }> }).pasos.find(p => p.id === "D01")?.hecho).toBe(true));
-  expect(screen.getByRole("button", { name: /Pasar a: Dictamen jurídico/ }).hasAttribute("disabled")).toBe(true);
+  // FLX-03 (RP-100): con la lista a medias «Pasar a» sigue activo; lo que falta se confirma al pulsarlo.
+  expect(screen.getByRole("button", { name: /Pasar a: Dictamen jurídico/ }).hasAttribute("disabled")).toBe(false);
   type Paso = { id: string; hecho: boolean; noAplica?: string; porConfirmar?: string; aplica?: boolean };
   const last = () => (server.tasks.at(-1) as { pasos: Paso[] }).pasos;
   // Lo por confirmar se responde con un clic; «No» deja el motivo escrito.
@@ -307,12 +308,19 @@ it("Hay un problema guarda el título y la explicación, pasa a «Ahora toca» y
   await waitFor(() => expect(lastFlow()).toMatchObject({ flujo: { requisitos: { entrevista: { estado: "recibido", soporte: "Resuelto el 16 oct: El propietario no tiene la escritura" } } } }));
 });
 
-it("«Pasar a» se habilita solo con todo listo y registra el avance", async () => {
+it("«Pasar a» con algo pendiente pide confirmarlo; con todo listo registra el avance sin preguntar (FLX-03)", async () => {
   server.ops = [base({ flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) })];
   intakeDone();
   await openOperation();
   const advance = await screen.findByRole("button", { name: /Pasar a: Dictamen jurídico/ });
-  expect((advance as HTMLButtonElement).disabled).toBe(true);
+  expect((advance as HTMLButtonElement).disabled).toBe(false);
+  // Sin la próxima tarea pregunta, nombra lo que falta y, si se cancela, no guarda nada.
+  const before = server.ops[0].version;
+  vi.mocked(confirmAction).mockResolvedValueOnce(false);
+  fireEvent.click(advance);
+  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringMatching(/Todavía falta: .*quedará anotado en el historial/), expect.objectContaining({ title: "¿Pasar a «Dictamen jurídico»?", confirmLabel: "Pasar igual" })));
+  expect(server.ops[0].version).toBe(before);
+  vi.mocked(confirmAction).mockClear();
   expect(screen.getByRole("button", { name: "Agendar la próxima tarea" })).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Qué sigue"), { target: { value: "Pedir la escritura" } });
   await pickDate(screen.getByLabelText("Fecha"), "2026-10-20");
@@ -323,6 +331,7 @@ it("«Pasar a» se habilita solo con todo listo y registra el avance", async () 
   expect(screen.getAllByRole("button", { name: /Pasar a: Dictamen jurídico/ })).toHaveLength(1);
   fireEvent.click(screen.getByRole("button", { name: /Pasar a: Dictamen jurídico/ }));
   expect(await screen.findByText("Listo: el asunto pasó a «Dictamen jurídico».")).toBeTruthy();
+  expect(confirmAction).not.toHaveBeenCalled();
   expect(lastFlow()).toMatchObject({ etapa: "documentacion", version: 3 });
   await stage(5);
 });

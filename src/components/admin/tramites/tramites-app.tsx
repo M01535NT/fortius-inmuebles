@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Check, ChevronLeft, ChevronRight, FileText, MessageCircle, Phone, Plus, Star, Trash2, Upload, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
 import { Avatar, Button, Kbd, Notice, Pill, Segmented, Sheet, Thumb } from "@/components/admin/kit";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { apiRequest, archivoFromUpload, db, errorMessage, loadAllDossiers, resolveFileUrl, uid, upsert, uploadFile, useCollection, useLoadState, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import type { Archivo, Evento } from "@/lib/domain/records";
@@ -158,8 +159,10 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
     const next: Tramite = { ...t, pasos: t.pasos.map((p, k) => k !== actual ? p : { ...p, pendientes: p.pendientes.map((x, j) => j === i ? { ...x, hecho: !x.hecho } : x) }) };
     await save(next);
   }
+  // FLX-03 (RP-100): un paso con pendientes o sin su documento se cierra igual tras confirmarlo; la base deja el aviso en el trámite.
   async function cerrar() {
     const nombre = pasos[actual].nombre;
+    if (faltan.length && !await confirmAction(`Todavía falta: ${faltan.join("; ")}. Puedes cerrarlo igual; quedará anotado en el historial del trámite.`, { title: `¿Cerrar «${nombre}»?`, confirmLabel: "Cerrar igual" })) return;
     const saved = await save({ ...t, pasoActual: t.pasoActual + 1, espera: null, estado: t.pasoActual + 1 >= TOTAL_PASOS ? "terminado" : "en_curso" });
     if (saved) { setVer(null); offer({ text: `Paso «${nombre}» cerrado`, undo: async () => { const latest = db.tramites.list().find(r => r.id === t.id) ?? saved; await upsert(db.tramites, { ...latest, pasoActual: latest.pasoActual - 1, estado: "en_curso" }, db.tramites.version(latest)); } }); }
   }
@@ -230,7 +233,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
                 </div>}
               </div>
               <div className={s.stepFoot}>
-                <Button variant="primary" disabled={busy || faltan.length > 0} onClick={() => void cerrar()}><Check size={16} aria-hidden />{actual === TOTAL_PASOS - 1 ? "Terminar el trámite" : "Cerrar el paso"}</Button>
+                <Button variant="primary" disabled={busy} onClick={() => void cerrar()}><Check size={16} aria-hidden />{actual === TOTAL_PASOS - 1 ? "Terminar el trámite" : "Cerrar el paso"}</Button>
                 {documentoDelPaso(t.acreedor, t.pasos[actual].clave) && !documentos.some(d => d.pasoClave === t.pasos[actual].clave) && <label className={cn("inline-flex", s.onNavy)} style={{ borderRadius: "var(--radius-control)" }}>
                   <FileButton label="Subir documento" onFiles={upload} navy />
                 </label>}

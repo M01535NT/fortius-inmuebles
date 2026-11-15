@@ -36,6 +36,7 @@ import { OwnerAppraisalCard } from "./owner-appraisal";
 import { CloseCard } from "./close-card";
 import { MortgageGateNotice } from "./mortgage-gate";
 import { esFrenoDeFirma } from "@/lib/admin/tramite-firma";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { EncargoDecisionCard, encargoTomado } from "./encargo-decision";
 import { PriorVisitCard } from "./prior-visit";
 import { moverOferta } from "./offer-link";
@@ -128,10 +129,17 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   const quick = (key: RequirementKey, state: "pendiente" | "recibido") => void changeRequirement(key, quickReview(flow, key, state, today)).catch(() => undefined);
   const target = advanceTarget(op, today);
   const blockers = missingItems(op, tasks, today);
+  // FLX-03 (RP-100): lo que falta no frena; se confirma una vez y la base lo anota en el historial del asunto.
   async function advance() {
-    if (!target?.target || blockers.length) return;
+    if (!target?.target) return;
+    const pending = blockers.map(b => b.text);
+    if (pending.length && !await confirmAction(`Todavía falta: ${pending.join("; ")}. Puedes pasar igual; lo que falta quedará anotado en el historial del asunto.`, { title: `¿Pasar a «${target.label}»?`, confirmLabel: "Pasar igual" })) return;
     setBusy(true); setError(""); setNotice("");
-    try { await onSave({ etapa: target.target }); setNotice(`Listo: el asunto pasó a «${target.label}».`); window.scrollTo({ top: 0, behavior: "instant" }); }
+    try {
+      await onSave({ etapa: target.target });
+      setNotice(pending.length ? `Listo: el asunto pasó a «${target.label}». Lo que faltaba quedó anotado en el historial.` : `Listo: el asunto pasó a «${target.label}».`);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     catch (cause) { const message = saveError(cause); if (esFrenoDeFirma(message)) setMortgageBlocked(true); else setError(`No se pudo avanzar: ${message}`); } finally { setBusy(false); }
   }
   function goToPending(item: Extract<StageItem, { kind: "pendiente" }>) {
@@ -172,9 +180,9 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   const showEncargo = phase === "verificacion" || items.some(i => i.kind === "pendiente" && i.place === "encargo") || (!!flow.resolucion && !encargoTomado(flow));
   const surveySelect = <label className="text-sm">Tipo de levantamiento<select className={selectClass} value={survey} disabled={lock} onChange={e => setSurvey(e.target.value as LevantamientoId)}>{(Object.keys(LEVANTAMIENTO_TITLES) as LevantamientoId[]).map(id => <option key={id} value={id}>{id} · {LEVANTAMIENTO_TITLES[id]}</option>)}</select></label>;
 
-  /** La barra flotante: lo que toca en una línea y un solo botón; «Pasar a» con los mismos candados de siempre. */
+  /** La barra flotante: lo que toca en una línea y un solo botón; «Pasar a» pide confirmar si algo falta (FLX-03). */
   function floatingBar() {
-    const pass = target?.target ? <Button variant={now ? "secondary" : "primary"} disabled={lock || blockers.length > 0} onClick={() => void advance()}>Pasar a: {target.label}</Button> : null;
+    const pass = target?.target ? <Button variant={now ? "secondary" : "primary"} disabled={lock} onClick={() => void advance()}>Pasar a: {target.label}</Button> : null;
     let title = "", text = "", action: React.ReactNode = null;
     if (!now) {
       title = target?.target ? "Todo lo de esta etapa está listo" : stageOf(op) === "cerrado" ? "Asunto archivado" : "Todo listo en esta etapa";

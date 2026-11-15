@@ -122,6 +122,8 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
   const [origin] = React.useState<"propio" | "compartido">(() => followup?.origen ?? (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("origen") === "compartido" ? "compartido" : "propio"));
   const allies = React.useMemo(() => knownAllies(propiedades as AdminProperty[]), [propiedades]);
   const [publicationReady,setPublicationReady]=React.useState(false);
+  // FLX-03: lo que le falta a la captación no frena la publicación; se confirma una vez y queda anotado.
+  const [publicationPending,setPublicationPending]=React.useState<string[]>([]);
   const [dirty,setDirty] = React.useState(false);
   const [conflict,setConflict] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -182,6 +184,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
     setError(null);
     const f = new FormData(e.currentTarget);
     const action = (e.nativeEvent as SubmitEvent).submitter?.getAttribute("data-action");
+    if (action === "publish" && publicationPending.length && !await confirmAction(`A la captación todavía le falta: ${publicationPending.join("; ")}. Puedes publicarlo igual; quedará anotado en su historial.`, { title: "¿Publicar el inmueble?", confirmLabel: "Publicar igual" })) return;
     const v = (name: string) => String(f.get(name) ?? "").trim();
     const num = (name: string) => (v(name) ? Number(v(name)) : undefined);
 
@@ -326,7 +329,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
       {/* En computadora la barra de guardar, el avance y la autorización van a la derecha (la barra arriba y fija); en celular, arriba y abajo. */}
       <div className="flex min-w-0 flex-col gap-8 lg:col-start-2 lg:row-start-2 lg:gap-4">
       <PropertyWorkbench identity={initial?.slug??"new"} version={version} snapshot={snapshot} restore={restore} sections={sections} dirty={dirty} onDirty={()=>setDirty(true)} photoCount={galeria.filter(image=>publicGalleryUrl(image.src)).length} conflict={conflict}/>
-      {initial ? <div hidden={view === "material"}><PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady}/></div> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">{origin === "compartido" ? "Guárdalo privado con la autorización de la inmobiliaria; después el director lo publica." : "Guárdalo privado; luego liga su captación y la autorización para publicar."}</p>}
+      {initial ? <div hidden={view === "material"}><PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady} onPending={setPublicationPending}/></div> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">{origin === "compartido" ? "Guárdalo privado con la autorización de la inmobiliaria; después el director lo publica." : "Guárdalo privado; luego liga su captación y la autorización para publicar."}</p>}
       </div>
       <div className="flex min-w-0 flex-col gap-8 lg:col-start-1 lg:row-span-2 lg:row-start-1">
       {/* Básicos */}

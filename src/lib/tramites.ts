@@ -17,13 +17,14 @@ import { z } from "zod";
   Las claves de los pasos son identificadores fijos (la base los revisa); el nombre cambia por acreedor.
 
   La base guarda los pendientes de cada paso al abrir el trámite y revisa al avanzar que estén hechos
-  y que el documento del paso exista (migración 20261114211000). Este archivo solo define textos.
+  y que el documento del paso exista (migración 20261114211000). Desde FLX-03 (20261115200000) eso no
+  frena: el paso se cierra y queda el aviso en el historial del trámite. Este archivo solo define textos.
 */
 export const ACREEDORES = { infonavit: "Infonavit", banco: "Banco", fovissste: "Fovissste" } as const;
 export type Acreedor = keyof typeof ACREEDORES;
 export const PASO_CLAVES = ["datos", "liquidado", "carta", "notario", "firma", "registro", "certificado", "entrega"] as const;
 export type PasoClave = (typeof PASO_CLAVES)[number];
-/** Pasos que no se cierran sin su documento (la base revisa lo mismo). */
+/** Pasos que piden su documento; sin él se cierran con aviso (la base revisa lo mismo). */
 export const PASOS_CON_DOCUMENTO: Partial<Record<PasoClave, string>> = { liquidado: "Estado de cuenta en cero", carta: "", certificado: "Certificado de inscripción sin gravámenes" };
 export const TOTAL_PASOS = PASO_CLAVES.length;
 
@@ -100,7 +101,7 @@ export function nuevoTramite(input: { id: string; acreedor: Acreedor; titulo: st
   };
 }
 
-/** Lo que falta para cerrar el paso actual (vacío = se puede cerrar). */
+/** Lo que falta en el paso actual (vacío = se cierra sin aviso). */
 export function faltanParaCerrar(t: Pick<Tramite, "acreedor" | "pasoActual" | "pasos">, documentos: readonly { pasoClave?: string }[]): string[] {
   const paso = t.pasos[t.pasoActual];
   if (!paso) return [];
