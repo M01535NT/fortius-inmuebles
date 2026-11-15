@@ -4,6 +4,7 @@ import { ArrowLeft, Building2, FileDown, FileText, Upload, UserRound } from "@/c
 import { Button, Kbd, Notice, Segmented } from "@/components/admin/kit";
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { useSingleKeyShortcuts } from "@/components/admin/workspace/shortcuts";
+import { VistaPdf } from "@/components/admin/vista-pdf";
 import { typingTarget } from "@/lib/admin/commands";
 import { db, errorMessage, fetchJson, loadAllDossiers, useCollection } from "@/lib/admin/store";
 import type { OperationRecord } from "@/lib/admin/operation-view";
@@ -268,7 +269,7 @@ function Detalle({ doc, enPapelera, error, aviso, atajos, archivarConTeclaRef, o
       {error && <Notice tone="warn">{error}</Notice>}
       {aviso && <p className={s.hint} role="status">{aviso}</p>}
       {doc.mime === "application/pdf"
-        ? <VistaPdf doc={doc} />
+        ? <VistaPdf url={archivoUrl(doc)} titulo={doc.titulo} soloPrimeraEnCelular />
         : <div className={s.paper} data-kind="image">
             {/* eslint-disable-next-line @next/next/no-img-element -- archivo privado servido por la API con sesión; next/image no lo puede optimizar */}
             <img src={archivoUrl(doc)} alt={doc.titulo} />
@@ -310,41 +311,6 @@ function Detalle({ doc, enPapelera, error, aviso, atajos, archivarConTeclaRef, o
       </div>
     </aside>
   </div>;
-}
-
-const PAGINAS_VISTA = 6;
-
-/*
-  El panel no se deja enmarcar (CSP frame-ancestors 'none'), así que un PDF no puede ir en un
-  iframe. Se descarga con la sesión y sus primeras páginas se dibujan con pdf.js, como hace la
-  lectura de datos. Si hay más páginas, el archivo completo se abre en otra pestaña.
-*/
-function VistaPdf({ doc }: { doc: Documento }) {
-  const [vista, setVista] = React.useState<{ paginas: string[]; total: number } | "cargando" | "error">("cargando");
-  React.useEffect(() => {
-    let alive = true;
-    (async () => {
-      const respuesta = await fetch(archivoUrl(doc), { credentials: "same-origin" });
-      if (!respuesta.ok) throw new Error(String(respuesta.status));
-      const { paginasComoImagenes } = await import("@/lib/admin/pdf-paginas");
-      return paginasComoImagenes(await respuesta.arrayBuffer(), { maxPaginas: PAGINAS_VISTA, ancho: 1100, calidad: 0.82 });
-    })().then(r => { if (alive) setVista(r); }, () => { if (alive) setVista("error"); });
-    return () => { alive = false; };
-  }, [doc]);
-  const abrir = () => window.open(archivoUrl(doc), "_blank", "noopener");
-  if (vista === "cargando") return <div className={s.paper} data-kind="pdf" aria-busy="true"><p className={s.paperNote}>Preparando la vista…</p></div>;
-  if (vista === "error") return <div className={s.paper} data-kind="pdf"><div className={s.paperNote}><p>No se pudo mostrar el documento aquí.</p><Button onClick={abrir}><FileDown size={16} aria-hidden />Abrir el archivo</Button></div></div>;
-  return <>
-    {vista.paginas.map((src, i) => <div key={i} className={s.paper} data-kind="page">
-      {/* eslint-disable-next-line @next/next/no-img-element -- página dibujada en el navegador a partir del PDF privado */}
-      <img src={src} alt={`${doc.titulo}, página ${i + 1} de ${vista.total}`} />
-    </div>)}
-    {vista.total > 1 && <p className={s.paperMore}>
-      <span className={s.wide}>{vista.total > vista.paginas.length ? `Se muestran ${vista.paginas.length} de ${vista.total} páginas.` : `${vista.total} páginas.`}</span>
-      <span className={s.narrow}>Aquí se ve la primera de {vista.total} páginas.</span>{" "}
-      <button type="button" className="underline underline-offset-2" onClick={abrir}>Abrir el documento completo</button>
-    </p>}
-  </>;
 }
 
 function Pick({ sugerencia, pressed, disabled, onPress }: { sugerencia: Sugerencia; pressed: boolean; disabled: boolean; onPress: () => void }) {

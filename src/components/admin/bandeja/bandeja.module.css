@@ -110,15 +110,8 @@
 .viewbar .title { min-width: 0; }
 /* La hoja se ve como papel en claro y en oscuro: es lo que se está revisando. */
 .paper { background: #fff; border-radius: 6px; box-shadow: 0 1px 2px rgba(6, 15, 30, .12), 0 18px 40px -20px rgba(6, 15, 30, .35); overflow: hidden; display: grid; }
-.paper[data-kind="pdf"] { aspect-ratio: 8.5 / 11; }
-.paper[data-kind="page"] img { max-height: none; }
-.paperNote { align-self: center; justify-self: center; display: grid; gap: 12px; justify-items: center; padding: 24px; margin: 0; color: #49566a; font-size: var(--admin-text-detalle); text-align: center; }
-.paperNote p { margin: 0; }
-.paperMore { margin: 0; color: var(--muted-foreground); font-size: var(--admin-text-detalle); text-align: center; }
-.paperMore button { min-height: 44px; color: var(--foreground); font-weight: 540; }
-.narrow { display: none; }
 .paper img { width: 100%; height: auto; max-height: 78dvh; object-fit: contain; display: block; }
-@media (max-width: 900px) { .paper[data-kind="pdf"] { aspect-ratio: auto; height: 56dvh; } .paper img, .paper[data-kind="page"] img { max-height: 56dvh; } .paper[data-kind="page"] ~ .paper[data-kind="page"] { display: none; } .wide { display: none; } .narrow { display: inline; } }
+@media (max-width: 900px) { .paper img { max-height: 56dvh; } }
 
 .mailStep { padding: 16px; gap: 12px; }
 .mailStep h3 { font-size: 1.15rem; line-height: 1.2; }

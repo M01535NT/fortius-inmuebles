@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Check, ChevronLeft, ChevronRight, Files, List, ListChecks, Mic, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
 import { Button, Pill } from "@/components/admin/kit";
+import { VistaPdf } from "@/components/admin/vista-pdf";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { fetchLetterhead } from "@/lib/letterhead";
@@ -335,7 +336,7 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
         <Button variant="ghost" iconOnly aria-label="Cerrar los documentos" onClick={() => { setVerDocs(false); setArchivoAbierto(null); }}><X size={18} aria-hidden="true" /></Button>
       </div>
       {archivoAbierto ? archivoAbierto.mime === "application/pdf"
-        ? <iframe title={archivoAbierto.titulo} src={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} className="min-h-0 flex-1 border-0 bg-white" />
+        ? <div className="min-h-0 flex-1 overflow-auto bg-[color:var(--muted)] p-3"><VistaPdf url={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} titulo={archivoAbierto.titulo} maxPaginas={20} /></div>
         : <div className="min-h-0 flex-1 overflow-auto bg-[color:var(--muted)] p-2"><img src={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} alt={archivoAbierto.titulo} className="mx-auto h-auto max-w-full" /></div>
         : <div className="min-h-0 flex-1 overflow-auto px-3 py-3">
           {!archivos ? <p role="status" className="px-2 text-sm text-muted-foreground">Consultando…</p>
