@@ -86,7 +86,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   const valid = (e: Emision) => e.draft_version === doc.version && (definition.id !== "01" || e.plantillaVersion === AVISO_TEMPLATE_VERSION);
   const current = emisiones?.find(valid);
   const copia = copiaEditable(definition.id);
-  // Con datos faltantes se descarga avisando y pidiendo confirmación, salvo el aviso (01) y la promesa (15).
+  // Con datos faltantes se descarga avisando y pidiendo confirmación, salvo el aviso de privacidad (01); la promesa (15) también, desde FLX-03.
   const canPdf = definition.readyForEmission && (missing.length === 0 || emiteIncompleto(definition.id));
 
   React.useEffect(() => {

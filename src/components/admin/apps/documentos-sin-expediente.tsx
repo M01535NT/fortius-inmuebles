@@ -24,8 +24,8 @@ import { PasarAAsunto } from "./pasar-a-asunto";
   «Llenar con datos» abre el formato en su propia ventana, con la misma captura por secciones y el
   mismo diseño de plantilla que en el expediente; «En blanco» descarga el machote con el membrete
   para que el cliente lo revise o se llene a mano. Nada se bloquea por datos faltantes (RP-77):
-  el PDF sale marcado como incompleto, salvo el aviso de privacidad (01) y la promesa (15), que
-  conservan sus reglas. Un formato cuyo PDF siga pendiente de cotejo sale en Word.
+  el PDF sale marcado como incompleto, salvo el aviso de privacidad (01), que
+  conserva su regla (la promesa, 15, también sale marcada desde FLX-03). Un formato cuyo PDF siga pendiente de cotejo sale en Word.
   Lo lleno se guarda como trabajo de Herramientas (con versiones); el PDF no se archiva.
 */
 
@@ -185,7 +185,7 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
   const pendingBySection = sections.map(s => missing.filter(label => (sectionOf.get(label) ?? (label.startsWith("Selecciona") ? IMAGES : "")) === s).length);
   const section = sections[index], last = index === sections.length - 1;
   const adjuntos = adjuntosDe(values) as Adjunto[];
-  // RP-77: con datos faltantes el PDF sale igual, marcado; el 01 y la 15 conservan sus reglas.
+  // RP-77: con datos faltantes el PDF sale igual, marcado; el 01 conserva su regla (la 15 sale marcada desde FLX-03).
   const pdfPosible = definition.readyForEmission && (missing.length === 0 || emiteIncompleto(definition.id));
   const copia = WORD_LLENO_EXCLUIDOS.has(definition.id) ? null : copiaDe(definition.id);
   const images: ImagesSource = {

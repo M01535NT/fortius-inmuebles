@@ -81,14 +81,16 @@ describe("Documentos sin expediente", () => {
     expect((await get()).status).toBe(400);
   });
 
-  it("con faltantes sale como incompleto si se pide, salvo el 01 y la 15 (RP-77)", async () => {
+  it("con faltantes sale como incompleto si se pide, también la 15; el 01 no (RP-77, FLX-03)", async () => {
     const incompleto = () => GET(new Request(`https://panel.test/api/admin/apps/runs/${id}/documento?version=2&incompleto=1`), { params: Promise.resolve({ id }) });
     requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "06", data: { ...opinion, sustento: "" } } }), user: { id: "u" } });
     const response = await incompleto();
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("application/pdf");
     requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "15", data: {} } }), user: { id: "u" } });
-    expect((await incompleto()).status).toBe(409);
+    const promesa = await incompleto();
+    expect(promesa.status).toBe(200);
+    expect(promesa.headers.get("content-type")).toBe("application/pdf");
     requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "01", data: {} } }), user: { id: "u" } });
     expect((await incompleto()).status).toBe(409);
   }, 30000);
