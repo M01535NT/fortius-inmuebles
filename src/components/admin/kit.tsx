@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { TabsList, TabsRoot, TabsTrigger } from "@/components/ui/tabs";
 import { SheetClose, SheetDescription, SheetOverlay, SheetPanel, SheetPortal, SheetRoot, SheetTitle } from "@/components/ui/sheet";
 import s from "./kit.module.css";
 
@@ -243,21 +244,16 @@ export function ProgressBar({ value, max, label }: { value: number; max: number;
 export type TabItem<K extends string> = { id: K; label: string; count?: number; icon?: React.ReactNode };
 /** Pestañas en fila (subrayado) o en lista vertical (`orientation="vertical"`, dentro de una operación). */
 export function Tabs<K extends string>({ items, value, onChange, label, idPrefix, orientation = "horizontal", className }: { items: TabItem<K>[]; value: K; onChange: (id: K) => void; label: string; idPrefix: string; orientation?: "horizontal" | "vertical"; className?: string }) {
-  const refs = React.useRef<Array<HTMLButtonElement | null>>([]);
+  // Sobre Radix Tabs (DEC-52): flechas, Inicio y Fin, y solo la pestaña elegida entra con Tab. Los ids
+  // siguen siendo los del kit para que `TabPanel` (fuera de la raíz de Radix) quede ligado a su pestaña.
   const vertical = orientation === "vertical";
-  function onKey(event: React.KeyboardEvent, index: number) {
-    const step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
-    if (!step) return;
-    event.preventDefault();
-    const target = (index + step + items.length) % items.length;
-    refs.current[target]?.focus();
-    onChange(items[target].id);
-  }
-  return <div className={cn(vertical ? s.tabsVertical : s.tabs, className)} role="tablist" aria-label={label} aria-orientation={vertical ? "vertical" : undefined}>
-    {items.map((item, i) => <button key={item.id} ref={el => { refs.current[i] = el; }} type="button" role="tab" id={`${idPrefix}-tab-${item.id}`} aria-controls={`${idPrefix}-panel-${item.id}`} aria-selected={item.id === value} tabIndex={item.id === value ? 0 : -1} className={s.tab} onClick={() => onChange(item.id)} onKeyDown={e => onKey(e, i)}>
-      {vertical ? <span className="flex min-w-0 items-center gap-2.5">{item.icon}{item.label}</span> : <>{item.icon}{item.label}</>}{item.count !== undefined && <span className={s.tabCount}>{item.count}</span>}
-    </button>)}
-  </div>;
+  return <TabsRoot value={value} onValueChange={next => onChange(next as K)} orientation={orientation} activationMode="automatic" className="contents">
+    <TabsList className={cn(vertical ? s.tabsVertical : s.tabs, className)} aria-label={label} loop>
+      {items.map(item => <TabsTrigger key={item.id} value={item.id} id={`${idPrefix}-tab-${item.id}`} aria-controls={`${idPrefix}-panel-${item.id}`} className={s.tab} onClick={() => { if (item.id !== value) onChange(item.id); }}>
+        {vertical ? <span className="flex min-w-0 items-center gap-2.5">{item.icon}{item.label}</span> : <>{item.icon}{item.label}</>}{item.count !== undefined && <span className={s.tabCount}>{item.count}</span>}
+      </TabsTrigger>)}
+    </TabsList>
+  </TabsRoot>;
 }
 
 /** Pestañas que llevan a otra página de la misma sección (por ejemplo, Sitio web). */
