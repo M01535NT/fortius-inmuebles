@@ -27,3 +27,12 @@ test("el selector con buscador filtra sin acentos y elige con Enter", async () =
   fireEvent.keyDown(search, { key: "Enter" });
   expect(screen.getByRole("combobox", { name: "Persona" }).textContent).toContain("José Peña");
 });
+
+test("el calendario no se vuelve a montar cuando la pantalla se dibuja de nuevo con la ventanita abierta", async () => {
+  const Demo = ({ n }: { n: number }) => <div data-n={n}><DateField defaultValue="2026-11-14" aria-label="Fecha" /></div>;
+  const view = render(<Demo n={1} />);
+  fireEvent.click(screen.getByRole("button", { name: "Fecha" }));
+  const day = await screen.findByRole("button", { name: /20 de noviembre/i });
+  view.rerender(<Demo n={2} />);
+  expect(day.isConnected).toBe(true);
+});

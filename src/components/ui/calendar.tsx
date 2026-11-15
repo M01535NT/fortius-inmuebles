@@ -11,6 +11,17 @@ import { cn } from "@/lib/utils";
   reserva para la acción principal). Flechas, Re Pág y Av Pág para moverse con el teclado. Días de
   44 px en celular. Para elegir fecha dentro de un campo, va dentro de `Popover`.
 */
+// Fuera de `Calendar`: si fueran funciones en línea, cada render crearía un tipo nuevo y el
+// calendario se volvería a montar (perdería el foco y los clics).
+function CalendarRoot({ className, rootRef, ...rest }: React.ComponentProps<NonNullable<CalendarComponents["Root"]>>) {
+  return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...rest} />;
+}
+function CalendarChevron({ className, orientation, ...rest }: React.ComponentProps<NonNullable<CalendarComponents["Chevron"]>>) {
+  const Icon = orientation === "left" ? ChevronLeft : orientation === "right" ? ChevronRight : ChevronDown;
+  return <Icon size={18} aria-hidden="true" className={cn(className)} {...rest} />;
+}
+type CalendarComponents = NonNullable<React.ComponentProps<typeof DayPicker>["components"]>;
+
 export function Calendar({ className, classNames, showOutsideDays = true, captionLayout = "label", formatters, components, ...props }: React.ComponentProps<typeof DayPicker>) {
   const d = getDefaultClassNames();
   return <DayPicker
@@ -49,11 +60,8 @@ export function Calendar({ className, classNames, showOutsideDays = true, captio
       ...classNames,
     }}
     components={{
-      Root: ({ className, rootRef, ...rest }) => <div data-slot="calendar" ref={rootRef} className={cn(className)} {...rest} />,
-      Chevron: ({ className, orientation, ...rest }) => {
-        const Icon = orientation === "left" ? ChevronLeft : orientation === "right" ? ChevronRight : ChevronDown;
-        return <Icon size={18} aria-hidden="true" className={cn(className)} {...rest} />;
-      },
+      Root: CalendarRoot,
+      Chevron: CalendarChevron,
       DayButton: CalendarDayButton,
       ...components,
     }}
