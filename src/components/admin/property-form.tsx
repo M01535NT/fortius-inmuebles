@@ -8,11 +8,13 @@ import f from "@/components/admin/form.module.css";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, ExternalLink } from "@/components/admin/icons";
+import { Plus, Trash2, ArrowUp, ArrowDown, ExternalLink } from "@/components/admin/icons";
 import { LibraryPicker } from "@/components/admin/workspace/library-picker";
 import { PhotoEditButton } from "@/components/admin/properties/photo-edit";
 import { FormSection, revealSection } from "@/components/admin/workspace/form-section";
 import { PropertyWorkbench, readDraftFields, type PropertyDraft } from "@/components/admin/workspace/property-workbench";
+import { Disclosure, FormDateField } from "@/components/admin/properties/disclosure";
+import { Checkbox, Label } from "@/components/ui/controls";
 
 import {
   AsyncForm,
@@ -146,17 +148,22 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
   function setGaleria(value: React.SetStateAction<ImagenPropiedad[]>) {updateGaleria(value);setDirty(true);}
   function setDocumentos(value: React.SetStateAction<DocumentoPropiedad[]>) {updateDocumentos(value);setDirty(true);}
   function setPois(value: React.SetStateAction<typeof pois>) {updatePois(value);setDirty(true);}
+  // Casillas de Radix (DEC-52): su estado vive aquí; dentro del <form> Radix manda «on» por nombre como la nativa.
+  const [marcas, setMarcas] = React.useState({ destacada: !!initial?.destacada, credito: !!initial?.creditoDisponible, demo: initial?.demo ?? false });
+  const marcar = (key: keyof typeof marcas) => (checked: boolean | "indeterminate") => { setMarcas(m => ({ ...m, [key]: checked === true })); setDirty(true); };
   const [error, setError] = React.useState<string | null>(null);
   function snapshot(): PropertyDraft { return {version,fields:readDraftFields(formRef.current),titulo,codigo,operacion,estado,galeria,documentos,pois}; }
   function restore(draft:PropertyDraft) {
     setTitulo(draft.titulo);setOperacion(draft.operacion);setEstado(draft.estado);setGaleria(draft.galeria);setDocumentos(draft.documentos);setPois(draft.pois);
+    setMarcas(m => ({ destacada: typeof draft.fields.destacada === "boolean" ? draft.fields.destacada : m.destacada, credito: typeof draft.fields.credito === "boolean" ? draft.fields.credito : m.credito, demo: typeof draft.fields.demo === "boolean" ? draft.fields.demo : m.demo }));
     // C-55: los campos que React controla (monto, tipo, conjunto, origen…) se llenan como si el usuario
     // escribiera: valor por el setter nativo y su evento, para que su estado lo tome. Una segunda pasada
     // llena los campos que aparecen según lo elegido en la primera (p. ej. el tipo).
     const fill = () => formRef.current?.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>("input,select,textarea").forEach(el=>{
       const value=draft.fields[el.name||el.id];
       if(value===undefined || el instanceof HTMLInputElement && (el.type==="file" || el.readOnly))return;
-      if(el instanceof HTMLInputElement && el.type==="checkbox"){ if(el.checked!==(value===true)) el.click(); return; }
+      // Las casillas de Radix (su campo oculto lleva aria-hidden) se recuperan por su estado, arriba.
+      if(el instanceof HTMLInputElement && el.type==="checkbox"){ if(el.getAttribute("aria-hidden")!=="true" && el.checked!==(value===true)) el.click(); return; }
       if(el.value===String(value))return;
       const proto=el instanceof HTMLSelectElement?HTMLSelectElement.prototype:el instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
       Object.getOwnPropertyDescriptor(proto,"value")?.set?.call(el,String(value));
@@ -433,44 +440,22 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
             </select>
           </Field>}
           <Field label="Fecha de publicación" htmlFor="pf-publicadaEl">
-            <input
-              id="pf-publicadaEl"
-              name="publicadaEl"
-              type="date"
-              defaultValue={
-                initial?.publicadaEl.slice(0, 10) ?? ""
-              }
-              className={inputClass}
-            />
+            <FormDateField id="pf-publicadaEl" name="publicadaEl" defaultValue={initial?.publicadaEl.slice(0, 10) ?? ""} onChange={() => setDirty(true)} />
           </Field>
-          <div className="flex flex-wrap items-end gap-6 pb-1">
-            {scope.feature ? <label className="flex items-center gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                name="destacada"
-                defaultChecked={initial?.destacada}
-                className="size-4 accent-[var(--primary)]"
-              />
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-1 pb-1">
+            {scope.feature ? <Label className="text-sm text-foreground">
+              <Checkbox name="destacada" checked={marcas.destacada} onCheckedChange={marcar("destacada")} />
               Destacada en Home
-            </label> : initial?.destacada ? <p className="flex min-h-11 items-center text-sm"><input type="hidden" name="destacada" value="on" />Destacada en Home (la cambia el director)</p> : null}
-            <label className="flex items-center gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                name="credito"
-                defaultChecked={initial?.creditoDisponible}
-                className="size-4 accent-[var(--primary)]"
-              />
+            </Label> : initial?.destacada ? <p className="flex min-h-11 items-center text-sm"><input type="hidden" name="destacada" value="on" />Destacada en Home (la cambia el director)</p> : null}
+            <Label className="text-sm text-foreground">
+              <Checkbox name="credito" checked={marcas.credito} onCheckedChange={marcar("credito")} />
               Acepta crédito
-            </label>
+            </Label>
             {!view && <p className="flex min-h-11 items-center text-sm">{initial?.publicada ? "Publicado en el sitio" : "Borrador · no visible en el sitio"}</p>}
-            <label className="flex min-h-11 items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                name="demo"
-                defaultChecked={initial?.demo ?? false}
-              />
+            <Label className="text-sm text-foreground">
+              <Checkbox name="demo" checked={marcas.demo} onCheckedChange={marcar("demo")} />
               Es un ejemplo (no es una oferta real)
-            </label>
+            </Label>
           </div>
         </div>
       </FormSection>
@@ -732,8 +717,8 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
               />
             </Field>
           </div>
-          <details className="group border-t border-border pt-5">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"><h3 className="m-0 text-base font-semibold">Fuente de las superficies y entrega</h3><ChevronDown size={18} aria-hidden="true" className="transition-transform group-open:rotate-180" /></summary>
+          {/* Cerrado hasta que se pide (RP-104); sus campos siguen en el formulario aunque esté cerrado. */}
+          <Disclosure keepMounted className="border-t border-border pt-5" title={<h3 className="m-0 text-base font-semibold">Fuente de las superficies y entrega</h3>}>
             <p className="mt-1 text-sm text-muted-foreground">Solo datos autorizados. Anota la fuente de cada superficie y la fecha solo si se verificó la disponibilidad.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="Fuente de terreno" htmlFor="pf-fuenteTerreno">
@@ -747,13 +732,13 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
                 </select>
               </Field>
               <Field label="Disponibilidad revisada el" htmlFor="pf-disponibilidadRevisadaEl">
-                <input id="pf-disponibilidadRevisadaEl" name="disponibilidadRevisadaEl" type="date" defaultValue={initial?.informacionPublica?.disponibilidadRevisadaEl} className={inputClass} />
+                <FormDateField id="pf-disponibilidadRevisadaEl" name="disponibilidadRevisadaEl" defaultValue={initial?.informacionPublica?.disponibilidadRevisadaEl} onChange={() => setDirty(true)} />
               </Field>
               <Field label="Ocupación y entrega" htmlFor="pf-ocupacionEntrega" hint="Condición comunicable al público; evita datos personales del ocupante.">
                 <input id="pf-ocupacionEntrega" name="ocupacionEntrega" maxLength={500} defaultValue={initial?.informacionPublica?.ocupacionEntrega} placeholder="Ej. Desocupada; fecha de entrega por acordar" className={inputClass} />
               </Field>
             </div>
-          </details>
+          </Disclosure>
         </div>
       </FormSection>
 

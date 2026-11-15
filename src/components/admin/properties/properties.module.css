@@ -9,7 +9,7 @@
 @media (min-width: 1024px) { :global(.admin-root) .segmented[role=radiogroup] { display: inline-flex; width: auto; } }
 
 :global(.admin-root) .more { margin-bottom: 1.25rem; }
-:global(.admin-root) .more > summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-size: var(--admin-text-interfaz); font-weight: 600; }
+:global(.admin-root) .more > button { width: auto; gap: .5rem; display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-size: var(--admin-text-interfaz); font-weight: 600; }
 
 /* Galería: tarjetas con la foto arriba, pastillas encima y el precio abajo. */
 :global(.admin-root) .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .875rem; margin: 0; padding: 0; list-style: none; }
@@ -32,10 +32,9 @@
 :global(.admin-root) .priceRow > .meta { white-space: nowrap; }
 
 /* Opciones de cada inmueble: «⋯» en la esquina de la foto. */
-:global(.admin-root) .options > summary { position: absolute; right: .625rem; bottom: .625rem; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-control); background: rgba(255, 255, 255, .92); color: #061f3f; cursor: pointer; list-style: none; backdrop-filter: blur(6px); }
-:global(.admin-root) .options > summary::-webkit-details-marker { display: none; }
+:global(.admin-root) .options > button { position: absolute; right: .625rem; bottom: .625rem; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-control); background: rgba(255, 255, 255, .92); color: #061f3f; cursor: pointer; list-style: none; backdrop-filter: blur(6px); }
 :global(.admin-root) .options { position: static; }
-:global(.admin-root) .options[open] > summary { background: var(--primary); color: #fff; }
+:global(.admin-root) .options[data-state=open] > button { background: var(--primary); color: #fff; }
 :global(.admin-root) .optionsBody { display: flex; flex-direction: column; gap: .875rem; margin: 0 .75rem .75rem; padding: .875rem; border-radius: var(--radius-thumb); background: var(--canvas); }
 :global(.admin-root) .action { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.75rem; padding: 0 .875rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); color: var(--foreground); font-size: var(--admin-text-detalle); font-weight: 600; text-decoration: none; cursor: pointer; }
 :global(.admin-root) .action[aria-pressed=true] { color: var(--primary-text); }
@@ -70,7 +69,7 @@
   :global(.admin-root) .grid[data-view=filas] .amount { font-size: var(--admin-text-interfaz); }
   :global(.admin-root) .grid[data-view=filas] .priceRow .rowPill { display: inline-flex; }
   :global(.admin-root) .grid[data-view=filas] .rowPill[data-strong] { background: var(--warning-surface); color: var(--warning); }
-  :global(.admin-root) .grid[data-view=filas] .options > summary { top: 1.125rem; bottom: auto; right: .375rem; background: transparent; backdrop-filter: none; color: var(--foreground); }
+  :global(.admin-root) .grid[data-view=filas] .options > button { top: 1.125rem; bottom: auto; right: .375rem; background: transparent; backdrop-filter: none; color: var(--foreground); }
 }
 
 /* LV-10f · Vitrina de lo que pide algo hoy */

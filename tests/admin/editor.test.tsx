@@ -167,7 +167,8 @@ test("staff can save the public source and delivery facts on a property", async 
   render(<PropertyForm initial={db.propiedades.list()[0]} />);
   fireEvent.change(screen.getByLabelText("Fuente de terreno"), { target: { value: "escritura" } });
   fireEvent.change(screen.getByLabelText("Fuente de construcción"), { target: { value: "plano" } });
-  fireEvent.change(screen.getByLabelText("Disponibilidad revisada el"), { target: { value: "2026-10-04" } });
+  // El campo de fecha (DateField) manda su valor por el campo oculto; así lo llena también «Recuperar copia».
+  fireEvent.input(document.querySelector('input[name="disponibilidadRevisadaEl"]')!, { target: { value: "2026-10-04" } });
   fireEvent.change(screen.getByLabelText("Ocupación y entrega"), { target: { value: "Entrega por acordar" } });
   fireEvent.submit(screen.getByRole("button", { name: "Guardar cambios" }).closest("form")!);
   await waitFor(() => expect(sent?.data.informacionPublica).toEqual({
@@ -196,9 +197,28 @@ test("new real property defaults unpublished and not demo", async () => {
   expect(screen.getByText("Borrador · no visible en el sitio")).toBeTruthy();
   expect(screen.queryByRole("button",{name:"Guardar y publicar"})).toBeNull();
   expect(
-    (screen.getByLabelText("Es un ejemplo (no es una oferta real)") as HTMLInputElement)
-      .checked,
-  ).toBe(false);
+    screen.getByRole("checkbox", { name: "Es un ejemplo (no es una oferta real)" }).getAttribute("aria-checked"),
+  ).toBe("false");
+});
+test("las casillas y la fecha del inmueble (Radix, DEC-52) viajan en el formulario y en la copia temporal", async () => {
+  await db.propiedades.load(); const source = db.propiedades.list()[0];
+  const mounted = render(<PropertyForm initial={source} />);
+  fireEvent.click(screen.getByRole("checkbox", { name: "Es un ejemplo (no es una oferta real)" }));
+  // Se espera a que la ficha termine de cargar lo vinculado (permisos y publicación) antes de abrir el calendario.
+  await screen.findByText(/La guía vinculada permite/);
+  fireEvent.click(screen.getByRole("button", { name: "Fecha de publicación" }));
+  fireEvent.click(await screen.findByRole("button", { name: /\b15 de \p{L}+ de \d{4}/iu }));
+  const fecha = (document.querySelector('input[name="publicadaEl"]') as HTMLInputElement).value;
+  expect(fecha).toMatch(/^\d{4}-\d{2}-15$/);
+  fireEvent.click(screen.getByRole("button", { name: "Guardar copia temporal" }));
+  mounted.unmount(); render(<PropertyForm initial={source} />);
+  expect(screen.getByRole("checkbox", { name: "Es un ejemplo (no es una oferta real)" }).getAttribute("aria-checked")).toBe(String(!!source.demo));
+  fireEvent.click(screen.getByRole("button", { name: "Recuperar copia" }));
+  await waitFor(() => expect(screen.getByRole("checkbox", { name: "Es un ejemplo (no es una oferta real)" }).getAttribute("aria-checked")).toBe(String(!source.demo)));
+  expect((document.querySelector('input[name="publicadaEl"]') as HTMLInputElement).value).toBe(fecha);
+  fireEvent.submit(screen.getByRole("button", { name: "Guardar cambios" }).closest("form")!);
+  await waitFor(() => expect(sent?.data.demo).toBe(!source.demo));
+  expect(sent?.data.publicadaEl).toBe(fecha);
 });
 test("property temporary copy recovers controlled and uncontrolled fields without publishing", async()=>{
  await db.propiedades.load();const source=db.propiedades.list()[0];const mounted=render(<PropertyForm initial={source}/>);

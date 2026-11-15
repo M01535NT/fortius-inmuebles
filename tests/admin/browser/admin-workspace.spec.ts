@@ -233,9 +233,9 @@ test("inventory saved view, related tasks and global search navigate with contex
   await page.goto("/admin/propiedades");
   await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
-  await page
-    .getByLabel("Publicación", { exact: true })
-    .selectOption("borrador");
+  // Selector de Radix (DEC-52): se abre y se elige la opción.
+  await page.getByLabel("Publicación", { exact: true }).click();
+  await page.getByRole("option", { name: "Pendientes de publicar" }).click();
   await page.getByLabel("Nombre de la vista").fill("Pendientes");
   await page
     .getByRole("button", { name: "Guardar vista", exact: true })
@@ -244,8 +244,8 @@ test("inventory saved view, related tasks and global search navigate with contex
   await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
   await page.getByRole("button", { name: "Pendientes", exact: true }).click();
-  await expect(page.getByLabel("Publicación", { exact: true })).toHaveValue(
-    "borrador",
+  await expect(page.getByLabel("Publicación", { exact: true })).toHaveText(
+    "Pendientes de publicar",
   );
   await page.getByRole("button", { name: "Buscar en el panel" }).click();
   await page

@@ -54,7 +54,8 @@ test("new property has no premature publication date even across the UTC day bou
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-09-23T05:40:00Z"));
   render(<PropertyForm />);
-  expect((screen.getByLabelText("Fecha de publicación") as HTMLInputElement).value).toBe("");
+  expect(screen.getByLabelText("Fecha de publicación").textContent).toContain("Elegir fecha");
+  expect((document.querySelector('input[name="publicadaEl"]') as HTMLInputElement).value).toBe("");
 });
 
 function chooseSection(name: string) {
