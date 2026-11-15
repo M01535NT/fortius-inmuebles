@@ -78,9 +78,12 @@ test("Hoy keeps this evening's eight Tijuana events when UTC is already tomorrow
 
   const agenda = within(await screen.findByRole("list", {name:"Citas de hoy"}));
   await agenda.findByText("Visita 1");
-  expect(agenda.getByText("Visita 8")).toBeTruthy();
-  expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(8);
-  expect(agenda.getAllByRole("listitem")).toHaveLength(8);
+  // Reglas de volumen de Hoy: las primeras 5 citas del día y «Ver las 8 citas» para el resto.
+  expect(agenda.getByText("Visita 5")).toBeTruthy();
+  expect(agenda.queryByText("Visita 6")).toBeNull();
+  expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(5);
+  expect(agenda.getAllByRole("listitem")).toHaveLength(5);
+  expect(screen.getByRole("link", { name: "Ver las 8 citas" }).getAttribute("href")).toBe("/admin/agenda?fecha=2026-09-22");
 });
 
 test("Hoy's agenda shows only the operating day, not later or past days", async () => {
