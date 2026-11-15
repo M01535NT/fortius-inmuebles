@@ -31,15 +31,18 @@ for (const width of [390, 768, 1440]) {
     });
     await page.goto("/admin/operaciones");
     await expect(page.getByRole("heading", { name: "Asuntos", exact: true })).toBeVisible();
-    // Lista del boceto C: «Esperan algo de ti» y «Al día», con filtro por etapa (sin fases desde el 27/10/2026).
+    // Lista del boceto C: «Esperan algo de ti» y «Al día», con filtro por urgencia (titular, 15/11/2026).
     const waiting = page.getByRole("region", { name: /Esperan algo de ti/ });
-    await expect(waiting.getByRole("link", { name: /Juan Ibarra\. Etapa 1 de 10, Primer contacto\. Sin próxima tarea/ })).toBeVisible();
-    await expect(waiting.getByRole("link", { name: /Ana Martínez\. Etapa 2 de 7, Opciones/ })).toBeVisible();
-    await page.getByRole("group", { name: "Etapa" }).getByRole("button", { name: /Opciones/ }).click();
-    await expect(page).toHaveURL(/etapa=Opciones/);
+    await expect(waiting.getByRole("link", { name: /Juan Ibarra\. Sin próxima tarea/ })).toBeVisible();
+    await expect(waiting.getByRole("link", { name: /Ana Martínez\./ })).toBeVisible();
+    const urgencia = page.getByRole("group", { name: "Urgencia" });
+    await urgencia.getByRole("button", { name: /^Vencido/ }).click();
+    await expect(page).toHaveURL(/urgencia=vencido/);
     await expect(waiting.getByRole("link", { name: /Juan Ibarra/ })).toHaveCount(0);
+    await urgencia.getByRole("button", { name: /^Sin fecha/ }).click();
+    await expect(page).toHaveURL(/urgencia=sinfecha/);
     await expect(waiting.getByRole("link", { name: /Ana Martínez/ })).toBeVisible();
-    await page.getByRole("group", { name: "Etapa" }).getByRole("button", { name: /^Todas/ }).click();
+    await urgencia.getByRole("button", { name: /^Todas/ }).click();
     await page.screenshot({ path: testInfo.outputPath(`tablero-${width}.png`), fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const search = page.getByRole("textbox", { name: "Buscar asunto" });
