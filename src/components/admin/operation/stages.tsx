@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, Building2, Check, ChevronLeft, ChevronRight, docIcon, FileDown, FileText, Mail, MessageCircle, MoreHorizontal, Phone, stageIcon } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, IconTile, Pill, Sheet, Thumb } from "@/components/admin/kit";
+import { AlertCircle, AlertTriangle, Building2, Check, ChevronLeft, ChevronRight, docIcon, FileDown, FileText, Mail, MessageCircle, Phone, stageIcon } from "@/components/admin/icons";
+import { ActionsMenu, Avatar, Button, ButtonLink, IconTile, Pill, Sheet, Thumb } from "@/components/admin/kit";
 import { flowOf, isGuided, phaseFormats, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
@@ -68,17 +68,13 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
   /** Las partes de la operación (pestañas), en el panel compacto. */
   children?: React.ReactNode;
 }) {
-  const [menu, setMenu] = React.useState(false);
   const guided = isGuided(op);
   const { stages, current } = stageTrack(op, today);
   const gaps = pastGaps(op, today, docs.status);
   const gapAt = new Map(gaps.map(g => [g.n, g]));
   const here = stages[current];
   const first = gaps[0];
-  const moreMenu = menuItems.length > 0 && <span className="relative">
-    <button type="button" className={s.round} aria-label="Más opciones" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(open => !open)}><MoreHorizontal size={20} aria-hidden="true" /></button>
-    {menu && <div role="menu" className={s.menu}>{menuItems.map(item => <button key={item.label} type="button" role="menuitem" className={s.menuItem} onClick={() => { setMenu(false); item.onSelect(); }}>{item.icon}{item.label}</button>)}</div>}
-  </span>;
+  const moreMenu = <ActionsMenu label="Más opciones" actions={menuItems} triggerClassName={s.round} iconSize={20} />;
   /*
     Boceto «desde cero» (14/11/2026): migas, foto, título grande con sus datos y Llamar/WhatsApp con su
     nombre; debajo, el riel en su propia tarjeta con las fases arriba, los números abajo y solo la etapa

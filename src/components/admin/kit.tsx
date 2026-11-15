@@ -2,10 +2,11 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, Building2, Check, CircleHelp, Info, Plus, Search, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem, Upload, X } from "@/components/admin/icons";
+import { AlertTriangle, Building2, Check, CircleHelp, Info, MoreHorizontal, Plus, Search, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem, Upload, X } from "@/components/admin/icons";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SheetClose, SheetDescription, SheetOverlay, SheetPanel, SheetPortal, SheetRoot, SheetTitle } from "@/components/ui/sheet";
 import s from "./kit.module.css";
 
@@ -28,6 +29,28 @@ export function buttonClass({ variant = "secondary", size = "md", iconOnly = fal
 
 export function Button({ variant, size, iconOnly, className, type = "button", ...props }: ButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button type={type} className={buttonClass({ variant, size, iconOnly, className })} {...props} />;
+}
+
+export type MenuAction = { label: string; onSelect: () => void; icon?: React.ReactNode; danger?: boolean; separated?: boolean; disabled?: boolean };
+
+/**
+  Menú de tres puntos del panel, sobre Radix (DEC-52): flechas, Enter, Escape y el foco de vuelta al
+  botón. Es el único: Bandeja, Personas, fichas y el encabezado de la operación lo usan.
+*/
+export function ActionsMenu({ label, actions, triggerClassName, iconSize = 18, disabled }: { label: string; actions: MenuAction[]; triggerClassName?: string; iconSize?: number; disabled?: boolean }) {
+  if (!actions.length) return null;
+  return <DropdownMenu modal={false}>
+    <DropdownMenuTrigger asChild>
+      <button type="button" className={triggerClassName ?? buttonClass({ variant: "ghost", iconOnly: true })} aria-label={label} disabled={disabled}><MoreHorizontal size={iconSize} aria-hidden="true" /></button>
+    </DropdownMenuTrigger>
+    {/* Si la acción abrió una ventana que ya tomó el foco, no se lo regresa al botón. */}
+    <DropdownMenuContent aria-label={label} onCloseAutoFocus={event => { const at = document.activeElement; if (at && at !== document.body && !at.closest("[role=menu]")) event.preventDefault(); }}>
+      {actions.map(action => <React.Fragment key={action.label}>
+        {action.separated && <DropdownMenuSeparator />}
+        <DropdownMenuItem danger={action.danger} disabled={action.disabled} onSelect={action.onSelect}>{action.icon}{action.label}</DropdownMenuItem>
+      </React.Fragment>)}
+    </DropdownMenuContent>
+  </DropdownMenu>;
 }
 
 export function ButtonLink({ variant, size, iconOnly, className, ...props }: ButtonProps & React.ComponentProps<typeof Link>) {

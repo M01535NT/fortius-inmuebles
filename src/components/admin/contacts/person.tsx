@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft, Mail, MessageCircle, MoreHorizontal, Phone } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Card, Pill } from "@/components/admin/kit";
+import { ChevronLeft, Mail, MessageCircle, Phone } from "@/components/admin/icons";
+import { ActionsMenu, Avatar, ButtonLink, Card, Pill } from "@/components/admin/kit";
 import { apiRequest } from "@/lib/admin/store";
 import { stepDate, type NextStep } from "@/lib/admin/contacts-view";
 import type { TimelineItem } from "@/lib/admin/person-view";
@@ -23,28 +23,17 @@ export type MenuItem = { label: string; icon?: React.ReactNode; onSelect: () => 
 
 /** «Más opciones»: se cierra con Escape, al tocar fuera o al elegir. */
 export function MoreMenu({ items, label = "Más opciones" }: { items: MenuItem[]; label?: string }) {
-  const [open, setOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
-  const wrap = React.useRef<HTMLDivElement>(null);
-  React.useEffect(() => {
-    if (!open) return;
-    const outside = (event: Event) => { if (event.target instanceof Node && !wrap.current?.contains(event.target)) setOpen(false); };
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { setOpen(false); wrap.current?.querySelector("button")?.focus(); } };
-    document.addEventListener("pointerdown", outside); document.addEventListener("keydown", escape);
-    return () => { document.removeEventListener("pointerdown", outside); document.removeEventListener("keydown", escape); };
-  }, [open]);
   if (!items.length) return null;
   async function run(item: MenuItem) {
-    setOpen(false); setError(""); setBusy(true);
+    setError(""); setBusy(true);
     try { await item.onSelect(); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "No se guardó. Lo que escribiste sigue en pantalla; vuelve a intentarlo."); }
     finally { setBusy(false); }
   }
-  return <div ref={wrap} className={s.menuWrap}>
-    <Button iconOnly aria-label={label} aria-haspopup="menu" aria-expanded={open} disabled={busy} onClick={() => setOpen(value => !value)}><MoreHorizontal size={20} aria-hidden="true" /></Button>
-    {open && <div role="menu" className={s.menu}>{items.map(item =>
-      <button key={item.label} type="button" role="menuitem" disabled={item.disabled} className={cn(s.menuItem, item.danger && s.menuDanger)} onClick={() => void run(item)}>{item.icon}{item.label}</button>)}</div>}
+  return <div>
+    <ActionsMenu label={label} iconSize={20} disabled={busy} actions={items.map(item => ({ ...item, onSelect: () => void run(item) }))} />
     {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
   </div>;
 }

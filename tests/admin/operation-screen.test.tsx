@@ -95,7 +95,7 @@ async function openOperation(tab?: string) {
   await screen.findByRole("heading", { level: 1, name: "Familia Castañeda Ortiz", hidden: !!tab });
 }
 /** Eliminar vive en «Más opciones» del encabezado (DEC-37). */
-const eliminar = () => { fireEvent.click(screen.getByRole("button", { name: "Más opciones", hidden: true })); fireEvent.click(screen.getByRole("menuitem", { name: "Eliminar operación", hidden: true })); };
+const eliminar = () => { fireEvent.keyDown(screen.getByRole("button", { name: "Más opciones", hidden: true }), { key: "Enter" }); fireEvent.click(screen.getByRole("menuitem", { name: "Eliminar operación", hidden: true })); };
 const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(-1)!.body;
 /** La etapa en curso se lee en la tarjeta de avance («Etapa N de 10 · fase»). */
 const stage = (n: number) => screen.findAllByText(new RegExp(`^Etapa ${n} de 10`));
@@ -598,7 +598,7 @@ it("SIM-18: la operación tiene tres partes y las direcciones anteriores siguen 
   await openOperation();
   expect(screen.getAllByRole("tab").map(tab => tab.textContent?.replace(/\d+$/, "").trim())).toEqual(["Etapa", "Documentos", "Actividad"]);
   // «Más opciones» reúne las notas (DEC-42), los datos de la operación, corregir etapa y eliminar.
-  fireEvent.click(screen.getByRole("button", { name: "Más opciones" }));
+  fireEvent.keyDown(screen.getByRole("button", { name: "Más opciones" }), { key: "Enter" });
   // «Corregir etapa» solo aparece cuando hay una etapa anterior a la cual regresar; esta operación está en la primera.
   expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Notas", "Datos de la operación", "Eliminar operación"]);
   fireEvent.click(screen.getByRole("menuitem", { name: "Datos de la operación" }));
@@ -648,7 +648,7 @@ it("la decisión del encargo se toma en el panel de la etapa y ya no en los dato
   fireEvent.change(within(card).getByLabelText("Siguiente acción"), { target: { value: "Firmar el contrato" } });
   fireEvent.click(within(card).getByRole("button", { name: "Guardar decisión" }));
   await waitFor(() => expect(lastFlow()).toMatchObject({ flujo: { resolucion: { tipo: "aceptada", motivo: "Documentos completos; se toma la venta", siguienteAccion: "Firmar el contrato", fecha: "2026-10-16" }, requisitos: { precio: { estado: "revisado" } } } }));
-  fireEvent.click(screen.getByRole("button", { name: "Más opciones" }));
+  fireEvent.keyDown(screen.getByRole("button", { name: "Más opciones" }), { key: "Enter" });
   fireEvent.click(screen.getByRole("menuitem", { name: "Datos de la operación" }));
   const datos = await screen.findByRole("dialog", { name: "Datos de la operación" });
   expect(within(datos).queryByLabelText("Decisión")).toBeNull();

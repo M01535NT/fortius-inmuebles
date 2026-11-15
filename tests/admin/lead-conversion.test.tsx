@@ -42,7 +42,7 @@ test("COR-10: la ficha no convierte a mano; con registro de cliente y sin firma 
   currentLead = { ...original, perfil: { ...original.perfil, operacion: "vender" } };
   await detail("lead");
   // «Convertir en cliente» desapareció: se es cliente al firmar el contrato (RP-90); la acción es «Abrir operación».
-  fireEvent.click(await screen.findByRole("button", { name: "Más opciones" }));
+  fireEvent.keyDown(await screen.findByRole("button", { name: "Más opciones" }), { key: "Enter" });
   expect(screen.queryByRole("menuitem", { name: /Convertir en cliente/ })).toBeNull();
   expect(screen.getByRole("link", { name: "Abrir operación" })).toBeTruthy();
   cleanup();

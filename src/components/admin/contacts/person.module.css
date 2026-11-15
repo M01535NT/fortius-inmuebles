@@ -8,13 +8,6 @@
 :global(.admin-root) .name { margin: 0; font-size: var(--admin-text-pantalla); line-height: 1.1; font-weight: 620; letter-spacing: -.025em; }
 :global(.admin-root) .sub { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem .5rem; margin-top: .25rem; font-size: var(--admin-text-interfaz); color: var(--muted-foreground); }
 :global(.admin-root) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
-:global(.admin-root) .menuWrap { position: relative; }
-:global(.admin-root) .menu { position: absolute; right: 0; top: calc(100% + .375rem); z-index: 5; min-width: 14rem; padding: .375rem; border-radius: 14px; background: var(--card); color: var(--foreground); border: 1px solid var(--card-edge); box-shadow: var(--shadow-raised); }
-:global(.admin-root) .menuItem { display: flex; width: 100%; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; font-weight: 540; text-align: left; text-decoration: none; cursor: pointer; }
-:global(.admin-root) .menuItem:hover:not(:disabled) { background: var(--secondary); }
-:global(.admin-root) .menuItem:disabled { color: var(--muted-foreground); cursor: not-allowed; }
-:global(.admin-root) .menuDanger { color: var(--alert); }
-@media (max-width: 639px) { :global(.admin-root) .menu { right: auto; left: 0; } }
 
 /* Dos columnas desde 1024 px: lo que se trabaja a la izquierda, los datos a la derecha. */
 :global(.admin-root) .card { display: flex; min-width: 0; flex-direction: column; gap: .875rem; padding: 1.25rem; }

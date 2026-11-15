@@ -76,7 +76,7 @@ it("rechaza tipos que no se guardan y muestra el conflicto del servidor", async 
   await screen.findByRole("heading", { name: "Levantamiento topografico" });
   fireEvent.change(screen.getByLabelText("Agregar archivos a la Bandeja"), { target: { files: [new File(["x"], "video.mp4", { type: "video/mp4" })] } });
   expect(await screen.findByText("Solo se guardan PDF e imágenes JPEG, PNG o WEBP.")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Más acciones" }));
+  fireEvent.keyDown(screen.getByRole("button", { name: "Más acciones" }), { key: "Enter" });
   fireEvent.click(await screen.findByRole("menuitem", { name: "Mandar a la papelera" }));
   expect(await screen.findByText(/Otra persona cambió este documento/)).toBeTruthy();
 });

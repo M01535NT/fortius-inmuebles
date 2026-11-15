@@ -104,9 +104,6 @@
 :global(.admin-root) .round { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--card); color: inherit; cursor: pointer; text-decoration: none; }
 :global(.admin-root) .round:hover { background: var(--secondary); }
 :global(.admin-root) .onNavyMuted { color: var(--muted-foreground); }
-:global(.admin-root) .menu { position: absolute; right: 0; top: calc(100% + .375rem); z-index: 5; min-width: 13rem; padding: .375rem; border-radius: var(--radius-card); background: var(--card); color: var(--foreground); border: 1px solid var(--card-edge); box-shadow: var(--shadow-raised); }
-:global(.admin-root) .menuItem { display: flex; width: 100%; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: var(--radius-control); background: none; color: inherit; font: inherit; font-weight: 540; text-align: left; cursor: pointer; }
-:global(.admin-root) .menuItem:hover { background: var(--secondary); }
 :global(.admin-root) .who { font-size: var(--admin-text-seccion); line-height: 1.25; letter-spacing: -.015em; overflow-wrap: anywhere; text-wrap: balance; }
 :global(.admin-root) .whoName { display: inline; margin: 0; font: inherit; font-weight: 620; }
 :global(.admin-root) .whoLink { color: inherit; text-decoration: none; }

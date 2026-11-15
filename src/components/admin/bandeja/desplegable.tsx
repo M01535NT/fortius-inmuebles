@@ -1,11 +1,10 @@
 "use client";
 import * as React from "react";
-import { Check, ChevronDown, MoreHorizontal } from "@/components/admin/icons";
-import { buttonClass } from "@/components/admin/kit";
+import { Check, ChevronDown } from "@/components/admin/icons";
 import s from "./bandeja.module.css";
 
 /*
-  FLX-01 · Desplegable y menú de acciones del panel flexible (el titular pidió controles de app).
+  FLX-01 · Desplegable del panel flexible (el titular pidió controles de app).
   Se cierran con Escape, al pulsar fuera o al mover el foco fuera; las flechas recorren las opciones
   y al cerrar el foco vuelve al botón. Sin dependencias nuevas.
 */
@@ -67,18 +66,5 @@ export function Desplegable<V extends string>({ label, value, options, onChange,
   </div>;
 }
 
-export type Accion = { label: string; onSelect: () => void; danger?: boolean; separated?: boolean; disabled?: boolean };
-
-/** Menú de tres puntos con acciones. */
-export function MenuAcciones({ label, actions }: { label: string; actions: Accion[] }) {
-  const { open, setOpen, close, wrap, onKeyDown } = usePopover();
-  return <div ref={wrap} className={s.anchor} onKeyDown={onKeyDown}>
-    <button type="button" className={buttonClass({ variant: "ghost", iconOnly: true })} aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(v => !v)}><MoreHorizontal size={18} aria-hidden /></button>
-    {open && <div className={s.pop} data-align="end" role="menu" aria-label={label}>
-      {actions.map(action => <React.Fragment key={action.label}>
-        {action.separated && <div className={s.sep} role="separator" />}
-        <button type="button" data-option role="menuitem" className={s.option} data-danger={action.danger} disabled={action.disabled} onClick={() => { close(true); action.onSelect(); }}><span>{action.label}</span></button>
-      </React.Fragment>)}
-    </div>}
-  </div>;
-}
+/** Menú de tres puntos: el del kit (ActionsMenu). */
+export { ActionsMenu as MenuAcciones, type MenuAction as Accion } from "@/components/admin/kit";

@@ -25,3 +25,6 @@ const item = "relative flex min-h-11 cursor-pointer select-none items-center gap
 export function DropdownMenuItem({ className, danger, ...props }: React.ComponentProps<typeof MenuPrimitive.Item> & { danger?: boolean }) {
   return <MenuPrimitive.Item className={cn(item, danger && "text-[var(--alert)] [&>svg]:text-[var(--alert)]", className)} {...props} />;
 }
+export function DropdownMenuSeparator({ className, ...props }: React.ComponentProps<typeof MenuPrimitive.Separator>) {
+  return <MenuPrimitive.Separator className={cn("my-1 h-px bg-[var(--card-edge)]", className)} {...props} />;
+}
