@@ -9,7 +9,7 @@ import type { Task } from "@/lib/tasks";
 
 /*
   LV-10b: Hoy palomea sin salir y cumple las reglas de volumen (29/10/2026):
-  con foto solo los 4 más urgentes, hasta 10 filas en total y al final «Ver los N»;
+  con foto solo los 4 más urgentes, hasta 10 filas en total y al final «Ver los N en Asuntos»;
   varios pendientes de la misma persona en una sola fila («2 pendientes»).
 */
 const today = "2026-10-16";
@@ -48,10 +48,11 @@ beforeEach(() => {
       return Response.json({ record: saved });
     }
     if (url.endsWith("/api/admin/expedientes")) return Response.json({ expedientes: dossiers });
+    if (url.endsWith("/api/admin/entrevistas/config")) return Response.json({ administrador: false, asesorId: "a1" });
     return Response.json({ records: collections[parts[parts.length - 1]] ?? [], entrevistas: [], runs: [], ultimos: {}, contratos: [], documentos: [] });
   });
 });
-afterEach(() => { cleanup(); clearAdminCache(); resetTodayData(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); clearAdminCache(); resetTodayData(); vi.restoreAllMocks(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 test("una fila de «Tu día» se palomea sin salir de Hoy y «Deshacer» la regresa", async () => {
   seed(3);
@@ -76,16 +77,28 @@ test("«Ya lo hice» en «Lo siguiente» completa su tarea y ofrece deshacer", a
   expect(await screen.findByRole("button", { name: "Deshacer" })).toBeTruthy();
 });
 
-test("con 15 pendientes: 4 con foto o cara, 10 filas en total y «Ver los 15»", async () => {
+test("con 15 pendientes: 4 con foto o cara, 10 filas en total y «Ver los 15 asuntos»", async () => {
   seed(15);
   const { container } = render(<AdminDashboard />);
   const late = await screen.findByRole("list", { name: "Pendientes vencidos" });
   await waitFor(() => expect(within(late).getAllByRole("article")).toHaveLength(9));
   // «Lo siguiente» lleva la foto grande; de las filas, solo las 3 primeras llevan foto o cara.
   expect(container.querySelectorAll("[class*='mediaCell']")).toHaveLength(3);
-  fireEvent.click(screen.getByRole("button", { name: "Ver los 15" }));
-  await waitFor(() => expect(within(late).getAllByRole("article")).toHaveLength(14));
+  // Hoy no crece: el resto se revisa en Asuntos, y el enlace cuenta asuntos (no pendientes).
+  expect(screen.getByRole("link", { name: "Ver los 15 asuntos" }).getAttribute("href")).toBe("/admin/operaciones");
+  expect(screen.queryByRole("link", { name: /personas por atender/ })).toBeNull();
   expect(screen.queryByRole("button", { name: /^Ver los/ })).toBeNull();
+});
+
+test("con prospectos fuera de la lista, el enlace a Asuntos cuenta asuntos y otro lleva a Personas", async () => {
+  seed(12);
+  // 12 asuntos con tarea vencida y 3 prospectos nuevos del sitio (aún en plazo): 15 pendientes, que no caben.
+  collections.leads = [1, 2, 3].map(n => rec(`l${n}`, { id: `l${n}`, nombre: `Prospecto de ensayo ${n}`, telefono: "6640000000", origen: "sitio", estado: "nuevo", creadoEl: "2026-10-16T17:30:00Z", notas: [], asesorId: "a1" }));
+  render(<AdminDashboard />);
+  await screen.findByRole("list", { name: "Pendientes vencidos" });
+  const asuntos = await screen.findByRole("link", { name: "Ver los 12 asuntos" });
+  expect(asuntos.getAttribute("href")).toBe("/admin/operaciones");
+  expect(screen.getByRole("link", { name: "Ver a las 3 personas por atender" }).getAttribute("href")).toBe("/admin/personas");
 });
 
 test("dos pendientes de la misma persona van en una fila que dice «2 pendientes»", async () => {
@@ -95,4 +108,34 @@ test("dos pendientes de la misma persona van en una fila que dice «2 pendientes
   const row = await late.findByRole("link", { name: /Llamar al cliente 2 .*2 pendientes/ });
   expect(row.textContent).toContain("2 pendientes");
   expect(late.queryByText("Llamar al cliente 3")).toBeNull();
+  // Los números cuentan pendientes, no filas: 4 vencidos aunque se vean 3 (la portada y 2 filas).
+  expect(screen.getByText("4 cosas vencidas")).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 3, name: "Vencido 4" })).toBeTruthy();
+});
+
+test("en Hoy el aviso de «Deshacer» dura 12 s, no 8", async () => {
+  seed(3);
+  const timer = vi.spyOn(window, "setTimeout");
+  render(<AdminDashboard />);
+  const late = within(await screen.findByRole("list", { name: "Pendientes vencidos" }));
+  fireEvent.click(await late.findByRole("checkbox", { name: "Marcar como hecha: Llamar al cliente 2" }));
+  await screen.findByRole("button", { name: "Deshacer" });
+  const delays = timer.mock.calls.map(call => call[1]);
+  expect(delays).toContain(12_000);
+  expect(delays).not.toContain(8_000);
+});
+
+test("el clic que llega justo cuando el aviso se va no abre la fila de abajo", async () => {
+  seed(3);
+  render(<AdminDashboard />);
+  const late = within(await screen.findByRole("list", { name: "Pendientes vencidos" }));
+  fireEvent.click(await late.findByRole("checkbox", { name: "Marcar como hecha: Llamar al cliente 2" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Deshacer" }));
+  await waitFor(() => expect(puts).toHaveLength(2));
+  await waitFor(() => expect(screen.queryByText("Completaste «Llamar al cliente 2».")).toBeNull());
+  const row = late.getByRole("link", { name: /Llamar al cliente 3/ });
+  // fireEvent.click devuelve false cuando la página canceló la navegación.
+  expect(fireEvent.click(row), "clic justo después de que se fue el aviso").toBe(false);
+  vi.setSystemTime(Date.now() + 1_000);
+  expect(fireEvent.click(row), "clic un segundo después").toBe(true);
 });

@@ -54,6 +54,7 @@
 :global(.admin-root) .count { font-size: var(--admin-text-detalle); font-weight: 400; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 :global(.admin-root) .more { flex: none; font-size: var(--admin-text-detalle); font-weight: 540; color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
 :global(.admin-root) .more:hover { text-underline-offset: 4px; }
+:global(.admin-root) .moreLinks { display: flex; flex-wrap: wrap; align-items: center; column-gap: 1rem; }
 :global(.admin-root) .meta { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 :global(.admin-root) .lateText { color: var(--alert); }
 :global(.admin-root) .infoText { color: var(--info); }

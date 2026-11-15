@@ -38,7 +38,7 @@ const greetingNow = () => greetingFor(new Date().getHours());
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 /*
   Reglas de volumen de Hoy (29/10/2026): con foto solo los 4 más urgentes («Lo siguiente» y 3 filas);
-  después, hasta 10 en total en lista compacta sin foto, y al final «Ver los N». Tareas y citas, 5.
+  después, hasta 10 en total en lista compacta sin foto, y al final «Ver los N asuntos» (y, si quedan prospectos o seguimientos fuera, «Ver a las N personas por atender»). Tareas y citas, 5.
 */
 const PHOTO_ROWS = 3, LIST_ROWS = 10, TASK_ROWS = 5, AGENDA_ROWS = 5;
 const PHASES = [["Captar", 3], ["Preparar", 4], ["Comercializar", 2], ["Cerrar", 1]] as const;
@@ -53,6 +53,10 @@ function byPerson(items: QueueItem[]) {
   }
   return [...groups.values()];
 }
+/** El asunto al que lleva un pendiente (no cuenta «Nuevo asunto» desde una entrevista). */
+const asuntoOf = (item: QueueItem) => /^\/admin\/operaciones\/(?!nueva\b)([^/?#]+)/.exec(item.href)?.[1];
+/** Prospecto nuevo o seguimiento de contacto: se revisan en Personas. */
+const isPersonItem = (item: QueueItem) => item.kind === "nuevo" || item.kind === "seguimiento";
 /** Lo mínimo de la operación que necesita el riel para saber su etapa. */
 const asOperation = (d: TodayDossier): OperationRecord => ({ id: d.id, folio: d.folio, version: 0, cliente_id: d.cliente_id ?? "", asesor_id: d.asesor_id ?? "", operacion: "venta", propiedad_slug: d.propiedad_slug ?? null, etapa: d.etapa, flujo: d.flujo, inicial: d.inicial });
 
@@ -73,7 +77,6 @@ export function HoyScreen() {
   const tasks = useCollection(db.tareas), events = useCollection(db.eventos), leads = useCollection(db.leads), properties = useCollection(db.propiedades);
   const today = operationalDate();
   const conditions = useConditions();
-  const [showAll, setShowAll] = React.useState(false);
   // Un solo cálculo para palomear en la portada, en las filas y en la agenda (un aviso a la vez).
   const done = useTaskDone();
   const firstName = (useSession()?.name ?? "").trim().split(/\s+/)[0];
@@ -97,7 +100,6 @@ export function HoyScreen() {
   ];
   const weekList = week.map(day => ({ day, items: weekItems(day) })).filter(entry => entry.items.length > 0);
   const weekCount = weekList.reduce((sum, entry) => sum + entry.items.length, 0);
-  const lateCount = queue.filter(item => item.late).length;
   const failures = [dossiers === null && "los asuntos", interviews === null && "las entrevistas", contracts === null && "los contratos de servicio", reports === null && "los informes al propietario"].filter((x): x is string => !!x);
   // COR-14: la situación y la condición de la llamada, en texto junto a la operación.
   const tagsOf = (item: QueueItem) => { const d = item.folio ? dossiers?.find(x => x.folio === item.folio) : undefined; return d ? operationTags(d, conditions.ofOperation(d.id)) : []; };
@@ -110,10 +112,17 @@ export function HoyScreen() {
   const lateGroups = groups.filter(group => group[0].late), otherGroups = groups.filter(group => !group[0].late);
   // Vencido primero; entre los dos grupos, a lo más LIST_ROWS filas contando «Lo siguiente».
   const room = LIST_ROWS - 1;
-  const lateShown = showAll ? lateGroups : lateGroups.slice(0, room);
-  const otherShown = showAll ? otherGroups : otherGroups.slice(0, Math.max(0, room - lateShown.length));
-  const hidden = groups.length - lateShown.length - otherShown.length;
-  const lateTotal = lateGroups.length + (next?.late ? 1 : 0), todayTotal = otherGroups.length + (next && !next.late ? 1 : 0);
+  const lateShown = lateGroups.slice(0, room);
+  const otherShown = otherGroups.slice(0, Math.max(0, room - lateShown.length));
+  // Lo que no cabe se revisa donde vive, y el enlace cuenta lo que se va a encontrar ahí: asuntos en
+  // Asuntos y personas por atender en Personas (no los pendientes de Hoy, que incluyen las dos cosas).
+  const hiddenItems = [...lateGroups.slice(lateShown.length), ...otherGroups.slice(otherShown.length)].flat();
+  const asuntosTotal = new Set(queue.map(asuntoOf).filter(Boolean)).size;
+  const peopleTotal = new Set(queue.filter(isPersonItem).map(item => item.who)).size;
+  const moreAsuntos = hiddenItems.some(item => asuntoOf(item)), morePeople = hiddenItems.some(isPersonItem);
+  // Los números cuentan pendientes, no filas, y cada uno por lo que es: una fila de «3 pendientes» que
+  // empieza con algo vencido no vuelve vencidos a los otros dos. Así cuadran con «N pendientes» y el menú.
+  const lateTotal = queue.filter(item => item.late).length, todayTotal = queue.length - lateTotal;
   // Las 3 primeras filas visibles (las más urgentes después de «Lo siguiente») van con foto o cara.
   const latePhotos = Math.min(PHOTO_ROWS, lateShown.length), otherPhotos = Math.max(0, PHOTO_ROWS - latePhotos);
 
@@ -152,7 +161,7 @@ export function HoyScreen() {
   const todayCount = todayTotal + agenda.length + dayTasks.filter(isTaskOpen).length;
   const oldest = next?.late ? next.when : undefined;
   const finding = dossiers === undefined ? "Consultando tu día…"
-    : <>{lateCount > 0 ? <>Tienes <b className={s.lateText}>{plural(lateCount, "cosa vencida", "cosas vencidas")}</b> y </> : "No tienes nada vencido; "}
+    : <>{lateTotal > 0 ? <>Tienes <b className={s.lateText}>{plural(lateTotal, "cosa vencida", "cosas vencidas")}</b> y </> : "No tienes nada vencido; "}
       {todayCount > 0 ? `${todayCount} para hoy` : "nada más para hoy"}.{oldest ? ` Lo más urgente viene ${oldest.charAt(0).toLowerCase()}${oldest.slice(1)}.` : ""}</>;
 
   // Tu cartera: cuántas operaciones del propietario hay en cada una de sus diez etapas.
@@ -184,7 +193,7 @@ export function HoyScreen() {
         <SectionBoundary what="«Para ti»"><Inbox /></SectionBoundary>
       </div>
 
-      <section aria-labelledby="hoy-dia" className={cn(s.panel, s.nextBox)}>
+      <section aria-labelledby="hoy-dia" className={cn(s.panel, s.nextBox)} onClickCapture={done.guardClick}>
         <div className={s.head}><h2 id="hoy-dia" className={s.title}>Tu día</h2><span className={s.meta}>{dossiers !== undefined && queue.length > 0 ? `${plural(queue.length, "pendiente", "pendientes")} · ` : ""}{longDate(today).toLocaleLowerCase("es-MX")}</span></div>
         {failures.map(what => <div key={what}>{failed(what)}</div>)}
         {dossiers === undefined ? <p role="status" className={s.note}>Consultando asuntos…</p>
@@ -205,7 +214,11 @@ export function HoyScreen() {
               {!next.late && nextBlock}
               <QueueList groups={otherShown} photos={otherPhotos} label="Más pendientes" helpers={helpers} />
             </>}
-            {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>Ver los {groups.length + 1}</Button>}
+            {/* Hoy no crece con el volumen: el resto se revisa en Asuntos, que pone arriba lo vencido y tiene filtros. */}
+            {(moreAsuntos || morePeople) && <div className={s.moreLinks}>
+              {moreAsuntos && <ButtonLink href="/admin/operaciones" variant="ghost" className={s.more}>{asuntosTotal === 1 ? "Ver el asunto" : `Ver los ${asuntosTotal} asuntos`}</ButtonLink>}
+              {morePeople && <ButtonLink href="/admin/personas" variant="ghost" className={s.more}>{peopleTotal === 1 ? "Ver a la persona por atender" : `Ver a las ${peopleTotal} personas por atender`}</ButtonLink>}
+            </div>}
           </>}
         {done.from === "dia" && <DoneMessage done={done} />}
       </section>
@@ -271,7 +284,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo, done
   const nowAt = now === null ? -1 : agenda.filter(event => (event.hora ?? "99") <= now).length;
   const nowLine = <li key="ahora" className={s.nowRow} aria-hidden="true"><span className={s.nowTime}>Ahora</span><span className={s.nowLine} /></li>;
   return <Section id="hoy-hoy" title="Agenda de hoy" count={agenda.length + open.length || undefined} className={s.todayBox} action={more("/admin/agenda", "Ver semana")}>
-    <div className={s.todayCard}>
+    <div className={s.todayCard} onClickCapture={completer.guardClick}>
       {empty ? <div className={s.agendaEmpty}>
         <p className={s.note}>Sin citas ni tareas hoy</p>
         {nextEvent && <Link href={`/admin/agenda?fecha=${nextEvent.fecha}&evento=${encodeURIComponent(nextEvent.id)}`} className={s.nextEvent}>
