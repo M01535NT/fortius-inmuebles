@@ -132,11 +132,12 @@ export function Faces({ people, size = 28, className }: { people: Array<{ name: 
 }
 /**
   Riel compacto de etapas para filas y tarjetas (DEC-51): un segmento por etapa, las hechas en azul,
-  la actual en borgoña. El texto va aparte; el riel es decorativo para el lector de pantalla.
+  la actual en borgoña y en ámbar las anteriores que dejaron algo pendiente (`warn`, número de etapa
+  desde 1). El texto va aparte; el riel es decorativo para el lector de pantalla.
 */
-export function StageRail({ total = 10, current, className }: { total?: number; current: number; className?: string }) {
+export function StageRail({ total = 10, current, warn, className }: { total?: number; current: number; warn?: ReadonlySet<number>; className?: string }) {
   return <span className={cn(s.rail, className)} style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }} aria-hidden="true">
-    {Array.from({ length: total }, (_, i) => <i key={i} data-state={i < current ? "done" : i === current ? "now" : undefined} />)}
+    {Array.from({ length: total }, (_, i) => <i key={i} data-state={warn?.has(i + 1) ? "warn" : i < current ? "done" : i === current ? "now" : undefined} />)}
   </span>;
 }
 

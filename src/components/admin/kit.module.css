@@ -58,6 +58,7 @@
 :global(.admin-root) .rail > i { height: 5px; border-radius: 3px; background: var(--track); }
 :global(.admin-root) .rail > i[data-state=done] { background: var(--foreground); }
 :global(.admin-root) .rail > i[data-state=now] { background: var(--primary); }
+:global(.admin-root) .rail > i[data-state=warn] { background: var(--warning); }
 :global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: var(--on-navy); box-shadow: none; }
 :global(.admin-root) .avatar { position: relative; }
 :global(.admin-root) .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }

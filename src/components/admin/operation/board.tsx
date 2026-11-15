@@ -2,8 +2,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ChevronRight, Columns3, List, Plus, Search, stageIcon, type PanelIcon, EMPTY_ART } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, IconTile, Pill, ProgressRing, Segmented, Surface, Thumb } from "@/components/admin/kit";
+import { Building2, ChevronRight, Columns3, List, Plus, Search, EMPTY_ART } from "@/components/admin/icons";
+import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, Pill, Segmented, StageRail, Surface, Thumb } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { usePanelPreference } from "@/components/admin/workspace/preferences-store";
@@ -33,13 +33,15 @@ import s from "./board.module.css";
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const VERB: Record<string, string> = { captacion: "Vende", arrendador: "Renta su inmueble", compra: "Compra", arrendatario: "Busca una renta", inversion: "Invierte" };
-type Row = { op: OperationRecord; who: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; icon: PanelIcon; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string; tags: string[] };
+type Row = { op: OperationRecord; who: string; client?: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string; tags: string[] };
 /** Etapas presentes entre las operaciones, en su orden (las de venta y las de cada ruta conviven). */
 function stagesOf(rows: Row[]) {
   const seen = new Map<string, number>();
   for (const row of rows) if (!seen.has(row.stage)) seen.set(row.stage, row.n);
   return [...seen].sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0], "es")).map(([label, n]) => ({ label, n }));
 }
+/** Algo de la operación ya venció: su próxima tarea o el motivo por el que espera. */
+const isLate = (row: Row) => row.late || !!row.attention?.late;
 type View = "lista" | "tablero";
 const asView = (value: unknown): View => value === "tablero" ? "tablero" : "lista";
 
@@ -102,9 +104,9 @@ export function OperationsBoard() {
     const gaps = pastGaps(view, today, formato => formats?.has(formato) ? "terminado" : undefined);
     const flow = flowOf(op);
     return {
-      op, who: card.who, meta: [VERB[flow.ruta] ?? "", card.property].filter(Boolean).join(" · "),
+      op, who: card.who, client: names.client(op.cliente_id), meta: [VERB[flow.ruta] ?? "", card.property].filter(Boolean).join(" · "),
       photo: op.propiedad_slug ? properties.find(p => p.slug === op.propiedad_slug)?.galeria[0]?.src : undefined, adviser: advisers.find(a => a.id === op.asesor_id)?.nombre,
-      n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", icon: stageIcon(stages[current], current), gapAt: new Set(gaps.map(g => g.n)),
+      n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", gapAt: new Set(gaps.map(g => g.n)),
       next: card.next, date: card.date, late: card.late, attention: attentionOf(view, tasks, today, gaps[0]?.gap, !!recentOfferOf(op.id, offers, today)), mine: card.mine, href: card.href,
       tags: operationTags(op, conditions.ofOperation(op.id)),
     };
@@ -114,7 +116,8 @@ export function OperationsBoard() {
   const archived = visible.filter(row => row.op.etapa === "cerrado");
   const inGroup = active.filter(row => stageFilter === "todas" || row.stage === stageFilter);
   const byDate = (a: Row, b: Row) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.who.localeCompare(b.who, "es");
-  const waiting = inGroup.filter(row => row.attention).sort((a, b) => a.attention!.rank - b.attention!.rank || byDate(a, b));
+  // LV-10c: lo vencido va arriba, luego por motivo y fecha.
+  const waiting = inGroup.filter(row => row.attention).sort((a, b) => Number(isLate(b)) - Number(isLate(a)) || a.attention!.rank - b.attention!.rank || byDate(a, b));
   const fine = inGroup.filter(row => !row.attention).sort(byDate);
   const waitingCount = active.filter(row => row.attention).length, lateCount = active.filter(row => row.attention && (row.attention.late || row.late)).length;
 
@@ -202,7 +205,7 @@ export function OperationsBoard() {
         {view === "tablero" ? <PhaseBoard rows={inGroup} today={today} />
           : <>
             <Card as="div" className={s.list}>
-              <div className={s.head} aria-hidden="true"><span>Operación</span><span>Etapa</span><span>Lo que sigue</span><span className="text-right">Fecha</span><span /></div>
+              <div className={s.head} aria-hidden="true"><span>Quién y qué</span><span>Etapa</span><span>Lo que sigue</span><span className="text-right">Fecha</span><span /></div>
               {waiting.length > 0 && <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} selection={selection} />}
               {fine.length > 0 && <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} selection={selection} />}
               {!waiting.length && !fine.length && <p className={s.emptyNote}>Sin operaciones en esta etapa.</p>}
@@ -247,15 +250,26 @@ function OperationGroup({ id, title, rows, today, selection }: { id: string; tit
   </section>;
 }
 
+/** Foto del inmueble; sin foto, la cara del cliente (DEC-51); sin ninguno, el ícono del inmueble. */
+function RowFace({ row, size = 48 }: { row: Row; size?: number }) {
+  if (!row.photo && row.client) return <Avatar name={row.client} size={size} />;
+  return <span className={s.rowPhoto}><Thumb src={row.photo} ratio="18 / 13" icon={<Building2 size={20} aria-hidden="true" />} /></span>;
+}
+
+/** Riel compacto de la fila: lo listo, la etapa actual y lo que quedó pendiente de etapas anteriores. */
+function RowRail({ row }: { row: Row }) {
+  return <StageRail total={row.total} current={row.n - 1} warn={row.gapAt} className={s.bar} />;
+}
+
 /** Contenido de una fila de la lista: el mismo con enlace o en modo de selección. */
 function RowBody({ row, today, selecting }: { row: Row; today: string; selecting?: boolean }) {
   return <>
-        <span className={s.who}><Thumb src={row.photo} size={48} icon={<Building2 size={20} aria-hidden="true" />} /><span className={s.whoText}><strong>{row.who}</strong><span>{row.meta}</span></span></span>
+        <span className={s.who}><RowFace row={row} /><span className={s.whoText}><strong>{row.who}</strong><span>{row.meta}</span></span></span>
         <span className="flex min-w-0 flex-col gap-1.5">
-          <span className={s.bar} style={{ gridTemplateColumns: `repeat(${row.total}, minmax(0, 1fr))` }} aria-hidden="true">{Array.from({ length: row.total }, (_, i) => <span key={i} data-state={row.gapAt.has(i + 1) ? "warn" : i < row.n ? "on" : undefined} />)}</span>
+          <RowRail row={row} />
           <span className={s.stageText}>{row.n} · {row.stage}{row.attention && <> · <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span></>}{row.tags.map(tag => <React.Fragment key={tag}> · <span className={s.reason}>{tag}</span></React.Fragment>)}</span>
         </span>
-        <span className={s.next}><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>
+        <span className={s.next}><span><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>{row.adviser && <span className={s.nextMeta}><Avatar name={row.adviser} size={20} />{row.adviser.split(/s+/)[0]} · {row.op.folio}</span>}</span>
         <span className={s.due} data-late={row.late || undefined}>{dueLabel(row.date, today)}</span>
         {!selecting && <ChevronRight size={18} aria-hidden="true" className={s.chevron} />}
   </>;
@@ -263,7 +277,7 @@ function RowBody({ row, today, selecting }: { row: Row; today: string; selecting
 
 /** Tablero: una columna por etapa presente; cada tarjeta lleva la foto, lo que sigue, su fecha y el responsable. */
 function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
-  const byDate = (a: Row, b: Row) => (a.attention?.rank ?? 9) - (b.attention?.rank ?? 9) || (a.date ?? "9999").localeCompare(b.date ?? "9999");
+  const byDate = (a: Row, b: Row) => Number(isLate(b)) - Number(isLate(a)) || (a.attention?.rank ?? 9) - (b.attention?.rank ?? 9) || (a.date ?? "9999").localeCompare(b.date ?? "9999");
   return <div className={s.boardScroll}><div className={s.board} role="list" aria-label="Operaciones por etapa">
     {stagesOf(rows).map((stage, index) => {
       const cards = rows.filter(row => row.stage === stage.label).sort(byDate);
@@ -275,7 +289,7 @@ function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
             {(row.attention || row.tags.length > 0) && <span className="flex flex-wrap gap-1.5 self-start">{row.attention && <Pill tone={row.attention.late ? "alert" : "warn"} size="sm">{row.attention.label}</Pill>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>}
             <strong className="[overflow-wrap:anywhere]">{row.who}</strong>
             <span className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{row.meta}</span>
-            <span className={s.cardStage}><IconTile icon={row.icon} size={28} /><ProgressRing value={row.n} max={row.total} size={32} /></span>
+            <span className={s.cardStage}><RowRail row={row} /><span className={s.stageText}>{row.n} · {row.stage}</span></span>
             <span className="text-sm [overflow-wrap:anywhere]">{row.next}</span>
             <span className={s.cardFoot}><DuePill date={row.date} late={row.late} today={today} />{row.adviser && <Avatar name={row.adviser} size={26} />}</span>
           </span>

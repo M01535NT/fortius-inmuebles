@@ -34,6 +34,9 @@
 :global(.admin-root) .head { display: none; }
 :global(.admin-root) .rowItem + .rowItem { border-top: 1px solid var(--border); }
 :global(.admin-root) .next { min-width: 0; font-size: .9375rem; overflow-wrap: anywhere; }
+/* LV-10c: quién la lleva, con su cara, y el folio debajo de lo que sigue. */
+:global(.admin-root) .nextMeta { display: flex; align-items: center; gap: .375rem; margin-top: .25rem; font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
+:global(.admin-root) .rowPhoto { flex: none; display: block; width: 4.5rem; }
 :global(.admin-root) .due { font-size: var(--admin-text-detalle); white-space: nowrap; text-align: right; }
 :global(.admin-root) .due[data-late] { color: var(--alert); }
 :global(.admin-root) .emptyNote { margin: 0; padding: 1rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
@@ -66,17 +69,10 @@
   :global(.admin-root) .mobileLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 }
 :global(.admin-root) .stageText { font-size: var(--admin-text-detalle); line-height: 1.45; color: var(--muted-foreground); overflow-wrap: anywhere; }
-:global(.admin-root) .cardStage { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+:global(.admin-root) .cardStage { display: flex; flex-direction: column; gap: .375rem; }
 :global(.admin-root) .reason { color: var(--warning); }
 :global(.admin-root) .reason[data-late] { color: var(--alert); }
-:global(.admin-root) .bar { display: grid; gap: 3px; max-width: 10rem; }
-:global(.admin-root) .bar > span { height: 4px; border-radius: 2px; background: var(--track); }
-/* Como el riel de la operación: lo listo en tinta y la etapa actual (el último tramo encendido) en borgoña. */
-:global(.admin-root) .bar > span[data-state=on] { background: var(--foreground); }
-:global(.admin-root) .bar > span[data-state=on]:not(:has(+ span[data-state])) { background: var(--primary); }
-:global(.dark) :global(.admin-root) .bar > span[data-state=on] { background: var(--muted-foreground); }
-:global(.dark) :global(.admin-root) .bar > span[data-state=on]:not(:has(+ span[data-state])) { background: #f8f8ff; }
-:global(.admin-root) .bar > span[data-state=warn] { background: var(--warning); }
+:global(.admin-root) .bar { max-width: 10rem; }
 
 /* Tablero: una columna por fase, con desplazamiento horizontal si no caben. */
 :global(.admin-root) .boardScroll { overflow-x: auto; padding-bottom: .5rem; margin: 0 -1rem; padding-inline: 1rem; }
