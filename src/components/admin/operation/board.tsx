@@ -279,13 +279,13 @@ function RowBody({ row, today, selecting }: { row: Row; today: string; selecting
 }
 
 /** LV-10c: «⋯» de cada fila, como en el boceto: abrir, abrir en otra pestaña o copiar el enlace para compartirlo. */
-function RowMenu({ row }: { row: Row }) {
+function RowMenu({ row, className = s.rowMenu }: { row: Row; className?: string }) {
   async function copy() {
     try { await navigator.clipboard.writeText(new URL(row.href, window.location.origin).href); notify("Enlace copiado."); }
     catch { notify("No se pudo copiar el enlace. Ábrelo y cópialo de la barra de direcciones."); }
   }
   return <DropdownMenu modal={false}>
-    <DropdownMenuTrigger asChild><button type="button" className={buttonClass({ variant: "ghost", iconOnly: true, className: s.rowMenu })} aria-label={`Más acciones de ${row.who} · ${row.op.folio}`}><MoreHorizontal size={18} aria-hidden="true" /></button></DropdownMenuTrigger>
+    <DropdownMenuTrigger asChild><button type="button" className={buttonClass({ variant: "ghost", iconOnly: true, className })} aria-label={`Más acciones de ${row.who} · ${row.op.folio}`}><MoreHorizontal size={18} aria-hidden="true" /></button></DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="min-w-[13rem]">
       <DropdownMenuItem asChild><Link href={row.href}><ChevronRight size={18} aria-hidden="true" />Abrir</Link></DropdownMenuItem>
       <DropdownMenuItem asChild><a href={row.href} target="_blank" rel="noopener"><ExternalLink size={18} aria-hidden="true" />Abrir en pestaña nueva</a></DropdownMenuItem>
@@ -302,7 +302,7 @@ function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
       const cards = rows.filter(row => row.stage === stage.label).sort(byDate);
       return <section key={stage.label} role="listitem" aria-labelledby={`columna-${index}`} className={s.column}>
         <h2 id={`columna-${index}`} className={s.columnTitle}>{stage.n} · {stage.label}<Pill tone="muted" size="sm">{cards.length}</Pill></h2>
-        {cards.map(row => <CardLink key={row.op.id} href={row.href} className={s.boardCard} data-late={row.late || row.attention?.late || undefined} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
+        {cards.map(row => <div key={row.op.id} className={s.cardWrap}><CardLink href={row.href} className={s.boardCard} data-late={row.late || row.attention?.late || undefined} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
           {row.photo && <Thumb src={row.photo} ratio="16 / 9" className={s.cardPhoto} />}
           <span className={s.cardBody}>
             {(row.attention || row.tags.length > 0) && <span className="flex flex-wrap gap-1.5 self-start">{row.attention && <Pill tone={row.attention.late ? "alert" : "warn"} size="sm">{row.attention.label}</Pill>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>}
@@ -312,7 +312,7 @@ function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
             <span className="text-sm [overflow-wrap:anywhere]">{row.next}</span>
             <span className={s.cardFoot}><DuePill date={row.date} late={row.late} today={today} />{row.adviser && <Avatar name={row.adviser} size={26} />}</span>
           </span>
-        </CardLink>)}
+        </CardLink>{/* Fuera del enlace (un botón no va dentro de otro control), sobre el pie de la tarjeta. */}<RowMenu row={row} className={s.cardMenu} /></div>)}
       </section>;
     })}
   </div></div>;

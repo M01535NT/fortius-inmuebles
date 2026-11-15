@@ -434,6 +434,13 @@ it("el «⋯» de cada fila abre el asunto, lo abre en otra pestaña o copia su 
   fireEvent.click(within(menu).getByRole("menuitem", { name: "Copiar enlace" }));
   await waitFor(() => expect(writeText).toHaveBeenCalledWith(`${window.location.origin}${row.getAttribute("href")}`));
   await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+  // En el tablero cada tarjeta lleva el mismo menú, fuera del enlace de la tarjeta.
+  fireEvent.click(screen.getByText("Tablero"));
+  const board = await screen.findByRole("list", { name: "Asuntos por etapa" });
+  const cardMore = within(board).getByRole("button", { name: /^Más acciones de Familia Castañeda Ortiz/ });
+  expect(cardMore.closest("a")).toBeNull();
+  cardMore.focus(); fireEvent.keyDown(cardMore, { key: "Enter" });
+  expect(within(await screen.findByRole("menu")).getByRole("menuitem", { name: "Abrir en pestaña nueva" }).getAttribute("target")).toBe("_blank");
 });
 
 it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña", async () => {
