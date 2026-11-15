@@ -4,6 +4,7 @@ import { Button } from "@/components/admin/kit";
 import { Camera } from "@/components/admin/icons";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
+import { DateField } from "@/components/ui/date-field";
 
 /*
   Fotografías y croquis privados de un borrador (levantamientos 04 y opinión 07):
@@ -21,6 +22,7 @@ export function FormatoImages({ documentId, values, onChange, onChosen, onUpload
   const [loaded, setAdjuntos] = React.useState<Adjunto[] | null>(null);
   const adjuntos = source ? source.list : loaded;
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState("");
+  const [taken, setTaken] = React.useState("");
   const archivo = React.useRef<HTMLInputElement>(null);
   React.useEffect(() => {
     if (source) return;
@@ -33,7 +35,7 @@ export function FormatoImages({ documentId, values, onChange, onChosen, onUpload
     try {
       const result = source ? { adjunto: await source.upload(new FormData(form)) } : await json<{ adjunto: Adjunto }>(`/api/admin/formatos/${documentId}/adjuntos`, { method: "POST", body: new FormData(form) });
       if (source) onChange("adjuntos", [...source.list, result.adjunto]); else setAdjuntos(items => [...(items ?? []), result.adjunto]);
-      form.reset();
+      form.reset(); setTaken("");
       onUploaded?.(result.adjunto);
       // La primera imagen de cada tipo queda elegida para el PDF; se puede cambiar abajo.
       const slot = result.adjunto.kind === "foto" ? "fotoPrincipalId" : result.adjunto.kind === "croquis" ? "croquisId" : null;
@@ -45,7 +47,7 @@ export function FormatoImages({ documentId, values, onChange, onChosen, onUpload
     <form onSubmit={upload} className="grid gap-3 rounded-[12px] border border-border p-4 md:grid-cols-2">
       <fieldset disabled={disabled || busy} className="contents">
         <label className="text-sm">Tipo<select name="tipo" required className={selectClass}><option value="foto">Fotografía</option><option value="croquis">Croquis o plano</option><option value="soporte">Soporte gráfico</option></select></label>
-        <label className="text-sm">Fecha en que se tomó<input name="fechaObservacion" type="date" className={inputClass} /></label>
+        <span className="flex flex-col gap-1.5 text-sm"><span>Fecha en que se tomó</span><DateField name="fechaObservacion" aria-label="Fecha en que se tomó" value={taken} onChange={setTaken} disabled={disabled || busy} /></span>
         <label className="text-sm">Descripción<input name="descripcion" required maxLength={240} className={inputClass} placeholder="Fachada principal" /></label>
         <label className="text-sm">Fuente o autor<input name="fuente" required maxLength={240} className={inputClass} placeholder="Tomada por el asesor en la visita" /></label>
         <label className="text-sm md:col-span-2">Imagen JPEG o PNG, máximo 10 MB<input ref={archivo} name="archivo" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required className={inputClass} /></label>

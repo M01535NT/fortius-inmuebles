@@ -20,6 +20,7 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 import { clearAdminCache } from "@/lib/admin/store";
 import { OperationScreen } from "@/components/admin/operation/screen";
 import { OperationsBoard } from "@/components/admin/operation/board";
+import { pickCombo, pickDate, pickOption } from "./pick";
 
 const ID = "51000000-0000-4000-8000-000000000001", ID2 = "51000000-0000-4000-8000-000000000002";
 const reviewed = (extra: Record<string, unknown> = {}) => ({ estado: "revisado", soporte: "Revisado con soporte", evidencia: { tipo: "externa", referencia: "Escritura 4521, Notaría 9", fecha: "2026-10-14", responsable: "Jorge Salcedo", resultado: "Sin observaciones" }, ...extra });
@@ -101,8 +102,8 @@ const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(
 const stage = (n: number) => screen.findAllByText(new RegExp(`^Etapa ${n} de 10`));
 /** Los demás estados de un requisito están en «Más», junto a «Confirmar». */
 function moreStates(name: string) {
-  fireEvent.click(screen.getByRole("button", { name: `Más estados de ${name}` }));
-  return screen.getByRole("radiogroup", { name: `Estado de ${name}` });
+  fireEvent.keyDown(screen.getByRole("button", { name: `Más estados de ${name}` }), { key: "Enter" });
+  return screen.getByRole("menu", { name: new RegExp(name) });
 }
 
 it("muestra la etapa y lo que falta, y «Lo tengo» se guarda con la versión de la operación", async () => {
@@ -112,8 +113,8 @@ it("muestra la etapa y lo que falta, y «Lo tengo» se guarda con la versión de
   expect(screen.getAllByText("Entrevista inicial").length).toBeGreaterThan(0);
   expect(screen.getByRole("region", { name: "Esta etapa" })).toBeTruthy();
   const group = moreStates("Entrevista con el propietario");
-  expect(within(group).queryByRole("radio", { name: /No aplica/ })).toBeNull();
-  fireEvent.click(within(group).getByRole("radio", { name: /Lo tengo/ }));
+  expect(within(group).queryByRole("menuitemradio", { name: /No aplica/ })).toBeNull();
+  fireEvent.click(within(group).getByRole("menuitemradio", { name: /Lo tengo/ }));
   await screen.findByText("Guardado");
   expect(lastFlow()).toMatchObject({ version: 3, etapa: "captacion", flujo: { requisitos: { entrevista: { estado: "recibido" } } } });
   expect(screen.getByText("Ya tienes el documento · falta revisarlo")).toBeTruthy();
@@ -266,7 +267,7 @@ it("un fallo al guardar se informa en palabras sencillas y no anuncia ningún av
   interviewDone();
   await openOperation();
   await stage(2);
-  fireEvent.click(within(moreStates("Entrevista con el propietario")).getByRole("radio", { name: /Lo tengo/ }));
+  fireEvent.click(within(moreStates("Entrevista con el propietario")).getByRole("menuitemradio", { name: /Lo tengo/ }));
   expect((await screen.findByRole("alert")).textContent).toBe("No se pudo guardar: Servicio no disponible");
   expect(screen.queryByText(/pasó a/)).toBeNull();
   expect(screen.getAllByText("Pendiente").length).toBeGreaterThan(0);
@@ -294,7 +295,7 @@ it("Hay un problema guarda el título y la explicación, pasa a «Ahora toca» y
   interviewDone();
   await openOperation();
   await stage(2);
-  fireEvent.click(within(moreStates("Entrevista con el propietario")).getByRole("radio", { name: /Hay un problema/ }));
+  fireEvent.click(within(moreStates("Entrevista con el propietario")).getByRole("menuitemradio", { name: /Hay un problema/ }));
   const sheet = await screen.findByRole("dialog");
   fireEvent.change(within(sheet).getByLabelText("Cuál es el problema"), { target: { value: "El propietario no tiene la escritura" } });
   fireEvent.change(within(sheet).getByLabelText("Qué pasó y cómo se puede resolver"), { target: { value: "La tiene su hermano en Ensenada." } });
@@ -314,7 +315,7 @@ it("«Pasar a» se habilita solo con todo listo y registra el avance", async () 
   expect((advance as HTMLButtonElement).disabled).toBe(true);
   expect(screen.getByRole("button", { name: "Agendar la próxima tarea" })).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Qué sigue"), { target: { value: "Pedir la escritura" } });
-  fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-10-20" } });
+  await pickDate(screen.getByLabelText("Fecha"), "2026-10-20");
   fireEvent.click(screen.getByRole("button", { name: "Agendar" }));
   await waitFor(() => expect(server.tasks).toHaveLength(2));
   expect(server.tasks[1]).toMatchObject({ titulo: "Pedir la escritura", vence: "2026-10-20", expedienteId: ID, asesorId: "a1", estado: "pendiente" });
@@ -338,7 +339,7 @@ it("en Verificación el contrato espera; durante la publicación avisa el inform
   expect(within(informe).getByText("El último informe preparado todavía no se registra como entregado.")).toBeTruthy();
   fireEvent.click(within(informe).getByRole("button", { name: "Registrar entrega" }));
   expect((within(informe).getByRole("button", { name: "Guardar entrega" }) as HTMLButtonElement).disabled).toBe(true);
-  fireEvent.change(within(informe).getByLabelText("Canal"), { target: { value: "whatsapp" } });
+  await pickOption(within(informe).getByLabelText("Canal"), "WhatsApp");
   fireEvent.change(within(informe).getByLabelText("Quién lo entregó"), { target: { value: "Ana Torres" } });
   fireEvent.click(within(informe).getByRole("button", { name: "Guardar entrega" }));
   await waitFor(() => expect((lastFlow().flujo as { entregasInforme?: unknown[] }).entregasInforme).toEqual([expect.objectContaining({ fecha: "2026-10-16", canal: "whatsapp", responsable: "Ana Torres" })]));
@@ -352,12 +353,15 @@ it("Ajustes ofrece como contraparte al interesado que busca esa operación, no u
     base({ id: ID2, folio: "EXP-RENTA", operacion: "renta", cliente_id: "c2", flujo: flow({}, { ruta: "arrendatario" }) }),
   ];
   await openOperation("ajustes");
-  const select = screen.getByLabelText("Interesado que firma");
-  expect(within(select).getAllByRole("option").map(o => o.textContent)).toEqual(["Ninguno del panel", "Lucía Interesada · 6640001111"]);
+  // LV-10c: el interesado se busca escribiendo, con su cara y su teléfono.
+  const select = screen.getByRole("combobox", { name: "Interesado que firma" });
+  fireEvent.click(select);
+  expect(within(await screen.findByRole("listbox")).getAllByRole("option").map(o => o.textContent?.replace(/^[A-ZÁÉÍÓÚÑ·]{1,2}(?=[A-Z])/, ""))).toEqual(["Ninguno del panel", "Lucía Interesada6640001111"]);
+  fireEvent.keyDown(screen.getByPlaceholderText("Buscar interesado…"), { key: "Escape" });
   expect(screen.queryByLabelText("Asunto de la contraparte")).toBeNull();
   // Las rutas de búsqueda ya no se ofrecen para una operación del propietario.
   expect(within(screen.getByLabelText("Ruta")).getAllByRole("option").map(o => o.textContent)).not.toContain("Arrendatario");
-  fireEvent.change(select, { target: { value: "lead-renta" } });
+  await pickCombo(select, "Lucía Interesada");
   expect((screen.getByLabelText("Contraparte externa y respaldo") as HTMLTextAreaElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Guardar ajustes" }));
   await waitFor(() => expect(server.puts.at(-1)?.body).toMatchObject({ flujo: { contraparteLeadId: "lead-renta" } }));
@@ -382,7 +386,7 @@ it("eliminar pide confirmación, se puede restaurar y no procede con cambios sin
   eliminar();
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Puedes restaurarlo"), expect.objectContaining({ title: "Eliminar asunto" })));
   expect(server.methods).toEqual([]);
-  fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-12-01" } });
+  await pickDate(screen.getByLabelText("Fecha objetivo"), "2026-12-01");
   eliminar();
   expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar el asunto.")).toBeTruthy();
   expect(server.methods).toEqual([]);
@@ -396,7 +400,7 @@ it("eliminar pide confirmación, se puede restaurar y no procede con cambios sin
 
 it("el encabezado elimina la operación tras confirmarlo en su ventana, y no con cambios sin guardar", async () => {
   await openOperation("ajustes");
-  fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-12-01" } });
+  await pickDate(screen.getByLabelText("Fecha objetivo"), "2026-12-01");
   eliminar();
   expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar el asunto.")).toBeTruthy();
   expect(confirmAction).not.toHaveBeenCalled();
@@ -548,8 +552,7 @@ it("Alta directa no pide folio, protege la captura al salir, permite descartar y
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Descartar los cambios y salir")));
   fireEvent.click(screen.getByRole("button", { name: "Descartar" }));
   await waitFor(() => expect((unit as HTMLInputElement).value).toBe(""));
-  await screen.findByRole("option", { name: "Familia Castañeda Ortiz" });
-  fireEvent.change(screen.getByLabelText("Cliente"), { target: { value: "c1" } });
+  await pickCombo(screen.getByRole("combobox", { name: "Cliente" }), "Familia Castañeda Ortiz");
   fireEvent.click(screen.getByRole("button", { name: "Abrir asunto" }));
   await waitFor(() => expect(nav.push).toHaveBeenCalledWith(`/admin/operaciones/${ID2}`));
 });
@@ -641,7 +644,7 @@ it("la decisión del encargo se toma en el panel de la etapa y ya no en los dato
   expect(within(region).getAllByText("Registrar si tomas el encargo").length).toBeGreaterThan(0);
   expect(within(region).getAllByRole("button", { name: "Ir a la decisión" }).length).toBeGreaterThan(0);
   const card = within(region).getByRole("region", { name: "Decisión del encargo" });
-  fireEvent.change(within(card).getByLabelText("Decisión"), { target: { value: "aceptada" } });
+  await pickOption(within(card).getByLabelText("Decisión"), "Aceptada");
   fireEvent.click(within(card).getByRole("button", { name: "Guardar decisión" }));
   expect(await within(card).findByText("Escribe el motivo de la decisión.")).toBeTruthy();
   fireEvent.change(within(card).getByLabelText("Motivo y alcance"), { target: { value: "Documentos completos; se toma la venta" } });

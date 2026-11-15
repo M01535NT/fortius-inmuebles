@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { ContractSignatureCard } from "@/components/admin/operation/contract-signature";
 import { emptyWorkflow, type ContractSignature } from "@/lib/formatos/operation-workflow";
 import type { OperationRecord } from "@/lib/admin/operation-view";
+import { pickOption } from "./pick";
 
 const mocks = vi.hoisted(() => ({ role: "editor", fetch: vi.fn() }));
 vi.mock("@/lib/admin/store", () => ({
@@ -25,7 +26,7 @@ it("registra la firma con el contrato de los documentos del cliente, la fecha y 
   fireEvent.click(screen.getByRole("button", { name: "Registrar la firma" }));
   expect((screen.getAllByLabelText("Nombre")[0] as HTMLInputElement).value).toBe("Propietaria de ejemplo");
   const select = await screen.findByLabelText("Contrato firmado");
-  fireEvent.change(select, { target: { value: file.id } });
+  await pickOption(select, "Contrato firmado de ejemplo");
   fireEvent.click(screen.getByRole("button", { name: "Guardar la firma" }));
   await waitFor(() => expect(onSave).toHaveBeenCalled());
   const saved = onSave.mock.calls[0][0].flujo.firmaContrato as ContractSignature;

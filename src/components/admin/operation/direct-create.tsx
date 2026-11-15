@@ -7,6 +7,7 @@ import { db, fetchJson as json, useCollection } from "@/lib/admin/store";
 import { emptyWorkflow, WORKFLOW_ROUTES, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import { operationHref, type OperationRecord } from "@/lib/admin/operation-view";
+import { Combobox, faceOption, photoOption } from "./pickers";
 
 /** Alta directa: abre una operación sin entrevista. La Fase 5 la reúne con el asistente de nueva operación. */
 export function DirectCreate({ onDirtyChange }: { onDirtyChange?: (dirty: boolean) => void }) {
@@ -44,9 +45,13 @@ export function DirectCreate({ onDirtyChange }: { onDirtyChange?: (dirty: boolea
   return <form ref={form} id="alta-directa" onChange={() => setDirty(true)} onSubmit={create} className="grid gap-4 md:grid-cols-2" aria-label="Alta directa">
     <p className="text-sm text-muted-foreground md:col-span-2">Sin entrevista. El inmueble se liga después y el asunto te dice qué falta.</p>
     {error && <p role="alert" className="text-sm text-destructive md:col-span-2">{error}</p>}
-    <label className="text-sm">Cliente<select name="clienteId" required disabled={busy} value={client} onChange={e => { setClient(e.target.value); setRoute(clientes.find(c => c.id === e.target.value)?.tipo === "comprador" ? "compra" : "captacion"); }} className={selectClass}><option value="">Selecciona</option>{clientes.map(item => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
+    {/* LV-10c: cliente e inmueble son listas largas: se buscan escribiendo, con su cara y su foto. */}
+    <span className="flex flex-col gap-1.5 text-sm"><span>Cliente</span><Combobox name="clienteId" aria-label="Cliente" placeholder="Selecciona" searchPlaceholder="Buscar cliente…" disabled={busy} value={client}
+      options={clientes.map(item => faceOption(item.id, item.nombre, item.asesorId ? undefined : "Sin asesor"))}
+      onChange={id => { setClient(id); setDirty(true); setRoute(clientes.find(c => c.id === id)?.tipo === "comprador" ? "compra" : "captacion"); }} /></span>
     <label className="text-sm">Operación<select name="operacion" disabled={busy} value={operation} onChange={e => { setOperation(e.target.value); setRoute(e.target.value === "inversion" ? "inversion" : e.target.value === "renta" ? "arrendador" : "captacion"); }} className={selectClass}>{Object.entries(EXPEDIENTE_OPERACIONES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-    <label className="text-sm">Inmueble<select name="propiedadSlug" disabled={busy} value={property} onChange={e => setProperty(e.target.value)} className={selectClass}><option value="">Sin vincular</option>{propiedades.filter(item => route === "compra" || !client || item.asesorId === clientes.find(c => c.id === client)?.asesorId).map(item => <option key={item.slug} value={item.slug}>{item.titulo}</option>)}</select></label>
+    <span className="flex flex-col gap-1.5 text-sm"><span>Inmueble</span><Combobox name="propiedadSlug" aria-label="Inmueble" placeholder="Sin vincular" searchPlaceholder="Buscar inmueble…" disabled={busy} value={property} onChange={slug => { setProperty(slug); setDirty(true); }}
+      options={[{ value: "", label: "Sin vincular" }, ...propiedades.filter(item => route === "compra" || !client || item.asesorId === clientes.find(c => c.id === client)?.asesorId).map(item => photoOption(item.slug, item.titulo, item.galeria[0]?.src))]} /></span>
     {["venta", "renta", "inversion"].includes(operation) && <label className="text-sm">Ruta<select disabled={busy} value={route} onChange={e => setRoute(e.target.value as OperationWorkflow["ruta"])} className={selectClass}>{Object.entries(WORKFLOW_ROUTES).filter(([k]) => operation === "inversion" ? k === "inversion" : operation === "renta" ? ["arrendador", "arrendatario"].includes(k) : ["captacion", "compra"].includes(k)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
     <label className="text-sm">Unidad, si aplica<input name="unidad" disabled={busy} className={inputClass} /></label>
     <p className="text-sm text-muted-foreground md:col-span-2">El folio se asigna al guardar.</p>
