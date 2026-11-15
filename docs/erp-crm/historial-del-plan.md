@@ -2483,3 +2483,60 @@ Seis funciones construidas y en `main`: contrato de servicio y licencia estatal 
   ```
   | COR-26 | 4 | parcial | PR #66: guía de cada pantalla; en local: «Tu primer día» y manual en `/admin/ayuda`; faltan capturas del manual y prueba de uso; «Tu primer día» y `/admin/ayuda` ya en `main` (585cef2); revisado contra el código el 14/11/2026 |
   ```
+
+### 28.7 Tablero y «Orden vigente» antes de reordenarlos hacia la meta
+
+**Motivo:** el titular pidió el 14/11/2026 ordenar el plan alrededor de «Empezar a trabajar de verdad con el panel»: FLX, continuidad, cuentas del equipo y revisión del abogado; lo demás, después de empezar a operar. La frase anterior sobre entregas sin bloque también se retiró, porque desde ahora todas tienen lugar en el orden.
+
+#### Dónde nos quedamos — 14/11/2026
+
+##### Se está haciendo ahora
+
+| Qué | Quién | Dónde | Estado |
+|---|---|---|---|
+| **FLX-01 · Bandeja y documentos sin operación** (panel flexible, DEC-50) | Agente | rama `feat/integracion` (localhost:3003) | Base, servidor, respaldo, pantalla `/admin/bandeja` y su entrada en el menú listos; también la pantalla `/admin/personas` (lista y perfil), en el menú junto a Contactos. Faltan «Nuevo perfil» con las cinco preguntas de una llamada y tu revisión en localhost. |
+
+Lo publicado más reciente es el **PR #76** (14/11/2026, merge `52e1f9a`): Trámites (TRA-01), el panel desde cero (LV-09), la paleta del sitio, correcciones de UI/UX, dependencias y la separación de este plan. En `feat/integracion`, sin publicar: el panel flexible (FLX-01) y la limpieza del 14/11/2026.
+
+**Limpieza del 14/11/2026 (en `feat/integracion`, sin publicar):** todo el trabajo quedó en una sola rama (`feat/integracion`); se borraron las ramas y copias de trabajo ya integradas. Salieron del código los estilos del panel azul y de las tarjetas viejas, seis componentes que nada montaba y la configuración de Cursor. El encargo, el lienzo y los bocetos de octubre se archivaron en [`docs/archivo/2026-11-14-panel-anterior/`](docs/archivo/2026-11-14-panel-anterior/README.md); `AGENTS.md`, `docs/admin-workspace.md` y este plan ya apuntan al panel nuevo. Pendiente de esa limpieza: retirar del todo `panel.module.css` (sus estilos vivos de botones, tablas y campos pasan al kit), revisar las ocho reglas de pantalla de LV-08 contra LV-09 (historial §27) y poner al día `docs/admin-manual.md` (COR-26).
+
+##### Te toca a ti
+
+1. **Activar los dos pasos del director** en fortiusinmuebles.com/admin con tu app de códigos y probar una entrada (AUT-01). Es lo único con riesgo real mientras no esté.
+2. **Revisar en el panel publicado** Trámites y el panel nuevo, y las entregas en `main` que esperan tu visto bueno: SIM-04, SIM-05, SIM-06, SIM-07, SIM-10, NAV-13, LV-01, LV-02, LV-04, DOC-14 y UX-05 (sus filas están en el [historial §24](docs/erp-crm/historial-del-plan.md)). SIM-16 y SIM-18 ya los reemplazó LV-09.
+3. **Llevar al abogado:** formatos 20 al 24, el umbral de 10,000 UMA de la escritura del 24, la conservación de 10 años del expediente LFPIORPI y la regla «nada frena, solo avisa» (RP-100), sobre todo para antilavado y promesa.
+4. **Mandar una solicitud de prueba** desde el formulario de fortiusinmuebles.com (COR-21).
+5. **Pasar los datos de la empresa** (la persona moral) para los avisos de privacidad.
+6. **Decidir cuando llegue su momento:** recorrido propio de la renta (DEC-02), vocabulario de papeles de una persona (DEC-04, ahora dentro de FLX-04), custodia y retención de copias (DEC-06) y el backend de pruebas (ENV-01 c). Preguntas abiertas: [`CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md).
+
+##### Qué sigue, en orden
+
+1. **Terminar FLX-01** (falta «Nuevo perfil» con las cinco preguntas) y publicarla cuando la apruebes.
+2. **FLX-02 a FLX-05 y FLX-07**, una etapa a la vez y con tu revisión entre cada una ([paquete FLX](#panel-flexible-flx--aprobado-por-el-titular-el-14112026)). Antes de FLX-03 y FLX-04 se avisa, porque cambian cómo avanza una operación. FLX-07 (la Bandeja recomienda a dónde va cada documento, RP-103) va después de FLX-04. Al final, FLX-06 cierra el paquete.
+3. **Continuidad** (Seguridad), en paralelo: confirmar los dos pasos cuando los actives, repetir la prueba de Sentry desde producción, revisar la limpieza diaria de archivos y el ensayo de restauración con un archivo de la Bandeja. Estado detallado: REC-01 con copia diaria desde el 13/11 (falta repetir el ensayo con volumen real); BAS-01 aceptada; CI-01 terminada; OBS-01 activa; PRV-01 espera al abogado. Ver `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
+4. **Después, el «Orden vigente»**, sin lo que FLX absorbe.
+
+Anotado y fuera por ahora: `npm audit` marca 3 avisos altos de una cadena solo de desarrollo (zod 3 dentro de lighthouse); corregirla pide subir lighthouse de versión mayor. TRA-01 se confirma con el primer caso real: que el Registro acepte la carta de Infonavit tal cual.
+
+#### Orden vigente
+
+**Este orden manda.** La columna «Fase» de la matriz agrupa por tema y sirve de referencia (la tabla «Orden y ventanas orientativas» pasó al historial, §25, el 14/11/2026); si difieren, se sigue este orden. Cada entrega está en un bloque igual o posterior al de todo lo que necesita.
+
+**Ahora (titular, 14/11/2026): el panel flexible (FLX-01 a FLX-06) va antes que los bloques 1 a 6.** FLX absorbe o replantea REL-01, FCH-01, HER-02, HER-04, CRM-03, COR-11 y MOT-01 a MOT-04; esas entregas no se empiezan por su cuenta. El bloque 0 sigue en paralelo.
+
+0. **Continuidad, en paralelo y sin frenar lo demás:** BAS-01, REC-01, CI-01, AUT-01, OBS-01, ENV-01 y PRV-01. Varias dependen de accesos externos; son condición para el piloto con datos reales (bloque 7), no para trabajar con datos simulados.
+1. **Coherencia y fallas, antes de programar más:** USO-01 y MRP-01; COR-01 a COR-10 (COR-04 y COR-10 después de MRP-01); **IA-01, prioritaria por decisión del titular (17/10/2026), en cuanto haya clave de API**; los pendientes de formatos de «Lo que quedó abierto de PROC y FLUJO» (diseño y fotos del 07, DOC-06 y la decisión de DOC-09); comprobar la publicación del rediseño; **EXT-12, captura sobre el documento, formato por formato en el orden de las etapas (DEC-31, 27/10/2026): es el trabajo en curso** y absorbe los pendientes de diseño de cada formato que toque.
+2. **Interfaz, confianza y trabajo suelto** (pueden empezar ya):
+   - primero SIM-01 junto con LV-01 (color, letra, fechas); con ellos se da por cumplida la base de UX-01, que el kit de la Fase C ya cubre en buena parte;
+   - SIM-02 a SIM-12 en orden; LV-02 a LV-04; UX-04, UX-03, UX-02 y UX-05;
+   - navegación de pantalla: NAV-01, NAV-02, NAV-03, NAV-05, NAV-07 y NAV-13;
+   - sin depender de la ficha: FCH-03 (datos de Fortius y membrete), FCH-04 (descarga con aviso y datos que no detienen), FCH-06 (expediente en un archivo), HER-01 y HER-02 (herramientas para trabajo suelto).
+   - **Cambios de base en este bloque** (aditivos, con respaldo, ensayo aislado y autorización del titular): preferencias por usuario (UX-02, que incluye lo que se recuerda por usuario de C17, N01–N03, N08–N11 y V07); menciones y leídos de la bandeja (UX-05); datos de Fortius y membrete (FCH-03); registro de datos faltantes y datos indispensables (FCH-04).
+3. **Núcleo del equipo y disciplina comercial:** REL-01 (su modelo de personas se diseña junto con el esquema de la ficha de FCH-01, aunque la ficha se construya en el bloque 4) y SEG-01 con los roles de Fortius; USR-01; CRM-01, CRM-02, CRM-03; OPS-01; PUB-01; COM-01; DAT-01, DAT-02; INV-01; VIS-01, OFE-01; EXT-01; NAV-04, NAV-06, NAV-09; CAP-01 a CAP-04.
+4. **Ficha única y motor de procesos:** FCH-01; DOC-01; FCH-02; FCH-10; FCH-11; después MOT-01 a MOT-04, en ese orden. Llevan migración y autorización del titular. La versión 1 del motor (MOT-01) reproduce los candados **ya ajustados por FCH-04** (datos que no detienen), no los de hoy.
+5. **Dinero, aprobaciones, reglas fiscales y tableros:** FIN-01, FIN-02, FIN-03; APR-01; FIS-01 y HER-03 (ISR y neto); TAB-01, TAB-02, TAB-03, TAB-05; HER-04 (pasar trabajo suelto a una operación).
+6. **Documentos avanzados, revisión, cierre, portal e IA:** DOC-10 a DOC-13; LEG-01, TEC-01, CIE-01; TAB-04; FCH-05, FCH-07, FCH-08, FCH-09; NAV-08, NAV-10; EXT-05, EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11. NAV-11 y NAV-12 entran cuando el titular las autorice (DEC-21, migración de NAV-12).
+7. **Escala, instalación, soporte y piloto:** PAG-01, ESC-01; PWA-01, PWA-02, PWA-03 y NAV-14; SOP-01; PIL-01, con todos sus requisitos (incluido el bloque 0); después, operación real de Fortius durante un buen tiempo. EXT-02, EXT-03, EXT-04 y EXT-07 entran solo por decisión de negocio o necesidad demostrada.
+8. **Etapa posterior** (en pausa): solo cuando el titular la abra.
+
+**Entregas sin bloque en el «Orden vigente»** (el titular decide dónde van; el agente no las acomoda): COR-11 (compra y búsqueda de renta como lead), COR-12 (quitar PROFECO del 09), DOC-14, DOC-15, PUB-02 (inmuebles compartidos), FIR-01 y EXT-13 (conexión a IA con tope). EXT-12 (captura sobre el documento) entró al bloque 1 por decisión del titular (DEC-31, 27/10/2026). EXT-02, EXT-03, EXT-04 y EXT-07 sí están en el bloque 7, «solo por decisión de negocio».
