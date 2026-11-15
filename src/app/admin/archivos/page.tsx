@@ -3,6 +3,7 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 
 import * as React from "react";
 import Image from "next/image";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   FileText,
   Film,
@@ -22,7 +23,6 @@ import {
   PageHeader,
   btnPrimary,
   inputClass,
-  selectClass,
 } from "@/components/admin/ui";
 import {
   db,
@@ -129,16 +129,15 @@ export default function ArchivosPage() {
           />
         </div>
         <Field label="Tipo" htmlFor="ar-tipo">
-          <select
-            id="ar-tipo"
-            name="tipo"
-            className={selectClass + " w-[120px]"}
-          >
-            <option value="imagen">Imagen</option>
-            <option value="pdf">PDF</option>
-            <option value="video">Video</option>
-            <option value="otro">Otro</option>
-          </select>
+          <Select name="tipo" defaultValue="imagen">
+            <SelectTrigger id="ar-tipo" className="w-[150px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="imagen">Imagen</SelectItem>
+              <SelectItem value="pdf">PDF</SelectItem>
+              <SelectItem value="video">Video</SelectItem>
+              <SelectItem value="otro">Otro</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="Notas del archivo" htmlFor="ar-notas">
           <input id="ar-notas" name="notas" className={inputClass} />

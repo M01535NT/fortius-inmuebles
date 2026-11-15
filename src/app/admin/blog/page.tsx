@@ -18,6 +18,7 @@ import {
   selectClass,
   textareaClass,
 } from "@/components/admin/ui";
+import { Switch } from "@/components/ui/controls";
 import {
   db,
   removeById,
@@ -116,8 +117,8 @@ function Editor({ post: source, onDone, onDirty }: { post?: Post; onDone: () => 
           <input id="post-ambito" name="ambito" maxLength={500} defaultValue={post?.ambito} className={inputClass} />
         </Field>
       </div>
-      <label className="flex min-h-11 items-center gap-3 text-sm">
-        <input type="checkbox" name="destacado" defaultChecked={post?.destacado} className="size-5 accent-primary" />
+      <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+        <Switch name="destacado" defaultChecked={post?.destacado} />
         Destacar en portada
       </label>
       <p className="text-sm text-muted-foreground">Se muestra el destacado más reciente; sin destacados, la última publicación.</p>
