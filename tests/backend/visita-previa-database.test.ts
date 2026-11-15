@@ -3,7 +3,8 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
 
 // DEC-41 (excepción a RP-91): solo el director autoriza enseñar un inmueble antes de la firma,
-// a un interesado concreto, con la carta firmada del propietario y un motivo.
+// a un interesado concreto y con un motivo. Sin la carta firmada del propietario se autoriza igual y
+// queda el aviso en el historial del asunto (FLX-03, RP-100).
 let db: PGlite;
 const director = "56000000-0000-4000-8000-000000000001", ana = "56000000-0000-4000-8000-000000000002";
 const exp = "56000000-0000-4000-8000-000000000010";
@@ -48,11 +49,22 @@ describe("visita autorizada antes de la firma", () => {
     });
   });
 
-  it("sin la carta subida o sin motivo, no", async () => {
+  it("con una carta que no se subió o sin motivo, no", async () => {
     await as(director, async () => {
       await expect(setFlow({ visitasPrevias: [visit({ carta: { path: `${director}/56000000-0000-4000-8000-0000000000bb.pdf` } })] })).rejects.toMatchObject({ code: "PT409" });
       await expect(setFlow({ visitasPrevias: [visit({ motivo: " " })] })).rejects.toMatchObject({ code: "PT400" });
     });
+  });
+
+  it("sin la carta el director la autoriza y queda un solo aviso en el historial del asunto", async () => {
+    const sinCarta = visit({ carta: undefined });
+    await as(director, async () => { await setFlow({ visitasPrevias: [sinCarta] }); });
+    expect((await stored()).visitasPrevias![0]).not.toHaveProperty("carta");
+    // Guardar otra vez la misma visita no repite el aviso.
+    await as(director, async () => { await setFlow({ visitasPrevias: (await stored()).visitasPrevias }); });
+    const { rows } = await db.query<{ descripcion: string; created_by: string }>("select descripcion, created_by from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso'", [exp]);
+    expect(rows).toEqual([{ descripcion: expect.stringContaining("La carta de autorización de visita firmada por el propietario"), created_by: director }]);
+    await as(director, async () => { await setFlow({}); });
   });
 
   it("el director la autoriza; el servidor anota quién y cuándo; el asesor la conserva pero no la retira", async () => {

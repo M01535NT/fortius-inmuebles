@@ -1,12 +1,13 @@
 -- FLX-03, parte A (RP-100, titular 14/11/2026; aprobada para construir el 15/11/2026): de frenos a avisos.
--- Ningún requisito detiene avanzar de etapa, archivar, publicar un inmueble propio, firmar con la
--- cancelación de hipoteca pendiente ni cerrar un paso de un trámite. Lo que faltaba queda anotado en
--- el historial del asunto como «Aviso», con quién siguió adelante y cuándo; en un trámite, en su
--- propio historial. La anotación la escribe la base: la pantalla no puede saltársela.
--- Siguen frenando, porque no son requisitos sino protecciones: los permisos (quién publica,
--- reasigna o cambia lo de otro), la integridad (versiones, historial y notas que no se borran,
--- datos inválidos, documentos privados), la dirección exacta en lo publicado y el inmueble
--- compartido sin la autorización escrita de la otra inmobiliaria.
+-- Ningún requisito detiene avanzar de etapa, archivar, publicar un inmueble, firmar con la
+-- cancelación de hipoteca pendiente, autorizar una visita antes de la firma ni cerrar un paso de un
+-- trámite. Lo que faltaba queda anotado en el historial del asunto como «Aviso», con quién siguió
+-- adelante y cuándo; en un trámite, en su propio historial; en un compartido, en el historial del
+-- inmueble. La anotación la escribe la base: la pantalla no puede saltársela.
+-- Siguen frenando, porque no son requisitos sino protecciones: los permisos (quién publica un
+-- compartido, quién autoriza una visita, reasigna o cambia lo de otro), la integridad (versiones,
+-- historial y notas que no se borran, datos inválidos, documentos privados que de verdad se
+-- subieron) y la dirección exacta en lo publicado.
 -- Se quedan para la parte B: iniciar en otra etapa y cambiar el tipo de un asunto avanzado.
 -- No reescribe registros: las operaciones conservan etapa, documentos y formatos.
 begin;
@@ -208,6 +209,12 @@ begin
      new.flujo:=case when public.fortius_inmuebles_prior_visits(new.flujo->'visitasPrevias',case when tg_op='UPDATE' then old.flujo->'visitasPrevias' end) is null
        then new.flujo-'visitasPrevias'
        else jsonb_set(new.flujo,'{visitasPrevias}',public.fortius_inmuebles_prior_visits(new.flujo->'visitasPrevias',case when tg_op='UPDATE' then old.flujo->'visitasPrevias' end)) end;
+     -- DEC-41 con FLX-03: una visita nueva sin la carta del propietario se autoriza y queda el aviso.
+     if exists(select 1 from jsonb_array_elements(coalesce(new.flujo->'visitasPrevias','[]'::jsonb)) v
+       where not (v ? 'carta') and not exists(select 1 from jsonb_array_elements(case when tg_op='UPDATE' then coalesce(old.flujo->'visitasPrevias','[]'::jsonb) else '[]'::jsonb end) p
+         where p->>'id'=v->>'id' and not (p ? 'carta'))) then
+       perform public.fortius_inmuebles_avisar(new.id,'La carta de autorización de visita firmada por el propietario');
+     end if;
    end if;
    if exists(select 1 from jsonb_object_keys(new.flujo) key where key not in ('version','ruta','estado','motivo','requisitos','contraparteId','contraparteExterna','resolucion','entregasInforme','contraparteLeadId','firmaContrato','avaluo','cierre','heredado','visitasPrevias','captadoPor')) then
      raise sqlstate 'PT400' using message='Campo de guía desconocido'; end if;
@@ -393,7 +400,9 @@ end;
 $function$;
 
 -- 8. Publicar un inmueble propio sin la captación lista: se publica y se anota en cada captación
---    ligada. El compartido sigue pidiendo al director y la autorización escrita de la otra inmobiliaria.
+--    ligada. Un compartido lo sigue publicando solo el director y con la inmobiliaria ligada; sin
+--    la autorización escrita (archivo, fecha y firmante) se publica y queda en el historial del
+--    inmueble, que guarda quién lo publicó, cuándo y sin qué. Un archivo citado sí debe existir.
 create or replace function public.fortius_inmuebles_guard_guided_publication() returns trigger
 language plpgsql security definer set search_path='' as $function$
 declare was_public boolean:=false; e record;
@@ -405,12 +414,12 @@ begin
   if not public.fortius_inmuebles_is_admin() then
    raise sqlstate 'PT403' using message='Un inmueble compartido lo publica el director';
   end if;
-  if length(btrim(coalesce(new.data->'aliado'->>'inmobiliaria','')))<2
-   or coalesce(new.data->'aliado'->'autorizacion'->>'fecha','')=''
-   or length(btrim(coalesce(new.data->'aliado'->'autorizacion'->>'firmante','')))<3
-   or not exists(select 1 from public.fortius_inmuebles_file_uploads u
+  if length(btrim(coalesce(new.data->'aliado'->>'inmobiliaria','')))<2 then
+   raise sqlstate 'PT409' using message='Para publicar un inmueble compartido liga la inmobiliaria que lo comparte';
+  end if;
+  if coalesce(new.data->'aliado'->'autorizacion'->>'path','')<>'' and not exists(select 1 from public.fortius_inmuebles_file_uploads u
      where u.bucket='fortius-inmuebles-private' and u.path=new.data->'aliado'->'autorizacion'->>'path') then
-   raise sqlstate 'PT409' using message='Para publicar un inmueble compartido liga la inmobiliaria y adjunta su autorización escrita con fecha y firmante';
+   raise sqlstate 'PT409' using message='La autorización adjunta no se encontró; vuelve a subirla';
   end if;
   return new;
  end if;
@@ -428,6 +437,56 @@ begin
  end if;
  return new;
 end; $function$;
+
+-- 8b. Visita antes de la firma (DEC-41): la sigue autorizando solo el director, con el interesado y
+--     el motivo. La carta del propietario ya no es obligatoria: sin ella se autoriza y la guía anota
+--     el aviso (sección 4). Si se adjunta, el archivo debe haberse subido de verdad.
+create or replace function public.fortius_inmuebles_prior_visits(v jsonb,prev jsonb) returns jsonb
+language plpgsql stable security definer set search_path='' as $body$
+declare item jsonb; before_item jsonb; content jsonb; result jsonb:='[]'::jsonb;
+ stamp text:=to_char(clock_timestamp() at time zone 'utc','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
+begin
+ v:=coalesce(v,'[]'::jsonb); prev:=coalesce(prev,'[]'::jsonb);
+ if jsonb_typeof(v)<>'array' or jsonb_array_length(v)>20 then raise sqlstate 'PT400' using message='Visitas antes de la firma inválidas';end if;
+ if jsonb_typeof(prev)<>'array' then prev:='[]'::jsonb;end if;
+ for item in select x from jsonb_array_elements(v) x loop
+  if jsonb_typeof(item)<>'object'
+   or exists(select 1 from jsonb_object_keys(item) x where x not in ('id','interesado','leadId','carta','motivo','autorizadoPor','autorizadoEl'))
+   or jsonb_typeof(item->'id') is distinct from 'string' or length(item->>'id') not between 1 and 80
+   or jsonb_typeof(item->'interesado') is distinct from 'string' or length(btrim(item->>'interesado')) not between 2 and 160
+   or (item ? 'leadId' and (jsonb_typeof(item->'leadId')<>'string' or length(item->>'leadId')>160))
+   or jsonb_typeof(item->'motivo') is distinct from 'string' or length(btrim(item->>'motivo')) not between 3 and 1000
+   or (item ? 'carta' and (jsonb_typeof(item->'carta')<>'object'
+     or exists(select 1 from jsonb_object_keys(item->'carta') x where x not in ('path','nombre'))
+     or jsonb_typeof(item->'carta'->'path') is distinct from 'string' or length(item->'carta'->>'path') not between 1 and 300
+     or (item->'carta' ? 'nombre' and (jsonb_typeof(item->'carta'->'nombre')<>'string' or length(item->'carta'->>'nombre')>160)))) then
+   raise sqlstate 'PT400' using message='Para autorizar la visita indica el interesado y el motivo';
+  end if;
+  if exists(select 1 from jsonb_array_elements(result) r where r->>'id'=item->>'id') then
+   raise sqlstate 'PT400' using message='Visitas antes de la firma inválidas';
+  end if;
+  content:=item-'autorizadoPor'-'autorizadoEl';
+  before_item:=null;
+  select x into before_item from jsonb_array_elements(prev) x where x->>'id'=item->>'id' limit 1;
+  if before_item is not null and content=(before_item-'autorizadoPor'-'autorizadoEl') then
+   result:=result||jsonb_build_array(content||jsonb_build_object('autorizadoPor',before_item->'autorizadoPor','autorizadoEl',before_item->'autorizadoEl'));
+  else
+   if auth.uid() is null then raise sqlstate 'PT401' using message='Sesión requerida para autorizar la visita';end if;
+   if not public.fortius_inmuebles_is_admin() then raise sqlstate 'PT403' using message='Solo el director autoriza una visita antes de la firma';end if;
+   if item ? 'carta' and not exists(select 1 from public.fortius_inmuebles_file_uploads u where u.bucket='fortius-inmuebles-private' and u.path=item->'carta'->>'path') then
+    raise sqlstate 'PT409' using message='La carta adjunta no se encontró; vuelve a subirla';
+   end if;
+   result:=result||jsonb_build_array(content||jsonb_build_object('autorizadoPor',auth.uid()::text,'autorizadoEl',stamp));
+  end if;
+ end loop;
+ -- Retirar una visita autorizada también es decisión del director.
+ if exists(select 1 from jsonb_array_elements(prev) p where not exists(select 1 from jsonb_array_elements(result) r where r->>'id'=p->>'id'))
+  and auth.uid() is not null and not public.fortius_inmuebles_is_admin() then
+  raise sqlstate 'PT403' using message='Solo el director retira una visita autorizada';
+ end if;
+ return case when jsonb_array_length(result)=0 then null else result end;
+end; $body$;
+revoke all on function public.fortius_inmuebles_prior_visits(jsonb,jsonb) from public,anon,authenticated,service_role;
 
 create or replace function public.fortius_inmuebles_replace_once(definition text, anchor text, replacement text, expected integer, fn text)
 returns text language plpgsql immutable set search_path='' as $$
