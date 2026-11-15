@@ -1,8 +1,9 @@
 import { defineConfig } from "@playwright/test";
+import { PUBLIC_SPECS } from "./tests/admin/browser/suites";
 
 export default defineConfig({
   testDir: "./tests/admin/browser",
-  testMatch: ["home-commercial.spec.ts", "pwa-install.spec.ts", "fortius-editorial.spec.ts", "home-experience.spec.ts", "editorial-home.spec.ts", "public-motion-experience.spec.ts", "public-navigation.spec.ts", "blog-editorial.spec.ts", "property-pdf.spec.ts", "financial-tools.spec.ts"],
+  testMatch: PUBLIC_SPECS,
   outputDir: "tmp/public-browser",
   workers: 1,
   reporter: "list",
