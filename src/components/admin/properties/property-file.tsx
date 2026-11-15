@@ -14,6 +14,7 @@ import { TIPO_LABELS, type Property } from "@/data/propiedades";
 import { db, upsertPropiedad, useCollection, useLoadState, type AdminProperty } from "@/lib/admin/store";
 import { openKeyLoans } from "@/lib/propiedad-seguimiento";
 import { BuyersBlock, KeysBlock, PrepBlock } from "./property-followup";
+import { PropertyCreateDocument } from "./property-create-document";
 
 /*
   Ficha del inmueble (SIM-19, 12/11/2026): una sola pantalla con cuatro pestañas en lugar de
@@ -118,6 +119,7 @@ export function PropertyFile({ slug, initialTab = "ficha" }: { slug: string; ini
     </span>} actions={<>
       {latest.publicada && <ButtonLink href={`/inventario/${encodeURIComponent(slug)}`} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" />Ver en el sitio</ButtonLink>}
       <Button onClick={() => setNotesOpen(true)}><Pencil size={16} aria-hidden="true" />{noteCount ? `Notas (${noteCount})` : "Notas"}</Button>
+      <PropertyCreateDocument slug={slug} />
       <HistoryLink collection="propiedades" id={slug} />
     </>}>
     <RecordNotes link={{ propiedadSlug: slug }} open={notesOpen} onClose={() => setNotesOpen(false)} title="Notas del inmueble" description="Lo que hay que saber o recordar de este inmueble." />

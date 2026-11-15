@@ -31,6 +31,7 @@ import { saveError } from "./use-operation";
 import { Fold, OptionSelect, PersonSelect } from "./pickers";
 import { useIsDirector } from "@/lib/admin/staff-scope";
 import { ContractSignatureCard } from "./contract-signature";
+import { REPEATABLE } from "./create-document";
 import { OwnerAppraisalCard } from "./owner-appraisal";
 import { CloseCard } from "./close-card";
 import { MortgageGateNotice } from "./mortgage-gate";
@@ -279,8 +280,8 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
         : item.kind === "inicio"
         ? <li key={item.step} className={s.docWait}>
           <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
-          <span className="flex min-w-[12rem] flex-1 flex-col gap-0.5"><strong>{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: lista de documentos"}</strong><span className="text-sm text-muted-foreground">{item.step === "levantamiento" && waitsLawyer ? "Espera la revisión del abogado." : "Al iniciarlo pasa a la siguiente etapa."}</span></span>
-          {item.step === "levantamiento" && !waitsLawyer && surveySelect}
+          <span className="flex min-w-[12rem] flex-1 flex-col gap-0.5"><strong>{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: lista de documentos"}</strong><span className="text-sm text-muted-foreground">{item.step === "levantamiento" && waitsLawyer ? "Conviene esperar la revisión del abogado; si hace falta, puedes iniciarlo ya." : item.step === "levantamiento" && docs.status("02") !== "terminado" ? "Puedes hacerlo aunque la entrevista no esté terminada. Al iniciarlo pasa a la siguiente etapa." : "Al iniciarlo pasa a la siguiente etapa."}</span></span>
+          {item.step === "levantamiento" && surveySelect}
         </li>
         : item.kind === "checklist"
         ? <li key="checklist" className={s.docChecklist}>{checklist ? <Checklist task={checklist} answers={docs.checklistAnswers} expedienteId={op.id} disabled={lock} onError={setError} /> : <span className="text-sm text-muted-foreground">Checklist de documentos · todavía no se crea.</span>}</li>
@@ -331,22 +332,22 @@ function FloatBar({ children }: { children: React.ReactNode }) {
 }
 
 /** Formatos que se hacen más de una vez en la misma operación: uno por visita, reporte, oferta o presupuesto. */
-const REPEATABLE: Record<string, string> = { "11": "Nuevo reporte", "13": "Registrar otra visita", "14": "Otra propuesta", "19": "Otro presupuesto", "22": "Solicitud de otro candidato" };
 
 function DocRow({ item, now, docs, signed, disabled, survey, surveySelect }: { item: Extract<StageItem, { kind: "documento" }>; now: boolean; docs: DocumentsController; signed: boolean; disabled: boolean; survey: LevantamientoId; surveySelect: React.ReactNode }) {
   const doc = docs.latest(item.formato), pdf = docs.pdfOf(doc);
   // SIM-05 (C15): en la etapa, el documento por su nombre; el número se ve en Documentos.
   const [, ...rest] = formatTitle(item.formato, doc).split(" · ");
-  const waits = item.formato === "06" && !doc && docs.status("05") !== "terminado";
-  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar la revisión jurídica" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en este asunto") : "Todavía no empieza";
+  // FLX-02: el 06 ya no espera al 05; solo se avisa que conviene terminar antes la revisión jurídica.
+  const early = item.formato === "06" && !doc && docs.status("05") !== "terminado";
+  const text = doc ? draftText(doc, !!pdf) : early ? "Conviene terminar antes la revisión jurídica" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en este asunto") : "Todavía no empieza";
   return <li className="flex flex-col gap-2">
     <div className={s.docRowWrap}>
-      <button type="button" className={cn(s.docRow, waits && s.docRowWait)} data-now={now || undefined} disabled={disabled || waits} aria-label={`${doc ? "Abrir" : "Iniciar"} ${rest.join(" · ")}`} onClick={() => void docs.start(item.formato, survey)}>
+      <button type="button" className={s.docRow} data-now={now || undefined} disabled={disabled} aria-label={`${doc ? "Abrir" : "Iniciar"} ${rest.join(" · ")}`} onClick={() => void docs.start(item.formato, survey)}>
         <IconTile icon={docIcon(item.formato)} size={36} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{rest.join(" · ")}</strong><span className="text-sm text-muted-foreground">{text}</span></span>
         {/* LV-02 (V05): el distintivo dice si es borrador o ya firmado; «Terminado · PDF» lo dice el texto. */}
         {signed ? <DocBadge status="firmado" /> : doc && !pdf && <DocBadge status="borrador" />}
-        {item.status === "terminado" ? <Check size={20} aria-hidden="true" className="shrink-0 text-[var(--primary-text)]" /> : !waits && <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />}
+        {item.status === "terminado" ? <Check size={20} aria-hidden="true" className="shrink-0 text-[var(--primary-text)]" /> : <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />}
       </button>
       {pdf && <ButtonLink variant="ghost" prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`} aria-label={`PDF de ${rest.join(" · ")}`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
       {doc && REPEATABLE[item.formato] && <Button variant="ghost" disabled={disabled} onClick={() => void docs.createAndOpen(item.formato)}><Plus size={16} aria-hidden="true" />{REPEATABLE[item.formato]}</Button>}

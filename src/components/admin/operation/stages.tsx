@@ -191,11 +191,13 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
   }, [focus]);
   function open(action: () => unknown) { onClose(); action(); }
   function stageDocs(stage: TrackStage) {
-    if (!stage.key || stage.n - 1 > current) return null;
+    if (!stage.key) return null;
+    // FLX-02: las etapas que vienen también muestran sus documentos para adelantarlos; sin aviso de falta.
+    const ahead = stage.n - 1 > current;
     if (stage.key === "documentos") {
       const received = checklist?.pasos.filter(pasoCompleto).length ?? 0, total = checklist?.pasos.length ?? 0;
       return <ul className={s.stageDocs}><li className={s.stageDoc}>
-        <span className="min-w-0 flex-1">{checklist ? `Lista · ${received} de ${total} listos` : <span className="font-semibold text-[var(--warning)]">Falta la lista de documentos</span>}</span>
+        <span className="min-w-0 flex-1">{checklist ? `Lista · ${received} de ${total} listos` : ahead ? <span className="text-muted-foreground">Lista de documentos · todavía no se crea</span> : <span className="font-semibold text-[var(--warning)]">Falta la lista de documentos</span>}</span>
         {checklist ? <><Link className={s.docLink} href={`/admin/tareas/${encodeURIComponent(checklistTaskId(op.id))}`}>Ver</Link><button type="button" className={s.docLink} onClick={() => docs.checklistFile("pdf")}>PDF</button></>
           : <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => open(() => docs.startChecklist())}>Crear</button>}
       </li></ul>;
@@ -206,9 +208,9 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
     return <ul className={s.stageDocs}>{formats.map(formato => {
       const doc = docs.latest(formato), pdf = docs.pdfOf(doc);
       const faltan = doc ? draftProgress(doc).missing : 0;
-      const text = !doc ? "No se generó" : faltan ? (pdf ? "PDF incompleto" : "En captura") : pdf ? "Terminado" : "Falta su PDF";
+      const text = !doc ? (ahead ? "Todavía no empieza" : "No se generó") : faltan ? (pdf ? "PDF incompleto" : "En captura") : pdf ? "Terminado" : "Falta su PDF";
       return <li key={formato} className={s.stageDoc}>
-        <span className="flex min-w-0 flex-1 flex-col"><span className="[overflow-wrap:anywhere]">{formatTitle(formato, doc)}</span><span className={cn("text-xs", doc ? "text-muted-foreground" : "font-semibold text-[var(--warning)]")}>{text}</span></span>
+        <span className="flex min-w-0 flex-1 flex-col"><span className="[overflow-wrap:anywhere]">{formatTitle(formato, doc)}</span><span className={cn("text-xs", doc || ahead ? "text-muted-foreground" : "font-semibold text-[var(--warning)]")}>{text}</span></span>
         <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => open(() => docs.start(formato))}>{doc ? "Abrir" : "Iniciar"}</button>
         {pdf && <a className={s.docLink} href={`/api/admin/emisiones/${pdf.id}/descargar`}>PDF</a>}
         {doc && copiaEditable(doc.formato_id) && <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => docs.word(doc)}>{copiaEditable(doc.formato_id)}</button>}

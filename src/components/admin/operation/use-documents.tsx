@@ -162,6 +162,10 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     const doc = await create(formatoId, { ...seed, ...(reference ? { valorReferencia: reference } : {}) });
     if (doc) setOpen(doc);
   }
+  /** FLX-02: «Crear documento» con cualquier formato; abre el que ya hay o crea uno (los repetibles, siempre uno nuevo). */
+  function createAny(formatoId: string, repeatable: boolean) {
+    return repeatable ? createAndOpen(formatoId) : start(formatoId);
+  }
   function word(doc: Documento) { void guard(() => downloadFormatoCopia(doc, op.folio, cliente)); }
   /** El checklist de documentos se guarda como pasos de una tarea de la operación. */
   function startChecklist() {
@@ -187,7 +191,7 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     onEmitted={emision => setEmissions(old => ({ ...old, [open.id]: [emision, ...(old[open.id] ?? [])] }))}
     onClose={() => setOpen(null)} />;
 
-  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, checklistAnswers: answers, busy, error: error || (loadFailed ? LOAD_ERROR : ""), loadFailed, reload, capture, isOpen: !!open };
+  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, createAny, openDocument: setOpen, word, startChecklist, checklistFile, checklistAnswers: answers, busy, error: error || (loadFailed ? LOAD_ERROR : ""), loadFailed, reload, capture, isOpen: !!open };
 }
 
 /**

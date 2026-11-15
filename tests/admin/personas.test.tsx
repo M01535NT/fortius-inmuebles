@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+const push = vi.hoisted(() => vi.fn());
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 vi.mock("@/components/admin/workspace/use-person-status", () => ({ usePersonStatus: () => ({ ofClient: (id: string) => id === "cli-2" ? "cliente" : "prospecto", ofLead: () => undefined }) }));
 const guardados = vi.hoisted(() => vi.fn(async (_col: unknown, item: unknown) => item));
 const borrados = vi.hoisted(() => vi.fn(async () => undefined));
@@ -28,7 +29,7 @@ import { PersonasApp } from "@/components/admin/personas/personas-app";
 
 /* FLX · Personas: lista y perfil en una pantalla, con la guía, lo que sigue y sus documentos. */
 const OP = "51000000-0000-4000-8000-000000000001";
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); guardados.mockClear(); borrados.mockClear(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); guardados.mockClear(); borrados.mockClear(); push.mockClear(); });
 
 function servidor() {
   const calls: Array<{ method: string; url: string; body?: Record<string, unknown> }> = [];
@@ -72,6 +73,23 @@ it("el perfil junta la guía de su operación y los documentos de la persona y d
   fireEvent.click(screen.getByRole("radio", { name: "Hechos aquí" }));
   expect(screen.queryByText("Escritura pública")).toBeNull();
   expect(screen.getByRole("link", { name: "Abrir el asunto" }).getAttribute("href")).toBe(`/admin/operaciones/${OP}`);
+});
+
+it("FLX-02 · «Crear documento» en la persona abre el formato dentro de su asunto; sin asunto ofrece abrir uno", async () => {
+  servidor();
+  render(<PersonasApp initialId="cliente:cli-1" />);
+  await screen.findByRole("heading", { name: "Laura Méndez" });
+  await screen.findByText("Versión 2");
+  fireEvent.click(await screen.findByRole("button", { name: "Crear documento" }));
+  expect(await screen.findByText("Se crea en el asunto EXP-000342")).toBeTruthy();
+  // La 02 ya está en el asunto: se abre la que hay.
+  expect((await screen.findByRole("option", { name: /Entrevista inicial/ })).textContent).toContain("Ya está en el asunto");
+  fireEvent.click(screen.getByRole("option", { name: /Levantamiento de casa/ }));
+  expect(push).toHaveBeenLastCalledWith(`/admin/operaciones/${OP}?crear=04B`);
+  cleanup();
+  render(<PersonasApp initialId="cliente:cli-2" />);
+  await screen.findByRole("heading", { name: "Ana Robles" });
+  expect((await screen.findByRole("link", { name: /Abrir un asunto para sus documentos/ })).getAttribute("href")).toBe("/admin/operaciones?nuevo=1&clienteId=cli-2");
 });
 
 it("«Agregar archivo» lo guarda y lo liga a la persona; un prospecto todavía no recibe archivos", async () => {
