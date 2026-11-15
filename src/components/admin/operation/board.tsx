@@ -2,8 +2,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ChevronRight, Columns3, List, Plus, Search, EMPTY_ART } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, Pill, Segmented, StageRail, Surface, Thumb } from "@/components/admin/kit";
+import { Building2, ChevronRight, Columns3, ExternalLink, Link2, List, MoreHorizontal, Plus, Search, EMPTY_ART } from "@/components/admin/icons";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, Button, buttonClass, ButtonLink, Card, CardLink, EmptyBox, Pill, Segmented, StageRail, Surface, Thumb } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { usePanelPreference } from "@/components/admin/workspace/preferences-store";
@@ -21,6 +22,7 @@ import { useTodayData } from "@/components/admin/workspace/use-today-queue";
 import { useLeaveGuard } from "./use-operation";
 import { PAPELERA } from "@/components/admin/papelera/textos";
 import { Fold } from "./pickers";
+import { notify } from "./pickers";
 import s from "./board.module.css";
 
 /*
@@ -247,7 +249,7 @@ function OperationGroup({ id, title, rows, today, selection }: { id: string; tit
             <div className={`${s.row} min-w-0 flex-1 cursor-pointer`} onClick={() => selection.toggle(row.op.id)}><RowBody row={row} today={today} selecting /></div></li>
         : <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
         <RowBody row={row} today={today} />
-      </Link></li>)}</ul>
+      </Link><RowMenu row={row} /></li>)}</ul>
   </section>;
 }
 
@@ -274,6 +276,22 @@ function RowBody({ row, today, selecting }: { row: Row; today: string; selecting
         <span className={s.due} data-late={row.late || undefined}>{dueLabel(row.date, today)}</span>
         {!selecting && <ChevronRight size={18} aria-hidden="true" className={s.chevron} />}
   </>;
+}
+
+/** LV-10c: «⋯» de cada fila, como en el boceto: abrir, abrir en otra pestaña o copiar el enlace para compartirlo. */
+function RowMenu({ row }: { row: Row }) {
+  async function copy() {
+    try { await navigator.clipboard.writeText(new URL(row.href, window.location.origin).href); notify("Enlace copiado."); }
+    catch { notify("No se pudo copiar el enlace. Ábrelo y cópialo de la barra de direcciones."); }
+  }
+  return <DropdownMenu modal={false}>
+    <DropdownMenuTrigger asChild><button type="button" className={buttonClass({ variant: "ghost", iconOnly: true, className: s.rowMenu })} aria-label={`Más acciones de ${row.who} · ${row.op.folio}`}><MoreHorizontal size={18} aria-hidden="true" /></button></DropdownMenuTrigger>
+    <DropdownMenuContent align="end" className="min-w-[13rem]">
+      <DropdownMenuItem asChild><Link href={row.href}><ChevronRight size={18} aria-hidden="true" />Abrir</Link></DropdownMenuItem>
+      <DropdownMenuItem asChild><a href={row.href} target="_blank" rel="noopener"><ExternalLink size={18} aria-hidden="true" />Abrir en pestaña nueva</a></DropdownMenuItem>
+      <DropdownMenuItem onSelect={() => void copy()}><Link2 size={18} aria-hidden="true" />Copiar enlace</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>;
 }
 
 /** Tablero: una columna por etapa presente; cada tarjeta lleva la foto, lo que sigue, su fecha y el responsable. */
