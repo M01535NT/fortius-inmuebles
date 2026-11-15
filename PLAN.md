@@ -12,7 +12,7 @@ Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema**
 
 | Qué | Quién | Dónde | Estado |
 |---|---|---|---|
-| **FLX-01 · Bandeja y documentos sin operación** (panel flexible, DEC-50) | Agente | rama `feat/integracion` (localhost:3003) | Base, servidor, respaldo, pantalla `/admin/bandeja` y su entrada en el menú listos; también la pantalla `/admin/personas` (lista y perfil), que todavía no tiene entrada en el menú. Falta la revisión del titular en localhost. |
+| **FLX-01 · Bandeja y documentos sin operación** (panel flexible, DEC-50) | Agente | rama `feat/integracion` (localhost:3003) | Base, servidor, respaldo, pantalla `/admin/bandeja` y su entrada en el menú listos; también la pantalla `/admin/personas` (lista y perfil), en el menú junto a Contactos. Falta la revisión del titular en localhost. |
 
 Lo publicado más reciente es el **PR #76** (14/11/2026, merge `52e1f9a`): Trámites (TRA-01), el panel desde cero (LV-09), la paleta del sitio, correcciones de UI/UX, dependencias y la separación de este plan. En `feat/integracion`, sin publicar: el panel flexible (FLX-01) y la limpieza del 14/11/2026.
 
