@@ -101,7 +101,7 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
   const allCommands = commandsFor(session?.role, { quick: QUICK_CREATE, nav: [...MAIN_NAV, TOOLS_NAV], admin: ADMIN_NAV });
   const commands = filterCommands(allCommands, query).slice(0, 6);
   // Sin escribir: las altas más usadas, para crear sin buscar.
-  const starters = allCommands.filter(command => command.id.startsWith("nuevo:")).slice(0, 4);
+  const starters = allCommands.filter(command => command.id.startsWith("nuevo:")).slice(0, 5);
   const stores = [db.propiedades, db.leads, db.clientes, db.tareas];
   const go = (href: string) => { onOpenChange(false); router.push(href); };
 

@@ -2,7 +2,7 @@
 import * as React from "react";
 import { usePendingCount } from "@/components/admin/workspace/use-today-queue";
 import Link from "next/link";
-import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, ClipboardList, Columns3, Contact, ExternalLink, House, Inbox, LayoutGrid, List, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserRound, UserRoundCheck } from "@/components/admin/icons";
+import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, ClipboardList, Columns3, Contact, ExternalLink, House, Inbox, LayoutGrid, List, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserPlus, UserRound, UserRoundCheck } from "@/components/admin/icons";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { ThemeToggle } from "@/components/home/theme-toggle";
@@ -65,6 +65,7 @@ export const ADMIN_ENTRY: NavItem = { href: ADMIN_NAV[0].href, label: "Administr
 /** «+ Nuevo» (C08): cinco altas en un menú corto. `action` avisa a la pantalla destino por `fortius:quick-create`. */
 export const QUICK_CREATE: Array<{ label: string; href: string; action: "" | "prospecto" | "tarea" | "visita"; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }> }> = [
   { label: INTAKE_TITLE, href: "/admin/operaciones/nueva", action: "", icon: Contact },
+  { label: "Nuevo perfil", href: "/admin/personas?nuevo=1", action: "", icon: UserPlus },
   { label: "Nuevo asunto", href: "/admin/operaciones/nueva?intencion=vender", action: "", icon: Plus },
   { label: "Nuevo inmueble", href: "/admin/propiedades/nueva", action: "", icon: Building2 },
   { label: "Nueva tarea", href: "/admin/agenda?tab=tareas&nueva=1", action: "tarea", icon: ClipboardList },
