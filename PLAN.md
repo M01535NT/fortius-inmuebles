@@ -72,9 +72,9 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 
 ## Navegación y productividad (NAV) — paquete del 17/10/2026 (el estado de cada entrega está en «Estado y dependencias»)
 
-**Origen:** investigación de CRM inmobiliarios (Follow Up Boss, Lofty, EasyBroker, Tokko Broker, SkySlope) y de paneles de referencia (HubSpot, Attio), filtrada con criterio crítico. El titular aprobó **las 25 mejoras (N01–N25)** y las cinco restricciones (RP-65 a RP-69) el 17/10/2026. **Estado: pendiente; no hay código escrito.**
+**Origen:** investigación de CRM inmobiliarios (Follow Up Boss, Lofty, EasyBroker, Tokko Broker, SkySlope) y de paneles de referencia (HubSpot, Attio), filtrada con criterio crítico. El titular aprobó **las 25 mejoras (N01–N25)** y las cinco restricciones (RP-65 a RP-69) el 17/10/2026. **Estado al 14/11/2026:** NAV-02 y NAV-13 están en `main`; NAV-03 está en parte; N20 se archivó (titular, 14/11/2026). Lo demás sigue pendiente y se construye sobre el panel nuevo (LV-09).
 
-**Cómo trabajarlo:** igual que SIM (capturar antes y después con datos simulados, pruebas del panel y de navegador afectadas, registrar la entrega aquí). Cada entrega NAV dice de qué entregas depende; ninguna se hace antes de SIM-01, que fija color, letra y fechas. Las entregas marcadas «con migración» requieren respaldo, ensayo aislado y autorización, como cualquier cambio de base.
+**Cómo trabajarlo:** capturar antes y después con datos simulados, pruebas del panel y de navegador afectadas, y registrar la entrega aquí. Cada entrega NAV dice de qué entregas depende. Las entregas marcadas «con migración» requieren respaldo, ensayo aislado y autorización, como cualquier cambio de base.
 
 ### Las 25 mejoras y cómo conviven con el plan
 
@@ -83,7 +83,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | # | Mejora | Cómo convive con el plan |
 |---|---|---|
 | N01 | **Contraer la barra lateral a íconos** con un botón y la tecla `[` (atajo de una tecla: no actúa dentro de campos y se puede desactivar, RP-11); con la barra contraída, el nombre aparece al pasar el mouse o al enfocar. El estado se recuerda por usuario. | El rediseño (Fase C · 2) había retirado contraer y ajustar el ancho; vuelve solo contraer, sin ancho ajustable. El estado se guarda con las preferencias del servidor (RP-14, UX-02). En celular no aplica: sigue la barra inferior. Se hace junto con el pie compacto de C06. |
-| N02 | **Sección «Fijados»**: cada quien fija hasta 5 registros o listas (operación, contacto, inmueble, lista guardada). | No mueve ni oculta las siete secciones (RP-58, RP-65). Si un registro fijado se elimina o se pierde el permiso, desaparece de Fijados sin error. En celular, Fijados va en el Menú. |
+| N02 | **Sección «Fijados»**: cada quien fija hasta 5 registros o listas (operación, contacto, inmueble, lista guardada). | No mueve ni oculta las ocho secciones del menú (RP-58, RP-65). Si un registro fijado se elimina o se pierde el permiso, desaparece de Fijados sin error. En celular, Fijados va en el Menú. |
 | N03 | **«Recientes»**: los últimos 5 registros abiertos aparecen al abrir el buscador, sin escribir. | Va dentro de la barra de comandos (RP-10, UX-03) y de la búsqueda global de C07. Se guarda por usuario en el servidor; solo lista lo que el usuario puede ver hoy. |
 | N04 | **Contadores solo cuando hay algo que atender** (por ejemplo, «2 vencidas» en Operaciones, en el rojo de alerta). | Completa C06 (quitar contadores inútiles). El de Hoy se queda porque es de atención y suma la bandeja «Para ti» (RP-20). Usa los mismos cálculos de Hoy, sin consultas nuevas al servidor. |
 | N05 | **Vista previa lateral**: tocar una fila de Operaciones, Contactos o Inmuebles abre un panel a la derecha con lo esencial (siguiente paso, teléfono, estado) y sus acciones; «Abrir completo» lleva a la ficha. | Usa el componente de panel lateral del kit (`Sheet`). En celular no hay vista previa: se abre la ficha. Respeta C09 (toda la tarjeta se toca), C24 (lista única de personas) y RP-55 (lo demás en «⋯»). Las ediciones en la vista previa usan el mismo control de versión. |
@@ -131,12 +131,12 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 
 | ID | Mejoras | Depende de | Aceptación |
 |---|---|---|---|
-| NAV-01 | N01, N02, N04 | SIM-02, UX-02 | Barra contraíble con botón y `[`, nombres visibles al enfocar; hasta 5 fijados que sobreviven a recargar y cambiar de equipo; contadores solo con algo vencido; las cinco secciones no se mueven. |
-| NAV-03 | N05, N06 | SIM-01, SIM-08 | Vista previa en Operaciones, Contactos e Inmuebles a partir de 1024 px; al volver de una ficha, lista con la misma búsqueda, filtro y posición. |
+| NAV-01 | N01, N02, N04 | UX-02 | Barra contraíble con botón y `[`, nombres visibles al enfocar; hasta 5 fijados que sobreviven a recargar y cambiar de equipo; contadores solo con algo vencido; las ocho secciones del menú no se mueven. |
+| NAV-03 | N05, N06 | LV-09 | Vista previa en Operaciones, Contactos e Inmuebles a partir de 1024 px; al volver de una ficha, lista con la misma búsqueda, filtro y posición. |
 | NAV-04 | N07 | UX-02, SEG-01 | Listas del equipo creadas por el administrador y personales por usuario; cada lista respeta permisos; umbrales en Configuración. |
-| NAV-05 | N08–N11 | UX-02, SIM-03 | Secciones de Hoy ocultables salvo las protegidas; letra Grande sin desbordamiento a 320 px; tema automático; inicio por rol con Hoy como respaldo. |
+| NAV-05 | N08–N11 | UX-02 | Secciones de Hoy ocultables salvo las protegidas; letra Grande sin desbordamiento a 320 px; tema automático; inicio por rol con Hoy como respaldo. |
 | NAV-06 | N12 | CRM-02 | Plantillas de plan en Configuración; una tarea a la vez; ningún envío automático; se puede detener; cumple la próxima tarea de la operación. |
-| NAV-07 | N13–N15 | UX-04, SIM-07 | Posponer con deshacer; acciones de fila con alternativa en «⋯»; edición en la ficha con control de versión. |
+| NAV-07 | N13–N15 | UX-04 | Posponer con deshacer; acciones de fila con alternativa en «⋯»; edición en la ficha con control de versión. |
 | NAV-08 | N16 | DOC-10, SEG-01 | Cola que recorre pendientes de revisión de todas las operaciones visibles; misma evidencia que «Marcar como revisado». |
 | NAV-09 | N17 | CRM-02 | Calificación manual con sugerencia que no se aplica sola; listas ordenables por ella. |
 | NAV-10 | N18, N19 | FLX-07, PUB-01 | Cámara desde el requisito, imagen privada sin ubicación; «Ver como cliente» con datos públicos únicamente. |
@@ -216,7 +216,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | FLX-07 | **La Bandeja recomienda a dónde va cada documento (RP-103):** al soltar un documento, el sistema lo lee (la lectura de IA-01) y busca a qué inmueble, persona o asunto corresponde por lo que el documento dice: dirección, clave catastral, folio real, nombres, RFC o CURP. Muestra la recomendación con el dato que la sostiene; se confirma con un clic o se deja sin ligar. Si no encuentra nada, propone crear el inmueble, la persona o el asunto con lo leído, y también eso espera el clic. Sin lectura disponible, la Bandeja sigue funcionando a mano como en FLX-01. Se construye después de FLX-04, cuando existen los asuntos y los perfiles completos contra los cuales comparar; puede ir en paralelo con FLX-05. Absorbe DOC-11 (soltar varios archivos y que se proponga a dónde van; ninguno queda revisado por cargarse). | FLX-04, IA-01 | **Ejemplo del titular:** se suelta el avalúo de un terreno que ya está registrado y la Bandeja recomienda ese inmueble, mostrando el dato con que lo reconoció (por ejemplo, la clave catastral); un clic lo liga. Además: el avalúo de un terreno que no existe propone «Crear inmueble» con dirección y superficie ya llenas, y no se crea nada sin confirmar; «Dejar sin ligar» lo deja en la Bandeja; una prueba comprueba que, sin el clic, el servidor no liga ni crea nada (RP-44, RP-62). Con documentos de clientes reales, la lectura espera el visto bueno del abogado (PRV-01); mientras la base tenga solo datos de prueba (DEC-10) se ensaya con documentos ficticios. |
 | FLX-06 | **Cierre:** manual, registro de privacidad (documentos de compradores y arrendatarios), revisión con crítico en contexto limpio y propuesta de verificación completa. Absorbe COR-26 (manual con capturas actuales; la prueba de uso es USO-02). | FLX-05, FLX-07 | Documentos al día; PRV-01 actualizado para el abogado. |
 
-**Por replantear en su etapa** (las reglas siguen vigentes hasta entonces): candado de arranque (FLUJO-04a) y «avanzar sí espera» (B-04, RP-87); DEC-42 (siguiente paso con tarea y fecha); el freno de la firma de TRA-01, que pasaría a aviso con Trámites como guía; MOT-01 a MOT-04 (guías como listas editables en lugar de motor con editor). REL-01, FCH-01, HER-02, HER-04, CRM-03 y COR-11 quedan absorbidas o se replantean dentro de FLX.
+**Por replantear en su etapa** (las reglas siguen vigentes hasta entonces): candado de arranque (FLUJO-04a) y «avanzar sí espera» (B-04, RP-87); DEC-42 (siguiente paso con tarea y fecha); el freno de la firma de TRA-01, que pasaría a aviso con Trámites como guía; las entregas que absorbe cada etapa están anotadas en su fila (poda del 14/11/2026; textos anteriores en el historial, §28).
 
 ## Regla de actualización en cada publicación
 
@@ -269,7 +269,7 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 | VIS-01 P1/I | Visita con resultado, asistencia, autorización y próxima acción; captura desde el celular (RP-25) | calendario/eventos, formato 13, operación, informe al propietario | FLX-04; 2–4d | Visita programada distinta de realizada/cancelada; llegada, opinión del comprador y foto en menos de un minuto; alimenta el informe al propietario; no contar doble al corregir; acceso y seguimiento correctos. |
 | OFE-01 P1/I | Ofertas/contraofertas como línea de tiempo, vigencia y respuesta autorizada (RP-26) | formato 14/oferta, operación, historial | COM-01, VIS-01; 3–5d | Versiones, vencimiento de cada oferta y diferencia contra el precio de salida; respuesta del propietario identificada; acuerdo comercial no se presenta como contrato firmado. |
 | DOC-01 P1/I | Unificar fuente documental/revisión/emisión/copia firmada | formatos catalog/server/API, assets, snapshots | FLX-04, SEG-01; 3–6d | Hash/versión verificables; cambio invalida revisión afectada; firma capturada no equivale a firma electrónica. |
-| LEG-01 P1/I | Requisitos, hallazgos, excepciones y conclusión profesional por etapa | juridica, formato 05/06, transitions propuesto | DOC-01, DEC-05, revisión jurídica; 3–5d | Recibido/revisado separados; no avanzar por casilla vacía; excepción tiene autor, fundamento y fecha. Modelo 09 sigue bloqueado hasta cotejo externo requerido. |
+| LEG-01 P1/I | Requisitos, hallazgos, excepciones y conclusión profesional por etapa | juridica, formato 05/06, transitions propuesto | DOC-01, DEC-05, revisión jurídica; 3–5d | Recibido/revisado separados; una casilla vacía avisa y queda anotada (RP-100), no se da por revisada; excepción tiene autor, fundamento y fecha. Modelo 09 sigue bloqueado hasta cotejo externo requerido. |
 | TEC-01 P1/I | Levantamientos y discrepancias con fuente/fecha/evidencia | levantamiento y variantes 04, assets, property facts | DOC-01; 3–5d | Superficies no se mezclan ni suman indebidamente; medición, declaración y dato documental diferenciados; foto vinculada. |
 | CAP-02 y CAP-04 P1/I | Aviso de privacidad con un toque, cierre de la entrevista y modo cita (F03, F08, F09); CAP-01 pasó a FLX-01 y CAP-03 a FLX-04 | ver «Proceso, captura y documentos» | dependencias en su tabla; 1–3d por entrega | Aceptación en su tabla. |
 | FCH-05, FCH-08 a FCH-10 P1/I | Captura al lado del documento, dictamen con párrafos, copia firmada como paso final y plantillas Word propias (F15, F20, F21, F23); FCH-01, FCH-02, FCH-04, FCH-07 y FCH-11 pasaron a FLX | ver «Proceso, captura y documentos» | dependencias en su tabla; 1–5d por entrega | Aceptación en su tabla. |
@@ -393,12 +393,12 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | APR-01 | 3 | pendiente | SEG-01, FIN-02, UX-05 |
 | TAB-05 | 3 | pendiente | TAB-01, DEC-17 |
 | FIS-01 | 3 | pendiente | BAS-01; revisión fiscal |
-| NAV-01 | 4 | pendiente | SIM-02, UX-02 |
-| NAV-03 | 4 | parcial | SIM-01, SIM-08; vista previa solo en Contactos; faltan Operaciones e Inmuebles; revisado contra el código el 14/11/2026 |
+| NAV-01 | 4 | pendiente | UX-02; el titular confirmó el 14/11/2026 que el menú lateral nuevo lleva botón para recogerlo y «Fijados» |
+| NAV-03 | 4 | parcial | LV-09; vista previa solo en Contactos; faltan Operaciones e Inmuebles; revisado contra el código el 14/11/2026 |
 | NAV-04 | 4 | pendiente | UX-02, SEG-01 |
-| NAV-05 | 4 | pendiente | UX-02, SIM-03 |
+| NAV-05 | 4 | pendiente | UX-02 |
 | NAV-06 | 4 | pendiente | CRM-02 |
-| NAV-07 | 4 | pendiente | UX-04, SIM-07 |
+| NAV-07 | 4 | pendiente | UX-04 |
 | NAV-08 | 4 | pendiente | DOC-10, SEG-01 |
 | NAV-09 | 4 | pendiente | CRM-02 |
 | NAV-10 | 4 | pendiente | FLX-07, PUB-01 |
@@ -433,7 +433,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | COR-25 | 1 | pendiente | DAT-01 |
 | USO-02 | 4 | pendiente | FLX-06 |
 
-**Discrepancia pendiente de EXT-03:** el backlog condiciona proveedores/mantenimiento a EXT-02 o a un caso de venta concreto; el seguimiento exige OPS-01 y FIN-01. Conservar ambas referencias y resolver su dependencia al diseñar esa extensión, sin iniciar por una equivalencia supuesta.
+**Discrepancia pendiente de EXT-03:** el backlog condiciona proveedores/mantenimiento a EXT-02 o a un caso de venta concreto; el seguimiento exige FLX-04 (antes OPS-01) y FIN-01. Conservar ambas referencias y resolver su dependencia al diseñar esa extensión, sin iniciar por una equivalencia supuesta.
 
 ## Riesgos, asuntos y dependencias
 
@@ -441,7 +441,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 |---|---|---|
 | A-01 | Asunto: consolidación técnica realizada; aceptación y continuidad pendientes | Fundamentos integrados en PR #15; revisar criterios restantes sin repetir las correcciones ya consolidadas. |
 | D-01 | Dependencia: permisos administrativos/entorno aislado | Moisés habilita acceso; ingeniería verifica operación. Bloquea pruebas/controles externos, no diseño o pruebas locales. |
-| R-01 | Riesgo: duplicidad cliente/operación/cartera | REL/OPS/COM con ID fuente y pruebas; agente de desarrollo. |
+| R-01 | Riesgo: duplicidad cliente/operación/cartera | FLX-04 y COM-01 con ID fuente y pruebas; agente de desarrollo. |
 | R-02 | Riesgo: migración de datos ambiguos | Inventario/simulación/reporte; revisión humana de coincidencias. Nunca fusionar todo por nombre/teléfono. |
 | R-03 | Riesgo: reglas jurídicas/fiscales no aprobadas | Revisor profesional; mantener bloqueos existentes, no habilitar contratos por casilla. |
 | R-04 | Riesgo: sesión/archivo sensible en dispositivo | PWA conectada inicial; almacenamiento local explícito y acotado; responsable de privacidad. |
@@ -450,7 +450,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | R-07 | Riesgo: comparables desactualizados, ubicación imprecisa o ruta sin cobertura | EXT-09; procedencia/fecha/precisión, permisos, tratamiento de faltantes y alternativa en lista. |
 | R-08 | Riesgo: acceso de clientes o IA a expedientes ajenos | EXT-10/EXT-06; autorizaciones efectivas, proyecciones mínimas, revocación e índices privados probados entre dos identidades. |
 | R-09 | Riesgo (etapa posterior): una empresa ve datos de otra | SAAS-01; pruebas entre dos empresas sintéticas en API, SQL directo, archivos, búsqueda, exportación, cachés e índices de IA antes de cualquier piloto externo. |
-| R-10 | Riesgo: un proceso configurado deja de proteger la operación (aplica ya a Fortius por el motor de procesos y, en la etapa posterior, a cada empresa) | MOT-03 y SAAS-03; requisitos protegidos, versiones por operación y validación en servidor; desactivar uno exige administrador y motivo. |
+| R-10 | Riesgo: un proceso configurado deja de proteger la operación (aplica ya a Fortius por las guías editables y, en la etapa posterior, a cada empresa) | FLX-03 y SAAS-03; con «nada frena, solo avisa» (RP-100), los avisos protegidos no se quitan sin administrador y motivo; cada operación conserva la versión de su guía y el servidor anota lo que se hizo sin el paso. |
 | R-11 | Riesgo: prometer una protección legal inexistente (por ejemplo, «patentado») | DEC-16; abogado de propiedad intelectual; ningún texto comercial la afirma sin título otorgado. |
 | S-01 | Supuesto: equipo inicial de una persona de ingeniería | Reestimar tras iteración 1; asignar por entrega, no prometer fechas calendario. |
 | S-02 | Supuesto: sin reescritura completa ni proveedores nuevos en núcleo | Revisar si evidencia técnica demuestra necesidad. |
@@ -466,25 +466,25 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 
 ## Capacidades adicionales y disparadores
 
-Paquetes de fase 6: EXT-01, EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11 están solicitados para el producto ampliado. Las demás extensiones entran al backlog de ejecución por decisión de negocio o necesidad demostrada. Descubrimiento de 1–3 días orientativos por paquete; esfuerzo de implementación se estima después de validar modelos, proveedor y alcance. Las ventanas originales cubren el núcleo y no estiman estas capacidades.
+Paquetes de fase 6: EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11 están solicitados para el producto ampliado. Las demás extensiones entran al backlog de ejecución por decisión de negocio o necesidad demostrada. Descubrimiento de 1–3 días orientativos por paquete; esfuerzo de implementación se estima después de validar modelos, proveedor y alcance. Las ventanas originales cubren el núcleo y no estiman estas capacidades. EXT-01 (compradores y coincidencias) pasó a FLX-05 el 14/11/2026.
 
 | ID / capacidad | Cuándo evaluarla / dependencias | Resultado de descubrimiento antes de programar |
 |---|---|---|
 | EXT-02 — Renta/administración | Hay contratos recurrentes administrados por Fortius; FIN-02/CIE-01/LEG-01 | Ciclo de renta/depósitos/renovación/mora/entrega y reparto de cobros definido. |
 | EXT-03 — Proveedores/mantenimiento | Hay órdenes, presupuestos y trabajos que coordinar; EXT-02 o caso de venta concreto | Responsable, autorización, evidencia y enlace a operación/arrendamiento. |
-| EXT-04 — Portales/correo/calendario/WhatsApp API | Doble captura real y proveedor con acceso API; OPS-01/PRV-01 | IDs externos, consentimiento, idempotencia, reintentos y costo. Enlace WhatsApp no equivale a integración. **Primera integración elegida (titular, 17/10/2026):** EasyBroker; el panel manda sobre los datos del inmueble y los envía, si el plan de EasyBroker incluye API (H-06). |
+| EXT-04 — Portales/correo/calendario/WhatsApp API | Doble captura real y proveedor con acceso API; FLX-04/PRV-01 | IDs externos, consentimiento, idempotencia, reintentos y costo. Enlace WhatsApp no equivale a integración. **Primera integración elegida (titular, 17/10/2026):** EasyBroker; el panel manda sobre los datos del inmueble y los envía, si el plan de EasyBroker incluye API (H-06). |
 | EXT-05 — CFDI/contabilidad/bancos/firma | Necesidad confirmada y proveedor/revisión especializada; FIN-02/DOC-01/PRV-01 | Alcance legal, contrato API, conciliación y permisos; no custodiar dinero por defecto. **Firma en línea (titular, 17/10/2026):** se prefiere una firma electrónica propia del panel, sin proveedor de pago (liga personal, código de verificación, evidencia y huella SHA-256 del PDF), sujeta a validación del abogado; ver D-04 del cuestionario. |
 | EXT-06 — Búsqueda documental y revisión asistida de cláusulas | Solicitada; corpus autorizado/versionado y DEC-14; DOC-01/LEG-01/PRV-01, con aislamiento de acceso de SEG-01 | Búsqueda con documento/versión/página, propuestas de cláusulas, evaluación de citas/abstención/permisos y revisión humana. |
 | EXT-07 — Cola/worker/eventos | Trabajos duran o reintentos superan límites medidos; ESC-01 | Métrica, idempotencia, reconciliación y plan de operación. |
-| EXT-08 — Análisis de inversión | Solicitado; DEC-12 y FIN-02/TAB-01/OPS-01/SEG-01 | Escenarios con TIR/VAN, flujo, presupuesto, supuestos, separación de financiación y resultados comprobables. |
-| EXT-09 — Mapas, comparables, zonas y rutas | Solicitados; DEC-11 y REL-01/TEC-01/VIS-01/SEG-01 | Fuentes/precisión/cobertura, uso permitido, motor/costo, capas autorizadas y recorrido sintético de visitas. **Titular, 17/10/2026:** sin Google Maps por costo; propuesta: MapLibre con mapas de OpenStreetMap, o el nivel gratuito de Mapbox o MapTiler. Primer uso: inventario por zona; ubicación aproximada en público (H-05). |
-| EXT-10 — Portal privado de clientes | Solicitado; DEC-13 y REL-01/OPS-01/DOC-01/SEG-01/AUT-01/PRV-01 | Identidad externa, información compartida, solicitudes, permisos efectivos, revocación y uso móvil. DOC-12 es su primera pieza. |
+| EXT-08 — Análisis de inversión | Solicitado; DEC-12 y FIN-02/TAB-01/FLX-04/SEG-01 | Escenarios con TIR/VAN, flujo, presupuesto, supuestos, separación de financiación y resultados comprobables. |
+| EXT-09 — Mapas, comparables, zonas y rutas | Solicitados; DEC-11 y FLX-04/TEC-01/VIS-01/SEG-01 | Fuentes/precisión/cobertura, uso permitido, motor/costo, capas autorizadas y recorrido sintético de visitas. **Titular, 17/10/2026:** sin Google Maps por costo; propuesta: MapLibre con mapas de OpenStreetMap, o el nivel gratuito de Mapbox o MapTiler. Primer uso: inventario por zona; ubicación aproximada en público (H-05). |
+| EXT-10 — Portal privado de clientes | Solicitado; DEC-13 y FLX-04/DOC-01/SEG-01/AUT-01/PRV-01 | Identidad externa, información compartida, solicitudes, permisos efectivos, revocación y uso móvil. DOC-12 es su primera pieza. |
 | EXT-11 — Asistente IA operativo | Solicitado el 17/10/2026 (RP-44); DEC-14, EXT-06, SEG-01 | Resumen de operación, lectura de INE y escritura con confirmación campo por campo, descripción de anuncio y sugerencia de siguiente paso; citas, permisos, evaluación, costo y abstención. Nunca cambia estados ni envía nada por sí solo. **Titular, 17/10/2026:** se programa sin atarse a un proveedor; el titular solo carga la clave de la API y elige proveedor y modelo (Claude, DeepSeek u otro). Antes de elegir: precio vigente, prueba con documentos reales y lugar donde se procesan los datos (transferencia a revisar en el aviso de privacidad). La IA propone y una persona confirma; tope de gasto mensual (H-03). |
-| EXT-13 — Conexión a servicios de IA con tope mensual | **Idea del titular, 26/10/2026; no aprobada.** Base común de EXT-11, IA-01, EXT-06 y EXT-12; DEC-14, SEG-01 y PRV-01 | Elegir proveedor inicial y tope, confirmar precios vigentes y probar con documentos sintéticos; ver «EXT-13» abajo. |
+| EXT-13 — Conexión a servicios de IA con tope mensual | **Idea del titular, 26/10/2026; se conserva para después (titular, 14/11/2026).** Base común de EXT-11, IA-01, EXT-06 y EXT-12; DEC-14, SEG-01 y PRV-01 | Elegir proveedor inicial y tope, confirmar precios vigentes y probar con documentos sintéticos; ver «EXT-13» abajo. |
 
 ### EXT-13 — conexión a servicios de IA con tope mensual
 
-**Estado: idea del titular (26/10/2026), sin aprobar y sin código.** Es la base técnica de EXT-11 (asistente), IA-01 (lectura de documentos), EXT-06 (búsqueda documental) y EXT-12 (captura con vista previa). Se aterriza en Claude Code, con plan previo.
+**Estado: idea del titular (26/10/2026), conservada para después el 14/11/2026.** La capa de proveedor del punto 1 ya existe para la lectura de documentos (`src/lib/ia/proveedor.ts`, Claude o Grok según la clave); falta el tope mensual con su registro de uso (punto 3). Es la base de EXT-11 (asistente), la lectura de documentos y EXT-06 (búsqueda documental). Se construye con plan previo.
 
 **Idea del titular:** que el panel de administración pueda conectarse a un servicio de IA (Claude, ChatGPT, Grok, Gemini u otro) para ayudar en el trabajo diario, solo dentro del panel y con un límite de gasto al mes. Como ejemplo de tope mencionó los 100 dólares mensuales de su API de Claude.
 
