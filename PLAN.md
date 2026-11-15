@@ -15,7 +15,7 @@ Este archivo dice **qué falta hacer y cómo va**. **Cómo funciona el sistema**
 | 1 | **Panel flexible** (FLX-01 a FLX-09) | FLX-01 aprobada (15/11/2026). FLX-02 hecha en `feat/integracion` (localhost:3003): «Crear documento» en asunto, persona e inmueble, sin candados de pantalla, y «Pasar a un asunto» para los documentos sueltos; falta tu revisión. FLX-03 parte A (de frenos a avisos) hecha en la misma rama el 15/11; falta tu revisión y decidir los puntos de la lista que quedaron fuera. Después quedan FLX-03 B y C, FLX-04, FLX-05, FLX-07, FLX-08, FLX-09 y el cierre FLX-06. |
 | 2 | **Respaldos restaurables y accesos seguros** (bloque 0) | La copia diaria corre desde el 13/11. Falta que actives los dos pasos de entrada (AUT-01), repetir la prueba de alertas desde producción (OBS-01), revisar la limpieza diaria de archivos y repetir el ensayo de restauración con un archivo de la Bandeja (REC-01). |
 | 3 | **Cuentas del equipo** (SEG-01 y USR-01) | Pendientes. Las necesitas desde el primer día (14/11/2026). |
-| 4 | **Revisión del abogado** | Pendiente: formatos 20 al 24, el umbral de 10,000 UMA del 24, la conservación de 10 años del expediente LFPIORPI, «nada frena, solo avisa» (RP-100) en antilavado y promesa, el aviso de privacidad y el registro de tratamiento (PRV-01) y la lectura con IA de documentos reales. |
+| 4 | **Revisión del abogado** | Pendiente: formatos 20 al 24, el umbral de 10,000 UMA del 24, la conservación de 10 años del expediente LFPIORPI, «nada frena, solo avisa» (RP-100) en antilavado y promesa, el aviso de privacidad y el registro de tratamiento (PRV-01) y la lectura con IA de documentos reales. Todo está reunido, con sus preguntas, en [`revision-abogado-2026-11-15.md`](docs/legal/revision-abogado-2026-11-15.md) (15/11/2026). |
 
 El día que cargues el inventario real se sigue [`paso-a-inventario-real.md`](docs/erp-crm/paso-a-inventario-real.md). Todo lo demás está en «Después de empezar a operar», sin orden fijo.
 
@@ -25,7 +25,7 @@ El día que cargues el inventario real se sigue [`paso-a-inventario-real.md`](do
 
 1. **Activar los dos pasos del director** en fortiusinmuebles.com/admin con tu app de códigos y probar una entrada (AUT-01). Es lo único con riesgo real mientras no esté.
 2. **Revisar el panel:** Trámites y el panel nuevo en el sitio publicado, y FLX-02 en localhost (localhost:3003). Lo que siga mal se anota como corrección nueva.
-3. **Llevar al abogado** lo de la fila 4 de arriba.
+3. **Llevar al abogado** el paquete de revisión ([`revision-abogado-2026-11-15.md`](docs/legal/revision-abogado-2026-11-15.md)) con los formatos impresos que pide.
 4. **Mandar una solicitud de prueba** desde el formulario de fortiusinmuebles.com (COR-21).
 5. **Pasar los datos de la empresa** (la persona moral) para los avisos de privacidad.
 6. **Decidir cuando llegue su momento:** recorrido propio de la renta (DEC-02), vocabulario de papeles de una persona (DEC-04, dentro de FLX-04), custodia y retención de copias (DEC-06) y el backend de pruebas (ENV-01 c). Preguntas abiertas: [`CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md).
@@ -269,7 +269,7 @@ Sin orden detallado: el titular elige qué sigue según lo que muestre el uso re
 - **Permisos:** solo el director publica, marca sus revisiones, decide tomar el encargo, reasigna y da de alta un inmueble heredado (DEC-43).
 - **Privacidad:** la dirección exacta no sale en el sitio y un inmueble en evaluación queda privado.
 - **Sitio:** no se publica un inmueble sin galería.
-- **Documentos:** el 01 no se descarga incompleto; el PDF del 09 sigue esperando el visto bueno del abogado.
+- **Documentos:** el 01 no se descarga incompleto. El PDF del 09 se emite desde el 12/11/2026 por decisión del titular (COR-12); su texto va al abogado en el paquete de revisión.
 - **Integridad:** el aviso de versión (409), los registros ajenos, la sesión, las validaciones de cada campo y la revisión del contacto que coincide con otro.
 
 Las pruebas que hoy dicen «rechaza» pasan a «permite y anota», sin borrarse.
