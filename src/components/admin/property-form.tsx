@@ -184,7 +184,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
     setError(null);
     const f = new FormData(e.currentTarget);
     const action = (e.nativeEvent as SubmitEvent).submitter?.getAttribute("data-action");
-    if (action === "publish" && publicationPending.length && !await confirmAction(`A la captación todavía le falta: ${publicationPending.join("; ")}. Puedes publicarlo igual; quedará anotado en su historial.`, { title: "¿Publicar el inmueble?", confirmLabel: "Publicar igual" })) return;
+    if (action === "publish" && publicationPending.length && !await confirmAction(`Todavía falta: ${publicationPending.join("; ")}. Puedes publicarlo igual; quedará anotado en el historial.`, { title: "¿Publicar el inmueble?", confirmLabel: "Publicar igual" })) return;
     const v = (name: string) => String(f.get(name) ?? "").trim();
     const num = (name: string) => (v(name) ? Number(v(name)) : undefined);
 
