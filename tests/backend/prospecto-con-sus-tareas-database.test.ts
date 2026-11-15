@@ -97,3 +97,44 @@ test("las demás referencias siguen impidiendo el borrado y no se pierde ninguna
   // La nota sí quedó ligada al prospecto (fuera de la sesión: la tabla de referencias es interna).
   expect((await db.query("select 1 from public.fortius_inmuebles_record_references where source_collection='notas' and source_id='n3' and target_id='p3'")).rows).toHaveLength(1);
 });
+
+test("un prospecto que pasó a cliente se elimina con su cliente y las tareas de ambos, y regresan juntos con el mismo vínculo", async () => {
+  await asUser(own, async () => {
+    await put("leads", "p4", lead("p4", "own"));
+    await db.query("select public.fortius_inmuebles_convert_lead($1,$2)", ["p4", await version("leads", "p4")]);
+  });
+  const clienteId = (await db.query<{ c: string }>("select cliente_id c from public.fortius_inmuebles_lead_conversions where lead_id='p4'")).rows[0].c;
+  await asUser(own, async () => {
+    await put("tareas", "p4-llamar", task("p4-llamar", "p4"));
+    await put("tareas", "c4-visita", JSON.stringify({ id: "c4-visita", titulo: "Visita de ejemplo", categoria: "leads", estado: "pendiente", prioridad: "normal", pasos: [], clienteId }));
+    // Desde el cliente: se va la pareja.
+    await remove("clientes", clienteId);
+    expect(await exists("clientes", clienteId)).toBe(false);
+    expect(await exists("leads", "p4")).toBe(false);
+    expect(await exists("tareas", "p4-llamar")).toBe(false);
+    expect(await exists("tareas", "c4-visita")).toBe(false);
+  });
+  expect((await db.query("select 1 from public.fortius_inmuebles_lead_conversions where lead_id='p4'")).rows).toHaveLength(0);
+  await asUser(admin, async () => {
+    // El prospecto no se restaura solo: regresa con su cliente.
+    await expect(db.query("select public.fortius_inmuebles_restore_record($1)", [await deletion("leads", "p4")])).rejects.toMatchObject({ code: "PT409" });
+    await db.query("select public.fortius_inmuebles_restore_record($1)", [await deletion("clientes", clienteId)]);
+    expect(await exists("clientes", clienteId)).toBe(true);
+    expect(await exists("leads", "p4")).toBe(true);
+    expect(await exists("tareas", "p4-llamar")).toBe(true);
+    expect(await exists("tareas", "c4-visita")).toBe(true);
+  });
+  const pair = await db.query<{ l: string; c: string }>("select (select data->>'clienteId' from public.fortius_inmuebles_records where collection='leads' and id='p4') l, (select data->>'leadId' from public.fortius_inmuebles_records where collection='clientes' and id=$1) c", [clienteId]);
+  expect(pair.rows[0]).toEqual({ l: clienteId, c: "p4" });
+  expect((await db.query("select 1 from public.fortius_inmuebles_lead_conversions where lead_id='p4' and cliente_id=$1", [clienteId])).rows).toHaveLength(1);
+  // Y otra vez, ahora desde el prospecto.
+  await asUser(own, async () => {
+    await remove("leads", "p4");
+    expect(await exists("clientes", clienteId)).toBe(false);
+  });
+  await asUser(admin, async () => {
+    await db.query("select public.fortius_inmuebles_restore_record($1)", [await deletion("leads", "p4")]);
+    expect(await exists("clientes", clienteId)).toBe(true);
+    expect(await exists("leads", "p4")).toBe(true);
+  });
+});
