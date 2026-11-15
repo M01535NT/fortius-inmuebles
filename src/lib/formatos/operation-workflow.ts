@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Task } from "@/lib/tasks";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { guiaSchema } from "@/lib/guias";
 
 export const WORKFLOW_STAGES = ["captacion","documentacion","comercializacion","negociacion","cierre","entrega","postventa","cerrado"] as const;
 export type WorkflowStage = typeof WORKFLOW_STAGES[number];
@@ -160,6 +161,8 @@ export const operationWorkflowSchema = z.object({
  visitasPrevias: z.array(priorVisit).max(20).optional(),
  // M-04: el asesor que captó, cuando la operación se reasignó; solo lo escribe la reasignación del director.
  captadoPor: z.string().min(1).max(80).optional(),
+ // FLX-03 B (DEC-55): inspección, opinión de valor o cancelación de hipoteca, con su paso; sin ella, la guía de su ruta.
+ guia: guiaSchema.optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
