@@ -481,6 +481,24 @@ Ajustes del ensayo: borrar un asunto sigue como en el panel viejo (lo que no cam
 - **¿Tu ficha de asesor sale en el sitio público?** Para que el director sea responsable necesita ficha de asesor, y hoy las fichas activas salen en el sitio. Recomendación: agregar «No mostrar en el sitio» a la ficha.
 - **¿Qué regla manda para ver un asunto?** El panel nuevo deja verlo a quien lo lleva o colabora; el viejo además exige llevar al cliente. Recomendación: la del panel nuevo (quien lleva el asunto lo ve aunque el cliente sea de otro) y anotarla en `SPEC.md`.
 
+## Decisiones del titular sobre lo construido (16/11/2026)
+
+Detalle en `SPEC.md`, DEC-52 a DEC-58.
+
+- **PN-02:** migraciones aprobadas; se publican cuando el titular revise el panel completo.
+- **Dinero:**
+  - un recibo total salda la cuenta, y la diferencia es descuento;
+  - pesos y dólares van por separado, sin convertir;
+  - cuenta el último recibo con PDF, con aviso si cambió sin volver a generarlo;
+  - la comisión se anota al firmar;
+  - «Por entregar» se queda: Fortius a veces guarda apartados, y la promesa 15 se revisa con el abogado.
+- **Bandeja:**
+  - los archivos sin destino esperan en el servidor (cambio de base y registro de privacidad);
+  - una foto que va a un inmueble publicado entra sin mostrarse y se publica desde la ficha.
+- **Asuntos:**
+  - «Se logró» se marca en un solo paso, con aviso de lo pendiente (cambio en el servidor);
+  - las pestañas de la ficha se quedan como excepción a la regla del desplegable.
+
 ## Decisiones abiertas
 
 - Iconoir o Lucide.

@@ -29,6 +29,10 @@ export function quitarFoto(p: Property, src: string): Property {
 export function ordenarFotos(p: Property, galeria: readonly ImagenPropiedad[]): Property {
   return conGaleria(p, [...galeria]);
 }
+/** Muestra en el sitio una foto que entró sin mostrarse (por ejemplo, desde la Bandeja a un inmueble publicado). */
+export function mostrarFoto(p: Property, src: string): Property {
+  return conGaleria(p, p.galeria.map((g) => (g.src === src ? { src: g.src, alt: g.alt } : g)));
+}
 export function describirFoto(p: Property, src: string, alt: string): Property {
   return conGaleria(p, p.galeria.map((g) => (g.src === src ? { ...g, alt: alt.trim().slice(0, 160) } : g)));
 }
@@ -51,7 +55,7 @@ export function estadoPublicacion(p: Property, propietarioLigado: boolean): Esta
   const bloqueos: string[] = [];
   const avisos: string[] = [];
   if (p.estado === "evaluacion") bloqueos.push("Está en captación: cámbialo a Disponible en «Editar datos».");
-  if (!p.galeria.some((g) => fotoPublica(g.src))) bloqueos.push("Falta al menos una foto.");
+  if (!p.galeria.some((g) => fotoPublica(g.src) && !g.oculta)) bloqueos.push("Falta al menos una foto que se muestre en el sitio.");
   if (p.precio.modalidad !== "publico") avisos.push("Sin precio: el sitio dirá «Precio a consulta».");
   if (!p.descripcion.length) avisos.push("Sin descripción para el sitio.");
   if (p.galeria.length > 0 && p.galeria.length < 5) avisos.push(`Solo ${p.galeria.length} ${p.galeria.length === 1 ? "foto" : "fotos"}; con 5 o más se ve mejor.`);

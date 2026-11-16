@@ -28,7 +28,7 @@ export const safeUrl = z.string().max(2048).refine((value) => {
   try { const parsed = new URL(value); return ["https:", "http:"].includes(parsed.protocol) && !parsed.username && !parsed.password; } catch { return false; }
 }, "URL inválida");
 const optionalUrl = safeUrl.or(z.literal("")).optional();
-const image = z.object({ src: safeUrl, alt: short }).passthrough();
+const image = z.object({ src: safeUrl, alt: short, oculta: z.literal(true).optional() }).passthrough();
 const document = z.object({ codigo: short, nombre: name, descripcion: text, url: safeUrl }).passthrough();
 const ficha = z.object({ terrenoM2: amount.optional(), construccionM2: amount.optional(), recamaras: amount.optional(), banos: amount.optional(), estacionamientos: amount.optional(), antiguedad: short.optional() }).passthrough();
 const informacionPublica = z.object({
@@ -177,7 +177,8 @@ export function projectPublic(collection: string, values: unknown[]): Record<str
     if (collection === "propiedades") {
       if (!estadoValido(data.operacion as Property["operacion"], data.estado as Property["estado"])) continue;
       if (data.publicada !== true) continue;
-      data.galeria = (data.galeria as { src: string }[]).filter((item) => isPublicUrl(item.src));
+      // DEC-54: una foto «oculta» está guardada en el inmueble pero no sale en el sitio.
+      data.galeria = (data.galeria as { src: string; oculta?: true }[]).filter((item) => isPublicUrl(item.src) && item.oculta !== true);
       if (!(data.galeria as unknown[]).length) continue;
       if (data.documentos) data.documentos = (data.documentos as { url: string }[]).filter((item) => isPublicUrl(item.url));
       for (const key of ["videoUrl", "tour360Url"]) if (data[key] && !isPublicUrl(data[key] as string)) delete data[key];

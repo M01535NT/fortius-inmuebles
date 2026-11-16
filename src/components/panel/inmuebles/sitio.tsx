@@ -15,11 +15,12 @@ const TIPOS = ["image/jpeg", "image/png", "image/webp", "image/gif"];
  * Fotos del inmueble: soltar o elegir varias, ordenar arrastrando (la primera es la portada), describir y quitar.
  * Se suben como públicas al inmueble; el servidor les quita EXIF y GPS y decide si quien sube puede.
  */
-export function FotosInmueble({ inmueble, ocupado, alAgregar, alOrdenar, alDescribir, alQuitar }: {
+export function FotosInmueble({ inmueble, ocupado, alAgregar, alOrdenar, alDescribir, alMostrar, alQuitar }: {
   inmueble: Property; ocupado: boolean;
   alAgregar: (fotos: ImagenPropiedad[]) => void;
   alOrdenar: (galeria: ImagenPropiedad[]) => void;
   alDescribir: (src: string, alt: string) => void;
+  alMostrar: (src: string) => void;
   alQuitar: (src: string) => void;
 }) {
   const entrada = useRef<HTMLInputElement>(null);
@@ -93,14 +94,17 @@ export function FotosInmueble({ inmueble, ocupado, alAgregar, alOrdenar, alDescr
                 ) : (
                   <>
                     <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.alt || "Sin descripción"}</span>
-                    <span className="pn-sub" style={{ margin: 0, color: fotoPublica(g.src) ? undefined : "var(--warning)" }}>
-                      {!fotoPublica(g.src) ? "Privada: no sale en el sitio" : indice === 0 ? "Portada" : `Foto ${indice + 1}`}
+                    <span className="pn-sub" style={{ margin: 0, color: fotoPublica(g.src) && !g.oculta ? undefined : "var(--warning)" }}>
+                      {!fotoPublica(g.src) ? "Privada: no sale en el sitio" : g.oculta ? "Sin mostrar en el sitio" : indice === 0 ? "Portada" : `Foto ${indice + 1}`}
                     </span>
                   </>
                 )}
               </div>
               {editando === g.src ? null : (
                 <>
+                  {g.oculta && fotoPublica(g.src) ? (
+                    <Boton variante="texto" deshabilitado={ocupado} onClick={() => alMostrar(g.src)} aria-label={`Mostrar en el sitio ${g.alt || `foto ${indice + 1}`}`}>Mostrar en el sitio</Boton>
+                  ) : null}
                   <Boton variante="texto" deshabilitado={ocupado} onClick={() => { setEditando(g.src); setAlt(g.alt); }} aria-label={`Describir ${g.alt || `foto ${indice + 1}`}`}>Describir</Boton>
                   <Boton variante="texto" deshabilitado={ocupado} onClick={() => alQuitar(g.src)} aria-label={`Quitar ${g.alt || `foto ${indice + 1}`}`}>Quitar</Boton>
                 </>

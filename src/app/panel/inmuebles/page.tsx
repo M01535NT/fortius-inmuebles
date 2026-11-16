@@ -11,7 +11,7 @@ import { useAvisos } from "@/components/panel/kit/avisos";
 import { FormularioInmueble } from "@/components/panel/inmuebles/formulario";
 import { LlavesInmueble, PropietarioInmueble } from "@/components/panel/inmuebles/seguimiento";
 import { FotosInmueble, PublicarInmueble, TextosSitio } from "@/components/panel/inmuebles/sitio";
-import { agregarFotos, describirFoto, editarTextos, ordenarFotos, publicar, quitarDelSitio, quitarFoto } from "@/lib/panel/datos/inmueble-sitio";
+import { agregarFotos, describirFoto, editarTextos, mostrarFoto, ordenarFotos, publicar, quitarDelSitio, quitarFoto } from "@/lib/panel/datos/inmueble-sitio";
 import type { Cliente } from "@/lib/backend/contracts";
 import type { Asesor } from "@/lib/domain/records";
 import { desligarPropietario, guardarLlaves, ligarPropietario, prestarLlaves, propietariosDe, regresaronLlaves } from "@/lib/panel/datos/inmueble-seguimiento";
@@ -220,6 +220,7 @@ function Inmuebles() {
               alAgregar={(f) => void cambiarInmueble(abierto, agregarFotos(abierto, f), f.length === 1 ? "Foto agregada" : `${f.length} fotos agregadas`)}
               alOrdenar={(g) => void cambiarInmueble(abierto, ordenarFotos(abierto, g), "Orden de fotos guardado")}
               alDescribir={(src, alt) => void cambiarInmueble(abierto, describirFoto(abierto, src, alt), "Descripción guardada")}
+              alMostrar={(src) => void cambiarInmueble(abierto, mostrarFoto(abierto, src), "La foto ya se muestra en el sitio")}
               alQuitar={(src) => void cambiarInmueble(abierto, quitarFoto(abierto, src), "Foto quitada")}
             />
             <TextosSitio

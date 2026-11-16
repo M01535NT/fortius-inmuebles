@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Property } from "@/data/propiedades";
-import { agregarFotos, altDeArchivo, describirFoto, editarTextos, estadoPublicacion, fotoPublica, ordenarFotos, publicar, quitarDelSitio, quitarFoto, textoDescripcion } from "@/lib/panel/datos/inmueble-sitio";
+import { agregarFotos, altDeArchivo, describirFoto, editarTextos, estadoPublicacion, fotoPublica, mostrarFoto, ordenarFotos, publicar, quitarDelSitio, quitarFoto, textoDescripcion } from "@/lib/panel/datos/inmueble-sitio";
 
 const base = {
   slug: "casa-ejemplo", codigo: "FORTIUS-000010", titulo: "Casa de ejemplo", estado: "disponible", operacion: "venta",
@@ -32,7 +32,7 @@ describe("fotos, textos y publicación (PN-03)", () => {
     expect(textoDescripcion(t)).toBe("Uno dos.\n\nTres.");
   });
   it("bloquea solo lo que exige el servidor y avisa lo demás", () => {
-    expect(estadoPublicacion(base, false).bloqueos).toEqual(["Falta al menos una foto."]);
+    expect(estadoPublicacion(base, false).bloqueos).toEqual(["Falta al menos una foto que se muestre en el sitio."]);
     const enEval = { ...base, estado: "evaluacion" } as Property;
     expect(estadoPublicacion(enEval, true).bloqueos).toHaveLength(2);
     const listo = agregarFotos(base, [{ src: pub, alt: "fachada" }]);
@@ -45,5 +45,15 @@ describe("fotos, textos y publicación (PN-03)", () => {
     expect(p).toMatchObject({ publicada: true, publicadaEl: "2026-11-16" });
     expect(publicar(p, new Date("2026-12-01T10:00:00Z")).publicadaEl).toBe("2026-11-16");
     expect(quitarDelSitio(p)).toMatchObject({ publicada: false, publicadaEl: "2026-11-16" });
+  });
+});
+
+describe("Fotos sin mostrar en el sitio (DEC-54)", () => {
+  it("una foto oculta no cuenta para publicar y «Mostrar en el sitio» la vuelve visible", () => {
+    const p = { ...base, galeria: [{ src: pub, alt: "Fachada", oculta: true as const }] } as Property;
+    expect(estadoPublicacion(p, false).bloqueos).toEqual(["Falta al menos una foto que se muestre en el sitio."]);
+    const visible = mostrarFoto(p, pub);
+    expect(visible.galeria[0]).toEqual({ src: pub, alt: "Fachada" });
+    expect(estadoPublicacion(visible, false).bloqueos).toEqual([]);
   });
 });

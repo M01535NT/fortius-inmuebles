@@ -147,7 +147,9 @@ export default function Bandeja() {
         if (!p) throw new Error("Ese inmueble ya no está en la lista. Recarga la página.");
         const r = await uploadFile(f, "public", { destino: "inmueble", inmueble: p.slug });
         const vigente = inmueblesRef.current.find((x) => x.slug === p.slug) ?? p;
-        await inmuebles.guardar(p.slug, { ...vigente, galeria: [...vigente.galeria, { src: r.url, alt: altDeArchivo(f.name) }] });
+        // DEC-54: en un inmueble publicado, la foto entra sin mostrarse; se muestra desde la ficha del inmueble.
+        const foto = vigente.publicada ? { src: r.url, alt: altDeArchivo(f.name), oculta: true as const } : { src: r.url, alt: altDeArchivo(f.name) };
+        await inmuebles.guardar(p.slug, { ...vigente, galeria: [...vigente.galeria, foto] });
         g = { clase: "inmueble", slug: p.slug, src: r.url, texto: textoGuardadoInmueble(p), href: rutaInmueble(p) };
       } else {
         const asunto = asuntos.find((x) => x.id === d.asuntoId);

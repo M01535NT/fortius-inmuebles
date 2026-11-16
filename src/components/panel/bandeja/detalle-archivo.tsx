@@ -120,7 +120,7 @@ export function DetalleArchivo({ archivo, url, datos, anterior, alGuardar, alQui
                   <Campo etiqueta="Nombre del documento" value={titulo} maxLength={240} onChange={(e) => setTitulo(e.target.value)} />
                 </>
               ) : null}
-              {inmueble?.publicada ? <p style={{ margin: 0, color: "var(--warning)" }}>Este inmueble está publicado: la foto se verá en el sitio en cuanto la guardes.</p> : null}
+              {inmueble?.publicada ? <p className="pn-sub" style={{ margin: 0 }}>Este inmueble está publicado: la foto entra a sus fotos sin mostrarse en el sitio. La muestras desde la ficha del inmueble.</p> : null}
               {clase === "inmueble" ? <p className="pn-sub" style={{ margin: 0 }}>Va al final de sus fotos, sin datos de ubicación ni de la cámara.</p> : null}
             </>
           )}
