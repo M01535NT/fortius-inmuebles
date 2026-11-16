@@ -2818,3 +2818,7 @@ La carpeta de trabajo se conserva única por indicación del titular; esta prepa
 - **DOC-06:** en `main` (06 completo con resultado, antecedentes, marco jurídico y condiciones; commit `ddb0650`). Sigue la revisión del abogado. La viñeta anterior está en el historial (§21).
 - **DOC-09:** resuelta y en `main`: el titular descartó el registro PROFECO y el PDF del 09 quedó liberado (DEC-20, PR #72). La viñeta anterior está en el historial (§20).
 - **Formato 07:** resuelto: el titular aprobó el PDF de la opinión de valor tal como está (13/11/2026); las fotografías dentro del Excel ya estaban desde el 12/11. La viñeta anterior está en el historial (§22).
+
+### 31.10 Redacción de la especificación acortada
+
+El mismo día, a pedido del titular («Sí, acórtalas»), se acortó la redacción de las reglas y decisiones de `SPEC.md` (de 128 a 103 KB) sin cambiar lo que permiten, prohíben o exigen, quién decide, cifras ni fechas. Un crítico en contexto limpio comparó las dos versiones regla por regla; sus 17 observaciones se corrigieron. El texto completo anterior se recupera con `git show 5f08d2d:SPEC.md`.
