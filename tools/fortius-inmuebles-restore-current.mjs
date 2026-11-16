@@ -77,6 +77,11 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
    if(!writable)throw Error('Migrated table has no writable columns: '+table);
    await db.query(`insert into public.${quote(table)} (${writable}) select ${writable} from jsonb_populate_recordset(null::public.${quote(table)},$1::jsonb)`,[JSON.stringify(rowsFor(table))]);
   }
+  // Explicit ids do not advance identity sequences: move each one past the restored rows.
+  for(const seq of (await db.query(`select c.table_name,c.column_name,pg_get_serial_sequence('public.'||quote_ident(c.table_name),c.column_name) s
+   from information_schema.columns c where c.table_schema='public' and c.table_name=any($1::text[]) and (c.is_identity='YES' or c.column_default like 'nextval(%')`,[expected])).rows){
+   if(seq.s)await db.query(`select setval($1::regclass,coalesce((select max(${quote(seq.column_name)}) from public.${quote(seq.table_name)}),0)+1,false)`,[seq.s]);
+  }
   if(target==='memory')for(const table of expected)await db.exec(`alter table public.${quote(table)} enable trigger all`);
   else await db.exec("set local session_replication_role = origin");
   // Restoring with triggers disabled does not validate FK rows retroactively.
