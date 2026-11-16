@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./tailwind-tema.css";
+@import "tw-animate-css";
 /* Las utilidades exclusivas del panel se generan en src/app/admin/panel-base.css. */
 @source not "./admin";
 @source not "../components/admin";
