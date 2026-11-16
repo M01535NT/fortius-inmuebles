@@ -85,7 +85,10 @@ export default function Dinero() {
   const cifra = ver === "deben" ? dinero(sumaFalta(pendientes)) : ver === "historial" ? dinero(sumaCobrada(cobrosDeLista)) : "—";
   const contexto = ver === "deben"
     ? pendientes.length ? `por cobrar en ${pendientes.length} ${pendientes.length === 1 ? "asunto" : "asuntos"}` : "nada por cobrar"
-    : ver === "historial" ? `cobrado con ${cobros.filter((c) => c.emitido).length} ${cobros.filter((c) => c.emitido).length === 1 ? "recibo entregado" : "recibos entregados"}` : "Todavía no se registran apartados";
+    : ver === "historial" ? [
+      `cobrado con ${cobros.filter((c) => c.emitido).length} ${cobros.filter((c) => c.emitido).length === 1 ? "recibo entregado" : "recibos entregados"}`,
+      sumaCobrada(cobrosDeLista, "USD") > 0 ? `aparte, ${dinero(sumaCobrada(cobrosDeLista, "USD"), "USD")}` : "",
+    ].filter(Boolean).join("; ") : "Todavía no se registran apartados";
 
   return (
     <div className="pn-pagina" style={{ maxWidth: 760 }}>
@@ -118,7 +121,7 @@ export default function Dinero() {
                 {pendientes.map((f) => (
                   <Fila key={f.asuntoId} alPulsar={() => setAbierto(f.asuntoId)} seleccionada={f.asuntoId === abierto}
                     titulo={f.titulo} subtitulo={[f.folio, "Comisión"].filter(Boolean).join(" · ")}
-                    detalle={f.enDolares ? "Tiene recibos en dólares: revisa el saldo" : undefined} tonoDetalle={f.enDolares ? "aviso" : "normal"}
+                    detalle={f.cobradoDolares > 0 ? `Además cobrado en dólares: ${dinero(f.cobradoDolares, "USD")}` : undefined} tonoDetalle={f.cobradoDolares > 0 ? "aviso" : "normal"}
                     lado={dinero(f.falta)} ladoMenor={ladoMenor(f)} />
                 ))}
               </GrupoLista>

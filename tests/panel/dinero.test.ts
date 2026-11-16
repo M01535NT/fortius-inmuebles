@@ -80,3 +80,24 @@ describe("historial y textos", () => {
     expect(ladoMenor({ cobrado: 5, total: 10 })).toMatch(/^de \$10$/);
   });
 });
+
+describe("Reglas del titular para contar lo cobrado (DEC-53)", () => {
+  it("un recibo de pago total salda la cuenta y la diferencia es descuento", () => {
+    const [f] = porCobrar([exp("1", "cierre", 100000)], [], [cobro("a", "1", 90000, { total: true })]);
+    expect(f).toMatchObject({ cobrado: 90000, falta: 0, descuento: 10000 });
+    const [p] = porCobrar([exp("1", "cierre", 100000)], [], [cobro("a", "1", 90000, { parcial: true })]);
+    expect(p).toMatchObject({ falta: 10000, descuento: 0 });
+  });
+  it("los dólares van aparte y no descuentan de la comisión en pesos", () => {
+    const [f] = porCobrar([exp("1", "cierre", 100000)], [], [cobro("a", "1", 2000, { moneda: "USD", total: true })]);
+    expect(f).toMatchObject({ cobrado: 0, falta: 100000, descuento: 0, cobradoDolares: 2000, enDolares: 1 });
+  });
+  it("si el recibo cambió después de su PDF, cuenta lo del último PDF", () => {
+    const b = recibo("r1", "e1", { importeRecibido: 999, pagoParcialTotal: "parcial" });
+    const c = leerCobro(b, false, { version: 1, importe: 5000, moneda: "MXN", total: true })!;
+    expect(c).toMatchObject({ importe: 5000, total: true, emitido: true, cambiosSinPdf: true });
+    expect(lineaCobro(c)).toContain("con cambios sin PDF");
+    expect(leerCobro(b, false, null)).toMatchObject({ importe: 999, emitido: false });
+    expect(leerCobro(recibo("r2", "e1", null), false, { version: 2, importe: 300, moneda: "USD", total: false })).toMatchObject({ importe: 300, moneda: "USD", emitido: true });
+  });
+});

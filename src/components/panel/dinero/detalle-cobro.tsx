@@ -14,11 +14,13 @@ export function DetalleCobro({ fila }: { fila: PorCobrar }) {
     <div style={{ display: "grid", gap: 16, marginTop: 8 }}>
       <div>
         <p style={{ margin: 0, fontSize: 28, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{dinero(fila.falta)}</p>
-        <p className="pn-sub" style={{ margin: 0 }}>{fila.falta > 0 ? "falta por cobrar" : "cobrado completo"}</p>
+        <p className="pn-sub" style={{ margin: 0 }}>{fila.falta > 0 ? "falta por cobrar" : fila.descuento > 0 ? "saldado con pago total" : "cobrado completo"}</p>
       </div>
       <Ficha secciones={[{ titulo: "Comisión", datos: [
         { etiqueta: "Total estimado", valor: dinero(fila.total) },
         { etiqueta: "Ya cobrado", valor: dinero(fila.cobrado) },
+        ...(fila.descuento > 0 ? [{ etiqueta: "Descuento", valor: `${dinero(fila.descuento)} (recibo de pago total)` }] : []),
+        ...(fila.cobradoDolares > 0 ? [{ etiqueta: "Cobrado en dólares", valor: `${dinero(fila.cobradoDolares, "USD")}, aparte de los pesos` }] : []),
         { etiqueta: "Vence", valor: "Sin fecha anotada", falta: true },
         { etiqueta: "De dónde sale", valor: fila.fuente || "Cierre del asunto" },
       ] }]} />

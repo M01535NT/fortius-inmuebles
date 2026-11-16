@@ -30,12 +30,26 @@ export async function GET(request: Request) {
       if(emissions.error)databaseError(emissions.error);
       emitted=new Set((emissions.data??[]).map(e=>`${e.draft_id}:${e.draft_version}`));
     }
+    // Recibos 18 (DEC-53): lo cobrado es lo del último PDF entregado, aunque el borrador haya cambiado después.
+    // Solo se leen tres datos del recibo emitido (importe, moneda, parcial o total); nunca el resto de su contenido.
+    const lastReceipt=new Map<string,{version:number;importe:number|null;moneda:"MXN"|"USD";total:boolean}>();
+    if(rows.length&&formato==="18"){
+      const receipts=await client.from("fortius_inmuebles_formato_emissions")
+        .select("draft_id,draft_version,importe:snapshot->importeRecibido,moneda:snapshot->>moneda,pago:snapshot->>pagoParcialTotal")
+        .in("draft_id",rows.map(row=>row.id));
+      if(receipts.error)databaseError(receipts.error);
+      for(const r of (receipts.data??[]) as {draft_id:string;draft_version:number;importe:unknown;moneda:unknown;pago:unknown}[]){
+        const previous=lastReceipt.get(r.draft_id);
+        if(previous&&previous.version>=Number(r.draft_version))continue;
+        lastReceipt.set(r.draft_id,{version:Number(r.draft_version),importe:typeof r.importe==="number"&&Number.isFinite(r.importe)?r.importe:null,moneda:r.moneda==="USD"?"USD":"MXN",total:r.pago==="total"});
+      }
+    }
     return {
       documentos:rows.map(row=>{
         const relation=row.expediente as unknown as {folio:string}|{folio:string}[];
         const parent=Array.isArray(relation)?relation[0]:relation;
         if(typeof parent?.folio!=="string")throw new ApiError(503,"No se pudo consultar el contexto de los documentos");
-        return {id:row.id,expedienteId:row.expediente_id,folio:parent.folio,formatoId:row.formato_id,version:row.version,actualizadoEl:row.updated_at,emitido:emitted.has(`${row.id}:${row.version}`)};
+        return {id:row.id,expedienteId:row.expediente_id,folio:parent.folio,formatoId:row.formato_id,version:row.version,actualizadoEl:row.updated_at,emitido:emitted.has(`${row.id}:${row.version}`),...(formato==="18"?{ultimoRecibo:lastReceipt.get(row.id)??null}:{})};
       }),
       total,nextOffset:offset+rows.length<total ? offset+rows.length : null,
     };

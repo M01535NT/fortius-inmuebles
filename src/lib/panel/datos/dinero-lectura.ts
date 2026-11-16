@@ -1,5 +1,5 @@
 import { ErrorDeLectura } from "@/lib/panel/datos/colecciones";
-import { leerCobro, type BorradorFormato, type Cobro } from "@/lib/panel/datos/dinero";
+import { leerCobro, type BorradorFormato, type Cobro, type UltimoRecibo } from "@/lib/panel/datos/dinero";
 
 /**
  * Lectura de recibos 18 con rutas que ya existen (solo lectura, la base decide qué ve cada quien por RLS):
@@ -7,7 +7,7 @@ import { leerCobro, type BorradorFormato, type Cobro } from "@/lib/panel/datos/d
  * 2. `GET /api/admin/expedientes/{id}/formatos` trae el contenido de los recibos de esos asuntos.
  */
 
-type FilaDocumento = { id: string; expedienteId: string; formatoId: string; version: number; emitido: boolean };
+type FilaDocumento = { id: string; expedienteId: string; formatoId: string; version: number; emitido: boolean; ultimoRecibo?: UltimoRecibo | null };
 
 async function leerJson<T>(url: string, senal?: AbortSignal): Promise<T> {
   let r: Response;
@@ -32,8 +32,9 @@ export async function leerCobros(senal?: AbortSignal): Promise<Cobro[]> {
     offset = r.nextOffset ?? null;
   }
   const emitido = new Map(filas.map((f) => [f.id, f.emitido]));
+  const ultimo = new Map(filas.map((f) => [f.id, f.ultimoRecibo ?? null]));
   const asuntos = [...new Set(filas.map((f) => f.expedienteId))];
   const borradores = await Promise.all(asuntos.map((id) =>
     leerJson<{ documentos?: BorradorFormato[] }>(`/api/admin/expedientes/${encodeURIComponent(id)}/formatos`, senal).then((r) => r.documentos ?? [])));
-  return borradores.flat().map((b) => leerCobro(b, emitido.get(b.id) === true)).filter((c): c is Cobro => c !== null);
+  return borradores.flat().map((b) => leerCobro(b, emitido.get(b.id) === true, ultimo.get(b.id) ?? null)).filter((c): c is Cobro => c !== null);
 }
