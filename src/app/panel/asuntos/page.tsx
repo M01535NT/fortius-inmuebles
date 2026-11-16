@@ -20,6 +20,8 @@ import { FiltrarYOrdenar } from "@/components/panel/kit/filtrar-ordenar";
 import { Fila, GrupoLista } from "@/components/panel/kit/lista";
 import { Segmentado } from "@/components/panel/kit/segmentado";
 import { HojaAdaptable } from "@/components/panel/ui/hoja-adaptable";
+import { DetallePersona } from "@/components/panel/personas/detalle-persona";
+import { DetalleInmueble } from "@/components/panel/inmuebles/detalle-inmueble";
 import type { Property } from "@/data/propiedades";
 import type { Cliente } from "@/lib/backend/contracts";
 import { aTexto, deTexto, diaLargo } from "@/lib/panel/calendario";
@@ -88,6 +90,11 @@ function Asuntos() {
   const [orden, setOrden] = useState<OrdenAsuntos>("sigue");
   const [sinSiguiente, setSinSiguiente] = useState(false);
   const { abierta, abrir, cerrar } = useFichaEnDireccion();
+  // La persona o el inmueble del asunto, abiertos encima sin salir de él. Se olvida al cambiar o cerrar el asunto.
+  const [encima, setEncima] = useState<{ asunto: string; clase: "persona" | "inmueble"; id: string } | null>(null);
+  const encimaVigente = encima && encima.asunto === abierta ? encima : null;
+  const personaEncima = encimaVigente?.clase === "persona" ? personas.datos.find((c) => c.id === encimaVigente.id) ?? null : null;
+  const inmuebleEncima = encimaVigente?.clase === "inmueble" ? inmuebles.datos.find((p) => p.slug === encimaVigente.id) ?? null : null;
 
   const filas = useMemo(
     () => filasAsuntos(exp.datos, { personas: personas.datos, inmuebles: inmuebles.datos, tareas: tareas.datos, hoy }),
@@ -246,7 +253,10 @@ function Asuntos() {
                   alHecho={(id) => void cambiarTarea(id, (t) => completarTarea(t), "Hecho")}
                   alPosponer={(id, f) => cambiarTarea(id, (t) => posponer(t, f), f ? `Pospuesto al ${diaLargo(f)}` : "Sin fecha")}
                   alAnotar={(texto, f) => anotarSiguiente(expediente, texto, f)} />
-                <Ficha secciones={fichaAsunto(fila, expediente)} />
+                <Ficha secciones={fichaAsunto(fila, expediente)} vinculos={{
+                  ...(fila.persona ? { Persona: { nombre: `Ver a ${fila.persona.nombre} sin salir del asunto`, alPulsar: () => setEncima({ asunto: fila.id, clase: "persona", id: fila.persona?.id ?? "" }) } } : {}),
+                  ...(fila.inmueble ? { Inmueble: { nombre: `Ver el inmueble ${fila.inmueble.titulo} sin salir del asunto`, alPulsar: () => setEncima({ asunto: fila.id, clase: "inmueble", id: fila.inmueble?.slug ?? "" }) } } : {}),
+                }} />
                 <LoLleva key={`${fila.id}-${expediente.asesor_id}`} asesorId={expediente.asesor_id} asesores={asesores.datos} esDirector={esDirector}
                   alPasar={async (a, motivo) => {
                     try {
@@ -265,6 +275,14 @@ function Asuntos() {
             )} />
           </>
         ) : null}
+      </HojaAdaptable>
+      <HojaAdaptable abierta={personaEncima !== null} titulo={personaEncima?.nombre?.trim() || "Sin nombre"} alCerrar={() => setEncima(null)}
+        volver={{ etiqueta: "Volver al asunto", alPulsar: () => setEncima(null) }}>
+        {personaEncima ? <DetallePersona persona={personaEncima} personas={personas.datos} guardar={personas.guardar} alAbrirPersona={(id) => setEncima((e) => (e ? { ...e, id } : e))} /> : null}
+      </HojaAdaptable>
+      <HojaAdaptable abierta={inmuebleEncima !== null} titulo={inmuebleEncima?.titulo ?? "Inmueble"} alCerrar={() => setEncima(null)}
+        volver={{ etiqueta: "Volver al asunto", alPulsar: () => setEncima(null) }}>
+        {inmuebleEncima ? <DetalleInmueble inmueble={inmuebleEncima} guardar={inmuebles.guardar} personas={personas.datos} guardarPersona={personas.guardar} /> : null}
       </HojaAdaptable>
       <HojaAdaptable abierta={creando} titulo="Nuevo asunto" descripcion="Tipo, persona e inmueble. Lo demás se completa después." alCerrar={() => setCreando(false)}>
         {creando ? <FormularioAsunto personas={personas.datos} inmuebles={inmuebles.datos} asesores={asesores.datos} miAsesor={miAsesor} ocupado={ocupado} alGuardar={(d) => void crear(d)} /> : null}
