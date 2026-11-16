@@ -1,6 +1,6 @@
 # Fortius — especificación del ERP/CRM
 
-**Actualizado:** 14 de noviembre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá.
+**Actualizado:** 16 de noviembre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá.
 
 Este archivo dice **cómo debe funcionar el sistema**: etapas por ruta, matriz de reglas, dirección del producto y reglas vigentes (RP), proceso de comercialización, alcance, restricciones, decisiones (DEC), criterios de terminado, mapa de módulos e indicadores. Solo cambia cuando el titular decide algo. **Qué falta hacer y cómo va** está en [`PLAN.md`](PLAN.md); lo terminado, en [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md).
 
@@ -384,6 +384,25 @@ Ya resuelto el 26/10/2026:
 
   (SEG-01, FIN-02, OPS-01)
 
+### Panel nuevo (PN): reglas del 16/11/2026
+
+Estas reglas mandan sobre lo ya construido en `/admin`. Cuando una de ellas contradice una regla anterior de este archivo, la anterior se reescribe o se marca como superada y se anota en «Reglas reemplazadas». Cómo se construye, por etapas: sección «Panel nuevo (PN)» de `PLAN.md`.
+
+**Decididas por el titular (16/11/2026):**
+
+- **RP-100 · Los bocetos mandan.** El panel de administración se construye a partir de los bocetos aprobados (`docs/diseno/nuevo-panel/DECISIONES.md` y el lienzo). Lo ya construido en `/admin` es legado: no se amplía y se retira al final (PN-12). El panel nuevo vive aparte en `/panel` y solo toca al viejo por `src/lib/panel/legado`. (PN-00)
+- **RP-101 · Director primero, asesor después; cada asesor solo ve lo suyo.** Se construye primero el panel del director o administrador, que ve todo, y después el del asesor. Desde el primer día cada registro (persona, inmueble, asunto, pendiente, movimiento) lleva responsable y quien lo creó, y la visibilidad se hace cumplir en la base (RLS), no solo en pantalla. El asesor ve lo que lleva y lo que se le comparte; el director, todo. (PN-02, PN-10)
+- **RP-102 · Arrastrar y soltar donde se pueda.** Todo orden que el usuario pueda querer cambiar se cambia arrastrando: el menú lateral, las guías, las tareas y pasos de un asunto o trámite, los pendientes, los temas del equipo y las listas de documentos. Cada arrastre tiene su equivalente de teclado (Alt con las flechas, o un menú «Mover a…») y avisa lo que hizo. El orden de preferencia personal (menú) se guarda por usuario; el orden del negocio (pasos de una guía) se guarda en el servidor con control de versiones. (PN-01)
+- **RP-103 · Auditoría de lógica continua.** En cada etapa del panel nuevo, un subagente razonador de solo lectura audita si la lógica es buena y fluida para el trabajo diario, y puede proponer agregar, quitar o reordenar pasos. Su informe se guarda en `docs/diseno/nuevo-panel/auditorias/`; lo que el titular acepta pasa a esta especificación. (PN-xx)
+- **RP-104 · Sistema visual.** El panel nuevo usa el Sistema de diseño Fortius (`docs/diseno/nuevo-panel/sistema-fortius/`): Geist 400, 500, 600 y 700; azul en claro y ámbar en oscuro; sin blanco ni negro puros; esquinas 2, 4, 8 y 16 px; línea en vez de sombra salvo en lo que flota; íconos del sistema; tema claro y oscuro que sigue al dispositivo o se fija en Configuración. Vencido y errores usan el color de error, no el acento. La marca del sitio público no cambia hasta que el titular lo decida.
+- **RP-105 · El chat del equipo va al final.** «Equipo» (temas con #, mensajes directos, menciones y tarjetas ligadas) se construye después del rol de asesor. (PN-11)
+
+**Confirmadas por el titular el 16/11/2026 (propuesta de la auditoría AUD-01; se construyen en PN-02, y la migración se avisa antes de aplicarla):**
+
+- **RP-106 · El centro es el asunto (confirmada 16/11/2026).** El asunto es el centro de trabajo y lleva folio, documentos, dinero y lo que sigue; la persona es el centro de la relación; el inmueble es el inventario. Persona e inmueble son fichas maestras que se capturan una vez (RP-75) y el asunto las une con papeles. Un propietario con tres inmuebles tiene tres asuntos; un comprador que ve cuatro inmuebles tiene un asunto «Búsqueda» con cuatro ligados. RP-94 se conserva en lo que dice del folio por inmueble y del expediente del cliente.
+- **RP-107 · Folios (confirmada 16/11/2026).** Solo lleva folio visible lo que se cita por escrito ante terceros. El asunto (incluye trámites) lleva `EXP-######`; el inmueble, `FORTIUS-######`; el formato emitido, `EXP-######·nn·vN` (folio del asunto, número de formato y versión); el recibo emitido, `REC-AAAA-####`. Personas, consultas, archivos y movimientos de dinero llevan solo id interno. Los folios los asigna la base al guardar (nunca al abrir un formulario), son únicos, no se reutilizan ni se borran; los números retirados quedan reservados. Cancelar un asunto es cerrarlo como «No se dio». Al unir personas ningún folio cambia; al dividir un asunto, el original conserva el suyo y el nuevo recibe el siguiente con «derivado de». Los de hoy (`EXP-` y `FORTIUS-`, migración `20261014031535_automatic_folios`) se conservan.
+- **RP-108 · Qué abre un asunto nuevo (confirmada 16/11/2026).** Solo estos casos: (1) el propietario encarga un inmueble en venta o renta, un asunto por inmueble y por encargo; (2) un comprador o arrendatario con búsqueda real, un asunto por persona y necesidad; (3) un trámite sin venta; (4) un mandato de inversionista; (5) el mismo inmueble vuelve a comercializarse tras un cierre o pasa de venta a renta con documentos emitidos, con «continúa de». No abren asunto una consulta, una visita, un archivo, un cambio de precio ni una reapertura. Todo entra por la Bandeja (archivos) o por Consultas (personas) y de ahí se reparte a una persona, un inmueble o un asunto; el asunto nace cuando hay negocio.
+
 ### Etapa posterior: adaptación para otras inmobiliarias (en pausa)
 
 No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no perder lo ya pensado. Las entregas correspondientes están en el backlog como «en pausa».
@@ -409,6 +428,8 @@ La tabla de reglas reemplazadas hasta el 13/11/2026 está en el historial (§18:
 | 14/11/2026 | Barra superior con píldoras (LV-08, DEC-35) | Menú lateral (LV-09) | El titular aprobó el «panel desde cero» en localhost. |
 | 14/11/2026 | Panel azul de la operación (LV-06, boceto D) | Encabezado claro con el riel de diez etapas (LV-09) | Misma aprobación. |
 | 14/11/2026 | RP-58: cinco secciones principales | Seis secciones, con Trámites (TRA-01, LV-09) | El titular pidió Trámites en el menú («Sí, en la barra», 13/11/2026). |
+| 16/11/2026 | El panel `/admin` y su rediseño LV-09 (menú lateral, riel de etapas, paleta borgoña y Archivo) | El panel nuevo `/panel` con doce secciones (Hoy, Bandeja, Consultas, Personas, Inmuebles, Asuntos, Agenda, Formatos, Trámites, Dinero, Equipo, Herramientas) más Configuración, y el Sistema de diseño Fortius (RP-100, RP-104) | El titular decidió que los bocetos mandan sobre lo construido. LV-09 y RP-58 quedan como historia del panel viejo. |
+| 16/11/2026 | Pendiente de decidir (propuesta AUD-01, hallazgo 1): RP-93, el comprador nunca es cliente y no hay operación para él | Si el titular acepta, la búsqueda del comprador es un asunto (RP-106, RP-108); hasta entonces RP-93 sigue vigente | El boceto de Personas del 14/11/2026 ya trata al comprador como cliente. No se reescribe RP-93 sin visto bueno. |
 
 ## Proceso de comercialización de un inmueble — definición del titular, 15/10/2026
 
