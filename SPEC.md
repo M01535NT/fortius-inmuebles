@@ -1,6 +1,6 @@
 # Fortius — especificación del ERP/CRM
 
-**Actualizado:** 14 de noviembre de 2026. **Responsable de negocio:** Moisés Núñez Tonalá.
+**Actualizado:** 15 de noviembre de 2026. **Responsable de negocio:** Moisés Núñez Tonalá.
 
 Este archivo dice **cómo debe funcionar el sistema**. Solo cambia cuando el titular decide algo; el agente que trabaja el tema lo edita en la rama de trabajo. **Qué falta hacer y cómo va** está en [`PLAN.md`](PLAN.md); lo terminado, en el [historial](docs/erp-crm/historial-del-plan.md). Si el titular aprueba algo que contradice una regla, la regla anterior se reescribe en su lugar y se anota en «Reglas reemplazadas».
 
@@ -189,18 +189,7 @@ Ya resuelto el 26/10/2026:
 
 ### Diferencias con lo que hace el sistema hoy
 
-| Diferencia | Dónde está | Qué la corrige |
-|---|---|---|
-| La renta usa las 10 etapas de venta en la operación y los requisitos de venta hasta publicar (titularidad, factibilidad, valor, precio, intermediación, levantamiento, plan y publicación). Sus nombres de etapa están corridos un lugar. | `isOwnerRoute` y `requiredReviews` en `operation-workflow.ts`; `routeStages` en `operation-view.ts`. | COR-04, con la tabla de renta de esta matriz. |
-| La intermediación cuenta con «revisado», sin registro de firma (contrato, fecha y firmantes). | Requisito `intermediacion`. | COR-10. |
-| El catálogo no tiene la intermediación para renta. | `src/lib/formatos/catalog.ts`. | Plantilla del titular (RP-97). |
-| Las garantías de renta no tienen la lista de B-02. | Requisito `garantias_renta`. | COR-04. |
-| La lista de documentos no admite «No aplica» y depende de datos que la entrevista ya no pide. | `checklist-documentos.ts`. | COR-06, con B-06 y B-07. |
-| La opinión de valor no espera a que la jurídica pase: el servidor pide las dos para salir de `documentacion`, sin orden entre ellas. | `requiredReviews`. | FLX-03, como guía (o COR-04 si el titular lo prefiere antes). |
-| No hay registro de la decisión de tomar el encargo ni del margen de ±10 %. | — | APR-01 o FLX-03. |
-| Cualquier usuario del panel marca revisado; no hay papel de director. | Roles actuales. | SEG-01. |
-| No existe la acción «saltar requisito con motivo del director». | — | APR-01. |
-| Las operaciones de compra y búsqueda de renta todavía se abren. | Nueva operación, rutas `compra` y `arrendatario`. | COR-11. |
+La tabla del 26/10/2026 está en el historial, §31.7; casi todo lo corrigieron COR-04, COR-06, COR-10 y COR-11. Siguen abiertas: el orden entre la opinión de valor y la jurídica (FLX-03, como guía), el registro de la decisión de tomar el encargo con su margen de ±10 % (APR-01 o FLX-03) y el papel de director para marcar revisado (SEG-01).
 
 ## Dirección del producto y reglas vigentes — 17/10/2026
 
@@ -425,15 +414,10 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 
 ### Reglas reemplazadas
 
-La tabla de reglas reemplazadas hasta el 13/11/2026 está en el historial (§18: [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md)). Cuando una regla nueva reemplace a otra, se anota aquí con la misma forma (fecha · regla anterior y dónde estaba · regla vigente) y pasa al historial al cerrar la entrega.
+Las reglas reemplazadas hasta el 13/11/2026 están en el historial (§18) y las de entregas ya cerradas del 14/11/2026 (LV-09 y FLX-01), en el §31.8: [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md). Cuando una regla nueva reemplace a otra, se anota aquí con la misma forma (fecha · regla anterior y dónde estaba · regla vigente) y pasa al historial al cerrar la entrega.
 
 | Fecha | Antes | Ahora | Por qué |
 |---|---|---|---|
-| 14/11/2026 | Barra superior con píldoras (LV-08, DEC-35) | Menú lateral (LV-09) | El titular aprobó el «panel desde cero» en localhost. |
-| 14/11/2026 | Panel azul de la operación (LV-06, boceto D) | Encabezado claro con el riel de diez etapas (LV-09) | Misma aprobación. |
-| 14/11/2026 | RP-58: cinco secciones principales | Seis secciones, con Trámites (TRA-01, LV-09) | El titular pidió Trámites en el menú («Sí, en la barra», 13/11/2026). |
-| 14/11/2026 | RP-58: seis secciones principales | Siete, con la Bandeja después de Hoy (FLX-01) | El titular aprobó los bocetos del panel flexible. |
-| 14/11/2026 | RP-58: siete secciones principales | Ocho, con Personas junto a Contactos (FLX) | El titular lo pidió al revisar la limpieza («Sí, junto a Contactos»). |
 | 14/11/2026 | RP-93: compradores y arrendatarios nunca son clientes ni abren expediente | Son clientes desde que firman su contrato, con su papel en cada operación | El titular aprobó el panel flexible y confirmó el registro el mismo día. |
 | 14/11/2026 | RP-96 y B-13: requisitos de protección que nunca se saltan | Avisos anotados en el historial (RP-100) | Misma aprobación; aplica cuando se construya FLX-03. |
 | 14/11/2026 | RP-79 y RP-04: motor de procesos con editor que valida cada operación (MOT-01 a MOT-04) | Guías editables que sugieren y avisan (FLX-03) | El panel flexible (DEC-50) y RP-100; el titular aprobó la poda del plan ese día. |
@@ -441,11 +425,6 @@ La tabla de reglas reemplazadas hasta el 13/11/2026 está en el historial (§18:
 | 15/11/2026 | RP-95: no se publica un compartido sin la autorización escrita | Aviso anotado (RP-100) | Misma aprobación. |
 | 15/11/2026 | DEC-41: visita antes de la firma solo con carta y autorización del director | Aviso anotado (RP-100) | Misma aprobación. |
 | 15/11/2026 | B-04 y RP-87: se avanza una etapa a la vez y con su candado | Se puede pasar a cualquier etapa, con aviso de lo que quedó atrás | Misma aprobación. |
-| 14/11/2026 | DEC-47 y COR-26: guía de pantalla que se abre sola en Hoy, con «Ayuda» o «?» en las demás | Sin guía superpuesta; queda el manual «¿Cómo se hace esto?» en Ayuda y Ctrl K para buscar | El titular pidió construir el panel nuevo «de la forma más limpia posible», sin la guía visual ni el tutorial inicial (DEC-52). |
-| 14/11/2026 | LV-08, regla 6: lo vencido en rojo y lo demás sin color | Cada estado con su color, superficie y borde (azul, verde, ámbar, bermellón), siempre con palabra e ícono (RP-72) | Paleta de LV-09, aprobada por el titular. |
-| 14/11/2026 | LV-08, lenguaje visual: esquinas de 20–24 px, bloques azul marino de 28 px, borde `rgba(6, 31, 63, .11)`, Hoy «Mosaico cálido» y operación «Moderno» | Tarjetas de 12 px con línea `#DEE3EC`, sombras casi nulas, encabezado claro con el riel, Hoy «Tu día» (LV-09) | Misma aprobación. |
-| 14/11/2026 | LV-04 (V07): punto «Empieza aquí» sobre «Nuevo» y «Ayuda» | Sin punto; la acción principal se distingue por sí sola | Misma indicación. |
-| 14/11/2026 | COR-26, N24 y C57: «Tu primer día» y «Preparar tu espacio» en Hoy | Hoy muestra solo el trabajo del día | Misma indicación. |
 | 14/11/2026 | «Operaciones» y «operación» en el panel | «Asuntos» y «asunto» (DEC-53) | El titular pidió el cambio de nombre. |
 | 15/11/2026 | DEC-51 y DEC-54 (punto 1): riel de diez etapas, solo con venta o renta | Riel con las etapas de la guía de cada tipo de asunto; sin guía, sin riel (DEC-55) | El titular lo pidió al revisar Asuntos: inspecciones, opiniones de valor y trámites no caben en diez etapas. |
 
@@ -470,9 +449,6 @@ La adaptación del panel a este proceso (PROC-01 a PROC-05) y el flujo del vende
 
 - **PROC-06 (opcional):** estado interno propio para «Contrato y preparación». Requiere migración; fuera de alcance hasta nueva indicación del titular (15/10/2026).
 - **FLUJO-04b (opcional):** llevar los candados del arranque a PostgreSQL y separar «Redes sociales» de «Página web» como origen. Requiere migración, respaldo y ventana autorizada.
-- **DOC-06:** en `main` (06 completo con resultado, antecedentes, marco jurídico y condiciones; commit `ddb0650`). Sigue la revisión del abogado. La viñeta anterior está en el historial (§21).
-- **DOC-09:** resuelta y en `main`: el titular descartó el registro PROFECO y el PDF del 09 quedó liberado (DEC-20, PR #72). La viñeta anterior está en el historial (§20).
-- **Formato 07:** resuelto: el titular aprobó el PDF de la opinión de valor tal como está (13/11/2026); las fotografías dentro del Excel ya estaban desde el 12/11. La viñeta anterior está en el historial (§22).
 - **Ayuda en otros formatos:** las notas y desplegables existen solo en el 07 (`src/lib/formatos/ayuda.ts`); extenderlas al 04, 05 y los demás, con la plantilla como fuente.
 
 ## Qué vamos a construir
