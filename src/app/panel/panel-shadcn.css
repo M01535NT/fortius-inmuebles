@@ -1,0 +1,24 @@
+/*
+  Puente entre shadcn/ui y el Sistema de diseño Fortius (RP-104). Las clases de shadcn
+  (bg-background, text-muted-foreground, bg-primary…) leen estas variables; aquí se
+  definen solo dentro de .panel-root, así el sitio público no cambia.
+  Ojo: en el panel `--accent` es el azul o ámbar de marca, no el gris de hover de shadcn;
+  los componentes de src/components/panel/ui usan `bg-muted` para el hover.
+*/
+.panel-root {
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --card-foreground: var(--ink);
+  --popover: var(--raised);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-ink);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--ink);
+  --muted-foreground: var(--ink-muted);
+  --accent-foreground: var(--ink);
+  --destructive: var(--error);
+  --input: var(--border);
+  --ring: var(--accent);
+  --radius: var(--r-lg);
+}

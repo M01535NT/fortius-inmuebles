@@ -1,0 +1,5 @@
+/* Agenda (PN-04): filas de cita que se arrastran a otro día y la tira como destino. */
+.pn-lista > .pn-agenda-mover:first-child > .pn-fila { border-top: 0; }
+.pn-agenda-mover[draggable="true"] > .pn-fila { cursor: grab; }
+.pn-tira button[data-destino-activo] { border-color: var(--accent); background: var(--accent-soft); outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (hover: none) { .pn-agenda-pista { display: none; } }

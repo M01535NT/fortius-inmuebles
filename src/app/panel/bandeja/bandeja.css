@@ -1,0 +1,55 @@
+/* Bandeja (PN-06). Solo tokens del Sistema de diseño Fortius (panel-ds.css); línea en vez de sombra. */
+.panel-root .bj-zona {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  padding: 24px 16px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.panel-root .bj-zona[data-encima] { border-color: var(--accent); background: var(--accent-soft); }
+.panel-root .bj-zona[data-compacta] { padding: 8px; }
+.panel-root .bj-zona-icono { color: var(--ink-muted); }
+
+.panel-root .bj-mini {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.panel-root .bj-mini img { width: 100%; height: 100%; object-fit: cover; }
+
+.panel-root .bj-vista {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--muted);
+  min-height: 160px;
+  max-height: 320px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.panel-root .bj-vista img,
+.panel-root .bj-vista video { max-width: 100%; max-height: 320px; object-fit: contain; }
+
+.panel-root .bj-bloque {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-root .bj-zona { transition: none; }
+}

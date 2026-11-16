@@ -1,0 +1,17 @@
+/* Configuración (PN-09). Solo clases propias de esta pantalla; los tokens vienen de panel-ds.css. */
+.panel-root .pn-conf-seccion { margin-top: 32px; }
+.panel-root .pn-conf-seccion > h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; color: var(--ink); }
+.panel-root .pn-conf-seccion > .pn-conf-intro { margin: 0 0 12px; font-size: 14px; color: var(--ink-muted); }
+.panel-root .pn-conf-caja { display: flex; flex-direction: column; gap: 16px; padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); }
+.panel-root .pn-conf-quien { display: flex; align-items: center; gap: 12px; }
+.panel-root .pn-conf-foto { flex: none; width: 56px; height: 56px; border-radius: 999px; object-fit: cover; background: var(--muted); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; }
+.panel-root .pn-conf-quien-txt { min-width: 0; display: flex; flex-direction: column; }
+.panel-root .pn-conf-quien-txt strong { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .pn-conf-nota { margin: 0; font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-conf-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.panel-root .pn-conf-aviso { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 0; border-top: 1px solid var(--border); }
+.panel-root .pn-conf-aviso:first-child { border-top: 0; padding-top: 0; }
+.panel-root .pn-conf-aviso label { flex: 1; min-width: 0; display: flex; flex-direction: column; cursor: pointer; }
+.panel-root .pn-conf-aviso label span:first-child { font-size: 14px; font-weight: 500; }
+.panel-root .pn-conf-aviso label span + span { font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-conf-foto-chica { width: 32px; height: 32px; font-size: 12px; }
