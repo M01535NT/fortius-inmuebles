@@ -4,6 +4,7 @@ Lo principal está en la carpeta de arriba: `SPEC.md` (cómo debe funcionar el s
 
 | Carpeta o archivo | Qué contiene |
 | --- | --- |
+| `sitio/` | El sitio público nuevo: qué es (`SPEC.md`), en qué orden se hizo (`PLAN.md`) y cómo se hace (`DECISIONS.md`). Para el sitio mandan esos. |
 | `boceto-fortius-por-asuntos.html` | El boceto aprobado del panel. Se abre en el navegador y funciona con datos de ejemplo. |
 | `casos-reales.md` | Los casos reales con los que se prueba cada etapa. |
 | `metodologias/` | Las guías de trabajo que irán a la Biblioteca y las plantillas de mensaje. |

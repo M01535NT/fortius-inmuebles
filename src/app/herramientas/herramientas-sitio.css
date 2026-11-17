@@ -1,0 +1,27 @@
+/* Herramientas, Fortius II (etapa 5, 17/11/2026). Índice y páginas de cada calculadora. */
+.he-cuerpo { display: flex; flex-direction: column; gap: var(--s-7); padding-bottom: var(--s-seccion); }
+.he-tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--s-6); margin: 0; padding: 0; list-style: none; }
+.he-tarjeta { min-height: 420px; box-sizing: border-box; display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-8); border: 1px solid var(--s-line); border-radius: var(--s-r-grande); background: var(--s-bg); color: var(--s-ink); transition: border-color 250ms ease, transform 500ms var(--s-ease); }
+.he-tarjeta-clara { background: var(--s-card); }
+.he-tarjeta:hover { border-color: var(--s-accent); transform: translateY(-2px); }
+.he-tarjeta-cabeza { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-4); }
+.he-tarjeta-cabeza svg { flex: none; color: var(--s-accent); }
+.he-tarjeta-titulo { font-size: var(--s-type-seccion); font-weight: 500; line-height: 1.02; letter-spacing: var(--s-track-seccion); }
+.he-tarjeta-texto { font-size: var(--s-type-entrada); color: var(--s-ink-muted); }
+.he-vista { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-5); padding-top: var(--s-7); border-top: 1px solid var(--s-line); }
+.he-vista-dato { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
+.he-vista-cifra { font-size: var(--s-type-cifra); font-weight: 500; line-height: 1; letter-spacing: -0.04em; color: var(--s-ink); font-variant-numeric: tabular-nums; }
+.he-vista-lista { font-size: var(--s-type-sub); font-weight: 500; letter-spacing: var(--s-track-sub); color: var(--s-ink); }
+.he-curva { flex: none; width: 200px; height: 80px; color: var(--s-accent); }
+
+/* Páginas de cada calculadora */
+.he-calculadora { display: flex; flex-direction: column; gap: var(--s-7); padding-bottom: var(--s-seccion); }
+
+@media (max-width: 639px) {
+  .he-tarjeta { min-height: 340px; padding: var(--s-6); }
+  .he-curva { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .he-tarjeta { transition: none; }
+  .he-tarjeta:hover { transform: none; }
+}

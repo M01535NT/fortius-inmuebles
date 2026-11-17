@@ -2,6 +2,8 @@
 
 Es la identidad que usa hoy fortiusinmuebles.com. El panel no la usa: sigue su propio boceto (ver `SPEC.md`). El sitio conserva esta marca hasta que el titular pida cambiarla.
 
+**Sitio público:** desde el 17/11/2026 usa la marca Fortius II, descrita en [`docs/sitio/DECISIONS.md`](sitio/DECISIONS.md). Lo de abajo sigue valiendo para el panel, los PDF y el membrete.
+
 La marca comercial del producto es **Fortius Inmuebles**. La referencia es el logotipo arquitectónico compartido por el usuario: FORTIUS, portal bicolor en lugar de la O y descriptor REAL ESTATE & INVESTMENTS. Los SVG son una reconstrucción vectorial de la imagen de referencia, sin sus márgenes vacíos.
 
 | Uso | Color |

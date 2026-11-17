@@ -1,35 +1,33 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Calculator, Check, ChevronDown, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
-import { MortgageCalculator } from "@/components/property/mortgage-calculator";
-import { MortgageAnchorLink } from "@/components/property/mortgage-anchor-link";
-import { PropertyCard } from "@/components/property/property-card";
-import { PropertyDocuments } from "@/components/property/property-documents";
-import { PropertyFaq } from "@/components/property/property-faq";
-import { PropertyGallery } from "@/components/property/property-gallery";
-import { FichaSectionsNav } from "@/components/property/ficha-sections-nav";
 import { InventoryBackLink } from "@/components/property/inventory-back-link";
-import { PropertyLocation } from "@/components/property/property-location";
-import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
-import { VisitPlanner } from "@/components/property/visit-planner";
+import { PropertyDocuments } from "@/components/property/property-documents";
+import { Distintivo } from "@/components/sitio/distintivo";
+import { FichaAsesor } from "@/components/sitio/ficha-asesor";
+import { FichaBarra } from "@/components/sitio/ficha-barra";
+import { FichaHerramientas } from "@/components/sitio/ficha-herramientas";
+import { FichaVisor } from "@/components/sitio/ficha-visor";
+import { TarjetaPropiedad } from "@/components/sitio/tarjeta-propiedad";
 import { getPublicAdvisers, getPublicSettings } from "@/lib/backend/public";
 import { publicContact } from "@/lib/public-contact";
 import {
+  CATEGORIA_PUNTO_LABELS,
   ESTADO_LABELS,
   FUENTE_SUPERFICIE_LABELS,
   GRUPO_CARACTERISTICA_LABELS,
   formatPrecio,
   OPERACION_LABELS,
   TIPO_LABELS,
+  type CategoriaPunto,
   type Property,
 } from "@/data/propiedades";
+import { municipioDeZona } from "@/data/zonas";
 import { getConjunto, getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
 import { siteConfig } from "@/data/site";
 import { propertyLd, serializeLd } from "@/lib/seo/json-ld";
-import "./inmueble.css";
 import "./ficha.css";
 
 type Params = { slug: string };
@@ -86,18 +84,25 @@ function precioPorM2(p: Property) {
   const m2 = esTerreno ? p.ficha.terrenoM2 : p.ficha.construccionM2;
   if (!m2 || m2 <= 0) return null;
   const monto = Math.round(p.precio.monto / m2).toLocaleString("en-US");
-  return {
-    valor: `$${monto} ${p.precio.moneda}${p.operacion === "renta" ? " al mes" : ""}`,
-    base: esTerreno ? "por m² de terreno" : "por m² de construcción",
-  };
+  return { valor: `$${monto} ${p.precio.moneda}${p.operacion === "renta" ? " al mes" : ""}`, base: esTerreno ? "por m² de terreno" : "por m² de construcción" };
 }
 
+/* Lugares cercanos agrupados por categoría, en el orden en que las define el panel. */
+function lugaresPorGrupo(p: Property) {
+  const grupos = new Map<CategoriaPunto, Property["puntosDeInteres"]>();
+  for (const lugar of p.puntosDeInteres) {
+    const categoria = lugar.categoria ?? "otros";
+    grupos.set(categoria, [...(grupos.get(categoria) ?? []), lugar]);
+  }
+  return Array.from(grupos, ([categoria, lugares]) => ({ titulo: CATEGORIA_PUNTO_LABELS[categoria], lugares }));
+}
 
 /*
-  Ficha del inmueble · «Escenario» (titular, 18/10/2026): banda oscura con
-  título, precio y visor; franja de datos clave; secciones con índice fijo y
-  tarjeta de visita fija; similares al final. Las secciones sin datos no se
-  muestran.
+  Ficha del inmueble · Fortius II (17/11/2026), según el lienzo «Fortius desde
+  cero»: banda oscura con nombre, precio, marco limpio y cifras; luego
+  descripción, ficha técnica y documentos, mapa de la zona, alrededores,
+  herramientas con el precio, preguntas con el asesor y propiedades parecidas.
+  Los bloques sin datos no se muestran.
 */
 export default async function PropertyDetailPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
@@ -113,34 +118,47 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
   const revisada = fechaLarga(property.informacionPublica?.disponibilidadRevisadaEl, false);
   const share = propertyShare(property);
   const pageUrl = new URL(`/inventario/${property.slug}`, siteConfig.url).href;
-  const enquiryMessage = `Hola, me interesa ${property.titulo} (${property.codigo}). ${pageUrl}`;
-  const contact = publicContact(settings, enquiryMessage);
-  const asesor = advisers.find((a) => a.id === property.asesorId);
   const cerrada = property.estado === "vendida" || property.estado === "rentada";
-  const muestraCalculadora = property.creditoDisponible && property.operacion === "venta" && property.precio.modalidad === "publico";
-  const grupos = property.caracteristicas?.filter(grupo => grupo.elementos.length) ?? [];
+  const contact = publicContact(settings, cerrada
+    ? `Hola, vi ${property.titulo} (${property.codigo}) y quiero opciones parecidas. ${pageUrl}`
+    : `Hola, quiero agendar una visita a ${property.titulo} (${property.codigo}). ${pageUrl}`);
+  const asesor = advisers.find((a) => a.id === property.asesorId);
+  const precio = formatPrecio(property.precio);
+  const conHerramientas = property.precio.modalidad === "publico" && property.precio.moneda === "MXN" && !cerrada;
+  const grupos = property.caracteristicas?.filter((grupo) => grupo.elementos.length) ?? [];
+  const ofrece = grupos.length
+    ? grupos.map((grupo) => ({ titulo: GRUPO_CARACTERISTICA_LABELS[grupo.grupo], elementos: grupo.elementos }))
+    : property.amenidades.length ? [{ titulo: "Lo que ofrece", elementos: property.amenidades }] : [];
   const beneficios = property.beneficios ?? [];
   const documentos = property.documentos ?? [];
   const costos = property.costos ?? {};
-
-  const secciones = [
-    { id: "descripcion", label: "Descripción", show: property.descripcion.length > 0 },
-    { id: "caracteristicas", label: "Características", show: grupos.length > 0 || property.amenidades.length > 0 },
-    { id: "beneficios", label: "Beneficios", show: beneficios.length > 0 },
-    { id: "ubicacion", label: "Ubicación", show: true },
-    { id: "ficha-tecnica", label: "Ficha técnica", show: ficha.length > 0 },
-    { id: "costos", label: "Costos", show: true },
-    { id: "documentos", label: "Documentos", show: documentos.length > 0 },
-    { id: "preguntas", label: "Preguntas", show: true },
-  ].filter(section => section.show);
+  const [entrada, ...parrafos] = property.descripcion;
+  const alrededor = lugaresPorGrupo(property);
+  const municipio = municipioDeZona(property.zona);
+  const lugarMapa = property.zona.trim().toLowerCase() === municipio.toLowerCase() ? municipio : `${property.zona}, ${municipio}`;
+  const consultaMapa = encodeURIComponent(`${lugarMapa}, Baja California, México`);
+  const datosRenta = [
+    ...(porM2 ? [{ dato: `Precio ${porM2.base}`, valor: porM2.valor }] : []),
+    ...(costos.predialAnual != null ? [{ dato: "Predial anual", valor: money(costos.predialAnual, property) }] : []),
+    ...(costos.mantenimientoMensual != null ? [{ dato: "Mantenimiento mensual", valor: money(costos.mantenimientoMensual, property) }] : []),
+  ];
+  const cifras = [
+    property.ficha.construccionM2 != null ? { dato: "Construcción", valor: `${property.ficha.construccionM2} m²` } : null,
+    property.ficha.terrenoM2 != null ? { dato: "Terreno", valor: `${property.ficha.terrenoM2} m²` } : null,
+    property.ficha.recamaras ? { dato: "Recámaras", valor: String(property.ficha.recamaras) } : null,
+    property.ficha.banos ? { dato: "Baños", valor: String(property.ficha.banos) } : null,
+    property.ficha.estacionamientos ? { dato: "Estacionamientos", valor: String(property.ficha.estacionamientos) } : null,
+    property.ficha.antiguedad ? { dato: "Antigüedad", valor: property.ficha.antiguedad } : null,
+  ].filter((c): c is { dato: string; valor: string } => c !== null);
 
   return (
-    <main className="pg-page fe-page">
+    <main className="fi">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(propertyLd(property)) }} />
 
-      <section className="pg-hero fe-hero" aria-labelledby="fe-title">
-        <div className="pg-container fe-hero-body">
-          <nav className="fe-crumbs" aria-label="Ruta">
+      {/* 1–3. Nombre, precio, marco y cifras sobre la banda oscura */}
+      <section className="s-banda fi-banda" aria-labelledby="fi-titulo">
+        <div className="s-contenedor">
+          <nav className="fi-ruta" aria-label="Ruta">
             <InventoryBackLink />
             <span aria-hidden="true">/</span>
             <Link href={`/inventario?tipo=${property.tipo}&op=${property.operacion}`}>{TIPO_LABELS[property.tipo]} en {OPERACION_LABELS[property.operacion].toLowerCase()}</Link>
@@ -148,192 +166,174 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <span>{property.zona}</span>
           </nav>
 
-          <PropertyGallery
+          <div className="fi-cabeza">
+            <div className="fi-nombre">
+              <h1 id="fi-titulo" className="fi-titulo">{property.titulo}</h1>
+              <p className="fi-lugar">{property.zona}, {property.direccionAproximada}</p>
+            </div>
+            <div className="fi-precio">
+              <p className="fi-precio-monto">{precio}</p>
+              {porM2 && <p className="fi-precio-m2">{porM2.valor} {porM2.base}</p>}
+              <p className="fi-distintivos">
+                <Distintivo tono="acento">{OPERACION_LABELS[property.operacion]}{property.demo ? " · datos de ejemplo" : ""}</Distintivo>
+                {property.estado !== "disponible" && <Distintivo tono="aviso">{ESTADO_LABELS[property.estado]}</Distintivo>}
+                {property.colaboracion && <Distintivo>En colaboración</Distintivo>}
+                <Distintivo>{property.codigo}</Distintivo>
+              </p>
+            </div>
+          </div>
+
+          <FichaVisor
             imagenes={property.galeria}
             titulo={property.titulo}
             share={share}
             videoUrl={property.videoUrl}
             tour360Url={property.tour360Url}
             fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
-            ficha={{ titulo: property.titulo, codigo: property.codigo, zona: property.zona, precio: formatPrecio(property.precio), filas: ficha.slice(0, 4).map(({ label, value }) => ({ label, value })), demo: property.demo }}
           />
 
-          <div className="fe-hero-head">
-            <div>
-              <p className="fe-chips">
-                <span className="fe-chip is-solid">{OPERACION_LABELS[property.operacion]}</span>
-                {property.demo && <span className="fe-chip is-demo">Datos de ejemplo</span>}
-                <span className="fe-chip">{property.codigo}</span>
-                {property.estado !== "disponible" && <span className="fe-chip">{ESTADO_LABELS[property.estado]}</span>}
-              </p>
-              <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
-              <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona}, {property.direccionAproximada}</p>
-              {property.colaboracion && <p className="fe-collab">Inmueble en colaboración</p>}
-              {(publicada || revisada) && <p className="fe-dates">
-                {publicada && <span>Publicada el {publicada}</span>}
-                {revisada && <span>Disponibilidad revisada el {revisada}</span>}
-              </p>}
-            </div>
-            <div className="fe-price-block">
-              <p className="fe-price">{formatPrecio(property.precio)}</p>
-              {porM2 && <p className="fe-price-m2">{porM2.valor} {porM2.base}</p>}
-              {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario. <MortgageAnchorLink>Calcular mensualidad</MortgageAnchorLink></p>}
-              {property.operacion === "renta" && <p className="fe-price-note">Renta mensual. <a href="#costos">Ver costos</a></p>}
-            </div>
-          </div>
+          {cifras.length > 0 && <dl className="fi-cifras" aria-label="Características principales">
+            {cifras.map((c) => <div key={c.dato}><dd>{c.valor}</dd><dt>{c.dato}</dt></div>)}
+          </dl>}
 
-          {property.demo && <p className="fe-demo-note"><strong>Propiedad de demostración.</strong> Los datos y el precio son de ejemplo; esta ficha no anuncia una oferta real.</p>}
+          {(publicada || revisada) && <p className="fi-fechas">
+            {publicada && <span>Publicada el {publicada}</span>}
+            {revisada && <span>Disponibilidad revisada el {revisada}</span>}
+          </p>}
+          {property.demo && <p className="fi-demo"><strong>Propiedad de demostración.</strong> Los datos y el precio son de ejemplo; esta ficha no anuncia una oferta real.</p>}
         </div>
       </section>
 
-      {ficha.length > 0 && <section className="fe-facts" aria-label="Características principales">
-        <dl className="pg-container property-key-facts">
-          {ficha.map((row) => <div key={row.label}><dd>{row.value}</dd><dt>{row.label}</dt></div>)}
-        </dl>
-      </section>}
+      <div className="s-contenedor">
+        {(property.estado !== "disponible" || conjunto.plaza) && <div className="fi-avisos">
+          {property.estado === "apartada" && <p className="fi-aviso">Apartada. Si quieres, te escribimos si se libera y te mostramos opciones parecidas.</p>}
+          {property.estado === "rentada" && <p className="fi-aviso">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
+          {property.estado === "vendida" && <p className="fi-aviso">Esta propiedad ya se vendió. Podemos mostrarte opciones similares.</p>}
+          {conjunto.plaza && <p className="fi-aviso">Forma parte de <Link href={`/inventario/${conjunto.plaza.slug}`}>{conjunto.plaza.titulo}</Link>.</p>}
+        </div>}
 
-      <div className="pg-container fe-layout">
-        <div className="fe-main">
-          <FichaSectionsNav sections={secciones} />
-
-          {property.estado === "apartada" && <p className="fe-alert">Apartada. Si quieres, te escribimos si se libera y te mostramos opciones parecidas.</p>}
-          {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
-          {property.estado === "vendida" && <p className="fe-alert">Esta propiedad ya se vendió. Podemos mostrarte opciones similares.</p>}
-          {conjunto.plaza && <p className="fe-alert">Forma parte de <Link href={`/inventario/${conjunto.plaza.slug}`} className="font-semibold underline underline-offset-4">{conjunto.plaza.titulo}</Link>.</p>}
-
-          {property.descripcion.length > 0 && <section id="descripcion" className="fe-section" aria-label="Descripción">
-            <p className="pg-eyebrow pg-eyebrow-ink">Descripción</p>
-            <div className="fe-description">
-              {property.descripcion.map((parrafo, index) => <p key={parrafo.slice(0, 32)} className={index === 0 ? "is-lead" : undefined}>{parrafo}</p>)}
+        {/* 4. Descripción y lo que ofrece */}
+        {(entrada || ofrece.length > 0) && <section className="fi-seccion fi-descripcion" aria-labelledby="fi-desc">
+          {entrada && <p className="fi-entrada">{entrada}</p>}
+          <div className="fi-desc-cuerpo">
+            <div>
+              <h2 id="fi-desc" className="fi-etiqueta">Descripción</h2>
+              {parrafos.map((parrafo) => <p key={parrafo.slice(0, 32)} className="fi-texto">{parrafo}</p>)}
+              {beneficios.length > 0 && <ul className="fi-beneficios">
+                {beneficios.map((b) => <li key={b.titulo}><strong>{b.titulo}</strong>{b.texto && <span>{b.texto}</span>}</li>)}
+              </ul>}
             </div>
-          </section>}
-
-          {(grupos.length > 0 || property.amenidades.length > 0) && <section id="caracteristicas" className="fe-section" aria-labelledby="fe-features">
-            <h2 id="fe-features" className="fe-h2">Todo lo que tiene</h2>
-            <div className="fe-groups">
-              {(grupos.length ? grupos.map(grupo => ({ titulo: GRUPO_CARACTERISTICA_LABELS[grupo.grupo], elementos: grupo.elementos })) : [{ titulo: "Lo que ofrece", elementos: property.amenidades }]).map(grupo => (
-                <div key={grupo.titulo} className="fe-card fe-group">
-                  <h3>{grupo.titulo}</h3>
-                  <ul>{grupo.elementos.map(elemento => <li key={elemento}><Check size={16} strokeWidth={2.4} aria-hidden="true" />{elemento}</li>)}</ul>
+            {ofrece.length > 0 && <div className="fi-ofrece">
+              {ofrece.map((grupo) => (
+                <div key={grupo.titulo}>
+                  <h3 className="fi-etiqueta">{grupo.titulo}</h3>
+                  <ul>{grupo.elementos.map((e) => <li key={e}><svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>{e}</li>)}</ul>
                 </div>
               ))}
-            </div>
-          </section>}
+            </div>}
+          </div>
+        </section>}
 
-          {beneficios.length > 0 && <section id="beneficios" className="fe-section" aria-labelledby="fe-benefits">
-            <h2 id="fe-benefits" className="fe-h2">Por qué destaca</h2>
-            <ol className="fe-benefits">
-              {beneficios.map((beneficio) => <li key={beneficio.titulo}>
-                <h3>{beneficio.titulo}</h3>
-                {beneficio.texto && <p>{beneficio.texto}</p>}
-              </li>)}
-            </ol>
-          </section>}
-
-          <section id="ubicacion" className="fe-section" aria-labelledby="fe-location">
-            <h2 id="fe-location" className="fe-h2">Qué hay cerca</h2>
-            <PropertyLocation property={property} />
-          </section>
-
-          {ficha.length > 0 && <section id="ficha-tecnica" className="fe-section" aria-labelledby="fe-tech">
-            <h2 id="fe-tech" className="fe-h2">Ficha técnica</h2>
-            <dl className="fe-card fe-tech">
+        {/* 5. Ficha técnica y documentos */}
+        {(ficha.length > 0 || documentos.length > 0 || datosRenta.length > 0) && <section className="fi-seccion fi-tecnica" aria-labelledby="fi-tec">
+          <div>
+            <h2 id="fi-tec" className="fi-h2">Ficha técnica</h2>
+            <dl className="fi-tabla">
               {ficha.map((row) => <div key={row.label}>
                 <dt>{row.label}</dt>
-                <dd>{row.value}</dd>
-                {row.source && <dd className={"fe-source" + (row.confirmed ? " is-confirmed" : "")}>{row.source}</dd>}
+                <dd>{row.value}{row.source && <span className={"fi-fuente" + (row.confirmed ? " is-confirmada" : "")}>{row.source}</span>}</dd>
               </div>)}
+              {datosRenta.map((d) => <div key={d.dato}><dt>{d.dato}</dt><dd>{d.valor}</dd></div>)}
+              {property.informacionPublica?.ocupacionEntrega && <div><dt>Entrega</dt><dd>{property.informacionPublica.ocupacionEntrega}</dd></div>}
             </dl>
-            <div className="fe-card fe-availability">
-              <h3>Disponibilidad y entrega</h3>
-              <p>{property.informacionPublica?.disponibilidadRevisadaEl
-                ? `Disponibilidad revisada el ${new Date(`${property.informacionPublica.disponibilidadRevisadaEl}T12:00:00Z`).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}. Confírmala antes de programar una visita.`
-                : "Confirma la disponibilidad antes de programar una visita."}</p>
-              {property.informacionPublica?.ocupacionEntrega ? <p>{property.informacionPublica.ocupacionEntrega}</p> : null}
-            </div>
-          </section>}
-
-          <section className="fe-section" aria-labelledby="fe-docs">
-            <h2 id="fe-docs" className="fe-h2">Para decidir con números</h2>
-            <div className="fe-docs-grid">
-              <div id="costos" className="fe-card fe-costs">
-                <div className="fe-card-head">
-                  <h3>{property.operacion === "renta" ? "Costos de la renta" : "Costos"}</h3>
-                </div>
-                <dl className="fe-costs-list">
-                  <div><dt>{property.operacion === "renta" ? "Renta mensual" : "Precio"}</dt><dd>{formatPrecio(property.precio)}</dd></div>
-                  {porM2 && <div><dt>Precio {porM2.base}</dt><dd>{porM2.valor}</dd></div>}
-                  {costos.predialAnual != null && <div><dt>Predial anual</dt><dd>{money(costos.predialAnual, property)}</dd></div>}
-                  {costos.mantenimientoMensual != null && <div><dt>Mantenimiento mensual</dt><dd>{money(costos.mantenimientoMensual, property)}</dd></div>}
-                </dl>
-                {(property.operacion === "venta" || muestraCalculadora) && <div className="fe-costs-tools">
-                  {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="fe-costs-tool">
-                    <Calculator size={18} strokeWidth={1.7} aria-hidden="true" />
-                    <span><strong>Gastos de cierre</strong><span>Cuánto necesitas además del precio.</span></span>
-                    <ArrowRight size={18} aria-hidden="true" />
-                  </Link>}
-                  {muestraCalculadora && property.precio.modalidad === "publico" ? (
-                    <details className="fe-mortgage">
-                      <summary className="fe-costs-tool">
-                        <Calculator size={18} strokeWidth={1.7} aria-hidden="true" />
-                        <span><strong>Mensualidad con crédito</strong><span>Según enganche, plazo y tasa.</span></span>
-                        <ChevronDown size={18} aria-hidden="true" className="fe-mortgage-icon" />
-                      </summary>
-                      <div id="mensualidad" className="fe-mortgage-body"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
-                    </details>
-                  ) : null}
-                </div>}
-              </div>
-              {documentos.length > 0 && <div id="documentos" className="fe-docs">
-                <PropertyDocuments documentos={documentos} slug={property.slug} codigo={property.codigo} />
-              </div>}
-            </div>
-          </section>
-
-          <section id="preguntas" className="fe-section" aria-labelledby="fe-faq">
-            <h2 id="fe-faq" className="fe-h2">Antes de visitarla</h2>
-            <PropertyFaq />
-          </section>
-        </div>
-
-        <aside className="fe-aside" aria-label="Visita y contacto">
-          {/* Vendida o rentada: ya no se agenda visita; se ofrecen opciones parecidas. */}
-          {cerrada ? <div id="interes" className="fe-visit">
-            <p className="fe-visit-title">{property.estado === "vendida" ? "Ya se vendió." : "Ya se rentó."}</p>
-            <p className="fe-visit-note">Te mostramos opciones parecidas o te avisamos cuando llegue algo similar.</p>
-            <Link href={`/inventario?op=${property.operacion}`} className="pg-btn fe-visit-cta">Ver opciones parecidas</Link>
-            {(contact.whatsapp || contact.phoneHref || contact.emailHref) ? <div className="fe-visit-channels">
-              {contact.whatsapp && <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} aria-hidden="true" />WhatsApp</a>}
-              {contact.phoneHref && <a href={contact.phoneHref}><Phone size={16} aria-hidden="true" />Llamar</a>}
-              {contact.emailHref && <a href={contact.emailHref}><Mail size={16} aria-hidden="true" />Correo</a>}
-            </div> : null}
-          </div> : <VisitPlanner slug={property.slug} codigo={property.codigo} titulo={property.titulo}
-            asesor={asesor ? { nombre: asesor.nombre, cargo: asesor.cargo, iniciales: asesor.iniciales } : undefined}
-            channels={{ whatsapp: contact.whatsapp, phoneHref: contact.phoneHref, emailHref: contact.emailHref }} />}
-        </aside>
+            <p className="fi-nota">{revisada ? `Disponibilidad revisada el ${revisada}. ` : ""}Confírmala antes de programar una visita.</p>
+          </div>
+          {documentos.length > 0 && <div id="documentos" className="fi-documentos">
+            <PropertyDocuments documentos={documentos} slug={property.slug} codigo={property.codigo} />
+          </div>}
+        </section>}
       </div>
 
-      {conjunto.locales.length > 0 && <section className="fe-related inv-page" aria-labelledby="fe-units">
-        <div className="pg-container">
-          <h2 id="fe-units" className="fe-h2">Locales de esta plaza</h2>
-          <div className="property-catalog-grid">
-            {conjunto.locales.map((p) => <PropertyCard key={p.slug} property={p} />)}
-          </div>
+      {/* 6. Mapa de la zona, a todo lo ancho */}
+      <section className="fi-mapa" aria-labelledby="fi-zona">
+        <iframe src={`https://www.google.com/maps?q=${consultaMapa}&z=14&output=embed`} title={`Mapa de ${property.zona}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+        <div className="fi-mapa-tarjeta">
+          <h2 id="fi-zona" className="fi-mapa-zona">{property.zona}</h2>
+          <p>Zona aproximada. La ubicación exacta se comparte al agendar la visita.</p>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${consultaMapa}`} target="_blank" rel="noopener noreferrer" className="s-btn s-btn-contorno s-btn-chico">Abrir en Maps</a>
         </div>
-      </section>}
+      </section>
 
-      {related.length > 0 && <section className="fe-related inv-page" aria-labelledby="fe-related">
-        <div className="pg-container">
-          <h2 id="fe-related" className="fe-h2">También te puede interesar</h2>
-          <div className="property-catalog-grid">
-            {related.map((p) => <PropertyCard key={p.slug} property={p} />)}
+      <div className="s-contenedor">
+        {/* 7. Qué hay alrededor */}
+        {alrededor.length > 0 && <section className="fi-seccion" aria-labelledby="fi-alrededor">
+          <h2 id="fi-alrededor" className="fi-h2">Qué hay alrededor</h2>
+          <div className="fi-alrededor">
+            {alrededor.map((grupo) => (
+              <div key={grupo.titulo}>
+                <h3 className="fi-h3">{grupo.titulo}</h3>
+                <ul>{grupo.lugares.map((l) => <li key={l.lugar}><span>{l.lugar}</span><span className="fi-minutos">{l.minutos} min</span></li>)}</ul>
+              </div>
+            ))}
           </div>
-        </div>
-      </section>}
+          <p className="fi-nota">Tiempos aproximados en auto.</p>
+        </section>}
 
-      <PropertyMobileCta settings={settings} message={cerrada
-        ? `Hola, vi ${property.titulo} (${property.codigo}) y quiero opciones parecidas. ${pageUrl}`
-        : `Hola, quiero agendar una visita a ${property.titulo} (${property.codigo}). ${pageUrl}`} />
+        {/* 8. Herramientas con el precio del inmueble */}
+        {conHerramientas && property.precio.modalidad === "publico" && <section className="fi-seccion" aria-labelledby="fi-numeros">
+          <h2 id="fi-numeros" className="fi-h2">{property.operacion === "renta" ? "Lo que pagas para entrar" : "Haz tus números"}</h2>
+          <FichaHerramientas precio={property.precio.monto} operacion={property.operacion} credito={property.creditoDisponible}
+            zona={property.zona} mantenimientoMensual={costos.mantenimientoMensual} />
+        </section>}
+
+        {/* 9–10. Preguntas y asesor */}
+        <section className="fi-seccion fi-contacto" aria-labelledby="fi-preguntas">
+          <div>
+            <h2 id="fi-preguntas" className="fi-h2">Antes de visitarla</h2>
+            <div className="fi-preguntas">
+              {[
+                { q: "¿Cómo agendo una visita?", a: "Propón un día junto al asesor. Te confirmamos la hora." },
+                { q: property.operacion === "renta" ? "¿Qué piden para rentar?" : "¿Puedo comprar con crédito hipotecario?", a: property.operacion === "renta" ? "Identificación, comprobante de ingresos y, según el dueño, aval o póliza jurídica." : property.creditoDisponible ? "Sí, el dueño acepta crédito. El banco confirma la aprobación y las condiciones." : "No: este inmueble se vende de contado." },
+                { q: "¿El precio es negociable?", a: "Haz tu oferta por escrito y te damos la respuesta del dueño." },
+                { q: property.operacion === "renta" ? "¿Hay gastos además de la renta?" : "¿Qué gastos hay además del precio?", a: property.operacion === "renta" ? "El depósito en garantía y, si aplica, el mantenimiento. Te los confirmamos antes de firmar." : "El impuesto de adquisición, el registro, la notaría y, con crédito, el avalúo y la apertura." },
+              ].map((item) => (
+                <details key={item.q} className="fi-pregunta">
+                  <summary><span>{item.q}</span><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+          <aside aria-label="Visita y contacto">
+            {cerrada ? <div id="interes" className="fa">
+              <p className="fa-titulo">{property.estado === "vendida" ? "Ya se vendió." : "Ya se rentó."}</p>
+              <p className="fa-guia">Te mostramos opciones parecidas o te avisamos cuando llegue algo similar.</p>
+              <Link href={`/inventario?op=${property.operacion}`} className="s-btn s-btn-relleno s-btn-grande fa-cta">Ver opciones parecidas</Link>
+              {(contact.whatsapp || contact.phoneHref || contact.emailHref) ? <div className="fa-canales">
+                {contact.whatsapp && <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" className="s-btn s-btn-contorno s-btn-chico">WhatsApp</a>}
+                {contact.phoneHref && <a href={contact.phoneHref} className="s-btn s-btn-contorno s-btn-chico">Llamar</a>}
+                {contact.emailHref && <a href={contact.emailHref} className="s-btn s-btn-contorno s-btn-chico">Correo</a>}
+              </div> : null}
+            </div> : <FichaAsesor slug={property.slug} codigo={property.codigo} titulo={property.titulo}
+              asesor={asesor ? { nombre: asesor.nombre, cargo: asesor.cargo, iniciales: asesor.iniciales } : undefined}
+              canales={{ whatsapp: contact.whatsapp, phoneHref: contact.phoneHref, emailHref: contact.emailHref }} />}
+          </aside>
+        </section>
+
+        {/* 11. Locales de la plaza y propiedades parecidas */}
+        {conjunto.locales.length > 0 && <section className="fi-seccion" aria-labelledby="fi-locales">
+          <h2 id="fi-locales" className="fi-h2">Locales de esta plaza</h2>
+          <div className="fi-tarjetas">{conjunto.locales.map((p) => <TarjetaPropiedad key={p.slug} property={p} />)}</div>
+        </section>}
+        {related.length > 0 && <section className="fi-seccion" aria-labelledby="fi-parecidas">
+          <h2 id="fi-parecidas" className="fi-h2">También te puede interesar</h2>
+          <div className="fi-tarjetas">{related.map((p) => <TarjetaPropiedad key={p.slug} property={p} />)}</div>
+        </section>}
+      </div>
+
+      <FichaBarra asesor={asesor ? { nombre: asesor.nombre, iniciales: asesor.iniciales } : undefined} precio={precio}
+        whatsapp={contact.whatsapp || undefined}
+        alternativa={cerrada ? { texto: "Ver opciones parecidas", href: `/inventario?op=${property.operacion}` } : undefined} />
     </main>
   );
 }

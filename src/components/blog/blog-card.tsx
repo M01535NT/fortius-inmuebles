@@ -5,34 +5,31 @@ import { getBlogCover } from "@/data/blog-covers";
 import { BlogCoverCredit } from "@/components/blog/blog-cover-credit";
 import { BLOG_CATEGORIES, formatBlogDate, postCategory, postDate, postFormat, readingMinutes } from "@/lib/blog-editorial";
 
-/* Tarjeta del blog (boceto Blog): portada, formato · tema, título, resumen y
-   fecha. La destacada se vuelve nocturna; la vista de lista pone la foto al lado. */
+/*
+  Tarjeta del blog, Fortius II (etapa 5, 17/11/2026): portada con esquinas de 16 px, «Guía ·
+  tema» en una línea de apoyo, título, resumen y fecha. La destacada pone la foto grande al
+  lado; la vista de lista, una foto chica.
+*/
 export function BlogCard({ post, featured = false, view = "cuadricula" }: { post: Post; featured?: boolean; view?: "cuadricula" | "lista" }) {
   const cover = getBlogCover(post.slug);
   const category = postCategory(post);
   const list = view === "lista";
-  const sizes = list ? "(max-width: 639px) 100vw, 220px" : featured ? "(max-width: 1023px) 100vw, 60vw" : "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw";
+  const sizes = list ? "(max-width: 639px) 100vw, 240px" : featured ? "(max-width: 1023px) 100vw, 60vw" : "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw";
+  const tipo = [postFormat(post) === "actualidad" ? "Actualidad" : "Guía", category ? BLOG_CATEGORIES[category] : ""].filter(Boolean).join(" · ");
   return (
-    <article className={"bp-card" + (featured ? " is-featured" : "") + (list ? " is-list" : "")}>
-      <Link href={`/blog/${post.slug}`}>
-        {cover && <span className="bp-card-media"><Image src={cover.src} width={cover.width} height={cover.height} alt={cover.alt} sizes={sizes} /></span>}
-        <span className="bp-card-body">
-          <span className="bp-card-kicker">
-            {featured && <span className="bp-featured-tag">Destacado</span>}
-            <span className="pg-chip">{postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}</span>
-            {category && <span className="pg-chip">{BLOG_CATEGORIES[category]}</span>}
-          </span>
-          <h2>{post.titulo}</h2>
-          <span className="bp-card-summary">{post.resumen}</span>
-          <span className="bp-card-meta">
-            <span>
-              {post.publicadoEl ? "" : "Actualizado el "}<time dateTime={postDate(post)}>{formatBlogDate(postDate(post))}</time>
-              {" · "}{readingMinutes(post)} min de lectura
-            </span>
+    <article className={"bl-tarjeta" + (featured ? " bl-tarjeta-destacada" : "") + (list ? " bl-tarjeta-lista" : "")}>
+      <Link href={`/blog/${post.slug}`} className="bl-tarjeta-enlace">
+        {cover && <span className="bl-tarjeta-foto"><Image src={cover.src} width={cover.width} height={cover.height} alt={cover.alt} sizes={sizes} /></span>}
+        <span className="bl-tarjeta-cuerpo">
+          <h3 className="bl-tarjeta-titulo">{post.titulo}</h3>
+          <span className="bl-tarjeta-resumen">{post.resumen}</span>
+          <span className="bl-tarjeta-fecha">
+            {tipo} · {post.publicadoEl ? "" : "Actualizado el "}<time dateTime={postDate(post)}>{formatBlogDate(postDate(post))}</time>
+            {" · "}{readingMinutes(post)} min de lectura
           </span>
         </span>
-        {cover?.credit && <span className="bp-card-credit"><BlogCoverCredit cover={cover} /></span>}
       </Link>
+      {cover?.credit && <span className="bl-tarjeta-credito"><BlogCoverCredit cover={cover} /></span>}
     </article>
   );
 }

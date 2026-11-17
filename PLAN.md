@@ -4,6 +4,8 @@ Qué hay hoy, qué falta para terminar y en qué orden. Cómo debe funcionar el 
 
 **Actualizado:** 17 de noviembre de 2026.
 
+El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla del panel.
+
 **Este es el plan vigente al día de hoy.** Va a cambiar conforme avance el trabajo. Si un cambio que pidas contradice este plan o `SPEC.md`, el agente te avisa y te propone corregirlo aquí o abrir una rama aparte para ese cambio (ver la sección 19 de `SPEC.md`).
 
 ---

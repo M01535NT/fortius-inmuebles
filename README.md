@@ -2,7 +2,7 @@
 
 Sitio público y panel operativo de Fortius Inmuebles (Tijuana, BC): [fortiusinmuebles.com](https://fortiusinmuebles.com).
 
-- **Sitio:** inmuebles, servicios, blog y calculadoras.
+- **Sitio:** inmuebles, servicios, blog y calculadoras. Sus documentos están en [`docs/sitio/`](docs/sitio/).
 - **Panel:** el nuevo se construye en `/panel`; el anterior, `/admin`, sigue en uso mientras tanto.
 
 Next.js, React, TypeScript y Tailwind; Supabase (autenticación, datos y archivos con RLS); Vercel. Producción se publica desde `main`.

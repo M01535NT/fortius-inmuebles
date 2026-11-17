@@ -15,6 +15,7 @@ Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregún
 | Cómo se ve y cómo responde el panel (boceto aprobado) | `docs/boceto-fortius-por-asuntos.html` |
 | Casos reales con los que se prueba cada etapa | `docs/casos-reales.md` |
 | Metodologías que se copian a un asunto | `docs/metodologias/` |
+| Sitio público (qué es, orden y cómo se hace; mandan para el sitio) | `docs/sitio/SPEC.md`, `docs/sitio/PLAN.md`, `docs/sitio/DECISIONS.md` |
 | Marca del sitio público | `docs/sitio-publico/marca.md` |
 | Lo demás (operación, respaldos, privacidad, formatos, cálculos, legal) | `docs/README.md` |
 
@@ -41,7 +42,7 @@ Las claves del tipo `RP-00` o `DEC-00` y las menciones a `DECISIONES.md` que apa
 
 ## Sitio público
 
-Conserva su identidad actual (`docs/sitio-publico/marca.md`) hasta que el titular pida cambiarla. Sin cejas (antetítulos sobre los títulos).
+Manda el boceto aprobado del rediseño y lo escrito en `docs/sitio/`; donde `docs/sitio-publico/marca.md` lo contradiga, manda `docs/sitio/`. Sus estilos viven bajo la clase `sitio` (`src/app/sitio.css`) y sus piezas en `src/components/sitio/`; no tocan los estilos, el logo ni el tema del panel. Lo que el boceto no define se pregunta y se anota en `docs/sitio/`. Sin cejas (antetítulos sobre los títulos).
 
 ## Formatos y documentos
 

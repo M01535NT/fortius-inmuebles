@@ -1,23 +1,18 @@
 import type { Metadata } from "next";
 
 import { DocumentLink } from "@/components/navigation/document-link";
+import { CabezaPagina } from "@/components/sitio/pagina";
 
 export const metadata: Metadata = { title: "Página no encontrada" };
 
-/* 404 con la misma letra y botones que las páginas interiores. */
+/* 404, Fortius II (etapa 7, 17/11/2026): la misma cabeza de las páginas interiores. */
 export default function NotFound() {
   return (
-    <main className="pg-page">
-      <section className="pg-hero nf-hero">
-        <div className="pg-container pg-hero-body">
-          <h1 className="pg-title">Página no encontrada.</h1>
-          <p className="pg-lead">La dirección cambió o ya no existe.</p>
-          <div className="nf-actions">
-            <DocumentLink href="/" className="pg-btn">Volver al inicio</DocumentLink>
-            <DocumentLink href="/inventario" className="pg-btn pg-btn-ghost">Ver propiedades</DocumentLink>
-          </div>
-        </div>
-      </section>
+    <main className="s-pagina">
+      <CabezaPagina titulo="Página no encontrada." entrada="La dirección cambió o ya no existe.">
+        <DocumentLink href="/" className="s-btn s-btn-relleno">Volver al inicio</DocumentLink>
+        <DocumentLink href="/inventario" className="s-btn s-btn-contorno">Ver propiedades</DocumentLink>
+      </CabezaPagina>
     </main>
   );
 }

@@ -4,14 +4,9 @@
   panel las excluye para no correrlas contra otro servidor ni con el `.env.local` real.
 */
 export const PUBLIC_SPECS = [
-  "home-commercial.spec.ts",
   "pwa-install.spec.ts",
-  "fortius-editorial.spec.ts",
-  "home-experience.spec.ts",
-  "editorial-home.spec.ts",
-  "public-motion-experience.spec.ts",
   "public-navigation.spec.ts",
-  "blog-editorial.spec.ts",
   "property-pdf.spec.ts",
   "financial-tools.spec.ts",
+  "sitio-fortius-ii.spec.ts",
 ];

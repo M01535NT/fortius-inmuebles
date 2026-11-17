@@ -14,6 +14,7 @@ Este documento describe el sistema completo: qué es, qué partes tiene y qué r
 | El boceto | Cómo se ve y cómo responde el panel. Se abre en el navegador y funciona con datos de ejemplo | `docs/boceto-fortius-por-asuntos.html` |
 | Los casos reales | Los casos que el panel debe poder llevar de principio a fin | `docs/casos-reales.md` |
 | Las metodologías | Guías de trabajo que se copian a un asunto | `docs/metodologias/` |
+| El sitio público | Qué es el sitio nuevo, en qué orden se hizo y cómo se hace. Para el sitio público mandan esos | `docs/sitio/` |
 
 ---
 

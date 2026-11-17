@@ -8,14 +8,11 @@ import InventarioPage from "@/app/inventario/page";
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 import { ClosingCostsCalculator } from "@/components/tools/closing-costs-calculator";
-import { InventoryExplorer } from "@/components/property/inventory-explorer";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
-import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
 import type { Property } from "@/data/propiedades";
+import { aplicarFiltros, filtrosDesdeParams, paramsDesdeFiltros } from "@/lib/inventario-busqueda";
 
-vi.mock("@/components/magicui/blur-fade", () => ({ BlurFade: ({ children }: React.PropsWithChildren) => children }));
-vi.mock("@/components/property/property-card", () => ({ PropertyCard: ({ property }: { property: Property }) => <article>{property.titulo}</article> }));
 vi.mock("@/lib/inventario", () => ({ getPropiedades: async () => [] }));
 vi.mock("@/lib/gsap", () => ({
   EASE_OUT: "none",
@@ -82,42 +79,30 @@ const properties: Property[] = [
   { ...base, slug: "usd", titulo: "Casa USD", precio: { modalidad: "publico", monto: 300_000, moneda: "USD" }, publicadaEl: "2026-02-01" },
 ];
 
-test("inventory price operations use one selected currency and persist it in the URL", async () => {
-  window.history.replaceState(null, "", "/inventario");
-  render(<InventoryExplorer propiedades={properties} />);
-  fireEvent.change(screen.getByLabelText("Ordenar por"), { target: { value: "precio-asc" } });
-  await waitFor(() => expect(window.location.search).toContain("moneda=MXN"));
-  expect(screen.getByText("Casa MXN")).toBeTruthy();
-  expect(screen.queryByText("Casa USD")).toBeNull();
-  fireEvent.change(screen.getByLabelText("Moneda"), { target: { value: "USD" } });
-  await waitFor(() => expect(window.location.search).toContain("moneda=USD"));
-  expect(screen.getByText("Casa USD")).toBeTruthy();
-  expect(screen.queryByText("Casa MXN")).toBeNull();
+test("inventory price filters use one selected currency and keep it in the URL", () => {
+  const usd = filtrosDesdeParams(new URLSearchParams("moneda=USD&orden=precio-asc"));
+  expect(aplicarFiltros(properties, usd).map((p) => p.titulo)).toEqual(["Casa USD"]);
+  expect(paramsDesdeFiltros(usd)).toContain("moneda=USD");
+  const mxn = filtrosDesdeParams(new URLSearchParams("moneda=MXN"));
+  expect(aplicarFiltros(properties, mxn).map((p) => p.titulo)).toEqual(["Casa MXN"]);
 });
 
-test("legacy price URLs default to MXN and explicit all currency remains available", async () => {
-  window.history.replaceState(null, "", "/inventario?min=100000");
-  render(<InventoryExplorer propiedades={properties} />);
-  await waitFor(() => expect((screen.getByLabelText("Moneda") as HTMLSelectElement).value).toBe("MXN"));
-  fireEvent.change(screen.getByLabelText("Moneda"), { target: { value: "todas" } });
-  fireEvent.change(screen.getByLabelText("Ordenar por"), { target: { value: "recientes" } });
-  expect(screen.getByText("Casa MXN")).toBeTruthy();
-  expect(screen.getByText("Casa USD")).toBeTruthy();
+test("legacy price URLs default to MXN and explicit all currency remains available", () => {
+  expect(filtrosDesdeParams(new URLSearchParams("min=100000")).moneda).toBe("MXN");
+  const todas = filtrosDesdeParams(new URLSearchParams("moneda=todas"));
+  expect(todas.moneda).toBe("todas");
+  expect(aplicarFiltros(properties, todas).map((p) => p.titulo).sort()).toEqual(["Casa MXN", "Casa USD"]);
 });
 
-test("visit CTA targets the current property form and records visit intent", async () => {
+test("visit intent from the URL preselects «visita» in the property form", async () => {
   window.history.replaceState(null, "", "/inventario/casa-prueba?intencion=visita#interes");
-  const cta = renderToStaticMarkup(<PropertyMobileCta />);
-  expect(cta).toContain('href="#interes"');
-  expect(cta).toContain("Solicitar visita");
-  expect(cta).not.toContain("Agendar visita");
   render(<PropertyInterestForm slug="casa-prueba" codigo="C-1" titulo="Casa prueba" />);
   expect(await screen.findByDisplayValue("visita")).toBeTruthy();
   expect(screen.getByRole("button", { name: "Solicitar visita" })).toBeTruthy();
 });
 
 test("inventory and contact routes expose one page H1", async () => {
-  const inventory = renderToStaticMarkup(await InventarioPage());
+  const inventory = renderToStaticMarkup(await InventarioPage({ searchParams: Promise.resolve({}) }));
   const contact = renderToStaticMarkup(<ContactoPage />);
   expect((inventory.match(/<h1/g) ?? [])).toHaveLength(1);
   expect((contact.match(/<h1/g) ?? [])).toHaveLength(1);

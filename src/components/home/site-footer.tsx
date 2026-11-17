@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import * as motion from "motion/react-m";
 import { ArrowUp, MessageCircle } from "lucide-react";
-import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
-import { ThemeToggle } from "@/components/home/theme-toggle";
+import { Boton } from "@/components/sitio/boton";
+import { InterruptorTema } from "@/components/sitio/interruptor-tema";
+import { SitioLogo } from "@/components/sitio/logo";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import type { SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
+import styles from "./site-footer.module.css";
 
 const sections = [
   { title: "Vender", links: [
@@ -35,11 +36,14 @@ const sections = [
   ] },
 ];
 
-function Facebook({ size }: { size: number; strokeWidth?: number }) {
+function Facebook({ size }: { size: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 22v-9h3l.5-4H14V7c0-1.15.32-2 2-2h2V1.4A24 24 0 0 0 15 1c-3 0-5 1.82-5 5v3H7v4h3v9z" /></svg>;
 }
-function Instagram({ size, strokeWidth = 1.7 }: { size: number; strokeWidth?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>;
+function Instagram({ size }: { size: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>;
+}
+function WhatsApp({ size }: { size: number }) {
+  return <MessageCircle size={size} strokeWidth={1.7} aria-hidden="true" />;
 }
 
 function socialProfile(value: string | undefined, domain: string) {
@@ -52,9 +56,10 @@ function socialProfile(value: string | undefined, domain: string) {
 }
 
 /*
-  Pie (30/10/2026): una sola invitación sobre fondo claro con dos acciones y, debajo, la
-  franja azul noche con la marca, el contacto, tres columnas, los avisos legales y el
-  cambio de tema. Solo se muestran las redes que existen.
+  Pie, Fortius II (17/11/2026). Fuera del inicio y de Contacto abre con una banda oscura de invitación.
+  Debajo, sobre el fondo del tema: logo y contacto, tres columnas con líneas finas y una franja final
+  con los avisos, «Acceso al panel», el interruptor de tema y «Volver arriba».
+  Solo se muestran las redes que existen.
 */
 export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   const pathname = usePathname();
@@ -64,70 +69,65 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   const socialLinks = [
     { name: "Instagram", href: socialProfile(settings?.instagram, "instagram.com"), Icon: Instagram },
     { name: "Facebook", href: socialProfile(settings?.facebook, "facebook.com"), Icon: Facebook },
-    { name: "WhatsApp", href: contact.whatsapp, Icon: MessageCircle },
+    { name: "WhatsApp", href: contact.whatsapp, Icon: WhatsApp },
   ].filter((item) => item.href);
   if (pathname.startsWith("/admin")) return null;
-  /* El inicio cierra con su propia invitación y Contacto ya es la invitación (12/11/2026). */
-  const showInvitation = pathname !== "/" && pathname !== "/contacto";
+  /* El inicio y Vender cierran con su propia invitación y Contacto ya es la invitación (17/11/2026). */
+  const showInvitation = !["/", "/contacto", "/vender-propiedad"].includes(pathname);
 
   return (
-    <footer className="nx-footer">
-      {showInvitation && <div className="nx-footer-cta">
-        <motion.div className="nx-container nx-footer-intro" initial={false}
-          whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 1, ease: [0.25, 1, 0.5, 1] }}>
-          <div>
-            <h2>¿Vendes o compras? Hablemos.</h2>
-            {settings?.horario?.trim() && <p className="nx-footer-hours">{settings.horario}</p>}
+    <footer className={styles.footer}>
+      {showInvitation && <div className={`s-banda ${styles.cta}`}>
+        <div className={`s-contenedor ${styles.ctaInner}`}>
+          <div className={styles.ctaCopy}>
+            <h2 className={styles.ctaTitle}>¿Vendes o compras? Hablemos.</h2>
+            {settings?.horario?.trim() && <p className={styles.hours}>{settings.horario}</p>}
           </div>
-          <div className="nx-footer-actions">
-            <Link href="/vender-propiedad" className="nx-btn nx-btn-primary">Quiero vender</Link>
+          <div className={styles.ctaActions}>
+            <Boton href="/vender-propiedad" tamano="grande" flecha>Quiero vender</Boton>
             {contact.whatsapp
-              ? <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" className="nx-btn">Escribir por WhatsApp</a>
-              : <Link href="/contacto" className="nx-btn">Contactar a Fortius</Link>}
+              ? <Boton href={contact.whatsapp} variante="contorno" tamano="grande" target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</Boton>
+              : <Boton href="/contacto" variante="contorno" tamano="grande">Contactar a Fortius</Boton>}
           </div>
-        </motion.div>
+        </div>
       </div>}
-      <div className="nx-footer-band">
-        <div className="nx-container">
-          <div className="nx-footer-columns">
-            <div className="nx-footer-brand-block">
-              <Link href="/" aria-label="Fortius Inmuebles" className="nx-footer-brand"><BrandMark inverse /></Link>
-              <p>Compraventa y renta de inmuebles en Tijuana, Rosarito, Tecate y Ensenada.</p>
-              <dl className="nx-footer-contact">
-                {contact.whatsapp && <div><dt>WhatsApp</dt><dd><a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" className="nx-footer-link">{contact.whatsappLabel}</a></dd></div>}
-                {contact.phoneHref && <div><dt>Teléfono</dt><dd><a href={contact.phoneHref} className="nx-footer-link">{contact.phone}</a></dd></div>}
-                {email && <div><dt>Correo</dt><dd><a href={`mailto:${email}`} className="nx-footer-link">{email}</a></dd></div>}
-              </dl>
-              {socialLinks.length > 0 && <nav className="nx-footer-socials" aria-label="Redes sociales de Fortius">
-                {socialLinks.map(({ name, href, Icon }) => <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} de Fortius (abre en otra pestaña)`} title={name}>
-                  <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
-                </a>)}
-              </nav>}
-            </div>
-            {sections.map((section) => (
-              <nav key={section.title} aria-label={section.title}>
-                <h3>{section.title}</h3>
-                <ul>{section.links.map((link) => <li key={link.href}>
-                  <Link href={link.href} className="nx-footer-link">{link.label}</Link>
-                </li>)}</ul>
-              </nav>
-            ))}
-          </div>
-          <div className="nx-footer-bottom">
-            <p>© {new Date().getFullYear()} Fortius Inmuebles</p>
-            <nav aria-label="Información legal y administración">
-              <Link href="/privacidad" className="nx-footer-link">Aviso de privacidad</Link>
-              <Link href="/terminos" className="nx-footer-link">Términos y condiciones</Link>
-              <Link href="/avisos" className="nx-footer-link">Avisos y documentos</Link>
-              <DocumentLink href="/admin" className="nx-footer-link nx-footer-admin">Acceso al panel</DocumentLink>
-            </nav>
-            <div className="nx-footer-tools">
-              <ThemeToggle className="nx-footer-theme" />
-              <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" })}>
-                Volver arriba <ArrowUp size={16} aria-hidden="true" />
-              </button>
-            </div>
-          </div>
+      <div className={`s-contenedor ${styles.main}`}>
+        <div className={styles.brandBlock}>
+          <Link href="/" aria-label="Fortius, inicio" className={styles.brand}><SitioLogo /></Link>
+          <p className={styles.pitch}>Compraventa y renta de inmuebles en Tijuana, Rosarito, Tecate y Ensenada.</p>
+          <dl className={styles.contact}>
+            {contact.whatsapp && <div><dt>WhatsApp</dt><dd><a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" className={styles.link}>{contact.whatsappLabel}</a></dd></div>}
+            {contact.phoneHref && <div><dt>Teléfono</dt><dd><a href={contact.phoneHref} className={styles.link}>{contact.phone}</a></dd></div>}
+            {email && <div><dt>Correo</dt><dd><a href={`mailto:${email}`} className={styles.link}>{email}</a></dd></div>}
+          </dl>
+          {socialLinks.length > 0 && <nav className={styles.socials} aria-label="Redes sociales de Fortius">
+            {socialLinks.map(({ name, href, Icon }) => <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} de Fortius (abre en otra pestaña)`} title={name}>
+              <Icon size={18} />
+            </a>)}
+          </nav>}
+        </div>
+        {sections.map((section) => (
+          <nav key={section.title} aria-label={section.title} className={styles.column}>
+            <h3 className={styles.columnTitle}>{section.title}</h3>
+            <ul>{section.links.map((link) => <li key={link.href}>
+              <Link href={link.href} className={styles.link}>{link.label}</Link>
+            </li>)}</ul>
+          </nav>
+        ))}
+      </div>
+      <div className={`s-contenedor ${styles.bottom}`}>
+        <p className={styles.copy}>© {new Date().getFullYear()} Fortius Inmuebles</p>
+        <nav aria-label="Información legal y administración" className={styles.legal}>
+          <Link href="/privacidad" className={styles.link}>Aviso de privacidad</Link>
+          <Link href="/terminos" className={styles.link}>Términos y condiciones</Link>
+          <Link href="/avisos" className={styles.link}>Avisos y documentos</Link>
+          <DocumentLink href="/admin" className={styles.link}>Acceso al panel</DocumentLink>
+        </nav>
+        <div className={styles.tools}>
+          <InterruptorTema />
+          <button type="button" className={styles.top} onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" })}>
+            Volver arriba <ArrowUp size={16} aria-hidden="true" />
+          </button>
         </div>
       </div>
     </footer>

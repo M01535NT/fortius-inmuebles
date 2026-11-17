@@ -1,28 +1,39 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ContactIntents } from "@/components/contact/contact-intents";
+import Image from "next/image";
+
+import { Boton } from "@/components/sitio/boton";
+import { ContactoMotivo } from "@/components/sitio/contacto/contacto-motivo";
 import { pageMetadata } from "@/lib/seo/page-metadata";
-import "./contacto.css";
+import "./contacto-sitio.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/contacto",
   title: "Contacto de inmobiliaria en Tijuana",
   description:
-    "Escríbenos para vender, comprar o preguntar por un inmueble en Tijuana, Rosarito, Tecate o Ensenada. Te respondemos por WhatsApp, teléfono o correo.",
+    "Escríbenos para vender, comprar, rentar o preguntar por un inmueble en Tijuana, Rosarito, Tecate o Ensenada. Te respondemos por WhatsApp, teléfono o correo.",
 });
 
-/* Boceto Contacto: página nocturna completa con motivos, formulario y canales directos. */
+/*
+  Contacto, Fortius II (17/11/2026, boceto «Fortius: Vender y Contacto» aprobado): página clara.
+  La frase con el motivo, el formulario corto y, al lado, los canales directos. Abajo, la foto
+  con quién te atiende. Es la invitación de la página: el pie no repite la suya.
+*/
 export default function ContactoPage() {
-  return <main className="pg-page">
-    <section className="pg-hero ct-hero">
-      <div className="pg-container pg-hero-body">
-        <header className="ct-head">
-          <h1 className="pg-title">¿Compras o vendes? Hablemos.</h1>
-          <p className="pg-lead">Elige el motivo y te respondemos.</p>
-        </header>
-        <section aria-label="Opciones de contacto"><ContactIntents /></section>
-        <div className="ct-team"><p>Quién te atiende.</p><Link href="/nosotros#agentes" className="pg-btn pg-btn-ghost">Conocer al equipo</Link></div>
-      </div>
-    </section>
-  </main>;
+  return (
+    <main className="ct2">
+      <section className="s-contenedor">
+        <ContactoMotivo />
+      </section>
+      <section className="s-contenedor ct2-equipo-marco" aria-labelledby="ct2-equipo">
+        <div className="s-banda ct2-equipo">
+          <Image src="/hero/interior-depa.webp" alt="" fill sizes="(max-width: 1440px) 100vw, 1440px" className="ct2-equipo-foto" />
+          <span className="ct2-equipo-velo" aria-hidden="true" />
+          <div className="ct2-equipo-cuerpo">
+            <h2 id="ct2-equipo" className="ct2-equipo-titulo">Responde Fortius, con un asesor asignado a tu asunto.</h2>
+            <Boton href="/nosotros#agentes" variante="contorno" tamano="grande" sobreMedia flecha>Conocer al equipo</Boton>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }
