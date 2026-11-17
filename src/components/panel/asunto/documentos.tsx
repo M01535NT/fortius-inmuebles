@@ -13,7 +13,9 @@ import {
   agregar, cambiar, diasHasta, fechaCorta, NOMBRE_PAPEL, subir, sumarDias, urlArchivo,
   type Asunto, type DocumentoDelAsunto, type ResultadoSubida,
 } from "@/lib/panel/asuntos/api";
+import { copiarGuia, cuantasTrae } from "@/lib/panel/biblioteca";
 
+import { useGuias } from "../biblioteca/guias";
 import { BotonSubir, DialogoMensaje, personaPara, primerNombre, type Hacer } from "./comun";
 
 /** Lo que el boceto ofrece como «Documento por pedir» de entrada; lo demás se escribe. */
@@ -137,6 +139,7 @@ export function Documentos({ a, hacer }: { a: Asunto; hacer: Hacer }) {
   const grupos = [...new Set(a.documentos.map((d) => d.grupo || "Otros"))];
   const cliente = personaPara(a, "cliente");
   const variosRef = useRef<HTMLInputElement>(null);
+  const listas = useGuias("que_pedir");
 
   const pedirTodos = () => setMensaje({
     titulo: `Pedir los ${faltan.length} que faltan`,
@@ -180,6 +183,17 @@ export function Documentos({ a, hacer }: { a: Asunto; hacer: Hacer }) {
                 <Icono nombre="file" tamano={16} />{n}
               </DropdownMenuItem>
             ))}
+            {listas?.length ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>De la Biblioteca</DropdownMenuLabel>
+                {listas.map((g) => (
+                  <DropdownMenuItem key={g.id} onSelect={() => void hacer(async () => { const r = await copiarGuia(g.id, a.id); if (!r.agregados) throw new Error("El asunto ya tenía todos esos documentos."); }, `De la Biblioteca: ${g.nombre}`)}>
+                    <Icono nombre="lib" tamano={16} />{g.nombre}<span className="as-m as-num" style={{ marginLeft: "auto" }}>{cuantasTrae(g)}</span>
+                  </DropdownMenuItem>
+                ))}
+              </>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

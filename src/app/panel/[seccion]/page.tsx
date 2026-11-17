@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 
 import { PaginaEtapa } from "@/components/panel/pagina-etapa";
-import { CONSULTA, SECCIONES } from "@/lib/panel/secciones";
+import { CONSULTA } from "@/lib/panel/secciones";
 
 /** Secciones que todavía no tienen pantalla propia: dicen en qué etapa llegan. */
-const PENDIENTES = [...SECCIONES.filter((s) => ["directorio", "biblioteca", "equipo"].includes(s.slug)), CONSULTA];
+const PENDIENTES = [CONSULTA];
 
 export const dynamicParams = false;
 export function generateStaticParams() {

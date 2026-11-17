@@ -42,7 +42,7 @@ En la computadora hay un menú a la izquierda; en el teléfono, una barra abajo.
 
 | Sección | Qué es |
 | --- | --- |
-| **Inicio** | Lo que hay que atender: quién espera respuesta, lo de hoy, lo de la semana, lo que se espera de otros, lo que lleva más días esperando y lo que falta cobrar |
+| **Inicio** | Lo que hay que atender: quién espera respuesta, lo de hoy, las visitas, lo de la semana, lo que se espera de otros, a quién volver a llamar, lo que está por vencer y lo que falta cobrar |
 | **Asuntos** | Todos los trabajos abiertos y cerrados |
 | **Inmuebles** | El inventario, y todo lo que sale en el sitio público |
 | **Directorio** | Todas las personas, con el asunto del que viene cada una. Incluye los contactos que todavía no tienen asunto |
@@ -51,6 +51,21 @@ En la computadora hay un menú a la izquierda; en el teléfono, una barra abajo.
 | **Equipo** | Solo para el director: cómo va cada asesor |
 
 En el menú también hay un buscador, los asuntos recientes y la cuenta de quien entró. El botón «Nueva consulta» está en Inicio y en la lista de Asuntos.
+
+### Inicio
+
+En este orden, y cada bloque solo aparece si tiene algo (salvo hoy, la semana, lo que esperas de otros y lo que falta cobrar, que dicen «nada» cuando no hay):
+
+- **Por atender:** las solicitudes del sitio que no se han atendido, la más antigua arriba, con cuánto llevan esperando.
+- **Para hoy:** las tareas de Fortius con fecha de hoy o ya vencidas.
+- **Visitas:** las de hoy a siete días, con hora, quién viene y a qué inmueble.
+- **Esta semana:** las tareas de Fortius de mañana a siete días.
+- **Lo esperas de otros:** lo que le toca al cliente, al abogado, a la notaría u otra persona, de aquí a siete días o ya vencido; arriba lo que lleva más días de retraso. Lo vencido trae «Recordarle».
+- **Volver a llamar:** los contactos cuyo día de llamarles ya llegó.
+- **Por vencer:** los documentos que ya entraron en su aviso (15 días antes si no se dijo otro) o que ya vencieron.
+- **Por cobrar:** cada asunto con presupuesto aceptado, con lo que falta (honorarios menos lo cobrado; los de porcentaje se calculan sobre el precio del inmueble), en pesos o en dólares.
+
+Cada asesor ve lo que lleva; el director ve todo el equipo y puede elegir a una persona. Marcar una tarea desde Inicio la deja hecha en su asunto, con su historial.
 
 ## 4. Cómo empieza todo: la consulta
 
@@ -67,8 +82,9 @@ Nada es obligatorio y se guarda sola mientras se escribe. Al terminar, el botón
 
 Las solicitudes que llegan por el sitio público caen en Inicio, en «Por atender», con el tiempo que llevan esperando. Abrir una lleva a la misma consulta, ya llena con lo que la persona escribió.
 
-- **Quién atiende una solicitud del sitio:** le llega al director, que la asigna a un asesor con el botón «Pasar a…». El tiempo de espera se pone en rojo al pasar de dos horas.
-- **Si la solicitud es por un inmueble publicado,** queda además anotada en el apartado Interesados del asunto de ese inmueble.
+- **Quién atiende una solicitud del sitio:** le llega al director, que la asigna a un asesor con «Pasar a…». Si es por un inmueble publicado, queda de una vez a cargo de quien lleva el asunto de ese inmueble (o el inmueble, si no tiene asunto abierto). Cada asesor ve solo las que le tocan. El tiempo de espera se pone en ámbar pasada una hora y en rojo pasadas dos.
+- **Si la solicitud es por un inmueble publicado,** queda además anotada en el apartado Interesados del asunto de ese inmueble. Si su teléfono o su correo ya están en el Directorio, se usa esa misma ficha; si no, se crea.
+- **Atender** abre la consulta con su nombre, teléfono, correo y mensaje, por el canal «Sitio». «No procede» la quita de Inicio. Lo que llegó del sitio no se cambia.
 
 ### Cómo nace el asunto
 
@@ -169,6 +185,8 @@ Cuando un trabajo termina y de él nace otro (una revisión que se vuelve venta,
 - Una persona puede tener **papeles distintos** en asuntos distintos.
 - Una persona puede estar en el Directorio **sin asunto**, como contacto, con una fecha para volver a llamarle.
 - Desde el Directorio, el botón **«Nuevo asunto con esta persona»** abre la consulta con sus datos ya puestos.
+- El **Directorio** muestra a cada persona una sola vez, con todos los asuntos donde tiene un papel; se busca por nombre o teléfono. Cada uno ve a las personas que puede ver (el director, a todas).
+- Si una persona quedó capturada **dos veces**, el director **une las fichas**: elige la que se queda; sus asuntos, tareas, documentos y datos pasan a ella, y la otra va a Eliminados. Lo que ya tenía la que se queda no se reemplaza.
 - **Cliente** es quien ya firmó un contrato con Fortius. Antes de firmar es prospecto. La contraparte de un asunto no es cliente.
 - Si una persona **pidió no ser contactada**, todas las pantallas lo respetan: se apagan los botones de llamar y escribir.
 - Sus datos para contratos (nombre completo, estado civil, CURP, RFC, identificación, domicilio) se guardan en su ficha y de ahí los toman los documentos.
@@ -265,6 +283,11 @@ Desde cualquier asunto, el botón **«Guardar este plan en la Biblioteca»** cop
 
 Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con clientes.
 
+- Usar una guía en un asunto **copia su contenido**: en el asunto se cambia sin tocar la guía, y cambiar la guía no toca los asuntos donde ya se usó. Una lista de documentos no repite los que el asunto ya tiene.
+- En un plan, cada tarea puede decir **en qué día** va, contado desde que se copia al asunto; sin día, queda sin fecha. Al guardar el plan de un asunto, sus fechas pasan a días contados desde la primera.
+- Todo el equipo lee la Biblioteca y puede agregar guías. Una guía la cambia quien la hizo o el director. Solo el director la marca **«Revisado por el abogado»**.
+- El contenido que trae al empezar es de ejemplo y lo dice; el titular lo cambia o lo manda a Eliminados.
+
 ## 11. Dinero
 
 - Cada asunto lleva sus **honorarios**: el presupuesto por conceptos, el contrato y los cobros con lo que falta.
@@ -281,8 +304,9 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 
 ## 12. Quién ve qué
 
-- **Director:** ve todo, puede cambiar quién lleva cada asunto y tiene la sección Equipo. Ahí ve, por cada asesor, sus asuntos, lo de hoy, lo de la semana, lo vencido, lo que no tiene siguiente paso y lo que falta cobrar.
-- **Asesor:** ve solo lo suyo y lo que se le comparte.
+- **Director:** ve todo, puede cambiar quién lleva cada asunto y tiene la sección Equipo. Ahí ve, por cada persona del equipo, sus asuntos abiertos, lo de hoy, lo de la semana, lo vencido, los asuntos sin siguiente paso, las solicitudes del sitio que tiene sin atender y lo que falta cobrar; «Ver» abre sus asuntos. Un aviso arriba dice cuántas solicitudes esperan a que las pase a alguien.
+- **Sin siguiente paso** es un asunto abierto, que no está en espera, sin ninguna tarea pendiente en su plan.
+- **Asesor:** ve solo lo suyo y lo que se le comparte. La sección Equipo no le aparece, y la dirección de un asunto ajeno le responde que no existe o no le toca verlo.
 - Esto se hace cumplir en la base de datos, no solo escondiendo botones.
 - El director entra con dos pasos (contraseña y un código).
 - Todo cambio queda registrado con quién lo hizo y cuándo.

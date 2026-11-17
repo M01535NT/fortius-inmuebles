@@ -1,0 +1,27 @@
+/* Inicio del panel (boceto aprobado). Bajo .panel-root; usa las piezas de asunto.css y biblioteca.css. */
+.panel-root .in-pagina { max-width: 860px; gap: 20px; }
+.panel-root .in-card { padding: 2px 8px; }
+.panel-root .in-card > .db-fila { padding: 8px 4px; }
+.panel-root .in-card > .as-ren { margin: 0 -8px; width: calc(100% + 16px); text-decoration: none; }
+.panel-root .in-card > .as-ren + .as-ren, .panel-root .in-card > .in-t + .in-t { border-top: 1px solid var(--border); }
+.panel-root .in-vacio { margin: 0; padding: 12px 6px; }
+.panel-root .in-tb { color: inherit; text-decoration: none; border-radius: 8px; }
+.panel-root .in-tb:hover .as-n { text-decoration: underline; text-underline-offset: 3px; }
+.panel-root .in-tb:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.panel-root .in-tb .as-m { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .in-t > .as-pill { flex: none; margin-left: 6px; }
+.panel-root .in-acc { display: inline-flex; align-items: center; gap: 4px; }
+.panel-root .in-av-chico { width: 22px; height: 22px; font-size: 10px; }
+.panel-root .in-monto { font-weight: 600; white-space: nowrap; }
+.panel-root .db-fila .as-pill { display: inline-flex; align-items: center; gap: 4px; }
+
+@media (max-width: 640px) {
+  /* Quién arriba; abajo, a la izquierda lo que dice cuánto lleva y a la derecha qué hacer. */
+  .panel-root .in-card > .db-fila { grid-template-columns: minmax(0, 1fr) auto; row-gap: 6px; }
+  .panel-root .in-card > .db-fila .db-quien { grid-column: 1 / -1; grid-row: 1; }
+  .panel-root .in-card > .db-fila .db-asuntos { grid-column: 1; grid-row: 2; padding-left: 42px; }
+  .panel-root .in-card > .db-fila .db-mas { grid-column: 2; grid-row: 2; }
+  .panel-root .in-acc .as-btn { min-height: 44px; }
+  .panel-root .in-t .as-ckb { width: 44px; height: 44px; }
+  .panel-root .db-top .as-pri { min-height: 44px; }
+}

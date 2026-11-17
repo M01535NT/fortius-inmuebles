@@ -15,8 +15,10 @@ import {
   type PersonaDuplicada, type Quien, type ResultadoPersona, type Tarea,
 } from "@/lib/panel/asuntos/api";
 import { NOMBRE_TIPO } from "@/lib/backend/consultas-contrato";
+import { copiarGuia, cuantasTrae, guardarPlanEnBiblioteca } from "@/lib/panel/biblioteca";
 import { precioTexto } from "@/lib/backend/inmuebles-contrato";
 
+import { olvidarGuias, useGuias } from "../biblioteca/guias";
 import { InmueblesDelAsunto } from "../inmueble/del-asunto";
 import { DialogoMensaje, HORAS, personaPara, primerNombre, useFoco, type Hacer } from "./comun";
 import { Documentos } from "./documentos";
@@ -369,6 +371,7 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
   const [quien, setQuien] = useState<Quien>("fortius");
   const [etapa, setEtapa] = useState<string>(a.etapas.at(-1)?.id ?? "");
   const [nuevaEtapa, setNuevaEtapa] = useState("");
+  const planes = useGuias("que_hacer");
   const grupos = [
     ...a.etapas.map((e) => ({ id: e.id, etapa: e as Etapa | null, tareas: a.tareas.filter((t) => t.etapa_id === e.id) })),
     { id: "", etapa: null, tareas: a.tareas.filter((t) => !t.etapa_id || !a.etapas.some((e) => e.id === t.etapa_id)) },
@@ -376,9 +379,35 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
 
   return (
     <>
-      {a.tareas.length ? (
-        <Interruptor etiqueta="Cómo ver el plan" sinEtiqueta opciones={[{ valor: "lista", etiqueta: "Por etapas" }, { valor: "tiempo", etiqueta: "En el tiempo" }] as const} valor={vista} alElegir={setVista} />
-      ) : null}
+      <div className="as-fila">
+        {a.tareas.length ? (
+          <Interruptor etiqueta="Cómo ver el plan" sinEtiqueta opciones={[{ valor: "lista", etiqueta: "Por etapas" }, { valor: "tiempo", etiqueta: "En el tiempo" }] as const} valor={vista} alElegir={setVista} />
+        ) : null}
+        <span className="as-sp" />
+        <DropdownMenu>
+          <DropdownMenuTrigger className="as-btn"><Icono nombre="lib" tamano={16} />Biblioteca<Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-64">
+            {planes?.length ? (
+              <>
+                <DropdownMenuLabel>Copiar un plan</DropdownMenuLabel>
+                {planes.map((g) => (
+                  <DropdownMenuItem key={g.id} onSelect={() => void hacer(() => copiarGuia(g.id, a.id), `De la Biblioteca: ${g.nombre}`)}>
+                    <Icono nombre="lista" tamano={16} />{g.nombre}<span className="as-m as-num" style={{ marginLeft: "auto" }}>{cuantasTrae(g)}</span>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+              </>
+            ) : null}
+            <DropdownMenuItem onSelect={() => void hacer(async () => {
+              if (!a.tareas.length) throw new Error("Este asunto todavía no tiene tareas en su plan.");
+              await guardarPlanEnBiblioteca(a.id, `Plan de ${a.nombre}`.slice(0, 160));
+              olvidarGuias();
+            }, "Guardado en la Biblioteca. Ahí le cambias el nombre")}>
+              <Icono nombre="lib" tamano={16} />Guardar este plan en la Biblioteca
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       {vista === "tiempo" ? <LineaDeTiempo a={a} hacer={hacer} abierta={abierta} setAbierta={setAbierta} /> : (
         <>
           {grupos.map((g) => (

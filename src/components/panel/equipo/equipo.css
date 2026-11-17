@@ -1,0 +1,20 @@
+/* Equipo del panel (boceto aprobado). Bajo .panel-root; usa las piezas de asunto.css y biblioteca.css. */
+.panel-root .eq-pagina { max-width: 860px; }
+.panel-root .eq-card { overflow: hidden; }
+.panel-root .eq-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px; }
+.panel-root .eq-quien { display: flex; align-items: center; gap: 12px; flex: 1 1 200px; min-width: 0; }
+.panel-root .eq-pills { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.panel-root .eq-pills .as-pill { display: inline-flex; align-items: center; gap: 4px; }
+.panel-root .eq-cifras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 0 12px 12px; }
+.panel-root .eq-cifra { display: flex; flex-direction: column; min-width: 0; padding: 10px 12px; border-radius: 10px; background: var(--fill); }
+.panel-root .eq-cifra b { font-size: 18px; font-weight: 680; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.panel-root .eq-cifra span { font-size: 12px; color: var(--ink-muted); }
+.panel-root .eq-cab .as-av { width: 36px; height: 36px; font-size: 13px; }
+
+@media (max-width: 640px) {
+  .panel-root .eq-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel-root .eq-cab { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .panel-root .eq-pills { grid-column: 1 / -1; grid-row: 2; padding-left: 48px; }
+  .panel-root .eq-pills:empty { display: none; }
+  .panel-root .eq-cab .as-btn { min-height: 44px; }
+}

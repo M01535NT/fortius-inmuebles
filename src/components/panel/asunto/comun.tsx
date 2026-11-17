@@ -56,7 +56,7 @@ export const primerNombre = (n: string) => n.trim().split(/\s+/)[0] ?? n;
 
 /** El mensaje listo para WhatsApp, que se puede cambiar antes de abrirlo. */
 export function DialogoMensaje({ abierto, titulo, inicial, para, alCerrar, alEnviar }: {
-  abierto: boolean; titulo: string; inicial: string; para: PersonaDelAsunto | null; alCerrar: () => void; alEnviar?: () => void;
+  abierto: boolean; titulo: string; inicial: string; para: Pick<PersonaDelAsunto, "nombre" | "telefono"> | null; alCerrar: () => void; alEnviar?: () => void;
 }) {
   return (
     <Dialog open={abierto} onOpenChange={(o) => { if (!o) alCerrar(); }}>
@@ -69,7 +69,7 @@ export function DialogoMensaje({ abierto, titulo, inicial, para, alCerrar, alEnv
   );
 }
 
-function FormaMensaje({ inicial, para, alCerrar, alEnviar }: { inicial: string; para: PersonaDelAsunto | null; alCerrar: () => void; alEnviar?: () => void }) {
+function FormaMensaje({ inicial, para, alCerrar, alEnviar }: { inicial: string; para: Pick<PersonaDelAsunto, "nombre" | "telefono"> | null; alCerrar: () => void; alEnviar?: () => void }) {
   const id = useId();
   const [texto, setTexto] = useState(inicial);
   return (

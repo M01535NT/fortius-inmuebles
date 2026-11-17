@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
@@ -21,6 +21,13 @@ function ordenar(a: FilaAsunto, b: FilaAsunto): number {
   if (ca !== cb) return ca - cb;
   const fa = a.siguiente?.fecha ?? "9999", fb = b.siguiente?.fecha ?? "9999";
   return fa === fb ? b.updated_at.localeCompare(a.updated_at) : fa.localeCompare(fb);
+}
+
+/** Desde Equipo, «Ver» llega con ?de=<persona>: la lista abre con «Quién lo lleva» ya elegido. */
+function LeerDe({ alLeer }: { alLeer: (id: string) => void }) {
+  const de = useSearchParams().get("de");
+  useEffect(() => { if (de) alLeer(de); }, [de, alLeer]);
+  return null;
 }
 
 /** La columna de Asuntos (boceto): buscar, qué ver, quién lo lleva y cada asunto con lo que sigue. */
@@ -62,6 +69,7 @@ export function ListaAsuntos() {
 
   return (
     <div className="as-lado">
+      {director ? <Suspense fallback={null}><LeerDe alLeer={setLleva} /></Suspense> : null}
       <div className="as-fila as-cab">
         <h1 className="as-h1-lista">Asuntos</h1>
         <span className="as-sp" />

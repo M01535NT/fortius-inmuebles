@@ -80,8 +80,17 @@ export async function listarAbiertas(client: SupabaseClient, user: StaffUser): P
 }
 
 export async function crearConsulta(client: SupabaseClient, user: StaffUser, entrada: z.infer<typeof nuevaConsultaSchema>) {
+  // Desde el Directorio: la consulta llega con el nombre, el teléfono y el correo que ya tiene la ficha.
+  let ficha: { nombre: string; telefonos: { pais: string; numero: string }[] | null; correo: string | null } | null = null;
+  if (entrada.persona_id) {
+    const p = await client.from("fortius_inmuebles_personas").select("nombre,telefonos,correo").eq("id", entrada.persona_id).is("deleted_at", null).maybeSingle();
+    if (p.error) fallo(p.error);
+    if (!p.data) throw new ApiError(404, "Esa persona ya no está en el Directorio.");
+    ficha = p.data as typeof ficha;
+  }
   const r = await client.from(T.consultas).insert({
-    quien_nombre: entrada.quien_nombre ?? "", canal: entrada.canal ?? "llamada", persona_id: entrada.persona_id ?? null,
+    quien_nombre: entrada.quien_nombre ?? ficha?.nombre ?? "", canal: entrada.canal ?? "llamada", persona_id: entrada.persona_id ?? null,
+    ...(ficha ? { quien_telefonos: Array.isArray(ficha.telefonos) ? ficha.telefonos.slice(0, 5) : [], quien_correo: ficha.correo } : {}),
     responsable_id: user.id, creado_por: user.id,
   }).select("id,version").single();
   if (r.error) fallo(r.error);

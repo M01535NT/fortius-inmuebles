@@ -13,6 +13,7 @@ import {
   ICONO_ENCARGO, leerAsunto, leerHistorial, mandarAEliminados, NOMBRE_ENCARGO, NOMBRE_EN_QUE_VA, NOMBRE_QUIEN, sumarDias,
   type Apartado, type Asunto, type CambioAsunto, type ClaveApartado, type EntradaHistorial, type FilaAsunto, type Vista,
 } from "@/lib/panel/asuntos/api";
+import { guardarApartadoEnBiblioteca } from "@/lib/panel/biblioteca";
 import { useSession } from "@/lib/panel/legado/sesion";
 
 import { Cuadro, Pildora } from "./pildora";
@@ -21,6 +22,7 @@ import { anotarReciente, quitarReciente } from "./recientes";
 import { DialogoTexto, Ventana } from "./ventana";
 import { ContenidoApartado, iconoPropio, nombreApartado, resumenApartado } from "./apartados";
 import { faltaCobrar } from "./honorarios";
+import { olvidarGuias } from "../biblioteca/guias";
 
 const NOMBRE_VISTA: Record<Vista, string> = { lista: "Lista", tabla: "Tabla", galeria: "Galería", texto: "Texto" };
 
@@ -119,7 +121,9 @@ export function DetalleAsunto({ id }: { id: string }) {
   if (error && !asunto) {
     return (
       <div className="as-in"><div className="as-vacio-lista" role="alert"><p>{error}</p>
-        <button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button></div></div>
+        {/no te toca/.test(error)
+          ? <button type="button" className="as-btn" onClick={() => router.push("/panel/asuntos")}>Ir a tus asuntos</button>
+          : <button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button>}</div></div>
     );
   }
   if (!asunto) return <div className="as-in"><div className="as-cargando" aria-busy="true" aria-label="Cargando el asunto">{[0, 1, 2].map((i) => <span key={i} />)}</div></div>;
@@ -343,6 +347,10 @@ export function DetalleAsunto({ id }: { id: string }) {
             etiqueta: `Ver como ${NOMBRE_VISTA[v].toLowerCase()}`, icono: "ojo" as const,
             alElegir: () => void hacer(() => cambiar(a.id, "apartados", { id: abierto.id, version: abierto.version, vista: v }), `Ahora se ve como ${NOMBRE_VISTA[v].toLowerCase()}`),
           })) : []),
+          ...(abierto.clave === "propio" ? [{
+            etiqueta: "Guardar en la Biblioteca", icono: "lib" as const,
+            alElegir: () => void guardarApartadoEnBiblioteca(a.id, abierto.id).then(() => { olvidarGuias(); avisar("Guardado en la Biblioteca"); }, (e: unknown) => avisar(e instanceof Error ? e.message : "No se guardó.")),
+          }] : []),
           {
             etiqueta: "Quitar del asunto", icono: "bote" as const, peligro: true,
             alElegir: () => {
