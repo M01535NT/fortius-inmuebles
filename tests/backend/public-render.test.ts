@@ -3,8 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { Children, createElement, type ReactElement } from "react";
 import RootLayout, { generateMetadata } from "@/app/layout";
 import HomePage from "@/app/page";
-import { NocturnoExpediente } from "@/components/home/nocturno-expediente";
-import { entregablesDe, pilaresDe } from "@/components/home/nocturno-content";
 import NosotrosPage from "@/app/nosotros/page";
 import { matchRemotePattern } from "next/dist/shared/lib/match-remote-pattern";
 import type { Metadata } from "next";
@@ -45,40 +43,26 @@ test("root layout reads public contact settings for the next request and preserv
   html = renderToStaticMarkup(await RootLayout({ children: "Página" }));
   expect(html).toContain('href="tel:+526643217654"');
 });
-test("home passes projected panel copy and metadata reads subsequent edits without a build", async () => {
-  const home = await HomePage();
-  const sections = Children.toArray(home.props.children) as ReactElement<{ content?: unknown; pillars?: { text: string }[] }>[];
-  expect(sections[0].props).not.toHaveProperty("content");
-  expect(sections.find((section) => section.type === NocturnoExpediente)?.props.pillars?.[0].text).toBe("Texto actualizado");
+test("metadata reads subsequent panel edits without a build", async () => {
   expect((await generateMetadata()).description).toBe("Descripción publicada");
   content.seoDescription = "Descripción editada";
   expect((await generateMetadata()).description).toBe("Descripción editada");
 });
-test("the benefits render each customized panel field without substituting the new defaults", () => {
-  const custom = {
-    heroTitulo: "Hero", heroSubtitulo: "Descripción", seoTitle: "SEO", seoDescription: "SEO",
-    manifiestoTitulo: "Mi propuesta", manifiestoTexto: "Mis referencias de precio",
-    homeTexts: { relatoTexto: "Mi revisión documental", relatoApoyo: "Mi promoción acordada", entregablesTexto: "Mi contrato", valorTexto: "Mi opinión de valor" },
-  };
-  const { intro, documents } = entregablesDe(custom);
-  const html = renderToStaticMarkup(createElement(NocturnoExpediente, { intro, pillars: pilaresDe(custom), documents }));
-  for (const copy of ["Mis referencias de precio", "Mi revisión documental", "Mi promoción acordada", "Mi contrato", "Mi opinión de valor"]) expect(html).toContain(copy);
-});
-test("an empty featured selection keeps a real inventory destination and creates no placeholder listing", async () => {
+test("la tira del inicio muestra lo publicado aunque no sea destacado y nunca lo vendido", async () => {
   publicProperty.destacada = false;
-  const html = renderToStaticMarkup(await HomePage());
-  expect(html).toContain('href="/inventario"');
-  expect(html).toContain("Por ahora no hay propiedades destacadas disponibles");
-  expect(html).not.toContain("data-property-card");
+  const slug = String(publicProperty.slug);
+  expect(renderToStaticMarkup(await HomePage())).toContain(`href="/inventario/${slug}"`);
+  publicProperty.estado = "vendida";
+  expect(renderToStaticMarkup(await HomePage())).not.toContain(`href="/inventario/${slug}"`);
 });
 test("nosotros shows the institutional video from settings and hides the block when empty", async () => {
   let html = renderToStaticMarkup(await NosotrosPage());
   expect(html).toContain('src="/video-publico.mp4"');
-  expect(html).toContain('href="#video"');
+  expect(html).toContain('id="video"');
   settings.videoInstitucionalUrl = "";
   html = renderToStaticMarkup(await NosotrosPage());
   expect(html).not.toContain("<video");
-  expect(html).not.toContain('href="#video"');
+  expect(html).not.toContain('id="video"');
   expect(html).not.toContain("PRIVATE");
 });
 test("image optimization allows only the configured public bucket and existing external hosts", async () => {

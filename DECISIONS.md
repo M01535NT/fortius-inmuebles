@@ -116,3 +116,11 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Textos largos:** en las páginas de lectura una palabra o una línea de firma muy larga se parte para no ensanchar la página.
 - **Efectos al bajar:** solo en el inicio, como en el boceto. Las demás páginas no llevan efectos de entrada.
 - **Movimiento reducido:** una regla general apaga transiciones y animaciones; los efectos del inicio y los videos se quedan quietos.
+
+## Limpieza (17/11/2026)
+
+- **Imagen para compartir:** el logo de Fortius II con su leyenda, en claro sobre la banda oscura del sitio.
+- **Ícono de la pestaña:** la O de Fortius II, azul con su tramo ámbar, sobre el fondo claro de la marca. Es uno solo para el sitio y el panel. Los íconos para instalar la app del panel siguen como están.
+- **Confirmación de Vender:** se conserva su dirección; hoy nadie llega a ella porque la entrevista confirma en la misma página.
+- **Pruebas del sitio:** las del navegador viven en una sola prueba del diseño nuevo, más navegación, ficha en PDF, calculadoras e instalación. Lo que solo usaban las pruebas anteriores se retiró con ellas (17/11/2026).
+- **Estilos:** el sitio usa solo `sitio.css` y los de cada página; los estilos globales del diseño anterior ya no existen.

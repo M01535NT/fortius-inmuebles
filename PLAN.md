@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 6 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Falta tu visto bueno a la etapa 0. Sigue la etapa 7 (limpieza) cuando lo indiques.
+Etapas 1 a 6 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etapa 7 construida (17/11/2026). Falta tu visto bueno a la etapa 0.
 
 ## Etapas
 
@@ -95,6 +95,15 @@ Etapas 1 a 6 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Falt
 - [ ] Recorrerlo en tu teléfono (la revisión fue en el navegador del agente con tamaño de teléfono).
 - [ ] El enlace a Banxico de la calculadora de hipoteca mide 18 px de alto; se arregla con el aspecto nuevo de las calculadoras.
 
+## Etapa 7, paso a paso
+
+- [x] Error, «Página no encontrada», «Esta propiedad ya no está publicada» y la confirmación de Vender con el diseño nuevo (se habían quedado con el anterior).
+- [x] Retirados 15 estilos de páginas, 20 piezas del diseño anterior y 9 videos e imágenes que ya nadie usaba.
+- [x] Imagen para compartir con el logo de Fortius II.
+- [x] Pruebas nuevas del sitio en el navegador: teléfono sin desbordes y con controles de 44 px en 17 páginas, portada por asuntos, frase del inventario, Vender en dos pasos, Contacto, páginas de error y movimiento reducido. Se corren al integrar.
+- [x] Pruebas del diseño anterior reemplazadas (17/11/2026, con tu acuerdo): seis pruebas de navegador fuera; las que seguían valiendo, al diseño nuevo; se agregaron el blog con sus listas y la revisión de accesibilidad en claro y oscuro. Con ellas salieron 18 piezas que ya solo usaban esas pruebas y los tres archivos de estilos globales del diseño anterior. Las pruebas de piezas sueltas pasan; las del navegador se corren al integrar.
+- [x] Ícono de la pestaña con la O de Fortius II, en el sitio y en el panel (tu decisión del 17/11/2026). Los íconos para instalar la app del panel no cambian.
+
 ## Lo que te toca a ti
 
 - Confirmar los nombres de los asuntos de la portada (hoy: Vender, Comprar, Rentar, Saber cuánto vale, Poner papeles en orden y Otro asunto).
@@ -103,7 +112,6 @@ Etapas 1 a 6 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Falt
 - Dar la foto de cada asesor.
 - Capturar en el panel los lugares cercanos de cada inmueble.
 - Decidir si «Qué hay alrededor» necesita los grupos iglesias y hoteles: hoy el panel no los tiene.
-- Aprobar el reemplazo de las pruebas del diseño anterior. Con la etapa 1 ya no pasan: la que pide la letra anterior y las que buscan el botón «Cambiar a tema oscuro» (ahora es un interruptor «Tema oscuro»). Con la etapa 2, las dos pruebas del inventario anterior (filtros en una fila y lectura de la dirección) y las de comparar en el navegador. Con la etapa 3, las del navegador que buscan la galería anterior de la ficha. Con la etapa 4, las del inicio anterior (portada con escenas, método, expediente, «Comprar también empieza por revisar» y el cierre «¿Hablamos de tu propiedad?»). Con la etapa 5, la que busca el título «Antes de publicar.» en Vender, la que busca «¿Compras o vendes? Hablemos.» y la tarjeta «Quiero vender» en Contacto, las del blog que eligen tema y tipo con botones (ahora son listas), la del buscador de Comprar y la de Términos que cambia el tema con el botón anterior. Las de la galería, la tarjeta de visita y la barra del teléfono anteriores siguen pasando porque esas piezas siguen en el código hasta la etapa 7.
 
 ## Al integrar
 

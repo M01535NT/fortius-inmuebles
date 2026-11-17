@@ -217,14 +217,14 @@ test("buyers, sellers and segment pages lead to the right next step on mobile", 
   await expect(page.getByRole("link", { name: "Ver propiedades" }).last()).toHaveAttribute("href", "/inventario");
 
   await page.goto("/vender-propiedad");
-  await expect(page.getByRole("heading", { name: "Antes de publicar." })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Estimar gastos y neto de venta" })).toHaveAttribute("href", "/herramientas/gastos-de-cierre");
+  await expect(page.getByRole("heading", { name: "Antes de decidir" })).toBeVisible();
+  await expect(page.getByRole("main").locator('a[href="/herramientas/gastos-de-cierre"]').first()).toBeVisible();
 
   for (const route of ["residencial", "comercial", "industrial"]) {
     await page.goto(`/${route}`);
     await expect(page).toHaveURL(new RegExp(`/inventario\\?segmento=${route}$`));
-    // Compact filters (30/10/2026): the segment is the selected option of the type filter.
-    await expect(page.getByLabel("Tipo de propiedad")).toHaveValue(`seg:${route}`);
+    // Frase del inventario (17/11/2026): el segmento es la opción elegida en «Tipo de propiedad».
+    await expect(page.getByRole("button", { name: /^Tipo de propiedad:/ })).toContainText({ residencial: "casas y departamentos", comercial: "locales, oficinas y plazas", industrial: "naves, bodegas y terrenos" }[route] ?? route);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });
@@ -246,5 +246,5 @@ test("the footer reaches every property type from an interior page", async ({ pa
   }
   await footer.getByRole("link", { name: "Comercial", exact: true }).click();
   await expect(page).toHaveURL(/\/inventario\?segmento=comercial$/);
-  await expect(page.getByLabel("Tipo de propiedad")).toHaveValue("seg:comercial");
+  await expect(page.getByRole("button", { name: /^Tipo de propiedad:/ })).toContainText("locales, oficinas y plazas");
 });

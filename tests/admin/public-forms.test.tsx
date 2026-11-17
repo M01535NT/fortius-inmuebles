@@ -2,9 +2,8 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { ContactForm } from "@/components/sections/contact-form";
-import { BuyerBrief } from "@/components/sections/buyer-brief";
-import { LeadMagnet } from "@/components/sections/lead-magnet";
+import { ContactoMotivo } from "@/components/sitio/contacto/contacto-motivo";
+import { CierreAsunto } from "@/components/sitio/inicio/cierre-asunto";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
 import { parseLead } from "@/lib/backend/validation";
@@ -14,13 +13,10 @@ const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 // Animation hooks do not participate in submission or its native boundary.
 vi.mock("@/lib/gsap", () => ({ useGSAP: () => {}, prefersReducedMotion: () => true }));
-vi.mock("@/components/gsap/scrub", () => ({ Scrub: ({ children }: React.PropsWithChildren) => children }));
-vi.mock("@/components/gsap/split-heading", () => ({ SplitHeading: () => null }));
-vi.mock("@/components/magicui/blur-fade", () => ({ BlurFade: ({ children }: React.PropsWithChildren) => children }));
 
 const variants = [
-  { name: "contacto", component: <ContactForm />, button: "Enviar consulta" },
-  { name: "comprador", component: <BuyerBrief />, button: "Enviar mi búsqueda" },
+  { name: "contacto", component: <ContactoMotivo />, button: "Enviar" },
+  { name: "cierre-del-inicio", component: <CierreAsunto />, button: "Enviar" },
   { name: "documentos", component: <PropertyDocuments slug="fixture" codigo="TEST" documentos={[{ codigo: "F1", nombre: "Ficha", descripcion: "Documento", url: "/fixture.pdf" }]} />, button: "Ver documentos" },
   { name: "interes-propiedad", component: <PropertyInterestForm slug="fixture" codigo="TEST" titulo="Casa" />, button: "Me interesa esta propiedad" },
 ];
@@ -33,6 +29,10 @@ function fillEvaluationFields(container: HTMLElement) {
   if (zone) fireEvent.change(zone, { target: { value: "Centro" } });
   if (type) fireEvent.change(type, { target: { value: "Casa" } });
   if (use) fireEvent.change(use, { target: { value: "Vivir" } });
+  // Lo que el formulario pida además del nombre y el teléfono (detalle o «¿Qué necesitas?»).
+  for (const field of container.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input[required], textarea[required]")) {
+    if (!field.value && field.name !== "nombre" && field.name !== "telefono") fireEvent.change(field, { target: { value: "Prueba" } });
+  }
 }
 const enabled = (component: React.ReactNode) => (
   <PublicFeaturesProvider publicLeadsEnabled>{component}</PublicFeaturesProvider>
@@ -107,9 +107,3 @@ test.each(variants)("$name retains failed drafts and waits for ACK before succes
   await waitFor(() => expect(push.mock.calls.length || !container.querySelector("form")).toBeTruthy());
 });
 
-test("checklist downloads directly without asking for personal data", () => {
-  const { container } = render(enabled(<LeadMagnet />));
-  expect(container.querySelector("form")).toBeNull();
-  expect(container.querySelector("input")).toBeNull();
-  expect(screen.getByRole("link", { name: /Descargar el checklist/ }).getAttribute("href")).toBe("/descargas/checklist-venta-fortius.pdf");
-});

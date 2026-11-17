@@ -202,7 +202,7 @@ html.sitio :is(.pg-pill[aria-current="page"], .pg-pill.is-active) { border-color
 html.sitio .pg-card-dark { border-color: #25272c; background: #101113; color: #ededef; }
 html.sitio .pg-card-wine { border-color: var(--s-accent); background: var(--s-accent); color: var(--s-accent-ink); }
 html.sitio .page-curtain { --lock-ink: var(--s-ink); }
-/* El pie sigue el flujo normal, como hasta ahora (antes lo hacía .nx-footer en nocturno.css). */
+/* El pie sigue el flujo normal, como hasta ahora. */
 html.sitio .public-footer { position: relative; bottom: auto; }
 html.sitio .reading-progress { background: var(--s-accent); }
 html.sitio .brand-mark path[fill="#061f3f"] { fill: currentColor; }

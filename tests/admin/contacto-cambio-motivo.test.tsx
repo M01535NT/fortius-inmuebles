@@ -1,23 +1,23 @@
 import * as React from "react";
-import { afterEach, expect, test, vi } from "vitest";
+import { afterEach, expect, test } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { ContactIntents } from "@/components/contact/contact-intents";
+import { ContactoMotivo } from "@/components/sitio/contacto/contacto-motivo";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 
 /*
-  BUG-C42: en /contacto, `<ContactForm key={intent}>` vuelve a montar el formulario al cambiar de
-  motivo. Nombre y teléfono no están controlados, así que lo que el visitante ya escribió se borra
-  sin aviso al pasar de «Quiero comprar» a «Quiero vender».
+  BUG-C42: cambiar de motivo en /contacto no debe borrar lo que el visitante ya escribió.
+  Con el diseño nuevo el motivo se elige en la frase «Hola, quiero…».
 */
-vi.mock("next/image", () => ({ default: (props: { alt: string }) => <span role="img" aria-label={props.alt} /> }));
-vi.mock("@/components/contact/messaging-actions", () => ({ MessagingContact: () => null }));
+Element.prototype.scrollIntoView = () => {};
 afterEach(cleanup);
 
 test("cambiar de motivo conserva el nombre y el teléfono ya escritos", () => {
-  render(<PublicFeaturesProvider publicLeadsEnabled><ContactIntents /></PublicFeaturesProvider>);
+  render(<PublicFeaturesProvider publicLeadsEnabled><ContactoMotivo /></PublicFeaturesProvider>);
   fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Ana Ensayo" } });
   fireEvent.change(screen.getByLabelText("Teléfono o WhatsApp"), { target: { value: "664 000 0000" } });
-  fireEvent.click(screen.getByLabelText(/Quiero vender/));
+  fireEvent.click(screen.getByRole("button", { name: /^Motivo:/ }));
+  fireEvent.click(screen.getByRole("option", { name: "rentar" }));
+  expect(screen.getByLabelText("Qué rentas o buscas rentar")).toBeTruthy();
   expect((screen.getByLabelText("Nombre") as HTMLInputElement).value).toBe("Ana Ensayo");
   expect((screen.getByLabelText("Teléfono o WhatsApp") as HTMLInputElement).value).toBe("664 000 0000");
 });

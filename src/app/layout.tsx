@@ -4,9 +4,6 @@ import { connection } from "next/server";
 import { headers } from "next/headers";
 
 import "@/app/globals.css";
-import "@/app/editorial.css";
-import "@/app/nocturno.css";
-import "@/app/publico.css";
 // Marca Fortius II del sitio público: todo bajo html.sitio, que el panel nunca recibe (17/11/2026).
 import "@/app/sitio.css";
 import { SiteFooter } from "@/components/home/site-footer";
