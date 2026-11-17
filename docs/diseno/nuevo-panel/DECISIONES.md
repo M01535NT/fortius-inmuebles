@@ -4,7 +4,7 @@ Cómo debe ser el panel nuevo (`/panel`, rama `nuevo-panel`). Manda sobre lo con
 
 - **Boceto aprobado por el titular el 16/11/2026 (DEC-68):** «Fortius por asuntos», https://claude.ai/artifact/Dj9XqPpFyEUeHUsQwCtvT8 (privado). Es la referencia de estructura y de aspecto. El mismo boceto está en [`boceto-fortius-por-asuntos.html`](boceto-fortius-por-asuntos.html): se abre en el navegador y funciona con datos de ejemplo. Su código es de boceto; sirve para ver cómo se ve y cómo responde, no para copiarlo.
 - **Casos reales con los que se diseñó:** [`casos-reales.md`](casos-reales.md) (DEC-67).
-- **Lo anterior** (estilo tipo Apple, Hoy, Bandeja, Consultas, Trámites, Dinero y demás como estaban) quedó completo en [`historial-de-decisiones.md`](historial-de-decisiones.md), solo para consulta.
+- **Lo anterior** (estilo tipo Apple, Hoy, Bandeja, Consultas, Trámites, Dinero y demás como estaban) ya no manda y no se conserva en documentos: está en el historial de git.
 - Las reglas del negocio y de seguridad están en `SPEC.md`; el aislamiento del panel viejo, en `LEGADO.md`.
 
 ## Principios
@@ -122,6 +122,18 @@ Trabajo que se puede hacer en cualquier momento, con asunto o sin él.
 - **Desde un asunto:** el botón «Nuevo › Documento» ofrece las mismas herramientas ya llenas con los datos del asunto, y lo hecho queda en sus Documentos.
 - La opinión de valor es un servicio como cualquier otro: se hace cuando se pida, no depende de ninguna metodología.
 
+## Documentos y formatos (DEC-71)
+
+Cómo se llena cualquier formato, desde un asunto o desde Herramientas.
+
+- **Por preguntas, no tocando el papel.** A un lado la pregunta; al otro la hoja real, que se llena en vivo y sale idéntica en PDF. Tocar la hoja sirve de atajo para saltar a un dato.
+- **Solo se pregunta lo que falta.** El documento abre diciendo cuántos datos faltan y pide esos.
+- **Del asunto al papel:** lo que ya está en el asunto entra solo: nombre, teléfono, domicilio, estado civil, CURP, RFC, datos del inmueble, precio, folio.
+- **Del papel al asunto:** lo que se captura al llenar un documento queda en la persona, el inmueble o el asunto, y no se vuelve a pedir en el siguiente.
+- Se guarda solo y el PDF sale aunque falten datos.
+- **Al terminar:** descargar, enviar por WhatsApp, cargar el firmado (PDF o foto) y volver al asunto. Lo hecho queda en Documentos.
+- En el teléfono, una pregunta por pantalla, con dictado.
+
 ## Inicio
 
 Se llama Inicio, no Hoy, porque muestra más que el día.
@@ -154,7 +166,7 @@ La lista completa, con su orden, está en `SPEC.md`, sección «Funciones del pa
 - El asunto como centro, los folios y los papeles (RP-106 a RP-108).
 - Permisos, RLS, control de versión, historial y borrado recuperable.
 - Deshacer en lugar de «¿estás seguro?».
-- Los formatos 01 a 24 y su captura sobre el documento: son lo que hay detrás de «Hacer».
+- Los formatos 01 a 24 y su hoja fiel al PDF: son lo que hay detrás de «Hacer». La forma de llenarlos cambia (DEC-71).
 - La guía de cancelación de hipoteca, como un plan más de la Biblioteca.
 - Fichas en la dirección, para compartir y volver con Atrás.
 

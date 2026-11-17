@@ -14,7 +14,7 @@ Existen inventario y publicación, prospectos/clientes, agenda/tareas, expedient
 
 ## Identidad
 
-Logo Fortius con portal bicolor, tipografía Schibsted Grotesk en el sitio público y Archivo en el panel, azul `#061F3F`, borgoña `#8A1634`, blanco y blanco azulado `#F8F8FF` (sin crema desde el 12/11/2026), sin rosa; temas claro y oscuro. Conservar el diseño y los recursos de [la guía de marca](brand.md) en el sitio público y en el panel.
+Logo Fortius con portal bicolor, tipografía Schibsted Grotesk en el sitio público (el panel sigue su propio boceto, ver `DECISIONES.md`), azul `#061F3F`, borgoña `#8A1634`, blanco y blanco azulado `#F8F8FF` (sin crema desde el 12/11/2026), sin rosa; temas claro y oscuro. Conservar el diseño y los recursos de [la guía de marca](brand.md) en el sitio público y en el panel.
 
 ## Principios
 
@@ -22,4 +22,4 @@ Comunicación directa y documentada; contacto por canales válidos configurados;
 
 Identificar demo como prueba; no inventar contactos ni presentar ejemplos como ofertas vigentes. La captación pública permanece desactivada según el estado documentado. Un documento recibido, una revisión profesional, una firma y un pago son hechos distintos.
 
-La opinión de valor no se ofrece ni se solicita por separado (decisión del titular, 30/10/2026). Es parte del método: entrevista inicial, levantamiento y checklist documental; solo después se entregan el dictamen de factibilidad (jurídico) y la opinión de valor comercial. El sitio puede explicarla, pero ningún botón invita a pedirla; las acciones llevan a agendar la entrevista. Una calculadora pública de valor, si se construye, debe presentarse como estimación orientativa distinta de esa opinión.
+La opinión de valor es un servicio de Fortius, como un avalúo: se hace cuando se pida, desde Herramientas o desde un asunto (DEC-70, 16/11/2026). Ninguna metodología es obligatoria ni es el centro del sistema (DEC-67). Cómo la presenta el sitio público sigue como está hasta que el titular pida cambiarlo. Una calculadora pública de valor, si se construye, debe presentarse como estimación orientativa distinta de esa opinión.

@@ -17,17 +17,17 @@ Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregún
 | Marca del sitio público | `docs/brand.md` |
 | Lo demás (privacidad, publicación, respaldos, formatos, calculadoras) | `docs/README.md` |
 
-Lo terminado y lo reemplazado está en los historiales (`docs/erp-crm/historial-del-plan.md`, `docs/erp-crm/historial-de-reglas.md`, `docs/diseno/nuevo-panel/historial-de-decisiones.md`): solo consulta. Todo avance se anota en `PLAN.md`; las reglas nuevas, en `SPEC.md` o `DECISIONES.md`. Si una indicación nueva choca con algo escrito, se corrige la fuente y se avisa del choque.
+Lo terminado y lo reemplazado no se guarda en documentos: queda en el historial de git. Si un documento viejo contradice a `SPEC.md` o a `DECISIONES.md`, se corrige o se borra; no se dejan reglas viejas vivas. Todo avance se anota en `PLAN.md`; las reglas nuevas, en `SPEC.md` o `DECISIONES.md`. Si una indicación nueva choca con algo escrito, se corrige la fuente y se avisa del choque.
 
 ## Panel nuevo
 
 - **Código** en `src/app/panel/`, `src/components/panel/` y `src/lib/panel/`, con estilos bajo `.panel-root`. Nada nuevo en `/admin` salvo seguridad o caída del sitio, avisando.
 - **Aislamiento:** el panel nuevo solo usa el viejo a través de `src/lib/panel/legado/`; el lint lo hace cumplir y no se desactiva. El backend (`src/lib/backend`, `src/app/api`, `supabase/migrations`) es compartido.
 - **Diseño:** manda el boceto aprobado «Fortius por asuntos» (DEC-68, RP-104; enlace y detalle en `DECISIONES.md`): app moderna, pocas palabras en pantalla, opciones agrupadas en desplegables y menús, íconos en todo, claro y oscuro. Minimalista es agrupar, no quitar funciones. Los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx` se ajustan al boceto al reconstruir. Lo que el boceto no define se anota en `DECISIONES.md`, no se inventa.
-- **Cualquier caso cabe (DEC-67):** la app sirve para cualquier caso inmobiliario; la metodología de captación es una guía más, nunca la columna vertebral. Si un caso real no cabe, dilo con claridad y propón cambiar el diseño; no acomodes el caso a la fuerza. Los casos del titular están en `docs/diseno/nuevo-panel/casos-reales.md`.
+- **Cualquier caso cabe (DEC-67):** la app sirve para cualquier caso inmobiliario; ninguna metodología es regla del panel ni su columna vertebral. Una metodología es una guía para un trabajo específico (captar una venta, captar una renta, cancelar una hipoteca); hay muchas, viven en la Biblioteca y en `docs/metodologias/`, y nunca se generalizan a todo el panel. Si un caso real no cabe, dilo con claridad y propón cambiar el diseño; no acomodes el caso a la fuerza. Los casos del titular están en `docs/diseno/nuevo-panel/casos-reales.md`.
 - **Comportamiento:** nada frena, solo avisa (DEC-61). De 3 opciones en adelante, desplegable; con 2, interruptor; nunca filas de chips. Arrastrar y soltar con equivalente de teclado (RP-102 PN). Primero para el director, después para el asesor; la visibilidad se hace cumplir en la base con RLS (RP-101 PN).
 - **Pantalla:** lenguaje sencillo, una acción principal, sin rastros de IA («Por confirmar», no «propuesto»). Teclado, foco visible, botones de al menos 44 px y movimiento reducido.
-- **Auditoría:** al cerrar una etapa PN, un revisor de solo lectura audita la lógica; su informe va a `docs/diseno/nuevo-panel/auditorias/` (RP-103 PN).
+- **Auditoría:** al cerrar una etapa, un revisor de solo lectura audita la lógica y prueba los casos de `casos-reales.md`; lo que encuentre se corrige o se anota en `PLAN.md` (RP-103 PN).
 
 ## Sitio público
 

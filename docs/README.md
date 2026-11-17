@@ -1,12 +1,11 @@
 # Manuales y referencias de Fortius
 
-El desarrollo del ERP/CRM se dirige únicamente desde [PLAN.md](../PLAN.md); cómo funciona el sistema (reglas, decisiones, alcance) está en [SPEC.md](../SPEC.md). Esta carpeta conserva material de consulta y operación; los planes e informes anteriores están en una copia recuperable fuera del repositorio.
+El desarrollo del ERP/CRM se dirige únicamente desde [PLAN.md](../PLAN.md); cómo funciona el sistema (reglas, decisiones, alcance) está en [SPEC.md](../SPEC.md). Esta carpeta conserva material de operación vigente. Los planes, reglas y diseños anteriores no se guardan aquí: están en el historial de git.
 
 | Tema | Referencia |
 |---|---|
 | Producto | [Propósito y capacidades](PRODUCT.md). |
-| Historial del plan | [Trabajo terminado y registros de sesiones pasadas](erp-crm/historial-del-plan.md), separados del plan el 11/11/2026. No es un plan: si contradice al plan, manda el plan. |
-| Panel nuevo | [Qué hace cada pantalla](diseno/nuevo-panel/DECISIONES.md), [qué es legado](diseno/nuevo-panel/LEGADO.md), [auditorías](diseno/nuevo-panel/auditorias/). El panel viejo (`/admin`) es legado: [manual](admin-manual.md) y [espacio de trabajo](admin-workspace.md), corte de octubre. |
+| Panel nuevo | [Cómo debe ser](diseno/nuevo-panel/DECISIONES.md), [boceto aprobado](diseno/nuevo-panel/boceto-fortius-por-asuntos.html), [casos reales](diseno/nuevo-panel/casos-reales.md), [qué es legado](diseno/nuevo-panel/LEGADO.md). Metodologías de la Biblioteca: [`metodologias/`](metodologias/). El panel viejo (`/admin`) es legado: [manual](admin-manual.md) y [espacio de trabajo](admin-workspace.md), corte de octubre. |
 | Marca | [Marca](brand.md), [identidad técnica](fortius-inmuebles-identity.md). |
 | Publicación | [Despliegue](deployment-fortius.md), [entornos](erp-crm/environment-release.md). |
 | Recuperación | [Procedimiento actual](fortius-inmuebles-backup-restore.md), [política y objetivos](erp-crm/recovery-policy.md), [copia diaria](erp-crm/respaldo-diario.md). |

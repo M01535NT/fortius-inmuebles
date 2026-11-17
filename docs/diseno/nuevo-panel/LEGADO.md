@@ -1,5 +1,7 @@
 # Panel viejo (`/admin`): qué es legado y cómo no estorba
 
+> **Aviso (16/11/2026):** este documento nombra pantallas y etapas del diseño anterior. Lo que reemplaza a cada ruta vieja es ahora lo que diga `DECISIONES.md` (boceto «Fortius por asuntos»). Sigue vigente la regla de aislamiento: el panel nuevo solo toca al viejo por `src/lib/panel/legado/`.
+
 **Decisión del titular, 16/11/2026:** los bocetos del panel nuevo mandan sobre lo ya construido. El panel viejo va a desaparecer en su momento (etapa PN-12 de `PLAN.md`). Mientras tanto sigue en pie, porque es lo que se usa hoy.
 
 ## Reglas para que el viejo no interfiera
@@ -16,7 +18,7 @@
 | Ruta vieja | Sección nueva | Etapa | Nota |
 | --- | --- | --- | --- |
 | `/admin` (inicio) | Hoy | PN-04 | |
-| `/admin/agenda`, `/admin/tareas` | Agenda y Hoy (pendientes) | PN-04 | Una sola tabla de pendientes (auditoría AUD-01, hallazgo 3) |
+| `/admin/agenda`, `/admin/tareas` | Agenda y Hoy (pendientes) | PN-04 | Una sola tabla de pendientes |
 | `/admin/clientes`, `/admin/contactos` | Personas | PN-03 | |
 | `/admin/propiedades` | Inmuebles | PN-03 | |
 | `/admin/operaciones`, `/admin/entrevistas`, `/admin/notas`, `/admin/historial` | Asuntos (guías, notas internas y actividad) | PN-04 | |
