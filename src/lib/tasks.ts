@@ -11,7 +11,10 @@ export const taskSchema = z.object({
   categoria: z.enum(Object.keys(TASK_CATEGORIES) as [keyof typeof TASK_CATEGORIES, ...Array<keyof typeof TASK_CATEGORIES>]),
   estado: z.enum(Object.keys(TASK_STATUSES) as [keyof typeof TASK_STATUSES, ...Array<keyof typeof TASK_STATUSES>]),
   prioridad: z.enum(Object.keys(TASK_PRIORITIES) as [keyof typeof TASK_PRIORITIES, ...Array<keyof typeof TASK_PRIORITIES>]),
-  vence: calendarDate.or(z.literal("")).optional(), expedienteId: z.uuid().transform((value) => value.toLowerCase()).or(z.literal("")).optional(), asesorId: reference, leadId: reference, clienteId: reference, propiedadSlug: reference,
+  vence: calendarDate.or(z.literal("")).optional(),
+  // Hora opcional del día en que vence («Esta tarde, 17:00» al posponer). La base la valida desde 20261116140000_hora_de_la_tarea.
+  hora: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")).optional(),
+  expedienteId: z.uuid().transform((value) => value.toLowerCase()).or(z.literal("")).optional(), asesorId: reference, leadId: reference, clienteId: reference, propiedadSlug: reference,
   // TRA-01: la tarea de un trámite (p. ej. «Volver a preguntar») lo lleva para abrirlo desde «Hoy».
   tramiteId: reference,
   // Los renglones del checklist de documentos (COR-06) además pueden no aplicar con motivo, estar por confirmar o ligar un documento del cliente.

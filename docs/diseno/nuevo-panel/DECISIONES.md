@@ -5,6 +5,19 @@ Registro vivo de las decisiones de diseño del panel `/admin` rehecho desde lo m
 - **Lienzo con los prototipos:** https://claude.ai/artifact/SmyWKd1xYnkmPVvyTMZGjf (privado; se comparte desde su menú Compartir).
 - **Estado:** bocetos interactivos. Todavía no hay código en el panel.
 
+## Estilo tipo Apple (16/11/2026) — reemplaza parte del «Sistema visual» de abajo
+
+- **Decisión del titular:** el panel toma el estilo del prototipo rápido que aprobó («Sí, esta»: https://claude.ai/artifact/GS2SrBsgPRfNDZ5Q2fWnVY). Más Apple que Google, sin copiar al iPhone.
+- **Letra:** la del sistema en Apple (SF) e Inter en Windows y Android. Reemplaza a Geist. Títulos grandes de 34 px en 700; subtítulos de 20 px en 700.
+- **Color:** fondo gris claro `#F2F2F7` con tarjetas casi blancas `#FEFEFF`; en oscuro, fondo `#060607` y tarjetas `#1C1C1E`. Acento azul en los dos temas (`#0071E3` en claro, `#0A84FF` en oscuro); el ámbar deja de ser el acento del oscuro. Vencido y errores siguen en rojo; sigue sin haber blanco ni negro puros.
+- **Esquinas:** 6, 10, 14 y 16 px (antes 2, 4, 8 y 16). Botones de 12 px.
+- **Tarjetas agrupadas:** sin borde ni sombra, separadas por el fondo gris; dentro, filas con línea fina.
+- **Íconos de sección:** el mismo dibujo del sistema, en claro sobre un cuadro de color propio por sección (como los ajustes del iPhone). Dentro de las pantallas siguen en trazo.
+- **Menú lateral y barras:** fondo translúcido; la sección activa va llena de azul. En el teléfono, la barra inferior marca la activa en azul y los avisos en rojo; el «+» de arriba va en azul sin cuadro.
+- **Botones:** el principal lleno de azul; el secundario en azul claro con texto azul. Al pulsar se encogen un poco.
+- **Campos y búsqueda:** fondo gris de relleno, sin borde.
+- **Lo que se conserva del sistema anterior:** el logotipo, los 28 dibujos de íconos, foco visible, botones de 44 px o más, sin cejas ni mayúsculas.
+
 ## Sistema visual (16/11/2026) — nuevo, reemplaza la paleta anterior en los bocetos
 
 - **Fuente:** el PDF «Sistema de diseño Fortius» que entregó el titular. Aplicado a todos los bocetos del lienzo; los componentes siguen siendo los de los bocetos, ahora con este sistema.
@@ -98,6 +111,7 @@ La captura en una línea reconoce el tipo, el día, la hora, la persona y el lug
 - **Mucho trabajo:** 5 filas como máximo, total en el título, «Ver los N restantes» y una línea «N vencidos · Revisar».
 - **Muchas citas:** solo lo que falta del día; las terminadas se pliegan; aviso si dos citas se cruzan.
 - **Nada pendiente:** cada bloque queda en una línea con lo que sigue («Mañana: 2 citas y 3 tareas», «Agendar visita»).
+- **Sin «Vence pronto» ni «Te deben»** (titular, 16/11/2026): no están en el boceto y se quitan de Hoy. Los vencimientos (esperas de trámites, cobros, fechas clave de los asuntos) entran en «Atender primero» y en la agenda; lo que se debe se ve en Dinero.
 
 ## Personas (15/11/2026) — en boceto
 
@@ -305,7 +319,8 @@ La captura en una línea reconoce el tipo, el día, la hora, la persona y el lug
 - **Movimiento nuevo:** tipo, asunto, monto, concepto opcional y, salvo en apartados, vencimiento (sin fecha, 7 o 30 días).
 - **Atajos en escritorio:** J y K, P (cobro), N (nuevo), Esc.
 - **Son cifras de ejemplo**, y así lo dice la pantalla.
-- **Pendiente:** quién ve el dinero (¿cada asesor solo sus comisiones o todo el equipo?); cómo se reparte una comisión entre asesores o con un co-broker; facturas (CFDI) ligadas al cobro; si los apartados se registran con comprobante; aviso en Hoy y en Agenda de los cobros que vencen; recibos desde Formatos.
+- **Pendiente:** quién ve el dinero (¿cada asesor solo sus comisiones o todo el equipo?); cómo se reparte una comisión entre asesores o con un co-broker; facturas (CFDI) ligadas al cobro; aviso en Hoy y en Agenda de los cobros que vencen; recibos desde Formatos.
+- **Apartados:** se registran con comprobante y quedan en «Por entregar» hasta entregarse al propietario (DEC-56, confirmado por el titular el 16/11/2026).
 
 ## Consultas (15/11/2026) — en boceto
 
@@ -483,6 +498,10 @@ Ajustes del ensayo: borrar un asunto sigue como en el panel viejo (lo que no cam
 - **¿Qué regla manda para ver un asunto?** El panel nuevo deja verlo a quien lo lleva o colabora; el viejo además exige llevar al cliente. Recomendación: la del panel nuevo (quien lleva el asunto lo ve aunque el cliente sea de otro) y anotarla en `SPEC.md`.
 
 ## Decisiones del titular sobre lo construido (16/11/2026)
+
+- **Marca del sitio público (DEC-59):** el Sistema de diseño Fortius también reemplaza la marca del sitio público, pero todavía no se aplica.
+- **Bandeja y Consultas (DEC-60):** son dos entradas distintas.
+- **Sin frenos (DEC-61):** ningún freno de proceso; lo que antes frenaba, ahora avisa. La seguridad (permisos, quién ve qué, datos privados) no es un freno y se conserva.
 
 Detalle en `SPEC.md`, DEC-52 a DEC-58.
 

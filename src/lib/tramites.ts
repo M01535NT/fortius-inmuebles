@@ -16,14 +16,15 @@ import { z } from "zod";
   · Banco: carta de finiquito y escritura de cancelación ante notario (no hay vía oficial sin él).
   Las claves de los pasos son identificadores fijos (la base los revisa); el nombre cambia por acreedor.
 
-  La base guarda los pendientes de cada paso al abrir el trámite y revisa al avanzar que estén hechos
-  y que el documento del paso exista (migración 20261114211000). Este archivo solo define textos.
+  La base guarda los pendientes de cada paso al abrir el trámite. Desde DEC-61 (migración
+  20261116110000_tramites_sin_frenos) un paso se cierra aunque falten pendientes o su documento: la base
+  lo anota en el historial y el panel lo avisa. Este archivo solo define textos.
 */
 export const ACREEDORES = { infonavit: "Infonavit", banco: "Banco", fovissste: "Fovissste" } as const;
 export type Acreedor = keyof typeof ACREEDORES;
 export const PASO_CLAVES = ["datos", "liquidado", "carta", "notario", "firma", "registro", "certificado", "entrega"] as const;
 export type PasoClave = (typeof PASO_CLAVES)[number];
-/** Pasos que no se cierran sin su documento (la base revisa lo mismo). */
+/** Pasos que piden su documento; si falta al cerrarlos, se avisa (DEC-61, ya no frena). */
 export const PASOS_CON_DOCUMENTO: Partial<Record<PasoClave, string>> = { liquidado: "Estado de cuenta en cero", carta: "", certificado: "Certificado de inscripción sin gravámenes" };
 export const TOTAL_PASOS = PASO_CLAVES.length;
 
@@ -67,22 +68,53 @@ const pendienteSchema = z.object({ id, texto: texto(300).min(1), hecho: z.boolea
 const pasoSchema = z.object({ clave: z.enum(PASO_CLAVES), pendientes: z.array(pendienteSchema).max(20), cerradoEl: z.string().max(40).optional(), cerradoPor: z.string().max(80).optional() }).strict();
 const notaSchema = z.object({ id, tipo: z.enum(["nota", "evento"]), texto: texto(5000).min(1), fijada: z.boolean().optional(), autor: z.string().max(80).optional(), fecha: z.string().max(40).optional() }).strict();
 const pagoSchema = z.object({ id, concepto: texto(160).min(1), monto: z.number().finite().nonnegative().max(1e10).optional(), estado: z.enum(["pendiente", "pagado"]) }).strict();
+const esperaSchema = z.object({ quien: texto(120).min(1), desde: fecha, volver: fecha }).strict().nullable().optional();
+const avanceSchema = z.object({ fecha: z.string().max(40).optional(), medio: z.enum(["whatsapp", "correo", "pdf"]) }).strict().nullable().optional();
 export const tramiteSchema = z.object({
   id, tipo: z.literal("cancelacion_hipoteca"), acreedor: z.enum(Object.keys(ACREEDORES) as [Acreedor, ...Acreedor[]]),
   titulo: texto(160).min(1), clienteId: id, asesorId: id, propiedadSlug: reference, expedienteId: z.uuid().or(z.literal("")).optional(),
   estado: z.enum(["en_curso", "terminado", "cancelado"]), pasoActual: z.number().int().min(0).max(TOTAL_PASOS),
   pasos: z.array(pasoSchema).length(TOTAL_PASOS),
-  espera: z.object({ quien: texto(120).min(1), desde: fecha, volver: fecha }).strict().nullable().optional(),
+  espera: esperaSchema,
   credito: z.object({ numero: texto(60).optional(), folioReal: texto(60).optional(), notaria: texto(160).optional() }).strict().optional(),
   pagos: z.array(pagoSchema).max(30).default([]),
   notas: z.array(notaSchema).max(1000).default([]),
-  ultimoAvance: z.object({ fecha: z.string().max(40).optional(), medio: z.enum(["whatsapp", "correo", "pdf"]) }).strict().nullable().optional(),
+  ultimoAvance: avanceSchema,
   // Ligado a una venta, frena la firma hasta cerrar el Registro Público; el director puede decidir firmar sin ella.
   firmaSinCancelacion: z.object({ motivo: texto(1000).min(10), autorizadoPor: z.string().max(80).optional(), autorizadoEl: z.string().max(40).optional() }).strict().nullable().optional(),
   creadoEl: z.string().max(40).optional(), actualizadoEl: z.string().max(40).optional(),
 }).strict().refine(t => t.pasos.every((p, i) => p.clave === PASO_CLAVES[i]), { message: "Pasos fuera de orden", path: ["pasos"] })
   .refine(t => (t.estado === "terminado") === (t.pasoActual === TOTAL_PASOS), { message: "Solo termina al cerrar el último paso", path: ["estado"] });
 export type Tramite = z.infer<typeof tramiteSchema>;
+
+/*
+  Trámites que no son la hipoteca (boceto «Trámites», 15/11/2026): servicios, avalúo, regularización, Catastro,
+  Registro Público y el trámite libre. Dos formas: «ruta» (pasos en orden, como la hipoteca, con su nombre
+  guardado porque las guías aún están por confirmar con la fuente oficial) o «partes» (cambio de nombre de
+  servicios y trámite libre: cada parte se marca solicitada y lista). La base los acepta desde la migración
+  20261116130000_tramites_por_tipo; antes de aplicarla, guardarlos responde «Trámite inválido».
+*/
+export const TIPOS_GUIA = ["servicios", "avaluo", "regularizacion", "catastro", "registro", "libre"] as const;
+export type TipoGuia = (typeof TIPOS_GUIA)[number];
+export const MAX_PASOS_GUIA = 12;
+const pasoGuiaSchema = z.object({ clave: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,39}$/), nombre: texto(120).min(1), pendientes: z.array(pendienteSchema).max(20), cerradoEl: z.string().max(40).optional(), cerradoPor: z.string().max(80).optional() }).strict();
+const parteSchema = z.object({ id, nombre: texto(120).min(1), institucion: texto(120).optional(), estado: z.enum(["pendiente", "solicitado", "listo"]), llevar: z.array(texto(160).min(1)).max(20).default([]) }).strict();
+export const tramiteGuiaSchema = z.object({
+  id, tipo: z.enum(TIPOS_GUIA), titulo: texto(160).min(1), clienteId: reference, asesorId: id, propiedadSlug: reference,
+  expedienteId: z.uuid().or(z.literal("")).optional(), estado: z.enum(["en_curso", "terminado", "cancelado"]),
+  pasoActual: z.number().int().min(0).max(MAX_PASOS_GUIA), pasos: z.array(pasoGuiaSchema).max(MAX_PASOS_GUIA),
+  partes: z.array(parteSchema).max(30).default([]), espera: esperaSchema,
+  pagos: z.array(pagoSchema).max(30).default([]), notas: z.array(notaSchema).max(1000).default([]), ultimoAvance: avanceSchema,
+  creadoEl: z.string().max(40).optional(), actualizadoEl: z.string().max(40).optional(),
+}).strict().refine(t => t.pasoActual <= t.pasos.length, { message: "Paso fuera de la guía", path: ["pasoActual"] })
+  .refine(t => !t.pasos.length || !t.partes.length, { message: "Un trámite lleva pasos o partes, no las dos", path: ["partes"] })
+  .refine(t => !t.pasos.length || (t.estado === "terminado") === (t.pasoActual === t.pasos.length), { message: "Solo termina al cerrar el último paso", path: ["estado"] });
+export type TramiteGuia = z.infer<typeof tramiteGuiaSchema>;
+export type ParteTramite = TramiteGuia["partes"][number];
+/** Lo que valida el servidor en la colección «tramites»: la hipoteca (TRA-01) o una de las demás guías. */
+export const tramiteCualquieraSchema = z.union([tramiteSchema, tramiteGuiaSchema]);
+export type CualquierTramite = Tramite | TramiteGuia;
+export const esHipoteca = (t: { tipo: string }): t is Tramite => t.tipo === "cancelacion_hipoteca";
 export type TramiteNota = Tramite["notas"][number];
 
 /** Trámite nuevo con los pendientes de cada paso según el acreedor. */
