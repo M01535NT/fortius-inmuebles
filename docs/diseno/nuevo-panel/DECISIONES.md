@@ -33,7 +33,7 @@ App moderna, en la línea de Linear, Notion o las apps de iOS, sin copiarlas.
 
 ## Estructura
 
-- **Menú lateral** (computadora): Inicio, Asuntos, Inmuebles, Directorio, Biblioteca y, solo para el director, Equipo. Arriba el buscador; abajo «Recientes» con los últimos asuntos y la cuenta de quien entró.
+- **Menú lateral** (computadora): Inicio, Asuntos, Inmuebles, Directorio, Biblioteca, Herramientas y, solo para el director, Equipo. Arriba el buscador; abajo «Recientes» con los últimos asuntos y la cuenta de quien entró.
 - **Teléfono:** barra de abajo con Inicio, Asuntos, «+» (consulta nueva), Inmuebles y Más.
 - **«Nueva consulta»** está en Inicio y en la lista de Asuntos. No se repite en el menú lateral.
 - **Tres zonas en computadora:** menú, lista y lo abierto. Cada parte de un asunto abre en una ventana lateral, sin salir.
@@ -65,7 +65,13 @@ Las partes de un asunto se llaman **apartados**. Cada uno es un renglón con su 
 
 - **De base, siempre:** Personas, Plan e Historial.
 - **Según el encargo** aparecen los demás; se **agregan y se quitan** a conveniencia con «Agregar apartado» y con el menú de cada ventana. Quitar un apartado lo oculta; sus datos se conservan.
-- **Apartado propio:** el asesor crea uno con el nombre que quiera (Visitas, Ofertas, Obra) para lo que no cabe en los demás.
+- **Apartado propio (DEC-69):** el asesor crea uno con el nombre que quiera y elige **cómo se ve**, según para qué lo va a usar. Así se personaliza cada asunto.
+  - **Lista:** renglones que se marcan (visitas por hacer, pendientes de obra).
+  - **Tabla:** una pequeña base de datos con las columnas que él defina (ofertas recibidas, gastos, pagos).
+  - **Galería:** tarjetas con foto y datos (comparables con su foto, precio, superficie y distancia; avances de obra).
+  - **Texto:** notas largas.
+  - La vista se puede cambiar después sin perder lo capturado. Un apartado propio se puede guardar en la Biblioteca para usarlo en otros asuntos.
+  - El boceto solo dibuja la vista de lista; las demás faltan por dibujar.
 - Lo que no se encargó no aparece ni se reclama.
 
 | Apartado | Qué lleva |
@@ -91,6 +97,7 @@ Es también el panel de lo que sale en el sitio público: aquí se carga todo.
   - **Planos y permisos:** escritura, licencias, dictámenes, factibilidades y planos. Son los mismos documentos del asunto.
   - **Ubicación:** colonia, ciudad, dirección exacta (privada), referencias y mapa. El público ve solo la colonia salvo que se encienda mostrar la dirección.
   - **Sitio:** publicar, qué lleva y qué falta, descripción y compartir.
+- **Un inmueble siempre vive en un asunto (DEC-70).** Al agregar uno desde Inmuebles se piden sus datos y los del propietario, y con eso se abre solo su asunto. Si por algo llegara sin asunto, publicar ofrece «Abrir asunto y publicar».
 - **Guardar no publica.** Publicar es un interruptor propio y se puede deshacer.
 - Los siete tipos de DEC-32 se conservan.
 
@@ -106,9 +113,20 @@ Donde viven las metodologías, todas al mismo nivel.
 - **Qué hacer:** planes por tipo de solución.
 - Se copian a un asunto y ahí se cambian con libertad. Las escribe el titular; lo jurídico lo revisa el abogado.
 
+## Herramientas (DEC-70)
+
+Trabajo que se puede hacer en cualquier momento, con asunto o sin él.
+
+- **Qué hay:** opinión de valor, cálculo de ISR, gastos del comprador, gastos del vendedor, crédito, comisión y los contratos y formatos sueltos.
+- **Sin asunto:** se hace y se descarga. Si después hay asunto, se pasa a él sin volver a capturar (RP-83).
+- **Desde un asunto:** el botón «Nuevo › Documento» ofrece las mismas herramientas ya llenas con los datos del asunto, y lo hecho queda en sus Documentos.
+- La opinión de valor es un servicio como cualquier otro: se hace cuando se pida, no depende de ninguna metodología.
+
 ## Inicio
 
 Se llama Inicio, no Hoy, porque muestra más que el día.
+
+- **Por atender:** las solicitudes que llegan del sitio público caen aquí arriba, con cuánto llevan esperando. Abrir una lleva a la consulta en vivo ya llena con lo que la persona escribió; de ahí se abre el asunto o se cierra con su motivo. El menú muestra cuántas esperan.
 
 - **Hoy:** lo de Fortius con fecha de hoy o atrasada.
 - **Esta semana:** lo que viene en siete días.
@@ -121,6 +139,16 @@ Se llama Inicio, no Hoy, porque muestra más que el día.
 - **Asesor:** ve solo lo suyo y no tiene la sección Equipo.
 - La visibilidad se hace cumplir en la base (RP-101 PN), no solo en pantalla.
 
+## Funciones aprobadas además del boceto (DEC-69)
+
+La lista completa, con su orden, está en `SPEC.md`, sección «Funciones del panel». En corto:
+
+- **Primero:** escribir en una línea, dictado, paleta de comandos, vistas y filtros guardados, favoritos, dependencias entre tareas, tareas que se repiten, recordatorios de vencimientos, reloj de respuesta, comentarios con menciones, bandeja de avisos e historial de todo contacto con la persona.
+- **Después de eso:** leer documentos, resumen del asunto, redactar mensajes y un portal sencillo para el cliente.
+- **Más adelante:** captura por WhatsApp, reglas automáticas, reparto de consultas, planificador del día, preguntarle a los datos, chat del equipo y cotización que se acepta en línea.
+- **Con el abogado antes:** firma electrónica y transcripción de llamadas.
+- **No por ahora:** agentes que trabajen solos. El sistema propone y la persona decide.
+
 ## Lo que se conserva
 
 - El asunto como centro, los folios y los papeles (RP-106 a RP-108).
@@ -132,15 +160,11 @@ Se llama Inicio, no Hoy, porque muestra más que el día.
 
 ## Por decidir
 
-- **Dónde entran las solicitudes del sitio público** y cómo se vuelven consulta.
 - **Agenda:** si las citas con hora necesitan vista propia o basta con Inicio y el Plan.
 - **Archivos sueltos** que llegan sin saber de qué asunto son.
-- **Calculadoras** (crédito, comisión, costos de cierre): dónde quedan.
 - **Chat del equipo:** sigue al final (RP-105).
-- **Inmueble sin asunto:** hoy el boceto abre un asunto al crear un inmueble; falta confirmar si se permite sin él.
-- **Opinión de valor:** si se hace en cualquier asunto o solo al comercializar una venta.
-- **Formato de presupuesto de honorarios:** falta la plantilla del titular.
-- **Contenido de la Biblioteca y datos por tipo de inmueble:** lo del boceto es de ejemplo.
+- **Contenido que sube el titular con calma:** plantilla del presupuesto de honorarios, listas y planes de la Biblioteca y datos por tipo de inmueble. Mientras, lo del boceto es de ejemplo.
+- **Por dibujar en el boceto:** Herramientas, las solicitudes del sitio en Inicio y las vistas de tabla y galería de los apartados propios.
 - **Qué ve exactamente el asesor** de los asuntos e inmuebles ajenos.
 - **Destino de lo construido que el boceto no trae** (Bandeja, Consultas, Trámites, Dinero, Agenda, Formatos y Herramientas como pantallas): se decide al planear la reconstrucción.
 - Siguen abiertas las de privacidad, respaldo, abogado y datos de prueba anotadas en `PLAN.md`.

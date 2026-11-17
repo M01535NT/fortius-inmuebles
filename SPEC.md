@@ -9,7 +9,7 @@ Dice **cómo debe funcionar el sistema**; solo cambia cuando el titular decide, 
 - **Los bocetos mandan.** El panel se reconstruye en `/panel` a partir del boceto aprobado «Fortius por asuntos» (DEC-68); `/admin` es legado y no se amplía (RP-100 PN).
 - **Nada frena, solo avisa** (RP-100, DEC-61): ningún requisito detiene guardar, avanzar, publicar ni firmar; se avisa y queda anotado quién siguió. Sí se conservan permisos, RLS, validación de datos, control de versión, privacidad y «guardar no es publicar».
 - **Cada quien ve lo suyo, y lo hace cumplir la base** (RP-101 PN): todo registro lleva responsable y creador; el director ve todo, el asesor lo suyo.
-- **Guardar primero, ordenar después** (RP-101, RP-102, RP-103): documento sin asunto e inmueble sin propietario son válidos; todo entra por la Bandeja.
+- **Guardar primero, ordenar después** (RP-101, RP-102, RP-103): un documento puede llegar sin asunto y un inmueble sin propietario capturado; se ordena después.
 - **Sirve para cualquier caso inmobiliario** (DEC-67): una captación normal, una casa en sucesión e invadida, un terreno con sentencia de prescripción, una asesoría por etapas entre terceros. Ninguna metodología es la columna vertebral; la de captación (entrevista, levantamiento, revisión, opinión de valor) es una guía entre varias. Si un caso no cabe, se cambia el diseño; no se acomoda el caso.
 - **El asunto es el centro de trabajo** (RP-106 a RP-108): cada uno arma su propio camino, con guías que sugieren, sin fases fijas (DEC-55, DEC-65).
 - **Prospecto hasta firmar** (RP-90 a RP-93): cliente al firmar su contrato con Fortius, también compradores y arrendatarios.
@@ -37,7 +37,7 @@ Dice **cómo debe funcionar el sistema**; solo cambia cuando el titular decide, 
 
 - **RP-100 · Nada frena, solo avisa.** Ningún requisito detiene guardar, avanzar, publicar ni firmar, incluidos los legales; lo que falta o vence es aviso en el asunto y en Hoy, y queda anotado quién siguió, cuándo y por qué. Pasan a aviso, entre otros: firma con hipoteca sin cancelación inscrita, publicar un compartido sin autorización, visita antes de la firma sin carta, y el paso entre etapas (se pueden saltar). Se quedan: permisos (DEC-43), privacidad, galería para publicar, el 01 sin descarga incompleta e integridad de datos. Conviene que el abogado lo sepa (antilavado y promesa). Construido en la rama (FLX-03 parte A); hasta integrarse en `main`, el sitio publicado sigue frenando. Lista completa: `PLAN.md`, FLX-03.
 - **RP-101 · Un documento puede existir sin asunto.** Se guarda en la Bandeja sin datos y luego se liga a persona, inmueble, asunto o a nada; privado, con huella y papelera recuperable. (FLX-01)
-- **RP-102 · Un inmueble puede existir sin propietario**, con documentos y sin captación; guardarlo no lo publica. (FLX-01)
+- **RP-102 · Un inmueble siempre vive en un asunto** (DEC-70); puede no tener todavía propietario capturado ni documentos. Guardarlo no lo publica. (FLX-01)
 - **RP-103 · Lo que recibimos manda.** Todo lo que llega entra por la Bandeja; el sistema lee y recomienda destino y una persona confirma con un clic o lo deja sin ligar. Nunca se aplica solo; sin coincidencia, propone crear lo nuevo, también con confirmación. (FLX-07, DEC-50)
 
 ### Producto y equipo
@@ -224,6 +224,48 @@ Lo abierto dentro de alguna se sigue en «Por decidir» de `PLAN.md`. Las retira
 | DEC-66 | Cuentas al arrancar | Solo director y asesor; del asesor ajeno se ve que la persona existe y quién la atiende; dos pasos solo para el director. |
 | DEC-67 | La metodología no es la columna vertebral | 16/11/2026: la app debe servir para cualquier caso inmobiliario. La metodología de captación es una guía entre varias. Cada asunto lleva su situación, sus etapas, sus documentos, sus decisiones y su historial, y el asesor los arma según el caso. El diseño del asunto se rehace con los casos reales del titular (`docs/diseno/nuevo-panel/casos-reales.md`). |
 | DEC-68 | Estructura y aspecto del panel | 16/11/2026: aprobado el boceto «Fortius por asuntos». Secciones: Inicio, Asuntos, Inmuebles, Directorio, Biblioteca y Equipo (director). La consulta se captura en vivo y abre el asunto. El asunto se arma con apartados que se agregan y quitan (de base Personas, Plan e Historial). Inmuebles es también el panel de lo que sale en el sitio (ficha técnica, fotos, video, 360, planos, ubicación). Reemplaza el estilo tipo Apple y las pantallas anteriores; lo que contradiga pasó al historial de decisiones. |
+| DEC-69 | Apartados con vista y funciones del panel | 16/11/2026: un apartado propio del asunto elige cómo se ve (lista, tabla, galería con fotos, texto), para personalizar cada asunto. Aprobada la lista de funciones de la sección «Funciones del panel», con su orden. Sin agentes que trabajen solos. |
+| DEC-70 | Inmueble con asunto, solicitudes y Herramientas | 16/11/2026: un inmueble siempre vive en un asunto; agregarlo desde Inmuebles abre el asunto con los datos capturados, y publicar sin asunto ofrece «Abrir asunto y publicar». Las solicitudes del sitio caen en Inicio, «Por atender», y abren la consulta en vivo. Hay sección Herramientas (opinión de valor, ISR, gastos del comprador y del vendedor, contratos), usable sin asunto y desde cada asunto. La opinión de valor se hace cuando se pida. Las migraciones escritas para el diseño anterior y sin aplicar se reemplazan por las del modelo nuevo; se rescata solo lo que sirva. |
+
+## Funciones del panel (aprobadas el 16/11/2026, DEC-69)
+
+Salen de comparar con las apps de productividad y los CRM actuales. Donde una regla RP anterior diga lo mismo, vale la regla; donde choque, vale esta lista.
+
+| Orden | Función | Qué hace en Fortius |
+|---|---|---|
+| Ya está | Plantillas de asunto | La Biblioteca. |
+| Ya está | Todo ligado | Cada cosa muestra a qué asunto, persona e inmueble pertenece. |
+| Ya está | Registro y permisos | Quién cambió qué; permisos por función. |
+| 1 | Escribir en una línea | «Llamar a Laura jueves 10am» crea la tarea en su asunto. |
+| 1 | Dictado | En la consulta en vivo y en las notas. |
+| 1 | Paleta de comandos | Buscar y actuar desde un solo cuadro (RP-10). |
+| 1 | Apartados propios con vista | Lista, tabla, galería o texto, a elección (ver `DECISIONES.md`). |
+| 1 | Vistas guardadas | El mismo listado como lista o calendario, y cada apartado propio con su vista. |
+| 1 | Filtros guardados | Con nombre, a un toque. |
+| 1 | Favoritos y recientes | En el menú lateral. |
+| 1 | Dependencias | Una tarea espera a que termine otra. |
+| 1 | Tareas que se repiten | Por ejemplo, el informe mensual al propietario. |
+| 1 | Recordatorios de vencimientos | Vigencias, fin del encargo, fechas de firma. |
+| 1 | Reloj de respuesta | Cuánto lleva esperando quien escribió (RP-23). |
+| 1 | Comentarios y menciones | Dentro del asunto y de cada apartado. |
+| 1 | Bandeja de avisos | Todo lo que te mencionaron o asignaron. |
+| 1 | Historial de contacto | Llamadas, mensajes y visitas de una persona en un solo hilo. |
+| 2 | Leer documentos | Saca los datos y los deja «por confirmar» (RP-44). |
+| 2 | Resumen del asunto | Tres líneas para retomarlo. |
+| 2 | Redactar mensajes | Con los datos del asunto; lo envía la persona (RP-68). |
+| 2 | Portal del cliente | Una liga donde ve su avance y sube documentos (RP-37, DEC-13). |
+| Después | Campos propios en fichas | Agregar un dato nuevo a personas o inmuebles sin programar. |
+| Después | Captura por WhatsApp | Un mensaje o audio se vuelve tarea o nota. |
+| Después | Reglas automáticas | Pocas y fijas: «cuando pase esto, avisa aquello». |
+| Después | Reparto de consultas | Cuando haya más asesores. |
+| Después | Planificador del día | Inicio sugiere el orden. |
+| Después | Preguntarle a los datos | Para el director. |
+| Después | Chat del equipo | Sigue al final (RP-105). |
+| Después | Cotización aceptada en línea | El presupuesto con «Acepto». |
+| Después | Tablero del director | Crecer la sección Equipo con ingresos y tiempos. |
+| Con abogado | Firma electrónica | DEC-30. |
+| Con abogado | Transcribir llamadas | Pide consentimiento de la persona. |
+| No por ahora | Agentes que trabajan solos | El sistema propone y la persona decide (RP-62). |
 
 ## Alcance del sistema
 

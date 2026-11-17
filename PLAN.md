@@ -13,6 +13,7 @@ Qué falta hacer y cómo va. Las reglas y decisiones están en [`SPEC.md`](SPEC.
 - Lo último publicado en `main` es el PR #76 (14/11/2026): Trámites (TRA-01), el panel viejo desde cero y la paleta del sitio.
 - Lint, tipos y pruebas se corren solo antes de integrar a `main`, con el visto bueno del titular.
 - **Boceto nuevo aprobado (DEC-68, 16/11/2026):** «Fortius por asuntos» define la estructura (Inicio, Asuntos, Inmuebles, Directorio, Biblioteca, Equipo), la consulta en vivo, los apartados del asunto y el aspecto. [`DECISIONES.md`](docs/diseno/nuevo-panel/DECISIONES.md) se reescribió con eso. Falta planear la reconstrucción de `/panel` contra el boceto: el roadmap PN de abajo describe las pantallas anteriores (revisar: reordenarlo cuando el titular diga por dónde empezar).
+- **Funciones aprobadas (DEC-69, 16/11/2026):** apartados propios con vista (lista, tabla, galería, texto) y la lista de funciones de `SPEC.md`, con su orden. AUD-07 quedó como registro de las pantallas anteriores: sus hallazgos no se corrigen uno por uno, sirven de lista de errores a no repetir.
 - **La metodología ya no es la columna vertebral (DEC-67, 16/11/2026).** La app debe servir para cualquier caso inmobiliario. El asunto se rediseña con los casos reales del titular ([`casos-reales.md`](docs/diseno/nuevo-panel/casos-reales.md)) antes de seguir con PN-04 y PN-07; de AUD-07, lo que toca al asunto (lista de documentos, avisos, pestañas) espera ese rediseño.
 
 ## Te toca a ti
@@ -74,5 +75,7 @@ Qué hace cada pantalla: [`DECISIONES.md`](docs/diseno/nuevo-panel/DECISIONES.md
 - **Después de empezar a operar:** las entregas del backlog anterior (clientes, venta, dinero, tableros, escala, extensiones y la etapa para otras inmobiliarias, en pausa) quedan en el historial; el titular elige qué sigue según el uso real.
 
 ## Migraciones escritas sin aplicar
+
+**Decisión del 16/11/2026 (DEC-70):** estas veinte se escribieron para el diseño anterior y ninguna está aplicada (comprobado contra la base: la última aplicada es `20261114300000_restaurar_contactos`). No se integran tal cual. Al diseñar el modelo de datos del boceto se reemplazan por migraciones nuevas y estas se borran; se rescata lo que siga sirviendo, sobre todo de `pn02_*` (varias personas con papel por asunto, responsable, historial, permisos), `nada_frena_solo_avisa`, `sin_frenos_de_proceso` y `pn_inmuebles_direccion_exacta`. Las 101 ya aplicadas no se tocan.
 
 Se aplican solas al integrar en `main`: `20261114400000_documentos_sin_operacion`, `20261115100000_prospecto_con_sus_tareas`, `20261115200000_nada_frena_solo_avisa`, `20261115210000_guias_por_tipo`, `20261116090000` a `20261116090600_pn02_*` (siete), `20261116090700_pn06_cola_de_la_bandeja`, `20261116091000_pn06_quitar_imagen_y_copia_firmada`, `20261116100000_sin_frenos_de_proceso`, `20261116110000_tramites_sin_frenos`, `20261116120000_pn08_movimientos_de_dinero`, `20261116130000_tramites_por_tipo`, `20261116140000_hora_de_la_tarea`, `20261116145000_pn_inmuebles_direccion_exacta` y `20261116150000_pn03_unir_personas`.
