@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 4 construidas (17/11/2026). Las etapas 1 a 3 y los videos nuevos ya están guardados en la rama; el Inicio está construido y revisado en el navegador local, sin guardar todavía. Falta tu visto bueno a la etapa 0. Sigue la etapa 5 (demás páginas, empezando por el boceto de Vender y Contacto) cuando lo indiques.
+Etapas 1 a 4 construidas (17/11/2026). Todo está guardado en la rama y el Inicio ya se revisó en el navegador local. Falta tu visto bueno a la etapa 0. Sigue la etapa 5 (demás páginas, empezando por el boceto de Vender y Contacto) cuando lo indiques.
 
 ## Etapas
 
