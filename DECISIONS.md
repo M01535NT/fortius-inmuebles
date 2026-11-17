@@ -78,7 +78,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - Ya no se usan en el inicio el video de portada con escenas ni el de la sala frente al mar; sus archivos se retiran en la etapa 7.
 - **Efectos ligados al desplazamiento:** el video de «Quiénes somos» crece hasta el ancho completo y la tira de propiedades se desliza de lado. En el teléfono y con movimiento reducido no hay efecto: el video ya está abierto y la tira se recorre con el dedo.
 - **En el mercado ahora:** al menos cinco tarjetas siempre que haya cinco o más inmuebles publicados, y hasta ocho. Primero las destacadas y luego las más recientes, sin repetir; nunca vendidas ni rentadas. Si hay menos publicadas, salen las que haya: el sitio no inventa inmuebles.
-- **Cómo se ve la tira:** tarjetas altas; la primera es ancha y lleva el video del inmueble si tiene un archivo de video propio (con un enlace de YouTube o Vimeo va su foto). Al bajar se desliza de lado; también se arrastra con el ratón o se recorre con el dedo. En el teléfono y con movimiento reducido no se mueve sola.
+- **Cómo se ve la tira:** tarjetas altas; la primera es ancha y lleva el video del inmueble si tiene un archivo de video propio (con un enlace de YouTube o Vimeo va su foto). Al bajar se desliza de lado un tramo corto, como en el boceto, para que la primera tarjeta no se corte; el resto se arrastra con el ratón o se recorre con el dedo. En el teléfono y con movimiento reducido no se mueve sola.
 - **Haz números:** 20 % de enganche, 20 años y la tasa de referencia de 10.5 %, la misma de la ficha.
 - **Cierre:** llega al panel como contacto, con lo que escribió en «¿Qué necesitas?» como mensaje. Es la única invitación del inicio; el pie no repite la suya aquí.
 

@@ -29,8 +29,9 @@ export function TiraPropiedades({ propiedades }: { propiedades: Property[] }) {
       const pista = ref.current?.querySelector<HTMLElement>(".tp-pista");
       const marco = marcoRef.current;
       if (!pista || !marco) return;
+      // Como el boceto: un recorrido corto (hasta 360 px) mientras baja pantalla y media; el resto se arrastra.
       const sobra = () => Math.max(0, pista.scrollWidth - marco.clientWidth);
-      gsap.fromTo(pista, { x: 120 }, { x: () => -sobra(), ease: "none", scrollTrigger: { trigger: marco, start: "top bottom", end: "bottom top", scrub: 0.6, invalidateOnRefresh: true } });
+      gsap.fromTo(pista, { x: 120 }, { x: () => 120 - Math.min(360, sobra() + 120), ease: "none", scrollTrigger: { trigger: marco, start: "top bottom", end: () => `+=${window.innerHeight * 1.5}`, scrub: 0.6, invalidateOnRefresh: true } });
     });
     return () => media.revert();
   }, { scope: ref, dependencies: [propiedades.length] });
