@@ -37,10 +37,10 @@ export function MessagingContact({ children, title = "Conversemos directamente."
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{contact.whatsapp || contact.messenger ? `Escríbenos por ${contact.whatsapp && contact.messenger ? "WhatsApp o Messenger" : contact.whatsapp ? "WhatsApp" : "Messenger"}.` : contact.phoneHref ? "Llámanos para conversar sobre tu propiedad." : contact.emailHref ? "Escríbenos por correo." : shared.publicLeadsEnabled ? "Déjanos tus datos para revisar tu solicitud." : "El contacto directo estará disponible próximamente."}</p>
     </div>
     <MessagingActions {...props} />
-    {contact.phoneHref && <a href={contact.phoneHref} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 font-medium text-foreground transition-colors hover:bg-secondary"><Phone className="size-4" aria-hidden="true" />Llamar</a>}
-    {!hasContact && !shared.publicLeadsEnabled && <Link href="/inventario" className="inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline underline-offset-4">Explorar propiedades</Link>}
+    {contact.phoneHref && <a href={contact.phoneHref} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 font-semibold text-foreground transition-colors hover:bg-secondary"><Phone className="size-4" aria-hidden="true" />Llamar</a>}
+    {!hasContact && !shared.publicLeadsEnabled && <Link href="/inventario" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary-ink underline underline-offset-4">Explorar propiedades</Link>}
     {children && shared.publicLeadsEnabled && <details className="group">
-      <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium text-foreground underline underline-offset-4">Prefiero dejar mis datos en un formulario</summary>
+      <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-foreground underline underline-offset-4">Prefiero dejar mis datos en un formulario</summary>
       <div className="pt-4">{children}</div>
     </details>}
   </div>;

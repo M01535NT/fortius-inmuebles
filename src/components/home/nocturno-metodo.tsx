@@ -52,8 +52,7 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
         },
       })
         .to(track, { x: () => -distance(), ease: "none" }, 0)
-        .fromTo(".nx-progress-fill", { scaleX: 0 }, { scaleX: 1, ease: "none" }, 0)
-        .to(".nx-method-glow", { xPercent: 95, ease: "none" }, 0);
+        .fromTo(".nx-progress-fill", { scaleX: 0 }, { scaleX: 1, ease: "none" }, 0);
       // Entrance, created after the pin so its start accounts for the pin spacer.
       // Movimiento pausado; la opacidad llega antes para que el texto se lea mientras entra.
       const enter = { trigger: viewport, start: "top 92%", toggleActions: "play none none reverse" };

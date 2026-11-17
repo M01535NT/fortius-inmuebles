@@ -204,7 +204,7 @@
 .property-editorial-card { display: flex; flex-direction: column; height: 100%; background: var(--background); }
 .property-card-image { position: relative; display: block; overflow: hidden; aspect-ratio: 4 / 5; flex-shrink: 0; }
 .property-card-image::after { position: absolute; content: ""; inset: 65% 0 0; pointer-events: none; background: linear-gradient(transparent, rgba(6,31,63,.2)); }
-.property-card-badge { position: absolute; top: 16px; left: 16px; max-width: calc(100% - 32px); padding: var(--space-corto) var(--space-cerca); background: #f8f8ff; color: #061f3f; font-size: var(--type-etiqueta); font-weight: 600; }
+.property-card-badge { position: absolute; top: 16px; left: 16px; max-width: calc(100% - 32px); padding: var(--space-corto) var(--space-cerca); border-radius: var(--corner-pulsable); background: #f8f8ff; color: #061f3f; font-size: var(--type-etiqueta); font-weight: 600; }
 .property-card-badge::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: var(--space-corto); vertical-align: 1px; background: #8a1634; }
 .property-card-copy { display: flex; flex: 1; flex-direction: column; padding-top: var(--space-amplio); }
 .property-card-heading { display: flex; flex: 1; flex-direction: column; }

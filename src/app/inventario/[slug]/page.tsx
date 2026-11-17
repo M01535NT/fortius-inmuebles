@@ -5,6 +5,7 @@ import { ArrowRight, Calculator, Check, ChevronDown, Mail, MapPin, MessageCircle
 
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
+import { MortgageAnchorLink } from "@/components/property/mortgage-anchor-link";
 import { PropertyCard } from "@/components/property/property-card";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyFaq } from "@/components/property/property-faq";
@@ -176,7 +177,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <div className="fe-price-block">
               <p className="fe-price">{formatPrecio(property.precio)}</p>
               {porM2 && <p className="fe-price-m2">{porM2.valor} {porM2.base}</p>}
-              {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario. <a href="#mensualidad">Calcular mensualidad</a></p>}
+              {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario. <MortgageAnchorLink>Calcular mensualidad</MortgageAnchorLink></p>}
               {property.operacion === "renta" && <p className="fe-price-note">Renta mensual. <a href="#costos">Ver costos</a></p>}
             </div>
           </div>

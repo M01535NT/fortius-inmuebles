@@ -21,6 +21,7 @@
 .ba-share { display: flex; flex-wrap: wrap; gap: var(--space-corto); }
 .ba-share button { display: inline-flex; align-items: center; gap: var(--space-corto); min-height: 44px; padding: 0 var(--space-normal); border: 1px solid var(--border); border-radius: var(--corner-pulsable); background: var(--card, var(--background)); color: var(--foreground); font-size: var(--type-detalle); font-weight: 600; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
 .ba-share button:hover { border-color: #061f3f; background: var(--secondary); }
+.dark .ba-share button:hover { border-color: #f8f8ff; }
 .ba-share p { width: 100%; margin: 0; color: var(--muted-foreground); font-size: var(--type-etiqueta); }
 .ba-share input { width: 100%; min-height: var(--control-normal); padding: 0 var(--space-cerca); border: 1px solid var(--border); border-radius: var(--corner-pulsable); background: var(--background); font-size: var(--type-etiqueta); }
 .ba-article { max-width: 760px; }

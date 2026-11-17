@@ -25,9 +25,9 @@ export default function TerminosPage() {
               Versión vigente desde el <time dateTime={SITE_TERMS.effectiveDate}>{SITE_TERMS.dateLabel}</time>.
             </p>
             <dl className="mt-7 space-y-4 text-base leading-7">
-              <div><dt className="font-medium text-foreground">Responsable del sitio</dt><dd className="text-muted-foreground">{SITE_TERMS.responsible} · {SITE_TERMS.commercialName}</dd></div>
-              <div><dt className="font-medium text-foreground">Lugar de atención</dt><dd className="text-muted-foreground">{SITE_TERMS.location}. La atención se coordina previamente por correo.</dd></div>
-              <div><dt className="font-medium text-foreground">Correo para contacto y aclaraciones</dt><dd><a href={`mailto:${SITE_TERMS.email}`} className="break-all text-primary-ink underline decoration-primary/40 underline-offset-4 hover:decoration-primary">{SITE_TERMS.email}</a></dd></div>
+              <div><dt className="font-semibold text-foreground">Responsable del sitio</dt><dd className="text-muted-foreground">{SITE_TERMS.responsible} · {SITE_TERMS.commercialName}</dd></div>
+              <div><dt className="font-semibold text-foreground">Lugar de atención</dt><dd className="text-muted-foreground">{SITE_TERMS.location}. La atención se coordina previamente por correo.</dd></div>
+              <div><dt className="font-semibold text-foreground">Correo para contacto y aclaraciones</dt><dd><a href={`mailto:${SITE_TERMS.email}`} className="break-all text-primary-ink underline decoration-primary/40 underline-offset-4 hover:decoration-primary">{SITE_TERMS.email}</a></dd></div>
             </dl>
           </header>
 

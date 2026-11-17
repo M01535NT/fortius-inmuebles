@@ -4,13 +4,13 @@
   azul de datos clave, cuerpo claro con índice y tarjeta de visita fijos.
 */
 .fe-page { --fe-ease: cubic-bezier(0.25, 1, 0.5, 1); overflow-x: clip; }
-.fe-page :is(#descripcion, #caracteristicas, #beneficios, #ubicacion, #ficha-tecnica, #documentos, #costos, #mensualidad, #preguntas, #interes) { scroll-margin-top: 152px; } /* barra 72 + índice pegado 72 + 8: el índice ya no se oculta (titular, 13/11/2026) */
+.fe-page :is(.fe-section, #descripcion, #caracteristicas, #beneficios, #ubicacion, #ficha-tecnica, #documentos, #costos, #mensualidad, #preguntas, #interes) { scroll-margin-top: 176px; } /* barra 72 + índice pegado 76 (44 + 16 + 16) + 28 de aire para que el título quede a la vista: el índice ya no se oculta (titular, 13/11/2026) */
 
 /* Banda de cabecera: blanco azulado en claro y azul noche en oscuro, sin resplandor (13/11/2026). */
 .fe-hero { background: var(--ns-bg); }
 .fe-hero::before { display: none; }
 .fe-hero-body { padding-top: clamp(20px, 3vw, 32px); padding-bottom: clamp(28px, 4vw, 48px); }
-.fe-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-junto) var(--space-cerca); color: color-mix(in srgb, var(--ns-ink) 60%, transparent); font-size: var(--type-detalle); }
+.fe-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-junto) var(--space-cerca); color: var(--muted-foreground); font-size: var(--type-detalle); }
 .fe-crumbs a { display: inline-flex; align-items: center; min-height: 44px; color: color-mix(in srgb, var(--ns-ink) 82%, transparent); }
 .fe-crumbs a:hover { color: var(--ns-strong); }
 .fe-crumbs > span:last-child { color: var(--ns-ink); }
@@ -95,6 +95,7 @@
 .fe-sections::-webkit-scrollbar { display: none; }
 .fe-sections a { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-normal); border: 1px solid var(--border); border-radius: var(--corner-pulsable); background: var(--card, var(--background)); color: var(--foreground); font-size: var(--type-detalle); font-weight: 600; transition: background-color 0.25s, color 0.25s, border-color 0.25s; }
 .fe-sections a:hover { border-color: #061f3f; background: #061f3f; color: #f8f8ff; }
+.dark .fe-sections a:hover { border-color: #f8f8ff; background: #f8f8ff; color: #061f3f; }
 .fe-alert { margin: var(--space-amplio) 0 0; padding: var(--space-normal) var(--space-normal); border: 1px solid var(--border); border-radius: var(--corner-tarjeta); background: var(--secondary); font-size: var(--type-interfaz); line-height: 1.6; }
 .fe-section { padding-block: clamp(40px, 5vw, 56px); border-top: 1px solid var(--border); }
 .fe-section:first-of-type { border-top: 0; }
@@ -117,6 +118,7 @@
 .fe-filter { display: flex; flex-wrap: wrap; gap: var(--space-corto); margin-bottom: var(--space-normal); }
 .fe-filter button { min-height: 44px; padding: 0 var(--space-normal); border: 1px solid var(--border); border-radius: var(--corner-pulsable); background: var(--card, var(--background)); color: var(--foreground); font-size: var(--type-detalle); font-weight: 600; cursor: pointer; }
 .fe-filter button[aria-pressed="true"] { border-color: #061f3f; background: #061f3f; color: #f8f8ff; }
+.dark .fe-filter button[aria-pressed="true"] { border-color: #f8f8ff; background: #f8f8ff; color: #061f3f; }
 .fe-location-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-normal); align-items: start; }
 .fe-location-grid.is-map-only { grid-template-columns: 1fr; }
 .fe-map { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--corner-tarjeta); background: #061f3f; }

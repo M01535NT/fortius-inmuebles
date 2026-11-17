@@ -23,7 +23,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           >
             Reintentar
           </button>
-          <DocumentLink href="/" className="inline-flex min-h-11 items-center rounded-md border border-border px-5 font-medium hover:bg-secondary">
+          <DocumentLink href="/" className="inline-flex min-h-11 items-center rounded-md border border-border px-5 font-semibold hover:bg-secondary">
             Volver al inicio
           </DocumentLink>
         </div>

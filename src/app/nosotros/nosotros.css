@@ -79,6 +79,8 @@
 .ab-value:hover { border-color: #061f3f; background: #061f3f; color: #f8f8ff; transform: translateY(-4px); }
 .ab-value:hover p { color: rgba(248, 248, 255, 0.78); }
 .ab-value:hover .ab-value-number { color: var(--ns-accent); -webkit-text-stroke-color: var(--ns-accent); }
+.dark .ab-value:hover { --ns-accent: #8a1634; border-color: #f8f8ff; background: #f8f8ff; color: #061f3f; }
+.dark .ab-value:hover p { color: #40536b; }
 
 /* Video institucional */
 .ab-video { position: relative; overflow: hidden; border-radius: var(--corner-tarjeta); background: #061f3f; color: #fff; }

@@ -62,12 +62,11 @@
 .nx-stage h3 { font-size: var(--type-subtitulo); font-weight: 700; line-height: var(--leading-subtitulo); letter-spacing: var(--tracking-subtitulo); }
 .nx-stage p { margin-top: var(--space-normal); color: var(--nx-muted); font-size: var(--type-interfaz); line-height: 1.6; }
 .nx-stage-step { display: block; margin-top: var(--space-normal); color: color-mix(in srgb, var(--ns-ink) 72%, transparent); font-size: var(--type-etiqueta); font-weight: 600; }
-.nx-stage.is-active { color: #fff; border-color: #8a1634; box-shadow: 0 30px 60px -30px rgba(138, 22, 52, 0.45); translate: 0 -8px; }
+.nx-stage.is-active { color: #fff; border-color: #8a1634; translate: 0 -8px; } /* Sin resplandor vino: la distingue el relleno borgoña sólido. */
 .nx-stage.is-active::before { opacity: 1; }
 .nx-stage.is-active p { color: rgba(255, 255, 255, 0.88); }
 .nx-stage.is-active .nx-stage-step { color: var(--ns-accent); }
 .nx-stage.is-past { filter: saturate(0.7); }
-.dark .nx-stage.is-active { box-shadow: 0 40px 80px -30px rgba(138, 22, 52, 0.9); }
 .dark .nx-stage.is-past { filter: brightness(0.6) saturate(0.7); }
 
 /* Preguntas: banda clara de contraste dentro de la portada nocturna */
@@ -120,7 +119,7 @@
 .nx-band-title { max-width: 18ch; margin: 0; font-size: var(--type-seccion); line-height: var(--leading-seccion); font-weight: 700; letter-spacing: var(--tracking-seccion); text-wrap: balance; }
 .nx-band-actions { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-cerca); }
 /* Botón del boceto 2: recto; al pasar el puntero sube y redondea dos esquinas opuestas. */
-.nx-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-cerca); min-height: var(--control-normal); padding: var(--space-cerca) var(--space-amplio); border: 1px solid var(--ns-ink); color: var(--ns-ink); font-size: var(--type-interfaz); font-weight: 600; transition: border-radius 0.4s, transform 0.4s, background-color 0.2s, border-color 0.2s; }
+.nx-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-cerca); min-height: var(--control-normal); padding: var(--space-cerca) var(--space-amplio); border: 1px solid var(--ns-ink); border-radius: var(--corner-pulsable); color: var(--ns-ink); font-size: var(--type-interfaz); font-weight: 600; transition: border-radius 0.4s, transform 0.4s, background-color 0.2s, border-color 0.2s; }
 .nx-btn:hover { border-radius: 20px 0 20px 0; transform: translateY(-3px); }
 .nx-btn:active { transform: translateY(-1px) scale(0.98); }
 .nx-btn-primary { border-color: #8a1634; background: #8a1634; color: #fff; }

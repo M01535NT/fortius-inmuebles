@@ -37,8 +37,8 @@ export default function VenderInmueblePage() {
             <h1 id="vd-title" className="vd-title">Vende con todo en orden.</h1>
             <p className="vd-lead">Revisamos escritura, adeudos y precio antes de publicar.</p>
             <div className="vd-actions">
-              <Link href="/vender-propiedad/#entrevista" className="pg-btn">Agendar entrevista</Link>
-              <Link href="/vender-propiedad/#pasos" className="pg-btn pg-btn-ghost">Ver cómo funciona</Link>
+              <Link href="/vender-propiedad#entrevista" className="pg-btn">Agendar entrevista</Link>
+              <Link href="/vender-propiedad#pasos" className="pg-btn pg-btn-ghost">Ver cómo funciona</Link>
             </div>
             <ul className="vd-trust">
               {TRUST.map((item) => <li key={item}><Check size={18} strokeWidth={2} aria-hidden="true" />{item}</li>)}

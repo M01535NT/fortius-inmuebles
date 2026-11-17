@@ -55,7 +55,7 @@ function ClosingBreakdown({ items }: { items: { key: string; label: string; amou
 
   return (
     <section className="mt-5 rounded-md border border-border p-4" aria-labelledby="closing-breakdown-title">
-      <p id="closing-breakdown-title" className="text-sm font-medium text-foreground">Cómo se distribuyen los gastos conocidos</p>
+      <p id="closing-breakdown-title" className="text-sm font-semibold text-foreground">Cómo se distribuyen los gastos conocidos</p>
       <svg viewBox="0 0 100 16" role="img" aria-label={`Desglose de ${selected.label}: ${money(selected.amount)} MXN`} className="mt-4 h-16 w-full overflow-visible">
         {segments.map(({ item, x, width }) => <rect key={item.key} x={x} y="3" width={width} height="10" rx="1" className={item.key === selected.key ? "fill-primary" : "fill-muted-foreground/25"} onClick={() => setActiveKey(item.key)} />)}
       </svg>
@@ -431,7 +431,7 @@ export function ClosingCostsCalculator({
                 )}
               </div>
               <details className="border-y border-border py-3">
-                <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
+                <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-semibold">
                   Determinaciones y registro
                 </summary>
                 <div className="mt-4 grid gap-4">
@@ -661,7 +661,7 @@ export function ClosingCostsCalculator({
               </ul>
               {result.pending.length > 0 && (
                 <div className="mt-4 rounded-md bg-secondary p-4 text-sm">
-                  <p className="font-medium">Falta incorporar</p>
+                  <p className="font-semibold">Falta incorporar</p>
                   <p className="mt-2 leading-relaxed text-muted-foreground">
                     {result.pending.join(" · ")}. El subtotal cambia al
                     completar estos datos.

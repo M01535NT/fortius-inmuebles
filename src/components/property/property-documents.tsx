@@ -63,7 +63,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
           <li key={doc.codigo + doc.url} className="flex items-center gap-3 px-5 py-3.5">
             <FileText className="size-4.5 shrink-0 text-primary-ink" strokeWidth={1.5} />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground">{doc.nombre} <span className="whitespace-nowrap text-etiqueta font-normal text-muted-foreground">{doc.codigo}</span></p>
+              <p className="text-sm font-semibold text-foreground">{doc.nombre} <span className="whitespace-nowrap text-etiqueta font-normal text-muted-foreground">{doc.codigo}</span></p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 {doc.descripcion}
               </p>
@@ -92,7 +92,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
         <PublicLeadForm onSubmit={onSubmit} className="border-t border-border p-5">
           <div className="grid gap-3">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor={`docs-nombre-${slug}`} className="text-sm font-medium text-foreground">
+              <label htmlFor={`docs-nombre-${slug}`} className="text-sm font-semibold text-foreground">
                 Nombre
               </label>
               <input
@@ -105,7 +105,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor={`docs-telefono-${slug}`} className="text-sm font-medium text-foreground">
+              <label htmlFor={`docs-telefono-${slug}`} className="text-sm font-semibold text-foreground">
                 Teléfono o WhatsApp
               </label>
               <input

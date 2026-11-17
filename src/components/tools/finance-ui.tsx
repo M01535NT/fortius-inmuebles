@@ -8,7 +8,7 @@ import {
 export const inputClass =
   "h-12 w-full min-w-0 rounded-md border border-input bg-background px-3 text-base text-foreground focus-visible:outline-2 focus-visible:outline-primary";
 export const buttonClass =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-secondary disabled:opacity-50";
 export function Field({
   label,
   hint,
@@ -21,7 +21,7 @@ export function Field({
   const id = useId();
   return (
     <div className="min-w-0 space-y-2">
-      <label htmlFor={id} className="block text-sm font-medium">
+      <label htmlFor={id} className="block text-sm font-semibold">
         {label}
       </label>
       {children(id, hint ? `${id}-hint` : undefined)}
@@ -148,7 +148,7 @@ export function PrivacyNote() {
 export function Method({ children }: { children: ReactNode }) {
   return (
     <details className="mt-5 border-t border-border pt-4 text-sm">
-      <summary className="min-h-11 cursor-pointer content-center py-2 font-medium">
+      <summary className="min-h-11 cursor-pointer content-center py-2 font-semibold">
         Fuentes y método
       </summary>
       <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">

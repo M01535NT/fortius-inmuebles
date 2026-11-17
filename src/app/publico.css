@@ -93,7 +93,7 @@
 .pg-field > label, .pg-label { font-size: var(--type-etiqueta); font-weight: 600; color: var(--foreground); }
 .pg-input, .pg-field input:not([type="checkbox"]):not([type="radio"]), .pg-field select, .pg-field textarea { width: 100%; min-height: var(--control-normal); padding: 0 var(--space-normal); border: 1px solid var(--border); border-radius: var(--corner-pulsable); background: var(--card, var(--background)); color: var(--foreground); font: inherit; font-size: var(--type-texto); transition: border-color 0.2s, box-shadow 0.2s; }
 .pg-field textarea { min-height: 140px; padding-block: var(--space-normal); resize: vertical; }
-.pg-field input:focus, .pg-field select:focus, .pg-field textarea:focus, .pg-input:focus { border-color: #061f3f; box-shadow: 0 0 0 3px rgba(6, 31, 63, 0.12); outline: none; }
+.pg-field input:focus, .pg-field select:focus, .pg-field textarea:focus, .pg-input:focus { border-color: var(--foreground); box-shadow: 0 0 0 3px color-mix(in srgb, var(--foreground) 12%, transparent); outline: 2px solid var(--foreground); outline-offset: 2px; } /* Foco visible en los dos temas; los formularios forzados a claro fijan su propio --foreground. */
 .pg-sheet { padding: var(--space-cerca); border: 1px solid var(--border); border-radius: var(--corner-tarjeta); background: var(--card, var(--background)); box-shadow: 0 30px 60px -40px rgba(6, 31, 63, 0.35); }
 .pg-notice { padding: var(--space-normal) var(--space-normal); border: 1px dashed var(--border); border-radius: var(--corner-tarjeta); color: var(--muted-foreground); font-size: var(--type-detalle); line-height: 1.6; }
 
@@ -117,6 +117,13 @@
 .bp-views a:hover { background: var(--secondary); color: var(--foreground); }
 .bp-views a[aria-current="page"] { background: #061f3f; color: #f8f8ff; }
 .dark .bp-views a[aria-current="page"], .dark .pg-pill[aria-current="page"], .dark .pg-pill.is-active { border-color: #f8f8ff; background: #f8f8ff; color: #061f3f; }
+/* En oscuro, los bordes y rellenos azul marino de hover y activo se invierten a #f8f8ff, como aria-current. */
+:where(.dark) .pg-pill:hover, :where(.dark) .pg-btn-ghost:hover { border-color: #f8f8ff; } /* :where deja ganar a las reglas propias de .pg-hero */
+.dark .seg-plan-zones button:hover { border-color: #f8f8ff; }
+.dark .pg-step:hover { --ns-accent: #8a1634; border-color: #f8f8ff; background: #f8f8ff; color: #061f3f; }
+.dark .pg-step:hover .pg-muted { color: #40536b; }
+.dark .seg-plan-zones button[aria-pressed="true"] { border-color: #f8f8ff; background: #f8f8ff; color: #061f3f; }
+.dark .seg-plan-zones button[aria-pressed="true"] span:last-child { color: #40536b; }
 .bp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-amplio); margin: 0; padding: 0; list-style: none; }
 
 /* Blog · tarjetas */

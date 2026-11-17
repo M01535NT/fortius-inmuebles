@@ -71,7 +71,7 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
       {proposedDay ? <input type="hidden" name="dia" value={proposedDay} /> : null}
       <div className="mt-4 grid gap-4">
         <div className="flex flex-col gap-2">
-          <label htmlFor="interes-nombre" className="text-sm font-medium text-foreground">
+          <label htmlFor="interes-nombre" className="text-sm font-semibold text-foreground">
             Nombre
           </label>
           <input
@@ -84,7 +84,7 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label htmlFor="interes-telefono" className="text-sm font-medium text-foreground">
+          <label htmlFor="interes-telefono" className="text-sm font-semibold text-foreground">
             Teléfono o WhatsApp
           </label>
           <input
@@ -98,7 +98,7 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label htmlFor="interes-mensaje" className="text-sm font-medium text-foreground">
+          <label htmlFor="interes-mensaje" className="text-sm font-semibold text-foreground">
             Mensaje <span className="font-normal text-muted-foreground">(opcional)</span>
           </label>
           <textarea
