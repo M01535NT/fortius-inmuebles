@@ -35,4 +35,4 @@ Contratos y validación del servidor, versiones y conflictos 409, eliminación r
 
 ## Archivos de diseño que dejan de mandar
 
-`docs/diseno/ENCARGO_REDISENO_PANEL.md` y `docs/diseno/lienzo-panel/` (rediseño anterior, LV-09) quedan como historia. Mandan `DECISIONES.md`, el lienzo y `sistema-fortius/`.
+El rediseño anterior (LV-09) se retiró del repositorio el 16/11/2026; queda en la historia de git. Mandan `DECISIONES.md`, el prototipo aprobado y `sistema-fortius/`.

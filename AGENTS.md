@@ -1,151 +1,75 @@
 # Instrucciones para agentes — Fortius Inmuebles
 
-## Propósito y alcance
+Un solo producto: el sitio público de **Fortius Inmuebles** y su panel operativo (Next.js, Supabase, Vercel). El panel nuevo vive en `/panel`; el viejo `/admin` es legado. COTA e Inmobiliaria OS son otros proyectos: no copies sus reglas ni datos.
 
-Este repositorio contiene un solo producto: el sitio público de **Fortius Inmuebles** y su panel operativo, con backend Supabase y despliegue en Vercel. El panel operativo se está reconstruyendo: el nuevo vive en `/panel` y el viejo `/admin` es legado (ver «Panel nuevo y panel viejo»). COTA e Inmobiliaria OS son proyectos separados: no copies sus reglas, datos, credenciales o identidad por semejanza de nombres.
+Trabaja en español, breve y preciso. El titular no es técnico: decide tú lo técnico y pregúntale solo negocio y autorizaciones, una cosa a la vez. Distingue lo comprobado de lo supuesto; no afirmes lo que no verificaste.
 
-Trabaja en español, con precisión y comunicación breve. Ejecuta los encargos definidos; resuelve decisiones menores y pregunta únicamente cuando una incertidumbre cambie materialmente el resultado o se requiera autorización. Distingue hechos comprobados, inferencias, propuestas y pendientes. No afirmes resultados que no verificaste.
+## Dónde está cada cosa
 
-Estas instrucciones orientan el trabajo en todo el repositorio. Respeta las instrucciones de mayor prioridad, el encargo explícito vigente y las instrucciones aplicables a subcarpetas. Una propuesta documental o un dato de ejemplo no concede autorización para ejecutar acciones.
-
-## Panel nuevo y panel viejo (regla del titular, 16/11/2026)
-
-**Los bocetos del panel mandan sobre lo ya construido.** El panel de administración se reconstruye por etapas (roadmap PN-00 a PN-12 en `PLAN.md`; reglas RP-100 a RP-108 en `SPEC.md`; qué hace cada pantalla en `docs/diseno/nuevo-panel/DECISIONES.md`; inventario y aislamiento en `docs/diseno/nuevo-panel/LEGADO.md`). Si algo de este archivo, de `docs/brand.md` o del panel viejo contradice los bocetos en lo que toca al panel, mandan los bocetos y se corrige la fuente vieja.
-
-- **Dónde va el código.** Todo lo nuevo en `src/app/panel/`, `src/components/panel/` y `src/lib/panel/`, con estilos bajo `.panel-root`. **Nada nuevo se construye en `/admin`** (ni en `src/app/admin`, `src/components/admin`, `src/lib/admin`): solo se toca por seguridad, caída del sitio o un error que bloquee el trabajo diario, y se avisa.
-- **Aislamiento.** El panel nuevo no importa del viejo: el único puente es `src/lib/panel/legado/`, y el lint (`no-restricted-imports` en `eslint.config.mjs`) lo hace cumplir en los dos sentidos. No lo desactives ni lo rodees. El backend (`src/lib/backend`, `src/app/api`, `supabase/migrations`) es compartido y no es legado.
-- **Quién ve qué.** Se construye primero para el director o administrador (ve todo) y después para el asesor (solo lo suyo). Todo registro nuevo lleva responsable y creador, y la visibilidad se hace cumplir en la base (RLS), no solo en pantalla (RP-101).
-- **Arrastrar y soltar** donde haya algo que ordenar, con equivalente de teclado (RP-102).
-- **Auditoría de lógica.** Al empezar y cerrar cada etapa, lanza un subagente razonador de solo lectura (modelo de mayor razonamiento disponible) que audite si la lógica es buena y fluida para el trabajo diario y pueda proponer agregar o quitar pasos. Guarda su informe en `docs/diseno/nuevo-panel/auditorias/`. Es insumo: lo que el titular acepta pasa a `SPEC.md` y `DECISIONES.md` (RP-103).
-- **Rama y revisión.** Trabaja en `nuevo-panel`; deja el sitio en localhost (`npm run dev -- --hostname 127.0.0.1 --port 3001`, ruta `/panel`) para que el titular lo revise. Nada va a `main` sin su acuerdo (ver «Integración, publicación y cierre»).
-- **Diseño.** El panel nuevo usa el Sistema de diseño Fortius (`docs/diseno/nuevo-panel/sistema-fortius/`, RP-104). El sitio público conserva su identidad actual hasta que el titular decida lo contrario.
-- **Un solo plan.** Todo avance se registra en `PLAN.md`, sin planes paralelos.
-
-## Antes de modificar
-
-1. Lee `git status --short`, la rama activa y los archivos reales afectados. Conserva los cambios del usuario y de otros agentes; no restaures una versión anterior ni limpies el árbol para facilitar tu tarea.
-2. Consulta `README.md` y las referencias pertinentes de `docs/README.md`. Para ERP/CRM, localiza «Dónde nos quedamos» en `PLAN.md` con `rg` y lee las secciones afectadas: es el único plan vigente y no es necesario releerlo entero. Las reglas (RP), decisiones (DEC), etapas y alcance están en `SPEC.md`. No crees planes paralelos; incorpora ahí el avance cuando el encargo lo requiera.
-3. Contrasta los estados documentados con código, pruebas y evidencia disponible. Los manuales fechados pueden describir una interfaz anterior; un plan no demuestra que una función esté implementada o publicada.
-4. Delimita rutas, comportamiento, datos y diseño que deben conservarse. En una auditoría, inspecciona y documenta antes de implementar; no cambies registros productivos para comprobar una hipótesis.
-5. Selecciona y lee las skills pertinentes a la materia y al formato, cuando estén disponibles. Mantén las skills generales separadas de las convenciones particulares de Fortius.
-
-## Referencias del proyecto
-
-| Tema | Fuente que debes consultar |
+| Qué | Dónde |
 | --- | --- |
-| Producto y operación | `docs/PRODUCT.md`, `docs/admin-manual.md`, `docs/admin-workspace.md` |
-| Desarrollo ERP/CRM | `PLAN.md` (qué falta y cómo va) y `SPEC.md` (cómo funciona el sistema: reglas, decisiones, alcance); lo ya terminado y los registros de sesiones pasadas, en `docs/erp-crm/historial-del-plan.md` (consulta, no plan) |
-| Panel nuevo (manda) | `docs/diseno/nuevo-panel/DECISIONES.md` (qué hace cada pantalla), `docs/diseno/nuevo-panel/LEGADO.md` (qué es legado y cómo se aísla), `docs/diseno/nuevo-panel/sistema-fortius/` (íconos y logo), `docs/diseno/nuevo-panel/auditorias/` y la sección «Panel nuevo (PN)» de `PLAN.md` |
-| Panel viejo (legado, solo historia) | `docs/diseno/ENCARGO_REDISENO_PANEL.md` y `docs/diseno/lienzo-panel/` |
-| Marca | `docs/brand.md`, `public/brand/`, tokens del CSS existente |
-| Identificadores y compatibilidad | `docs/fortius-inmuebles-identity.md` |
-| Acceso y datos personales | `docs/erp-crm/access-policy.md`, `docs/erp-crm/privacy/data-processing-register.md` |
-| Publicación y entornos | `docs/deployment-fortius.md`, `docs/erp-crm/environment-release.md` |
-| Respaldo y restauración | `docs/fortius-inmuebles-backup-restore.md`, `docs/erp-crm/recovery-policy.md` |
-| Formatos inmobiliarios | `docs/formatos-admin-status.md` |
-| Calculadoras y fuentes | `docs/financial-method.md`, `docs/legal/financial-tools-2026-10-04.md` |
-| Contenido editorial | `docs/mercado-inmobiliario-editorial.md` |
+| Qué falta y cómo va (único plan) | `PLAN.md` |
+| Reglas (RP) y decisiones (DEC) vigentes | `SPEC.md` |
+| Qué hace cada pantalla del panel nuevo (manda sobre lo construido) | `docs/diseno/nuevo-panel/DECISIONES.md` |
+| Qué es legado y cómo se aísla | `docs/diseno/nuevo-panel/LEGADO.md` |
+| Marca del sitio público | `docs/brand.md` |
+| Lo demás (privacidad, publicación, respaldos, formatos, calculadoras) | `docs/README.md` |
 
-### Skills por tarea
+Lo terminado y lo reemplazado está en los historiales (`docs/erp-crm/historial-del-plan.md`, `docs/erp-crm/historial-de-reglas.md`, `docs/diseno/nuevo-panel/historial-de-decisiones.md`): solo consulta. Todo avance se anota en `PLAN.md`; las reglas nuevas, en `SPEC.md` o `DECISIONES.md`. Si una indicación nueva choca con algo escrito, se corrige la fuente y se avisa del choque.
 
-Las skills generales son de la cuenta del titular; las propias de Fortius viven en `.claude/skills/` y van en git. Lee la skill antes de empezar la tarea; si choca con este archivo, manda este archivo.
+## Panel nuevo
 
-| Tarea | Skills |
-| --- | --- |
-| Diseño del sitio público | `design-taste-frontend`, `impeccable`, `emil-design-eng`; movimiento: `animation-vocabulary` |
-| Textos del sitio y anuncios | `copywriting` y después `humanizer` |
-| SEO y metadatos | `seo-auditor`, `local-seo`, `metadata-optimizer`, `structured-data` |
-| Rendimiento | `web-vitals-nextjs` |
-| Pruebas | `testing-nextjs` |
-| Supabase, SQL y RLS | `supabase`, `supabase-postgres-best-practices` |
-| API y rutas del servidor | `api-conventions` |
-| Imágenes para la web | `web-ready`, `convert-to-avif`, `scrub-metadata` |
-| Proceso inmobiliario y formatos | `ciclo-operacion-inmobiliaria-mx`, `opiniones-valor`, `costos-cierre-bc`, `arquitecto-contratos-bc`, `lfpiorpi-inmobiliario-mx` |
-| Revisión antes de cerrar algo amplio | `gauntlet-review` (de este repo) |
-| Commits | `conventional-commits` |
+- **Código** en `src/app/panel/`, `src/components/panel/` y `src/lib/panel/`, con estilos bajo `.panel-root`. Nada nuevo en `/admin` salvo seguridad o caída del sitio, avisando.
+- **Aislamiento:** el panel nuevo solo usa el viejo a través de `src/lib/panel/legado/`; el lint lo hace cumplir y no se desactiva. El backend (`src/lib/backend`, `src/app/api`, `supabase/migrations`) es compartido.
+- **Diseño:** estilo tipo Apple aprobado (RP-104; detalle en `DECISIONES.md`), con los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx`. Sin blanco ni negro puros; claro y oscuro. Lo que el estilo no define se anota en `DECISIONES.md`, no se inventa.
+- **Comportamiento:** nada frena, solo avisa (DEC-61). De 3 opciones en adelante, desplegable; con 2, interruptor; nunca filas de chips. Arrastrar y soltar con equivalente de teclado (RP-102 PN). Primero para el director, después para el asesor; la visibilidad se hace cumplir en la base con RLS (RP-101 PN).
+- **Pantalla:** lenguaje sencillo, una acción principal, sin rastros de IA («Por confirmar», no «propuesto»). Teclado, foco visible, botones de al menos 44 px y movimiento reducido.
+- **Auditoría:** al cerrar una etapa PN, un revisor de solo lectura audita la lógica; su informe va a `docs/diseno/nuevo-panel/auditorias/` (RP-103 PN).
 
-Las skills inmobiliarias y de contratos orientan, pero no sustituyen la plantilla del titular ni la revisión del abogado (ver la regla de formatos inmobiliarios en «Interfaz y experiencia»).
+## Sitio público
 
-Las propuestas de acceso/privacidad y las fuentes jurídicas fechadas conservan sus límites. Verifica fuentes primarias, vigencia, jurisdicción y fecha cuando el encargo cambie reglas legales, fiscales o financieras. No conviertas un formato generado en una aprobación jurídica o autorización para firmar.
+Conserva su identidad actual (`docs/brand.md`) hasta que el titular pida aplicar el nuevo sistema (DEC-59). Sin cejas (antetítulos sobre los títulos).
 
-## Arquitectura y código
+## Formatos y documentos
 
-- Usa la pila instalada y `package-lock.json`: Next.js App Router, React, TypeScript estricto, Tailwind, Supabase, Vitest y Playwright. Node.js 24 y npm son la referencia de desarrollo/CI. No actualices dependencias ni regeneres el lockfile sin necesidad del encargo.
-- `src/app/`: rutas públicas, panel y API. `src/components/`: interfaz. `src/lib/backend/`: autenticación, contratos, validación, repositorios y archivos. `src/lib/formatos/`: expedientes, documentos y flujo. `src/lib/finance/`, `src/lib/apps/` y `src/lib/comercial/`: lógica especializada. `supabase/migrations/`: evolución SQL. `tests/` y `tools/`: comprobaciones y operación.
-- Reutiliza componentes, utilidades y contratos existentes; usa el alias `@/*` hacia `src/*`. Mantén la lógica de negocio comprobable fuera de los componentes cuando corresponda.
-- Conserva los límites servidor/cliente. No traslades secretos o consultas privilegiadas al navegador. Las mutaciones deben validar entrada, sesión, rol y alcance del registro en el servidor; ocultar un botón o comprobar una cookie en el proxy no autoriza una operación.
-- Conserva el control de versión y los conflictos 409, la protección de cambios sin guardar, el historial y la eliminación recuperable. No sustituyas datos remotos por `localStorage`; las preferencias locales de interfaz son un uso distinto.
-- No debilites permisos, RLS, CSP, validaciones ni pruebas para lograr que una pantalla funcione. Los frenos de proceso (bloqueos de avance) se convierten en avisos por decisión del titular (DEC-61, 16/11/2026); quitarlos es parte del encargo, no un atajo. No introduzcas `any`, supresiones o excepciones generales para esconder un error sin justificar su necesidad concreta.
-- Conserva rutas, consultas, redirecciones y contratos técnicos existentes (variables, cookies, RPC, tablas y buckets), salvo cambio expresamente incluido en el alcance. Una actualización de marca no autoriza a renombrarlos.
+Los formatos siguen la plantilla del titular: solo sus campos, sin agregar opciones jurídicas o fiscales. Un formato generado no es aprobación jurídica; lo legal lo revisa el abogado. Los entregables para clientes no llevan notas internas. En los documentos del proyecto se escribe «el agente», nunca el nombre de una herramienta.
 
-## Datos, secretos y entornos
+## Código
 
-- Trata `.env.local` como potencial acceso a datos reales. Verifica el destino sin imprimir credenciales antes de cualquier escritura externa. No presupongas aislamiento por ejecutar en localhost o en un preview.
-- **Autorización vigente del titular (17/10/2026, DEC-10 e I-01 del cuestionario):** la base de Supabase actual solo contiene datos de prueba. Mientras siga así, se pueden crear, guardar y borrar datos de ensayo, ejecutar pruebas con escritura y publicar inmuebles de prueba en el sitio para revisar cómo se ve; identifícalos como ejemplo y no los presentes como ofertas vigentes. No envíes correos ni mensajes a personas reales. Cuando el titular borre los datos de prueba y cargue el inventario real, la autorización termina y vuelve la regla de solo lectura en el navegador conectado a esa base.
-- El conector `supabase-fortius` de `.mcp.json` está limitado al proyecto de Fortius y es de solo lectura: sirve para consultar esquema, registros y avisos. Las migraciones siguen siendo archivos nuevos en `supabase/migrations/`, con aviso previo al titular.
-- Cambios en Supabase, GitHub o Vercel (permisos, configuración, migraciones): hazlos cuando el titular los pida o cuando el encargo los necesite, explicando antes qué vas a cambiar y por qué. Si una indicación nueva contradice una regla vigente, señálalo y deja que el titular decida.
-- Nunca muestres ni versiones `.env.local`, tokens, cookies, contraseñas, estados de autenticación o datos personales de clientes. Comprueba presencia y configuración con salida redactada. `SUPABASE_SERVICE_ROLE_KEY` permanece exclusivamente en servidor y nunca lleva prefijo `NEXT_PUBLIC_*`.
-- Usa fixtures locales, API simulada o backend aislado para pruebas. `test:live` crea y elimina datos: no lo incluyas en la verificación rutinaria ni lo ejecutes contra producción por defecto. Requiere autorización para las escrituras y destino dedicado comprobado. No envíes correos, invitaciones ni mensajes de ensayo sin autorización explícita.
-- Las migraciones se agregan como archivos nuevos con prefijo temporal; no reescribas migraciones ya aplicadas. Comprueba el historial y aplica solo las pendientes en orden. Una prueba local aprobada no acredita que una migración esté aplicada en remoto.
-- No ejecutes restauraciones, borrados irreversibles, cambios de roles o configuración de proveedor sin el alcance y la autorización correspondientes. Antes de sobrescribir o limpiar, inspecciona y conserva una copia recuperable cuando proceda; no borres archivos ajenos al encargo.
-- La proyección pública contiene solo campos autorizados. Documentos privados y perfiles internos no deben filtrarse por API pública, Storage, logs, HTML, PDF ni metadatos. Guardar y publicar son acciones distintas; no publiques como efecto lateral de guardar.
+- Usa la pila instalada y `package-lock.json`; no actualices dependencias sin necesidad. Alias `@/*` hacia `src/*`. Reutiliza lo existente.
+- TypeScript estricto: sin `any` ni supresiones para esconder errores.
+- Las mutaciones validan entrada, sesión, rol y alcance en el servidor. No debilites permisos, RLS, CSP ni validaciones. Conserva los conflictos 409, el historial y el borrado recuperable.
+- No renombres rutas, tablas, variables, cookies ni buckets salvo que el encargo lo incluya.
+- Antes de escribir código de Next.js, consulta la guía de la versión instalada (bloque al final).
 
-## Interfaz y experiencia
+## Datos y secretos
 
-- **Regla del titular (31/10/2026):** el sitio público no lleva cejas (antetítulos pequeños sobre un título, como «Qué hacemos» o «Propiedades»); delatan diseño hecho con IA. Los títulos van solos. Un dato (el cargo de una persona) o la etiqueta que es el único encabezado de un bloque no cuentan como ceja.
-- **Panel nuevo (manda, 16/11/2026):** usa el estilo tipo Apple aprobado por el titular (RP-104; detalle en `docs/diseno/nuevo-panel/DECISIONES.md`, «Estilo tipo Apple»): letra del sistema en Apple e Inter en lo demás; fondo `#F2F2F7` / `#060607` con tarjetas agrupadas sin borde; acento azul `#0071E3` en claro y `#0A84FF` en oscuro; esquinas 6, 10, 14 y 16 px; sin blanco ni negro puros (usa los tokens `bg`, `card`, `ink`, `accent`, `fill`, etc. de `src/app/panel/panel-ds.css`); íconos del sistema Fortius (`src/components/panel/icons.tsx`), en el menú sobre un cuadro de color por sección; tema claro y oscuro. Lo que el estilo no define se anota en `DECISIONES.md`, no se inventa. Referencia visual y de comportamiento: `docs/diseno/nuevo-panel/DECISIONES.md` y el prototipo aprobado, no el panel viejo.
-- Conserva el diseño aprobado, los recursos de marca y los textos solicitados **del sitio público y del panel viejo mientras exista**. En el sitio público, Fortius usa Schibsted Grotesk (pesos 400/600/700, sin ejes de ancho), azul `#061F3F`, borgoña `#8A1634`, blanco y blanco azulado `#F8F8FF` (desde el 12/11/2026 sin crema ni beige); en oscuro, el sitio público alterna secciones con azul noche `#0B1828` (13/11/2026); la marca no lleva rosa (ver `docs/brand.md`). El panel viejo usa Archivo y su paleta del 14/11/2026 (LV-09): es legado y no se amplía. **Decidido (16/11/2026, DEC-59):** el Sistema de diseño Fortius también reemplazará la marca del sitio público, pero el sitio no cambia hasta que el titular pida aplicarlo.
-- Para trabajo del panel nuevo, lee la etapa PN correspondiente en `PLAN.md` y la sección de esa pantalla en `docs/diseno/nuevo-panel/DECISIONES.md` antes de editar. Reutiliza los componentes de `src/components/panel/`; no importes del panel viejo (solo por `src/lib/panel/legado`). `docs/diseno/ENCARGO_REDISENO_PANEL.md` y `docs/diseno/lienzo-panel/` son historia del panel viejo.
-- Usa lenguaje sencillo orientado al asesor y una acción principal clara. Los detalles técnicos pertenecen a la implementación, salvo que ayuden al usuario a decidir. Mantén el significado de requisitos, evidencia y revisiones; desde DEC-61 se muestran como avisos, no como bloqueos.
-- Conserva claro/oscuro, navegación por teclado, foco visible, nombres accesibles, contraste, objetivos táctiles de al menos 44 px y `prefers-reduced-motion`. Comprueba móvil y escritorio; evita que barras fijas tapen contenido o acciones.
-- Verifica carga, vacío, error, permiso insuficiente y guardado/conflicto cuando sean pertinentes. Un dato demo debe identificarse como ejemplo; no inventes contactos ni presentes ofertas, precios o documentos ficticios como vigentes.
-- En formatos inmobiliarios mapea primero los campos de la plantilla del titular; conserva contenido, cálculos, cláusulas y diseño protegidos. No agregues opciones jurídicas o fiscales sin respaldo. Si el original contradice una regla del panel, expón la discrepancia antes de cambiar su significado o sus bloqueos de emisión.
-- En documentos y PDF inspecciona el archivo renderizado, incluidos datos largos y varias páginas cuando aplique; no incluyas instrucciones para IA, notas del redactor ni comentarios internos en entregables para clientes.
+- Nunca muestres ni versiones `.env.local`, claves, tokens, contraseñas ni datos personales. `SUPABASE_SERVICE_ROLE_KEY` solo en servidor.
+- La base actual tiene solo datos de prueba (autorización del 17/10/2026): se pueden crear y borrar ensayos, marcados como ejemplo. Nunca se mandan correos ni mensajes a personas reales. Cuando se cargue el inventario real, esto termina.
+- El conector `supabase-fortius` es de solo lectura. Las migraciones son archivos nuevos en `supabase/migrations/`; nunca se reescribe una aplicada. Avisa al titular antes de escribir una; se aplican solas al integrar en `main`.
+- Guardar no es publicar. Lo privado no sale en la API pública, Storage, HTML ni PDF.
+- No borres datos ni archivos ajenos sin confirmar; ante la duda, copia recuperable.
 
-## Desarrollo local y comprobaciones
+## Comprobaciones (regla del titular, 16/11/2026)
 
-Consulta los scripts reales en `package.json` y `.github/workflows/verify.yml`; son la referencia ejecutable. En PowerShell usa `npm.cmd` si la política impide ejecutar `npm.ps1`, sin cambiar la política del sistema.
+- **Mientras se construye no se corren lint, tipos, pruebas ni revisiones en el navegador.**
+- **Solo antes de integrar en `main`**, y con su acuerdo (di cuánto tarda): `npm run verify` (lint, tipos, pruebas y build) y las suites de navegador que correspondan.
+- Si el titular pide revisar algo antes, se revisa eso y nada más. No se borran ni debilitan pruebas existentes.
+- Servidor local: `npm run dev -- --hostname 127.0.0.1 --port 3001`, ruta `/panel`. No detengas procesos ajenos.
 
-| Necesidad | Comando o criterio |
-| --- | --- |
-| Instalar dependencias del lockfile | `npm ci` |
-| Servidor local según README | `npm run dev -- --hostname 127.0.0.1 --port 3001` |
-| Lint / tipos | `npm run lint` / `npm run typecheck` |
-| Backend / panel | `npm run test:backend` / `npm run test:admin` |
-| Verificación de código antes de integrar | `npm run verify` (lint, tipos, ambas suites y build) |
-| Herramientas de respaldo/restauración | `node --test tests/tools/*.test.mjs` |
-| Activos PDF del despliegue | `node tools/verify-pdf-bundle.mjs` |
-| Navegador público | `npm run test:public:browser` (build previo; fixtures locales; puertos 3100/3101) |
-| Navegador del panel | `npm run test:admin:browser -- <archivo.spec.ts>` (build previo; revisar entorno y config) |
-| Fuentes financieras | `npm run check:financial-sources` cuando cambien esas fuentes o cálculos |
-| Salud tras publicación autorizada | `npm run health -- https://fortiusinmuebles.com --json` (solo lectura) |
+## Git y publicación
 
-Antes de iniciar un servidor revisa el puerto y los procesos existentes; no detengas procesos ajenos. Respeta el puerto solicitado o ya acordado y alinea las variables del entorno de prueba. Comprueba una respuesta de la ruta: obtener un PID o una línea «Ready» no acredita que funcione.
-
-Escala las comprobaciones al cambio: una edición de Markdown requiere lectura completa, enlaces/rutas y diff; no exige compilar la aplicación. Para cambios de código corre lint, tipos y las pruebas de lo que tocaste. **Regla del titular (25/10/2026):** no ejecutes `npm run verify`, la build ni las suites de navegador por tu cuenta; pregunta antes y di cuánto tardan. Antes de integrar, propón la verificación completa (`npm run verify` y las suites de navegador, herramientas o PDF que correspondan) y córrela cuando el titular acepte. Evita repetir checks aprobados sin una razón nueva. No borres ni debilites pruebas para obtener verde.
-
-Para cambios visuales inspecciona las vistas reales en móvil y escritorio, claro/oscuro, teclado y movimiento reducido. Una captura sin desbordamiento no basta para evaluar composición y utilidad. Lighthouse mide laboratorio; HTTP 200, mocks y pruebas locales no acreditan rendimiento de usuarios, permisos remotos ni un flujo productivo completo.
-
-Conserva evidencia sanitizada en las carpetas ignoradas previstas (`tmp/` o `.superpowers/`), sin agregar artefactos temporales al commit. Registra qué pasó, falló, quedó bloqueado o no se comprobó. Después de corregir, repite las comprobaciones afectadas y revisa el conjunto.
-
-## Integración, publicación y cierre
-
-- No hagas commits, push, merge ni despliegues por asumir que editar código los incluye. Si ya están autorizados en el encargo, completa la preparación y las comprobaciones sin pedir de nuevo el mismo permiso. No uses `reset --hard`, force-push ni limpieza destructiva para resolver divergencias.
-- Producción se sirve desde `main` en Vercel; comprueba la configuración actual antes de publicar. Sigue `docs/erp-crm/environment-release.md`. La autorización de desarrollo no equivale a autorización de producción; una excepción para una rama no habilita otros previews. **Regla del titular (25/10/2026, I-04; reemplaza la del 17/10):** nada se integra en `main` sin su acuerdo. Acumula el trabajo en una sola rama, deja el sitio corriendo en localhost para que el titular lo revise y abre un solo PR cuando él apruebe publicar; no actives integración automática por iniciativa propia. **El trabajo del panel nuevo se acumula en la rama `nuevo-panel` (16/11/2026).** **Regla del titular (12/11/2026):** Verify de GitHub no corre en cada cambio; abre el PR como borrador (`gh pr create --draft`) y márcalo listo (`gh pr ready`) solo cuando el titular quiera verificar y publicar. Si algo urgente (seguridad, sitio caído) requiere publicar, avisa y pregunta antes. Antes de aplicar una migración de base de datos, avisa y explica qué cambia.
-- Revisa el diff completo y el estado final. Entrega cambios acotados, sin archivos ni refactorizaciones ajenos al objetivo. Actualiza la documentación afectada para reflejar comportamiento real y conserva los pendientes explícitos.
-- Usa `gauntlet-review` con un crítico en contexto limpio para modificaciones amplias, entregables completos para clientes/presentación y análisis que sustenten decisiones importantes. Conserva evidencia interna; no simules independencia ni declares aceptación completa cuando falte una comprobación obligatoria.
-- Cierra brevemente con qué cambió, cómo se comprobó y los límites materiales. Distingue trabajo local, commit, integración y publicación; no declares CI, despliegue, recuperación o funcionamiento productivo verificados sin evidencia de esa revisión y ese entorno.
+- Rama de trabajo del panel: `nuevo-panel`. Commit solo cuando el titular lo pida o lo haya autorizado; nunca push, PR ni merge sin pedirlo.
+- Nada va a `main` sin su acuerdo: un solo PR en borrador (`gh pr create --draft`), que se marca listo cuando él quiera verificar y publicar. Sin integración automática.
+- Sin `reset --hard`, force-push ni limpiezas destructivas. Respeta los cambios de otras sesiones.
+- Al cerrar, di qué cambió, qué se comprobó y qué no.
 
 ## Documentación de Next.js instalada
 
 Conserva el bloque siguiente: lo administra `next dev`. Antes de escribir código de Next.js, consulta la guía pertinente de la versión instalada; no apliques recetas de otras versiones por memoria.
-
-<!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
