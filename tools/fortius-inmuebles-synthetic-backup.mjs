@@ -21,6 +21,81 @@ export const SYNTHETIC = {
 
 const pdf = label => Buffer.from(`%PDF-1.4\n% Ensayo de recuperacion Fortius: ${label}. Documento sintetico, sin datos reales.\n%%EOF\n`);
 
+// Fixed names for the panel's synthetic files, so their paths are stable between runs.
+export const SYNTHETIC_PANEL = {
+  consulta: '5e000000-0000-4000-8000-000000000030',
+  carga: '5e000000-0000-4000-8000-000000000031',
+  cargaDescartada: '5e000000-0000-4000-8000-000000000032',
+  foto: '5e000000-0000-4000-8000-000000000033',
+  medio: '5e000000-0000-4000-8000-000000000034',
+};
+
+// Seeds every table of the panel (schema v6) through its real functions and tables, as the given
+// director. Returns the synthetic files the rows point to, with the bucket each one lives in.
+// Only for in-memory rehearsal databases: it sets the request identity on the connection.
+export async function seedPanel(db, adminId) {
+  const ids = SYNTHETIC_PANEL;
+  const q = async (sql, params = []) => (await db.query(sql, params)).rows;
+  const one = async (sql, params) => (await q(sql, params))[0];
+  const files = [];
+  const file = (bucket, path, label, mime) => {
+    const bytes = mime === 'application/pdf' ? pdf(label) : Buffer.from(`Ensayo del panel (${mime}): ${label}. Sin datos reales.`);
+    files.push({ bucket, path, bytes, mime });
+    return { bytes, sha: sha256(bytes) };
+  };
+  await q("select set_config('request.jwt.claim.sub',$1,false)", [adminId]);
+  // A call captured live, with a file sent during the call and another one discarded.
+  const consulta = await one(`insert into public.fortius_inmuebles_consultas(id,quien_nombre,que_pasa,otras_personas,documentos_pedir,responsable_id,es_ejemplo)
+    values ($1,'Persona de ensayo','Quiere vender una casa heredada (ensayo).','[{"nombre":"Heredera de ensayo","papel":"heredero"}]',
+    '[{"nombre":"Escritura","grupo":"inmueble"},{"nombre":"Identificación"}]',$2,true) returning id,version`, [ids.consulta, adminId]);
+  const carga = `consultas/${consulta.id}/${ids.carga}.pdf`, cargaFile = file('fortius-inmuebles-expedientes', carga, 'identificacion enviada en la consulta', 'application/pdf');
+  const descartada = `consultas/${consulta.id}/${ids.cargaDescartada}.pdf`, descartadaFile = file('fortius-inmuebles-expedientes', descartada, 'archivo descartado', 'application/pdf');
+  await q(`insert into public.fortius_inmuebles_cargas_por_acomodar(usuario_id,consulta_id,path,nombre_original,mime,byte_length,sha256,estado) values
+    ($1,$2,$3,'identificacion.pdf','application/pdf',$4,$5,'por_acomodar'),($1,$2,$6,'repetido.pdf','application/pdf',$7,$8,'descartado')`,
+  [adminId, consulta.id, carga, cargaFile.bytes.length, cargaFile.sha, descartada, descartadaFile.bytes.length, descartadaFile.sha]);
+  // Opening the matter creates people, matter, sections, property, documents (with the call's file), plan, tasks, folios and history.
+  const abierto = (await one(`select public.fortius_inmuebles_abrir_asunto_desde_consulta($1,$2,'Asunto de ensayo','{revisar,comercializar}',
+    '{inmueble,interesados,situacion,documentos,opinion,honorarios}','propietario','{"nombre":"Casa de ensayo","tipo":"casa","operacion":"venta"}'::jsonb,
+    '[{"nombre":"Revisar","tareas":[{"titulo":"Pedir la escritura","quien":"cliente","dias":3}]}]'::jsonb) r`, [consulta.id, consulta.version])).r;
+  const asunto = abierto.id, persona = abierto.persona_id, inmueble = abierto.inmueble_id;
+  const heredera = (await one(`select persona_id from public.fortius_inmuebles_asunto_personas where asunto_id=$1 and papel='heredero'`, [asunto])).persona_id;
+  await q(`insert into public.fortius_inmuebles_persona_datos_legales(persona_id,nombre_completo,estado_civil) values ($1,'Persona de ensayo completa','soltero')`, [persona]);
+  const duplicada = (await one(`insert into public.fortius_inmuebles_personas(nombre,responsable_id,es_ejemplo) values ('Persona de ensayo (repetida)',$1,true) returning id`, [adminId])).id;
+  await q('select public.fortius_inmuebles_unir_personas($1,$2)', [duplicada, persona]);
+  await q('insert into public.fortius_inmuebles_asunto_miembros(asunto_id,usuario_id,porcentaje) values ($1,$2,50)', [asunto, adminId]);
+  const biblioteca = (await one(`insert into public.fortius_inmuebles_biblioteca(clase,nombre,descripcion,es_ejemplo) values ('que_hacer','Guía de ensayo','Solo para el ensayo',true) returning id`)).id;
+  await q(`insert into public.fortius_inmuebles_plan_etapas(asunto_id,nombre,orden,biblioteca_id,biblioteca_version) values ($1,'Etapa de la guía',2,$2,1)`, [asunto, biblioteca]);
+  // An own section in gallery view, with a photo in the private bucket.
+  const propio = (await one(`insert into public.fortius_inmuebles_apartados(asunto_id,clave,nombre,vista,orden) values ($1,'propio','Fotos de la visita','galeria',80) returning id`, [asunto])).id;
+  const foto = `asuntos/${asunto}/${ids.foto}.jpg`;
+  file('fortius-inmuebles-expedientes', foto, 'foto de la visita', 'image/jpeg');
+  await q(`insert into public.fortius_inmuebles_apartado_filas(apartado_id,asunto_id,datos,foto_path) values ($1,$2,'{"texto":"Fachada"}',$3),($1,$2,'{"texto":"Sin foto"}',null)`, [propio, asunto, foto]);
+  // A photo uploaded to the public bucket and a linked video that has no file.
+  const medio = `panel/inmuebles/${inmueble}/${ids.medio}.jpg`, medioFile = file('fortius-inmuebles-public', medio, 'foto publica del inmueble', 'image/jpeg');
+  await q(`insert into public.fortius_inmuebles_inmueble_medios(inmueble_id,tipo,url,path,nombre,mime,byte_length,alt) values
+    ($1,'foto',$2,$3,'fachada.jpg','image/jpeg',$4,'Fachada'),($1,'video','https://video.ensayo.test/casa',null,null,null,null,null)`,
+  [inmueble, 'https://ensayo.supabase.test/storage/v1/object/public/fortius-inmuebles-public/' + medio, medio, medioFile.bytes.length]);
+  const { version } = await one('select version from public.fortius_inmuebles_inmuebles where id=$1', [inmueble]);
+  await q(`update public.fortius_inmuebles_inmuebles set precio=2500000,moneda='MXN',version=$2 where id=$1`, [inmueble, version]);
+  await q(`insert into public.fortius_inmuebles_inmueble_datos_legales(inmueble_id,folio_real,clave_catastral) values ($1,'FR-ENSAYO','CC-ENSAYO')`, [inmueble]);
+  const interesado = (await one(`insert into public.fortius_inmuebles_interesados(asunto_id,persona_id,nota) values ($1,$2,'Interesada de ensayo') returning id`, [asunto, heredera])).id;
+  await q('insert into public.fortius_inmuebles_interesado_inmuebles(interesado_id,inmueble_id,asunto_id) values ($1,$2,$3)', [interesado, inmueble, asunto]);
+  await q('insert into public.fortius_inmuebles_ofertas(interesado_id,asunto_id,inmueble_id,monto) values ($1,$2,$3,2300000)', [interesado, asunto, inmueble]);
+  await q(`insert into public.fortius_inmuebles_solicitudes(lead_id,nombre,mensaje,inmueble_id,asunto_id,persona_id,interesado_id,asignada_a,es_ejemplo) values
+    ('ensayo-lead-1','Solicitud de ensayo','Me interesa (ensayo)',$1,$2,$3,$4,$5,true)`, [inmueble, asunto, heredera, interesado, adminId]);
+  const tarea = (await one('select id from public.fortius_inmuebles_tareas where asunto_id=$1 limit 1', [asunto])).id;
+  await q(`insert into public.fortius_inmuebles_situacion_puntos(asunto_id,clase,texto,tarea_id) values ($1,'por_averiguar','¿Hay testamento?',$2)`, [asunto, tarea]);
+  const opinion = (await one(`insert into public.fortius_inmuebles_opiniones(asunto_id,analisis) values ($1,'Análisis de ensayo') returning id`, [asunto])).id;
+  await q(`insert into public.fortius_inmuebles_opinion_puntos(opinion_id,asunto_id,texto,tarea_id) values ($1,$2,'Tramitar la sucesión',$3)`, [opinion, asunto, tarea]);
+  const presupuesto = (await one('insert into public.fortius_inmuebles_presupuestos(asunto_id,paga_persona_id) values ($1,$2) returning id', [asunto, persona])).id;
+  const concepto = (await one(`insert into public.fortius_inmuebles_presupuesto_conceptos(presupuesto_id,asunto_id,concepto,monto,inmueble_id) values ($1,$2,'Honorarios de ensayo',15000,$3) returning id`, [presupuesto, asunto, inmueble])).id;
+  await q('insert into public.fortius_inmuebles_cobros(asunto_id,concepto_id,paga_persona_id,monto) values ($1,$2,$3,5000)', [asunto, concepto, persona]);
+  await q(`insert into public.fortius_inmuebles_ligas_cliente(asunto_id,token_hash,expira_el) values ($1,$2,now()+interval '7 days')`, [asunto, sha256('liga de ensayo')]);
+  await q(`insert into public.fortius_inmuebles_trabajos(asunto_id,clase,tipo,nombre,persona_id,inmueble_id) values ($1,'herramienta','credito','Cálculo de ensayo',$2,$3)`, [asunto, persona, inmueble]);
+  await q(`select public.fortius_inmuebles_anotar_historial('asunto',$1::text,$1::uuid,'nota','Anotación de ensayo')`, [asunto]);
+  return { asunto, persona, inmueble, consulta: consulta.id, files };
+}
+
 export async function buildSyntheticBackup(target) {
   const root = resolve(target);
   await mkdir(dirname(root), { recursive: true });
@@ -29,7 +104,7 @@ export async function buildSyntheticBackup(target) {
   const emissionBytes = pdf('emision formato 18'), clientBytes = pdf('documento del cliente');
   const emissionPath = `${s.expedienteOwn}/${s.emission}.pdf`, clientPath = `${s.expedienteOther}/cliente/${s.clientFile}.pdf`;
   const db = await createRehearsalDatabase();
-  let owner, buckets;
+  let owner, buckets, panel;
   try {
     await db.query('insert into auth.users(id) values ($1),($2)', [s.admin.id, s.editor.id]);
     await db.query("insert into public.fortius_inmuebles_staff(user_id,role) values ($1,'admin'),($2,'editor')", [s.admin.id, s.editor.id]);
@@ -53,6 +128,7 @@ export async function buildSyntheticBackup(target) {
       values ($1,$2,'Identificación de ensayo','identificacion.pdf','application/pdf',$3,$4,$5,$6)`,
     [s.clientFile, s.expedienteOther, clientBytes.length, sha256(clientBytes), clientPath, s.admin.id]);
     await db.exec('select public.fortius_inmuebles_sync_references(collection,id,data) from public.fortius_inmuebles_records');
+    panel = await seedPanel(db, s.admin.id);
     const sql = await readFile(new URL('./fortius-inmuebles-owner-export.sql', import.meta.url), 'utf8');
     owner = (await db.query(sql)).rows[0].backup;
     // Migrations still create the historical mnt-* buckets; production renamed them with
@@ -74,9 +150,11 @@ export async function buildSyntheticBackup(target) {
   };
   const dbEntry = await save('database-owner.json', Buffer.from(JSON.stringify(owner, null, 2)));
   manifest.database = { complete: true, file: dbEntry.file, schemaVersion: ownerSchemaVersion(owner), counts: Object.fromEntries(Object.entries(owner.tables).map(([name, rows]) => [name, rows.length])) };
-  for (const [bucket, path, bytes] of [['fortius-inmuebles-expedientes', emissionPath, emissionBytes], ['fortius-inmuebles-expedientes', clientPath, clientBytes]]) {
+  const objects = [['fortius-inmuebles-expedientes', emissionPath, emissionBytes, 'application/pdf'], ['fortius-inmuebles-expedientes', clientPath, clientBytes, 'application/pdf'],
+    ...panel.files.map(f => [f.bucket, f.path, f.bytes, f.mime])];
+  for (const [bucket, path, bytes, mime] of objects) {
     const entry = await save(`objects/${String(manifest.objects.length + 1).padStart(8, '0')}.bin`, bytes);
-    manifest.objects.push({ ...entry, bucket, path, mime: 'application/pdf', public: buckets.find(b => b.id === bucket).public });
+    manifest.objects.push({ ...entry, bucket, path, mime, public: buckets.find(b => b.id === bucket).public });
   }
   await save('buckets.json', Buffer.from(JSON.stringify(buckets, null, 2)));
   manifest.completedAt = new Date().toISOString();

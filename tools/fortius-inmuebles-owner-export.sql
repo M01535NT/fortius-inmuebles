@@ -1,6 +1,8 @@
--- Read-only owner export of all 42 current tables, including private Apps data.
+-- Read-only owner export of all 65 current tables, including private Apps data.
 -- Schema version 6 requires Apps, operational interviews, client documents (files, confirmed data
--- and AI readings), each user's preferences, the new panel's base model and the documents without an operation (old inbox). Preserve the raw export.
+-- and AI readings), each user's preferences and the 34 tables of the panel by matters
+-- (migrations panel_01 to panel_10). Preserve the raw export.
+-- jsonb_build_object accepts at most 100 arguments: the tables go in two objects joined with ||.
 select jsonb_build_object(
   'format', 'mnt-owner-export-v1',
   'prefix', 'fortius_inmuebles',
@@ -37,17 +39,41 @@ select jsonb_build_object(
     'fortius_inmuebles_expediente_archivos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_expediente_archivos t),
     'fortius_inmuebles_expediente_datos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_expediente_datos t),
     'fortius_inmuebles_ia_lecturas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_ia_lecturas t),
-    'fortius_inmuebles_user_preferences', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_user_preferences t),
+    'fortius_inmuebles_user_preferences', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_user_preferences t)
+  ) || jsonb_build_object(
     'fortius_inmuebles_folios', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_folios t),
+    'fortius_inmuebles_biblioteca', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_biblioteca t),
+    'fortius_inmuebles_personas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_personas t),
+    'fortius_inmuebles_persona_datos_legales', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_persona_datos_legales t),
+    'fortius_inmuebles_persona_uniones', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_persona_uniones t),
+    'fortius_inmuebles_asuntos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_asuntos t),
+    'fortius_inmuebles_consultas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_consultas t),
+    'fortius_inmuebles_inmuebles', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_inmuebles t),
+    'fortius_inmuebles_inmueble_medios', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_inmueble_medios t),
+    'fortius_inmuebles_inmueble_precios', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_inmueble_precios t),
+    'fortius_inmuebles_inmueble_datos_legales', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_inmueble_datos_legales t),
     'fortius_inmuebles_asunto_miembros', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_asunto_miembros t),
     'fortius_inmuebles_asunto_personas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_asunto_personas t),
     'fortius_inmuebles_asunto_inmuebles', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_asunto_inmuebles t),
-    'fortius_inmuebles_pendientes', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_pendientes t),
+    'fortius_inmuebles_apartados', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_apartados t),
+    'fortius_inmuebles_apartado_filas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_apartado_filas t),
     'fortius_inmuebles_historial', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_historial t),
-    'fortius_inmuebles_notas_internas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_notas_internas t),
-    'fortius_inmuebles_persona_uniones', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_persona_uniones t),
-    'fortius_inmuebles_bandeja', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_bandeja t),
-    'fortius_inmuebles_movimientos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_movimientos t),
-    'fortius_inmuebles_documentos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_documentos t)
+    'fortius_inmuebles_asunto_documentos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_asunto_documentos t),
+    'fortius_inmuebles_documento_archivos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_documento_archivos t),
+    'fortius_inmuebles_trabajos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_trabajos t),
+    'fortius_inmuebles_cargas_por_acomodar', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_cargas_por_acomodar t),
+    'fortius_inmuebles_plan_etapas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_plan_etapas t),
+    'fortius_inmuebles_interesados', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_interesados t),
+    'fortius_inmuebles_interesado_inmuebles', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_interesado_inmuebles t),
+    'fortius_inmuebles_ofertas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_ofertas t),
+    'fortius_inmuebles_solicitudes', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_solicitudes t),
+    'fortius_inmuebles_tareas', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_tareas t),
+    'fortius_inmuebles_situacion_puntos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_situacion_puntos t),
+    'fortius_inmuebles_opiniones', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_opiniones t),
+    'fortius_inmuebles_opinion_puntos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_opinion_puntos t),
+    'fortius_inmuebles_presupuestos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_presupuestos t),
+    'fortius_inmuebles_presupuesto_conceptos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_presupuesto_conceptos t),
+    'fortius_inmuebles_cobros', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_cobros t),
+    'fortius_inmuebles_ligas_cliente', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_ligas_cliente t)
   )
 ) as backup;

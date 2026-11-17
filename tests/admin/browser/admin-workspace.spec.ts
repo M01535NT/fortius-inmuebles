@@ -291,7 +291,7 @@ test("failed Blog loading does not block inventory navigation", async ({page}) =
   await expect(page.getByText(/No se pudo cargar este módulo/)).toBeVisible();
   await page.getByRole("navigation",{name:"Módulos del panel",exact:true}).getByRole("link",{name:"Inmuebles",exact:true}).click();
   await expect(page.locator("main h1")).toHaveText("Inmuebles");
-  await expect(page.getByRole("link",{name:/Casa de prueba/}).first()).toBeVisible();
+  await expect(page.getByRole("button",{name:/Abrir Casa de prueba/}).first()).toBeVisible();
 });
 // SIM-17: el buscador ya no crea; se sale con cambios sin guardar desde el «+» del celular.
 test("mobile editor reveals collapsed sections and confirms leaving through the new menu", async ({page}, info) => {

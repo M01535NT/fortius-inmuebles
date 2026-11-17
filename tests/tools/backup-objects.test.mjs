@@ -225,36 +225,70 @@ test('validates metadata and uniqueness of buckets even without any objects in t
 
 test('rejects manifest schema downgrades and mismatches while accepting a genuine historical backup',async()=>{
  const f=await fixture();try{
-  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.panelSuffixes,...backupTools.documentSuffixes])delete f.owner.tables['fortius_inmuebles_'+suffix];
+  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.panelSuffixes])delete f.owner.tables['fortius_inmuebles_'+suffix];
   delete f.owner.schema_version;f.manifest.database.schemaVersion=6;await saveOwner(f);
   await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);
   f.manifest.database.schemaVersion=1;await f.save();await backupTools.verifyBackup(f.root);
   delete f.manifest.database.schemaVersion;await f.save();await backupTools.verifyBackup(f.root);
   const target=join(f.parent,'legacy-restored');assert.equal((await backupTools.restoreBackupObjects(f.root,target)).objects,1);
-  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.panelSuffixes,...backupTools.documentSuffixes])f.owner.tables['fortius_inmuebles_'+suffix]=[];
+  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.panelSuffixes])f.owner.tables['fortius_inmuebles_'+suffix]=[];
   f.owner.schema_version=6;
   for(const version of [1,2,3,4,5,'6',null]){f.manifest.database.schemaVersion=version;await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);}
   f.manifest.database.schemaVersion=6;await f.save();await backupTools.verifyBackup(f.root);
  }finally{await f.close();}
 });
 
-test('requires the backed-up object of every document without an operation, with the same fingerprint and size',async()=>{
+async function addObject(f,bucket,path,label,isPublic=false){
+ const bytes=Buffer.from('synthetic panel bytes: '+label),sha256=backupTools.sha256(bytes);
+ const file={file:'panel-'+f.manifest.files.length+'.bin',bytes:bytes.length,sha256};
+ await writeFile(join(f.root,file.file),bytes);f.manifest.files.push(file);
+ f.manifest.objects.push({...file,bucket,path,public:isPublic});
+ if(!f.manifest.buckets.some(b=>b.id===bucket))f.manifest.buckets.push({id:bucket,public:isPublic});
+ return {sha256,byte_length:bytes.length};
+}
+
+test('requires the backed-up object of every panel document file and call upload, with the same fingerprint and size',async()=>{
+ for(const [table,path] of [['documento_archivos','asuntos/56000000-0000-4000-8000-000000000001/56000000-0000-4000-8000-000000000002.pdf'],['cargas_por_acomodar','consultas/56000000-0000-4000-8000-000000000003/56000000-0000-4000-8000-000000000004.pdf']]){
+  const f=await fixture();try{
+   f.owner.schema_version=6;
+   const bytes=Buffer.from('synthetic panel file '+table),sha256=backupTools.sha256(bytes);
+   f.owner.tables['fortius_inmuebles_'+table]=[{id:'56000000-0000-4000-8000-000000000009',path,sha256,byte_length:bytes.length}];
+   // The row exists but its object was not backed up.
+   await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/referenced object missing/i,table);
+   const file={file:'panel.bin',bytes:bytes.length,sha256};await writeFile(join(f.root,file.file),bytes);
+   f.manifest.files.push(file);f.manifest.objects.push({...file,bucket:'fortius-inmuebles-expedientes',path,public:false});
+   await f.save();await backupTools.verifyBackup(f.root);
+   // The same path in another bucket does not count.
+   f.manifest.objects.at(-1).bucket='fortius-inmuebles-private';f.manifest.buckets.push({id:'fortius-inmuebles-private',public:false});
+   await f.save();await assert.rejects(backupTools.verifyBackup(f.root),/referenced object missing/i,table);
+   f.manifest.objects.at(-1).bucket='fortius-inmuebles-expedientes';await f.save();
+   f.owner.tables['fortius_inmuebles_'+table][0].sha256='0'.repeat(64);
+   await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/database object fingerprint/i,table);
+   Object.assign(f.owner.tables['fortius_inmuebles_'+table][0],{sha256,byte_length:bytes.length+1});
+   await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/byte length differs/i,table);
+   f.owner.tables['fortius_inmuebles_'+table][0].byte_length=bytes.length;
+   await saveOwner(f);await backupTools.verifyBackup(f.root);
+  }finally{await f.close();}
+ }
+});
+
+test('requires the private photo of each own-section row and each uploaded property photo in the public bucket',async()=>{
  const f=await fixture();try{
-  const path='bandeja/56000000-0000-4000-8000-000000000001.pdf',bytes=Buffer.from('synthetic inbox document'),sha256=backupTools.sha256(bytes);
-  const file={file:'inbox.bin',bytes:bytes.length,sha256};
-  await writeFile(join(f.root,file.file),bytes);
   f.owner.schema_version=6;
-  f.owner.tables.fortius_inmuebles_documentos=[{id:'56000000-0000-4000-8000-000000000001',path,sha256,byte_length:bytes.length}];
-  // The row exists but its object was not backed up.
+  const foto='asuntos/56000000-0000-4000-8000-000000000001/56000000-0000-4000-8000-000000000005.jpg';
+  const medio='panel/inmuebles/56000000-0000-4000-8000-000000000006/56000000-0000-4000-8000-000000000007.jpg';
+  f.owner.tables.fortius_inmuebles_apartado_filas=[{id:'56000000-0000-4000-8000-000000000011',foto_path:foto},{id:'56000000-0000-4000-8000-000000000012',foto_path:null}];
+  f.owner.tables.fortius_inmuebles_inmueble_medios=[{id:'56000000-0000-4000-8000-000000000013',path:medio,byte_length:1},{id:'56000000-0000-4000-8000-000000000014',path:null,byte_length:null,url:'https://video.ensayo.test/x'}];
   await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/referenced object missing/i);
-  f.manifest.files.push(file);f.manifest.objects.push({...file,bucket:'fortius-inmuebles-expedientes',path,public:false});
-  await f.save();await backupTools.verifyBackup(f.root);
-  f.owner.tables.fortius_inmuebles_documentos[0].sha256='0'.repeat(64);
-  await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/database object fingerprint/i);
-  Object.assign(f.owner.tables.fortius_inmuebles_documentos[0],{sha256,byte_length:bytes.length+1});
-  await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/byte length differs/i);
-  f.owner.tables.fortius_inmuebles_documentos[0].byte_length=bytes.length;
+  await addObject(f,'fortius-inmuebles-expedientes',foto,'foto');
+  await f.save();await assert.rejects(backupTools.verifyBackup(f.root),/referenced object missing/i,'the public photo is still missing');
+  const {byte_length}=await addObject(f,'fortius-inmuebles-public',medio,'medio',true);
+  await f.save();await assert.rejects(backupTools.verifyBackup(f.root),/byte length differs/i);
+  f.owner.tables.fortius_inmuebles_inmueble_medios[0].byte_length=byte_length;
   await saveOwner(f);await backupTools.verifyBackup(f.root);
+  // A section photo is private: the same path in the public bucket does not cover it.
+  const fotoObject=f.manifest.objects.find(o=>o.path===foto);fotoObject.bucket='fortius-inmuebles-public';fotoObject.public=true;
+  await f.save();await assert.rejects(backupTools.verifyBackup(f.root),/referenced object missing/i);
  }finally{await f.close();}
 });
 

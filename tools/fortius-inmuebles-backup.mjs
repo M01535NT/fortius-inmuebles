@@ -17,13 +17,15 @@ export const expedienteCurrentSuffixes = [...interviewsCurrentSuffixes,...expedi
 // Schema v5 (14/11/2026): preferencias de cada usuario (bandeja «Para ti», densidad, tema, vistas).
 export const preferenceSuffixes = ['user_preferences'];
 export const preferenceCurrentSuffixes = [...expedienteCurrentSuffixes,...preferenceSuffixes];
-// Schema v6 (16/11/2026): modelo base del panel nuevo (folios reservados, equipo del asunto, personas e inmuebles
-// del asunto, pendientes, historial con actor, notas internas y personas unidas).
-export const panelSuffixes = ['folios','asunto_miembros','asunto_personas','asunto_inmuebles','pendientes','historial','notas_internas','persona_uniones','bandeja','movimientos'];
-// Schema v6 (14/11/2026): documentos sin operación (Bandeja); sus archivos viven en fortius-inmuebles-expedientes, bajo «bandeja/».
-export const documentSuffixes = ['documentos'];
-// Las dos ramas llegaron a la v6 por separado: la v6 lleva ambos grupos.
-export const currentSuffixes = [...preferenceCurrentSuffixes,...panelSuffixes,...documentSuffixes];
+// Schema v6 (17/11/2026): el panel por asuntos (migraciones panel_01 a panel_10). Padres antes que dependientes;
+// los ciclos (asuntos/consultas/solicitudes, inmuebles/portada, documentos/trabajos, interesados/solicitudes)
+// se resuelven igual que records/expedientes: el restaurador vuelve a validar cada llave al final.
+export const panelSuffixes = ['folios','biblioteca','personas','persona_datos_legales','persona_uniones','asuntos','consultas',
+  'inmuebles','inmueble_medios','inmueble_precios','inmueble_datos_legales','asunto_miembros','asunto_personas','asunto_inmuebles',
+  'apartados','apartado_filas','historial','asunto_documentos','documento_archivos','trabajos','cargas_por_acomodar','plan_etapas',
+  'interesados','interesado_inmuebles','ofertas','solicitudes','tareas','situacion_puntos','opiniones','opinion_puntos',
+  'presupuestos','presupuesto_conceptos','cobros','ligas_cliente'];
+export const currentSuffixes = [...preferenceCurrentSuffixes,...panelSuffixes];
 export const currentSchemaVersion = 6;
 export function ownerSchemaVersion(data) {
   if (data.prefix !== 'fortius_inmuebles') return undefined;
@@ -33,11 +35,11 @@ export function ownerSchemaVersion(data) {
   }
   // Only the complete pre-Apps inventory is historical. A partial Apps export
   // must fail instead of silently replacing omitted tables with empty arrays.
-  return [...panelSuffixes,...documentSuffixes].some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 6 : preferenceSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 5 : expedienteFileSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 4 : Object.hasOwn(data.tables ?? {},'fortius_inmuebles_interviews') ? 3 : appSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 2 : 1;
+  return panelSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 6 : preferenceSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 5 : expedienteFileSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 4 : Object.hasOwn(data.tables ?? {},'fortius_inmuebles_interviews') ? 3 : appSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 2 : 1;
 }
 export function tableOrderKeys(suffix) {
   if (!currentSuffixes.includes(suffix)) throw Error('Unknown backup table');
-  const keys={staff:['user_id'],adviser_accounts:['user_id'],user_preferences:['user_id'],rate_limits:['key'],record_references:['source_collection','source_id','field'],records:['collection','id'],record_revisions:['collection','id'],comercial_revisions:['book_id','version'],lead_conversions:['lead_id'],expediente_datos:['expediente_id'],app_run_versions:['run_id','version'],signature_events:['hash'],folios:['serie','anio','numero'],asunto_miembros:['asunto_id','asesor_id'],asunto_personas:['asunto_id','persona_id','papel'],asunto_inmuebles:['asunto_id','inmueble_id'],persona_uniones:['persona_id']};
+  const keys={staff:['user_id'],adviser_accounts:['user_id'],user_preferences:['user_id'],rate_limits:['key'],record_references:['source_collection','source_id','field'],records:['collection','id'],record_revisions:['collection','id'],comercial_revisions:['book_id','version'],lead_conversions:['lead_id'],expediente_datos:['expediente_id'],app_run_versions:['run_id','version'],signature_events:['hash'],folios:['serie','anio','numero'],asunto_miembros:['asunto_id','usuario_id'],interesado_inmuebles:['interesado_id','inmueble_id'],persona_datos_legales:['persona_id'],persona_uniones:['origen_id']};
   return keys[suffix] ?? ['id'];
 }
 export function isBackupBucket(prefix,id) {
@@ -131,7 +133,13 @@ function reconcileObjects(manifest, database) {
     for (const row of table(suffix)) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
   }
   for (const row of table('expediente_archivos')) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
-  for (const row of table('documentos')) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
+  // Panel (v6): archivos de cada documento y lo adjuntado en la consulta, con huella y tamaño; también los
+  // acomodados o descartados, porque su archivo se queda. Las fotos de un apartado propio solo guardan la ruta.
+  for (const row of table('documento_archivos')) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
+  for (const row of table('cargas_por_acomodar')) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
+  for (const row of table('apartado_filas')) if (row.foto_path != null) requireObject('fortius-inmuebles-expedientes', row.foto_path);
+  // Fotos y videos subidos al bucket público (sin huella en la base: se comprueban ruta y tamaño); los enlazados no tienen archivo.
+  for (const row of table('inmueble_medios')) if (row.path != null) requireObject('fortius-inmuebles-public', row.path, null, row.byte_length);
   for (const row of table('comercial_emissions')) requireObject('fortius-inmuebles-comercial', row.path, row.sha256);
   for (const row of table('app_files')) requireObject('fortius-inmuebles-private', row.path, row.sha256, row.size_bytes);
   for (const row of table('integration_artifacts')) requireObject('fortius-app-integrations', row.storage_path, row.sha256, row.size_bytes);
