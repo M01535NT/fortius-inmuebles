@@ -44,7 +44,7 @@ export function FichaInmueble({ id, alCambiar, nombreDe: dado }: { id: string; a
   const [error, setError] = useState<string | null>(null);
   const [pestana, setPestana] = useState<Pestana>("datos");
   const actual = useRef<Inmueble | null>(null);
-  actual.current = i;
+  useEffect(() => { actual.current = i; }, [i]);
 
   const cargar = useCallback(() => leerInmueble(id).then((x) => { setI(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")), [id]);
   useEffect(() => { void cargar(); }, [cargar]);

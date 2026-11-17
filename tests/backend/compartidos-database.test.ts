@@ -3,8 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
 
 // PUB-02 (RP-95, DEC-40): un inmueble compartido por otra inmobiliaria se publica sin captación,
-// con la inmobiliaria ligada, y lo publica el director. Sin la autorización escrita se publica igual
-// y queda en el historial del inmueble (FLX-03, RP-100).
+// con la inmobiliaria ligada y su autorización escrita adjunta, y lo publica el director.
 let db: PGlite;
 const director = "55000000-0000-4000-8000-000000000001", ana = "55000000-0000-4000-8000-000000000002";
 const authorization = `${director}/55000000-0000-4000-8000-0000000000aa.pdf`;
@@ -55,23 +54,11 @@ describe("publicar un compartido", () => {
     });
   });
 
-  // Sin frenos (titular, 16/11/2026): la autorización escrita del aliado se avisa, no frena (aviso legal).
-  it("sin autorización adjunta el director también lo publica; el panel lo avisa", async () => {
+  it("sin autorización adjunta no se publica, ni con un archivo que no se subió", async () => {
     await as(director, async () => {
-      await put(property("sin-autorizacion", { publicada: true, aliado: aliado({ autorizacion: undefined }) }), await versionOf("sin-autorizacion"));
-    });
-  });
-
-  it("sin la autorización escrita el director lo publica y el historial del inmueble guarda quién, cuándo y sin qué (FLX-03)", async () => {
-    await as(director, async () => {
-      await put(property("sin-autorizacion", { publicada: true, aliado: aliado({ autorizacion: undefined }) }), await versionOf("sin-autorizacion"));
-    });
-    const { rows } = await db.query<{ actor_id: string; publicada: string; autorizacion: unknown }>(
-      "select actor_id, snapshot->>'publicada' publicada, snapshot->'aliado'->'autorizacion' autorizacion from public.fortius_inmuebles_record_history where collection='propiedades' and record_id='sin-autorizacion' order by created_at desc limit 1");
-    expect(rows[0]).toMatchObject({ actor_id: director, publicada: "true", autorizacion: null });
-    // Retirarlo para que la prueba del sitio siga viendo solo el compartido con autorización.
-    await as(director, async () => {
-      await put(property("sin-autorizacion", { publicada: false, aliado: aliado({ autorizacion: undefined }) }), await versionOf("sin-autorizacion"));
+      await expect(put(property("sin-autorizacion", { publicada: true, aliado: aliado({ autorizacion: undefined }) }), await versionOf("sin-autorizacion"))).rejects.toMatchObject({ code: "PT409" });
+      const forged = aliado({ autorizacion: { path: `${director}/55000000-0000-4000-8000-0000000000bb.pdf`, fecha: "2026-11-12", firmante: "Gerente de ensayo" } });
+      await expect(put(property("sin-autorizacion", { publicada: true, aliado: forged }), await versionOf("sin-autorizacion"))).rejects.toMatchObject({ code: "PT409" });
     });
   });
 

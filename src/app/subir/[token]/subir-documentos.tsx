@@ -26,7 +26,7 @@ export function SubirDocumentos({ token }: { token: string }) {
     } catch { setEstado({ cargando: false, liga: null, error: "Sin conexión. Vuelve a abrir la liga en un momento." }); }
   }, [ruta]);
 
-  useEffect(() => { void leer(); }, [leer]);
+  useEffect(() => { void Promise.resolve().then(leer); }, [leer]);
 
   async function enviar(archivos: File[]) {
     const doc = destino.current;

@@ -61,7 +61,7 @@ export function CapturaPorPreguntas({ id, volver }: { id: string; volver: string
   const [ocupado, setOcupado] = useState(false);
   const [asuntos, setAsuntos] = useState<FilaAsunto[] | null>(null);
   const actual = useRef<TrabajoAbierto | null>(null);
-  actual.current = abierto;
+  useEffect(() => { actual.current = abierto; }, [abierto]);
   const zonas = useRef(new Map<string, HTMLButtonElement>());
   const pregunta = useRef<HTMLDivElement>(null);
   const firmado = useRef<HTMLInputElement>(null);
@@ -88,7 +88,7 @@ export function CapturaPorPreguntas({ id, volver }: { id: string; volver: string
   const guardados = useMemo(() => t?.datos ?? {}, [t]);
   const conBorrador = useMemo(() => aplicar(guardados, borrador), [guardados, borrador]);
   // Lo que se ve: lo escrito en el documento y, donde no hay nada, lo que ya sabe el asunto.
-  const vista = useMemo(() => ({ ...mezclar(conBorrador, abierto?.del_asunto ?? {}), ...(folio ? { folio } : {}) }), [conBorrador, abierto, folio]);
+  const vista = useMemo((): Record<string, unknown> => ({ ...mezclar(conBorrador, abierto?.del_asunto ?? {}), ...(folio ? { folio } : {}) }), [conBorrador, abierto, folio]);
   // Lo que falta: lo que el formato exige. La opinión de valor no exige nada, así que en ella falta todo espacio vacío.
   const faltan = useMemo(() => {
     if (!t || !definicion) return [];
@@ -109,13 +109,12 @@ export function CapturaPorPreguntas({ id, volver }: { id: string; volver: string
   }, [render, t, vista]);
 
   // Las preguntas se toman una vez, cuando la hoja está lista: no cambian mientras se contesta.
-  useEffect(() => {
-    if (preguntas || !maqueta || !t) return;
+  if (!preguntas && maqueta && t) {
     const zs = espaciosEnOrden(maqueta.zonas, vista, { soloFalta: true, faltan: clavesFaltan })
       .filter((z) => z.keys.some((k) => !RANURAS_IMAGEN.has(k)));
     setPreguntas(zs);
     setListo(zs.length === 0);
-  }, [maqueta, t, vista, clavesFaltan, preguntas]);
+  }
 
   const zona = !listo && preguntas ? preguntas[pos] ?? null : null;
 

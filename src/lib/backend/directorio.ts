@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import type { Encargo, EnQueVa } from "./asuntos-contrato";
-import { fallo } from "./asuntos";
+import { fallo } from "./fallo";
 import type { StaffUser } from "./contracts";
 import type { AsuntoDePersona, PersonaDirectorio } from "./directorio-contrato";
 import { ApiError } from "./http";

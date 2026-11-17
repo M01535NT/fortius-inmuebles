@@ -160,9 +160,11 @@ export function Contenido({ g }: { g: Pick<Guia, "contenido"> }) {
 function DialogoUsar({ g, alCerrar, alUsar }: { g: Guia | null; alCerrar: () => void; alUsar: (g: Guia, a: FilaAsunto) => void }) {
   const [asuntos, setAsuntos] = useState<FilaAsunto[] | null>(null);
   const [elegido, setElegido] = useState("");
+  // Cada guía que se abre empieza sin asunto elegido.
+  const [guiaPrevia, setGuiaPrevia] = useState<Guia | null>(null);
+  if (g !== guiaPrevia) { setGuiaPrevia(g); if (g) setElegido(""); }
   useEffect(() => {
     if (!g) return;
-    setElegido("");
     leerAsuntos().then((x) => setAsuntos(x.filter((a) => a.en_que_va !== "cerrado")), () => setAsuntos([]));
   }, [g]);
   const a = asuntos?.find((x) => x.id === elegido) ?? null;

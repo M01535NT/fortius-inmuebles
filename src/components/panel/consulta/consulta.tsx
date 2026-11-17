@@ -81,6 +81,7 @@ export function PantallaConsulta() {
   const relojRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listoRef = useRef(false);
   const falloRef = useRef(false);
+  const guardarRef = useRef<() => Promise<void>>(async () => {});
 
   // ── Guardar ─────────────────────────────────────────────────────────────────────────────────────────
   const guardar = useCallback(async (): Promise<void> => {
@@ -118,8 +119,9 @@ export function PantallaConsulta() {
     await vuelo;
     vueloRef.current = null;
     // Lo que se escribió mientras se guardaba sale enseguida; tras un fallo, espera al siguiente cambio o a la conexión.
-    if (sucioRef.current && !falloRef.current) void guardar();
+    if (sucioRef.current && !falloRef.current) void guardarRef.current();
   }, [avisar, router]);
+  useEffect(() => { guardarRef.current = guardar; }, [guardar]);
 
   /** Cada cambio: respaldo local al instante y guardado en el servidor al dejar de escribir. */
   const cambiar = useCallback((f: (x: Borrador) => Borrador) => {
@@ -199,7 +201,7 @@ export function PantallaConsulta() {
   const d = b.datos;
   const encargos = useMemo(() => encargosSegun(d), [d]);
   const porPedir = b.documentos_pedir.filter((x) => !x.quitado).length;
-  const otrasSinTerminar = abiertas.filter((a) => a.id !== idRef.current);
+  const otrasSinTerminar = abiertas.filter((a) => a.id !== idUrl);
 
   const ponDato = <K extends keyof DatosConsulta>(k: K, v: DatosConsulta[K] | "") =>
     cambiar((x) => {

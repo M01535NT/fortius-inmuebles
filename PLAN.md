@@ -14,7 +14,7 @@ El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla
 
 **Lo que ya funciona y se queda:**
 
-- El sitio público, fortiusinmuebles.com, publicado.
+- El sitio público, fortiusinmuebles.com, publicado con el diseño nuevo (17/11/2026).
 - La base de datos, las cuentas de usuario y los permisos.
 - Los formatos de Fortius, que generan PDF.
 - La lectura de datos desde un documento.

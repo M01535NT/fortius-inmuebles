@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { fallo } from "./asuntos";
+import { fallo } from "./fallo";
 import { leerEquipo } from "./asuntos-equipo";
 import type { StaffUser } from "./contracts";
 import type { ResumenEquipo, ResumenMiembro } from "./equipo-contrato";

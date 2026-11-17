@@ -1,8 +1,7 @@
 import { z } from "zod";
 
-import {
-  cambiarEnApartado, cambiarEnParte, crearEnApartado, crearEnParte, idSchema, leerHistorial, PARTES, PARTES_APARTADO,
-} from "@/lib/backend/asuntos";
+import { cambiarEnApartado, crearEnApartado, PARTES_APARTADO } from "@/lib/backend/apartados";
+import { cambiarEnParte, crearEnParte, idSchema, leerHistorial, PARTES } from "@/lib/backend/asuntos";
 import { requireStaff } from "@/lib/backend/auth";
 import { apiResponse, ApiError, assertSameOrigin, readJson } from "@/lib/backend/http";
 

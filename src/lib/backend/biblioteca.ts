@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { cambioColumnas } from "./apartados";
 import { QUIEN, VISTAS, type Quien } from "./asuntos-contrato";
-import { fallo } from "./asuntos";
+import { fallo } from "./fallo";
 import {
   CLASES_BIBLIOTECA, type ClaseBiblioteca, type EtapaGuia, type Guia, type ResultadoCopia,
 } from "./biblioteca-contrato";

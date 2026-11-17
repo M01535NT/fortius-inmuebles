@@ -1,8 +1,6 @@
 # Marca del sitio público
 
-Es la identidad que usa hoy fortiusinmuebles.com. El panel no la usa: sigue su propio boceto (ver `SPEC.md`). El sitio conserva esta marca hasta que el titular pida cambiarla.
-
-**Sitio público:** desde el 17/11/2026 usa la marca Fortius II, descrita en [`docs/sitio/DECISIONS.md`](sitio/DECISIONS.md). Lo de abajo sigue valiendo para el panel, los PDF y el membrete.
+**El sitio público ya no usa esta marca.** Desde el 17/11/2026 usa la de Fortius II (letra Geist), descrita en [`docs/sitio/DECISIONS.md`](../sitio/DECISIONS.md). Lo de abajo queda como la marca anterior, que siguen usando los PDF, los formatos y el membrete. El panel sigue su propio boceto (ver `SPEC.md`).
 
 La marca comercial del producto es **Fortius Inmuebles**. La referencia es el logotipo arquitectónico compartido por el usuario: FORTIUS, portal bicolor en lugar de la O y descriptor REAL ESTATE & INVESTMENTS. Los SVG son una reconstrucción vectorial de la imagen de referencia, sin sus márgenes vacíos.
 
@@ -32,7 +30,7 @@ Tema oscuro del sitio público (no son colores de marca impresos; solo pantalla)
 
 `BrandMark` comparte la geometría SVG entre cabecera, footer y administración. Sobre fondo claro: letras y portal izquierdo azules, portal derecho borgoña. Sobre fotografía o en tema oscuro, sin placa: letras y portal izquierdo blancos, portal derecho borgoña. Los tonos grises son neutros azulados.
 
-Tipografía (30/10/2026): el sitio público usa Schibsted Grotesk en tres pesos: 400 para leer, 600 para botones, etiquetas y enlaces, y 700 para títulos y cifras. Sin letra comprimida ni ejes de ancho; los pesos intermedios (500, 560, 650) no existen en esta letra y no se usan. El panel conserva Archivo.
+Tipografía anterior (30/10/2026, reemplazada en el sitio por Geist el 17/11/2026): Schibsted Grotesk en tres pesos: 400 para leer, 600 para botones, etiquetas y enlaces, y 700 para títulos y cifras. Sin letra comprimida ni ejes de ancho; los pesos intermedios (500, 560, 650) no existen en esta letra y no se usan. El panel conserva Archivo.
 
 ### Escala tipográfica del sitio público (titular, 13/11/2026)
 

@@ -300,8 +300,7 @@ it("rejects a second creation request while a matching draft exists", async () =
       b,
     ); // The earlier creation was explicitly rejected, not acknowledged.
   }));
-// Sin frenos (16/11/2026): el soporte de una entrevista anterior ya no frena el avance; el panel lo avisa.
-it("a correction preserves the initial action and accepts older support after another correction", async () =>
+it("a correction preserves the initial action and refuses stale support after another correction", async () =>
   asUser(own, async () => {
     const a = await start("vender", contact("6642228899"));
     const done = await save(a.id, 1, answers(), true);
@@ -335,11 +334,12 @@ it("a correction preserves the initial action and accepts older support after an
       requisitos: { entrevista: { soporte: string } };
     };
     changed.requisitos.entrevista.soporte = `Entrevista operativa ${a.id} · versión 2. Declaraciones capturadas; documentos y capacidad pendientes de comprobar.`;
-    const moved = await db.query<{ r: { etapa: string } }>(
-      "select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}',$3::jsonb,null,false) r",
-      [fixed.expediente_id, row.version, JSON.stringify(changed)],
-    );
-    expect(moved.rows[0].r.etapa).toBe("documentacion");
+    await expect(
+      db.query(
+        "select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}',$3::jsonb,null,false)",
+        [fixed.expediente_id, row.version, JSON.stringify(changed)],
+      ),
+    ).rejects.toMatchObject({ code: "PT409" });
   }));
 it("allows authorized context reassignment with pending reviews and requires a new interview to advance", async () => {
   const r = await asUser(own, () => start("vender", contact("6642229900")));

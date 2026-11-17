@@ -16,7 +16,7 @@ Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregún
 | Casos reales con los que se prueba cada etapa | `docs/casos-reales.md` |
 | Metodologías que se copian a un asunto | `docs/metodologias/` |
 | Sitio público (qué es, orden y cómo se hace; mandan para el sitio) | `docs/sitio/SPEC.md`, `docs/sitio/PLAN.md`, `docs/sitio/DECISIONS.md` |
-| Marca del sitio público | `docs/sitio-publico/marca.md` |
+| Marca anterior (PDF, formatos y membrete) | `docs/sitio-publico/marca.md` |
 | Lo demás (operación, respaldos, privacidad, formatos, cálculos, legal) | `docs/README.md` |
 
 `SPEC.md` y `PLAN.md` los lee también el titular, que no es programador: se escriben en lenguaje sencillo, sin claves internas ni tecnicismos, y sin mencionar trabajo anterior, archivado o reemplazado. Lo reemplazado no se guarda en documentos: queda en el historial de git. Si un documento contradice a `SPEC.md`, se corrige o se borra. Todo avance se anota en `PLAN.md`; toda regla o decisión nueva, en `SPEC.md`. Si una indicación nueva choca con algo escrito, se corrige la fuente y se avisa del choque.
@@ -42,7 +42,7 @@ Las claves del tipo `RP-00` o `DEC-00` y las menciones a `DECISIONES.md` que apa
 
 ## Sitio público
 
-Manda el boceto aprobado del rediseño y lo escrito en `docs/sitio/`; donde `docs/sitio-publico/marca.md` lo contradiga, manda `docs/sitio/`. Sus estilos viven bajo la clase `sitio` (`src/app/sitio.css`) y sus piezas en `src/components/sitio/`; no tocan los estilos, el logo ni el tema del panel. Lo que el boceto no define se pregunta y se anota en `docs/sitio/`. Sin cejas (antetítulos sobre los títulos).
+Manda el boceto aprobado del rediseño y lo escrito en `docs/sitio/` (marca Fortius II, letra Geist); `docs/sitio-publico/marca.md` ya no aplica al sitio. Sus estilos viven bajo la clase `sitio` (`src/app/sitio.css`) y sus piezas en `src/components/sitio/`; no tocan los estilos, el logo ni el tema del panel. Lo que el boceto no define se pregunta y se anota en `docs/sitio/`. Sin cejas (antetítulos sobre los títulos).
 
 ## Formatos y documentos
 

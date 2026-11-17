@@ -4,7 +4,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { PAPELES, type Encargo } from "./asuntos-contrato";
-import { apartadosPara, fallo } from "./asuntos";
+import { apartadosPara } from "./asuntos";
+import { fallo } from "./fallo";
+import { FIRMAS } from "./firmas";
 import {
   CANALES, DEBE, DE_QUIEN, OCUPA, QUIERE, SI_NO, TIPOS_INMUEBLE,
   encargosSegun, inmuebleSegun, nombreDelAsunto, papelDeQuienLlama, primerPlan,
@@ -81,12 +83,13 @@ export async function listarAbiertas(client: SupabaseClient, user: StaffUser): P
 
 export async function crearConsulta(client: SupabaseClient, user: StaffUser, entrada: z.infer<typeof nuevaConsultaSchema>) {
   // Desde el Directorio: la consulta llega con el nombre, el teléfono y el correo que ya tiene la ficha.
-  let ficha: { nombre: string; telefonos: { pais: string; numero: string }[] | null; correo: string | null } | null = null;
+  type Ficha = { nombre: string; telefonos: { pais: string; numero: string }[] | null; correo: string | null };
+  let ficha: Ficha | null = null;
   if (entrada.persona_id) {
     const p = await client.from("fortius_inmuebles_personas").select("nombre,telefonos,correo").eq("id", entrada.persona_id).is("deleted_at", null).maybeSingle();
     if (p.error) fallo(p.error);
     if (!p.data) throw new ApiError(404, "Esa persona ya no está en el Directorio.");
-    ficha = p.data as typeof ficha;
+    ficha = p.data as Ficha;
   }
   const r = await client.from(T.consultas).insert({
     quien_nombre: entrada.quien_nombre ?? ficha?.nombre ?? "", canal: entrada.canal ?? "llamada", persona_id: entrada.persona_id ?? null,
@@ -170,12 +173,7 @@ export async function cerrarConsulta(client: SupabaseClient, id: string, entrada
 
 // ── Lo que ya mandó ──────────────────────────────────────────────────────────────────────────────────
 export const TAMANO_MAXIMO = 20 * 1024 * 1024;
-export const FIRMAS: { mime: string; ext: string; es: (b: Uint8Array) => boolean }[] = [
-  { mime: "application/pdf", ext: "pdf", es: (b) => b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46 },
-  { mime: "image/jpeg", ext: "jpg", es: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
-  { mime: "image/png", ext: "png", es: (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 },
-  { mime: "image/webp", ext: "webp", es: (b) => b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50 },
-];
+export { FIRMAS } from "./firmas";
 
 /** Sube un archivo de la consulta al bucket privado y lo deja esperando su renglón (se acomoda al abrir el asunto). */
 export async function subirArchivo(client: SupabaseClient, privileged: SupabaseClient, user: StaffUser, consultaId: string, file: File): Promise<Carga> {

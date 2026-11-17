@@ -102,13 +102,9 @@ it("no permite falsificar ni borrar vínculos y conserva el historial aunque se 
     delete withoutLink.clienteId;
     await expect(db.query("select public.fortius_inmuebles_put_record('leads','protected',$1::jsonb,2)", [JSON.stringify(withoutLink)])).rejects.toMatchObject({ code: "PT403" });
     await expect(db.query("select public.fortius_inmuebles_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify({ ...result.cliente.data, leadOriginal: {} })])).rejects.toMatchObject({ code: "PT403" });
-    // 15/11/2026: eliminar al prospecto convertido se lleva a su cliente y guarda el recibo en la eliminación.
-    await db.query("select public.fortius_inmuebles_delete_record('leads','protected',2)");
+    await expect(db.query("select public.fortius_inmuebles_delete_record('leads','protected',2)")).rejects.toMatchObject({ code: "PT409" });
+    await expect(db.query("select public.fortius_inmuebles_delete_record('clientes',$1,1)", [result.cliente.id])).rejects.toMatchObject({ code: "PT409" });
   });
-  const kept = await db.query<{ lead: string; cliente: string; con: string | null }>("select h.conversion->>'lead_id' lead, h.conversion->>'cliente_id' cliente, (select p.deleted_with::text from public.fortius_inmuebles_record_history p where p.collection='clientes' and p.action='DELETE' and p.record_id=h.conversion->>'cliente_id') con from public.fortius_inmuebles_record_history h where h.collection='leads' and h.record_id='protected' and h.action='DELETE'");
-  expect(kept.rows[0].lead).toBe("protected");
-  expect(kept.rows[0].con, "el cliente queda ligado a la eliminación del prospecto").not.toBeNull();
-  expect((await db.query("select 1 from public.fortius_inmuebles_records where collection='clientes' and id=$1", [kept.rows[0].cliente])).rows).toHaveLength(0);
 });
 
 it("si se rechaza el guardado final, revierte el cliente, el vínculo y ambas escrituras", async () => {

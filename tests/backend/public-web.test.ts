@@ -66,7 +66,7 @@ test("sitemap includes only currently published non-demo details", async () => {
   expect(urls.every((url) => new URL(url).origin === siteConfig.url)).toBe(true);
   expect(JSON.stringify(urls)).not.toContain("mnt.example");
 });
-test("robots directs crawlers to the real public sitemap and keeps admin excluded", () => {
-  expect(robots()).toMatchObject({ sitemap: `${siteConfig.url}/sitemap.xml`, rules: { disallow: ["/admin", "/api/"] } });
+test("robots directs crawlers to the real public sitemap and keeps admin and panel excluded", () => {
+  expect(robots()).toMatchObject({ sitemap: `${siteConfig.url}/sitemap.xml`, rules: { disallow: ["/admin", "/panel", "/api/", "/subir/"] } });
   expect(JSON.stringify(robots())).not.toContain("mnt.example");
 });

@@ -10,9 +10,9 @@ import {
   type LigaCliente, type Oferta, type Opinion, type Presupuesto, type PuntoOpinion, type PuntoSituacion, type ResultadoSubida, type ValorCelda,
 } from "./apartados-contrato";
 import { QUIEN, type Asunto, type FilaPropia } from "./asuntos-contrato";
-import { fallo } from "./asuntos";
+import { fallo } from "./fallo";
 import { createServerClient } from "./auth";
-import { FIRMAS } from "./consultas";
+import { FIRMAS } from "./firmas";
 import type { StaffUser } from "./contracts";
 import { BUCKET_EXPEDIENTES } from "./expediente-archivos";
 import { sinMetadatos } from "./files";
@@ -771,11 +771,12 @@ export async function subirPorLiga(token: string, file: File, documentoId: strin
   const cuenta = await privileged.from(T.ligas).update({ subidos: liga.subidos + 1, ultimo_uso: ahora() }).eq("id", liga.id).eq("subidos", liga.subidos).select("id").maybeSingle();
   if (cuenta.error || !cuenta.data) throw new ApiError(409, "Vuelve a intentarlo.");
   const a = await leerArchivo(file);
-  let doc: { id: string; nombre: string; version: number; estado: string } | null = null;
+  type DocLiga = { id: string; nombre: string; version: number; estado: string };
+  let doc: DocLiga | null = null;
   if (documentoId) {
     const r = await privileged.from(T.documentos).select("id,nombre,version,estado").eq("id", documentoId).eq("asunto_id", liga.asunto_id).is("deleted_at", null).maybeSingle();
     if (r.error) fallo(r.error);
-    doc = r.data as typeof doc;
+    doc = r.data as DocLiga | null;
     if (!doc) throw new ApiError(404, "Ese documento ya no está en la lista.");
   } else {
     const orden = await siguienteOrden(privileged, T.documentos, { asunto_id: liga.asunto_id });
@@ -783,7 +784,7 @@ export async function subirPorLiga(token: string, file: File, documentoId: strin
       asunto_id: liga.asunto_id, nombre: nombreSinExtension(a.nombre), grupo: "Lo que subió el cliente", estado: "recibido", origen: "cliente", orden,
     }).select("id,nombre,version,estado").single();
     if (r.error) fallo(r.error);
-    doc = r.data as typeof doc;
+    doc = r.data as DocLiga | null;
   }
   await guardarArchivo(privileged, liga.asunto_id, doc!.id, a, null, true);
   if (doc!.estado !== "recibido") {

@@ -179,7 +179,8 @@ export function Directorio() {
 
 function DialogoLlamar({ p, alCerrar, alGuardar }: { p: PersonaDirectorio | null; alCerrar: () => void; alGuardar: (p: PersonaDirectorio, fecha: string | null) => void }) {
   const [fecha, setFecha] = useState<string | null>(null);
-  useEffect(() => { setFecha(p?.volver_a_llamar ?? sumarDias(7)); }, [p]);
+  const [previa, setPrevia] = useState<PersonaDirectorio | null>(null);
+  if (p !== previa) { setPrevia(p); setFecha(p?.volver_a_llamar ?? sumarDias(7)); }
   return (
     <Dialog open={!!p} onOpenChange={(o) => { if (!o) alCerrar(); }}>
       <DialogContent className="max-w-md">
@@ -205,7 +206,8 @@ function DialogoUnir({ p, todas, alCerrar, alUnir }: {
 }) {
   const [q, setQ] = useState("");
   const [con, setCon] = useState<string | null>(null);
-  useEffect(() => { setQ(p ? p.nombre.split(" ")[0] : ""); setCon(null); }, [p]);
+  const [previa, setPrevia] = useState<PersonaDirectorio | null>(null);
+  if (p !== previa) { setPrevia(p); setQ(p ? p.nombre.split(" ")[0] : ""); setCon(null); }
   const opciones = p ? todas.filter((x) => x.id !== p.id && coincide(x, q.trim())).slice(0, 8) : [];
   const destino = todas.find((x) => x.id === con) ?? null;
   return (

@@ -13,7 +13,7 @@ import {
 } from "@/lib/panel/documentos/diccionario";
 
 import { guardarArchivo } from "./apartados";
-import { fallo } from "./asuntos";
+import { fallo } from "./fallo";
 import { createServerClient } from "./auth";
 import type { StaffUser } from "./contracts";
 import { datosFortius } from "./datos-fortius";
