@@ -45,6 +45,25 @@ function parseTicket(ticket: unknown, userId: string) {
   return data;
 }
 
+/** Valida un ticket de carga (firma HMAC, dueño y vigencia) y devuelve sus datos. Lo usa la cola de la Bandeja. */
+export function leerTicketDeCarga(ticket: unknown, userId: string) {
+  return parseTicket(ticket, userId);
+}
+
+/**
+  Firma un ticket nuevo, privado, para una carga temporal que ya existe (la de un archivo en la Bandeja), con el
+  mismo formato que `prepareUpload`. Vence en 10 minutos. No crea ni toca el objeto en Storage.
+*/
+export function firmarTicketDeCarga(userId: string, path: string, datos: { name: string; size: number; contentType: string }) {
+  z.uuid().parse(userId);
+  const data = uploadInput.parse({ name: datos.name, size: datos.size, contentType: datos.contentType, visibility: "private" });
+  const expires = Date.now() + 10 * 60000;
+  const claims = ticketSchema.parse({ ...data, v: 1, uid: userId, path, expires });
+  if (!claims.path.startsWith(`${userId}/`)) throw new ApiError(403, "Permiso de carga vencido o ajeno");
+  const payload = Buffer.from(JSON.stringify(claims)).toString("base64url");
+  return { ticket: `${payload}.${sign(payload).toString("base64url")}`, expires };
+}
+
 /**
   B5 (auditoría de seguridad, 13/11/2026): lo público lo decide el servidor según el destino, no la
   pantalla. Una ficha de inmueble: su asesor o el director (un inmueble nuevo, todavía sin guardar,

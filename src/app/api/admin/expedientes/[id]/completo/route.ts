@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { z, ZodError } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { ApiError, databaseError } from "@/lib/backend/http";
+import { soloActivos } from "@/lib/backend/formatos-retiro";
 import { loadLetterhead } from "@/lib/letterhead-server";
 import { armarExpedientePdf, armarExpedienteZip, elegirEmisiones, MAX_DOCUMENTOS_EXPEDIENTE, nombreArchivo, type EntradaConArchivo } from "@/lib/formatos/expediente-completo";
 
@@ -33,9 +34,12 @@ export async function GET(request: Request, context: Context) {
     const emissions = ids.length ? await client.from("fortius_inmuebles_formato_emissions").select("id,draft_id,draft_version,sha256,path,created_at,incompleto:snapshot->datosFaltantes").in("draft_id", ids) : { data: [], error: null };
     if (emissions.error) databaseError(emissions.error);
     const emissionIds = (emissions.data ?? []).map(emission => emission.id);
-    const copies = emissionIds.length ? await client.from("fortius_inmuebles_signed_copies").select("id,emission_id,sha256,path,created_at").in("emission_id", emissionIds) : { data: [], error: null };
-    if (copies.error) databaseError(copies.error);
-    const entradas = elegirEmisiones(drafts.data ?? [], emissions.data ?? [], copies.data ?? []);
+    // Las copias firmadas quitadas (eliminación recuperable) no entran al expediente completo.
+    const copies = emissionIds.length ? await soloActivos((filtrar) => {
+      const q = client.from("fortius_inmuebles_signed_copies").select("id,emission_id,sha256,path,created_at").in("emission_id", emissionIds);
+      return filtrar ? q.is("deleted_at", null) : q;
+    }) : [];
+    const entradas = elegirEmisiones(drafts.data ?? [], emissions.data ?? [], copies ?? []);
     if (!entradas.length) throw new ApiError(409, "Este expediente todavía no tiene documentos emitidos");
     if (entradas.length > MAX_DOCUMENTOS_EXPEDIENTE) throw new ApiError(413, "El expediente tiene demasiados documentos para reunirlos en un archivo");
 

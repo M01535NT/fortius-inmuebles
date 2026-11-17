@@ -54,11 +54,10 @@ describe("publicar un compartido", () => {
     });
   });
 
-  it("sin autorización adjunta no se publica, ni con un archivo que no se subió", async () => {
+  // Sin frenos (titular, 16/11/2026): la autorización escrita del aliado se avisa, no frena (aviso legal).
+  it("sin autorización adjunta el director también lo publica; el panel lo avisa", async () => {
     await as(director, async () => {
-      await expect(put(property("sin-autorizacion", { publicada: true, aliado: aliado({ autorizacion: undefined }) }), await versionOf("sin-autorizacion"))).rejects.toMatchObject({ code: "PT409" });
-      const forged = aliado({ autorizacion: { path: `${director}/55000000-0000-4000-8000-0000000000bb.pdf`, fecha: "2026-11-12", firmante: "Gerente de ensayo" } });
-      await expect(put(property("sin-autorizacion", { publicada: true, aliado: forged }), await versionOf("sin-autorizacion"))).rejects.toMatchObject({ code: "PT409" });
+      await put(property("sin-autorizacion", { publicada: true, aliado: aliado({ autorizacion: undefined }) }), await versionOf("sin-autorizacion"));
     });
   });
 
@@ -73,7 +72,9 @@ describe("publicar un compartido", () => {
       const shared = rows.find(row => row.slug === "compartida");
       expect(shared).toMatchObject({ colaboracion: true });
       expect(JSON.stringify(shared)).not.toMatch(/Inmobiliaria Aliada de Ensayo|Contacto de ensayo|Gerente de ensayo|autorizacion|porcentaje|aliado/);
-      expect(rows.find(row => row.slug === "sin-autorizacion")).toBeUndefined();
+      const unauthorized = rows.find(row => row.slug === "sin-autorizacion");
+      expect(unauthorized).toMatchObject({ colaboracion: true });
+      expect(JSON.stringify(unauthorized)).not.toMatch(/Inmobiliaria Aliada de Ensayo|Contacto de ensayo|aliado/);
     } finally { await db.exec("reset role"); }
   });
 });

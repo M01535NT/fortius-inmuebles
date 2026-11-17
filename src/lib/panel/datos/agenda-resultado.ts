@@ -72,7 +72,8 @@ export const notaDeshecha = (e: Pick<Evento, "titulo" | "fecha">) => `Se quitó 
 export const textoResultado = (r: Resultado) => `${etiquetaComo(r.estado)}${r.nota ? `. ${r.nota}` : ""}`;
 
 // ── Vencimientos en su día ──
-export type VenceDia = { id: string; fecha: string; titulo: string; detalle: string; expedienteId?: string };
+/** Un vencimiento en su día. `href` lleva a su pantalla (un trámite, Dinero); sin él, `expedienteId` abre el asunto. */
+export type VenceDia = { id: string; fecha: string; titulo: string; detalle: string; expedienteId?: string; href?: string };
 
 /**
  * Fin del encargo de cada contrato y vigencia de la licencia estatal, cada uno en su fecha (lo mismo que avisa Hoy,

@@ -150,7 +150,7 @@ describe("captura sobre el documento", () => {
 });
 
 describe("documento incompleto", () => {
-  it("la vista y el PDF llevan la misma leyenda al pie de cada hoja; la promesa y el aviso no se emiten incompletos", async () => {
+  it("la vista y el PDF llevan la misma leyenda al pie de cada hoja; también la promesa y el aviso se emiten incompletos (sin frenos, 16/11/2026)", async () => {
     const { avisoIncompleto } = await import("@/lib/formatos/catalog");
     const { createFormatoPdf } = await import("@/lib/formatos/pdf");
     expect(avisoIncompleto([])).toBeUndefined();
@@ -161,6 +161,7 @@ describe("documento incompleto", () => {
     const pdf = await PDFDocument.load(await createFormatoPdf("04B", { folio: "EXP-000021" }, [], { incompleto: true }));
     expect(pdf.getPageCount()).toBeGreaterThan(0);
     await expect(createFormatoPdf("04B", { folio: "EXP-000021" })).rejects.toThrow(/Faltan datos/);
-    await expect(createFormatoPdf("15", { folio: "EXP-000021" }, [], { incompleto: true })).rejects.toThrow(/Faltan datos/);
+    await expect(createFormatoPdf("15", { folio: "EXP-000021" })).rejects.toThrow(/Faltan datos/);
+    for (const formato of ["01", "15"]) expect((await PDFDocument.load(await createFormatoPdf(formato, { folio: "EXP-000021" }, [], { incompleto: true }))).getPageCount(), formato).toBeGreaterThan(0);
   });
 });

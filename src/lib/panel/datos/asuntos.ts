@@ -3,8 +3,10 @@ import type { Cliente } from "@/lib/backend/contracts";
 import { EXPEDIENTE_DOCUMENTOS, EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import { calcularIntermediacion } from "@/lib/formatos/intermediacion";
 import { calcularIntermediacionRenta } from "@/lib/formatos/intermediacion-renta";
-import { DISCARD_REASONS, emptyWorkflow, type OperationClose, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { DISCARD_REASONS, emptyWorkflow, WORKFLOW_STAGES, type OperationClose, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { PASO_CLAVES, type Tramite } from "@/lib/tramites";
 import { normalizar } from "@/lib/panel/buscar";
+import { TIPOS_ASUNTO } from "@/lib/panel/datos/asuntos-tipos";
 import { diaLargo } from "@/lib/panel/calendario";
 import type { SeccionFicha } from "@/lib/panel/datos/vistas";
 import { isTaskOpen, taskExpedienteContext, type Task } from "@/lib/tasks";
@@ -21,6 +23,10 @@ export type Expediente = {
   operacion: keyof typeof EXPEDIENTE_OPERACIONES; etapa: WorkflowStage; fecha_objetivo: string | null;
   flujo: OperationWorkflow | null; checklist: Partial<Record<DocumentoAsunto, EstadoDocumento>> | null; version: number;
   created_at: string; updated_at: string;
+  /** Título libre (PN-02). Mientras el servidor no lo mande, se deriva del tipo, el inmueble y la persona. */
+  titulo?: string | null;
+  /** Tipo de asunto (PN-02: venta, renta, búsqueda, trámite, inversión, revisión, otro). Sin él, el tipo sale de la operación. */
+  tipo_asunto?: string | null;
 };
 
 export type EstadoAsunto = "activo" | "espera" | "cerrado";
@@ -33,6 +39,8 @@ export type FilaAsunto = {
   linea: string; persona: Cliente | null; inmueble: Property | null;
   sigue: { id: string; texto: string; fecha: string | null; vencido: boolean } | null;
   abiertas: Task[]; movido: string; asesorId: string | null;
+  /** Lo que queda para Fortius (comisión del cierre), en pesos; null si aún no hay dato. */
+  paraFortius?: number | null;
 };
 
 export function estadoAsunto(e: Pick<Expediente, "etapa" | "flujo">): EstadoAsunto {
@@ -60,23 +68,24 @@ export function filasAsuntos(
   return expedientes.map((e) => {
     const persona = (e.cliente_id && personas.get(e.cliente_id)) || null;
     const inmueble = (e.propiedad_slug && inmuebles.get(e.propiedad_slug)) || null;
-    const tipo = EXPEDIENTE_OPERACIONES[e.operacion] ?? "Otro";
+    const tipo = (e.tipo_asunto && TIPOS_ASUNTO[e.tipo_asunto as keyof typeof TIPOS_ASUNTO]) || (EXPEDIENTE_OPERACIONES[e.operacion] ?? "Otro");
     const ruta = e.flujo?.ruta ? RUTAS[e.flujo.ruta] : undefined;
-    const titulo = [ruta && ruta !== tipo ? `${tipo}: ${ruta.toLowerCase()}` : tipo, inmueble?.titulo ?? persona?.nombre].filter(Boolean).join(" · ");
+    const titulo = e.titulo?.trim() || [ruta && ruta !== tipo ? `${tipo}: ${ruta.toLowerCase()}` : tipo, inmueble?.titulo ?? persona?.nombre].filter(Boolean).join(" · ");
     const tareas = porAsunto.get(e.id) ?? [];
     return {
       id: e.id, folio: e.folio ?? "", titulo, tipo, estado: estadoAsunto(e),
       linea: [persona?.nombre, inmueble?.titulo, tipo].filter(Boolean).join(" · "),
       persona, inmueble, sigue: loQueSigue(tareas, d.hoy), abiertas: tareas.filter(isTaskOpen),
-      movido: e.updated_at, asesorId: e.asesor_id,
+      movido: e.updated_at, asesorId: e.asesor_id, paraFortius: paraFortius(e),
     };
   });
 }
 
-export type OrdenAsuntos = "sigue" | "movidos";
+export type OrdenAsuntos = "sigue" | "movidos" | "comision";
 export function ordenarAsuntos(filas: readonly FilaAsunto[], orden: OrdenAsuntos): FilaAsunto[] {
   const copia = [...filas];
   if (orden === "movidos") return copia.sort((a, b) => b.movido.localeCompare(a.movido));
+  if (orden === "comision") return copia.sort((a, b) => (b.paraFortius ?? -1) - (a.paraFortius ?? -1) || a.titulo.localeCompare(b.titulo, "es"));
   // Lo que sigue más pronto primero; los que no tienen fecha y luego los que no tienen siguiente paso, al final.
   const clave = (f: FilaAsunto) => (f.sigue ? f.sigue.fecha ?? "9998" : "9999");
   return copia.sort((a, b) => clave(a).localeCompare(clave(b)) || a.titulo.localeCompare(b.titulo, "es"));
@@ -128,6 +137,8 @@ export const MOTIVOS_NO_SE_DIO = DISCARD_REASONS;
 export type CambioOperacion = {
   version: number; etapa: WorkflowStage; fechaObjetivo: string | null;
   checklist: Partial<Record<DocumentoAsunto, EstadoDocumento>>; flujo?: OperationWorkflow;
+  /** Inmueble principal del asunto; solo se manda cuando cambia (null lo quita). */
+  propiedadSlug?: string | null;
 };
 
 const RUTA_POR_OPERACION: Record<string, OperationWorkflow["ruta"]> = { venta: "captacion", renta: "arrendador", inversion: "inversion" };
@@ -152,6 +163,17 @@ export function noSeDio(e: Expediente, motivo: (typeof DISCARD_REASONS)[number],
 export function marcarDocumento(e: Expediente, clave: DocumentoAsunto, estado: EstadoDocumento): CambioOperacion {
   return { ...base(e), checklist: { ...(e.checklist ?? {}), [clave]: estado } };
 }
+
+/** Liga (o quita, con null) el inmueble principal del asunto. Es el respaldo de antes de la tabla de inmuebles de PN-02. */
+export function ponerInmueblePrincipal(e: Expediente, slug: string | null): CambioOperacion {
+  return { ...base(e), propiedadSlug: slug };
+}
+
+/**
+ * Lo que decide el estado del asunto en la base vieja (etapa y estado del flujo). Si cambia, hay que copiar el estado
+ * a las columnas de PN-02 (`estado_asunto`, `resultado`).
+ */
+export const huellaDeEstado = (e: Pick<Expediente, "etapa" | "flujo">) => `${e.etapa}|${e.flujo?.estado ?? ""}`;
 
 /** Cambia la fecha objetivo (fecha clave del asunto, que llega a Hoy y a la Agenda). */
 export function cambiarFechaObjetivo(e: Expediente, fecha: string | null): CambioOperacion {
@@ -257,14 +279,110 @@ export function autorDeNota(
   return asesores.find((a) => a.id === cuenta.asesor_id)?.nombre ?? cuenta.email.split("@")[0] ?? null;
 }
 
-export type AvisoAsunto = { clave: "documentos" | "fecha"; texto: string; accion: string | null };
-/** Avisos del asunto activo (boceto: una línea ámbar plegada). Nada frena; cada uno lleva su acción. */
-export function avisosDelAsunto(e: Pick<Expediente, "checklist" | "fecha_objetivo" | "flujo" | "etapa">, hoy: string): AvisoAsunto[] {
+export type AvisoAsunto = {
+  clave: "documentos" | "fecha" | "inmueble" | "firma" | "identificacion" | "hipoteca" | "contraparte" | "cierre"
+    | "checklist" | "entrevista" | "levantamiento" | "revision15" | "privacidad";
+  texto: string; accion: string | null;
+  /** Aviso legal (LFPIORPI, revisión del abogado, aviso de privacidad, hipoteca inscrita): se distingue en pantalla. */
+  legal?: boolean;
+  /** Documento de Fortius que lo resuelve: se crea o se abre desde el aviso. */
+  documento?: { formato: string; id?: string };
+};
+
+/** Trámite de cancelación de hipoteca, con lo que hace falta para el aviso de la firma. */
+export type TramiteDelAsunto = Pick<Tramite, "expedienteId" | "pasoActual" | "firmaSinCancelacion">;
+const PASO_REGISTRO = PASO_CLAVES.indexOf("registro");
+/** Igual que la base (fortius_inmuebles_tramites_que_frenan_firma): sin inscribir y sin decisión del director. Un cancelado cuenta. */
+const hipotecaSinInscribir = (t: TramiteDelAsunto) => t.pasoActual <= PASO_REGISTRO && !t.firmaSinCancelacion;
+const etapaAlMenos = (e: Pick<Expediente, "etapa">, etapa: WorkflowStage) => WORKFLOW_STAGES.indexOf(e.etapa) >= WORKFLOW_STAGES.indexOf(etapa);
+
+/**
+ * Avisos del asunto activo (boceto: una línea ámbar plegada). Nada frena (titular, 16/11/2026: «sin frenos de
+ * protección»): lo que antes rechazaba la base al avanzar se avisa aquí. «identificacion» es un aviso legal (LFPIORPI).
+ */
+export function avisosDelAsunto(
+  e: Pick<Expediente, "id" | "operacion" | "propiedad_slug" | "checklist" | "fecha_objetivo" | "flujo" | "etapa">, hoy: string,
+  tramites: readonly TramiteDelAsunto[] = [],
+): AvisoAsunto[] {
   if (estadoAsunto(e) !== "activo") return [];
   const avisos: AvisoAsunto[] = [];
   const faltan = documentosDelAsunto(e).filter((d) => d.estado === "pendiente").length;
   if (faltan) avisos.push({ clave: "documentos", texto: faltan === 1 ? "Falta 1 documento" : `Faltan ${faltan} documentos`, accion: "Ver documentos" });
   const fecha = e.fecha_objetivo?.slice(0, 10);
   if (fecha && fecha < hoy) avisos.push({ clave: "fecha", texto: `La fecha objetivo pasó el ${diaLargo(fecha)}`, accion: null });
+  const ruta = e.flujo?.ruta ?? RUTA_POR_OPERACION[e.operacion];
+  if (ruta !== "inversion" && !e.propiedad_slug) avisos.push({ clave: "inmueble", texto: "Sin inmueble ligado", accion: null });
+  if (llevaCierre(e)) {
+    const firma = e.flujo?.firmaContrato;
+    if (!firma) avisos.push({ clave: "firma", texto: "Falta registrar la firma del contrato de intermediación", accion: null });
+    else if (!firma.completa) avisos.push({ clave: "firma", texto: "La firma del contrato está incompleta: faltan firmantes", accion: null });
+    else if (!firma.revisada) avisos.push({ clave: "firma", texto: "El director aún no revisa la firma del contrato", accion: null });
+  }
+  if (e.operacion === "venta" && (ruta === "captacion" || ruta === "compra") && e.flujo?.requisitos?.identificacion_pld?.estado !== "revisado")
+    avisos.push({ clave: "identificacion", texto: "Antes de firmar, integra la identificación de las partes (ley contra el lavado de dinero, LFPIORPI)", accion: "Ver documentos", legal: true });
+  if (e.operacion === "venta" && tramites.some((t) => t.expedienteId === e.id && hipotecaSinInscribir(t)))
+    avisos.push({ clave: "hipoteca", texto: "Antes de firmar, la cancelación de hipoteca debe quedar inscrita en el Registro Público", accion: "Ver trámite", legal: true });
+  if (ruta !== "inversion" && etapaAlMenos(e, "negociacion") && !e.flujo?.contraparteId && !e.flujo?.contraparteLeadId && (e.flujo?.contraparteExterna?.trim().length ?? 0) < 3)
+    avisos.push({ clave: "contraparte", texto: "Falta identificar con quién se cierra (la contraparte)", accion: null });
+  if (llevaCierre(e) && etapaAlMenos(e, "entrega") && !e.flujo?.cierre)
+    avisos.push({ clave: "cierre", texto: "Falta anotar quién captó y quién vendió", accion: null });
   return avisos;
+}
+
+/* ---------- Tabla y ficha del boceto (escritorio B: tabla y panel; teléfono) ---------- */
+
+/** Lo que queda para Fortius: la comisión que se anotó al cerrar (la misma que usa Dinero). */
+export function paraFortius(e: Pick<Expediente, "flujo">): number | null {
+  const c = e.flujo?.cierre?.comisionEstimada;
+  return typeof c === "number" && c > 0 ? c : null;
+}
+export const pesosCortos = (n: number) => `$${Math.round(n).toLocaleString("es-MX")}`;
+
+/** Papel de la persona principal según el lado del asunto (boceto: Vende, Compra, Pone en renta, Renta…). */
+export function papelPrincipal(e: Pick<Expediente, "operacion" | "flujo">): string {
+  const ruta = e.flujo?.ruta ?? RUTA_POR_OPERACION[e.operacion];
+  return ruta === "captacion" ? "Vende" : ruta === "compra" ? "Compra" : ruta === "arrendador" ? "Pone en renta" : ruta === "arrendatario" ? "Renta" : ruta === "inversion" ? "Invierte" : "Cliente";
+}
+
+/** Cómo terminó: «Se logró» (llegó al cierre) o «No se dio» con su motivo; null si sigue abierto. */
+export function comoTermino(e: Pick<Expediente, "etapa" | "flujo" | "updated_at">): { como: "Se logró" | "No se dio"; motivo: string; cuando: string } | null {
+  const cuando = diaLargo(e.updated_at.slice(0, 10));
+  if (e.flujo?.estado === "descartada") return { como: "No se dio", motivo: e.flujo.motivo?.trim() ?? "", cuando };
+  if (e.etapa === "cerrado") return { como: "Se logró", motivo: "", cuando };
+  return null;
+}
+
+/** «Lo que sigue» en la fila de la tabla o en la tarjeta, con su clase de color (boceto: punto azul, rojo, ámbar, aro o gris). */
+export function sigueEnFila(f: FilaAsunto, e: Pick<Expediente, "etapa" | "flujo" | "updated_at"> | null): { texto: string; clase: "" | "late" | "none" | "wait" | "done" } {
+  const fin = e ? comoTermino(e) : null;
+  if (f.estado === "cerrado" && fin) return { texto: [fin.como, fin.cuando, fin.motivo].filter(Boolean).join(" · "), clase: "done" };
+  if (f.estado === "espera") {
+    const que = e?.flujo?.motivo?.trim();
+    return { texto: que ? `En espera de ${que.charAt(0).toLowerCase()}${que.slice(1)}` : "En espera", clase: "wait" };
+  }
+  if (!f.sigue) return { texto: "Sin siguiente paso", clase: "none" };
+  return { texto: textoSigue(f.sigue), clase: f.sigue.vencido ? "late" : "" };
+}
+
+/** Filtros del boceto: estado, búsqueda, «Solo con avisos», «Sin siguiente paso» y tipos. */
+export function filtrarVista(filas: readonly FilaAsunto[], f: {
+  consulta: string; estado: EstadoAsunto; sinSiguiente: boolean; conAvisos: boolean; tipos: readonly string[]; avisos: ReadonlyMap<string, number>;
+}): FilaAsunto[] {
+  return filtrarAsuntos(filas, f.consulta, f.estado, f.sinSiguiente)
+    .filter((x) => (!f.conAvisos || (f.avisos.get(x.id) ?? 0) > 0) && (!f.tipos.length || f.tipos.includes(x.tipo)));
+}
+
+/** «Se logró» en un solo paso (DEC-55): cierra el asunto sin frenar. Sin el cambio del servidor publicado, este responde su motivo. */
+export function seLogro(e: Expediente): CambioOperacion {
+  return { ...base(e), etapa: "cerrado", flujo: { ...flujoDe(e), estado: "activa", motivo: "" } };
+}
+/** Reabrir: vuelve a activo; si había llegado al cierre, regresa a la última etapa abierta. */
+export function reabrir(e: Expediente): CambioOperacion {
+  const r = reanudar(e);
+  return e.etapa === "cerrado" ? { ...r, etapa: "postventa" } : r;
+}
+
+/** Iniciales para el círculo de una persona («Mariana López» → «ML»). */
+export function iniciales(nombre: string | null | undefined): string {
+  return (nombre ?? "").replace(/^Lic\. /, "").trim().split(/\s+/).filter(Boolean).map((w) => w.charAt(0)).join("").slice(0, 2).toUpperCase() || "?";
 }

@@ -141,7 +141,7 @@ it("no emite un levantamiento si una imagen archivada perdió su integridad", as
   expect(upload).not.toHaveBeenCalled();
 });
 
-it("emite con datos faltantes solo si quien emite lo confirmó, lo anota en el archivo y nunca en el aviso ni la promesa", async () => {
+it("emite con datos faltantes solo si quien emite lo confirmó, lo anota en el archivo, también en el aviso y la promesa (sin frenos, 16/11/2026)", async () => {
   const id = "51000000-0000-4000-8000-000000000011", expedienteId = "51000000-0000-4000-8000-000000000010";
   const setup = (formato: string) => {
     const client = { from: vi.fn((table: string) => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({
@@ -162,7 +162,9 @@ it("emite con datos faltantes solo si quien emite lo confirmó, lo anota en el a
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({ snapshot: expect.objectContaining({ datosFaltantes: expect.arrayContaining(["Lugar de emisión"]) }) }));
   for (const formato of ["01", "15"]) {
     setup(formato);
-    expect((await POST(request({ version: 1, incompleto: true }), { params: Promise.resolve({ id }) })).status, formato).toBe(409);
-    expect(prepareFormatoEmission).not.toHaveBeenCalled();
+    expect((await POST(request({ version: 1 }), { params: Promise.resolve({ id }) })).status, formato).toBe(409);
+    const emitted = setup(formato);
+    expect((await POST(request({ version: 1, incompleto: true }), { params: Promise.resolve({ id }) })).status, formato).toBe(201);
+    expect(emitted).toHaveBeenCalledWith(expect.objectContaining({ snapshot: expect.objectContaining({ datosFaltantes: expect.any(Array) }) }));
   }
 });

@@ -19,7 +19,7 @@ export async function leerColeccion<T>(nombre: NombreColeccion, senal?: AbortSig
  * Guarda un registro con control de versión: `version` es la que se leyó (null para uno nuevo).
  * Si alguien guardó antes, el servidor responde 409 y aquí se avisa en palabras del asesor.
  */
-export async function guardarRegistro<T>(nombre: NombreColeccion, id: string, data: T, version: number | null): Promise<Registro<T>> {
+export async function guardarRegistro<T>(nombre: NombreColeccion, id: string, data: T, version: number | null): Promise<Registro<T> & { avisos?: string[] }> {
   let respuesta: Response;
   try {
     respuesta = await fetch(`/api/admin/collections/${nombre}/${encodeURIComponent(id)}`, {
@@ -31,14 +31,15 @@ export async function guardarRegistro<T>(nombre: NombreColeccion, id: string, da
   } catch {
     throw new ErrorDeLectura("Sin conexión: no se guardó. Vuelve a intentarlo.", 0);
   }
-  const cuerpo = (await respuesta.json().catch(() => ({}))) as { record?: Registro<T>; error?: string };
+  // Al publicar un inmueble, el servidor devuelve lo que falta como avisos (DEC-61: ya no frena).
+  const cuerpo = (await respuesta.json().catch(() => ({}))) as { record?: Registro<T>; avisos?: string[]; error?: string };
   if (!respuesta.ok || !cuerpo.record) {
     const texto = respuesta.status === 409 ? "Alguien más cambió esto mientras lo tenías abierto. Ya se muestra lo último; vuelve a intentarlo."
       : respuesta.status === 401 || respuesta.status === 403 ? "Tu sesión terminó o no tienes permiso para esto."
       : cuerpo.error || "No se guardó. Vuelve a intentarlo.";
     throw new ErrorDeLectura(texto, respuesta.status);
   }
-  return cuerpo.record;
+  return Array.isArray(cuerpo.avisos) && cuerpo.avisos.length ? { ...cuerpo.record, avisos: cuerpo.avisos } : cuerpo.record;
 }
 
 /** Ficha de asesor de quien está en sesión (null para dirección sin ficha). */

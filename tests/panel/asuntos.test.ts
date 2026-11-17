@@ -94,8 +94,32 @@ describe("Autor de una nota", () => {
 describe("Avisos del asunto", () => {
   it("avisa de documentos que faltan y de la fecha objetivo vencida, solo en activos", () => {
     const a = avisosDelAsunto(exp("a", { checklist: { identidad: "recibido" }, fecha_objetivo: "2026-11-10" }), "2026-11-16");
-    expect(a.map((x) => x.clave)).toEqual(["documentos", "fecha"]);
+    expect(a.map((x) => x.clave).slice(0, 2)).toEqual(["documentos", "fecha"]);
     expect(a[0]?.accion).toBe("Ver documentos");
     expect(avisosDelAsunto(exp("b", { etapa: "cerrado" }), "2026-11-16")).toEqual([]);
+  });
+
+  // Sin frenos (titular, 16/11/2026): lo que la base rechazaba al avanzar ahora se avisa.
+  it("avisa lo que antes frenaba: inmueble, firma, identificación (legal), hipoteca, contraparte y cierre", () => {
+    const todo = { identidad: "recibido", titulo: "recibido", predial: "recibido", gravamenes: "recibido" } as const;
+    const venta = exp("v", { etapa: "entrega", propiedad_slug: null, checklist: todo });
+    const tramite = { expedienteId: "v", pasoActual: 3, firmaSinCancelacion: null };
+    const claves = avisosDelAsunto(venta, "2026-11-16", [tramite]).map((x) => x.clave);
+    expect(claves).toEqual(expect.arrayContaining(["inmueble", "firma", "identificacion", "hipoteca", "contraparte", "cierre"]));
+    // Inscrita la cancelación o con la decisión del director, ya no avisa; tampoco el trámite de otro asunto.
+    for (const t of [{ ...tramite, pasoActual: 6 }, { ...tramite, firmaSinCancelacion: { motivo: "El notario la cancela en la firma" } }, { ...tramite, expedienteId: "otro" }])
+      expect(avisosDelAsunto(venta, "2026-11-16", [t]).map((x) => x.clave)).not.toContain("hipoteca");
+  });
+
+  it("no avisa lo que ya está: firma revisada, identificación revisada, contraparte y cierre anotados", () => {
+    const flujo = { ...emptyWorkflow("captacion"), contraparteExterna: "Comprador de ensayo", cierre: { capto: "a1", vendio: "a1" },
+      firmaContrato: { tipo: "intermediacion", fecha: "2026-11-10", firmantes: [{ nombre: "Persona de ejemplo", parte: "propietario" }], archivo: "f1", completa: true, revisada: true },
+      requisitos: { identificacion_pld: { estado: "revisado", soporte: "Identificaciones de ensayo" } } } as unknown as Expediente["flujo"];
+    const claves = avisosDelAsunto(exp("w", { etapa: "entrega", flujo }), "2026-11-16").map((x) => x.clave);
+    for (const c of ["inmueble", "firma", "identificacion", "contraparte", "cierre"] as const) expect(claves).not.toContain(c);
+    // Una renta no lleva identificación LFPIORPI; una inversión no pide inmueble ni firma.
+    expect(avisosDelAsunto(exp("r", { operacion: "renta", flujo: emptyWorkflow("arrendador") }), "2026-11-16").map((x) => x.clave)).not.toContain("identificacion");
+    expect(avisosDelAsunto(exp("i", { operacion: "inversion", propiedad_slug: null, flujo: emptyWorkflow("inversion") }), "2026-11-16").map((x) => x.clave))
+      .not.toEqual(expect.arrayContaining(["inmueble"]));
   });
 });

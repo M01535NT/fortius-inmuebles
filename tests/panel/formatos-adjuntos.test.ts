@@ -6,7 +6,7 @@ import {
 } from "@/lib/panel/datos/formatos-adjuntos";
 import { agregarFila, cambiarCelda, filaInfo, filasDe, llevaImagenes, puedeAgregar, quitarFila, tablaDe, textoAgregar } from "@/lib/panel/datos/formatos-tablas";
 
-const adj = (id: string, kind: Adjunto["kind"], observed_on: string | null = null): Adjunto => ({ id, kind, caption: `Imagen ${id}`, source: "Asesor", observed_on });
+const adj = (id: string, kind: Adjunto["kind"], observed_on: string | null = null): Adjunto => ({ id, kind, caption: `Imagen ${id}`, source: "Asesor", observed_on, created_at: "2026-11-16T10:00:00Z" });
 
 describe("PN-06 tablas del 19, 08 y 07", () => {
   it("19: partidas y pagos con las columnas de la plantilla; montos a número", () => {

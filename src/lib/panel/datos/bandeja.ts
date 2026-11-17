@@ -45,6 +45,18 @@ export type ArchivoBandeja = {
   error: string;
   guardado: Guardado | null;
   agregadoEl: number;
+  /** Su fila en la cola del servidor (DEC-54); null si no alcanzó a anotarse o si la cola todavía no está en el servidor. */
+  cola: { id: string; version: number } | null;
+  /** Si los bytes están en este navegador. Uno recuperado del servidor no los tiene: se piden con un permiso al abrirlo o guardarlo. */
+  enMemoria: boolean;
+};
+
+/** Una fila de la cola de la Bandeja tal como la devuelve `GET /api/admin/bandeja` (DEC-54). */
+export type EstadoCola = "por_confirmar" | "guardado" | "descartado";
+export type DestinoCola = { clase: "asunto" | "inmueble"; ref: string };
+export type FilaBandeja = {
+  id: string; nombre: string; tipo: string; bytes: number; estado: EstadoCola;
+  destino: DestinoCola | null; version: number; creadoEl: string; venceEl: string;
 };
 
 /** Revisa un archivo antes de subirlo: tipo y tamaño que acepta el servidor. Devuelve el motivo si no se puede. */
@@ -57,7 +69,59 @@ export function revisarArchivo(f: { type: string; size: number; name: string }):
 }
 
 export function nuevoArchivo(id: string, f: { name: string; type: string; size: number }, ahora: number): ArchivoBandeja {
-  return { id, nombre: f.name, tipo: f.type, bytes: f.size, estado: "subiendo", carga: null, error: "", guardado: null, agregadoEl: ahora };
+  return { id, nombre: f.name, tipo: f.type, bytes: f.size, estado: "subiendo", carga: null, error: "", guardado: null, agregadoEl: ahora, cola: null, enMemoria: true };
+}
+
+/** Un archivo que espera en la cola del servidor y no está en este navegador: entra «Por confirmar», sin permiso todavía. */
+export function desdeCola(f: FilaBandeja, ahora = Date.now()): ArchivoBandeja {
+  const creado = Date.parse(f.creadoEl);
+  return {
+    id: f.id, nombre: f.nombre, tipo: f.tipo, bytes: f.bytes, estado: "por-confirmar", carga: null, error: "", guardado: null,
+    agregadoEl: Number.isFinite(creado) ? creado : ahora, cola: { id: f.id, version: f.version }, enMemoria: false,
+  };
+}
+
+const idCola = (a: ArchivoBandeja) => a.cola?.id ?? null;
+
+/**
+ * Une la cola del servidor con lo que ya está en la página, sin duplicar (por id de cola).
+ * Lo que ya está aquí se conserva tal cual (es lo más reciente) y solo toma la versión del servidor si es mayor.
+ * Del servidor solo entra lo que sigue por confirmar.
+ */
+export function unirCola(locales: readonly ArchivoBandeja[], filas: readonly FilaBandeja[], ahora = Date.now()): ArchivoBandeja[] {
+  const porId = new Map(filas.map((f) => [f.id, f]));
+  const unidos = locales.map((a) => {
+    const f = a.cola ? porId.get(a.cola.id) : undefined;
+    return f && a.cola && f.version > a.cola.version ? { ...a, cola: { id: a.cola.id, version: f.version } } : a;
+  });
+  const vistos = new Set(locales.flatMap((a) => [a.id, idCola(a)]).filter((x): x is string => Boolean(x)));
+  const nuevos = filas.filter((f) => f.estado === "por_confirmar" && !vistos.has(f.id)).map((f) => desdeCola(f, ahora));
+  return [...unidos, ...nuevos];
+}
+
+/**
+ * Un archivo de esta página quedó anotado en la cola: guarda su fila y quita la copia recuperada del servidor
+ * si la lectura de la cola llegó antes que la respuesta de anotar.
+ */
+export function anotadoEnLista(lista: readonly ArchivoBandeja[], id: string, fila: Pick<FilaBandeja, "id" | "version">): ArchivoBandeja[] {
+  return lista
+    .filter((a) => a.id === id || a.enMemoria || (a.id !== fila.id && idCola(a) !== fila.id))
+    .map((a) => (a.id === id ? { ...a, cola: { id: fila.id, version: fila.version } } : a));
+}
+
+/** La versión que devolvió el servidor después de cambiar la fila. */
+export const conVersion = (a: ArchivoBandeja, version: number): ArchivoBandeja => (a.cola ? { ...a, cola: { id: a.cola.id, version } } : a);
+
+/** El archivo ya no está en la carga temporal (410): queda con el error y solo se puede quitar. */
+export const perdido = (a: ArchivoBandeja, error = "Este archivo ya no está en la Bandeja del servidor. Vuelve a subirlo desde tu equipo."): ArchivoBandeja =>
+  ({ ...a, estado: "error", carga: null, error });
+
+/** Los bytes ya están en este navegador (se descargaron con el permiso). */
+export const enMemoria = (a: ArchivoBandeja): ArchivoBandeja => ({ ...a, enMemoria: true });
+
+/** El destino que se anota en la cola: la persona se guarda en uno de sus asuntos, así que cuenta como asunto. */
+export function destinoCola(g: Guardado): DestinoCola {
+  return g.clase === "asunto" ? { clase: "asunto", ref: g.expedienteId } : { clase: "inmueble", ref: g.slug };
 }
 
 export const cargaVigente = (c: Carga | null, ahora: number): c is Carga => Boolean(c && c.expira > ahora);
@@ -161,8 +225,12 @@ export function cuentasBandeja(archivos: readonly ArchivoBandeja[]) {
   };
 }
 
-/** Lo que se quiere confirmar antes de salir: hay archivos que todavía no tienen destino. */
-export const hayPendientes = (archivos: readonly ArchivoBandeja[]) => archivos.some((a) => a.estado !== "guardado" && a.estado !== "error");
+/**
+ * Lo que se quiere confirmar antes de salir: hay archivos que todavía no tienen destino.
+ * Con la cola en el servidor, solo lo que no alcanzó a anotarse se perdería al cerrar.
+ */
+export const hayPendientes = (archivos: readonly ArchivoBandeja[], conServidor = false) =>
+  archivos.some((a) => a.estado !== "guardado" && a.estado !== "error" && !(conServidor && a.cola));
 
 /** Cambios de un archivo; cada uno devuelve una copia. */
 export const subido = (a: ArchivoBandeja, carga: Carga): ArchivoBandeja => ({ ...a, estado: "por-confirmar", carga, error: "" });

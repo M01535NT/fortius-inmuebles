@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { apiResponse, ApiError, assertSameOrigin, databaseError, readBody } from "@/lib/backend/http";
+import { soloActivos } from "@/lib/backend/formatos-retiro";
 
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
@@ -14,9 +15,12 @@ export async function GET(_request: Request, context: Context) {
     const emission = await client.from("fortius_inmuebles_formato_emissions").select("id").eq("id", id).maybeSingle();
     if (emission.error) databaseError(emission.error);
     if (!emission.data) throw new ApiError(404, "PDF no encontrado");
-    const copies = await client.from("fortius_inmuebles_signed_copies").select("id,emission_id,sha256,created_at").eq("emission_id", id).order("created_at", { ascending: false });
-    if (copies.error) databaseError(copies.error);
-    return { copias: copies.data ?? [] };
+    // Las copias quitadas (eliminación recuperable) no se listan.
+    const copias = await soloActivos((filtrar) => {
+      const q = client.from("fortius_inmuebles_signed_copies").select("id,emission_id,sha256,created_at").eq("emission_id", id);
+      return (filtrar ? q.is("deleted_at", null) : q).order("created_at", { ascending: false });
+    });
+    return { copias: copias ?? [] };
   });
 }
 

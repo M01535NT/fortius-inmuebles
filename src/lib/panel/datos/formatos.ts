@@ -100,16 +100,31 @@ export function tituloFormato(id: string): string {
 // ——— Borradores y emitidos (GET /api/admin/documentos) ———
 
 export type DocumentoLista = { id: string; expedienteId: string; folio: string; formatoId: string; version: number; actualizadoEl: string; emitido: boolean };
-export type FilaDocumento = { id: string; titulo: string; linea: string; emitido: boolean; actualizadoEl: string };
+export type FilaDocumento = {
+  id: string; titulo: string; linea: string; emitido: boolean; actualizadoEl: string;
+  /** Para las tarjetas del boceto: número, nombre del formato, asunto y folio por separado. */
+  formatoId: string; numero: string; nombre: string; asunto: string; folio: string;
+};
 
 export function filasDocumentos(docs: readonly DocumentoLista[], nombreAsunto: (expedienteId: string) => string | undefined): FilaDocumento[] {
   return [...docs]
     .sort((a, b) => b.actualizadoEl.localeCompare(a.actualizadoEl))
     .map((d) => ({
-      id: d.id, emitido: d.emitido, actualizadoEl: d.actualizadoEl,
+      id: d.id, emitido: d.emitido, actualizadoEl: d.actualizadoEl, formatoId: d.formatoId,
+      numero: d.formatoId.replace(/^04[A-G]$/, "04"), nombre: tituloFormato(d.formatoId), asunto: nombreAsunto(d.expedienteId) ?? "", folio: d.folio,
       titulo: `${d.formatoId.replace(/^04[A-G]$/, "04")} · ${tituloFormato(d.formatoId)}`,
       linea: [d.folio, nombreAsunto(d.expedienteId)].filter(Boolean).join(" · "),
     }));
+}
+
+/**
+ * Avance de un borrador (boceto: «8 de 12 datos»): cuántos de los datos que pide el formato ya están.
+ * Cuenta lo mismo que el servidor al emitir; si el formato no pide datos (el 07), no hay avance que mostrar.
+ */
+export function avanceBorrador(formatoId: string, datos: Record<string, unknown>, folio: string): { hechos: number; total: number } {
+  const faltan = validateFormato(formatoId, { ...datos, folio }).length;
+  const total = Math.max(validateFormato(formatoId, { folio }).length, faltan);
+  return { hechos: total - faltan, total };
 }
 
 // ——— Captura sobre el documento ———

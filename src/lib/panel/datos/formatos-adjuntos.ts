@@ -7,9 +7,11 @@ import { ErrorDeLectura } from "@/lib/panel/datos/colecciones";
  * imágenes del borrador (`/api/admin/formatos/{id}/adjuntos`, `/api/admin/adjuntos/{id}/descargar`),
  * datos y documentos del asunto (`/api/admin/expedientes/{id}/datos` y `/archivos`)
  * y la copia firmada de un PDF emitido (`/api/admin/emisiones/{id}/firmado`, `/api/admin/copias-firmadas/{id}/descargar`).
+ * Quitar una imagen o una copia firmada es recuperable (`DELETE` quita y `PATCH` restaura en `/api/admin/adjuntos/{id}`
+ * y `/api/admin/copias-firmadas/{id}`): nada se borra y «Deshacer» la devuelve.
  */
 
-export type Adjunto = { id: string; kind: "foto" | "croquis" | "soporte"; caption: string; source: string; observed_on: string | null };
+export type Adjunto = { id: string; kind: "foto" | "croquis" | "soporte"; caption: string; source: string; observed_on: string | null; created_at: string };
 export type ArchivoDelCliente = { id: string; titulo: string; nombre_original: string; mime: string; byte_length: number; created_at: string };
 export type CopiaFirmada = { id: string; emission_id: string; created_at: string };
 
@@ -84,6 +86,31 @@ export async function subirAdjunto(documentoId: string, d: { tipo: Adjunto["kind
   return (await leer<{ adjunto: Adjunto }>(`/api/admin/formatos/${encodeURIComponent(documentoId)}/adjuntos`, { method: "POST", body: form })).adjunto;
 }
 
+/** Saca una imagen de la hoja: foto principal, croquis o la fotografía de un renglón del 07 (el renglón y su texto se quedan). */
+export function sinImagen(datos: Record<string, unknown>, id: string): Record<string, unknown> {
+  const cambio: Record<string, unknown> = {};
+  for (const ranura of Object.keys(RANURAS_IMAGEN)) if (datos[ranura] === id) cambio[ranura] = undefined;
+  if (Array.isArray(datos.fotografias) && datos.fotografias.some((f) => f && typeof f === "object" && (f as Record<string, unknown>).assetId === id)) {
+    cambio.fotografias = datos.fotografias.map((f) => {
+      if (!f || typeof f !== "object" || (f as Record<string, unknown>).assetId !== id) return f;
+      const resto = { ...(f as Record<string, unknown>) };
+      delete resto.assetId;
+      return resto;
+    });
+  }
+  return cambio;
+}
+
+const conRetiro = (quitar: boolean): RequestInit => ({ method: quitar ? "DELETE" : "PATCH", headers: { "Content-Type": "application/json" }, body: "{}" });
+
+/** Quita la imagen del documento (recuperable). El servidor no la quita si la hoja todavía la usa (409). */
+export async function quitarAdjunto(id: string): Promise<Adjunto> {
+  return (await leer<{ adjunto: Adjunto }>(`/api/admin/adjuntos/${encodeURIComponent(id)}`, conRetiro(true))).adjunto;
+}
+export async function restaurarAdjunto(id: string): Promise<Adjunto> {
+  return (await leer<{ adjunto: Adjunto }>(`/api/admin/adjuntos/${encodeURIComponent(id)}`, conRetiro(false))).adjunto;
+}
+
 export const rutaAdjunto = (id: string) => `/api/admin/adjuntos/${encodeURIComponent(id)}/descargar`;
 
 /** Baja la imagen para dibujarla en la hoja: medidas ya orientadas y dirección local (se libera al cerrar). */
@@ -125,6 +152,18 @@ export async function subirFirmado(emisionId: string, archivo: File): Promise<Co
   const form = new FormData();
   form.set("archivo", archivo);
   return (await leer<{ copia: CopiaFirmada }>(`/api/admin/emisiones/${encodeURIComponent(emisionId)}/firmado`, { method: "POST", body: form })).copia;
+}
+/** Quita la copia firmada de su PDF (recuperable: el archivo se conserva y «Deshacer» la devuelve). */
+export async function quitarFirmado(id: string): Promise<CopiaFirmada> {
+  return (await leer<{ copia: CopiaFirmada }>(`/api/admin/copias-firmadas/${encodeURIComponent(id)}`, conRetiro(true))).copia;
+}
+export async function restaurarFirmado(id: string): Promise<CopiaFirmada> {
+  return (await leer<{ copia: CopiaFirmada }>(`/api/admin/copias-firmadas/${encodeURIComponent(id)}`, conRetiro(false))).copia;
+}
+/** Vuelve a poner un elemento en su lista, en su lugar por fecha (Deshacer). */
+export function devolver<T extends { id: string; created_at: string }>(lista: readonly T[], x: T, recientesPrimero: boolean): T[] {
+  const sin = lista.filter((y) => y.id !== x.id);
+  return [...sin, x].sort((a, b) => (recientesPrimero ? b.created_at.localeCompare(a.created_at) : a.created_at.localeCompare(b.created_at)));
 }
 export const rutaCopiaFirmada = (id: string) => `/api/admin/copias-firmadas/${encodeURIComponent(id)}/descargar`;
 

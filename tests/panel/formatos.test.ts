@@ -38,14 +38,14 @@ describe("PN-06 formatos", () => {
     expect(f[1].titulo.startsWith("04 · ")).toBe(true);
   });
 
-  it("captura: montos a número, vacío quita el dato y el PDF con pendientes se permite salvo 01 y 15", () => {
+  it("captura: montos a número, vacío quita el dato y el PDF con pendientes se permite, también en 01 y 15 (sin frenos, 16/11/2026)", () => {
     const monto = formatoById("18").fields.find((x) => x.type === "money")!;
     expect(valorCapturado(monto, "3,500.50")).toBe(3500.5);
     expect(textoDe(monto, 3500.5)).toBe("3,500.5");
     expect(aplicar({ a: 1, b: "x" }, { a: undefined, c: "y" })).toEqual({ b: "x", c: "y" });
     expect(faltantes("13", {}, "EXP-1").length).toBeGreaterThan(0);
     expect(puedeGenerar("13", 3)).toBe(true);
-    expect(puedeGenerar("15", 3)).toBe(false);
+    expect(puedeGenerar("15", 3)).toBe(true);
     expect(puedeGenerar("01", 0)).toBe(true);
   });
 });

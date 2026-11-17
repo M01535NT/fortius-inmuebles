@@ -14,7 +14,7 @@ export type ContratoServidor = {
   licencia?: { numero?: string; vigencia?: string };
 };
 
-export type Vence = { id: string; titulo: string; detalle: string; dias: number; tono: "error" | "aviso" | "normal" };
+export type Vence = { id: string; titulo: string; detalle: string; dias: number; tono: "error" | "aviso" | "normal"; href?: string };
 
 /** Cuántos días antes empieza a avisar. */
 export const AVISO_DIAS = 30;
@@ -23,6 +23,14 @@ const cuando = (dias: number, fecha: string) =>
   dias < 0 ? `Venció hace ${-dias} ${dias === -1 ? "día" : "días"}` : dias === 0 ? "Vence hoy" : dias === 1 ? "Vence mañana" : `Vence el ${diaLargo(fecha)} (en ${dias} días)`;
 
 const tono = (dias: number): Vence["tono"] => (dias < 0 ? "error" : dias <= 7 ? "aviso" : "normal");
+
+/** Un vencimiento de Trámites, Dinero o un asunto como fila de «Vence pronto»: «Vence mañana · Casa en Otay». */
+export function venceDe(v: { id: string; fecha: string; titulo: string; detalle: string; href?: string; expedienteId?: string }, hoy: Date): Vence | null {
+  const dias = diasDesde(hoy, v.fecha);
+  if (dias === null) return null;
+  const href = v.href ?? (v.expedienteId ? `/panel/asuntos?ver=${encodeURIComponent(v.expedienteId)}` : undefined);
+  return { id: v.id, titulo: v.titulo, detalle: [cuando(dias, v.fecha), v.detalle].filter(Boolean).join(" · "), dias, tono: tono(dias), href };
+}
 
 /**
  * Fin del encargo de cada contrato y vigencia de la licencia estatal, de lo vencido a lo más lejano, solo dentro del aviso.
@@ -92,10 +100,10 @@ export type TareaHoy = { id: string; titulo: string; detalle: string; tono: "err
 export function tareasDeHoy(tareas: readonly Task[], hoy: string): TareaHoy[] {
   return tareas
     .filter((t) => isTaskOpen(t) && !!t.vence && t.vence <= hoy)
-    .sort((a, b) => (a.vence ?? "").localeCompare(b.vence ?? "") || a.titulo.localeCompare(b.titulo, "es"))
+    .sort((a, b) => (a.vence ?? "").localeCompare(b.vence ?? "") || (a.hora || "99").localeCompare(b.hora || "99") || a.titulo.localeCompare(b.titulo, "es"))
     .map((t) => ({
       id: t.id, titulo: t.titulo, tarea: t,
-      detalle: t.vence === hoy ? "Para hoy" : `Venció el ${diaLargo(t.vence ?? hoy)}`,
+      detalle: t.vence === hoy ? (t.hora ? `Para hoy a las ${t.hora.replace(/^0(\d)/, "$1")}` : "Para hoy") : `Venció el ${diaLargo(t.vence ?? hoy)}`,
       tono: t.vence === hoy ? "normal" : "error",
     }));
 }

@@ -16,7 +16,7 @@ export function textoSemana(desde: Date): string {
   return `${d1} de ${m1} al ${d2} de ${m2}`;
 }
 
-export type TareaDia = { id: string; fecha: string; titulo: string; vencida: boolean; expedienteId?: string };
+export type TareaDia = { id: string; fecha: string; titulo: string; vencida: boolean; expedienteId?: string; /** «17:00» si se pospuso con hora. */ hora?: string };
 
 /** Fecha «AAAA-MM-DD» de la tarea, aunque venga con hora. */
 const fechaDe = (vence: string | undefined): string | null => {
@@ -34,9 +34,9 @@ export function tareasDeLaSemana(tareas: readonly Task[], desde: Date, hoy: Date
     if (!isTaskOpen(t)) continue;
     const fecha = fechaDe(t.vence);
     if (!fecha || fecha < ini || fecha > fin) continue;
-    lista.push({ id: t.id, fecha, titulo: t.titulo?.trim() || "Tarea", vencida: fecha < hoyTexto, ...(t.expedienteId ? { expedienteId: t.expedienteId } : {}) });
+    lista.push({ id: t.id, fecha, titulo: t.titulo?.trim() || "Tarea", vencida: fecha < hoyTexto, ...(t.expedienteId ? { expedienteId: t.expedienteId } : {}), ...(t.hora ? { hora: t.hora.replace(/^0(\d)/, "$1") } : {}) });
   }
-  return lista.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.titulo.localeCompare(b.titulo, "es"));
+  return lista.sort((a, b) => a.fecha.localeCompare(b.fecha) || (a.hora ?? "99").padStart(5, "0").localeCompare((b.hora ?? "99").padStart(5, "0")) || a.titulo.localeCompare(b.titulo, "es"));
 }
 
 export function tareasPorFecha(lista: readonly TareaDia[]): Map<string, TareaDia[]> {

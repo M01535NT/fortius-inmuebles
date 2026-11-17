@@ -6,7 +6,7 @@ import { leadProfileSchema } from "@/lib/lead-profile";
 import { buyerNoticesSchema, keysSchema, prepSchema, PRIVATE_PROPERTY_FIELDS } from "@/lib/propiedad-seguimiento";
 import { LEAD_CANALES } from "@/lib/domain/records";
 import { taskSchema } from "@/lib/tasks";
-import { tramiteSchema } from "@/lib/tramites";
+import { tramiteCualquieraSchema } from "@/lib/tramites";
 import { TEMPLATE_IDS, TEMPLATE_MAX, templateProblems } from "@/lib/admin/message-templates";
 import { TOPE_IA_MAXIMO } from "./ia-tope";
 import { datosFortiusSchema } from "./datos-fortius";
@@ -98,7 +98,7 @@ const recordSchemas = {
   posts: postSchema,
   archivos: z.object({ id, nombre: name, url: safeUrl, tipo: z.enum(["imagen", "pdf", "video", "otro"]), notas: text.optional(), bucket: z.enum(["fortius-inmuebles-private", "fortius-inmuebles-public"]).optional(), path: z.string().max(300).optional(), visibility: z.enum(["private", "public"]).optional() }).passthrough(),
   contenido: contentSchema,
-  tramites: tramiteSchema,
+  tramites: tramiteCualquieraSchema,
   config: settingsSchema,
 };
 
@@ -165,6 +165,15 @@ export function projectTeamProperty(value: Record<string, unknown>): Record<stri
   return data;
 }
 
+/** La dirección completa solo sale si el interruptor «Dirección exacta» está encendido; si no, null (queda la referencia). */
+export function direccionExactaPublica(value: unknown): string | null {
+  if (!value || typeof value !== "object") return null;
+  const raw = value as { direccionExacta?: unknown; direccionCompleta?: unknown };
+  if (raw.direccionExacta !== true || typeof raw.direccionCompleta !== "string") return null;
+  const texto = raw.direccionCompleta.trim();
+  return texto.length >= 3 && texto.length <= 200 ? texto : null;
+}
+
 export function projectPublic(collection: string, values: unknown[]): Record<string, unknown>[] {
   const schema = collection === "propiedades" ? publicProperty : collection === "asesores" ? adviserSchema.pick({ id: true, nombre: true, cargo: true, iniciales: true, activo: true }).strip()
     : collection === "contenido" ? contentSchema.strip() : collection === "config" ? publicSettings : collection === "posts" ? postSchema.strip() : null;
@@ -180,6 +189,10 @@ export function projectPublic(collection: string, values: unknown[]): Record<str
       // DEC-54: una foto «oculta» está guardada en el inmueble pero no sale en el sitio.
       data.galeria = (data.galeria as { src: string; oculta?: true }[]).filter((item) => isPublicUrl(item.src) && item.oculta !== true);
       if (!(data.galeria as unknown[]).length) continue;
+      // «Dirección exacta» (panel nuevo): apagada, el sitio ve solo colonia, zona y la referencia; encendida, la dirección completa.
+      // La base hace lo mismo en `fortius_inmuebles_public_records` (20261116140000); aquí cubre lo que no pasa por ella.
+      const exacta = direccionExactaPublica(value);
+      if (exacta) data.direccionAproximada = exacta;
       if (data.documentos) data.documentos = (data.documentos as { url: string }[]).filter((item) => isPublicUrl(item.url));
       for (const key of ["videoUrl", "tour360Url"]) if (data[key] && !isPublicUrl(data[key] as string)) delete data[key];
     }

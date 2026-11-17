@@ -163,7 +163,7 @@ it("solo el director autoriza una excepción, con motivo y nunca en un requisito
 });
 
 // COR-24: inventario que el asesor trae con contrato firmado. Lo da de alta el director; la marca no salta protecciones.
-it("el director da de alta inventario heredado; pasa a verificación y no publica sin titularidad, factibilidad y valor", async () => {
+it("el director da de alta inventario heredado; pasa a verificación y avanza aunque falten titularidad, factibilidad y valor", async () => {
   const inherited = "53000000-0000-4000-8000-000000000020";
   const motive = "Inventario anterior con contrato firmado con su asesor";
   const value = { version: 1, ruta: "captacion", estado: "activa", motivo: "", heredado: { desde: "2026-06-01" },
@@ -178,8 +178,8 @@ it("el director da de alta inventario heredado; pasa a verificación y no public
     .then(r => db.query(`select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,null,false)`, [inherited, r.rows[0].version, stage, JSON.stringify(flujo)]));
   await asUser(admin, async () => {
     await advance("documentacion", value);
-    // A comercialización no pasa: titularidad, factibilidad y valor siguen pendientes y no admiten excepción.
-    await expect(advance("comercializacion", value)).rejects.toMatchObject({ code: "PT409" });
+    // Sin frenos (16/11/2026): pasa a comercialización aunque titularidad, factibilidad y valor sigan pendientes.
+    await advance("comercializacion", value);
   });
   await asUser(own, async () => {
     // El asesor no quita ni cambia la marca.

@@ -60,16 +60,18 @@ it("registers an owner property for evaluation without commercial availability o
   const done = await complete((await start()).id);
   expect((await property(done.propiedad_slug)).data).toMatchObject({ estado: "evaluacion", publicada: false, publicadaEl: "" });
 });
-it.each([ ["vender", "terreno"], ["arrendar", "local"] ])("requires capture authorization before publishing %s %s", async (intent, type) => {
+// Sin frenos de proceso (titular, 16/11/2026; migración 20261116100000): publicar, saltar etapas o archivar con
+// requisitos o tareas pendientes ya no se rechaza; el panel lo avisa.
+it.each([ ["vender", "terreno"], ["arrendar", "local"] ])("publishes %s %s without capture authorization (the panel warns)", async (intent, type) => {
   const done = await complete((await start(intent)).id, answers(type));
   const p = await property(done.propiedad_slug);
-  await expect(db.query("select public.fortius_inmuebles_put_record('propiedades',$1,$2::jsonb,$3)", [done.propiedad_slug, JSON.stringify({ ...p.data, estado: "disponible", publicadaEl: "2026-10-14", demo: true, publicada: true, galeria: [{ src: "/hero/casa-playa.webp", alt: "Fotografía sintética" }] }), p.version])).rejects.toMatchObject({ code: "PT409" });
-  expect((await property(done.propiedad_slug)).data.publicada).toBe(false);
+  await db.query("select public.fortius_inmuebles_put_record('propiedades',$1,$2::jsonb,$3)", [done.propiedad_slug, JSON.stringify({ ...p.data, estado: "disponible", publicadaEl: "2026-10-14", demo: true, publicada: true, galeria: [{ src: "/hero/casa-playa.webp", alt: "Fotografía sintética" }] }), p.version]);
+  expect((await property(done.propiedad_slug)).data.publicada).toBe(true);
 });
-it("prevents a rent from jumping to archive while its evidence and tasks remain pending", async () => {
+it("lets a rent jump to archive while its evidence and tasks remain pending", async () => {
   const done = await complete((await start("arrendar")).id);
-  await expect(db.query("update public.fortius_inmuebles_expedientes set etapa='cerrado',version=version+1 where id=$1", [done.expediente_id])).rejects.toMatchObject({ code: "PT409" });
-  expect((await db.query<{ etapa: string }>("select etapa from public.fortius_inmuebles_expedientes where id=$1", [done.expediente_id])).rows[0].etapa).toBe("captacion");
+  await db.query("update public.fortius_inmuebles_expedientes set etapa='cerrado',version=version+1 where id=$1", [done.expediente_id]);
+  expect((await db.query<{ etapa: string }>("select etapa from public.fortius_inmuebles_expedientes where id=$1", [done.expediente_id])).rows[0].etapa).toBe("cerrado");
 });
 it("saves an email-only first contact with origin and action, then reuses its open task", async () => {
   const first = await start("vender", { tipo: "nuevo", nombre: "Contacto por correo", telefono: "", email: "contacto@example.invalid", asesorId: "process-adviser", telefonoCompartido: false, seguimiento: { origen: "correo", accion: "Revisar antecedentes", fecha: "2030-12-31" } });
@@ -137,7 +139,7 @@ it("permits preparation despite a later registration observation while retaining
   expect(result.rows[0].r.etapa).toBe("comercializacion");
   expect(result.rows[0].r.flujo.requisitos.registro.estado).toBe("observado");
 });
-it.each(["arrendar","invertir"])("walks %s through its evidenced process and archives only after resolving tasks", async intent => {
+it.each(["arrendar","invertir"])("walks %s through its evidenced process and archives even with open tasks", async intent => {
  const intakeAnswers={...answers(),uso:"Uso o inversión",necesidades:"Criterios de ensayo",financiamiento:"por_definir",estrategia:"por_definir",horizonte:"Tres años"};
  const done=await complete((await start(intent)).id,intakeAnswers);
  // Avanzar de etapa y cambiar el inmueble van en movimientos separados.
@@ -159,9 +161,7 @@ it.each(["arrendar","invertir"])("walks %s through its evidenced process and arc
   const result=await db.query<{r:{version:number;etapa:string}}>("select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,null,false) r",[done.expediente_id,version,stage,JSON.stringify(flow)]);
   expect(result.rows[0].r.etapa).toBe(stage);version=result.rows[0].r.version;
  }
- await expect(db.query("select public.fortius_inmuebles_update_operation($1,$2,'cerrado',null,'{}'::jsonb,null,null,false)",[done.expediente_id,version])).rejects.toMatchObject({code:"PT409"});
- const tasks=(await db.query<{id:string;data:Record<string,unknown>;version:number}>("select id,data,version from public.fortius_inmuebles_records where collection='tareas' and data->>'expedienteId'=$1",[done.expediente_id])).rows;
- for(const task of tasks)await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,$3)",[task.id,JSON.stringify({...task.data,estado:"completada"}),task.version]);
+ // Se archiva aunque queden tareas abiertas.
  const final=await db.query<{r:{etapa:string}}>("select public.fortius_inmuebles_update_operation($1,$2,'cerrado',null,'{}'::jsonb,null,null,false) r",[done.expediente_id,version]);
  expect(final.rows[0].r.etapa).toBe("cerrado");
 });
@@ -197,8 +197,8 @@ it("publishes an owner's rent with its own requirements, without the sale's feas
  for(const key of ["titularidad","valor","precio","intermediacion","levantamiento"])requisitos[key]={estado:"revisado",soporte:"Revisión de ensayo",evidencia:evidence};
  const flow={...row.flujo,requisitos,resolucion:{tipo:"aceptada",fecha:"2026-10-29",motivo:"Encargo de renta aceptado",siguienteAccion:"Publicar",fechaSiguiente:"2030-12-31"}};
  const move=(f:unknown,version:number)=>db.query<{r:{version:number;etapa:string}}>("select public.fortius_inmuebles_update_operation($1,$2,'comercializacion',null,'{}'::jsonb,$3::jsonb,null,false) r",[done.expediente_id,version,JSON.stringify(f)]);
- // Sin la publicación autorizada no se publica; factibilidad y plan nunca se piden.
- await expect(move(flow,row.version)).rejects.toMatchObject({code:"PT409",message:expect.stringContaining("publicacion")});
+ // Sin la publicación autorizada también avanza (se avisa); factibilidad y plan nunca se piden.
+ expect((await move(flow,row.version)).rows[0].r.etapa).toBe("comercializacion");
  const current=(await db.query<{version:number}>("select version from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
  const ready={...flow,requisitos:{...requisitos,publicacion:{estado:"revisado",soporte:"Revisión de ensayo",evidencia:evidence}}};
  expect((await move(ready,current.version)).rows[0].r.etapa).toBe("comercializacion");
@@ -235,7 +235,7 @@ it("keeps an investor role when converting a manual prospect before completing t
  const converted=(await db.query<{r:{cliente:{data:{tipo:string}}}}>("select public.fortius_inmuebles_convert_lead($1,$2) r",[first.lead_id,lead.version])).rows[0].r;
  expect(converted.cliente.data.tipo).toBe("inversionista");
 });
-it("allows gradual historical evidence regularization without authorizing unproved advancement",async()=>{
+it("allows gradual historical evidence regularization and advancing with unproved evidence (the panel warns)",async()=>{
  const done=await complete((await start()).id);
  await db.exec("reset role");
  try {
@@ -246,5 +246,5 @@ it("allows gradual historical evidence regularization without authorizing unprov
  const current=(await db.query<{version:number}>("select version from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
  const saved=(await db.query<{r:{version:number;flujo:{requisitos:{titularidad:{soporte:string}}}}}>("select public.fortius_inmuebles_update_operation($1,$2,'documentacion','2030-12-30','{}'::jsonb,null,null,false) r",[done.expediente_id,current.version])).rows[0].r;
  expect(saved.flujo.requisitos.titularidad.soporte).toBe("Antecedente de revisión histórica sin referencia estructurada");
- await expect(db.query("select public.fortius_inmuebles_update_operation($1,$2,'comercializacion',null,'{}'::jsonb,null,null,false)",[done.expediente_id,saved.version])).rejects.toMatchObject({code:"PT409"});
+ expect((await db.query<{r:{etapa:string}}>("select public.fortius_inmuebles_update_operation($1,$2,'comercializacion',null,'{}'::jsonb,null,null,false) r",[done.expediente_id,saved.version])).rows[0].r.etapa).toBe("comercializacion");
 });

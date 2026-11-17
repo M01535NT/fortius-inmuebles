@@ -101,14 +101,15 @@ it('requires the identification file to enter closing in a sale, not before and 
  expect(await required('arrendador','cierre')).not.toContain('identificacion_pld');
  expect(await required('arrendatario','cierre')).not.toContain('identificacion_pld');
 });
-it('blocks signing until the identification file is reviewed',async()=>{
+// Sin frenos (16/11/2026): la identificación LFPIORPI es un aviso legal; ya no frena la firma.
+it('reaches signing with the identification file pending (legal warning, not a gate)',async()=>{
  await asUser(own,async()=>{
   const {id}=await fixture();
   await update(id,'documentacion');await sign(id,'documentacion');await update(id,'comercializacion');await update(id,'negociacion');
   const firmaContrato=(await db.query<{f:unknown}>("select flujo->'firmaContrato' f from public.fortius_inmuebles_expedientes where id=$1",[id])).rows[0].f;
   const pendiente=completeFlow();pendiente.requisitos.identificacion_pld={estado:'recibido',soporte:'Faltan las identificaciones'};
   await update(id,'negociacion',{...pendiente,firmaContrato});
-  await expect(update(id,'cierre')).rejects.toThrow(/identificacion_pld/);
+  expect((await update(id,'cierre')).etapa).toBe('cierre');
   await update(id,'negociacion',{...completeFlow(),firmaContrato});
   await update(id,'cierre');
   expect((await db.query<{etapa:string}>('select etapa from public.fortius_inmuebles_expedientes where id=$1',[id])).rows[0].etapa).toBe('cierre');

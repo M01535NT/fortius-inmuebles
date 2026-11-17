@@ -103,3 +103,35 @@ export async function quitarAsunto(id: string, version: number): Promise<void> {
     throw new ErrorDeLectura(respuesta.status === 409 ? "El asunto ya cambió; quítalo desde Asuntos." : cuerpo.error || "No se deshizo. Vuelve a intentarlo.", respuesta.status);
   }
 }
+
+/**
+ * «Unir con su ficha»: liga la consulta a una persona que ya está en Personas, sin crear otra.
+ * Necesita la ruta `POST /api/admin/leads/[id]/unir` y su función de la base (migración pendiente del visto bueno
+ * del titular; ver PLAN, PN-05). Mientras no exista, el servidor contesta 404 o 405 y se devuelve `pendiente`
+ * para que la pantalla lo diga con calma, sin error. Usa la versión que se leyó (409 si cambió).
+ */
+export type ResultadoUnir = { estado: "unida"; clienteId: string } | { estado: "pendiente" };
+
+export async function unirConsulta(id: string, clienteId: string, version: number): Promise<ResultadoUnir> {
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`/api/admin/leads/${encodeURIComponent(id)}/unir`, {
+      method: "POST", credentials: "same-origin", cache: "no-store",
+      headers: { "content-type": "application/json" }, body: JSON.stringify({ clienteId, version }),
+    });
+  } catch {
+    throw new ErrorDeLectura("Sin conexión: no se unió. Vuelve a intentarlo.", 0);
+  }
+  if (respuesta.status === 404 || respuesta.status === 405 || respuesta.status === 501) return { estado: "pendiente" };
+  const cuerpo = (await respuesta.json().catch(() => ({}))) as { id?: string; cliente?: { id?: string }; error?: string };
+  if (!respuesta.ok) {
+    const texto = respuesta.status === 409 ? "La consulta cambió mientras la veías; se muestra lo último. Vuelve a intentarlo."
+      : respuesta.status === 401 || respuesta.status === 403 ? "Tu sesión terminó o no tienes permiso para esto."
+      : cuerpo.error || "No se unió. Vuelve a intentarlo.";
+    throw new ErrorDeLectura(texto, respuesta.status);
+  }
+  return { estado: "unida", clienteId: cuerpo.cliente?.id ?? cuerpo.id ?? clienteId };
+}
+
+/** Texto para cuando el servidor todavía no sabe unir. No es un error: falta un paso que aprueba el titular. */
+export const UNIR_PENDIENTE = "Unir con una ficha que ya existe todavía no está activo. Mientras, abre su ficha y anota ahí esta consulta para no duplicarla.";

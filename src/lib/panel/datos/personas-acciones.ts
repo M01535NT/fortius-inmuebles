@@ -1,4 +1,5 @@
 import type { Cliente } from "@/lib/backend/contracts";
+import { esMoral } from "@/lib/panel/datos/personas-ficha";
 
 /**
  * Alta y edición de personas (PN-03, boceto de Personas). Funciones puras: la pantalla guarda con la versión que leyó.
@@ -27,6 +28,8 @@ export type DatosNuevaPersona = {
   nombre: string; telefono: string; email: string; motivo: Motivo; canal: Canal;
   /** En qué quedaron: lo siguiente que se hará y cuándo. */
   accion: string; fecha: string | null;
+  /** Persona moral (empresa): cambia lo que se pide para contratos (razón social, RFC de 12, representante). */
+  moral?: boolean;
 };
 
 const digitos = (t: string) => t.replace(/\D/g, "");
@@ -68,6 +71,7 @@ export function nuevaPersona(d: DatosNuevaPersona, miAsesor: string | null, ahor
       canalPreferido: d.canal,
       proximaAccion: d.accion.trim().slice(0, 160),
       ...(d.fecha ? { proximoContacto: d.fecha } : {}),
+      ...(d.moral ? { personaMoral: true } : {}),
     },
   };
 }
@@ -76,6 +80,8 @@ export function nuevaPersona(d: DatosNuevaPersona, miAsesor: string | null, ahor
 export type DatosEditables = {
   nombre: string; telefono: string; email: string; motivo: Motivo; canal: Canal | "";
   estadoCivil: string; domicilio: string; identificacion: string; curp: string; rfc: string;
+  /** La casilla manda; si nunca se marcó, se deduce del RFC de 12 caracteres (respaldo). */
+  moral: boolean;
 };
 
 export function datosDe(c: Cliente): DatosEditables {
@@ -85,6 +91,7 @@ export function datosDe(c: Cliente): DatosEditables {
     canal: canal === "llamada" || canal === "whatsapp" || canal === "correo" ? canal : "",
     estadoCivil: c.estadoCivil ?? "", domicilio: c.domicilio ?? "", identificacion: c.identificacion ?? "",
     curp: c.curp ?? "", rfc: c.rfc ?? "",
+    moral: esMoral(c),
   };
 }
 
@@ -111,6 +118,8 @@ export function editarPersona(c: Cliente, d: DatosEditables, ahora = new Date())
   poner("rfc", d.rfc, true);
   const perfil: Record<string, unknown> = { ...(c.perfil ?? {}) };
   if (d.canal) perfil.canalPreferido = d.canal; else delete perfil.canalPreferido;
+  // Se guarda también «no» para que un RFC de 12 caracteres no la vuelva moral sin querer.
+  if (d.moral !== esMoral(c) || typeof perfil.personaMoral === "boolean") perfil.personaMoral = d.moral;
   sig.perfil = perfil as Cliente["perfil"];
   return sig;
 }

@@ -1,4 +1,4 @@
-import type { Evento, EventoTipo } from "@/lib/domain/records";
+import { EVENTO_TIPOS, type Evento, type EventoTipo } from "@/lib/domain/records";
 import { citasDelDia } from "@/lib/panel/datos/agenda";
 
 /**
@@ -9,7 +9,30 @@ import { citasDelDia } from "@/lib/panel/datos/agenda";
 export type DatosCita = {
   tipo: EventoTipo; titulo: string; fecha: string; hora: number | null;
   clienteId: string; propiedadSlug: string; notas: string; asesorId?: string | null;
+  /** Asunto al que va ligada la cita (cuando se agenda desde un asunto). */
+  expedienteId?: string;
 };
+
+/**
+ * «Visita» o «Agendar» desde un inmueble, una persona o un asunto: abre la Agenda con la cita nueva y lo de ahí ya elegido.
+ * La Agenda lee `?nueva=1&tipo=…&inmueble=<slug>&persona=<id>&asunto=<id>` y limpia la dirección.
+ */
+export function rutaNuevaCita(d: { tipo?: EventoTipo; inmueble?: string; persona?: string; asunto?: string } = {}): string {
+  const q = new URLSearchParams({ nueva: "1" });
+  if (d.tipo) q.set("tipo", d.tipo);
+  if (d.inmueble) q.set("inmueble", d.inmueble);
+  if (d.persona) q.set("persona", d.persona);
+  if (d.asunto) q.set("asunto", d.asunto);
+  return `/panel/agenda?${q.toString()}`;
+}
+
+/** Lo que trae la dirección para la cita nueva; null si no trae nada que elegir (se abre la línea vacía). */
+export function nuevaDesdeDireccion(q: { get: (k: string) => string | null }): { tipo?: EventoTipo; propiedadSlug: string; clienteId: string; expedienteId: string } | null {
+  const limpio = (k: string) => { const v = q.get(k)?.trim() ?? ""; return /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(v) ? v : ""; };
+  const tipo = q.get("tipo");
+  const r = { tipo: (EVENTO_TIPOS as readonly string[]).includes(tipo ?? "") ? (tipo as EventoTipo) : undefined, propiedadSlug: limpio("inmueble"), clienteId: limpio("persona"), expedienteId: limpio("asunto") };
+  return r.propiedadSlug || r.clienteId || r.expedienteId ? r : null;
+}
 
 const dos = (n: number) => String(n).padStart(2, "0");
 /** Minutos desde medianoche a «HH:mm», como lo guarda la base. */
@@ -36,6 +59,7 @@ function aplicar(base: Evento, d: DatosCita, persona?: string): Evento {
   const n = d.notas.trim();
   if (n) e.notas = n.slice(0, 2000); else delete e.notas;
   if (d.asesorId) e.asesorId = d.asesorId;
+  if (d.expedienteId) e.expedienteId = d.expedienteId;
   return e;
 }
 
