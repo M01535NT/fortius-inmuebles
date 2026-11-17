@@ -12,11 +12,13 @@ Qué falta hacer y cómo va. Las reglas y decisiones están en [`SPEC.md`](SPEC.
 - PN-02 (modelo base y permisos) está escrita y aprobada por el titular (16/11/2026). Sus migraciones y las demás de la rama se aplican al integrar en `main`; hasta entonces varias funciones avisan «no disponible» sin romper la pantalla.
 - Lo último publicado en `main` es el PR #76 (14/11/2026): Trámites (TRA-01), el panel viejo desde cero y la paleta del sitio.
 - Lint, tipos y pruebas se corren solo antes de integrar a `main`, con el visto bueno del titular.
+- **Boceto nuevo aprobado (DEC-68, 16/11/2026):** «Fortius por asuntos» define la estructura (Inicio, Asuntos, Inmuebles, Directorio, Biblioteca, Equipo), la consulta en vivo, los apartados del asunto y el aspecto. [`DECISIONES.md`](docs/diseno/nuevo-panel/DECISIONES.md) se reescribió con eso. Falta planear la reconstrucción de `/panel` contra el boceto: el roadmap PN de abajo describe las pantallas anteriores (revisar: reordenarlo cuando el titular diga por dónde empezar).
+- **La metodología ya no es la columna vertebral (DEC-67, 16/11/2026).** La app debe servir para cualquier caso inmobiliario. El asunto se rediseña con los casos reales del titular ([`casos-reales.md`](docs/diseno/nuevo-panel/casos-reales.md)) antes de seguir con PN-04 y PN-07; de AUD-07, lo que toca al asunto (lista de documentos, avisos, pestañas) espera ese rediseño.
 
 ## Te toca a ti
 
 1. **Activar los dos pasos del director** en fortiusinmuebles.com/admin con tu app de códigos y probar una entrada (AUT-01). Es lo único con riesgo real mientras no esté.
-2. **Revisar el panel nuevo** en localhost (`/panel`). Lo que siga mal se anota como corrección.
+2. **Revisar el panel nuevo** en localhost (`/panel`). Lo que siga mal se anota como corrección. El recorrido del asesor del 16/11/2026 ([AUD-07](docs/diseno/nuevo-panel/auditorias/AUD-07-2026-11-16-recorrido-del-asesor.md)) dejó 86 hallazgos sin corregir y cinco choques con lo escrito por decidir.
 3. **Decidir cuándo publicar** `nuevo-panel` en `main` (un solo PR en borrador). De eso dependen PN-02, los vencimientos de los asuntos en Agenda, unir duplicados, archivar y los movimientos de Dinero.
 4. **Llevar al abogado** el paquete de revisión ([`revision-abogado-2026-11-15.md`](docs/legal/revision-abogado-2026-11-15.md)): formatos 20 al 24, el umbral de 10,000 UMA del 24, la conservación de 10 años del expediente LFPIORPI, «nada frena, solo avisa» en antilavado y promesa, el aviso de privacidad, el registro de tratamiento (PRV-01) y la lectura automática de documentos reales.
 5. **Mandar una solicitud de prueba** desde el formulario de fortiusinmuebles.com (COR-21).

@@ -669,3 +669,13 @@ Cada ficha: unidad/grano, fórmula, filtros, zona horaria operativa, responsable
 - [ ] Aceptación técnica distinta de la de negocio: aprobación de Moisés registrada sin inventarla.
 
 Comandos: `npm run lint`, `npm run typecheck`, `npm run test:backend`, `npm run test:admin`, `npm run build`, `node --test tests/tools/*.test.mjs`, `npm run test:admin:browser`, `npm run test:public:browser`. Antes de comandos live, ver si escriben; `test:live` no corre por defecto.
+
+## Reglas reemplazadas el 16/11/2026 por DEC-67 (la metodología no es la columna vertebral)
+
+Texto anterior, solo consulta:
+
+- **RP-09** · Guiado por omisión, rápido para quien ya sabe; los atajos no saltan la guía.
+- **RP-79** · Cada asunto sigue la guía de su tipo, editable por Fortius sin programar; cada asunto conserva la versión con que empezó. La guía sugiere y avisa (FLX-03, DEC-55).
+- **RP-87** · Trabajo en paralelo y ciclos: entrevista y levantamiento en la misma visita; publicación, visitas y negociación coexisten; se puede pasar a cualquier etapa con aviso de lo que quedó atrás.
+- **RP-96** · Valía para todo encargo; ahora solo dentro de la guía de captación de venta.
+- **RP-108** · La lista de qué abre un asunto era cerrada (cinco casos); ahora son ejemplos.

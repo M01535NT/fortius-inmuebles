@@ -6,11 +6,12 @@ Dice **cómo debe funcionar el sistema**; solo cambia cuando el titular decide, 
 
 ## Las reglas que más pesan
 
-- **Los bocetos mandan.** El panel se reconstruye en `/panel` a partir de los bocetos aprobados; `/admin` es legado y no se amplía (RP-100 PN).
+- **Los bocetos mandan.** El panel se reconstruye en `/panel` a partir del boceto aprobado «Fortius por asuntos» (DEC-68); `/admin` es legado y no se amplía (RP-100 PN).
 - **Nada frena, solo avisa** (RP-100, DEC-61): ningún requisito detiene guardar, avanzar, publicar ni firmar; se avisa y queda anotado quién siguió. Sí se conservan permisos, RLS, validación de datos, control de versión, privacidad y «guardar no es publicar».
 - **Cada quien ve lo suyo, y lo hace cumplir la base** (RP-101 PN): todo registro lleva responsable y creador; el director ve todo, el asesor lo suyo.
 - **Guardar primero, ordenar después** (RP-101, RP-102, RP-103): documento sin asunto e inmueble sin propietario son válidos; todo entra por la Bandeja.
-- **El asunto es el centro de trabajo** (RP-106 a RP-108), con guías que sugieren, sin fases fijas (DEC-55, DEC-65).
+- **Sirve para cualquier caso inmobiliario** (DEC-67): una captación normal, una casa en sucesión e invadida, un terreno con sentencia de prescripción, una asesoría por etapas entre terceros. Ninguna metodología es la columna vertebral; la de captación (entrevista, levantamiento, revisión, opinión de valor) es una guía entre varias. Si un caso no cabe, se cambia el diseño; no se acomoda el caso.
+- **El asunto es el centro de trabajo** (RP-106 a RP-108): cada uno arma su propio camino, con guías que sugieren, sin fases fijas (DEC-55, DEC-65).
 - **Prospecto hasta firmar** (RP-90 a RP-93): cliente al firmar su contrato con Fortius, también compradores y arrendatarios.
 - **Un dato faltante nunca detiene** (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85).
 - **Guardar no es publicar**; el sitio solo muestra campos autorizados (RP-64).
@@ -26,11 +27,11 @@ Dice **cómo debe funcionar el sistema**; solo cambia cuando el titular decide, 
 - **RP-101 PN · Director primero, asesor después; cada asesor solo ve lo suyo.** Todo registro (persona, inmueble, asunto, pendiente, movimiento) lleva responsable y creador; la visibilidad se hace cumplir en la base (RLS), no solo en pantalla. El asesor ve lo que lleva y lo que se le comparte; el director, todo. (PN-02, PN-10)
 - **RP-102 PN · Arrastrar y soltar donde se pueda** (menú, guías, tareas y pasos, pendientes, temas del equipo, listas de documentos), con equivalente de teclado (Alt + flechas o «Mover a…») y aviso de lo hecho. El orden personal se guarda por usuario; el del negocio, en el servidor con control de versiones. (PN-01)
 - **RP-103 PN · Auditoría de lógica continua.** Al empezar y cerrar cada etapa, un agente auditor de solo lectura revisa si la lógica es fluida para el trabajo diario y puede proponer agregar, quitar o reordenar pasos. Informe en `docs/diseno/nuevo-panel/auditorias/`; lo que el titular acepta pasa aquí.
-- **RP-104 · Sistema visual del panel nuevo** (estilo tipo Apple, aprobado el 16/11/2026; detalle en `DECISIONES.md`): letra del sistema en Apple e Inter en lo demás; fondo gris claro con tarjetas agrupadas sin borde; acento azul; esquinas 6, 10, 14 y 16 px; íconos del sistema Fortius sobre un cuadro de color por sección; sin blanco ni negro puros; tema claro y oscuro. Vencido y errores usan el color de error, no el acento. El sitio público no cambia hasta que el titular lo decida (DEC-59).
+- **RP-104 · Sistema visual del panel nuevo** (boceto «Fortius por asuntos», aprobado el 16/11/2026, DEC-68; detalle en `DECISIONES.md`): app moderna; Inter; fondo gris muy claro con tarjetas blancas de borde fino; un solo azul para acciones; verde, ámbar y rojo solo para estados; íconos de trazo en todo, con cuadro de color por apartado; pocas palabras en pantalla y las opciones agrupadas en desplegables y menús; tema claro y oscuro. El sitio público no cambia hasta que el titular lo decida (DEC-59).
 - **RP-105 · El chat del equipo va al final**, después del rol de asesor (PN-11).
 - **RP-106 · El centro es el asunto.** El asunto lleva folio, documentos, dinero y lo que sigue; la persona es el centro de la relación; el inmueble, el inventario. Persona e inmueble se capturan una vez (RP-75) y el asunto las une con papeles. Un propietario con tres inmuebles tiene tres asuntos; un comprador que ve cuatro inmuebles, un asunto «Búsqueda» con cuatro ligados.
 - **RP-107 · Folios.** Solo lleva folio visible lo que se cita ante terceros: asunto `EXP-######`, inmueble `FORTIUS-######`, formato emitido `EXP-######·nn·vN`, recibo `REC-AAAA-####`. Los asigna la base al guardar; únicos, no se reutilizan ni se borran. Cancelar es cerrar como «No se dio»; al dividir, el nuevo recibe folio con «derivado de». Se conservan los actuales.
-- **RP-108 · Qué abre un asunto nuevo.** (1) Encargo de un inmueble en venta o renta, uno por inmueble y encargo; (2) búsqueda real de un comprador o arrendatario, uno por persona y necesidad; (3) trámite sin venta; (4) mandato de inversionista; (5) el mismo inmueble vuelve al mercado o pasa de venta a renta, con «continúa de». Consultas, visitas, archivos, cambios de precio o reaperturas no abren asunto.
+- **RP-108 · Qué abre un asunto nuevo.** Cualquier encargo de trabajo (DEC-65, DEC-67). Ejemplos, no límite: (1) encargo de un inmueble en venta o renta, uno por inmueble y encargo; (2) búsqueda real de un comprador o arrendatario, uno por persona y necesidad; (3) trámite sin venta; (4) mandato de inversionista; (5) el mismo inmueble vuelve al mercado o pasa de venta a renta, con «continúa de»; (6) revisar si un inmueble se puede vender; (7) asesorar a terceros en un negocio por etapas. Consultas, visitas, archivos, cambios de precio o reaperturas no abren asunto.
 
 ### Flexibilidad (14/11/2026)
 
@@ -48,7 +49,7 @@ Dice **cómo debe funcionar el sistema**; solo cambia cuando el titular decide, 
 
 ### Trabajo diario
 
-- **RP-09 · Guiado por omisión, rápido para quien ya sabe;** los atajos no saltan la guía.
+- **RP-09 · Libre por omisión, con ayuda para quien empieza:** el asesor arma el camino del asunto; una guía se agrega cuando sirve y nunca es obligatoria (DEC-67).
 - **RP-10 · Barra de comandos (Ctrl/Cmd+K)** que busca y actúa; solo ofrece lo que el usuario puede ver y hacer.
 - **RP-11 · Atajos de teclado** visibles en menús y en «?»; los de una tecla no actúan en campos y se pueden desactivar (WCAG 2.1.4).
 - **RP-12 · Acciones masivas** que informan aplicados, fallidos y por qué; reintentar no repite.
@@ -129,7 +130,7 @@ Dice **cómo debe funcionar el sistema**; solo cambia cuando el titular decide, 
 - **RP-76 · Un documento emitido es una foto fija;** si la ficha cambia, avisa y ofrece versión nueva.
 - **RP-77 · Descargar siempre, avisando lo que falta.** PDF o Word aunque falten datos, con o sin asunto: faltantes en blanco, aviso y registro de con qué se emitió. Excepción que se queda: el 01 (aviso de privacidad) no sale incompleto (RP-100). Machotes en blanco siempre.
 - **RP-78 · Rápido con el cliente, completo en oficina:** cada campo se marca «en la llamada», «en la cita» u «en oficina».
-- **RP-79 · Cada asunto sigue la guía de su tipo,** editable por Fortius sin programar; cada asunto conserva la versión con que empezó. La guía sugiere y avisa (FLX-03, DEC-55).
+- **RP-79 · Un asunto usa una guía, varias o ninguna.** Las guías son editables por Fortius sin programar y cada asunto conserva la versión con que empezó. La guía sugiere pasos y documentos; el asesor los quita, agrega o marca «No aplica» o «No se puede todavía», con el motivo (FLX-03, DEC-55, DEC-67).
 - **RP-80 · La opinión de valor se captura en el sistema;** el Excel es salida.
 - **RP-81 · Datos mínimos y confidenciales;** precio mínimo solo con permiso; enviar el aviso de privacidad no es consentimiento.
 - **RP-82 · Un dato faltante nunca detiene.** Los faltantes se muestran como «Datos por completar» y se avisan una vez. Crear un asunto pide nombre, un contacto, qué quiere y tipo de inmueble.
@@ -137,7 +138,7 @@ Dice **cómo debe funcionar el sistema**; solo cambia cuando el titular decide, 
 - **RP-84 · Una sola definición de «Esperan algo de ti»** para Hoy, Asuntos y el número del menú: problema, tarea vencida, documento faltante, por revisar, vence hoy, oferta nueva, sin próxima tarea. (revisar si sigue en el panel nuevo)
 - **RP-85 · Descargar no es aprobar.** Borrador → Revisado → Aprobado o Firmado; las salidas no cambian el estado.
 - **RP-86 · El nombre dice lo mismo que la regla** («Firma acreditada», «Pagos para entregar cumplidos según contrato», DEC-27).
-- **RP-87 · Trabajo en paralelo y ciclos:** entrevista y levantamiento en la misma visita; publicación, visitas y negociación coexisten; se puede pasar a cualquier etapa con aviso de lo que quedó atrás.
+- **RP-87 · Trabajo en paralelo y ciclos:** los pasos no tienen orden obligatorio; varios pueden ir a la vez y repetirse; publicación, visitas y negociación coexisten.
 - **RP-88 · Preparado no es entregado:** el informe al propietario registra aparte fecha, canal y responsable de entrega.
 - **RP-89 · Entrevista con lo necesario y «Ampliar»:** pide solo lo que se usa; lo demás, plegado; lo no sabido queda «por confirmar».
 
@@ -149,7 +150,7 @@ Dice **cómo debe funcionar el sistema**; solo cambia cuando el titular decide, 
 - **RP-93 · Compradores y arrendatarios también son clientes** al firmar promesa, compraventa o arrendamiento; mientras buscan, prospectos con perfil y próxima acción. La búsqueda real es un asunto propio (RP-108). Si Fortius consigue al comprador de su propio inmueble, la venta es el asunto del propietario. (revisar si sigue: antes decía «una sola operación»)
 - **RP-94 · Expediente del cliente y folio por inmueble.** La ficha del propietario es su expediente; cada inmueble comercializado, un asunto con folio. Para registrar a una persona bastan nombre, interés y un contacto; si coincide, el asesor elige «es la misma» o «es otra». Registrar papeles no certifica derechos.
 - **RP-95 · Inmuebles compartidos** de otra inmobiliaria: inventario «Compartido» con la aliada (porcentaje y acuerdo); publicar sin su autorización escrita avisa (RP-100). El sitio no muestra datos de su propietario (DEC-40).
-- **RP-96 · Tomar el encargo con viabilidad (avisa, no frena).** Primero la opinión jurídica (06); la de valor (07) solo si pasa o pasa con condiciones. El director toma el encargo con precio dentro de ±10 % de la opinión de valor; fuera, con motivo. Con condición jurídica subsanable: «En regularización». Nunca se firma en la primera cita.
+- **RP-96 · Tomar el encargo con viabilidad (avisa, no frena).** Vale solo dentro de la guía de captación de venta; en otros asuntos no aplica (DEC-67). Primero la opinión jurídica (06); la de valor (07) solo si pasa o pasa con condiciones. El director toma el encargo con precio dentro de ±10 % de la opinión de valor; fuera, con motivo. Con condición jurídica subsanable: «En regularización». Nunca se firma en la primera cita.
 - **RP-97 · Registro de la firma.** Contrato completo firmado (escaneo legible), fecha y firmantes; registra el asesor y revisa el director. Varios propietarios: «Firma incompleta» hasta que firmen todos. Apoderado o empresa: cliente es el representado. Al vencer o rescindirse: «Cliente anterior» y tarea para retirar el inmueble. Descartes con motivo de lista.
 - **RP-98 · Ciclos, pausas y cierre.** Oferta rechazada no mueve la etapa; promesa caída vuelve a publicación con historial. Estados del asunto: Activo, En pausa, En regularización, Descartado; del inmueble: En captación, Disponible, Apartado, Vendido o Rentado. Archivo a 30 días de la entrega sin pendientes. Informe al propietario registrado a mano; vence un mes después de publicar. Inversión y administración de rentas, sin trabajo nuevo hasta un caso real. (revisar si sigue frente a «Se logró» y «No se dio», DEC-63 y RP-107)
 - **RP-99 · Captación y venta son trabajos distintos; el inventario es del equipo.** Capta un asesor; cualquier asesor vende. Reparto: 25 % a quien capta y 25 % a quien vende (50 % si es el mismo). Edita solo quien captó o el director; los demás ven lo público. Ningún texto dice que una sola persona lleva la operación: responde Fortius.
@@ -221,6 +222,8 @@ Lo abierto dentro de alguna se sigue en «Por decidir» de `PLAN.md`. Las retira
 | DEC-64 | Nombre «Asuntos» | En pantalla, «Asuntos» y «asunto»; rutas, tablas, API y folios no cambian; documentos jurídicos conservan «operación». |
 | DEC-65 | Asuntos libres | Todo trabajo es un asunto, con guías elegidas o ninguna, varias seguidas y gastos por asunto. |
 | DEC-66 | Cuentas al arrancar | Solo director y asesor; del asesor ajeno se ve que la persona existe y quién la atiende; dos pasos solo para el director. |
+| DEC-67 | La metodología no es la columna vertebral | 16/11/2026: la app debe servir para cualquier caso inmobiliario. La metodología de captación es una guía entre varias. Cada asunto lleva su situación, sus etapas, sus documentos, sus decisiones y su historial, y el asesor los arma según el caso. El diseño del asunto se rehace con los casos reales del titular (`docs/diseno/nuevo-panel/casos-reales.md`). |
+| DEC-68 | Estructura y aspecto del panel | 16/11/2026: aprobado el boceto «Fortius por asuntos». Secciones: Inicio, Asuntos, Inmuebles, Directorio, Biblioteca y Equipo (director). La consulta se captura en vivo y abre el asunto. El asunto se arma con apartados que se agregan y quitan (de base Personas, Plan e Historial). Inmuebles es también el panel de lo que sale en el sitio (ficha técnica, fotos, video, 360, planos, ubicación). Reemplaza el estilo tipo Apple y las pantallas anteriores; lo que contradiga pasó al historial de decisiones. |
 
 ## Alcance del sistema
 

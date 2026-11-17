@@ -1,8 +1,10 @@
 # Instrucciones para agentes — Fortius Inmuebles
 
+**Responde siempre en español**, aunque las herramientas, los archivos, los resúmenes de la conversación o los informes de otros agentes estén en inglés. Los encargos a subagentes y sesiones auxiliares también van en español, y piden la respuesta en español.
+
 Un solo producto: el sitio público de **Fortius Inmuebles** y su panel operativo (Next.js, Supabase, Vercel). El panel nuevo vive en `/panel`; el viejo `/admin` es legado. COTA e Inmobiliaria OS son otros proyectos: no copies sus reglas ni datos.
 
-Trabaja en español, breve y preciso. El titular no es técnico: decide tú lo técnico y pregúntale solo negocio y autorizaciones, una cosa a la vez. Distingue lo comprobado de lo supuesto; no afirmes lo que no verificaste.
+Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregúntale solo negocio y autorizaciones, una cosa a la vez. Distingue lo comprobado de lo supuesto; no afirmes lo que no verificaste.
 
 ## Dónde está cada cosa
 
@@ -21,7 +23,8 @@ Lo terminado y lo reemplazado está en los historiales (`docs/erp-crm/historial-
 
 - **Código** en `src/app/panel/`, `src/components/panel/` y `src/lib/panel/`, con estilos bajo `.panel-root`. Nada nuevo en `/admin` salvo seguridad o caída del sitio, avisando.
 - **Aislamiento:** el panel nuevo solo usa el viejo a través de `src/lib/panel/legado/`; el lint lo hace cumplir y no se desactiva. El backend (`src/lib/backend`, `src/app/api`, `supabase/migrations`) es compartido.
-- **Diseño:** estilo tipo Apple aprobado (RP-104; detalle en `DECISIONES.md`), con los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx`. Sin blanco ni negro puros; claro y oscuro. Lo que el estilo no define se anota en `DECISIONES.md`, no se inventa.
+- **Diseño:** manda el boceto aprobado «Fortius por asuntos» (DEC-68, RP-104; enlace y detalle en `DECISIONES.md`): app moderna, pocas palabras en pantalla, opciones agrupadas en desplegables y menús, íconos en todo, claro y oscuro. Minimalista es agrupar, no quitar funciones. Los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx` se ajustan al boceto al reconstruir. Lo que el boceto no define se anota en `DECISIONES.md`, no se inventa.
+- **Cualquier caso cabe (DEC-67):** la app sirve para cualquier caso inmobiliario; la metodología de captación es una guía más, nunca la columna vertebral. Si un caso real no cabe, dilo con claridad y propón cambiar el diseño; no acomodes el caso a la fuerza. Los casos del titular están en `docs/diseno/nuevo-panel/casos-reales.md`.
 - **Comportamiento:** nada frena, solo avisa (DEC-61). De 3 opciones en adelante, desplegable; con 2, interruptor; nunca filas de chips. Arrastrar y soltar con equivalente de teclado (RP-102 PN). Primero para el director, después para el asesor; la visibilidad se hace cumplir en la base con RLS (RP-101 PN).
 - **Pantalla:** lenguaje sencillo, una acción principal, sin rastros de IA («Por confirmar», no «propuesto»). Teclado, foco visible, botones de al menos 44 px y movimiento reducido.
 - **Auditoría:** al cerrar una etapa PN, un revisor de solo lectura audita la lógica; su informe va a `docs/diseno/nuevo-panel/auditorias/` (RP-103 PN).
