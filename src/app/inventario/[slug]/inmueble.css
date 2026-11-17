@@ -15,7 +15,7 @@
 .property-key-facts { display: flex; flex-wrap: wrap; gap: var(--space-amplio) var(--space-bloque); padding-top: var(--space-amplio); }
 .property-key-facts dt { font-size: var(--type-etiqueta); color: var(--muted-foreground); }
 .property-key-facts dd { margin-top: var(--space-junto); font-size: var(--type-cifra); }
-.pg-eyebrow-ink { color: var(--primary-text, #8a1634); }
+.pg-eyebrow-ink { color: var(--primary-text, var(--s-accent)); }
 .inv-page .property-card-extra { margin: 0 -16px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--foreground) 3%, transparent); }
 @media (min-width: 1200px) {
   .inv-page .property-catalog-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-amplio) var(--space-normal); }

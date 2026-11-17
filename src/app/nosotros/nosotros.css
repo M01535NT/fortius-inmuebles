@@ -3,9 +3,9 @@
   Todo sigue el tema del sitio (desde el 25/10/2026, titular): la portada es
   crema en claro y noche con resplandor vino en oscuro; tarjetas de esquinas suaves.
 */
-.about-page { --ab-ease: cubic-bezier(0.25, 1, 0.5, 1); --ab-wine: #8a1634; padding-top: 72px; }
+.about-page { --ab-ease: cubic-bezier(0.25, 1, 0.5, 1); --ab-wine: var(--s-accent); padding-top: 72px; }
 .about-page :is(#agentes, #identidad, #valores, #video, #mision, #vision) { scroll-margin-top: 88px; }
-.about-page a:focus-visible, .about-page video:focus-visible { outline: 2px solid var(--primary-text, #8a1634); outline-offset: 3px; }
+.about-page a:focus-visible, .about-page video:focus-visible { outline: 2px solid var(--primary-text, var(--s-accent)); outline-offset: 3px; }
 
 /* Portada */
 .ab-hero { position: relative; overflow: hidden; background: var(--ns-bg); color: var(--ns-ink); }
@@ -29,7 +29,7 @@
 .ab-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-normal); border: 1px solid rgba(255, 255, 255, 0.28); border-radius: var(--corner-pulsable); color: #fff; font-size: var(--type-etiqueta); font-weight: 600; transition: background-color 0.3s, border-color 0.3s, transform 0.3s var(--ab-ease); }
 .ab-chip:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); }
 .ab-chip-primary { border-color: var(--ab-wine); background: var(--ab-wine); font-weight: 600; }
-.ab-chip-primary:hover { background: #74112b; border-color: #74112b; }
+.ab-chip-primary:hover { background: var(--s-accent-hover); border-color: var(--s-accent-hover); }
 .ab-social { display: flex; flex-wrap: wrap; gap: var(--space-corto) var(--space-normal); }
 .ab-social a { display: inline-flex; align-items: center; gap: var(--space-corto); min-height: 32px; font-size: var(--type-etiqueta); color: rgba(248, 248, 255, 0.8); }
 .ab-social a:hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
@@ -38,7 +38,7 @@
 .ab-band { padding-top: clamp(72px, 9vw, 120px); }
 .ab-band-last { padding-bottom: clamp(72px, 9vw, 120px); }
 .ab-band:last-child { padding-bottom: clamp(72px, 9vw, 120px); }
-.ab-eyebrow { margin: 0 0 var(--space-normal); font-size: var(--type-interfaz); font-weight: 600; line-height: 1.4; color: var(--primary-text, #8a1634); }
+.ab-eyebrow { margin: 0 0 var(--space-normal); font-size: var(--type-interfaz); font-weight: 600; line-height: 1.4; color: var(--primary-text, var(--s-accent)); }
 .ab-title { margin: 0; font-size: var(--type-seccion); line-height: var(--leading-seccion); font-weight: 700; letter-spacing: var(--tracking-seccion); text-wrap: balance; }
 .ab-agent-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: clamp(24px, 4vw, 64px); }
 .ab-agent-text { max-width: 58ch; margin: 0; color: var(--muted-foreground); font-size: var(--type-texto); line-height: 1.7; white-space: pre-line; }
@@ -53,7 +53,7 @@
 .ab-member .ab-chip:hover { background: var(--secondary); }
 .ab-member .ab-chip-primary, .ab-member .ab-chip-primary:hover { color: #fff; }
 .ab-member .ab-social { margin-top: var(--space-normal); }
-.ab-member .ab-social a { color: var(--primary-text, #8a1634); }
+.ab-member .ab-social a { color: var(--primary-text, var(--s-accent)); }
 
 /* Misión y visión */
 .ab-purpose { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-amplio); }

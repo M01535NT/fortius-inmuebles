@@ -1,0 +1,392 @@
+/*
+  Sitio público, marca Fortius II (17/11/2026).
+  Todo vive bajo la clase «sitio», que layout.tsx pone en <html> solo en las rutas públicas.
+  El panel nunca la recibe: :root, .dark, tailwind-tema.css y los estilos del panel no cambian.
+
+  Fuentes: el lienzo «Fortius desde cero» (medidas, letra, copys) y el sistema de diseño
+  Fortius II (colores, sombras). Un solo acento por tema: azul en claro, ámbar en oscuro.
+*/
+
+/* 1. Tokens del tema claro */
+html.sitio {
+  --s-bg: #f8f8ff;
+  --s-card: #fbfbff;
+  --s-raised: #fdfdff;
+  --s-muted: #eeeef8;
+  --s-line: #dcdde8;
+  --s-line-strong: #7a8494;
+  --s-ink: #18202a;
+  --s-ink-muted: #556170;
+  --s-accent: #1b3fa6;
+  --s-accent-soft: #dde4f7;
+  --s-accent-ink: #f8f8ff;
+  --s-accent-hover: #14338a;
+  --s-accent-active: #0f2870;
+  --s-warning: #8a5a00;
+  --s-warning-soft: #f6ead0;
+  --s-error: #a83a32;
+  --s-error-soft: #f6dedb;
+  --s-scrim: rgba(24, 32, 42, 0.45);
+  --s-on-media: rgba(8, 9, 10, 0.6);
+  --s-shadow-menu: 0 8px 24px rgba(24, 32, 42, 0.1), 0 2px 4px rgba(24, 32, 42, 0.05);
+  --s-shadow-dialog: 0 24px 48px rgba(24, 32, 42, 0.16), 0 4px 8px rgba(24, 32, 42, 0.06);
+
+  /* Letra: Geist (layout.tsx la carga como --font-geist). 400 texto, 500 títulos, 600 botones y cifras. */
+  --s-font: var(--font-geist), system-ui, sans-serif;
+
+  /* Escala tomada del lienzo. Los títulos crecen con la pantalla; el texto es fijo. */
+  --s-type-cierre: clamp(52px, 9.4vw, 148px);   /* «Cuéntanos tu asunto.» */
+  --s-type-display: clamp(38px, 6vw, 92px);     /* titular de bloque grande */
+  --s-type-portada: clamp(34px, 5.2vw, 80px);   /* asuntos de la portada */
+  --s-type-titulo: clamp(38px, 5.6vw, 88px);    /* nombre en la ficha */
+  --s-type-seccion: clamp(32px, 4vw, 56px);     /* título de sección */
+  --s-type-bloque: clamp(30px, 3.4vw, 48px);    /* título de bloque en la ficha */
+  --s-type-cifra: clamp(48px, 6.4vw, 96px);     /* mensualidad, total */
+  --s-type-sub: clamp(24px, 2.4vw, 34px);       /* subtítulo de columna */
+  --s-type-fila: clamp(20px, 2vw, 28px);        /* fila de una lista con líneas */
+  --s-type-tarjeta: 20px;                       /* nombre en la tarjeta */
+  --s-type-entrada: 18px;
+  --s-type-texto: 16px;
+  --s-type-interfaz: 15px;
+  --s-type-detalle: 14px;
+  --s-type-etiqueta: 13px;
+  --s-track-display: -0.05em;
+  --s-track-seccion: -0.04em;
+  --s-track-sub: -0.03em;
+  --s-track-tarjeta: -0.025em;
+
+  /* Espacios: múltiplos de 4. Margen lateral y ancho máximo del lienzo. */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+  --s-7: 32px; --s-8: 40px; --s-9: 48px; --s-10: 64px; --s-11: 80px; --s-12: 96px;
+  --s-seccion: clamp(80px, 8vw, 128px);
+  --s-gutter: clamp(20px, 4.4vw, 64px);
+  --s-max: 1440px;
+  --s-cabecera: 72px;
+
+  /* Esquinas: 16 fotos y cajas grandes, 12 menús y miniaturas, 8 tarjetas, pastilla en botones y pestañas. */
+  --s-r-grande: 16px;
+  --s-r-menu: 12px;
+  --s-r-tarjeta: 8px;
+  --s-r-pastilla: 999px;
+
+  --s-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /*
+    Puente con las páginas viejas (hasta la etapa 7): sus variables toman los colores, la letra y las
+    esquinas nuevas. Solo en el sitio; el panel sigue leyendo los valores de :root y .dark.
+  */
+  --font-public: var(--font-geist);
+  --font-archivo: var(--font-geist);
+  --font-sans: var(--s-font);
+  --background: var(--s-bg);
+  --foreground: var(--s-ink);
+  --card: var(--s-card);
+  --card-foreground: var(--s-ink);
+  --popover: var(--s-raised);
+  --popover-foreground: var(--s-ink);
+  --primary: var(--s-accent);
+  --primary-text: var(--s-accent);
+  --primary-foreground: var(--s-accent-ink);
+  --secondary: var(--s-muted);
+  --secondary-foreground: var(--s-ink);
+  --muted: var(--s-muted);
+  --muted-foreground: var(--s-ink-muted);
+  --accent: var(--s-accent-hover);
+  --accent-foreground: var(--s-accent-ink);
+  --destructive: var(--s-error);
+  --border: var(--s-line);
+  --input: var(--s-line-strong);
+  --ring: var(--s-accent);
+  --block: #08090a;
+  --block-foreground: #ededef;
+  --block-muted: #8a8f98;
+  --brand-ink: var(--s-ink);
+  --logo-accent: var(--s-accent);
+  --warning: var(--s-warning);
+  --warning-border: #e6cf9c;
+  --warning-surface: var(--s-warning-soft);
+  --corner-pulsable: var(--s-r-tarjeta);
+  --corner-tarjeta: var(--s-r-tarjeta);
+  --pg-wine: var(--s-accent);
+  --pg-night: #08090a;
+  --ns-bg: var(--s-muted); --ns-page: var(--s-bg); --ns-card: var(--s-card); --ns-deep: var(--s-bg); --ns-form: var(--s-card);
+  --ns-ink: var(--s-ink); --ns-strong: var(--s-ink); --ns-accent: var(--s-accent); --ns-fill: var(--s-accent); --ns-warn: var(--s-warning);
+  --ns-invert: var(--s-ink); --ns-invert-ink: var(--s-bg); --ns-invert-accent: var(--s-bg); --ns-invert-hover: #2a3442;
+}
+
+/* 2. Tokens del tema oscuro. Mismo nombre, otro valor: las piezas no saben en qué tema están. */
+html.sitio.dark,
+html.sitio .s-banda {
+  --s-bg: #08090a;
+  --s-card: #101113;
+  --s-raised: #1c1d21;
+  --s-muted: #17181b;
+  --s-line: #25272c;
+  --s-line-strong: #646b76;
+  --s-ink: #ededef;
+  --s-ink-muted: #8a8f98;
+  --s-accent: #e0a030;
+  --s-accent-soft: #2a1f0a;
+  --s-accent-ink: #08090a;
+  --s-accent-hover: #edb04a;
+  --s-accent-active: #c98a1e;
+  --s-warning: #e0b050;
+  --s-warning-soft: #2a2210;
+  --s-error: #f08a80;
+  --s-error-soft: #2e1513;
+  --s-scrim: rgba(5, 5, 6, 0.8);
+  --s-shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --s-shadow-dialog: 0 24px 48px rgba(0, 0, 0, 0.65);
+  --ns-invert-hover: #ffffff;
+  --warning-border: #5a4718;
+}
+
+/*
+  3. Bandas oscuras: las que llevan video o foto son oscuras en los dos temas.
+  `.s-banda` vuelve a declarar los tokens oscuros en su caja; todo lo de adentro los hereda.
+*/
+html.sitio .s-banda {
+  background: var(--s-bg);
+  color: var(--s-ink);
+}
+/* Texto sobre foto o video: siempre claro, con velo propio en cada pieza. */
+html.sitio .s-sobre-media { color: #ededef; }
+
+/* 4. Base */
+html.sitio,
+html.sitio body {
+  background: var(--s-bg);
+  color: var(--s-ink);
+}
+html.sitio body {
+  font-family: var(--s-font);
+  font-size: var(--s-type-texto);
+  line-height: 1.6;
+  font-variation-settings: normal;
+}
+html.sitio :is(h1, h2, h3, h4) {
+  font-weight: 500;
+  text-wrap: balance;
+}
+html.sitio :is(h1, h2) { letter-spacing: var(--s-track-seccion); }
+html.sitio ::selection { background: var(--s-accent-soft); color: var(--s-ink); }
+
+/* 5. Foco visible en todo el sitio: anillo del acento, separado del borde. */
+html.sitio :focus-visible {
+  outline: 2px solid var(--s-accent);
+  outline-offset: 3px;
+}
+html.sitio :focus:not(:focus-visible) { outline: none; }
+
+/* 6. Utilidades de acomodo */
+.s-contenedor { width: 100%; max-width: var(--s-max); margin-inline: auto; padding-inline: var(--s-gutter); box-sizing: border-box; }
+.s-seccion { padding-block: var(--s-seccion); }
+.s-display { margin: 0; font-size: var(--s-type-display); font-weight: 500; line-height: 0.96; letter-spacing: var(--s-track-display); }
+.s-titulo { margin: 0; font-size: var(--s-type-titulo); font-weight: 500; line-height: 0.96; letter-spacing: var(--s-track-display); }
+.s-h2 { margin: 0; font-size: var(--s-type-seccion); font-weight: 500; line-height: 1.02; letter-spacing: var(--s-track-seccion); }
+.s-h2-bloque { margin: 0; font-size: var(--s-type-bloque); font-weight: 500; line-height: 1.02; letter-spacing: var(--s-track-seccion); }
+.s-h3 { margin: 0; font-size: var(--s-type-sub); font-weight: 500; line-height: 1.1; letter-spacing: -0.035em; }
+.s-cifra { font-size: var(--s-type-cifra); font-weight: 500; line-height: 0.95; letter-spacing: var(--s-track-display); font-variant-numeric: tabular-nums; color: var(--s-accent); }
+.s-entrada { margin: 0; font-size: var(--s-type-entrada); line-height: 1.55; color: var(--s-ink-muted); }
+.s-apoyo { color: var(--s-ink-muted); }
+.s-cifras { font-variant-numeric: tabular-nums; }
+
+/* 7. Puente visual para las páginas viejas (se retira en la etapa 7). Sus títulos toman el peso
+   y el apretado nuevos; sus botones, la pastilla. Su acomodo no cambia. */
+html.sitio :is(.pg-title, .pg-h2, .pg-h3, .display-title, .display-soft) { font-weight: 500; letter-spacing: var(--s-track-seccion); }
+html.sitio :is(.pg-btn, .nx-btn, .pg-pill) { border-radius: var(--s-r-pastilla); }
+html.sitio .pg-btn:hover { border-color: var(--s-accent-hover); background: var(--s-accent-hover); color: var(--s-accent-ink); }
+html.sitio .pg-btn { color: var(--s-accent-ink); }
+html.sitio .pg-pill:hover, html.sitio .pg-btn-ghost:hover { border-color: var(--s-line-strong); }
+html.sitio :is(.pg-pill[aria-current="page"], .pg-pill.is-active) { border-color: var(--s-ink); background: var(--s-ink); color: var(--s-bg); }
+html.sitio .pg-card-dark { border-color: #25272c; background: #101113; color: #ededef; }
+html.sitio .pg-card-wine { border-color: var(--s-accent); background: var(--s-accent); color: var(--s-accent-ink); }
+html.sitio .page-curtain { --lock-ink: var(--s-ink); }
+/* El pie sigue el flujo normal, como hasta ahora (antes lo hacía .nx-footer en nocturno.css). */
+html.sitio .public-footer { position: relative; bottom: auto; }
+html.sitio .reading-progress { background: var(--s-accent); }
+html.sitio .brand-mark path[fill="#061f3f"] { fill: currentColor; }
+html.sitio .brand-mark path[fill="#8a1634"] { fill: var(--s-accent); }
+
+/* ── Piezas base ─────────────────────────────────────────────────────────── */
+
+/* Botones: relleno (acento), contorno y enlace con flecha. Al menos 44 px de alto. */
+.s-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-3);
+  min-height: 48px; padding: 0 var(--s-6);
+  border: 1px solid transparent; border-radius: var(--s-r-pastilla);
+  background: transparent; color: inherit;
+  font: inherit; font-size: var(--s-type-interfaz); font-weight: 600; line-height: 1.2;
+  white-space: nowrap; text-decoration: none; cursor: pointer;
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+.s-btn svg { flex: none; transition: transform 300ms var(--s-ease); }
+.s-btn:hover svg[data-flecha] { transform: translateX(3px); }
+.s-btn:disabled, .s-btn[aria-disabled="true"] { opacity: 0.55; cursor: default; }
+.s-btn-grande { min-height: 56px; padding: 0 28px; font-size: var(--s-type-texto); }
+.s-btn-chico { min-height: 44px; padding: 0 var(--s-5); }
+.s-btn-relleno { border-color: var(--s-accent); background: var(--s-accent); color: var(--s-accent-ink); }
+.s-btn-relleno:hover { border-color: var(--s-accent-hover); background: var(--s-accent-hover); color: var(--s-accent-ink); }
+.s-btn-relleno:active { border-color: var(--s-accent-active); background: var(--s-accent-active); }
+.s-btn-contorno { border-color: var(--s-line-strong); color: var(--s-ink); }
+.s-btn-contorno:hover { border-color: var(--s-ink); background: color-mix(in srgb, var(--s-ink) 6%, transparent); }
+.s-btn-contorno.s-sobre-media { border-color: rgba(237, 237, 239, 0.5); color: #ededef; }
+.s-btn-contorno.s-sobre-media:hover { border-color: #ededef; background: rgba(237, 237, 239, 0.1); }
+.s-btn-icono { width: 44px; min-height: 44px; padding: 0; }
+
+.s-enlace {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px;
+  color: var(--s-accent); font-size: var(--s-type-texto); font-weight: 600; text-decoration: none;
+}
+.s-enlace svg { flex: none; transition: transform 300ms var(--s-ease); }
+.s-enlace:hover svg { transform: translateX(4px); }
+.s-enlace-subrayado { color: inherit; font-weight: 500; font-size: var(--s-type-interfaz); border-bottom: 1px solid color-mix(in srgb, currentColor 50%, transparent); min-height: 44px; }
+
+/* Pestañas y grupo de pastillas: una fila en cápsula, la elegida rellena. */
+.s-pestanas {
+  display: inline-flex; gap: var(--s-1); max-width: 100%; padding: var(--s-1); overflow-x: auto; scrollbar-width: none;
+  border: 1px solid var(--s-line); border-radius: var(--s-r-pastilla); background: var(--s-card);
+}
+/* En el teléfono las pestañas se deslizan en una sola fila; el foco se dibuja por dentro para no cortarse. */
+.s-pestanas::-webkit-scrollbar { display: none; }
+html.sitio .s-pestanas .s-pestana:focus-visible { outline-offset: -3px; }
+.s-pestanas-tenue { border-color: transparent; background: var(--s-muted); }
+.s-pestana {
+  flex: none; min-height: 44px; padding: 0 var(--s-5); white-space: nowrap;
+  border: 0; border-radius: var(--s-r-pastilla); background: transparent; color: var(--s-ink);
+  font: inherit; font-size: var(--s-type-interfaz); font-weight: 500; cursor: pointer;
+  transition: background-color 300ms ease, color 300ms ease;
+}
+.s-pestana:hover { background: color-mix(in srgb, var(--s-ink) 6%, transparent); }
+.s-pestana[aria-selected="true"], .s-pestana[aria-pressed="true"] { background: var(--s-accent); color: var(--s-accent-ink); }
+.s-pestanas-tenue .s-pestana[aria-pressed="true"], .s-pestanas-tenue .s-pestana[aria-selected="true"] { background: var(--s-card); color: var(--s-ink); box-shadow: 0 1px 2px rgba(24, 32, 42, 0.08); }
+.s-pestanas-chicas .s-pestana { min-height: 36px; padding: 0 var(--s-4); font-size: var(--s-type-detalle); }
+
+/* Distintivo: etiqueta corta en pastilla (operación, estado, «de ejemplo»). */
+.s-distintivo {
+  display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 var(--s-3);
+  border-radius: var(--s-r-pastilla); background: var(--s-muted); color: var(--s-ink);
+  font-size: var(--s-type-etiqueta); font-weight: 600; line-height: 1; white-space: nowrap;
+}
+.s-distintivo-acento { background: var(--s-accent-soft); color: var(--s-accent); }
+.s-distintivo-aviso { background: var(--s-warning-soft); color: var(--s-warning); }
+.s-distintivo-error { background: var(--s-error-soft); color: var(--s-error); }
+.s-distintivo-claro { background: #f8f8ff; color: #18202a; }
+.s-distintivo-media { background: var(--s-on-media); color: #ededef; font-weight: 500; }
+
+/* Lista con líneas finas: filas que llevan a otra parte y datos en dos columnas. */
+.s-lineas { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-line); }
+.s-lineas-fuerte { border-top-color: var(--s-ink); }
+.s-linea {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-6);
+  min-height: 64px; padding: var(--s-4) 0; border-bottom: 1px solid var(--s-line);
+  color: inherit; text-decoration: none;
+}
+.s-linea-titulo { display: flex; flex-direction: column; min-width: 0; font-size: var(--s-type-entrada); font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; }
+.s-lineas-grande .s-linea { padding-block: var(--s-6); }
+.s-lineas-grande .s-linea-titulo { font-size: var(--s-type-fila); letter-spacing: var(--s-track-tarjeta); }
+.s-linea-sub { font-size: var(--s-type-detalle); font-weight: 400; letter-spacing: 0; color: var(--s-ink-muted); }
+.s-linea > svg { flex: none; color: var(--s-accent); transition: transform 300ms var(--s-ease); }
+a.s-linea:hover > svg { transform: translate(3px, -3px); }
+a.s-linea:hover .s-linea-titulo { color: var(--s-accent); }
+.s-datos { margin: 0; border-top: 1px solid var(--s-line); }
+.s-datos > div { display: flex; justify-content: space-between; gap: var(--s-6); padding: var(--s-4) 0; border-bottom: 1px solid var(--s-line); }
+.s-datos dt { color: var(--s-ink-muted); }
+.s-datos dd { margin: 0; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Campo de formulario: etiqueta arriba, caja con borde de 3:1 o línea inferior (bandas oscuras). */
+.s-campo { display: flex; flex-direction: column; gap: var(--s-2); min-width: 0; }
+.s-campo-etiqueta { font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
+.s-campo-opcional { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
+.s-campo-control {
+  width: 100%; min-height: 48px; padding: 0 var(--s-4); box-sizing: border-box;
+  border: 1px solid var(--s-line-strong); border-radius: var(--s-r-tarjeta);
+  background: var(--s-card); color: var(--s-ink); font: inherit; font-size: var(--s-type-texto);
+  transition: border-color 200ms ease;
+}
+textarea.s-campo-control { min-height: 128px; padding-block: var(--s-3); resize: vertical; line-height: 1.5; }
+select.s-campo-control { appearance: none; padding-right: 44px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23556170' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+.s-campo-control::placeholder { color: color-mix(in srgb, var(--s-ink-muted) 80%, transparent); }
+.s-campo-control:hover { border-color: var(--s-ink); }
+.s-campo-control:focus-visible { outline: 2px solid var(--s-accent); outline-offset: 2px; border-color: var(--s-accent); }
+.s-campo-control[aria-invalid="true"] { border-color: var(--s-error); }
+.s-campo-linea .s-campo-control {
+  min-height: 64px; padding: 0; border: 0; border-bottom: 1px solid var(--s-line-strong); border-radius: 0;
+  background: transparent; font-size: clamp(20px, 2vw, 26px); letter-spacing: -0.02em;
+}
+.s-campo-linea .s-campo-control:focus-visible { outline-offset: 6px; }
+.s-campo-ayuda { margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
+.s-campo-error { margin: 0; font-size: var(--s-type-detalle); color: var(--s-error); }
+
+/* Tarjeta de propiedad: foto 4:3 con esquinas de 16, operación arriba a la izquierda y datos bajo una línea. */
+.s-tarjeta { display: flex; flex-direction: column; gap: 14px; color: inherit; text-decoration: none; }
+.s-tarjeta-foto { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--s-r-grande); background: var(--s-muted); }
+.s-tarjeta-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1200ms var(--s-ease); }
+.s-tarjeta-foto .s-distintivo { position: absolute; top: 12px; }
+.s-tarjeta-op { left: 12px; }
+.s-tarjeta-sello { right: 12px; }
+.s-tarjeta-cabeza { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-4); }
+.s-tarjeta-nombre { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.s-tarjeta-titulo { font-size: var(--s-type-tarjeta); font-weight: 500; line-height: 1.2; letter-spacing: var(--s-track-tarjeta); }
+.s-tarjeta-zona { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
+.s-tarjeta-precio { flex: none; font-size: 17px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.s-tarjeta-datos { padding-top: var(--s-3); border-top: 1px solid var(--s-line); font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
+.s-tarjeta-apagada .s-tarjeta-foto img { opacity: 0.8; }
+/* Vista en lista */
+.s-tarjeta-lista { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--s-4) 28px; padding: var(--s-5) 0; border-bottom: 1px solid var(--s-line); }
+.s-tarjeta-lista .s-tarjeta-foto { flex: none; width: 220px; height: 148px; aspect-ratio: auto; border-radius: var(--s-r-menu); }
+.s-tarjeta-lista .s-tarjeta-cuerpo { flex: 2 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.s-tarjeta-lista .s-tarjeta-titulo { font-size: clamp(22px, 2.2vw, 30px); line-height: 1.12; letter-spacing: var(--s-track-sub); }
+.s-tarjeta-lista .s-tarjeta-lado { flex: 0 1 240px; display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-2); text-align: right; }
+.s-tarjeta-lista .s-tarjeta-precio { font-size: 22px; letter-spacing: -0.02em; }
+/* Vista compacta (junto al mapa) */
+.s-tarjeta-compacta { gap: 10px; }
+.s-tarjeta-compacta .s-tarjeta-foto { border-radius: var(--s-r-menu); }
+.s-tarjeta-compacta .s-tarjeta-titulo { font-size: var(--s-type-interfaz); line-height: 1.25; letter-spacing: -0.015em; }
+.s-tarjeta-compacta .s-tarjeta-precio { font-size: var(--s-type-texto); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .s-tarjeta:hover .s-tarjeta-foto img { transform: scale(1.04); }
+}
+@media (max-width: 639px) {
+  .s-tarjeta-lista .s-tarjeta-foto { width: 100%; height: auto; aspect-ratio: 4 / 3; }
+  .s-tarjeta-lista .s-tarjeta-lado { align-items: flex-start; text-align: left; }
+}
+
+/* Interruptor (dos opciones): tema claro u oscuro. */
+.s-interruptor { display: inline-flex; align-items: center; gap: var(--s-3); min-height: 44px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; font-size: var(--s-type-interfaz); font-weight: 500; cursor: pointer; }
+.s-interruptor-pista { position: relative; flex: none; width: 44px; height: 26px; border-radius: var(--s-r-pastilla); background: var(--s-line-strong); transition: background-color 250ms ease; }
+.s-interruptor-pista::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--s-bg); transition: transform 300ms var(--s-ease); }
+.s-interruptor[aria-checked="true"] .s-interruptor-pista { background: var(--s-accent); }
+.s-interruptor[aria-checked="true"] .s-interruptor-pista::after { transform: translateX(18px); background: var(--s-accent-ink); }
+
+/* Pieza de una frase con lista (inventario): texto en acento con fondo suave al elegirse. */
+.s-frase-pieza { position: relative; display: inline-flex; }
+.s-frase-boton {
+  display: inline-flex; align-items: center; gap: 0.2em; padding: 0.04em 0.3em 0.08em 0.38em;
+  border: 0; border-radius: 0.28em; background: transparent; color: var(--s-accent);
+  font: inherit; letter-spacing: inherit; line-height: 1.12; text-align: left; cursor: pointer;
+  transition: background-color 200ms ease;
+}
+.s-frase-boton:hover, .s-frase-boton[aria-expanded="true"], .s-frase-boton[data-elegido="true"] { background: var(--s-accent-soft); }
+.s-frase-chevron { width: 0.46em; height: 0.46em; transition: transform 300ms ease; }
+.s-frase-boton[aria-expanded="true"] .s-frase-chevron { transform: rotate(180deg); }
+.s-frase-lista {
+  position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; min-width: 260px; max-height: min(360px, 60vh); overflow-y: auto;
+  margin: 0; padding: 6px; list-style: none; display: flex; flex-direction: column;
+  background: var(--s-raised); border: 1px solid var(--s-line); border-radius: var(--s-r-menu); box-shadow: var(--s-shadow-menu);
+  font-size: var(--s-type-texto); font-weight: 400; letter-spacing: 0; line-height: 1.4;
+}
+.s-frase-lista:focus-visible { outline-offset: 2px; }
+.s-frase-opcion { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 44px; padding: 0 var(--s-3); border-radius: var(--s-r-tarjeta); color: var(--s-ink); cursor: pointer; white-space: nowrap; }
+.s-frase-opcion[data-activo="true"] { background: var(--s-muted); }
+.s-frase-opcion[aria-selected="true"] { font-weight: 600; }
+.s-frase-opcion svg { flex: none; color: var(--s-accent); opacity: 0; }
+.s-frase-opcion[aria-selected="true"] svg { opacity: 1; }
+
+/* Logo */
+.s-logo { display: inline-flex; flex: none; color: var(--s-ink); }
+.s-logo svg { display: block; height: 100%; width: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .s-btn, .s-btn svg, .s-enlace svg, .s-pestana, .s-linea > svg, .s-tarjeta-foto img, .s-interruptor-pista, .s-interruptor-pista::after { transition: none; }
+}

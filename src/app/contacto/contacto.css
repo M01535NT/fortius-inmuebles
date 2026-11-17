@@ -11,10 +11,10 @@
 .ct-intents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-cerca); }
 .ct-intent { position: relative; display: grid; gap: var(--space-junto); align-content: start; min-height: 0; padding: var(--space-normal) var(--space-normal); border: 1px solid color-mix(in srgb, var(--ns-ink) 16%, transparent); border-radius: var(--corner-pulsable); background: transparent; color: var(--ns-ink); cursor: pointer; transition: border-color 0.3s, background-color 0.3s, transform 0.4s var(--pg-ease); }
 .ct-intent:hover { border-color: color-mix(in srgb, var(--ns-ink) 45%, transparent); transform: translateY(-2px); }
-.ct-intent[data-selected="true"] { border-color: #8a1634; background: #8a1634; color: #fff; }
+.ct-intent[data-selected="true"] { border-color: var(--s-accent); background: var(--s-accent); color: #fff; }
 .ct-intent:has(input:focus-visible) { outline: 2px solid var(--ns-ink); outline-offset: 3px; }
 .ct-intent-top { display: flex; align-items: center; justify-content: flex-end; min-height: 22px; }
-.ct-intent-check { display: grid; place-items: center; width: 22px; height: 22px; border-radius: var(--corner-pastilla); background: #f8f8ff; color: #8a1634; }
+.ct-intent-check { display: grid; place-items: center; width: 22px; height: 22px; border-radius: var(--corner-pastilla); background: #f8f8ff; color: var(--s-accent); }
 .ct-intent strong { margin-top: var(--space-cerca); font-size: var(--type-entrada); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; }
 .ct-intent small { color: color-mix(in srgb, var(--ns-ink) 70%, transparent); font-size: var(--type-etiqueta); line-height: 1.5; }
 .ct-intent[data-selected="true"] small { color: rgba(255, 255, 255, 0.82); }
