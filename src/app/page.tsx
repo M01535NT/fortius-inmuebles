@@ -9,6 +9,7 @@ import { TiraPropiedades } from "@/components/sitio/inicio/tira-propiedades";
 import { Zonas } from "@/components/sitio/inicio/zonas";
 import { FlechaDerecha } from "@/components/sitio/iconos";
 import { FilaLinea, ListaLineas } from "@/components/sitio/lineas";
+import type { Property } from "@/data/propiedades";
 import { getBlogPosts } from "@/lib/blog";
 import { getPublicSettings } from "@/lib/backend/public";
 import { getPropiedades } from "@/lib/inventario";
@@ -22,6 +23,19 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
   quiénes somos con el video que crece, tira de propiedades, calculadora, zonas, guías y el
   cierre «Cuéntanos tu asunto». Ya no lleva el método de cinco etapas ni el expediente.
 */
+/*
+  En el mercado ahora: primero las destacadas y luego las más recientes, sin repetir y nunca
+  vendidas ni rentadas. Hasta ocho; si hay menos publicadas, salen las que haya.
+*/
+function seleccionMercado(propiedades: Property[]): Property[] {
+  const vistas = new Set<string>();
+  return propiedades
+    .filter((p) => p.estado !== "vendida" && p.estado !== "rentada")
+    .filter((p) => (vistas.has(p.slug) ? false : (vistas.add(p.slug), true)))
+    .sort((a, b) => Number(b.destacada) - Number(a.destacada) || Date.parse(b.publicadaEl || "") - Date.parse(a.publicadaEl || "") || 0)
+    .slice(0, 8);
+}
+
 export default async function HomePage() {
   const [propiedades, guias, settings] = await Promise.all([
     getPropiedades().catch(() => []),
@@ -29,10 +43,7 @@ export default async function HomePage() {
     getPublicSettings().catch(() => null),
   ]);
   const contact = publicContact(settings, "Hola, quiero contarles mi asunto.");
-  const enMercado = propiedades
-    .filter((p) => p.demo || p.estado === "disponible")
-    .sort((a, b) => Number(Boolean(b.destacada)) - Number(Boolean(a.destacada)))
-    .slice(0, 8);
+  const enMercado = seleccionMercado(propiedades);
 
   return (
     <main className="ini">

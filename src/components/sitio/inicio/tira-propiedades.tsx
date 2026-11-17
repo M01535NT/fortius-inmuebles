@@ -5,30 +5,66 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { gsap, useGSAP } from "@/lib/gsap";
+import { videoEmbedUrl } from "@/lib/video-embed";
 import { Distintivo } from "@/components/sitio/distintivo";
 import { FlechaDerecha } from "@/components/sitio/iconos";
+import { VideoFondo } from "@/components/sitio/video-fondo";
 import { ESTADO_LABELS, formatPrecio, OPERACION_LABELS, type Property } from "@/data/propiedades";
 
 /*
-  En el mercado ahora (17/11/2026): tira de propiedades publicadas que se desliza de lado al
-  bajar. Las tarjetas alternan ancho, como en el boceto. En el teléfono, o con movimiento
-  reducido, la tira se recorre con el dedo o con la barra, sin desplazamiento automático.
+  En el mercado ahora (17/11/2026), como en el boceto: tira de tarjetas altas. La primera es ancha
+  y lleva el video del inmueble si tiene uno propio (un enlace de YouTube o Vimeo no sirve de
+  fondo; entonces va su foto). Al bajar, la tira se desliza de lado; también se arrastra con el
+  ratón o se recorre con el dedo o la rueda. En el teléfono y con movimiento reducido no se
+  desliza sola.
 */
 export function TiraPropiedades({ propiedades }: { propiedades: Property[] }) {
   const ref = React.useRef<HTMLElement>(null);
+  const marcoRef = React.useRef<HTMLDivElement>(null);
+  const arrastre = React.useRef({ activo: false, x: 0, scroll: 0, movio: false });
 
   useGSAP(() => {
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference) and (min-width: 768px)", () => {
       const pista = ref.current?.querySelector<HTMLElement>(".tp-pista");
-      const marco = ref.current?.querySelector<HTMLElement>(".tp-marco");
+      const marco = marcoRef.current;
       if (!pista || !marco) return;
       const sobra = () => Math.max(0, pista.scrollWidth - marco.clientWidth);
-      if (sobra() < 40) return;
       gsap.fromTo(pista, { x: 120 }, { x: () => -sobra(), ease: "none", scrollTrigger: { trigger: marco, start: "top bottom", end: "bottom top", scrub: 0.6, invalidateOnRefresh: true } });
     });
     return () => media.revert();
   }, { scope: ref, dependencies: [propiedades.length] });
+
+  // Arrastre con el ratón; el dedo y la rueda usan el desplazamiento propio del navegador.
+  const alBajar = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse" || e.button !== 0 || !marcoRef.current) return;
+    arrastre.current = { activo: true, x: e.clientX, scroll: marcoRef.current.scrollLeft, movio: false };
+  };
+  const alMover = (e: React.PointerEvent<HTMLDivElement>) => {
+    const a = arrastre.current;
+    const marco = marcoRef.current;
+    if (!a.activo || !marco) return;
+    const dx = e.clientX - a.x;
+    if (!a.movio && Math.abs(dx) > 6) {
+      a.movio = true;
+      marco.setPointerCapture(e.pointerId);
+      marco.classList.add("tp-arrastrando");
+    }
+    if (a.movio) marco.scrollLeft = a.scroll - dx;
+  };
+  const alSoltar = (e: React.PointerEvent<HTMLDivElement>) => {
+    arrastre.current.activo = false;
+    marcoRef.current?.classList.remove("tp-arrastrando");
+    if (marcoRef.current?.hasPointerCapture(e.pointerId)) marcoRef.current.releasePointerCapture(e.pointerId);
+  };
+  // Si hubo arrastre, el clic que lo termina no abre la ficha.
+  const alClic = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (arrastre.current.movio) {
+      e.preventDefault();
+      e.stopPropagation();
+      arrastre.current.movio = false;
+    }
+  };
 
   if (!propiedades.length) return null;
 
@@ -38,15 +74,26 @@ export function TiraPropiedades({ propiedades }: { propiedades: Property[] }) {
         <h2 id="tp-titulo" className="s-h2">En el mercado ahora</h2>
         <Link href="/inventario" className="s-enlace">Ver todo el inventario<FlechaDerecha /></Link>
       </div>
-      <div className="tp-marco">
+      <div
+        ref={marcoRef}
+        className="tp-marco"
+        onPointerDown={alBajar}
+        onPointerMove={alMover}
+        onPointerUp={alSoltar}
+        onPointerCancel={alSoltar}
+        onClickCapture={alClic}
+        onDragStart={(e) => e.preventDefault()}
+      >
         <ul className="tp-pista">
           {propiedades.map((p, i) => {
             const foto = p.galeria[0];
+            const video = i === 0 && p.videoUrl && !videoEmbedUrl(p.videoUrl) ? p.videoUrl : undefined;
             const sello = p.estado !== "disponible" ? ESTADO_LABELS[p.estado] : `${OPERACION_LABELS[p.operacion]}${p.demo ? " de ejemplo" : ""}`;
             return (
               <li key={p.slug} className={i % 3 === 0 ? "tp-ancha" : undefined}>
                 <Link href={`/inventario/${p.slug}`} className="tp-tarjeta">
                   {foto && <Image src={foto.src} alt={foto.alt} fill sizes="(max-width: 767px) 85vw, 640px" />}
+                  {video && foto && <VideoFondo mp4={video} poster={foto.src} className="tp-video" />}
                   <span className="tp-velo" aria-hidden="true" />
                   <span className="tp-arriba"><Distintivo tono="media">{sello}</Distintivo></span>
                   <span className="tp-abajo">

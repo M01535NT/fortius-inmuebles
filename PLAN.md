@@ -72,6 +72,8 @@ Etapas 1 a 5 construidas (17/11/2026). Vender y Contacto están guardados en la 
 - [x] Cierre «Cuéntanos tu asunto» con qué necesitas, nombre y teléfono.
 - [x] Tres videos nuevos (casa, plaza, nave) convertidos a WebM ligero, con respaldo MP4 y póster.
 - [ ] Probar el envío del cierre (no se mandó para no crear un contacto).
+- [x] En el mercado ahora: al menos cinco tarjetas cuando haya inmuebles publicados, primera con video y arrastre con el ratón.
+- [ ] Verla con cinco o más inmuebles publicados (hoy la base tiene uno).
 
 ## Etapa 5, paso a paso
 
@@ -87,6 +89,7 @@ Etapas 1 a 5 construidas (17/11/2026). Vender y Contacto están guardados en la 
 
 - Confirmar los nombres de los asuntos de la portada (hoy: Vender, Comprar, Rentar, Saber cuánto vale, Poner papeles en orden y Otro asunto).
 - Confirmar el texto de Opinión de valor: ahora dice que se entrega después de conocer el inmueble, sin decir que solo sale dentro del método.
+- Cargar en el panel al menos cuatro inmuebles de ejemplo más, marcados como ejemplo, para ver la tira «En el mercado ahora» completa (hoy solo hay uno publicado).
 - Dar la foto de cada asesor.
 - Capturar en el panel los lugares cercanos de cada inmueble.
 - Decidir si «Qué hay alrededor» necesita los grupos iglesias y hoteles: hoy el panel no los tiene.

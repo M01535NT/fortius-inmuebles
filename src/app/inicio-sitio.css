@@ -41,6 +41,8 @@
 .tp-cabeza { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-4) var(--s-7); padding-bottom: var(--s-8); }
 .tp-marco { overflow-x: auto; scrollbar-width: none; }
 .tp-marco::-webkit-scrollbar { display: none; }
+@media (pointer: fine) { .tp-marco { cursor: grab; } .tp-marco.tp-arrastrando { cursor: grabbing; user-select: none; } .tp-marco.tp-arrastrando a { pointer-events: none; } }
+.tp-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .tp-pista { display: flex; gap: var(--s-4); width: max-content; margin: 0; padding: 0 var(--s-gutter); list-style: none; }
 .tp-pista > li { flex: none; width: 420px; }
 .tp-pista > li.tp-ancha { width: 640px; }
