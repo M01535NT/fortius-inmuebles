@@ -52,7 +52,7 @@ Cada etapa termina con algo que puedes abrir y probar. No se pasa a la siguiente
 | **7. Directorio y Biblioteca** | Las personas con su asunto; las listas y planes que se copian | Buscas a una persona y llegas a su asunto; copias un plan de la Biblioteca a un asunto | Mediana |
 | **8. Inicio** | Lo que hay que atender, lo de hoy, la semana y lo que falta cobrar | Entras en la mañana y ves qué te toca | Chica |
 | **9. Equipo** | Lo que ve el director y lo que ve cada asesor | Entras con una cuenta de asesor y solo ves lo suyo | Mediana |
-| **10. Funciones extra** | Las funciones de uso diario de la lista de `SPEC.md` que no hayan entrado antes | Las pruebas una por una | Mediana |
+| **10. Funciones extra** | Primero: regresar a la ventana anterior, elegir dónde se abre cada ventana y los informes para el cliente. Después, las funciones de uso diario de la lista de `SPEC.md` que no hayan entrado antes | Regresas de una ventana a la anterior, la abres donde prefieras y mandas un informe desde un asunto. Las demás las pruebas una por una | Mediana |
 | **11. El cambio** | El panel nuevo reemplaza al provisional y se retira lo que sobra | El equipo entra al panel nuevo en la dirección de siempre | Chica |
 
 **Chica:** una o dos sesiones de trabajo. **Mediana:** varias sesiones. **Grande:** muchas sesiones, con varias revisiones tuyas en medio.
@@ -187,8 +187,33 @@ Una etapa se da por buena cuando todo lo de su lista se puede hacer en el panel,
 
 **10. Funciones extra**
 
+Las ventanas:
+
+- [ ] En el asunto de la plaza, de la ficha de un local regresas con la flecha a la lista de locales.
+- [ ] De un contrato regresas al apartado de Honorarios; de una herramienta, a la lista de herramientas.
+- [ ] Si no hay ventana anterior, la flecha cierra y quedas en el asunto.
+- [ ] Abres una ventana a la derecha, a la izquierda, al centro y a pantalla completa.
+- [ ] El panel recuerda la que elegiste: la siguiente ventana abre igual, también al volver a entrar.
+- [ ] Con un toque pasas a pantalla completa y vuelves a como estaba.
+- [ ] En el teléfono toda ventana abre a pantalla completa.
+
+Los informes para el cliente:
+
+- [ ] Desde la casa del suegro haces un informe para el comprador sin capturar nada: sale con lo hecho, lo que sigue y lo que le falta entregar.
+- [ ] Desde la plaza, el informe para la propietaria dice cuántos preguntaron, cuántas visitas hubo y qué ofertas llegaron por cada local, sin nombres ni teléfonos de los interesados.
+- [ ] En el caso de asesoría eliges a cuál de los dos clientes va, o a los dos.
+- [ ] Cambias el párrafo de «En qué va» y apagas una parte (por ejemplo, Dinero): la hoja cambia al momento.
+- [ ] El informe no lleva notas internas, decisiones internas ni el análisis de la opinión jurídica.
+- [ ] Lo descargas en PDF y lo mandas por WhatsApp. El panel no lo envía solo.
+- [ ] Queda en Documentos, en «Informes», con su número, y anotado en el Historial.
+- [ ] Lo pones cada mes: nace la tarea de mandarlo, aparece en Inicio y, al mandarlo, nace la del mes siguiente.
+
+Lo demás:
+
 - [ ] Cada función de la lista de `SPEC.md` que haya entrado se prueba con uno de los casos reales.
 - [ ] Las que no entren quedan anotadas aquí, con su motivo.
+
+*17/11: las ventanas y los informes para el cliente ya están escritos en `SPEC.md`; el boceto todavía no los muestra. La hoja del informe es una propuesta: la ves y la apruebas cuando se construya. Las tareas que se repiten, pendientes de la etapa 5, se construyen aquí porque el informe periódico las usa.*
 
 **11. El cambio**
 
@@ -249,5 +274,5 @@ No pongo fechas porque no las puedo cumplir con honestidad: depende de cuántas 
 | 7. Directorio y Biblioteca | Aprobada el 17/11 con datos simulados; falta probarla con datos reales |
 | 8. Inicio | Aprobada el 17/11 con datos simulados; falta probarla con datos reales |
 | 9. Equipo | Construida el 17/11 con datos simulados; espera tu aprobación |
-| 10. Funciones extra | Pendiente |
+| 10. Funciones extra | Pendiente. Empieza por las ventanas y los informes para el cliente |
 | 11. El cambio | Pendiente |

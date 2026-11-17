@@ -2,7 +2,7 @@
 
 Este documento describe el sistema completo: qué es, qué partes tiene y qué reglas sigue. Lo decide Moisés Núñez Tonalá, el titular. Si el código hace algo distinto a lo que dice aquí, se corrige el código.
 
-**Actualizado:** 16 de noviembre de 2026.
+**Actualizado:** 17 de noviembre de 2026.
 
 **Esta es la versión vigente al día de hoy.** No es definitiva: va a cambiar conforme el sistema se use y el titular decida cosas nuevas. Cómo se cambia está en la sección 19.
 
@@ -127,7 +127,7 @@ No abren asunto por sí solas una visita, un archivo que llega o un cambio de pr
 
 ### Los apartados
 
-Las partes de un asunto se llaman **apartados**. Cada uno es un renglón con su ícono y un resumen; al tocarlo se abre una ventana a un lado, sin salir del asunto.
+Las partes de un asunto se llaman **apartados**. Cada uno es un renglón con su ícono y un resumen; al tocarlo se abre una ventana, sin salir del asunto. Dónde se abre y cómo se regresa está en «Las ventanas», en la sección 14.
 
 - **Siempre están:** Personas, Plan e Historial.
 - **Los demás** aparecen según lo que encargaron, y se **agregan o se quitan** cuando convenga. Quitar un apartado solo lo oculta; lo capturado se conserva.
@@ -169,6 +169,29 @@ La vista se puede cambiar después sin perder lo capturado. Un apartado propio s
 - **Toda tarea que le toca a otro** (el cliente, el abogado, la notaría) nace con una fecha de «volver a preguntar», tres días después de su fecha, para que no se quede dormida.
 - Esa tarea trae un botón **«Recordarle»**, que abre WhatsApp con el mensaje ya escrito y recorre la fecha de volver a preguntar tres días más.
 - Inicio muestra lo que lleva más días esperando a otra persona, empezando por lo que más tarda.
+
+### Informes para el cliente
+
+Cuando el cliente pide saber cómo va su asunto, el informe se hace desde el mismo asunto: «Nuevo» → «Informe para el cliente».
+
+- **Se arma solo con lo que el asunto ya tiene,** con la hoja a la vista, igual que un formato. El asesor no vuelve a capturar nada.
+- **Para quién:** se elige a una o varias personas del asunto.
+- **Qué lleva,** en una hoja tamaño carta con el encabezado de Fortius, el número de informe, la fecha, el nombre del asunto y su folio:
+
+| Parte | De dónde sale |
+| --- | --- |
+| **En qué va** | Un párrafo que el sistema propone y el asesor cambia a su gusto |
+| **Lo que se hizo** | Las tareas terminadas y los documentos recibidos desde el informe anterior |
+| **Lo que sigue** | Las próximas tareas del plan, con su fecha y quién las hace |
+| **Lo que necesitamos de usted** | Los documentos que le faltan por entregar y las tareas que le tocan |
+| **Actividad del inmueble** | Solo si se comercializa: cuántas personas preguntaron, cuántas visitas hubo y qué ofertas llegaron, por cada inmueble |
+| **Dinero** | Lo acordado, lo cobrado y lo que falta, y los gastos de terceros |
+
+- **Cada parte se enciende o se apaga** antes de mandarlo. Una parte sin contenido no sale.
+- **Nunca lleva** notas internas, decisiones internas, el análisis de la opinión jurídica ni los nombres o teléfonos de los interesados.
+- **Sale en PDF o como mensaje para WhatsApp.** No se manda solo: lo envía el asesor.
+- **Queda guardado** en los Documentos del asunto, en el grupo «Informes», con su número, y anotado en el Historial. Un informe ya mandado no cambia; el siguiente es uno nuevo.
+- **Se puede repetir:** cada semana, cada 15 días o cada mes. El asunto crea la tarea «Mandar el informe» para ese día y aparece en Inicio; al mandarlo, nace la del siguiente.
 
 ### Cerrar un asunto
 
@@ -266,7 +289,7 @@ Trabajo que se puede hacer en cualquier momento, con asunto o sin él.
 - La opinión de valor es un servicio, como un avalúo: se hace cuando alguien la pide.
 - Todo cálculo fiscal dice de dónde sale y en qué fecha se revisó. Si no hay una regla vigente, el sistema dice «pendiente»; nunca inventa una tasa.
 - **Los trabajos sueltos** los ve solo quien los hizo y el director. Uno se pasa a un asunto una sola vez y ya no cambia de asunto.
-- Desde un asunto, «Nuevo» ofrece «Contrato o formato» y «Herramienta»; lo que se guarda va a sus Documentos.
+- Desde un asunto, «Nuevo» ofrece «Contrato o formato», «Herramienta» e «Informe para el cliente»; lo que se guarda va a sus Documentos.
 - La lista de formatos se agrupa (contratos, para el cliente, del inmueble, entrevistas y registros, levantamiento) solo para encontrarlos rápido: ningún grupo es un orden obligatorio.
 - **Gastos del vendedor** no estima el ISR: se escribe el que dé la notaría o el que salga del cálculo de ISR.
 - El cálculo de ISR toma lo que falte como falta, no como cero: si no se escribe la comisión o los gastos, el resultado dice «Pendiente» y qué falta.
@@ -330,6 +353,25 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 - **Accesible:** se puede usar con teclado, los botones son grandes en el teléfono y el estado de algo se entiende sin depender solo del color.
 - Los datos de ejemplo siempre dicen que son de ejemplo.
 
+### Las ventanas
+
+Los apartados de un asunto, la ficha de un inmueble, las herramientas y las guías de la Biblioteca se abren en una ventana, sin perder de vista dónde se estaba.
+
+- **Regresar:** toda ventana tiene una flecha ← que regresa a la ventana anterior: de la ficha de un local a la lista de locales, de un contrato al apartado de Honorarios, de una herramienta a la lista de herramientas. Si no hay ventana anterior, la flecha cierra la ventana y deja a la vista el asunto o la sección de donde se abrió.
+- **Dónde se abre:** un botón en la cabecera de la ventana abre una lista con cuatro opciones:
+
+| Opción | Cómo se ve |
+| --- | --- |
+| **A la derecha** | La ventana ocupa el lado derecho y lo demás sigue a la vista. Así empieza |
+| **A la izquierda** | Lo mismo, del otro lado |
+| **Al centro** | Una ventana grande en medio, con lo demás atenuado detrás |
+| **Pantalla completa** | Ocupa toda la pantalla |
+
+- **El panel recuerda** la opción elegida y abre así las siguientes ventanas, hasta que se cambie. Es de cada persona, en cada equipo que use.
+- Junto a ese botón hay otro para pasar a **pantalla completa y volver** con un toque.
+- **En el teléfono** toda ventana se abre a pantalla completa y esos dos botones no aparecen.
+- Los formatos por preguntas y los informes para el cliente se abren siempre a pantalla completa, porque llevan la hoja a un lado.
+
 El boceto aprobado es la referencia de cómo se ve cada pantalla.
 
 ## 15. Funciones, en orden
@@ -342,6 +384,8 @@ El boceto aprobado es la referencia de cómo se ve cada pantalla.
 - Guardar una vista o un filtro con nombre, para volver a él con un toque.
 - Favoritos y recientes.
 - Recordatorios de vencimientos.
+- Regresar a la ventana anterior y elegir dónde se abre cada ventana.
+- Informes para el cliente desde su asunto.
 - Tiempo que lleva esperando quien escribió.
 - Comentarios y menciones.
 - Un solo lugar con todo lo que te mencionaron o asignaron.
@@ -352,7 +396,7 @@ El boceto aprobado es la referencia de cómo se ve cada pantalla.
 - Leer documentos y sacar sus datos.
 - Resumen del asunto en tres líneas.
 - Redactar el mensaje para el cliente con los datos del asunto.
-- Que el cliente vea el avance de su asunto en esa misma liga.
+- Que el cliente vea el avance de su asunto en esa misma liga: ahí aparece el último informe que se le mandó.
 
 **Más adelante:**
 
