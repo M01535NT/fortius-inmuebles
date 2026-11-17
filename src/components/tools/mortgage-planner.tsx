@@ -45,7 +45,7 @@ function BalanceChart({ result }: { result: MortgageResult }) {
     `M 0 0 ${rows.map((r) => `L ${(r.month / result.baseline.length) * 500} ${(1 - r.balance / result.principal) * 150}`).join(" ")}`;
   return (
     <div className="mt-7 rounded-md border border-border p-4">
-      <h3 className="text-sm font-medium">Cómo baja tu deuda</h3>
+      <h3 className="text-sm font-semibold">Cómo baja tu deuda</h3>
       <svg
         viewBox="0 0 500 150"
         className="my-4 h-40 w-full overflow-visible"
@@ -106,7 +106,7 @@ function Amortization({ result }: { result: MortgageResult }) {
   if (!result.schedule.length) return null;
   return (
     <details className="mt-6 border-t border-border pt-4">
-      <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
+      <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-semibold">
         Tabla de amortización
       </summary>
       <div
@@ -132,7 +132,7 @@ function Amortization({ result }: { result: MortgageResult }) {
                 "Saldo",
                 "Egreso conocido",
               ].map((s) => (
-                <th key={s} scope="col" className="p-3 font-medium">
+                <th key={s} scope="col" className="p-3 font-semibold">
                   {s}
                 </th>
               ))}
@@ -400,7 +400,7 @@ export function MortgagePlanner({
               )}
             </div>
             <details open={!compact} className="border-t border-border pt-3">
-              <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
+              <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-semibold">
                 Cotización y cargos del banco
               </summary>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -461,7 +461,7 @@ export function MortgagePlanner({
               </div>
             </details>
             <details className="border-t border-border pt-3">
-              <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
+              <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-semibold">
                 Abonos anticipados
               </summary>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -492,7 +492,7 @@ export function MortgagePlanner({
             </details>
             {!compact && (
               <details className="border-t border-border pt-3">
-                <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
+                <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-semibold">
                   ¿Cabe en mi presupuesto?
                 </summary>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -580,7 +580,7 @@ export function MortgagePlanner({
                 </dl>
                 {result.extraPaid > 0 && (
                   <div className="mt-5 rounded-md bg-secondary p-4">
-                    <p className="text-sm font-medium">Con tus abonos</p>
+                    <p className="text-sm font-semibold">Con tus abonos</p>
                     <p className="mt-2 text-sm leading-relaxed">
                       Ahorras {money(result.interestSaved)} en intereses y
                       terminas en {result.schedule.length} meses
@@ -651,7 +651,7 @@ export function MortgagePlanner({
                 href={FINANCIAL_SOURCES.cat.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary-ink underline underline-offset-4"
+                className="inline-flex min-h-11 items-center text-primary-ink underline underline-offset-4"
               >
                 Banxico: qué incluye el CAT
               </a>
@@ -677,7 +677,7 @@ export function MortgagePlanner({
                 key={s.id}
                 className="min-w-0 rounded-md border border-border p-4"
               >
-                <h3 className="font-medium">Escenario {index + 1}</h3>
+                <h3 className="font-semibold">Escenario {index + 1}</h3>
                 <p className="mt-2 text-etiqueta text-muted-foreground">
                   {s.input.downPercent}% de enganche · {s.input.annualRate}%
                   nominal · {s.input.months} meses

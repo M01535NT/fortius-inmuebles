@@ -1,0 +1,57 @@
+/* Trámites (boceto Tramites y TramitesEscritorio): punto de estado, pasos como acordeón, línea de espera y secciones. */
+.panel-root .pn-tra-h1 { margin: 0; font-size: 34px; line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+@media (min-width: 768px) { .panel-root .pn-tra-h1 { font-size: 24px; line-height: 1.1; } }
+.panel-root .pn-tra-punto { flex: none; width: 10px; height: 10px; border-radius: 999px; background: var(--border-strong); }
+.panel-root .pn-tra-punto[data-estado="ahora"], .panel-root .pn-tra-punto[data-estado="en_curso"] { background: var(--accent); }
+.panel-root .pn-tra-punto[data-estado="espera"], .panel-root .pn-tra-punto[data-estado="esperando"] { background: var(--ink-muted); }
+.panel-root .pn-tra-punto[data-estado="hoy"] { background: var(--warning); }
+.panel-root .pn-tra-punto[data-estado="listo"] { background: transparent; box-shadow: inset 0 0 0 2px var(--border-strong); }
+.panel-root .pn-tra-punto[data-estado="pendiente"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--border-strong); }
+.panel-root .pn-tra-pasos { list-style: none; margin: 0; padding: 0; overflow: hidden; }
+.panel-root .pn-tra-paso { border-top: 1px solid var(--border); }
+.panel-root .pn-tra-paso:first-child { border-top: 0; }
+.panel-root .pn-tra-cab { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 10px 14px; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.panel-root .pn-tra-cab[aria-disabled="true"] { cursor: default; }
+.panel-root .pn-tra-cab:not([aria-disabled="true"]):hover { background: var(--bg); }
+.panel-root .pn-tra-cab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.panel-root .pn-tra-nombre { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; color: var(--ink-muted); }
+.panel-root .pn-tra-nombre[data-actual], .panel-root .pn-tra-nombre[data-listo] { color: var(--ink); }
+.panel-root .pn-tra-nombre[data-actual] { font-weight: 600; }
+.panel-root .pn-tra-estado { flex: none; font-size: 13px; color: var(--ink-muted); white-space: nowrap; }
+.panel-root .pn-tra-estado[data-actual] { color: var(--accent); font-weight: 600; }
+.panel-root .pn-tra-cuerpo { display: grid; gap: 10px; padding: 0 14px 14px 36px; }
+.panel-root .pn-tra-cuerpo > p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink-muted); }
+/* Línea de espera o de estado: borde a la izquierda con el tono, sin sombra. */
+.panel-root .pn-tra-linea { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid transparent; border-left: 3px solid var(--border-strong); border-radius: var(--r-md); background: var(--card); font-size: 14px; line-height: 1.45; }
+.panel-root .pn-tra-linea b { font-weight: 600; }
+.panel-root .pn-tra-linea[data-tono="toca"] { border-left-color: var(--warning); background: var(--warning-soft); }
+.panel-root .pn-tra-linea[data-tono="espera"] { border-left-color: var(--ink-muted); }
+.panel-root .pn-tra-linea[data-tono="listo"] { border-left-color: var(--accent); }
+.panel-root .pn-tra-doc { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 14px; border: 0; border-top: 1px solid var(--border); background: var(--card); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.panel-root .pn-tra-doc:first-child { border-top: 0; }
+.panel-root .pn-tra-doc:hover { background: var(--bg); }
+.panel-root .pn-tra-doc > svg { flex: none; color: var(--ink-muted); }
+.panel-root .pn-tra-doc b { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.panel-root .pn-tra-doc small { font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-tra-kv { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--border); font-size: 15px; }
+.panel-root .pn-tra-kv:first-child { border-top: 0; }
+.panel-root .pn-tra-kv > span:first-child { color: var(--ink-muted); }
+.panel-root .pn-tra-kv > span:last-child { font-weight: 600; text-align: right; }
+.panel-root .pn-tra-pie { display: flex; flex-wrap: wrap; gap: 6px 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--ink-muted); }
+/* Institución del paso o la parte, bajo el nombre (boceto: «CFE», «Registro Público»). */
+.panel-root .pn-tra-nombre { display: flex; flex-direction: column; gap: 2px; }
+.panel-root .pn-tra-inst { font-style: normal; font-size: 13px; font-weight: 400; color: var(--ink-muted); }
+.panel-root .pn-tra-confirmar { margin: 0; font-size: 13px; color: var(--warning); }
+.panel-root .pn-tra-agregar { display: flex; gap: 8px; align-items: flex-end; }
+/* Bloques que se abren dentro del trámite (tarea, avance): línea, sin sombra. */
+.panel-root .pn-tra-hoja { display: grid; gap: 10px; padding: 12px; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--card); }
+.panel-root .pn-tra-mensaje { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 14px; line-height: 1.5; padding: 12px; background: var(--muted); border-radius: var(--r-md); }
+.panel-root .pn-tra-aviso-notas { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-tra-aviso-notas > svg { flex: none; margin-top: 1px; }
+/* Visor de documentos. */
+.pn-tra-visor { width: min(880px, calc(100vw - 32px)); max-width: none; display: grid; gap: 12px; }
+.pn-tra-visor-hoja { display: grid; place-items: center; min-height: 320px; height: min(70vh, 760px); border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg); overflow: hidden; }
+.pn-tra-visor-hoja img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.pn-tra-visor-hoja iframe { width: 100%; height: 100%; border: 0; }
+/* «Ver listos (3)» al final de la lista. */
+.panel-root .pn-tra-mas { display: flex; justify-content: center; }

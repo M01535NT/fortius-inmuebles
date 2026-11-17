@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Field, inputClass, selectClass } from "@/components/admin/ui";
 import { uploadFile } from "@/lib/admin/store";
+import { FormDateField } from "@/components/admin/properties/disclosure";
 import type { PropertyAlly } from "@/lib/propiedad-seguimiento";
 
 const PRIVATE_BUCKET = "fortius-inmuebles-private";
@@ -67,7 +68,7 @@ export function PropertyOrigin({ origen: initialOrigin, aliado, allies, onChange
         {error && <p role="alert" className="m-0 text-sm text-destructive sm:col-span-2">{error}</p>}
         {authorization.path && !uploading && <p className="m-0 text-sm sm:col-span-2">Adjunta: <a href={privateFileUrl(authorization.path)} target="_blank" rel="noreferrer" className="text-primary-ink underline underline-offset-4">{authorization.nombre || "ver autorización"}</a></p>}
         <Field label="Fecha de la autorización" htmlFor={`${id}-fecha`}>
-          <input id={`${id}-fecha`} name="aliadoAutorizacionFecha" type="date" defaultValue={aliado?.autorizacion?.fecha ?? ""} className={inputClass} />
+          <FormDateField id={`${id}-fecha`} name="aliadoAutorizacionFecha" defaultValue={aliado?.autorizacion?.fecha ?? ""} onChange={onChange} />
         </Field>
         <Field label="Quién la firmó o envió" htmlFor={`${id}-firmante`}>
           <input id={`${id}-firmante`} name="aliadoAutorizacionFirmante" maxLength={160} defaultValue={aliado?.autorizacion?.firmante ?? ""} className={inputClass} />

@@ -14,7 +14,7 @@ test("la promesa en vivo imprime vendedor y comprador aunque falten otras fechas
 });
 
 // BUG-C11: un comparable en USD sin tipo de cambio se descarta sin aviso; el panel y el Excel
-// (que lo cuenta como 0) dan medias distintas. docs/formatos-admin-status.md: el 07 «rechaza… monedas sin conversión».
+// (que lo cuenta como 0) dan medias distintas. docs/formatos/estado-de-los-formatos.md: el 07 «rechaza… monedas sin conversión».
 test("la opinión 07 avisa cuando un comparable en dólares no tiene tipo de cambio", () => {
   const comp = (precio: number, moneda = "MXN") => ({ precio, superficie: 100, moneda });
   const r = calcularValor({ baseMercado: "Construcción", construccion: 100, pesoMercado: 100, pesoIngresos: 0, pesoFisico: 0, comparablesConstruccion: [comp(2000000), comp(2100000), comp(2200000), comp(50000, "USD")] });

@@ -39,7 +39,7 @@ export const REQUIREMENT_PLAIN_LABELS: Record<RequirementKey, string> = {
   entrega: "Entrega con acta",
   registro: "Trámite de registro",
   honorarios: "Honorarios cobrados",
-  archivo: "Pendientes resueltos y operación archivada",
+  archivo: "Pendientes resueltos y asunto archivado",
   perfil: "Qué busca el cliente y quién decide",
   capacidad: "Presupuesto y crédito comprobados",
   privacidad: "Aviso y controles de privacidad revisados",
@@ -54,7 +54,7 @@ export const REQUIREMENT_PLAIN_LABELS: Record<RequirementKey, string> = {
   escenarios_inversion: "Escenarios revisados",
   riesgos_inversion: "Riesgos revisados",
   decision_inversion: "Decisión y capital autorizados",
-  ejecucion_inversion: "Operación de compra vinculada",
+  ejecucion_inversion: "Asunto de compra vinculado",
   seguimiento_inversion: "Seguimiento de resultados",
 };
 /** En la renta del propietario algunos requisitos se llaman por lo que son en una renta (COR-04). */
@@ -105,7 +105,6 @@ export type QueueItem = {
   /** Prospecto nuevo del sitio: Hoy ofrece «Registrar contacto» (COR-21). */
   leadId?: string;
 };
-export const QUEUE_LABEL: Record<QueueKind, string> = { plazo: "Pasó el plazo", problema: "Problema", vencida: "Vencida", nuevo: "Nuevo", llaves: "Llaves", contrato: "Contrato", licencia: "Licencia", informe: "Informe", falta: "Falta", revisar: "Revisar", hoy: "Vence hoy", decidir: "Oferta", entrevista: "Entrevista", seguimiento: "Seguimiento", agendar: "Agendar", aviso: "Aviso" };
 // Las operaciones siguen el orden de RP-84 (problema, vencida, falta, revisar, vence hoy, oferta, sin próxima tarea).
 const QUEUE_RANK: Record<QueueKind, number> = { plazo: -1, problema: 0, vencida: 1, nuevo: 2, llaves: 3, contrato: 4, licencia: 4, informe: 5, falta: 6, revisar: 7, hoy: 8, decidir: 9, entrevista: 10, seguimiento: 11, agendar: 12, aviso: 13 };
 const WAITING_KIND: Record<AttentionKind | "contacto", QueueKind> = { problema: "problema", vencida: "vencida", falta: "falta", revisar: "revisar", hoy: "hoy", oferta: "decidir", agendar: "agendar", contacto: "seguimiento" };
@@ -236,7 +235,7 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
   const items: UpcomingItem[] = [];
   for (const task of tasks.filter(t => isTaskOpen(t) && inRange(t.vence))) {
     const d = dossierOf(task.expedienteId);
-    items.push({ id: `tarea:${task.id}`, date: task.vence!, kind: "Tarea", text: task.titulo, meta: d ? label(d) : names.property(task.propiedadSlug) ?? "Sin operación", href: `/admin/tareas/${encodeURIComponent(task.id)}` });
+    items.push({ id: `tarea:${task.id}`, date: task.vence!, kind: "Tarea", text: task.titulo, meta: d ? label(d) : names.property(task.propiedadSlug) ?? "Sin asunto", href: `/admin/tareas/${encodeURIComponent(task.id)}` });
   }
   for (const d of dossiers.filter(active)) {
     for (const [key, r] of Object.entries(d.flujo?.requisitos ?? {}) as Array<[RequirementKey, NonNullable<OperationWorkflow["requisitos"][RequirementKey]>]>) {
@@ -292,7 +291,7 @@ export function expiryItems({ contracts, dossiers, names, today }: { contracts: 
         licences.add(key);
         items.push({ id: `licencia:${key}`, date: vigencia, kind: "Licencia", late: left < 0, href,
           text: left < 0 ? `La licencia estatal venció el ${shortDate(vigencia)}. Renuévala antes de firmar más contratos.` : `La licencia estatal vence ${inDays(left)}, el ${shortDate(vigencia)}. Tramita la renovación.`,
-          meta: [contract.licencia?.numero ? `Licencia ${contract.licencia.numero}` : undefined, `en la operación de ${who}`].filter(Boolean).join(" · ") });
+          meta: [contract.licencia?.numero ? `Licencia ${contract.licencia.numero}` : undefined, `en el asunto de ${who}`].filter(Boolean).join(" · ") });
       }
     }
   }

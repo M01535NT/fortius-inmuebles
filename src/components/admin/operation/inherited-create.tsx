@@ -2,10 +2,12 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/admin/kit";
-import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
+import { inputClass, textareaClass } from "@/components/admin/ui";
+import { DateField } from "@/components/ui/date-field";
 import { apiRequest, db, errorMessage, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { operationHref, type OperationRecord } from "@/lib/admin/operation-view";
+import { Combobox, photoOption } from "./pickers";
 
 /*
   COR-24 (12/11/2026): el director da de alta un inmueble que el asesor trae con contrato ya
@@ -46,16 +48,15 @@ export function InheritedCreate({ onDirtyChange, taken }: { onDirtyChange?: (dir
   }
 
   return <form className="flex flex-col gap-4" onSubmit={event => void create(event)} noValidate>
-    <p className="text-sm text-muted-foreground">Para un inmueble que el asesor ya trae con contrato firmado. La entrevista, el levantamiento y el plan se dan por cubiertos. Antes de publicar, en la operación, registras el contrato firmado y revisas la titularidad, la factibilidad, el valor y el precio.</p>
-    <label className="text-sm font-semibold">Inmueble<select className={selectClass} value={slug} onChange={e => setSlug(e.target.value)} disabled={busy}>
-      <option value="">{options.length ? "Elige el inmueble…" : "No hay inmuebles sin operación"}</option>
-      {options.map(p => <option key={p.slug} value={p.slug}>{p.titulo} · {adviserOf(p.asesorId)}</option>)}
-    </select></label>
+    <p className="text-sm text-muted-foreground">Para un inmueble que el asesor ya trae con contrato firmado. La entrevista, el levantamiento y el plan se dan por cubiertos. Antes de publicar, en el asunto, registras el contrato firmado y revisas la titularidad, la factibilidad, el valor y el precio.</p>
+    <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Inmueble</span><Combobox aria-label="Inmueble" className="font-normal" value={slug} onChange={setSlug} disabled={busy}
+      placeholder={options.length ? "Elige el inmueble…" : "No hay inmuebles sin asunto"} searchPlaceholder="Buscar inmueble…"
+      options={options.map(p => photoOption(p.slug, p.titulo, p.galeria[0]?.src, adviserOf(p.asesorId)))} /></span>
     <div className="grid gap-3 sm:grid-cols-2">
       <label className="text-sm font-semibold">Nombre del propietario<input className={inputClass} maxLength={160} value={name} onChange={e => setName(e.target.value)} disabled={busy} autoComplete="off" /></label>
       <label className="text-sm font-semibold">Teléfono<input className={inputClass} inputMode="tel" maxLength={40} value={phone} onChange={e => setPhone(e.target.value)} disabled={busy} autoComplete="off" /></label>
     </div>
-    <label className="text-sm font-semibold sm:max-w-xs">Contrato firmado desde<input type="date" className={inputClass} max={today} value={since} onChange={e => setSince(e.target.value)} disabled={busy} /></label>
+    <span className="flex flex-col gap-1.5 text-sm font-semibold sm:max-w-xs"><span>Contrato firmado desde</span><DateField aria-label="Contrato firmado desde" className="font-normal" max={today} value={since} onChange={setSince} disabled={busy} /></span>
     <label className="text-sm font-semibold">Motivo de la excepción<textarea className={textareaClass} rows={2} maxLength={1000} value={reason} onChange={e => setReason(e.target.value)} disabled={busy} /></label>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     <div><Button type="submit" variant="primary" disabled={busy}>{busy ? "Dando de alta…" : "Dar de alta"}</Button></div>

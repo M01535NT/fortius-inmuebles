@@ -65,14 +65,14 @@ function ClienteDetail({ id }: { id: string }) {
   const operations = (dossiers ?? []).map(d => ({
     id: d.id, clienteId: d.cliente_id,
     stage: processStageText(d.etapa, d.flujo, today) || "curso",
-    label: `${VERB[d.flujo?.ruta ?? ""] ?? "Operación"} · ${propiedades.find(p => p.slug === d.propiedad_slug)?.titulo ?? "sin inmueble vinculado"}`,
+    label: `${VERB[d.flujo?.ruta ?? ""] ?? "Asunto"} · ${propiedades.find(p => p.slug === d.propiedad_slug)?.titulo ?? "sin inmueble vinculado"}`,
   }));
   const opIds = new Set(operations.map(op => op.id));
   const mine = (ref: { leadId?: string; clienteId?: string; expedienteId?: string }) => ref.clienteId === id || (!!cliente.leadId && ref.leadId === cliente.leadId) || (!!ref.expedienteId && opIds.has(ref.expedienteId));
   const step = nextStep(cliente, "cliente", tareas, eventos, today, operations);
   const { upcoming, past } = personTimeline({
     notes: cliente.leadOriginal?.notas, events: eventos.filter(mine), tasks: tareas.filter(mine), today,
-    records: [{ id: "alta", text: "Se registró", at: cliente.creadoEl }, { id: "conversion", text: "Empezó su operación", at: cliente.convertidoEl },
+    records: [{ id: "alta", text: "Se registró", at: cliente.creadoEl }, { id: "conversion", text: "Empezó su asunto", at: cliente.convertidoEl },
       ...(dossiers ?? []).flatMap(d => d.flujo?.firmaContrato ? [{ id: `firma:${d.id}`, text: "Firmó su contrato con Fortius", at: d.flujo.firmaContrato.fecha }] : [])],
   });
   const duplicates = duplicateContacts(cliente, clientes);
@@ -80,9 +80,9 @@ function ClienteDetail({ id }: { id: string }) {
   const linkQuery = new URLSearchParams({ clienteId: id, ...(cliente.leadId ? { leadId: cliente.leadId } : {}), ...(cliente.propiedadSlug ? { propiedadSlug: cliente.propiedadSlug } : {}) });
   // Se elimina a Eliminados (13/11/2026), también quien vino de un prospecto: su historial vuelve al restaurarlo.
   // Con una operación en curso no se puede: primero se cierra o se elimina la operación (el servidor también lo revisa).
-  const blocking = dossiers === undefined ? "Consultando sus operaciones…" : dossiers === null ? "No se pudieron revisar sus operaciones" : dossiers.length ? `Tiene ${dossiers.length === 1 ? `la operación ${dossiers[0].folio}` : `${dossiers.length} operaciones`} en curso` : "";
+  const blocking = dossiers === undefined ? "Consultando sus asuntos…" : dossiers === null ? "No se pudieron revisar sus asuntos" : dossiers.length ? `Tiene ${dossiers.length === 1 ? `el asunto ${dossiers[0].folio}` : `${dossiers.length} asuntos`} en curso` : "";
   const removeClient = async () => {
-    if (!await confirmDelete("cliente", `${cliente.nombre} sale de Contactos.`, "o")) return;
+    if (!await confirmDelete("cliente", cliente.leadId ? `${cliente.nombre} sale de Contactos junto con su ficha de prospecto y sus tareas.` : `${cliente.nombre} sale de Contactos con sus tareas.`, "o")) return;
     await removeById(db.clientes, cliente.id, db.clientes.version(cliente));
     router.push("/admin/contactos?tab=clientes");
   };
@@ -103,16 +103,16 @@ function ClienteDetail({ id }: { id: string }) {
       {/* Si este es el que sobra, se elimina aquí mismo (titular, 14/11/2026), salvo con una operación en curso. */}
       {duplicates.length > 0 && <Notice title="Puede estar repetido" actions={editing ? undefined : <span className="flex flex-col items-start gap-1"><AsyncButton className={buttonClass({ variant: "danger" })} disabled={!!blocking} onClick={removeClient}><Trash2 size={16} aria-hidden="true" />Eliminar este registro</AsyncButton>{blocking && <span className="text-sm">{blocking}.</span>}</span>}>Revisa antes de crear otro registro: {duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/clientes/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
 
-      <NextStepCard step={step} today={today} fallback={dossiers === undefined ? "Consultando sus operaciones…" : operations.length ? "Su operación sigue en curso." : "Sin operación abierta ni seguimiento con fecha."}>
+      <NextStepCard step={step} today={today} fallback={dossiers === undefined ? "Consultando sus asuntos…" : operations.length ? "Su asunto sigue en curso." : "Sin asunto abierto ni seguimiento con fecha."}>
         {operations.length > 0
-          ? <ButtonLink variant="primary" href={`/admin/operaciones/${encodeURIComponent(operations[0].id)}`}>Abrir operación<ArrowRight size={18} aria-hidden="true" /></ButtonLink>
-          : <ButtonLink variant="primary" href={newOperation}>Nueva operación<ArrowRight size={18} aria-hidden="true" /></ButtonLink>}
+          ? <ButtonLink variant="primary" href={`/admin/operaciones/${encodeURIComponent(operations[0].id)}`}>Abrir asunto<ArrowRight size={18} aria-hidden="true" /></ButtonLink>
+          : <ButtonLink variant="primary" href={newOperation}>Nuevo asunto<ArrowRight size={18} aria-hidden="true" /></ButtonLink>}
       </NextStepCard>
-      {dossiers === null && <p role="status" className={s.small}>No se pudieron consultar sus operaciones. Recarga la página para reintentar.</p>}
+      {dossiers === null && <p role="status" className={s.small}>No se pudieron consultar sus asuntos. Recarga la página para reintentar.</p>}
 
       <div className={s.grid}>
         <div className={s.col}>
-          {operations.length > 0 && <PersonCard id="ficha-operaciones" title={operations.length === 1 ? "Su operación" : "Sus operaciones"} action={<ButtonLink href={newOperation}>Nueva operación</ButtonLink>}>
+          {operations.length > 0 && <PersonCard id="ficha-operaciones" title={operations.length === 1 ? "Su asunto" : "Sus asuntos"} action={<ButtonLink href={newOperation}>Nuevo asunto</ButtonLink>}>
             <ul className="m-0 flex list-none flex-col p-0">{operations.map(op => <li key={op.id}><Link href={`/admin/operaciones/${encodeURIComponent(op.id)}`} className={s.linkRow}><strong className="font-[540]">{op.label}</strong><span className={s.small}>{op.stage.charAt(0).toUpperCase() + op.stage.slice(1)}</span></Link></li>)}</ul>
           </PersonCard>}
 

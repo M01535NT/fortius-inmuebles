@@ -18,7 +18,7 @@ type Kind = "lead" | "cliente" | "propiedad" | "expediente";
 type Option = { kind: Kind; id: string; label: string; detail: string; search: string };
 type Named = { id: string; nombre: string; telefono?: string; email?: string };
 
-const KIND_LABEL: Record<Kind, string> = { lead: "Prospecto", cliente: "Cliente", propiedad: "Inmueble", expediente: "Operación" };
+const KIND_LABEL: Record<Kind, string> = { lead: "Prospecto", cliente: "Cliente", propiedad: "Inmueble", expediente: "Asunto" };
 const fold = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export function LinkPicker({ id, value, onChange, leads = [], clientes = [], propiedades = [], operations = [], kinds, disabled, hint, status, unavailable }: {
@@ -50,7 +50,7 @@ export function LinkPicker({ id, value, onChange, leads = [], clientes = [], pro
     ...operations.map(o => {
       const cliente = clientes.find(c => c.id === o.cliente_id)?.nombre ?? "";
       const propiedad = propiedades.find(p => p.slug === o.propiedad_slug);
-      return { kind: "expediente" as const, id: o.id, label: o.folio, detail: ["Operación", cliente, propiedad?.codigo].filter(Boolean).join(" · "), search: fold(`${o.folio} ${cliente} ${propiedad?.codigo ?? ""} ${propiedad?.titulo ?? ""}`) };
+      return { kind: "expediente" as const, id: o.id, label: o.folio, detail: ["Asunto", cliente, propiedad?.codigo].filter(Boolean).join(" · "), search: fold(`${o.folio} ${cliente} ${propiedad?.codigo ?? ""} ${propiedad?.titulo ?? ""}`) };
     }),
   ], [leads, clientes, propiedades, operations]);
 

@@ -25,10 +25,12 @@ test("shows saved commercial counts and expediente stages", async () => {
   });
   render(<ReportesPage />);
   expect(await screen.findByRole("heading", { name: "Reportes comerciales" })).toBeTruthy();
-  const stages = screen.getByRole("heading", { name: "Operaciones por etapa" }).closest("section")!;
-  expect(within(stages).getByText("Visitas y ofertas")).toBeTruthy();
+  const stages = screen.getByRole("heading", { name: "Asuntos por etapa" }).closest("section")!;
+  // LV-10 (bloque g): la gráfica lleva la cifra escrita y su lectura completa para lectores de pantalla.
+  const chart = within(stages).getByText(/Asuntos abiertos por etapa/);
+  expect(chart.textContent).toContain("Visitas y ofertas, 1");
   // SIM-04 (C12): el mismo nombre que en Operaciones, no el antiguo «Negociación».
   expect(within(stages).queryByText("Negociación")).toBeNull();
-  expect(within(stages).getByText("1")).toBeTruthy();
+  expect(chart.textContent).not.toContain("Negociación");
   expect(screen.getByText(/Cuenta todos los prospectos registrados/)).toBeTruthy();
 });

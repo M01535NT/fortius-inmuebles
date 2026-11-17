@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 
+import { CabezaPagina, Nota } from "@/components/sitio/pagina";
 import { ClosingCostsCalculator } from "@/components/tools/closing-costs-calculator";
 import { pageMetadata } from "@/lib/seo/page-metadata";
-import "./gastos.css";
+import "../herramientas-sitio.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/herramientas/gastos-de-cierre",
@@ -13,19 +13,14 @@ export const metadata: Metadata = pageMetadata({
     "Calcula los gastos de cierre de tu compra o venta en Tijuana, Rosarito, Tecate o Ensenada: ISAI, honorarios de notaría y derechos de registro, desglosados.",
 });
 
+/* Gastos de cierre, Fortius II (etapa 5, 17/11/2026): la calculadora de siempre bajo la cabeza nueva. */
 export default function GastosDeCierrePage() {
   return (
-    <main className="pg-page">
-      <section className="pg-hero">
-        <div className="pg-container pg-hero-body tl-tool-head">
-          <Link href="/herramientas" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Herramientas</Link>
-          <h1 className="pg-title pg-title-sm">Gastos de cierre.</h1>
-          <p className="pg-lead">Cuánto necesitas para comprar o cuánto recibes al vender.</p>
-        </div>
-      </section>
-      <div className="pg-container tl-tool-body">
+    <main className="s-pagina he">
+      <CabezaPagina chico titulo="Gastos de cierre." entrada="Cuánto necesitas para comprar o cuánto recibes al vender." volver={{ href: "/herramientas", etiqueta: "Herramientas" }} />
+      <div className="s-contenedor he-calculadora">
         <ClosingCostsCalculator />
-        <p className="tl-tool-foot pg-muted">¿Vendes? <Link href="/vender-propiedad">Empieza con la entrevista</Link>.</p>
+        <Nota>¿Vendes? <Link href="/vender-propiedad">Empieza con la entrevista</Link>.</Nota>
       </div>
     </main>
   );

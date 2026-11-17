@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Task } from "@/lib/tasks";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { guiaSchema } from "@/lib/guias";
 
 export const WORKFLOW_STAGES = ["captacion","documentacion","comercializacion","negociacion","cierre","entrega","postventa","cerrado"] as const;
 export type WorkflowStage = typeof WORKFLOW_STAGES[number];
@@ -138,9 +139,9 @@ export function valueFromAppraisal(flow: Pick<OperationWorkflow, "avaluo" | "req
  const e = flow.requisitos.valor?.evidencia;
  return !!flow.avaluo && e?.tipo === "cliente" && e.referencia === flow.avaluo.archivo;
 }
-// DEC-41 (excepción a RP-91): visita a un interesado concreto antes de la firma, con la carta del propietario y el visto bueno del director.
+// DEC-41 (excepción a RP-91): visita a un interesado concreto antes de la firma con el visto bueno del director. La carta del propietario se pide; sin ella queda un aviso (FLX-03).
 const priorVisit = z.object({ id: z.string().min(1).max(80), interesado: z.string().trim().min(2).max(160), leadId: z.string().max(160).optional(),
-  carta: z.object({ path: z.string().min(1).max(300), nombre: z.string().max(160).optional() }).strict(), motivo: z.string().trim().min(3).max(1000),
+  carta: z.object({ path: z.string().min(1).max(300), nombre: z.string().max(160).optional() }).strict().optional(), motivo: z.string().trim().min(3).max(1000),
   autorizadoPor: z.string().max(80).optional(), autorizadoEl: z.string().max(80).optional() }).strict();
 export type PriorVisit = z.infer<typeof priorVisit>;
 export const operationWorkflowSchema = z.object({
@@ -160,6 +161,8 @@ export const operationWorkflowSchema = z.object({
  visitasPrevias: z.array(priorVisit).max(20).optional(),
  // M-04: el asesor que captó, cuando la operación se reasignó; solo lo escribe la reasignación del director.
  captadoPor: z.string().min(1).max(80).optional(),
+ // FLX-03 B (DEC-55): inspección, opinión de valor o cancelación de hipoteca, con su paso; sin ella, la guía de su ruta.
+ guia: guiaSchema.optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }

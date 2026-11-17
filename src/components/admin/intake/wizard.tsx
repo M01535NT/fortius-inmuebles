@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, X } from "@/components/admin/icons";
 import { Button, ButtonLink, Card, Notice, ProgressBar, Surface } from "@/components/admin/kit";
-import { inputClass, selectClass } from "@/components/admin/ui";
+import { inputClass } from "@/components/admin/ui";
 import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState, useSession, type Lead } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { PERSON_STATUS_LABEL } from "@/lib/admin/person-status";
@@ -16,6 +16,8 @@ import { InterviewStep } from "./interview-step";
 import { DoneStep } from "./done-step";
 import { InterestedDone, InterestedStep, type InterestedContact } from "./interested-step";
 import { cn } from "@/lib/utils";
+import { DateField } from "@/components/ui/date-field";
+import { Combobox, faceOption, Fold, PersonSelect } from "@/components/admin/operation/pickers";
 import s from "./wizard.module.css";
 
 /*
@@ -61,8 +63,8 @@ export function NewOperationWizard() {
           <StepsNav step={step === 0 ? 3 : step} intent={interview?.intencion} />
           <div className={s.main}>
             {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
-              : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre operación">Fortius representa al propietario: quien compra o renta se guarda como interesado.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
-              : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble. Prepara la entrevista desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
+              : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre asunto">Fortius representa al propietario: quien compra o renta se guarda como interesado.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
+              : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble. Prepara la entrevista desde el asunto.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir el asunto</Link>}</div>
               : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} seed={demandSeed(params)} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
               : <DoneStep interview={interview!} fresh={fresh} />}
           </div>
@@ -223,12 +225,12 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
       {step === 1 ? <>
         <h1 className={s.title}>¿Qué quiere hacer el cliente?</h1>
         <p className={s.lead}>Elige una opción. La puedes cambiar después.</p>
-        <div role="radiogroup" aria-label="Qué quiere hacer el cliente" data-tour="nueva-opciones" className={s.choices}>
+        <div role="radiogroup" aria-label="Qué quiere hacer el cliente" className={s.choices}>
           {INTENT_CHOICES.map(choice => <button key={choice.id} type="button" role="radio" aria-checked={intent === choice.id} className={s.choice} onClick={() => { setIntent(choice.id); changed(); setStep(2); }}>
             <span className={s.dot} aria-hidden="true" /><span className="flex flex-col gap-0.5"><strong>{choice.title}</strong><span className="text-sm text-muted-foreground">{choice.description}</span></span>
           </button>)}
         </div>
-        <p className="text-sm text-muted-foreground">¿Ya tienes todos los datos? <Link href="/admin/operaciones?nuevo=1" data-tour="nueva-alta" className="font-semibold text-foreground underline underline-offset-4">Alta rápida, sin entrevista</Link></p>
+        <p className="text-sm text-muted-foreground">¿Ya tienes todos los datos? <Link href="/admin/operaciones?nuevo=1" className="font-semibold text-foreground underline underline-offset-4">Alta rápida, sin entrevista</Link></p>
         {director && <p className="text-sm text-muted-foreground">¿Un inmueble que el asesor ya trae con contrato firmado? <Link href="/admin/operaciones?heredado=1#inventario-heredado" className="font-semibold text-foreground underline underline-offset-4">Inventario heredado</Link></p>}
         {pending.length > 0 && <div className="xl:hidden"><PendingCard pending={pending} /></div>}
       </> : <>
@@ -236,7 +238,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
         <p className={s.lead}>{intent ? `${intentTitle(intent)}. ` : ""}Con el nombre y el teléfono basta para empezar.</p>
         <fieldset disabled={busy || uncertain} className="flex min-w-0 flex-col gap-5">
           {chosen || contact ? <Card as="div" className="flex flex-wrap items-center justify-between gap-3 p-4">
-            <span className="flex flex-col"><strong>{chosen?.nombre ?? "Contacto registrado"}</strong><span className="text-sm text-muted-foreground">{chosen ? `${chosen.detail} · ${chosen.telefono || chosen.email || ""}` : "Cargando su ficha…"}. Se conservan su ficha y sus operaciones.</span></span>
+            <span className="flex flex-col"><strong>{chosen?.nombre ?? "Contacto registrado"}</strong><span className="text-sm text-muted-foreground">{chosen ? `${chosen.detail} · ${chosen.telefono || chosen.email || ""}` : "Cargando su ficha…"}. Se conservan su ficha y sus asuntos.</span></span>
             {!correctionOf && <Button variant="ghost" onClick={() => { setContact(null); changed(); }}>Es otra persona</Button>}
           </Card> : <>
             <label className="flex flex-col gap-2 text-sm font-semibold">Nombre completo<input id="nueva-nombre" required autoComplete="name" maxLength={160} className={inputClass} value={name} onChange={e => { setName(e.target.value); changed(); }} /></label>
@@ -253,20 +255,23 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
               </div>
             </div>)}
             <label className="flex flex-col gap-2 text-sm font-semibold"><span>Correo <span className="font-normal text-muted-foreground">(si lo tiene)</span></span><input type="email" autoComplete="email" maxLength={254} className={inputClass} placeholder="nombre@correo.com" value={email} onChange={e => { setEmail(e.target.value); setShared(false); changed(); }} /></label>
-            {config?.administrador && <label className="flex flex-col gap-2 text-sm font-semibold">Asesor responsable<select className={selectClass} value={adviser} onChange={e => { setAdviser(e.target.value); changed(); }}><option value="">Elige un asesor</option>{adviserOptions.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></label>}
+            {config?.administrador && <span className="flex flex-col gap-2 text-sm font-semibold"><span>Asesor responsable</span><PersonSelect aria-label="Asesor responsable" className="font-normal" placeholder="Elige un asesor" people={adviserOptions} value={adviser} onChange={id => { setAdviser(id); changed(); }} /></span>}
             {config && !config.administrador && !config.asesorId && <p role="alert" className="text-sm text-destructive">Tu cuenta necesita un asesor asignado por el administrador.</p>}
             <button type="button" className="self-start text-sm font-semibold underline underline-offset-4" aria-expanded={picking} onClick={() => setPicking(open => !open)}>¿Ya está registrado? Elígelo de la lista</button>
-            {picking && <label className="flex flex-col gap-2 text-sm font-semibold">Prospecto o cliente<select className={selectClass} value="" onChange={e => { const [kind, id] = e.target.value.split(":"); if (id) { setContact({ kind: kind as Contact["kind"], id }); setPicking(false); changed(); } }}><option value="">Elige un contacto</option><optgroup label="Prospectos">{people.filter(p => p.kind === "lead").map(p => <option key={p.id} value={`lead:${p.id}`}>{p.nombre} · {p.telefono}</option>)}</optgroup><optgroup label="Clientes">{people.filter(p => p.kind === "cliente").map(p => <option key={p.id} value={`cliente:${p.id}`}>{p.nombre} · {p.telefono}</option>)}</optgroup></select></label>}
+            {/* LV-10c: la lista de contactos es larga: se busca por nombre o teléfono, con su cara. */}
+            {picking && <span className="flex flex-col gap-2 text-sm font-semibold"><span>Prospecto o cliente</span><Combobox aria-label="Prospecto o cliente" className="font-normal" placeholder="Elige un contacto" searchPlaceholder="Buscar por nombre o teléfono…" value=""
+              options={people.map(p => faceOption(`${p.kind}:${p.id}`, p.nombre, `${p.kind === "lead" ? "Prospecto" : "Cliente"} · ${p.telefono}`, [p.telefono]))}
+              onChange={value => { const [kind, id] = value.split(":"); if (id) { setContact({ kind: kind as Contact["kind"], id }); setPicking(false); changed(); } }} /></span>}
           </>}
           {!correctionOf && <>
             <div className="flex flex-col gap-2"><span id="nueva-origen" className="text-sm font-semibold">¿Cómo llegó?</span>
               <div role="radiogroup" aria-labelledby="nueva-origen" className={s.chips}>{Object.entries(ORIGINS).map(([value, label]) => <button key={value} type="button" role="radio" aria-checked={origin === value} className={s.chip} onClick={() => { setOrigin(value as keyof typeof ORIGINS); changed(); }}>{label}</button>)}</div>
             </div>
-            {!buyer && <details className="text-sm"><summary className="cursor-pointer font-semibold">Siguiente acción mientras terminas de capturarlo</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {!buyer && <Fold className="text-sm" triggerClassName="font-semibold" summary="Siguiente acción mientras terminas de capturarlo"><div className="mt-1 grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-2">Siguiente acción<input required maxLength={160} className={inputClass} value={action} onChange={e => { setAction(e.target.value); changed(); }} /></label>
-              <label className="flex flex-col gap-2">Fecha de la siguiente acción<input required type="date" className={inputClass} value={actionDate} onChange={e => { setActionDate(e.target.value); changed(); }} /></label>
+              <span className="flex flex-col gap-2"><span>Fecha de la siguiente acción</span><DateField aria-label="Fecha de la siguiente acción" required value={actionDate} onChange={v => { setActionDate(v); changed(); }} /></span>
               <p className="text-muted-foreground sm:col-span-2">El contacto y esta acción se guardan al empezar la entrevista, para no perderlo de vista.</p>
-            </div></details>}
+            </div></Fold>}
           </>}
           {!loaded && <p role="status" className="text-sm text-muted-foreground">Cargando contactos y responsables…</p>}
         </fieldset>

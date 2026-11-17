@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
+import { pickDate } from "./pick";
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 const base = {
@@ -30,7 +31,7 @@ it("guarda etapa, fecha y checklist con versión y muestra la actividad", async 
   render(<ExpedienteOperationPanel expediente={base} responsable="Ana" onSaved={saved} onDirtyChange={dirty} />);
   expect(screen.getByText(/Responsable:/).closest("p")?.textContent).toContain("Ana");
   fireEvent.change(screen.getByLabelText("Etapa"), { target: { value: "documentacion" } });
-  fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-11-15" } });
+  await pickDate(screen.getByRole("button", { name: /Fecha objetivo/ }), "2026-11-15");
   fireEvent.change(screen.getByLabelText("Identificación del titular"), { target: { value: "recibido" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar seguimiento" }));
   await waitFor(() => expect(writes).toEqual([{

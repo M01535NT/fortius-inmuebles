@@ -1,0 +1,42 @@
+/* La consulta en vivo, como el boceto aprobado (docs/boceto-fortius-por-asuntos.html, «Consulta en vivo»). Tokens de panel-ds.css. */
+
+.cs-in { max-width: 1120px; margin: 0 auto; padding: 22px 24px 80px; display: flex; flex-direction: column; gap: 16px; }
+.cs-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cs-h1 { font-size: 20px; }
+.cs-vivo { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 550; background: var(--exito-soft); color: var(--exito); }
+.cs-vivo i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.cs-vivo-mal { background: var(--warning-soft); color: var(--warning); }
+.cs-ban { background: var(--fill); }
+.cs-sin { display: flex; flex-direction: column; }
+
+.cs-dos { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.cs-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.cs-g { display: flex; flex-direction: column; gap: 12px; }
+.cs-g3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cs-in .cs-que { min-height: 160px; font-size: 14px; }
+.cs-g3 .as-inp:not(.as-area), .cs-g .as-inp:not(.as-area) { height: 44px; }
+.cs-multi { height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 6px; text-align: left; font-size: 14px; color: var(--ink); cursor: pointer; }
+
+.cs-h2 { display: flex; align-items: center; gap: 8px; padding: 0 2px 8px; font-size: 15px; font-weight: 650; }
+.cs-docs { padding: 2px 6px; }
+.cs-docs .as-t[data-est="pendiente"] .as-ck { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.cs-docs .as-t[data-est="no_aplica"] .as-n { color: var(--ink-faint); text-decoration: line-through; }
+.cs-agregar { display: flex; align-items: center; gap: 8px; padding: 0 10px 0 14px; min-height: 44px; color: var(--ink-faint); border-top: 1px solid var(--border); }
+.cs-inp-plano { flex: 1; border: 0; background: none; height: 40px; padding: 0; }
+.cs-inp-plano:focus { box-shadow: none; background: none; }
+.cs-subir { cursor: pointer; }
+.cs-subir:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cs-para { padding: 0 2px; }
+.cs-msg { min-height: 180px; }
+
+@media (max-width: 1000px) {
+  .cs-dos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .cs-in { padding: 14px 16px 110px; }
+  .cs-g3 { grid-template-columns: minmax(0, 1fr); }
+  .cs-top .as-btn { height: 44px; }
+  .cs-top .as-ico { width: 44px; }
+  .cs-vivo { order: 5; }
+  .cs-top .as-pri { order: 6; width: 100%; }
+}

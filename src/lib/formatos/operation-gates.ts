@@ -5,10 +5,10 @@ import { checklistCompleto, checklistTaskId, type PasoChecklist } from "./checkl
 import { isOwnerRoute, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type WorkflowStage } from "./operation-workflow";
 
 /*
-  Candados del flujo del propietario en el servidor (sin migración): los mismos que muestra
-  el panel en «Te falta». Para salir de captación hacia el dictamen se exige la entrevista
-  inicial (02) y el levantamiento (04) emitidos en su versión vigente, y el checklist de
-  documentos completo. Lo demás (requisitos, una etapa a la vez) lo valida la base.
+  Lo que falta del arranque del propietario y de la firma de una venta. Desde el 16/11/2026
+  («sin frenos de protección», migración 20261116100000) ni la ruta de la operación ni la base lo
+  exigen: estas funciones solo calculan qué avisar (entrevista inicial 02 y levantamiento 04
+  emitidos en su versión vigente, checklist completo, cancelación de hipoteca inscrita).
 */
 
 type Expediente = { etapa: string | null; operacion: string; flujo: OperationWorkflow | null };

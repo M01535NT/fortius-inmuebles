@@ -1,0 +1,41 @@
+/* Configuración (PN-09), como el boceto: grupos con título pequeño y su tarjeta. Solo clases propias; tokens de panel-ds.css. */
+.panel-root .pn-conf { max-width: 600px; }
+.panel-root .pn-conf-h1 { margin: 0; font-size: 34px; line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+@media (min-width: 768px) { .panel-root .pn-conf-h1 { font-size: 28px; line-height: 1.1; } }
+.panel-root .pn-conf-seccion { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+.panel-root .pn-conf-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; }
+.panel-root .pn-conf-seccion h2 { margin: 0; padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .pn-conf-seccion > .pn-conf-intro { margin: 0; padding: 0 4px; font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-conf-cab-btn { min-height: 44px; padding: 0 10px; border: 0; border-radius: var(--r-md); background: none; color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.panel-root .pn-conf-cab-btn:hover { background: var(--muted); }
+.panel-root .pn-conf-cab-btn[aria-disabled="true"] { color: var(--ink-muted); cursor: default; }
+.panel-root .pn-conf-caja { display: flex; flex-direction: column; gap: 16px; padding: 16px; background: var(--card); border: 1px solid transparent; border-radius: var(--r-lg); }
+.panel-root .pn-conf-tarjeta { overflow: hidden; background: var(--card); border: 1px solid transparent; border-radius: var(--r-lg); }
+/* Fila de perfil: «Nombre ····· Ana A. ›». Botón real que abre la edición. */
+.panel-root .pn-conf-prow { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 8px 10px 8px 14px; border: 0; border-top: 1px solid var(--border); background: var(--card); color: var(--ink); font: inherit; text-align: left; }
+.panel-root .pn-conf-prow:first-child { border-top: 0; }
+.panel-root button.pn-conf-prow { cursor: pointer; }
+.panel-root button.pn-conf-prow:hover { background: var(--bg); }
+.panel-root .pn-conf-prow .pn-conf-k { flex: none; font-size: 15px; font-weight: 500; }
+.panel-root .pn-conf-prow .pn-conf-v { flex: 1; min-width: 0; text-align: right; font-size: 15px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .pn-conf-prow .pn-conf-v[data-falta="true"] { color: var(--warning); }
+.panel-root .pn-conf-prow > svg { flex: none; color: var(--ink-muted); }
+.panel-root .pn-conf-quien { display: flex; align-items: center; gap: 12px; }
+.panel-root .pn-conf-foto { flex: none; width: 36px; height: 36px; border-radius: 999px; object-fit: cover; background: var(--muted); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--ink); }
+.panel-root .pn-conf-quien-txt { min-width: 0; display: flex; flex-direction: column; }
+.panel-root .pn-conf-quien-txt strong { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .pn-conf-nota { margin: 0; font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-conf-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Fila de aviso con interruptor. */
+.panel-root .pn-conf-aviso { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 14px 8px 16px; border-top: 1px solid var(--border); }
+.panel-root .pn-conf-aviso:first-child { border-top: 0; }
+.panel-root .pn-conf-aviso label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; cursor: pointer; }
+.panel-root .pn-conf-aviso label span:first-child { font-size: 15px; font-weight: 500; }
+.panel-root .pn-conf-aviso label span + span { font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-conf-foto-chica { width: 32px; height: 32px; font-size: 12px; }
+.panel-root .pn-conf-equipo-fila { display: flex; align-items: center; border-top: 1px solid var(--border); background: var(--card); }
+.panel-root .pn-arrastre > li:first-child > .pn-conf-equipo-fila { border-top: 0; }
+.panel-root .pn-conf-equipo-fila > .pn-fila { flex: 1; min-width: 0; border-top: 0; }
+.panel-root .pn-conf-equipo-fila > .pn-agarre-btn { flex: none; margin-left: 4px; }
+.panel-root .pn-conf-salir { align-self: flex-start; min-height: 44px; margin-top: 24px; padding: 0 4px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; border-radius: var(--r-md); }
+.panel-root .pn-conf-salir:hover { text-decoration: underline; text-underline-offset: 3px; }

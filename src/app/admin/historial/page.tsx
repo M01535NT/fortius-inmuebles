@@ -4,9 +4,13 @@ import Link from "next/link";
 import { PAPELERA } from "@/components/admin/papelera/textos";
 import { humanDateTime } from "@/lib/utils";
 import { apiRequest, db, errorMessage, useCollection, useSession } from "@/lib/admin/store";
-import { Field, PageHeader, selectClass } from "@/components/admin/ui";
+import { Field, PageHeader } from "@/components/admin/ui";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button, Card, EmptyBox } from "@/components/admin/kit";
 import { EMPTY_ART } from "@/components/admin/icons";
+import { camposCambiados } from "./campos";
+
+const ALL = "todas";
 
 type Entry = {
   id: string;
@@ -90,10 +94,13 @@ export default function HistoryPage() {
       <PageHeader title="Historial" description="Lo que se ha creado, cambiado o eliminado en el panel, desde que se activó el historial." />
       <div className="flex flex-wrap items-end gap-3">
         <Field label="Sección" htmlFor="history-collection" className="min-w-[12rem]">
-          <select id="history-collection" className={selectClass} value={collection} onChange={e => { setCollection(e.target.value); reload(); }}>
-            <option value="">Todas</option>
-            {Object.entries(labels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-          </select>
+          <Select value={collection || ALL} onValueChange={value => { setCollection(value === ALL ? "" : value); reload(); }}>
+            <SelectTrigger id="history-collection"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Todas</SelectItem>
+              {Object.entries(labels).map(([id, label]) => <SelectItem key={id} value={id}>{label}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </Field>
         {record && <Button variant="ghost" onClick={() => { setRecord(""); reload(); }}>Ver todo el historial</Button>}
       </div>
@@ -105,15 +112,16 @@ export default function HistoryPage() {
           {entries.length ? <ul className="flex flex-col gap-3" aria-label="Movimientos">
             {entries.map(entry => {
               const name = nameOf(entry);
+              const campos = camposCambiados(entry.collection, entry.changed_fields ?? []);
               return <Card as="li" key={entry.id} className="min-w-0 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="break-words text-base font-semibold">{name ?? (entry.action === "DELETE" ? "Registro eliminado" : "Registro sin nombre")}</h2>
                     <p className="mt-1 text-sm">{ACTION[entry.action]} · {labels[entry.collection] ?? entry.collection}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{humanDateTime(entry.created_at)} · {who(entry.actor_id)}</p>
-                    {!!entry.changed_fields?.length && <details className="mt-2 text-sm text-muted-foreground">
-                      <summary className="inline-flex min-h-11 cursor-pointer items-center underline underline-offset-4">{entry.changed_fields.length === 1 ? "Ver el dato que cambió" : `Ver los ${entry.changed_fields.length} datos que cambiaron`}</summary>
-                      <p className="break-words">{entry.changed_fields.join(", ")}</p>
+                    {!!campos.length && <details className="mt-2 text-sm text-muted-foreground">
+                      <summary className="inline-flex min-h-11 cursor-pointer items-center underline underline-offset-4">{campos.length === 1 ? "Ver el dato que cambió" : `Ver los ${campos.length} datos que cambiaron`}</summary>
+                      <p className="break-words">{campos.join(", ")}</p>
                     </details>}
                   </div>
                 </div>

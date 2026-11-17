@@ -1,0 +1,148 @@
+/* Captura sobre el documento (PN-06), como el boceto «Formatos». La hoja usa las mismas fuentes que el PDF; el resto, los tokens del panel.
+   Escritorio: ventana que flota (sombra, porque flota) con la hoja a la izquierda y el lateral «Captura» de 320 px.
+   Teléfono (≤ 900 px): pantalla completa, barra con «‹ Formatos» y «Faltan N», avance, la hoja, barra fija abajo
+   y cada espacio en una hoja que sube desde abajo. */
+@font-face { font-family: "Fortius Documento"; src: url("/fonts/Archivo-Regular.ttf") format("truetype"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Fortius Documento"; src: url("/fonts/Archivo-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: block; }
+
+.panel-root .pn-captura { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; background: var(--scrim); color: var(--ink); }
+.panel-root .pn-captura-fondo { position: absolute; inset: 0; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.panel-root .pn-captura-mensaje { position: relative; display: grid; gap: 16px; width: 560px; max-width: 100%; padding: 20px; box-sizing: border-box; border: 1px solid var(--border); border-radius: var(--r-xl); background: var(--bg); }
+.panel-root .pn-captura-ventana { position: relative; display: flex; flex-direction: column; width: 1040px; max-width: 100%; height: calc(100vh - 40px); height: calc(100dvh - 40px); max-height: 860px; overflow: hidden; border: 1px solid var(--border); border-radius: var(--r-xl); background: var(--bg); box-shadow: 0 24px 64px rgb(24 32 42 / 0.22); animation: pn-captura-entra 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+@keyframes pn-captura-entra { from { opacity: 0; transform: scale(0.98); } }
+
+.panel-root .pn-captura-cuerpo { flex: 1; min-height: 0; display: flex; }
+
+/* La mesa: la hoja (o las hojas) sobre gris, con su encabezado arriba. */
+.panel-root .pn-captura-mesa { flex: 1; min-width: 0; overflow-y: auto; padding: 28px 32px 40px; background: var(--muted); }
+.panel-root .pn-captura-hojas { display: grid; gap: 16px; max-width: 816px; margin: 0 auto; }
+.panel-root .pn-captura-encabezado { display: grid; gap: 4px; }
+.panel-root .pn-captura-encabezado h1 { margin: 0; font-size: 19px; line-height: 1.25; font-weight: 700; }
+.panel-root .pn-captura-asunto { font-size: 14px; color: var(--ink-muted); }
+.panel-root .pn-captura-folio { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-captura-num { flex: none; min-width: 38px; height: 30px; padding: 0 6px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-md); background: var(--card); border: 1px solid var(--border); color: var(--ink); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.panel-root .pn-captura-nota { margin: 0; justify-self: start; padding: 6px 10px; border-radius: var(--r-md); background: var(--warning-soft); color: var(--warning); font-size: 13px; }
+
+/* La hoja es papel: clara en los dos temas, como saldrá impresa. */
+.panel-root .pn-captura-hoja { position: relative; width: 100%; aspect-ratio: 612 / 792; background: #fcfcff; border: 1px solid var(--border); border-radius: var(--r-sm); }
+/* Sobre el papel, los espacios (por llenar, el que se edita, el foco) usan los colores del tema claro también en oscuro:
+   el ámbar del oscuro sobre papel claro no se distingue (≈2:1). Mismos valores que el tema claro de panel-ds.css. */
+.panel-root .pn-captura-hoja { --accent: #1b3fa6; --warning: #8a5a00; color-scheme: light; }
+.panel-root .pn-captura-hoja svg { display: block; width: 100%; height: 100%; }
+.panel-root .pn-doc-texto { font-family: "Fortius Documento", var(--font-sans); font-kerning: none; font-variant-ligatures: none; white-space: pre; }
+.panel-root .pn-doc-serif { font-family: "Times New Roman", Times, "Liberation Serif", serif; font-kerning: none; font-variant-ligatures: none; white-space: pre; }
+.panel-root .pn-captura-zona { position: absolute; padding: 0; border: 1px solid transparent; border-radius: 2px; background: transparent; cursor: pointer; scroll-margin: 24px; transition: background-color 120ms ease, border-color 120ms ease; }
+.panel-root .pn-captura-zona:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.panel-root .pn-captura-zona[data-falta] { border: 1px dashed var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+.panel-root .pn-captura-zona[data-activa] { border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.panel-root .pn-captura-zona:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* El lateral «Captura». */
+.panel-root .pn-captura-lado { flex: none; width: 320px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 18px 18px 0; border-left: 1px solid var(--border); background: var(--bg); }
+.panel-root .pn-captura-lado-cabeza { display: flex; align-items: center; justify-content: space-between; }
+.panel-root .pn-captura-lado-cabeza h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.panel-root .pn-captura-cerrar { display: inline-grid; place-items: center; width: 44px; height: 44px; margin-right: -8px; border-radius: var(--r-md); color: var(--ink); }
+.panel-root .pn-captura-cerrar:hover { background: var(--muted); }
+.panel-root .pn-captura-cerrar:focus-visible, .panel-root .pn-captura-volver:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.panel-root .pn-captura-lado-pie { position: sticky; bottom: 0; margin: auto -18px 0; padding: 12px 18px 20px; display: grid; gap: 8px; border-top: 1px solid var(--border); background: var(--bg); }
+.panel-root .pn-captura-lado-pie p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink-muted); }
+.panel-root .pn-captura-grande { width: 100%; min-height: 46px; }
+
+/* Avance: barra y «N de M espacios». */
+.panel-root .pn-captura-progreso { display: grid; gap: 6px; }
+.panel-root .pn-captura-progreso-fila { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 24px; font-size: 13px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.panel-root .pn-captura-enlace { min-height: 44px; margin: -10px -8px; padding: 0 8px; border: 0; border-radius: var(--r-md); background: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.panel-root .pn-captura-enlace:hover { background: var(--muted); }
+.panel-root .pn-captura-enlace:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.panel-root .pn-captura-pista { height: 6px; border-radius: 999px; background: var(--muted); overflow: hidden; }
+.panel-root .pn-captura-pista span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width 300ms cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* El espacio que se llena: tarjeta con borde de acento (en el teléfono, hoja que sube desde abajo). */
+.panel-root .pn-captura-ed { display: grid; gap: 12px; padding: 14px; border: 1px solid var(--accent); border-radius: var(--r-lg); background: var(--card); }
+.panel-root .pn-captura-ed h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.panel-root .pn-captura-asa, .panel-root .pn-captura-velo { display: none; }
+.panel-root .pn-captura-pila { display: grid; gap: 8px; }
+.panel-root .pn-captura-pasos { display: flex; gap: 8px; flex-wrap: wrap; }
+.panel-root .pn-captura-pasos > :first-child { flex: 1; }
+.panel-root .pn-captura-mas { display: flex; gap: 8px; flex-wrap: wrap; }
+.panel-root .pn-captura-mas:empty { display: none; }
+.panel-root .pn-captura-avance { display: grid; gap: 8px; }
+.panel-root .pn-captura-avance p { margin: 0; font-size: 14px; font-weight: 500; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+
+/* Lo que falta: filas con flecha, en tarjeta. */
+.panel-root .pn-captura-bloque-faltan { display: grid; gap: 8px; }
+.panel-root .pn-captura-rotulo { padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .pn-captura-lista-faltan { margin: 0; padding: 0; list-style: none; overflow: hidden; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--card); }
+.panel-root .pn-captura-lista-faltan li + li { border-top: 1px solid var(--border); }
+.panel-root .pn-captura-lista-faltan button, .panel-root .pn-captura-lista-faltan li > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 8px 14px; box-sizing: border-box; border: 0; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; text-align: left; }
+.panel-root .pn-captura-lista-faltan li > span { color: var(--ink-muted); }
+.panel-root .pn-captura-lista-faltan button { cursor: pointer; }
+.panel-root .pn-captura-lista-faltan button:hover { background: var(--bg); }
+.panel-root .pn-captura-lista-faltan button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.panel-root .pn-captura-lista-faltan button svg { flex: none; color: var(--ink-muted); }
+
+/* Secciones del lateral (datos del asunto, imágenes, documentos del cliente, PDF generados). */
+.panel-root .pn-captura-campo { display: grid; gap: 12px; }
+.panel-root .pn-captura-campo h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.panel-root .pn-captura-faltan { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.panel-root .pn-captura-faltan button, .panel-root .pn-captura-faltan span { display: block; width: 100%; min-height: 44px; padding: 10px 8px; border: 0; border-radius: var(--r-md); background: transparent; color: var(--ink); font: inherit; font-size: 14px; text-align: left; }
+.panel-root .pn-captura-faltan button { cursor: pointer; }
+.panel-root .pn-captura-faltan button:hover { background: var(--muted); }
+.panel-root .pn-captura-faltan button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.panel-root .pn-captura-fila { display: grid; gap: 12px; margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: var(--r-lg); }
+.panel-root .pn-captura-fila legend { padding: 0 4px; font-size: 14px; font-weight: 600; }
+.panel-root .pn-captura[data-lista] .pn-captura-emitidos { display: none; }
+
+/* Imágenes subidas al documento (04 y 07), con «Quitar». */
+.panel-root .pn-captura-imagenes { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.panel-root .pn-captura-imagenes li { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 56px; }
+.panel-root .pn-captura-imagenes img { width: 56px; height: 56px; object-fit: cover; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--muted); }
+.panel-root .pn-captura-imagenes li > span { display: grid; min-width: 0; }
+.panel-root .pn-captura-imagenes strong { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .pn-captura-imagenes li > span > span { font-size: 13px; color: var(--ink-muted); }
+
+/* Solo teléfono: barra de arriba, avance bajo ella, lista de lo que falta sobre la hoja y barra fija abajo. */
+.panel-root .pn-captura-barra, .panel-root .pn-captura-pie, .panel-root .pn-captura-solo-movil { display: none; }
+.panel-root .pn-captura-listo { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; font-size: 14px; color: var(--ink-muted); }
+
+@media (max-width: 900px) {
+  .panel-root .pn-captura { padding: 0; }
+  .panel-root .pn-captura-fondo, .panel-root .pn-captura-solo-escritorio, .panel-root .pn-captura-lado-cabeza,
+  .panel-root .pn-captura-bloque-faltan, .panel-root .pn-captura-lado-pie { display: none; }
+  .panel-root .pn-captura-ventana { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; box-shadow: none; animation: none; }
+  .panel-root .pn-captura-barra { flex: none; display: flex; align-items: center; justify-content: space-between; height: 52px; padding: 0 4px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .panel-root .pn-captura-volver { display: inline-flex; align-items: center; gap: 2px; height: 44px; padding: 0 10px 0 6px; border-radius: var(--r-md); color: var(--ink); font-size: 15px; font-weight: 600; text-decoration: none; }
+  .panel-root .pn-captura-volver:active { background: var(--muted); }
+  .panel-root .pn-captura-falta-boton { display: inline-flex; align-items: center; height: 36px; margin-right: 10px; padding: 0 12px; border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent); border-radius: 999px; background: var(--warning-soft); color: var(--warning); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .panel-root .pn-captura-falta-boton:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .panel-root .pn-captura-solo-movil { display: block; }
+  .panel-root .pn-captura-progreso.pn-captura-solo-movil { display: grid; flex: none; padding: 8px 16px 0; }
+
+  /* Un solo desplazamiento: la hoja y, debajo, lo demás del lateral. */
+  .panel-root .pn-captura-cuerpo { flex-direction: column; overflow-y: auto; padding-bottom: 96px; }
+  .panel-root .pn-captura-mesa { flex: none; overflow: visible; display: grid; gap: 12px; padding: 12px 16px 20px; background: var(--bg); }
+  .panel-root .pn-captura-lado { width: auto; overflow: visible; padding: 4px 16px 20px; border-left: 0; }
+
+  .panel-root .pn-captura-pie { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; gap: 8px; padding: 10px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 96%, transparent); }
+  .panel-root .pn-captura-pie-pdf { flex: 1; }
+
+  /* El espacio que se llena sube desde abajo, sobre un velo. */
+  .panel-root .pn-captura-velo { display: block; position: fixed; inset: 0; z-index: 3; width: 100%; padding: 0; border: 0; background: var(--scrim); cursor: pointer; animation: pn-captura-velo 200ms ease-out; }
+  .panel-root .pn-captura-ed { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; max-height: 80%; overflow-y: auto; gap: 12px; padding: 8px 16px calc(24px + env(safe-area-inset-bottom)); border: 0; border-radius: var(--r-xl) var(--r-xl) 0 0; background: var(--bg); box-shadow: 0 -8px 32px rgb(24 32 42 / 0.18); animation: pn-captura-sube 340ms cubic-bezier(0.32, 0.72, 0, 1); }
+  .panel-root .pn-captura-ed h3 { font-size: 18px; padding: 0 4px; }
+  .panel-root .pn-captura-ed h3.sr-only { padding: 0; }
+  .panel-root .pn-captura-asa { display: block; justify-self: center; width: 40px; height: 5px; margin: 8px 0 4px; border-radius: 3px; background: var(--border-strong); }
+
+  /* Uno por uno: un campo a la vez sin la hoja (AUD-05): ocupa todo bajo la barra, sin velo. */
+  .panel-root .pn-captura[data-lista] .pn-captura-ed { top: 52px; max-height: none; border-radius: 0; box-shadow: none; animation: none; padding-top: 16px; }
+  .panel-root .pn-captura[data-lista] .pn-captura-asa { display: none; }
+  .panel-root .pn-captura[data-lista] .pn-captura-pasos { position: sticky; bottom: calc(-24px - env(safe-area-inset-bottom)); margin: 0 -16px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg); }
+  .panel-root .pn-captura[data-lista] .pn-captura-pasos > :first-child { flex-basis: 100%; }
+}
+@keyframes pn-captura-sube { from { transform: translateY(100%); } }
+@keyframes pn-captura-velo { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-root .pn-captura-ventana, .panel-root .pn-captura-ed, .panel-root .pn-captura-velo { animation: none; }
+  .panel-root .pn-captura-pista span, .panel-root .pn-captura-zona { transition: none; }
+}

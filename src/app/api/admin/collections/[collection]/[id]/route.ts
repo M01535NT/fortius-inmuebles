@@ -4,7 +4,7 @@ import { ApiError, apiResponse, assertSameOrigin, databaseError, readJson } from
 import { listRecords, putRecord, deleteRecord } from "@/lib/backend/repository";
 import { parseRecord, parseWrite } from "@/lib/backend/validation";
 import { taskExpedienteLinksReady } from "@/lib/backend/task-links";
-import { assertPropertyPublicationAllowed } from "@/lib/backend/publication-gate";
+import { publicationWarnings } from "@/lib/backend/publication-gate";
 const sorted = (value: unknown) => value && typeof value === "object" ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b))) : {};
 type Context = { params: Promise<{ collection: string; id: string }> };
 export async function PUT(request: Request, context: Context) {
@@ -29,13 +29,14 @@ export async function PUT(request: Request, context: Context) {
     }
     if (collection === "propiedades") {
       const { data } = parseWrite(input);
-      await assertPropertyPublicationAllowed(client, id, parseRecord(collection, id, data));
+      // Sin frenos (16/11/2026): publicar sin captación completa se permite; lo que falta vuelve como avisos.
+      const avisos = await publicationWarnings(client, id, parseRecord(collection, id, data));
       // Lo público que se quita pasa al almacenamiento privado después de guardar (titular, 13/11/2026).
       const before = await publicFilesBeforeSave(id);
       const record = await putRecord(client, collection, id, input);
       await syncPublicFiles(before, id, record.data);
       if (before) await purgeRetiredPublicFiles(before.service);
-      return { record };
+      return avisos.length ? { record, avisos } : { record };
     }
     return { record: await putRecord(client, collection, id, input) };
   });

@@ -1,4 +1,4 @@
-// Published values are preserved, including discontinuities. See docs/financial-method.md.
+// Published values are preserved, including discontinuities. See docs/herramientas/metodo-de-calculo.md.
 export const FINANCIAL_VERSION = "2026.10.04";
 export const FINANCIAL_REVIEW_DATE = "2026-10-04";
 export const MUNICIPALITIES = {

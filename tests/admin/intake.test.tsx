@@ -1,6 +1,7 @@
 import * as React from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { pickOption } from "./pick";
 const { request, push, nav, upsert } = vi.hoisted(() => ({ request: vi.fn(), push: vi.fn(), upsert: vi.fn(), nav: { search: new URLSearchParams(), listeners: new Set<() => void>() } }));
 vi.mock("next/navigation", async () => {
   const react = await import("react");
@@ -52,7 +53,7 @@ it("elige qué quiere el cliente, captura quién es y no envía dos veces", asyn
   await waitFor(() => expect(screen.getByRole("combobox", { name: "Asesor responsable" })).toBeTruthy());
   fireEvent.click(screen.getByRole("button", { name: /Continuar con los datos del prospecto/ }));
   expect(screen.getByRole("alert").textContent).toBe("Elige al asesor responsable.");
-  fireEvent.change(screen.getByRole("combobox", { name: "Asesor responsable" }), { target: { value: "a" } });
+  await pickOption(screen.getByRole("combobox", { name: "Asesor responsable" }), "Ana");
   fireEvent.click(screen.getByRole("button", { name: /Continuar con los datos del prospecto/ }));
   fireEvent.click(screen.getByRole("button", { name: /Guardando/ }));
   expect(request.mock.calls.filter(c => c[1] === "POST")).toHaveLength(1);
@@ -90,7 +91,7 @@ it("avisa si el teléfono ya está registrado y usa esa ficha cuando es la misma
   const [, lead, version] = upsert.mock.calls[0];
   expect(version).toBe(4);
   expect(lead).toMatchObject({ id: "lead-1", estado: "contactado", zona: "Otay", perfil: { operacion: "comprar", presupuestoMax: 2500000, moneda: "MXN", formaPago: "credito", tipoCredito: "infonavit", proximaAccion: "Enviarle opciones que cumplan su perfil" } });
-  expect(lead.notas.at(-1).texto).toContain("sin abrir operación");
+  expect(lead.notas.at(-1).texto).toContain("sin abrir asunto");
   expect(request.mock.calls.some(c => c[1] === "POST")).toBe(false);
   expect(screen.getByRole("link", { name: /Ver su ficha/ }).getAttribute("href")).toBe("/admin/leads/lead-1");
 });
@@ -99,7 +100,7 @@ it("una entrevista de compra a medias ya no abre operación: lleva a guardarlo c
   nav.search = new URLSearchParams({ entrevista: id });
   request.mockResolvedValue({ entrevista: { ...interview, intencion: "comprar" } });
   render(<NewOperationWizard />);
-  expect(await screen.findByText("Esta entrevista ya no abre operación")).toBeTruthy();
+  expect(await screen.findByText("Esta entrevista ya no abre asunto")).toBeTruthy();
   expect(screen.getByRole("link", { name: "Guardarlo como interesado" }).getAttribute("href")).toBe("/admin/operaciones/nueva?intencion=comprar&leadId=lead");
 });
 
@@ -160,12 +161,12 @@ it("al terminar la entrevista muestra la operación creada", async () => {
   render(<NewOperationWizard />);
   expect(await screen.findByRole("heading", { name: "Datos del prospecto" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: /Guardar prospecto/ }));
-  expect(await screen.findByRole("heading", { name: "Listo, la operación está creada" })).toBeTruthy();
+  expect(await screen.findByRole("heading", { name: "Listo, el asunto está creado" })).toBeTruthy();
   // Lo que el prospecto no pregunta queda «por aclarar» para la entrevista inicial (02).
   expect(request.mock.calls.find(c => c[1] === "PUT")?.[2]).toMatchObject({ completar: true, respuestas: { relacion: "por_aclarar", ocupacion: "por_aclarar", alertas: "por_aclarar", siguienteAccion: "Entrevista inicial en persona" } });
-  expect(screen.getByText("La encuentras en Operaciones, en la etapa Prospecto.")).toBeTruthy();
+  expect(screen.getByText("Lo encuentras en Asuntos, en la etapa Prospecto.")).toBeTruthy();
   expect(await screen.findByText("EXP-2026-047")).toBeTruthy();
-  expect(screen.getByRole("link", { name: /Abrir la operación/ }).getAttribute("href")).toBe("/admin/operaciones/exp-1");
+  expect(screen.getByRole("link", { name: /Abrir el asunto/ }).getAttribute("href")).toBe("/admin/operaciones/exp-1");
   expect(screen.getByText("Paso 4 de 4")).toBeTruthy();
 });
 

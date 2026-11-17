@@ -1,20 +1,17 @@
-# Manuales y referencias de Fortius
+# Documentos del proyecto
 
-El desarrollo del ERP/CRM se dirige únicamente desde [PLAN.md](../PLAN.md); cómo funciona el sistema (reglas, decisiones, alcance) está en [SPEC.md](../SPEC.md). Esta carpeta conserva material de consulta y operación; los planes e informes anteriores están en una copia recuperable fuera del repositorio.
+Lo principal está en la carpeta de arriba: `SPEC.md` (cómo debe funcionar el sistema) y `PLAN.md` (qué falta y en qué vamos). Aquí está lo que los acompaña.
 
-| Tema | Referencia |
-|---|---|
-| Producto | [Propósito y capacidades](PRODUCT.md). |
-| Historial del plan | [Trabajo terminado y registros de sesiones pasadas](erp-crm/historial-del-plan.md), separados del plan el 11/11/2026. No es un plan: si contradice al plan, manda el plan. |
-| Preguntas abiertas | [Cuestionario único para el titular](erp-crm/CUESTIONARIO_TITULAR.md), empezando por A y B. Reúne sin duplicados las preguntas al titular, el complemento P01–P84 y las preguntas del panel. Cada respuesta se integra en el plan. |
-| Panel | [Manual](admin-manual.md), [espacio de trabajo](admin-workspace.md). |
-| Marca | [Marca](brand.md), [identidad técnica](fortius-inmuebles-identity.md). |
-| Publicación | [Despliegue](deployment-fortius.md), [entornos](erp-crm/environment-release.md). |
-| Recuperación | [Procedimiento actual](fortius-inmuebles-backup-restore.md), [política y objetivos](erp-crm/recovery-policy.md), [copia diaria](erp-crm/respaldo-diario.md). |
-| Permisos y privacidad | [Acceso](erp-crm/access-policy.md), [tratamiento de datos](erp-crm/privacy/data-processing-register.md). |
-| Documentos | [Estado y límites de los formatos](formatos-admin-status.md), [auditoría de campos por formato](formatos-campos-auditoria.md). |
-| Blog | [Operación editorial](mercado-inmobiliario-editorial.md). |
-| Calculadoras | [Método](financial-method.md), [fuentes fiscales](legal/financial-tools-2026-10-04.md). |
-| Avisos públicos | [Control de avisos](legal/avisos-publicos.md). |
+| Carpeta o archivo | Qué contiene |
+| --- | --- |
+| `sitio/` | El sitio público nuevo: qué es (`SPEC.md`), en qué orden se hizo (`PLAN.md`) y cómo se hace (`DECISIONS.md`). Para el sitio mandan esos. |
+| `boceto-fortius-por-asuntos.html` | El boceto aprobado del panel. Se abre en el navegador y funciona con datos de ejemplo. |
+| `casos-reales.md` | Los casos reales con los que se prueba cada etapa. |
+| `metodologias/` | Las guías de trabajo que irán a la Biblioteca y las plantillas de mensaje. |
+| `formatos/` | En qué estado está cada formato de Fortius y qué campos lleva. |
+| `herramientas/` | Cómo se hacen los cálculos (crédito, comisión, costos de cierre) y de qué fuentes salen. |
+| `legal/` | Lo que debe revisar el abogado y el control de los avisos públicos. |
+| `sitio-publico/` | La marca del sitio público y cómo se opera el blog. |
+| `operacion/` | Lo técnico del día a día: publicar, respaldos, accesos, datos personales, el paso al inventario real y el modelo de datos del panel (`modelo-de-datos-panel.md`). |
 
-Los estados propuestos de acceso/privacidad siguen sujetos a aprobación profesional. Una referencia fechada no acredita una revisión normativa nueva.
+Los documentos de `operacion/`, `formatos/` y `herramientas/` son técnicos: los usa el agente. Algunos conservan claves de versiones anteriores de la especificación; donde digan algo distinto a `SPEC.md`, manda `SPEC.md`.

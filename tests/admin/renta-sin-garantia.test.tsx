@@ -18,14 +18,14 @@ afterEach(cleanup);
 const flow = (requisitos: Record<string, unknown> = {}) => ({ version: 1, ruta: "arrendador", estado: "activa", motivo: "", requisitos } as unknown as OperationWorkflow);
 const row = (f: OperationWorkflow) => {
   render(<RequirementRow requirement="garantias_renta" earlier={false} flow={f} today="2026-11-13" locked={false} busy={false} onQuick={() => undefined} onSheet={() => undefined} />);
-  fireEvent.click(screen.getByRole("button", { name: /^Más estados de/ }));
+  fireEvent.keyDown(screen.getByRole("button", { name: /^Más estados de/ }), { key: "Enter" });
 };
-const noAplica = () => screen.queryByRole("radio", { name: /No aplica/ });
+const noAplica = () => screen.queryByRole("menuitemradio", { name: /No aplica/ });
 
 test("el asesor no puede marcar «No aplica» en depósito y garantías", () => {
   role.director = false;
   row(flow());
-  expect(screen.getAllByRole("radio").length).toBeGreaterThan(0);
+  expect(screen.getAllByRole("menuitemradio").length).toBeGreaterThan(0);
   expect(noAplica()).toBeNull();
 });
 

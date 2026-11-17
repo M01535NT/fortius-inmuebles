@@ -1,0 +1,13 @@
+/* Posponer (kit): la pista de la derecha (hora o día) y la lista de opciones de la hoja del teléfono. */
+.pn-pos-pista { margin-left: auto; padding-left: 12px; font-size: 13px; color: var(--ink-muted); white-space: nowrap; }
+.pn-pos-opts { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+.pn-pos-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 0 16px;
+  border: 0; border-top: 1px solid var(--border); background: var(--card); color: var(--ink); font: inherit; font-size: 15px; font-weight: 500;
+  text-align: left; cursor: pointer; box-sizing: border-box;
+}
+.pn-pos-opt:first-child { border-top: 0; }
+.pn-pos-opt:hover, .pn-pos-opt:active { background: var(--muted); }
+.pn-pos-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pn-pos-opt > svg { flex: none; color: var(--ink-muted); }
+.pn-pos-opt .pn-pos-pista { font-size: 14px; }

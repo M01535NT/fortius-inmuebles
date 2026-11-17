@@ -1,0 +1,202 @@
+/*
+ * Panel nuevo — colores, letra y medidas del boceto aprobado «Fortius por asuntos» (docs/boceto-fortius-por-asuntos.html).
+ * Todo vive bajo `.panel-root`: no toca el sitio público ni el panel provisional (`/admin`).
+ * Claro por omisión; oscuro con el tema del dispositivo o con data-theme="dark".
+ * Fondo gris muy claro, tarjetas blancas y un solo azul para las acciones; verde, ámbar y rojo solo dicen el estado de algo.
+ */
+.panel-root {
+  --bg: #f5f6f8; --side: #eceef2; --card: #ffffff; --raised: #ffffff; --muted: #eceef2; --border: #e2e5ea; --border-strong: #c9ced6;
+  --fill: rgb(15 18 24 / 0.055); --glass: #eceef2;
+  --ink: #0f1218; --ink-muted: #596070; --ink-faint: #939aa8;
+  --accent: #2f6bff; --accent-soft: #e8efff; --accent-ink: #ffffff; --accent-hover: #2560f0; --accent-active: #1f54d6;
+  --warning: #b56a00; --warning-soft: #fff0d6; --error: #d8362a; --error-soft: #fdeae8; --exito: #0e9f4f; --exito-soft: #e3f6ea; --scrim: rgb(10 12 16 / 0.32);
+  --c-blue: #2f6bff; --c-orange: #f27a0e; --c-red: #e5484d; --c-teal: #0c9ca8; --c-violet: #7b5cfa; --c-green: #12a150; --c-indigo: #4a55e6; --c-gray: #7b8392;
+  --papel: #ffffff; --tinta-papel: #16181d;
+  --sombra-flota: 0 14px 38px rgb(15 18 24 / 0.16), 0 2px 6px rgb(15 18 24 / 0.06);
+  color-scheme: light;
+  --r-sm: 6px; --r-md: 9px; --r-lg: 14px; --r-xl: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  .panel-root:not([data-theme="light"]) {
+    --bg: #0e0f12; --side: #131418; --card: #191a1f; --raised: #202127; --muted: #202127; --border: #292b33; --border-strong: #3a3d47;
+    --fill: rgb(255 255 255 / 0.065); --glass: #131418;
+    --ink: #edeef1; --ink-muted: #a2a8b4; --ink-faint: #6d7381;
+    --accent: #5c8cff; --accent-soft: #18233f; --accent-ink: #ffffff; --accent-hover: #7aa2ff; --accent-active: #4a7af0;
+    --warning: #f5b94a; --warning-soft: #2e2208; --error: #ff7b72; --error-soft: #33161a; --exito: #3dd68c; --exito-soft: #11281d; --scrim: rgb(0 0 0 / 0.55);
+    --c-blue: #3d74ff; --c-orange: #f27a0e; --c-red: #e5484d; --c-teal: #0c9ca8; --c-violet: #7b5cfa; --c-green: #12a150; --c-indigo: #5560f0; --c-gray: #6b7382;
+    --sombra-flota: 0 14px 38px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
+    color-scheme: dark;
+  }
+}
+.panel-root[data-theme="dark"] {
+  --bg: #0e0f12; --side: #131418; --card: #191a1f; --raised: #202127; --muted: #202127; --border: #292b33; --border-strong: #3a3d47;
+  --fill: rgb(255 255 255 / 0.065); --glass: #131418;
+  --ink: #edeef1; --ink-muted: #a2a8b4; --ink-faint: #6d7381;
+  --accent: #5c8cff; --accent-soft: #18233f; --accent-ink: #ffffff; --accent-hover: #7aa2ff; --accent-active: #4a7af0;
+  --warning: #f5b94a; --warning-soft: #2e2208; --error: #ff7b72; --error-soft: #33161a; --exito: #3dd68c; --exito-soft: #11281d; --scrim: rgb(0 0 0 / 0.55);
+  --c-blue: #3d74ff; --c-orange: #f27a0e; --c-red: #e5484d; --c-teal: #0c9ca8; --c-violet: #7b5cfa; --c-green: #12a150; --c-indigo: #5560f0; --c-gray: #6b7382;
+  --sombra-flota: 0 14px 38px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
+  color-scheme: dark;
+}
+
+.panel-root {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-panel), -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+.panel-root *, .panel-root *::before, .panel-root *::after { box-sizing: border-box; }
+:where(.panel-root) a { color: inherit; text-decoration: none; }
+:where(.panel-root) button { font: inherit; color: inherit; }
+.panel-root :is(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { .panel-root *, .panel-root *::before, .panel-root *::after { transition: none !important; animation: none !important; } }
+
+/* ---------- Armazón (boceto «Fortius por asuntos») ---------- */
+.pn-app { display: flex; min-height: 100dvh; }
+/* Menú lateral: fijo (232 px) o contraído a íconos (64 px). Contraído, al pasar el ratón o llegar con Tab se abre encima. */
+.pn-side { position: sticky; top: 0; height: 100dvh; flex: none; width: 232px; z-index: 30; }
+.pn-side[data-mini="true"] { width: 64px; }
+.pn-side-in {
+  height: 100%; width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 14px 10px;
+  padding-left: max(10px, env(safe-area-inset-left, 0px)); background: var(--side); border-right: 1px solid var(--border); overflow-y: auto;
+}
+.pn-side[data-mini="true"][data-abierto="true"] .pn-side-in {
+  position: absolute; top: 0; left: 0; bottom: 0; width: 232px; box-shadow: var(--sombra-flota);
+  animation: pn-menu-abre 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes pn-menu-abre { from { opacity: 0.6; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+.pn-side-top { display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 4px 8px 12px; }
+.pn-side-top .pn-lbl { flex: 1; display: inline-flex; align-items: center; }
+.pn-side .pn-mark { display: none; margin: 0 auto; }
+.pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-lbl,
+.pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-txt,
+.pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-busca span,
+.pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-busca kbd,
+.pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-asa-menu { display: none !important; }
+.pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-mark { display: inline-flex; }
+.pn-side[data-mini="true"]:not([data-abierto="true"]) :is(.pn-link, .pn-busca, .pn-cuenta) { justify-content: center; padding-left: 0; padding-right: 0; }
+.pn-navbtn { width: 32px; height: 32px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: none; color: var(--ink-faint); cursor: pointer; }
+.pn-navbtn:hover { background: var(--fill); color: var(--ink); }
+.pn-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border: 0; border-radius: var(--r-md); background: none; color: var(--ink-muted); cursor: pointer;
+}
+.pn-iconbtn:hover { background: var(--fill); color: var(--ink); }
+/* Buscar: cuadro blanco con borde, como en el boceto. */
+.pn-busca {
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 10px; margin: 0 0 6px;
+  border: 1px solid var(--border); border-radius: var(--r-md); background: var(--card); color: var(--ink-faint); font-size: 14px; cursor: pointer; text-align: left;
+}
+.pn-busca:hover { border-color: var(--border-strong); }
+.pn-busca span { flex: 1; white-space: nowrap; }
+.pn-busca kbd { margin-left: auto; font: inherit; font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: var(--r-sm); background: var(--fill); border: 0; color: var(--ink-faint); }
+.pn-nav { min-height: 0; display: flex; flex-direction: column; }
+.pn-side .pn-arrastre { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; overflow-x: hidden; }
+.pn-item-fila { position: relative; display: flex; align-items: center; border-radius: 8px; }
+.pn-item-fila .pn-link { flex: 1; min-width: 0; }
+.pn-asa-menu { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); opacity: 0; transition: opacity 120ms; }
+.pn-item-fila:hover .pn-asa-menu, .pn-item-fila:focus-within .pn-asa-menu { opacity: 1; }
+/* Renglón del menú: ícono gris y nombre; el actual va en tarjeta blanca con su borde. */
+.pn-link {
+  position: relative; display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 8px; border-radius: 8px;
+  color: var(--ink-muted); font-size: 14px; font-weight: 500; white-space: nowrap;
+}
+.pn-link:hover { background: var(--fill); }
+.pn-link[aria-current="page"] { background: var(--card); color: var(--ink); box-shadow: 0 0 0 1px var(--border); }
+.pn-nav-n { margin-left: auto; font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.pn-sec { font-size: 12px; color: var(--ink-faint); font-weight: 550; padding: 14px 8px 4px; }
+/* Recientes: los últimos asuntos abiertos, con el cuadrito de su encargo. */
+.pn-recientes { display: flex; flex-direction: column; gap: 2px; min-height: 0; }
+.pn-reciente .pn-txt { overflow: hidden; text-overflow: ellipsis; }
+/* Cuenta al pie del menú. */
+.pn-cuenta {
+  margin-top: auto; display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: 8px;
+  background: none; color: var(--ink-muted); font: inherit; cursor: pointer; text-align: left;
+}
+.pn-cuenta:hover { background: var(--fill); }
+.pn-cuenta-c { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.pn-cuenta-n { color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-cuenta-c small { color: var(--ink-faint); font-size: 12px; }
+.pn-av { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11.5px; font-weight: 650; }
+.pn-main { flex: 1; min-width: 0; }
+.pn-pagina { max-width: 1040px; margin: 0 auto; padding: 22px max(24px, env(safe-area-inset-right, 0px)) 80px max(24px, env(safe-area-inset-left, 0px)); }
+/* Encabezado de página: título solo (sin antetítulo) y la acción principal a la derecha. */
+.pn-encabezado { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 34px; }
+.pn-encabezado > :first-child { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.pn-h1 { margin: 0; font-size: 24px; line-height: 1.15; font-weight: 680; letter-spacing: -0.022em; text-wrap: balance; }
+.pn-sub { margin: 4px 0 0; font-size: 13px; color: var(--ink-muted); }
+.pn-encabezado .pn-sub { margin: 0; }
+.pn-tarjeta { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); }
+.pn-etiqueta { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; background: var(--fill); color: var(--ink-muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pn-h2 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+/* Pantalla vacía: borde punteado, ícono y una línea. */
+.pn-vacio { border: 1.5px dashed var(--border); border-radius: var(--r-lg); padding: 26px 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: var(--ink-muted); }
+
+/* ---------- Botones y campos ---------- */
+.pn-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 34px; padding: 0 12px; white-space: nowrap;
+  border: 1px solid var(--border); border-radius: var(--r-md); background: var(--card); font-size: 14px; font-weight: 550; cursor: pointer;
+  transition: transform 100ms, background-color 100ms;
+}
+.pn-btn:hover { background: var(--fill); }
+.pn-btn:active { transform: scale(0.97); }
+.pn-btn-primario { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.pn-btn-primario:hover { background: var(--accent-hover); }
+.pn-btn-primario:active { background: var(--accent-active); }
+.pn-btn-secundario { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.pn-btn-secundario:hover { background: color-mix(in srgb, var(--accent-soft) 85%, var(--accent)); }
+.pn-btn[aria-disabled="true"], .pn-btn:disabled { background: var(--fill); color: var(--ink-faint); border-color: transparent; pointer-events: none; }
+.pn-campo { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500; color: var(--ink-muted); }
+.pn-campo input { height: 34px; padding: 0 11px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--card); color: var(--ink); font: inherit; font-size: 14px; outline: none; }
+.pn-campo input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pn-error { color: var(--error); font-size: 13px; }
+
+/* ---------- Acceso ---------- */
+.pn-acceso { display: grid; place-items: center; min-height: 100dvh; padding: 24px; }
+.pn-acceso form { width: min(400px, 100%); display: flex; flex-direction: column; gap: 14px; padding: 22px; }
+
+/* ---------- Teléfono ---------- */
+.pn-barra { display: none; }
+@media (max-width: 900px) {
+  .panel-root { font-size: 15px; }
+  .pn-side { display: none; }
+  .pn-app { flex-direction: column; }
+  .pn-pagina { padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(96px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+  /* En el teléfono todo botón mide al menos 44 px (regla del panel). */
+  .pn-btn, .pn-campo input, .pn-busca { height: 44px; }
+  .pn-iconbtn { width: 44px; height: 44px; }
+  /* Barra de abajo (boceto): Inicio, Asuntos, la nueva consulta al centro, Inmuebles y «Más». */
+  .pn-barra {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center;
+    padding: 5px max(6px, env(safe-area-inset-right, 0px)) calc(5px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+    background: var(--card); border-top: 1px solid var(--border);
+  }
+  .pn-barra > :is(a, button) {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 48px;
+    border: 0; background: none; color: var(--ink-faint); font: inherit; font-size: 10.5px; font-weight: 550; cursor: pointer;
+  }
+  .pn-barra > :is(a, button)[aria-current="page"] { color: var(--accent); }
+  .pn-barra > .pn-barra-mas {
+    width: 46px; height: 46px; min-height: 46px; justify-self: center; border-radius: 15px; background: var(--accent); color: var(--accent-ink);
+    transition: transform 100ms;
+  }
+  .pn-barra > .pn-barra-mas:active { transform: scale(0.95); }
+  .pn-barra > .pn-barra-mas[aria-current="page"] { color: var(--accent-ink); }
+}
+
+/* Panel lateral del detalle (escritorio ancho): la página deja su lugar para que no tape la lista. */
+@media (min-width: 1100px) {
+  .panel-root:has([data-lateral]) .pn-main { padding-right: 440px; }
+}
+
+/*
+ * Bordes en el panel: la regla general del sitio (`* { border-color }` en globals.css, sin capa) pisaba los colores de borde
+ * de las utilidades (que van en capa), y en oscuro las casillas y desplegables quedaban casi invisibles.
+ * Dentro del panel se devuelve el color a las capas; el valor por omisión vive en la capa base. El sitio público no cambia.
+ */
+@layer base { .panel-root *, .panel-root ::before, .panel-root ::after { border-color: var(--border); } }
+:where(.panel-root) *, :where(.panel-root) ::before, :where(.panel-root) ::after { border-color: revert-layer; }

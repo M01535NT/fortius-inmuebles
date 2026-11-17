@@ -2,15 +2,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { BrandMark } from "@/components/brand/brand-mark";
-import { ThemeToggle } from "@/components/home/theme-toggle";
+import { SitioLogo } from "@/components/sitio/logo";
+import { Cruz } from "@/components/sitio/iconos";
+import { InterruptorTema } from "@/components/sitio/interruptor-tema";
 import { usePublicFeatures } from "@/components/providers/public-features-provider";
 import { publicContact } from "@/lib/public-contact";
 import styles from "./fullscreen-menu.module.css";
 
-/* Columnas del menú desplegable (boceto 2). */
+/* Columnas del menú (Fortius II, 17/11/2026): mismos destinos que antes; cambia solo el aspecto. */
 const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   { title: "Vender", links: [
     { href: "/vender-propiedad", label: "Vender mi propiedad" },
@@ -163,9 +164,9 @@ export function FullscreenMenu({ open, onClose }: Props) {
       <div ref={scrimRef} className={styles.scrim} aria-hidden="true" onClick={onClose} />
       <div ref={panelRef} role="dialog" aria-modal="true" aria-label="Menú" className={styles.panel}>
         <header className={styles.header}>
-          <BrandMark className={styles.brand} />
+          <SitioLogo className={styles.brand} />
           <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar menú" className={styles.close}>
-            Cerrar <X size={20} strokeWidth={2} aria-hidden="true" />
+            Cerrar <Cruz />
           </button>
         </header>
         <div className={styles.body}>
@@ -179,7 +180,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
             {settings?.horario?.trim() && <p className={styles.hours}>{settings.horario}</p>}
             <Link href="/vender-propiedad" prefetch={open ? null : false} onClick={onClose} className={styles.primary}>Quiero vender</Link>
             <Link href={directHref} prefetch={false} onClick={onClose} className={styles.direct}>Contacto directo <ArrowRight size={16} aria-hidden="true" /></Link>
-            <ThemeToggle className={styles.square} />
+            <InterruptorTema className={styles.theme} />
           </section>
           <nav aria-label="Menú principal" className={styles.columns}>
             {COLUMNS.map((column) => (

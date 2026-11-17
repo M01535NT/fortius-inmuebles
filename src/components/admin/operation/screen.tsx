@@ -10,20 +10,23 @@ import { confirmAction, confirmDeleteOperation } from "@/components/admin/worksp
 import { PAPELERA } from "@/components/admin/papelera/textos";
 import { apiRequest, db, fetchJson as json, useCollection, useSession, errorMessage } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { exceptionKeys, inheritedPending, isOwnerRoute, type OperationWorkflow, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
+import { exceptionKeys, inheritedPending, isOwnerRoute, type OperationWorkflow, type SalePhase } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { conditionWith02 } from "@/lib/intake/condition";
-import { EXCEPTION_TAG, INHERITED_TAG, flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
+import { EXCEPTION_TAG, INHERITED_TAG, flowOf, initialStatus, isGuided, operationTags, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { TIPO_LABELS, formatPrecio } from "@/data/propiedades";
 import { ClientDocumentsTab } from "./client-documents-tab";
 import { DocumentsTab } from "./documents-tab";
+import { CREATABLE, REPEATABLE } from "./create-document";
 import { HistoryTab } from "./history-tab";
 import { NextStepTab } from "./next-step";
 import { SettingsTab } from "./settings-tab";
 import { StagePanel, StagesSheet } from "./stages";
+import { GuideStepTab } from "./guide-step";
+import { GUIA_NOMBRE } from "@/lib/guias";
 import { useOperationDocuments } from "./use-documents";
 import { useLeaveGuard, useOperation } from "./use-operation";
 import s from "./operation.module.css";
@@ -56,8 +59,8 @@ const VERB: Record<string, string> = { captacion: "vende", arrendador: "renta", 
 export function OperationScreen({ id }: { id: string }) {
   const operation = useOperation(id);
   const { op, loadError, reload } = operation;
-  if (op === undefined) return <p role="status" className="p-4 text-sm text-muted-foreground">Consultando la operación…</p>;
-  if (op === null) return <div className="flex flex-col gap-4"><BackLink />{loadError ? <div role="alert" className="flex flex-wrap items-center gap-3"><span>{loadError}</span><Button onClick={reload}>Reintentar</Button></div> : <p className="text-sm text-muted-foreground">No encontramos esta operación.</p>}</div>;
+  if (op === undefined) return <p role="status" className="p-4 text-sm text-muted-foreground">Consultando el asunto…</p>;
+  if (op === null) return <div className="flex flex-col gap-4"><BackLink />{loadError ? <div role="alert" className="flex flex-wrap items-center gap-3"><span>{loadError}</span><Button onClick={reload}>Reintentar</Button></div> : <p className="text-sm text-muted-foreground">No encontramos este asunto.</p>}</div>;
   return <OperationView key={op.id} op={op} operation={operation} />;
 }
 
@@ -68,7 +71,15 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const clients = useCollection(db.clientes), properties = useCollection(db.propiedades), advisers = useCollection(db.asesores), tasks = useCollection(db.tareas);
   const today = operationalDate();
   const requested = params.get("tab");
-  const tab: TabId = TABS.some(t => t.id === requested) ? requested as TabId : requested && LEGACY_TAB[requested] ? LEGACY_TAB[requested] : params.has("documento") ? "documentos" : "sigue";
+  const tab: TabId = TABS.some(t => t.id === requested) ? requested as TabId : requested && LEGACY_TAB[requested] ? LEGACY_TAB[requested] : params.has("documento") || params.has("crear") ? "documentos" : "sigue";
+  // La lista de pestañas cambia de lugar (fila de abajo en «Etapa», columna en las demás) y se vuelve a montar:
+  // si el cambio vino desde las pestañas, el foco sigue a la elegida para que quien usa teclado no pierda su sitio.
+  const tabFocus = React.useRef(false);
+  React.useEffect(() => {
+    if (!tabFocus.current) return;
+    tabFocus.current = false;
+    document.getElementById(`operacion-tab-${tab}`)?.focus();
+  }, [tab]);
   // Documentos: los del expediente o los que entrega el cliente (titular, 29/10/2026).
   const [docKind, setDocKind] = React.useState<"expediente" | "cliente">(requested === "cliente" ? "cliente" : "expediente");
   // «Agregar documento»: los archivos elegidos pasan a los documentos del cliente, que los sube uno por uno.
@@ -101,7 +112,6 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const flow = flowOf(op);
   const docs = useOperationDocuments({ op, checklist, interviewAnswers: (interview?.respuestas ?? {}) as Record<string, unknown>, cliente: client?.nombre });
   const view: OperationRecord = { ...op, inicial: initialStatus(new Map(["02", "04"].filter(f => docs.latest(f)).map(f => [f, docs.status(f) === "terminado"])), checklist) };
-  const { phase } = routeStages(view, today);
   const track = stageTrack(view, today);
   const markDirty = React.useMemo(() => Object.fromEntries(DIRTY_KEYS.map(key => [key, (value: boolean) => setDirty(old => old[key] === value ? old : { ...old, [key]: value })])) as Record<DirtyKey, (value: boolean) => void>, []);
 
@@ -114,9 +124,22 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     if (doc) { opened.current = true; docs.openDocument(doc); }
   }, [wanted, docs]);
 
+  // FLX-02: ?crear=<formato> (desde la persona o el inmueble) abre ese formato una sola vez: el que ya hay o uno nuevo.
+  const creating = React.useRef(false);
+  const toCreate = params.get("crear");
+  React.useEffect(() => {
+    if (creating.current || !toCreate || !docs.documents) return;
+    creating.current = true;
+    const query = new URLSearchParams(params.toString()); query.delete("crear");
+    router.replace(`${pathname}${query.size ? `?${query}` : ""}`, { scroll: false });
+    if (CREATABLE.has(toCreate)) void docs.createAny(toCreate, !!REPEATABLE[toCreate]);
+  }, [toCreate, docs, params, pathname, router]);
+
   async function changeTab(next: TabId) {
     if (next === tab) return true;
+    const fromTabs = !!document.activeElement?.closest("[role=tablist]");
     if (dirty[tab] && !await confirmAction("Hay cambios sin guardar en esta pestaña. ¿Descartarlos y cambiar de pestaña?")) return false;
+    tabFocus.current = fromTabs;
     setDirty(old => ({ ...old, [tab]: false }));
     const query = new URLSearchParams(params.toString()); query.delete("documento");
     if (next === "sigue") query.delete("tab"); else query.set("tab", next);
@@ -130,7 +153,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     void changeTab(place === "tareas" ? "actividad" : "documentos");
   }
   async function closeSettings() {
-    if (dirty.ajustes && !await confirmAction("Hay cambios sin guardar en los datos de la operación. ¿Descartarlos?")) return;
+    if (dirty.ajustes && !await confirmAction("Hay cambios sin guardar en los datos del asunto. ¿Descartarlos?")) return;
     setDirty(old => ({ ...old, ajustes: false })); setSettings(false);
     if (params.get("tab") === "ajustes") { const query = new URLSearchParams(params.toString()); query.delete("tab"); router.replace(`${pathname}${query.size ? `?${query}` : ""}`, { scroll: false }); }
   }
@@ -141,21 +164,22 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   }
   /** Eliminar desde «Más opciones»: pide confirmar en su ventana y no pierde cambios sin guardar. */
   async function removeFromPanel() {
-    if (anyDirty) { setNotice("Guarda o descarta los cambios antes de eliminar la operación."); return; }
+    if (anyDirty) { setNotice("Guarda o descarta los cambios antes de eliminar el asunto."); return; }
     if (!await confirmDeleteOperation(op.folio, client?.nombre)) return;
     await changeLifecycle(true).catch(cause => setNotice(errorMessage(cause)));
   }
   async function changeLifecycle(remove: boolean) {
     const result = await json<{ expediente: OperationRecord }>(`/api/admin/expedientes/${op.id}`, { method: remove ? "DELETE" : "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: op.version }) });
     setOp(result.expediente); setDirty({}); setChanges(n => n + 1);
-    setNotice(remove ? `Operación eliminada. Puedes restaurarla aquí o desde ${PAPELERA.nombre}.` : "Operación restaurada.");
+    setNotice(remove ? `Asunto eliminado. Puedes restaurarlo aquí o desde ${PAPELERA.nombre}.` : "Asunto restaurado.");
   }
 
   const reviewer = advisers.find(a => a.id === me)?.nombre ?? session?.name ?? session?.email ?? "";
   const docsCount = docs.list.length, taskCount = tasks.filter(t => t.expedienteId === op.id && !["completada", "cancelada"].includes(t.estado)).length;
-  const verb = isGuided(op) ? VERB[flow.ruta] : (EXPEDIENTE_OPERACIONES[op.operacion as keyof typeof EXPEDIENTE_OPERACIONES] ?? op.operacion).toLowerCase();
+  // FLX-03 B: una guía propia se nombra por su tipo («Inspección de su casa»).
+  const verb = flow.guia ? GUIA_NOMBRE[flow.guia.clave] : isGuided(op) ? VERB[flow.ruta] : (EXPEDIENTE_OPERACIONES[op.operacion as keyof typeof EXPEDIENTE_OPERACIONES] ?? op.operacion).toLowerCase();
   const thing = property && TIPO_LABELS[property.tipo] ? `su ${TIPO_LABELS[property.tipo].toLowerCase()}` : isOwnerRoute(flow.ruta) ? "su inmueble" : "";
-  const wants = [verb, isOwnerRoute(flow.ruta) ? thing : ""].filter(Boolean).join(" ");
+  const wants = flow.guia ? (thing ? `${verb} de ${thing}` : verb) : [verb, isOwnerRoute(flow.ruta) ? thing : ""].filter(Boolean).join(" ");
   const stageName = track.stages[track.current]?.label;
   // COR-14: la situación (con su motivo) y la condición de la llamada (con lo que contó).
   const condition = conditionWith02(interview?.respuestas, docs.latest("02")?.data);
@@ -168,34 +192,37 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const tabItems = TABS.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={18} aria-hidden="true" />, ...(t.id === "documentos" ? { count: docsCount } : t.id === "actividad" ? { count: taskCount } : {}) }));
   const menu = [
     { label: noteCount ? `Notas (${noteCount})` : "Notas", icon: <Pencil size={16} aria-hidden="true" />, onSelect: () => setNotesOpen(true) },
-    { label: "Datos de la operación", icon: <Settings2 size={16} aria-hidden="true" />, onSelect: () => setSettings(true) },
+    { label: "Datos del asunto", icon: <Settings2 size={16} aria-hidden="true" />, onSelect: () => setSettings(true) },
     ...(isGuided(op) && op.etapa && op.etapa !== "captacion" ? [{ label: "Corregir etapa", icon: <ChevronLeft size={16} aria-hidden="true" />, onSelect: () => setSettings(true) }] : []),
-    { label: "Eliminar operación", icon: <Trash2 size={16} aria-hidden="true" />, onSelect: () => void removeFromPanel() },
+    { label: "Eliminar asunto", icon: <Trash2 size={16} aria-hidden="true" />, onSelect: () => void removeFromPanel() },
   ];
-  const back = phase ? `/admin/operaciones?etapa=${ownerProcess(op.flujo?.ruta).find(p => p.key === phase)?.slug ?? ""}` : "/admin/operaciones";
-  const tabs = <Tabs orientation={tab === "sigue" ? "horizontal" : "vertical"} className={tab === "sigue" ? s.footTabs : s.navyTabs} idPrefix="operacion" label="Secciones de la operación" value={tab} onChange={id => void changeTab(id)} items={tabItems} />;
+  // Asuntos ya no se filtra por etapa (titular, 15/11/2026): «Volver» regresa a la lista completa.
+  const back = "/admin/operaciones";
+  const tabs = <Tabs orientation={tab === "sigue" ? "horizontal" : "vertical"} className={tab === "sigue" ? s.footTabs : s.navyTabs} idPrefix="operacion" label="Secciones del asunto" value={tab} onChange={id => void changeTab(id)} items={tabItems} />;
 
   return <Surface className={s.screen}>
     {notice && <p role="status" className="mb-3 text-sm">{notice}</p>}
-    {op.deleted_at ? <div className="flex flex-col gap-4"><BackLink /><Notice title="Esta operación está eliminada" actions={<Button variant="primary" onClick={() => void changeLifecycle(false).catch(cause => setNotice(errorMessage(cause)))}>Restaurar operación</Button>}>Sus documentos, PDF y tareas se conservan. Restáurala para seguir trabajando en ella.</Notice></div> : <>
-    {["compra", "arrendatario"].includes(op.flujo?.ruta ?? "") && <div className="mb-4"><Notice title="Operación histórica">Operación de comprador o arrendatario anterior al cambio; se conserva completa. Los interesados nuevos van en Contactos.</Notice></div>}
+    {op.deleted_at ? <div className="flex flex-col gap-4"><BackLink /><Notice title="Este asunto está eliminado" actions={<Button variant="primary" onClick={() => void changeLifecycle(false).catch(cause => setNotice(errorMessage(cause)))}>Restaurar asunto</Button>}>Sus documentos, PDF y tareas se conservan. Restáuralo para seguir trabajando en él.</Notice></div> : <>
+    {["compra", "arrendatario"].includes(op.flujo?.ruta ?? "") && <div className="mb-4"><Notice title="Asunto histórico">Asunto de comprador o arrendatario anterior al cambio; se conserva completo. Los interesados nuevos van en Contactos.</Notice></div>}
     <div className={s.split}>
       <StagePanel op={view} today={today} docs={docs} checklist={checklist} compact={tab !== "sigue"} back={back}
         who={{ name: client?.nombre ?? op.folio, wants, href: client ? `/admin/clientes/${encodeURIComponent(client.id)}` : undefined }}
         tags={tags}
         photo={op.propiedad_slug ? property?.galeria[0]?.src ?? null : undefined}
         facts={[property?.titulo, property && property.precio.modalidad === "publico" ? `precio ${formatPrecio(property.precio)}` : undefined, adviser ? `responsable ${adviser.nombre}` : undefined].filter((x): x is string => !!x)}
+        adviser={adviser?.nombre}
         person={client ? { name: client.nombre, role, digits, email: client.email, href: `/admin/clientes/${encodeURIComponent(client.id)}` } : undefined}
         onOpenStages={focus => setStagesOpen({ focus })} menu={menu}>
         {tab !== "sigue" && tabs}
       </StagePanel>
       <div className={s.main}>
-        {tab === "sigue" && <div data-tour="operacion-pestanas" className={s.foot}>
+        {tab === "sigue" && <div className={s.foot}>
           {tabs}
           {!adviser && <span className={s.footWho}>Sin responsable</span>}
         </div>}
         <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
-          {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}
+          {tab === "sigue" && flow.guia && <GuideStepTab key={op.id} op={view} clientName={client?.nombre} onSave={saveAndTrack} />}
+          {tab === "sigue" && !flow.guia && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}
             evidence={{ documents: docs.list, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer, expedienteId: op.id }} interview={interview}
             onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={goTo} onDirtyChange={markDirty.sigue} />}
           {tab === "documentos" && <div className="flex min-w-0 flex-col gap-4">
@@ -215,17 +242,17 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         </TabPanel>
       </div>
     </div></>}
-    {!op.deleted_at && <RecordNotes link={noteLink} open={notesOpen} onClose={() => setNotesOpen(false)} title="Notas de la operación" description="Lo que se acordó o hay que recordar de esta operación. Las ve quien puede ver a su cliente." />}
-    {!op.deleted_at && <Sheet open={settings} onClose={() => void closeSettings()} title="Datos de la operación" description="Ruta, situación, inmueble, contraparte y corrección de etapa.">
-      <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onDirtyChange={markDirty.ajustes} />
+    {!op.deleted_at && <RecordNotes link={noteLink} open={notesOpen} onClose={() => setNotesOpen(false)} title="Notas del asunto" description="Lo que se acordó o hay que recordar de este asunto. Las ve quien puede ver a su cliente." />}
+    {!op.deleted_at && <Sheet open={settings} onClose={() => void closeSettings()} title="Datos del asunto" description="Ruta, situación, inmueble, contraparte y corrección de etapa.">
+      <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onReplaced={value => { setOp(value); setChanges(n => n + 1); }} onDirtyChange={markDirty.ajustes} />
     </Sheet>}
-    {stagesOpen && isGuided(op) && <StagesSheet op={view} today={today} docs={docs} checklist={checklist} focus={stagesOpen.focus} onClose={() => setStagesOpen(null)} />}
+    {stagesOpen && isGuided(op) && !flow.guia && <StagesSheet op={view} today={today} docs={docs} checklist={checklist} focus={stagesOpen.focus} onClose={() => setStagesOpen(null)} />}
     {docs.capture({ cliente: client?.nombre, inmueble: property?.titulo, etapa: stageName })}
   </Surface>;
 }
 
 function BackLink() {
-  return <Link href="/admin/operaciones" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold"><ChevronLeft size={16} aria-hidden="true" />Operaciones</Link>;
+  return <Link href="/admin/operaciones" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold"><ChevronLeft size={16} aria-hidden="true" />Asuntos</Link>;
 }
 
 /** COR-24: desde cuándo está el contrato y qué falta revisar para publicar. */

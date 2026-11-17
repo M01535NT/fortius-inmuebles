@@ -1,0 +1,68 @@
+/* Vender, Fortius II (etapa 5, 17/11/2026). Medidas del boceto «Fortius: Vender y Contacto». */
+
+/* Portada: video de la casa, titular y la entrevista en dos pasos */
+.ve-portada { position: relative; overflow: hidden; background: var(--s-bg); color: var(--s-ink); }
+.ve-fondo { position: absolute; inset: 0; }
+.ve-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ve-velo { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8, 9, 10, 0.9) 0%, rgba(8, 9, 10, 0.7) 50%, rgba(8, 9, 10, 0.35) 100%); }
+.ve-portada-cuerpo { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 56px var(--s-11); padding-top: calc(var(--s-cabecera) + var(--s-12)); padding-bottom: 112px; }
+.ve-portada-texto { flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+.ve-titulo { margin: 0; font-size: clamp(48px, 7.2vw, 112px); font-weight: 500; line-height: 0.94; letter-spacing: -0.055em; }
+.ve-entrada { max-width: 520px; margin: 0; font-size: 20px; line-height: 1.45; color: rgba(237, 237, 239, 0.86); }
+.ve-confianza { margin: 0; font-size: var(--s-type-detalle); color: rgba(237, 237, 239, 0.7); }
+
+.ve-caja { flex: 1 1 380px; max-width: 460px; box-sizing: border-box; display: flex; flex-direction: column; gap: var(--s-6); padding: var(--s-7); border: 1px solid var(--s-line); border-radius: var(--s-r-grande); background: rgba(16, 17, 19, 0.92); scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
+.ve-caja-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 44px; margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
+.ve-volver { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--s-ink); font: inherit; font-weight: 500; cursor: pointer; }
+.ve-volver:hover { color: var(--s-accent); }
+.ve-paso { display: flex; flex-direction: column; gap: var(--s-5); }
+.ve-formulario { margin: 0; }
+.ve-caja-titulo { margin: 0; font-size: 30px; font-weight: 500; line-height: 1.1; letter-spacing: -0.035em; }
+.ve-caja-titulo:focus { outline: none; }
+.ve-anotado { margin: 0; font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
+.ve-boton { width: 100%; }
+.ve-error { margin: 0; color: var(--s-error); }
+.ve-listo { display: flex; flex-direction: column; gap: var(--s-3); }
+.ve-listo:focus { outline: none; }
+.ve-listo p { margin: 0; color: var(--s-ink-muted); }
+
+/* Así vendemos: cuatro pasos con foto, sin números */
+.ve-cabeza { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-5) var(--s-11); padding-bottom: 56px; }
+.ve-cabeza-titulo { flex: 999 1 480px; max-width: 760px; }
+.ve-cabeza-apoyo { flex: 1 1 300px; max-width: 400px; }
+.ve-pasos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-8) var(--s-6); margin: 0; padding: 0; list-style: none; }
+.ve-paso-foto { display: flex; flex-direction: column; gap: var(--s-3); }
+.ve-paso-foto p { margin: 0; line-height: 1.5; }
+.ve-foto { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; margin-bottom: var(--s-2); border-radius: var(--s-r-grande); background: var(--s-muted); }
+.ve-foto img { object-fit: cover; }
+.ve-paso-titulo { margin: 0; font-size: 24px; font-weight: 500; line-height: 1.15; letter-spacing: var(--s-track-sub); }
+
+/* Título a un lado y lista con líneas finas al otro */
+.ve-par { display: flex; flex-wrap: wrap; gap: var(--s-8) var(--s-12); }
+.ve-par-final { padding-bottom: var(--s-seccion); }
+.ve-par-titulo { flex: 1 1 360px; }
+.ve-filas { flex: 1.4 1 480px; min-width: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-ink); }
+.ve-filas > li { display: flex; align-items: center; gap: 14px; padding: 22px 0; border-bottom: 1px solid var(--s-line); font-size: var(--s-type-fila); font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; }
+.ve-herramientas { flex: 2 1 520px; min-width: 0; }
+
+/* Checklist: banda oscura, se descarga directo */
+.ve-checklist > .ve-par { align-items: center; padding-block: 112px; }
+.ve-checklist-texto { flex: 1.2 1 440px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-6); }
+.ve-checklist-titulo { margin: 0; font-size: clamp(36px, 5vw, 76px); font-weight: 500; line-height: 0.98; letter-spacing: -0.045em; }
+.ve-checklist-lado { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: var(--s-4); }
+.ve-checklist-lado p { margin: 0; }
+.ve-filas-palomita { flex: none; border-top-color: var(--s-line); }
+.ve-filas-palomita > li { padding: 18px 0; font-size: var(--s-type-entrada); font-weight: 400; letter-spacing: 0; }
+.ve-filas-palomita svg { flex: none; color: var(--s-accent); }
+
+/* Cierre propio */
+.ve-cierre-cuerpo { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-8); padding-block: 112px; }
+.ve-cierre-titulo { margin: 0; font-size: clamp(44px, 7vw, 112px); font-weight: 500; line-height: 0.94; letter-spacing: -0.055em; }
+.ve-cierre-acciones { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+
+@media (max-width: 639px) {
+  .ve-portada-cuerpo { padding-top: calc(var(--s-cabecera) + var(--s-9)); padding-bottom: var(--s-10); }
+  .ve-caja { padding: var(--s-6) var(--s-5); }
+  .ve-cierre-acciones { width: 100%; }
+  .ve-cierre-acciones > * { flex: 1 1 100%; }
+}

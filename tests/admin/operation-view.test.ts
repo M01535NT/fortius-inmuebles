@@ -105,7 +105,7 @@ test("pide vincular el inmueble antes de negociar y los requisitos abiertos de e
 test("el cierre pasa paso a paso hasta archivar", () => {
   const closing = (etapa: OperationRecord["etapa"]) => op({ etapa, flujo: flow({}, accepted) });
   expect(advanceTarget(closing("cierre"), today)?.label).toBe("Entrega");
-  expect(advanceTarget(closing("postventa"), today)?.label).toBe("Archivar la operación");
+  expect(advanceTarget(closing("postventa"), today)?.label).toBe("Archivar el asunto");
   expect(advanceTarget(closing("cerrado"), today)).toBeNull();
 });
 
@@ -185,6 +185,18 @@ test("«Para terminar la etapa» junta documentos, revisiones y lo demás; «Aho
   expect(intake.map(i => i.kind)).toEqual(["documento", "documento", "inicio", "requisito"]);
   expect(nowItem(intake)).toMatchObject({ kind: "inicio", step: "levantamiento" });
   expect(itemCounted(intake[1])).toBe(false);
+});
+
+test("FLX-02: el levantamiento se ofrece sin entrevista y la lista sin terminar el levantamiento; lo primero sin terminar sigue siendo lo que toca", () => {
+  const fresh = op({ inicial: { iniciada: true, emitida: true } });
+  const intake = stageItems(fresh, [task()], today, () => undefined);
+  expect(intake).toContainEqual({ kind: "inicio", step: "levantamiento" });
+  expect(nowItem(intake)).toMatchObject({ kind: "documento", formato: "02" });
+  const surveying = op({ inicial: { iniciada: true, emitida: true, levantamiento: "borrador" }, flujo: flow({ entrevista: reviewed() }) });
+  expect(routeStages(surveying, today)).toMatchObject({ phase: "levantamiento" });
+  const items = stageItems(surveying, [task()], today, f => f === "04" ? "borrador" : undefined);
+  expect(items).toContainEqual({ kind: "inicio", step: "checklist" });
+  expect(nowItem(items)).toMatchObject({ kind: "documento", formato: "04" });
 });
 
 test("cada etapa ofrece su documento; de la publicación al cierre no detienen y la renta no recibe los de compraventa", () => {

@@ -81,16 +81,16 @@ describe("Documentos sin expediente", () => {
     expect((await get()).status).toBe(400);
   });
 
-  it("con faltantes sale como incompleto si se pide, salvo el 01 y la 15 (RP-77)", async () => {
+  it("con faltantes sale como incompleto si se pide, también el 01 y la 15 (RP-77; sin frenos, 16/11/2026)", async () => {
     const incompleto = () => GET(new Request(`https://panel.test/api/admin/apps/runs/${id}/documento?version=2&incompleto=1`), { params: Promise.resolve({ id }) });
     requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "06", data: { ...opinion, sustento: "" } } }), user: { id: "u" } });
     const response = await incompleto();
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("application/pdf");
-    requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "15", data: {} } }), user: { id: "u" } });
-    expect((await incompleto()).status).toBe(409);
-    requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "01", data: {} } }), user: { id: "u" } });
-    expect((await incompleto()).status).toBe(409);
+    for (const formatoId of ["15", "01"]) {
+      requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId, data: {} } }), user: { id: "u" } });
+      expect((await incompleto()).status, formatoId).toBe(200);
+    }
   }, 30000);
 
   it("exige sesión", async () => {

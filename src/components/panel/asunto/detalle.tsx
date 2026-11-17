@@ -1,0 +1,397 @@
+"use client";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+
+import { Icono } from "@/components/panel/icons";
+import { useAvisos } from "@/components/panel/kit/avisos";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/panel/ui/dropdown-menu";
+import {
+  agregar, APARTADO, APARTADOS_DE_SIEMPRE, cambiar, cambiarAsunto, CLAVES_APARTADO, continuarAsunto, ENCARGOS, EN_QUE_VA, fechaCorta, diasHasta,
+  ICONO_ENCARGO, leerAsunto, leerHistorial, mandarAEliminados, NOMBRE_ENCARGO, NOMBRE_EN_QUE_VA, NOMBRE_QUIEN, sumarDias,
+  type Apartado, type Asunto, type CambioAsunto, type ClaveApartado, type EntradaHistorial, type FilaAsunto, type Vista,
+} from "@/lib/panel/asuntos/api";
+import { guardarApartadoEnBiblioteca } from "@/lib/panel/biblioteca";
+import { useSession } from "@/lib/panel/legado/sesion";
+
+import { Cuadro, Pildora } from "./pildora";
+import { useAsuntos } from "./proveedor";
+import { anotarReciente, quitarReciente } from "./recientes";
+import { DialogoTexto, Ventana } from "./ventana";
+import { ContenidoApartado, iconoPropio, nombreApartado, resumenApartado } from "./apartados";
+import { faltaCobrar } from "./honorarios";
+import { olvidarGuias } from "../biblioteca/guias";
+
+const NOMBRE_VISTA: Record<Vista, string> = { lista: "Lista", tabla: "Tabla", galeria: "Galería", texto: "Texto" };
+
+/** Lo que el panel propone y nunca hace solo (SPEC.md): pasar a En marcha, cerrar o pasar a Propuesta. */
+type Propuesta = { clave: string; texto: string; si: string };
+function propuestaDe(a: Asunto): Propuesta | null {
+  if (a.en_que_va === "cerrado" || a.en_espera) return null;
+  const firmado = a.documentos.some((d) => d.es_contrato && d.paso === "firmado");
+  if (firmado && (a.en_que_va === "estudio" || a.en_que_va === "propuesta")) return { clave: "en_marcha", texto: "El contrato ya está firmado. ¿Pasar a En marcha?", si: "Pasar" };
+  const { total, falta } = faltaCobrar(a);
+  if (Object.keys(total).length && !Object.keys(falta).length && a.cobros.length) return { clave: "cerrar", texto: "Ya se cobró todo. ¿Cerrar el asunto?", si: "Cerrar" };
+  if (a.en_que_va === "estudio" && a.opinion?.resultado && a.opinion.resultado !== "no_factible") return { clave: "propuesta", texto: "Ya está la opinión jurídica. ¿Pasar a Propuesta?", si: "Pasar" };
+  return null;
+}
+const llave = (id: string, clave: string) => `fortius-propuesta-${id}-${clave}`;
+function yaDijoQueNo(id: string, clave: string) { try { return localStorage.getItem(llave(id, clave)) === "1"; } catch { return false; } }
+function decirQueNo(id: string, clave: string) { try { localStorage.setItem(llave(id, clave), "1"); } catch { /* sin almacenamiento: vuelve a proponerse */ } }
+
+const fila = (a: Asunto): FilaAsunto => ({
+  id: a.id, folio: a.folio, nombre: a.nombre, encargos: a.encargos, en_que_va: a.en_que_va, en_espera: a.en_espera, espera_hasta: a.espera_hasta,
+  resultado: a.resultado, responsable_id: a.responsable_id, es_ejemplo: a.es_ejemplo, version: a.version, updated_at: a.updated_at,
+  siguiente: a.siguiente, busqueda: a.busqueda,
+});
+
+const POSPONER = [["Mañana", 1], ["En 3 días", 3], ["En una semana", 7], ["En un mes", 30]] as const;
+
+/** El asunto abierto (boceto): folio, en qué va, Nuevo, ⋯, nombre, encargos, quién lo lleva, lo que sigue y los apartados. */
+export function DetalleAsunto({ id }: { id: string }) {
+  const { ponerFila, recargar, equipo, nombreDe } = useAsuntos();
+  const director = useSession()?.role === "admin";
+  const { avisar } = useAvisos();
+  const router = useRouter();
+  const ruta = usePathname();
+  const params = useSearchParams();
+  const ver = params.get("ver");
+  const [asunto, setAsunto] = useState<Asunto | null>(null);
+  const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [dialogo, setDialogo] = useState<null | "nombre" | "espera" | "propio" | "cierre-se_logro" | "cierre-no_se_dio">(null);
+  const [foco, setFoco] = useState<string | null>(null);
+  const [siguienteNuevo, setSiguienteNuevo] = useState("");
+  const [noAhora, setNoAhora] = useState<string[]>([]);
+  // Las ventanas por las que se pasó antes de la que está abierta (la más reciente al final).
+  const [anteriores, setAnteriores] = useState<string[]>([]);
+
+  const cargar = useCallback(async () => {
+    try {
+      const [a, h] = await Promise.all([leerAsunto(id), leerHistorial(id)]);
+      setAsunto(a); setHistorial(h); setError(null); ponerFila(fila(a));
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo cargar."); }
+  }, [id, ponerFila]);
+
+  useEffect(() => {
+    let vivo = true;
+    Promise.all([leerAsunto(id), leerHistorial(id)]).then(([a, h]) => { if (vivo) { setAsunto(a); setHistorial(h); setError(null); } },
+      (e: unknown) => { if (vivo) setError(e instanceof Error ? e.message : "No se pudo cargar."); });
+    return () => { vivo = false; };
+  }, [id]);
+
+  // «Recientes» del menú: el último abierto va primero.
+  const nombreReciente = asunto?.nombre, encargoReciente = asunto?.encargos[0];
+  useEffect(() => {
+    if (!nombreReciente) return;
+    const [icono, color] = encargoReciente ? ICONO_ENCARGO[encargoReciente] : (["asu", "gray"] as const);
+    anotarReciente({ id, nombre: nombreReciente, icono, color });
+  }, [id, nombreReciente, encargoReciente]);
+
+  /**
+   * Abre la ventana de un apartado (o la cierra con null). Si ya había otra abierta, se recuerda para que la flecha ←
+   * regrese a ella; `regreso` es justo ese paso atrás.
+   */
+  const abrir = useCallback((clave: string | null, conFoco?: string, regreso = false) => {
+    const p = new URLSearchParams(params.toString());
+    if (clave) p.set("ver", clave); else p.delete("ver");
+    setFoco(conFoco ?? null);
+    setAnteriores((pila) => (clave === null ? [] : regreso ? pila.slice(0, -1) : ver && ver !== clave ? [...pila, ver].slice(-12) : pila));
+    router.replace(`${ruta}${p.size ? `?${p}` : ""}`, { scroll: false });
+  }, [params, router, ruta, ver]);
+
+  /** Corre un cambio y vuelve a leer el asunto. Si falla, avisa con el mensaje del servidor. */
+  const hacer = useCallback(async (accion: () => Promise<unknown>, aviso?: string, deshacer?: () => Promise<unknown>) => {
+    try {
+      await accion();
+      await cargar();
+      if (aviso) avisar(aviso, deshacer ? { etiqueta: "Deshacer", alAccionar: () => void deshacer().then(cargar, (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer.")) } : undefined);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : "No se pudo terminar.");
+      await cargar();
+    }
+  }, [avisar, cargar]);
+
+  /** Abre otro apartado; si no estaba en el asunto, lo agrega primero. */
+  const irA = useCallback((clave: string, conFoco?: string) => {
+    const ya = asunto?.apartados.find((x) => x.clave === clave && x.visible);
+    if (ya || !asunto) { abrir(clave, conFoco); return; }
+    void hacer(async () => {
+      const oculto = asunto.apartados.find((x) => x.clave === clave);
+      if (oculto) await cambiar(asunto.id, "apartados", { id: oculto.id, version: oculto.version, visible: true });
+      else await agregar(asunto.id, "apartados", { clave });
+    }).then(() => abrir(clave, conFoco));
+  }, [asunto, abrir, hacer]);
+
+  if (error && !asunto) {
+    return (
+      <div className="as-in"><div className="as-vacio-lista" role="alert"><p>{error}</p>
+        {/no te toca/.test(error)
+          ? <button type="button" className="as-btn" onClick={() => router.push("/panel/asuntos")}>Ir a tus asuntos</button>
+          : <button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button>}</div></div>
+    );
+  }
+  if (!asunto) return <div className="as-in"><div className="as-cargando" aria-busy="true" aria-label="Cargando el asunto">{[0, 1, 2].map((i) => <span key={i} />)}</div></div>;
+
+  const a = asunto;
+  const cambio = (c: CambioAsunto, aviso: string, antes?: CambioAsunto) =>
+    hacer(() => cambiarAsunto(a, c), aviso, antes ? async () => { const actual = await leerAsunto(a.id); await cambiarAsunto(actual, antes); } : undefined);
+  const s = a.siguiente;
+  const tareaSig = s ? a.tareas.find((t) => t.id === s.tarea_id) : undefined;
+  const visibles = a.apartados.filter((x) => x.visible).sort((x, y) => x.orden - y.orden);
+  const faltan = CLAVES_APARTADO.filter((c) => !visibles.some((x) => x.clave === c));
+  const apartadoDe = (clave: string | undefined) => (clave ? a.apartados.find((x) => x.clave === clave || x.id === clave) : undefined);
+  const abierto: Apartado | undefined = apartadoDe(ver ?? undefined);
+  const anterior = apartadoDe(anteriores[anteriores.length - 1]);
+  const cerrado = a.en_que_va === "cerrado";
+  const propuesta = (() => { const p = propuestaDe(a); return p && !noAhora.includes(p.clave) && !yaDijoQueNo(a.id, p.clave) ? p : null; })();
+  const continuar = () => void (async () => {
+    try {
+      const n = await continuarAsunto(a.id);
+      await recargar();
+      avisar(`Asunto nuevo ${n.folio}: con las mismas personas, inmuebles y documentos`);
+      router.push(`/panel/asuntos/${n.id}`);
+    } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo terminar."); }
+  })();
+
+  return (
+    <div className="as-in">
+      <div className="as-top">
+        <Link href="/panel/asuntos" className="as-btn as-gho as-atras"><Icono nombre="at" tamano={16} />Asuntos</Link>
+        <span className="as-m as-num">{a.folio}</span>
+        {a.es_ejemplo ? <span className="as-pill">Ejemplo</span> : null}
+        <span className="as-sp" />
+        <Pildora etiqueta="En qué va" valor={a.en_que_va} antes={<span className="as-punto" />}
+          opciones={EN_QUE_VA.map((m) => ({ valor: m, etiqueta: NOMBRE_EN_QUE_VA[m] }))}
+          alElegir={(v) => { if (v !== a.en_que_va) void cambio({ en_que_va: v }, `Pasó a ${NOMBRE_EN_QUE_VA[v].toLowerCase()}`, { en_que_va: a.en_que_va }); }} />
+        <DropdownMenu>
+          <DropdownMenuTrigger className="as-btn as-pri"><Icono nombre="mas" tamano={16} /><span className="as-ocultar-tel">Nuevo</span><Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onSelect={() => abrir("plan", "nueva-tarea")}><Icono nombre="lista" tamano={16} />Tarea</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => abrir("historial", "nueva-nota")}><Icono nombre="nota" tamano={16} />Nota o decisión</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => abrir("personas", "nueva-persona")}><Icono nombre="users" tamano={16} />Persona</DropdownMenuItem>
+            {a.encargos.includes("comercializar") || a.apartados.some((x) => x.clave === "interesados" && x.visible) ? (
+              <DropdownMenuItem onSelect={() => irA("interesados", "nuevo-interesado")}><Icono nombre="estrella" tamano={16} />Interesado</DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem onSelect={() => irA("honorarios")}><Icono nombre="pago" tamano={16} />Cobro</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => router.push(`/panel/herramientas/formatos?asunto=${a.id}`)}><Icono nombre="contrato" tamano={16} />Contrato o formato</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push(`/panel/herramientas/valor?asunto=${a.id}`)}><Icono nombre="calc" tamano={16} />Herramienta</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push(`/panel/informe/${a.id}`)}><Icono nombre="file" tamano={16} />Informe para el cliente</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="as-btn as-ico" aria-label="Más opciones"><Icono nombre="dots" tamano={18} /></DropdownMenuTrigger>
+          <DropdownMenuContent className="min-w-60">
+            <DropdownMenuItem onSelect={() => setDialogo("nombre")}><Icono nombre="lapiz" tamano={16} />Cambiar el nombre</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => { void navigator.clipboard?.writeText(location.href.split("?")[0]).then(() => avisar("Enlace copiado"), () => avisar("No se pudo copiar")); }}>
+              <Icono nombre="copia" tamano={16} />Copiar enlace
+            </DropdownMenuItem>
+            {a.en_espera
+              ? <DropdownMenuItem onSelect={() => void cambio({ en_espera: false }, "Se reanudó", { en_espera: true, espera_motivo: a.espera_motivo, espera_hasta: a.espera_hasta })}><Icono nombre="reloj" tamano={16} />Reanudar</DropdownMenuItem>
+              : <DropdownMenuItem onSelect={() => setDialogo("espera")}><Icono nombre="reloj" tamano={16} />Poner en espera</DropdownMenuItem>}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Qué encargaron</DropdownMenuLabel>
+            {ENCARGOS.map((e) => {
+              const tiene = a.encargos.includes(e);
+              return (
+                <DropdownMenuItem key={e} onSelect={(ev) => {
+                  ev.preventDefault();
+                  const nuevos = tiene ? a.encargos.filter((x) => x !== e) : [...a.encargos, e];
+                  void cambio({ encargos: nuevos }, tiene ? `Ya no dice ${NOMBRE_ENCARGO[e].toLowerCase()}` : `Ahora también ${NOMBRE_ENCARGO[e].toLowerCase()}`);
+                }}>
+                  <Icono nombre={ICONO_ENCARGO[e][0]} tamano={16} />{NOMBRE_ENCARGO[e]}
+                  {tiene ? <span className="ml-auto"><Icono nombre="ok" tamano={15} /></span> : null}
+                </DropdownMenuItem>
+              );
+            })}
+            <DropdownMenuSeparator />
+            {cerrado ? (
+              <DropdownMenuItem onSelect={() => void cambio({ en_que_va: "en_marcha" }, "Se reabrió", { en_que_va: "cerrado", resultado: a.resultado, motivo_cierre: a.motivo_cierre })}>
+                <Icono nombre="liga" tamano={16} />Reabrir
+              </DropdownMenuItem>
+            ) : (
+              <>
+                <DropdownMenuItem onSelect={() => setDialogo("cierre-se_logro")}><Icono nombre="ok" tamano={16} />Cerrar: se logró</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setDialogo("cierre-no_se_dio")}><Icono nombre="x" tamano={16} />Cerrar: no se dio</DropdownMenuItem>
+              </>
+            )}
+            <DropdownMenuItem onSelect={continuar}><Icono nombre="ch" tamano={16} />Continuar en un asunto nuevo</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem peligro onSelect={() => void (async () => {
+              try {
+                await mandarAEliminados(a);
+                quitarReciente(a.id);
+                await recargar();
+                router.push("/panel/asuntos");
+                avisar("Se mandó a Eliminados", director ? {
+                  etiqueta: "Deshacer",
+                  alAccionar: () => void mandarAEliminados({ id: a.id, version: a.version + 1 }, true).then(() => recargar(), (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer.")),
+                } : undefined);
+              } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo terminar."); }
+            })()}>
+              <Icono nombre="bote" tamano={16} />Mandar a Eliminados
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="as-titulo">
+        <h1 className="as-h1">{a.nombre}</h1>
+        <div className="as-fila as-pills">
+          {a.encargos.map((e) => <span key={e} className="as-pill"><Icono nombre={ICONO_ENCARGO[e][0]} tamano={12} />{NOMBRE_ENCARGO[e]}</span>)}
+          {cerrado && a.resultado ? <span className={`as-pill ${a.resultado === "se_logro" ? "as-pill-ok" : "as-pill-bad"}`}>{a.resultado === "se_logro" ? "Se logró" : "No se dio"}</span> : null}
+          {a.en_espera ? <span className="as-pill as-pill-warn"><Icono nombre="reloj" tamano={12} />En espera{a.espera_hasta ? ` hasta ${fechaCorta(a.espera_hasta).toLowerCase()}` : ""}</span> : null}
+          {director && equipo.length > 1 ? (
+            <Pildora etiqueta="Quién lo lleva" icono="users" valor={a.responsable_id}
+              opciones={equipo.map((m) => ({ valor: m.id, etiqueta: m.nombre }))}
+              alElegir={(v) => { if (v !== a.responsable_id) void cambio({ responsable_id: v }, `Ahora lo lleva ${nombreDe(v)}`, { responsable_id: a.responsable_id }); }} />
+          ) : <span className="as-pill"><Icono nombre="users" tamano={12} />{nombreDe(a.responsable_id)}</span>}
+        </div>
+        {a.en_espera && a.espera_motivo ? <p className="as-m">{a.espera_motivo}</p> : null}
+        {cerrado && a.motivo_cierre ? <p className="as-m">{a.motivo_cierre}</p> : null}
+      </div>
+
+      {cerrado ? (
+        <div className="as-ban" role="status">
+          <Icono nombre={a.resultado === "no_se_dio" ? "x" : "ok"} tamano={16} />
+          <span>Cerrado{a.resultado ? `: ${a.resultado === "se_logro" ? "se logró" : "no se dio"}` : ""}{a.cerrado_el ? ` · ${fechaCorta(a.cerrado_el.slice(0, 10)).toLowerCase()}` : ""}</span>
+          <span className="as-sp" />
+          <button type="button" className="as-btn" onClick={continuar}>Continuar<Icono nombre="ch" tamano={16} /></button>
+          <button type="button" className="as-btn" onClick={() => void cambio({ en_que_va: "en_marcha" }, "Se reabrió", { en_que_va: "cerrado", resultado: a.resultado, motivo_cierre: a.motivo_cierre })}>Reabrir</button>
+        </div>
+      ) : a.en_espera ? (
+        <div className="as-ban as-ban-esp" role="status">
+          <Icono nombre="reloj" tamano={16} />
+          <span>En espera{a.espera_hasta ? ` hasta ${fechaCorta(a.espera_hasta).toLowerCase()}` : ""}</span>
+          <span className="as-sp" />
+          <button type="button" className="as-btn" onClick={() => void cambio({ en_espera: false }, "Se reanudó", { en_espera: true, espera_motivo: a.espera_motivo, espera_hasta: a.espera_hasta })}>Reanudar</button>
+        </div>
+      ) : propuesta ? (
+        <div className="as-ban as-ban-prop" role="status">
+          <Icono nombre="rayo" tamano={16} />
+          <span>{propuesta.texto}</span>
+          <span className="as-sp" />
+          <button type="button" className="as-btn as-gho" onClick={() => { decirQueNo(a.id, propuesta.clave); setNoAhora([...noAhora, propuesta.clave]); }}>Ahora no</button>
+          <button type="button" className="as-btn as-pri" onClick={() => {
+            if (propuesta.clave === "cerrar") { setDialogo("cierre-se_logro"); return; }
+            const v = propuesta.clave === "en_marcha" ? "en_marcha" : "propuesta";
+            void cambio({ en_que_va: v }, `Pasó a ${NOMBRE_EN_QUE_VA[v].toLowerCase()}`, { en_que_va: a.en_que_va });
+          }}>{propuesta.si}</button>
+        </div>
+      ) : null}
+
+      {s && tareaSig ? (
+        <div className="as-sigue">
+          <button type="button" className="as-ckb" aria-label={`Marcar hecha: ${s.titulo}`}
+            onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: tareaSig.id, version: tareaSig.version, estado: "hecha" }), "Tarea hecha",
+              () => leerAsunto(a.id).then((x) => { const t = x.tareas.find((y) => y.id === tareaSig.id); return t ? cambiar(a.id, "tareas", { id: t.id, version: t.version, estado: "pendiente" }) : undefined; }))}>
+            <span className="as-ck" />
+          </button>
+          <div className="as-sigue-c">
+            <p className="as-q">{s.titulo}</p>
+            <p className="as-m">{NOMBRE_QUIEN[s.quien]} · <span className={s.fecha && diasHasta(s.fecha) < 0 ? "as-bad" : ""}>{fechaCorta(s.fecha, s.hora)}</span></p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="as-btn as-gho as-ico" title="Posponer" aria-label="Posponer"><Icono nombre="reloj" tamano={18} /></DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Posponer</DropdownMenuLabel>
+              {POSPONER.map(([t, n]) => (
+                <DropdownMenuItem key={t} onSelect={() => void hacer(() => cambiar(a.id, "tareas", { id: tareaSig.id, version: tareaSig.version, fecha: sumarDias(n) }), `Pasó a ${fechaCorta(sumarDias(n)).toLowerCase()}`)}>
+                  <Icono nombre="cal" tamano={16} />{t}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ) : cerrado ? null : (
+        <form className="as-sigue as-sigue-falta" onSubmit={(e) => {
+          e.preventDefault();
+          const t = siguienteNuevo.trim();
+          if (!t) return;
+          setSiguienteNuevo("");
+          void hacer(() => agregar(a.id, "tareas", { titulo: t, fecha: sumarDias(0) }), "Anotado lo que sigue");
+        }}>
+          <span className="as-warn"><Icono nombre="alerta" tamano={18} /></span>
+          <input className="as-inp" value={siguienteNuevo} onChange={(e) => setSiguienteNuevo(e.target.value)} placeholder="Sin siguiente paso. ¿Qué sigue?" aria-label="¿Qué sigue?" />
+          {siguienteNuevo.trim() ? <button type="submit" className="as-btn as-pri">Guardar</button> : null}
+        </form>
+      )}
+
+      <div className="as-card">
+        {visibles.map((x) => {
+          const fijo = x.clave !== "propio" ? APARTADO[x.clave] : null;
+          return (
+            <button key={x.id} type="button" className="as-ren" onClick={() => abrir(x.clave === "propio" ? x.id : x.clave)}>
+              <Cuadro icono={fijo?.icono ?? iconoPropio(x)} color={fijo?.color ?? "gray"} />
+              <span className="as-ren-c"><b>{nombreApartado(x)}</b><span>{resumenApartado(x, a, historial)}</span></span>
+              <Icono nombre="ch" tamano={16} />
+            </button>
+          );
+        })}
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="as-ren as-sola"><Icono nombre="mas" tamano={16} />Agregar apartado</DropdownMenuTrigger>
+        <DropdownMenuContent align="center" className="min-w-60">
+          {faltan.map((c: ClaveApartado) => (
+            <DropdownMenuItem key={c} onSelect={() => void hacer(() => agregar(a.id, "apartados", { clave: c }), `Se agregó ${APARTADO[c].nombre}`)}>
+              <Icono nombre={APARTADO[c].icono} tamano={16} />{APARTADO[c].nombre}
+            </DropdownMenuItem>
+          ))}
+          {faltan.length ? <DropdownMenuSeparator /> : null}
+          <DropdownMenuItem onSelect={() => setDialogo("propio")}><Icono nombre="mas" tamano={16} />Apartado propio…</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Ventana
+        abierta={Boolean(abierto)}
+        alCerrar={() => abrir(null)}
+        alRegresar={anterior ? () => abrir(anterior.clave === "propio" ? anterior.id : anterior.clave, undefined, true) : undefined}
+        anterior={anterior ? nombreApartado(anterior) : undefined}
+        titulo={abierto ? nombreApartado(abierto) : ""}
+        subtitulo={a.nombre}
+        icono={abierto ? (abierto.clave !== "propio" ? APARTADO[abierto.clave].icono : iconoPropio(abierto)) : "lista"}
+        color={abierto && abierto.clave !== "propio" ? APARTADO[abierto.clave].color : "gray"}
+        opciones={abierto && !APARTADOS_DE_SIEMPRE.includes(abierto.clave as ClaveApartado) ? [
+          ...(abierto.clave === "propio" ? (["lista", "tabla", "galeria", "texto"] as const).filter((v) => v !== (abierto.vista ?? "lista")).map((v) => ({
+            etiqueta: `Ver como ${NOMBRE_VISTA[v].toLowerCase()}`, icono: "ojo" as const,
+            alElegir: () => void hacer(() => cambiar(a.id, "apartados", { id: abierto.id, version: abierto.version, vista: v }), `Ahora se ve como ${NOMBRE_VISTA[v].toLowerCase()}`),
+          })) : []),
+          ...(abierto.clave === "propio" ? [{
+            etiqueta: "Guardar en la Biblioteca", icono: "lib" as const,
+            alElegir: () => void guardarApartadoEnBiblioteca(a.id, abierto.id).then(() => { olvidarGuias(); avisar("Guardado en la Biblioteca"); }, (e: unknown) => avisar(e instanceof Error ? e.message : "No se guardó.")),
+          }] : []),
+          {
+            etiqueta: "Quitar del asunto", icono: "bote" as const, peligro: true,
+            alElegir: () => {
+              abrir(null);
+              void hacer(() => cambiar(a.id, "apartados", { id: abierto.id, version: abierto.version, visible: false }), "Apartado quitado. Lo que tenía se conserva",
+                () => leerAsunto(a.id).then((x) => { const y = x.apartados.find((z) => z.id === abierto.id); return y ? cambiar(a.id, "apartados", { id: y.id, version: y.version, visible: true }) : undefined; }));
+            },
+          },
+        ] : []}
+      >
+        {abierto ? <ContenidoApartado apartado={abierto} asunto={a} historial={historial} foco={foco} hacer={hacer} irA={irA} /> : null}
+      </Ventana>
+
+      <DialogoTexto abierto={dialogo === "nombre"} titulo="Cambiar el nombre" etiqueta="Nombre del asunto" inicial={a.nombre} maximo={160}
+        alCerrar={() => setDialogo(null)} alGuardar={(t) => cambio({ nombre: t }, "Nombre cambiado", { nombre: a.nombre })} />
+      <DialogoTexto abierto={dialogo === "espera"} titulo="Poner en espera" etiqueta="Por qué" opcional fecha={{ etiqueta: "Retomar el", inicial: sumarDias(14) }}
+        ayuda="Mientras espera no cuenta como atrasado." alCerrar={() => setDialogo(null)}
+        alGuardar={(t, f) => cambio({ en_espera: true, espera_motivo: t || null, espera_hasta: f ?? null }, "En espera", { en_espera: false })} />
+      <DialogoTexto abierto={dialogo === "cierre-se_logro" || dialogo === "cierre-no_se_dio"} titulo={dialogo === "cierre-no_se_dio" ? "Cerrar: no se dio" : "Cerrar: se logró"}
+        etiqueta="Motivo" opcional alCerrar={() => setDialogo(null)}
+        alGuardar={(t) => cambio({ en_que_va: "cerrado", resultado: dialogo === "cierre-no_se_dio" ? "no_se_dio" : "se_logro", motivo_cierre: t || null }, "Asunto cerrado", { en_que_va: a.en_que_va })} />
+      <DialogoTexto abierto={dialogo === "propio"} titulo="Apartado propio" etiqueta="Nombre" maximo={80}
+        eleccion={{ etiqueta: "Cómo se ve", opciones: (["lista", "tabla", "galeria", "texto"] as const).map((v) => ({ valor: v, etiqueta: NOMBRE_VISTA[v] })) }}
+        ayuda="Renglones que se marcan, una tabla con columnas, tarjetas con foto o notas largas. La vista se cambia después sin perder nada."
+        alCerrar={() => setDialogo(null)}
+        alGuardar={(t, _f, vista) => hacer(async () => {
+          const r = await agregar<{ id: string }>(a.id, "apartados", { propio: { nombre: t, vista: (vista as Vista | undefined) ?? "lista" } });
+          abrir(r.id, "nueva-fila");
+        }, `Se agregó ${t}`)} />
+    </div>
+  );
+}

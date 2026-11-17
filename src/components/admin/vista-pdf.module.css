@@ -1,0 +1,17 @@
+/* Vista de un PDF privado dibujado con pdf.js (LV-10d): la hoja se ve como papel en claro y en oscuro. */
+.pages { display: grid; gap: 14px; align-content: start; }
+.sheet { background: #fff; border-radius: 6px; box-shadow: 0 1px 2px rgba(6, 15, 30, .12), 0 18px 40px -20px rgba(6, 15, 30, .35); overflow: hidden; display: grid; }
+.sheet[data-empty="true"] { aspect-ratio: 8.5 / 11; }
+.sheet img { width: 100%; height: auto; display: block; }
+.note { align-self: center; justify-self: center; display: grid; gap: 12px; justify-items: center; padding: 24px; margin: 0; color: #49566a; font-size: var(--admin-text-detalle); text-align: center; }
+.note p { margin: 0; }
+.more { margin: 0; color: var(--muted-foreground); font-size: var(--admin-text-detalle); text-align: center; }
+.more button { min-height: 44px; color: var(--foreground); font-weight: 540; }
+.narrow { display: none; }
+@media (max-width: 900px) {
+  .pages[data-first-only] .sheet[data-empty="true"] { aspect-ratio: auto; height: 56dvh; }
+  .pages[data-first-only] .sheet img { max-height: 56dvh; object-fit: contain; }
+  .pages[data-first-only] .sheet ~ .sheet { display: none; }
+  .pages[data-first-only] .wide { display: none; }
+  .pages[data-first-only] .narrow { display: inline; }
+}

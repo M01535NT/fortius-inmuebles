@@ -33,5 +33,5 @@ test("busca por teléfono sin acentos y respeta qué se puede buscar", () => {
   unmount();
   render(<Harness kinds={["expediente"]} />);
   fireEvent.change(screen.getByLabelText("¿Con quién o sobre qué?"), { target: { value: "ejemplo" } });
-  expect(screen.getAllByRole("option").map(o => o.textContent)).toEqual(["VTA-01Operación · Cliente de ejemplo · F-01"]);
+  expect(screen.getAllByRole("option").map(o => o.textContent)).toEqual(["VTA-01Asunto · Cliente de ejemplo · F-01"]);
 });

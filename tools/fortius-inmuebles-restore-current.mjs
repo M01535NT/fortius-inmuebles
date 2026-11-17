@@ -3,6 +3,10 @@ import {PGlite} from '@electric-sql/pglite';
 import {readFile,readdir} from 'node:fs/promises';
 import {ownerExport,currentSuffixes,ownerSchemaVersion} from './fortius-inmuebles-backup.mjs';
 const quote=value=>'"'+value.replaceAll('"','""')+'"';
+// Tables the migrations fill with starter rows (panel_09: the example guides of the Biblioteca).
+// The backup carries its own copy of those rows, so a freshly migrated target drops the starter
+// rows (only those: written by no one) before loading, and the result is exactly the backup.
+export const migrationSeededSuffixes=['biblioteca'];
 export async function createRehearsalDatabase(){
  const db=new PGlite();
  try{
@@ -50,9 +54,12 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
    c.confrelid='auth.users'::regclass as auth_fk,a.attname as auth_column
    from pg_constraint c left join pg_attribute a on a.attrelid=c.conrelid and a.attnum=c.conkey[1]
    where c.contype='f' and c.connamespace='public'::regnamespace`)).rows;
-  if(target==='service'){
-   // Never merge into existing data: the isolated target must be freshly migrated.
-   for(const table of expected)if((await db.query(`select exists(select 1 from public.${quote(table)}) x`)).rows[0].x)throw Error('Target table is not empty: '+table);
+  const seeded=migrationSeededSuffixes.map(s=>'fortius_inmuebles_'+s);
+  // Never merge into existing data: the target must be freshly migrated. Starter rows are the only
+  // rows allowed, and only when nobody wrote them (creado_por is null).
+  for(const table of expected){
+   const filter=seeded.includes(table)?' where creado_por is not null':'';
+   if((await db.query(`select exists(select 1 from public.${quote(table)}${filter}) x`)).rows[0].x)throw Error('Target table is not empty: '+table);
   }
   await db.exec('begin');
   open=true;
@@ -71,11 +78,18 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
    // triggers and FK checks for this transaction only. FKs are revalidated below.
    await db.exec("set local session_replication_role = replica");
   }
+  let starterRowsReplaced=0;
+  for(const table of seeded)starterRowsReplaced+=(await db.query(`delete from public.${quote(table)} where creado_por is null`)).affectedRows??0;
   // Generated columns must be calculated by PostgreSQL, not copied from the export.
   for(const table of expected){
    const writable=columns.get(table).writable.map(quote).join(',');
    if(!writable)throw Error('Migrated table has no writable columns: '+table);
    await db.query(`insert into public.${quote(table)} (${writable}) select ${writable} from jsonb_populate_recordset(null::public.${quote(table)},$1::jsonb)`,[JSON.stringify(rowsFor(table))]);
+  }
+  // Explicit ids do not advance identity sequences: move each one past the restored rows.
+  for(const seq of (await db.query(`select c.table_name,c.column_name,pg_get_serial_sequence('public.'||quote_ident(c.table_name),c.column_name) s
+   from information_schema.columns c where c.table_schema='public' and c.table_name=any($1::text[]) and (c.is_identity='YES' or c.column_default like 'nextval(%')`,[expected])).rows){
+   if(seq.s)await db.query(`select setval($1::regclass,coalesce((select max(${quote(seq.column_name)}) from public.${quote(seq.table_name)}),0)+1,false)`,[seq.s]);
   }
   if(target==='memory')for(const table of expected)await db.exec(`alter table public.${quote(table)} enable trigger all`);
   else await db.exec("set local session_replication_role = origin");
@@ -131,7 +145,7 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
   if(badAppVersions)throw Error('Restored app version history does not match runs');
   await db.exec('commit');
   open=false;
-  return {passed:true,target,productionWrites:0,sourceSchemaVersion,emptyTablesAdded,restoreOrder:[...currentSuffixes],tables,foreignKeysValidated:fks.length,auth:target==='memory'?'Identity placeholders only; full Auth recovery is not tested':'Accounts created in the target Auth beforehand; passwords and sessions are not restored',storage:'Object hashes are checked by the backup verifier; Storage service recovery is a separate step (restore-storage)'};
+  return {passed:true,target,productionWrites:0,sourceSchemaVersion,emptyTablesAdded,starterRowsReplaced,restoreOrder:[...currentSuffixes],tables,foreignKeysValidated:fks.length,auth:target==='memory'?'Identity placeholders only; full Auth recovery is not tested':'Accounts created in the target Auth beforehand; passwords and sessions are not restored',storage:'Object hashes are checked by the backup verifier; Storage service recovery is a separate step (restore-storage)'};
  }catch(error){
   if(open)await db.exec('rollback').catch(()=>{});
   throw error;

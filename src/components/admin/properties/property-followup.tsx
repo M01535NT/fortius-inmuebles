@@ -1,9 +1,13 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ChevronDown, MessageCircle, MoreHorizontal, EMPTY_ART } from "@/components/admin/icons";
+import { MessageCircle, MoreHorizontal, EMPTY_ART } from "@/components/admin/icons";
+import { Checkbox } from "@/components/ui/controls";
+import { DateField } from "@/components/ui/date-field";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Disclosure } from "./disclosure";
 import { Button, ButtonLink, EmptyBox, Notice, Pill, ProgressBar } from "@/components/admin/kit";
-import { AsyncButton, AsyncForm, Field, btnGhost, inputClass, selectClass } from "@/components/admin/ui";
+import { AsyncButton, AsyncForm, Field, btnGhost, inputClass } from "@/components/admin/ui";
 import { buyersFor, lastNotice, noticeMessage, priceDroppedSince, seekersFrom, whatsappDigits } from "@/lib/admin/buyer-matches";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { db, uid, useCollection, useSession, type AdminProperty } from "@/lib/admin/store";
@@ -60,23 +64,33 @@ export function KeysBlock({ property, save }: BlockProps) {
     : <AsyncForm onSubmit={lend} aria-label="Prestar llaves" className={`${f.grid} rounded-[10px] border border-border p-3`}>
       <Field label="Quién se las lleva" htmlFor="llaves-persona"><input id="llaves-persona" name="persona" required maxLength={160} autoFocus className={inputClass} placeholder="Asesor, comprador, técnico…" /></Field>
       <Field label="Para qué" htmlFor="llaves-motivo"><input id="llaves-motivo" name="motivo" maxLength={500} className={inputClass} placeholder="Visita, sesión de fotos, mantenimiento…" /></Field>
-      <Field label="Regresan el" htmlFor="llaves-regreso" hint="Si lo dejas vacío, deben volver el mismo día."><input id="llaves-regreso" name="regresoPrevisto" type="date" min={today} className={inputClass} /></Field>
+      <Field label="Regresan el" htmlFor="llaves-regreso" hint="Si lo dejas vacío, deben volver el mismo día."><DateField id="llaves-regreso" name="regresoPrevisto" min={today} placeholder="El mismo día" /></Field>
       <div className={`${f.span2} flex flex-wrap gap-2`}><Button type="submit" variant="primary">Registrar préstamo</Button><Button onClick={() => setLending(false)}>Cancelar</Button></div>
     </AsyncForm>}
-    <details className="group rounded-[10px] border border-border p-3">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-semibold [&::-webkit-details-marker]:hidden">Dónde se guardan{keys.copias !== undefined ? ` · ${keys.copias} ${keys.copias === 1 ? "copia" : "copias"}` : ""}<ChevronDown size={18} aria-hidden="true" className="transition-transform group-open:rotate-180" /></summary>
+    <Disclosure className="rounded-[10px] border border-border p-3" title={<span>Dónde se guardan{keys.copias !== undefined ? ` · ${keys.copias} ${keys.copias === 1 ? "copia" : "copias"}` : ""}</span>}>
       <AsyncForm onSubmit={where} aria-label="Dónde se guardan las llaves" className={`${f.grid} mt-3`}>
-        <Field label="Lugar" htmlFor="llaves-lugar"><select id="llaves-lugar" name="lugar" defaultValue={keys.lugar ?? ""} className={selectClass}><option value="">Por confirmar</option>{(Object.keys(KEY_PLACES) as KeyPlace[]).map(k => <option key={k} value={k}>{KEY_PLACES[k]}</option>)}</select></Field>
+        <Field label="Lugar" htmlFor="llaves-lugar"><PlaceSelect value={keys.lugar} /></Field>
         <Field label="Copias que tiene Fortius" htmlFor="llaves-copias"><input id="llaves-copias" name="copias" type="number" min={0} max={50} step={1} inputMode="numeric" defaultValue={keys.copias ?? ""} className={inputClass} /></Field>
         <Field label="Detalle" htmlFor="llaves-detalle" className={f.span2}><input id="llaves-detalle" name="detalle" maxLength={500} defaultValue={keys.detalle ?? ""} className={inputClass} placeholder="Gaveta, llavero, control del portón…" /></Field>
         <div><Button type="submit">Guardar</Button></div>
       </AsyncForm>
-    </details>
-    {returned.length > 0 && <details className="group rounded-[10px] border border-border p-3">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-semibold [&::-webkit-details-marker]:hidden">Préstamos anteriores<ChevronDown size={18} aria-hidden="true" className="transition-transform group-open:rotate-180" /></summary>
+    </Disclosure>
+    {returned.length > 0 && <Disclosure className="rounded-[10px] border border-border p-3" title="Préstamos anteriores">
       <ul className="mt-2 flex flex-col gap-1.5 text-sm">{returned.map(loan => <li key={loan.id} className="[overflow-wrap:anywhere]">{loan.persona} · {shortDate(toDay(loan.salida))} al {shortDate(toDay(loan.regreso!))}{loan.motivo ? ` · ${loan.motivo}` : ""}</li>)}</ul>
-    </details>}
+    </Disclosure>}
   </section>;
+}
+
+/** Lista corta con su forma de marca (Radix Select, DEC-52); dentro del <form> manda `name` como el nativo. */
+function PlaceSelect({ value }: { value?: KeyPlace }) {
+  const [place, setPlace] = React.useState<string>(value ?? "pendiente");
+  return <>
+    <input type="hidden" name="lugar" value={place === "pendiente" ? "" : place} />
+    <Select value={place} onValueChange={setPlace}>
+      <SelectTrigger id="llaves-lugar"><SelectValue /></SelectTrigger>
+      <SelectContent><SelectItem value="pendiente">Por confirmar</SelectItem>{(Object.keys(KEY_PLACES) as KeyPlace[]).map(k => <SelectItem key={k} value={k}>{KEY_PLACES[k]}</SelectItem>)}</SelectContent>
+    </Select>
+  </>;
 }
 
 /** Preparación como lista: la casilla marca «Listo» y guarda al momento; «⋯» abre quién y cuándo. */
@@ -106,25 +120,34 @@ export function PrepBlock({ property, save }: BlockProps) {
       const meta = [state.estado === "agendado" ? "Agendado" : state.estado === "no_aplica" ? "No aplica" : undefined, stored?.fecha && shortDate(stored.fecha), stored?.responsable, state.derived ? hint(item) : undefined].filter(Boolean).join(" · ");
       return <li key={item} className="flex flex-wrap items-start gap-x-3 gap-y-1 py-1.5">
         <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3">
-          <input type="checkbox" className="size-5 shrink-0 accent-[var(--primary)]" checked={state.estado === "listo"} disabled={busy === item || state.estado === "no_aplica"}
-            onChange={event => void mark(item, event.currentTarget.checked ? "listo" : "pendiente")} />
+          <Checkbox checked={state.estado === "listo"} disabled={busy === item || state.estado === "no_aplica"}
+            onCheckedChange={checked => void mark(item, checked === true ? "listo" : "pendiente")} />
           <span className="flex min-w-0 flex-col"><span className={state.estado === "no_aplica" ? "text-muted-foreground line-through" : "font-[540]"}>{PREP_ITEMS[item]}</span>{meta && <small className="text-muted-foreground [overflow-wrap:anywhere]">{meta}</small>}</span>
         </label>
-        <details className="group [&[open]]:basis-full">
-          <summary aria-label={`Quién y cuándo: ${PREP_ITEMS[item]}`} className="ml-auto flex size-11 cursor-pointer list-none items-center justify-center rounded-[10px] text-muted-foreground hover:bg-secondary [&::-webkit-details-marker]:hidden"><MoreHorizontal size={20} aria-hidden="true" /></summary>
+        <Disclosure className="data-[state=open]:basis-full" aria-label={`Quién y cuándo: ${PREP_ITEMS[item]}`} title={null}
+          triggerClassName="ml-auto size-11 w-11 justify-center rounded-[10px] text-muted-foreground hover:bg-secondary" icon={<MoreHorizontal size={20} aria-hidden="true" />}>
           <AsyncForm onSubmit={event => details(item, event)} aria-label={`Quién y cuándo: ${PREP_ITEMS[item]}`} className={`${f.grid} mt-1 mb-2 rounded-[10px] border border-border p-3`}>
-            <Field label="Estado" htmlFor={`prep-${item}-estado`}><select id={`prep-${item}-estado`} name="estado" defaultValue={state.estado} className={selectClass}>
-              {(Object.keys(PREP_STATES) as PrepState[]).map(k => <option key={k} value={k}>{PREP_STATES[k]}</option>)}
-            </select></Field>
-            <Field label="Fecha" htmlFor={`prep-${item}-fecha`}><input id={`prep-${item}-fecha`} name="fecha" type="date" defaultValue={stored?.fecha ?? ""} className={inputClass} /></Field>
+            <Field label="Estado" htmlFor={`prep-${item}-estado`}><PrepStateSelect id={`prep-${item}-estado`} value={state.estado} /></Field>
+            <Field label="Fecha" htmlFor={`prep-${item}-fecha`}><DateField id={`prep-${item}-fecha`} name="fecha" defaultValue={stored?.fecha ?? ""} /></Field>
             <Field label="Responsable" htmlFor={`prep-${item}-responsable`} className={f.span2}><input id={`prep-${item}-responsable`} name="responsable" list="prep-responsables" maxLength={160} defaultValue={stored?.responsable ?? ""} className={inputClass} /></Field>
             <div><Button type="submit">Guardar</Button></div>
           </AsyncForm>
-        </details>
+        </Disclosure>
       </li>;
     })}</ul>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </section>;
+}
+
+function PrepStateSelect({ id, value }: { id: string; value: PrepState }) {
+  const [estado, setEstado] = React.useState<PrepState>(value);
+  return <>
+    <input type="hidden" name="estado" value={estado} />
+    <Select value={estado} onValueChange={next => setEstado(next as PrepState)}>
+      <SelectTrigger id={id}><SelectValue /></SelectTrigger>
+      <SelectContent>{(Object.keys(PREP_STATES) as PrepState[]).map(k => <SelectItem key={k} value={k}>{PREP_STATES[k]}</SelectItem>)}</SelectContent>
+    </Select>
+  </>;
 }
 
 export function BuyersBlock({ property, save }: BlockProps) {
@@ -165,8 +188,10 @@ function NoticeButton({ name, hasPhone, onRecord }: { name: string; hasPhone: bo
   const [medio, setMedio] = React.useState<NoticeChannel>(hasPhone ? "whatsapp" : "correo");
   const id = React.useId();
   return <span className="flex flex-wrap items-center gap-2">
-    <label className="sr-only" htmlFor={id}>Medio del aviso a {name}</label>
-    <span className="w-40"><select id={id} value={medio} onChange={e => setMedio(e.target.value as NoticeChannel)} className={selectClass}>{(Object.keys(NOTICE_CHANNELS) as NoticeChannel[]).map(k => <option key={k} value={k}>{NOTICE_CHANNELS[k]}</option>)}</select></span>
+    <span className="w-40"><Select value={medio} onValueChange={next => setMedio(next as NoticeChannel)}>
+      <SelectTrigger id={id} aria-label={`Medio del aviso a ${name}`}><SelectValue /></SelectTrigger>
+      <SelectContent>{(Object.keys(NOTICE_CHANNELS) as NoticeChannel[]).map(k => <SelectItem key={k} value={k}>{NOTICE_CHANNELS[k]}</SelectItem>)}</SelectContent>
+    </Select></span>
     <AsyncButton type="button" className={btnGhost} onClick={() => onRecord(medio)} aria-label={`Registrar que ya le avisaste a ${name}`}>Ya le avisé</AsyncButton>
   </span>;
 }

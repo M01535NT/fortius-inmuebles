@@ -26,7 +26,7 @@ const LABELS: Record<string, string> = {
   fecha: "Fecha", hora: "Hora", inicio: "Inicio", fin: "Fin", lugar: "Lugar", categoria: "Categoría", asesorId: "Responsable",
   pasos: "Pasos", precio: "Precio", zona: "Zona", tipo: "Tipo", operacion: "Operación", ficha: "Ficha técnica", galeria: "Fotos",
   amenidades: "Amenidades", publicada: "Publicado", destacada: "Destacado", perfil: "Perfil", mensaje: "Mensaje", origen: "Origen",
-  canal: "Canal", tipoPropiedad: "Tipo de inmueble", propiedadSlug: "Inmueble", expedienteId: "Operación", leadId: "Prospecto",
+  canal: "Canal", tipoPropiedad: "Tipo de inmueble", propiedadSlug: "Inmueble", expedienteId: "Asunto", leadId: "Prospecto",
   clienteId: "Cliente", direccionAproximada: "Dirección aproximada", documentos: "Documentos", recordatorio: "Recordatorio",
 };
 

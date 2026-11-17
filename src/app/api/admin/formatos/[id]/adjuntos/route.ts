@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { apiResponse, ApiError, assertSameOrigin, databaseError, readBody } from "@/lib/backend/http";
+import { soloActivos } from "@/lib/backend/formatos-retiro";
 import { inspectFormatoImage, MAX_ASSET_BYTES } from "@/lib/formatos/assets";
 
 export const runtime = "nodejs";
@@ -20,9 +21,12 @@ export async function GET(_request: Request, context: Context) {
     const draft = await client.from("fortius_inmuebles_formato_drafts").select("id").eq("id", id).maybeSingle();
     if (draft.error) databaseError(draft.error);
     if (!draft.data) throw new ApiError(404, "Documento no encontrado");
-    const result = await client.from("fortius_inmuebles_formato_assets").select("id,draft_id,kind,caption,source,observed_on,mime,sha256,created_at").eq("draft_id", id).order("created_at", { ascending: true });
-    if (result.error) databaseError(result.error);
-    return { adjuntos: result.data ?? [] };
+    // Las imágenes quitadas (eliminación recuperable) no se listan.
+    const adjuntos = await soloActivos((filtrar) => {
+      const q = client.from("fortius_inmuebles_formato_assets").select("id,draft_id,kind,caption,source,observed_on,mime,sha256,created_at").eq("draft_id", id);
+      return (filtrar ? q.is("deleted_at", null) : q).order("created_at", { ascending: true });
+    });
+    return { adjuntos: adjuntos ?? [] };
   });
 }
 

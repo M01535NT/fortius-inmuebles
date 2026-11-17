@@ -1,9 +1,5 @@
-import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
-import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import { publicContact } from "@/lib/public-contact";
-import { MessagingActions, MessagingContact } from "@/components/contact/messaging-actions";
-import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 
 const settings = { nombreComercial: "Fortius Inmuebles", telefono: "", whatsapp: "+52 664 123 4567", email: "", horario: "", facebook: "https://www.facebook.com/mnt.fixture", instagram: "", videoInstitucionalUrl: "" };
 
@@ -25,26 +21,6 @@ test("unconfirmed or unsupported destinations never produce messaging links", ()
   for (const facebook of ["", "https://facebook.com/groups/example", "https://example.com/mnt", "javascript:alert(1)"]) {
     expect(publicContact({ ...settings, facebook }).messenger).toBe("");
   }
-  expect(renderToStaticMarkup(<MessagingActions settings={null} />)).toBe("");
-});
-
-test("shared public settings expose direct anchors while keeping the form collapsed", () => {
-  const html = renderToStaticMarkup(<PublicFeaturesProvider publicLeadsEnabled settings={settings}>
-    <MessagingContact><form aria-label="Alternativa" /></MessagingContact>
-  </PublicFeaturesProvider>);
-  expect(html).toContain('href="https://wa.me/526641234567"');
-  expect(html).toContain('href="https://m.me/mnt.fixture"');
-  expect(html).toContain("<details");
-  expect(html).not.toContain("<details open");
-  expect(html).toContain("Prefiero dejar mis datos en un formulario");
-});
-
-test("mobile contact uses exactly phone and contextual WhatsApp links", () => {
-  const html = renderToStaticMarkup(<PropertyMobileCta settings={{ ...settings, telefono: "+52 664 123 4567" }} message="Quiero conocer esta casa" />);
-  expect(html).toContain('href="tel:+526641234567"');
-  expect(html).toContain('href="https://wa.me/526641234567?text=Quiero%20conocer%20esta%20casa"');
-  expect(html).not.toContain("m.me/");
-  expect((html.match(/<a /g) ?? []).length).toBe(2);
 });
 
 test("a Mexican number saved without country code still dials Mexico and reads in groups", () => {
@@ -56,19 +32,3 @@ test("a Mexican number saved without country code still dials Mexico and reads i
   expect(publicContact({ ...settings, whatsapp: "https://wa.me/526641234567" }).whatsappLabel).toBe("+52 664 123 4567");
 });
 
-test("email-only contact preserves the property and does not claim contact is unavailable", () => {
-  const message = "Me interesa Casa Jardín (FOR-001). https://example.com/inventario/jardin?a=1&b=2";
-  const emailOnly = { ...settings, whatsapp: "", facebook: "", email: "asesor@example.com" };
-  const html = renderToStaticMarkup(<PublicFeaturesProvider publicLeadsEnabled={false} settings={emailOnly}>
-    <MessagingContact message={message} />
-  </PublicFeaturesProvider>);
-  expect(html).toContain("mailto:asesor@example.com");
-  expect(html).toContain(encodeURIComponent(message));
-  expect(html).not.toContain("próximamente");
-});
-
-test("mobile enquiry remains usable when no phone or WhatsApp is configured", () => {
-  const html = renderToStaticMarkup(<PropertyMobileCta settings={null} />);
-  expect(html).toContain('href="#interes"');
-  expect(html).not.toContain("disabled");
-});

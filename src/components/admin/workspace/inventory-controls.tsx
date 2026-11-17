@@ -1,12 +1,11 @@
 "use client";
 import * as React from "react";
 import { usePanelPreference } from "./preferences-store";
-import {
-  btnGhost,
-  Field,
-  inputClass,
-  selectClass,
-} from "@/components/admin/ui";
+import { Field, inputClass } from "@/components/admin/ui";
+import { Button } from "@/components/admin/kit";
+import { X } from "@/components/admin/icons";
+import { Disclosure, usePanelNotice } from "@/components/admin/properties/disclosure";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest, useSession, type Asesor } from "@/lib/admin/store";
 import {
   emptyInventoryFilters,
@@ -23,6 +22,22 @@ function parseViews(raw: string): View[] | undefined {
     return views.length ? views : undefined;
   } catch { return undefined; }
 }
+// Radix Select no admite una opción con valor vacío: «Todos» viaja como ALL y se guarda como "".
+const ALL = "todos";
+
+/** Filtro de una lista corta (Radix Select, DEC-52): flechas, letras, Enter y Escape. */
+function FilterSelect({ id, label, value, onChange, options, all = "Todos" }: { id: string; label: string; value: string; onChange: (value: string) => void; options: Array<[string, string]>; all?: string }) {
+  return <Field label={label} htmlFor={id}>
+    <Select value={value || ALL} onValueChange={next => onChange(next === ALL ? "" : next)}>
+      <SelectTrigger id={id}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value={ALL}>{all}</SelectItem>
+        {options.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  </Field>;
+}
+
 export function InventoryControls({
   value,
   onChange,
@@ -42,8 +57,8 @@ export function InventoryControls({
   const legacy = React.useMemo(() => ({ key: `fortius:inventory-views:${session?.id ?? "anonymous"}`, parse: parseViews }), [session?.id]);
   const { value: stored, save } = usePanelPreference("vistasInventario", NO_VIEWS, legacy);
   const views = stored.filter(isView);
-  const [name, setName] = React.useState(""),
-    [notice, setNotice] = React.useState("");
+  const [name, setName] = React.useState("");
+  const { show: notify, inline: notice } = usePanelNotice();
   const [myAdvisor, setMyAdvisor] = React.useState<string | null>(null);
   React.useEffect(() => {
     let active = true;
@@ -58,11 +73,11 @@ export function InventoryControls({
   }, [session?.id]);
 
   async function persist(next: View[]) {
-    setNotice("Guardando…");
-    setNotice((await save(next)) ? "Vistas guardadas. Las verás en cualquier equipo." : "No se pudieron guardar las vistas. Revisa tu conexión y vuelve a intentarlo.");
+    notify((await save(next)) ? "Vistas guardadas. Las verás en cualquier equipo." : "No se pudieron guardar las vistas. Revisa tu conexión y vuelve a intentarlo.");
   }
   const change = (field: keyof InventoryFilters, next: string) =>
     onChange({ ...value, [field]: next });
+  const active = Object.values(value).filter(Boolean).length;
   return (
     <section
       aria-label="Filtros de inmuebles"
@@ -78,95 +93,20 @@ export function InventoryControls({
           placeholder="Título, código o zona"
         />
       </Field>}
-      {myAdvisor && (
-        <button
-          type="button"
-          className={btnGhost}
-          onClick={() =>
-            onChange({ ...emptyInventoryFilters, advisor: myAdvisor })
-          }
-        >
-          Mis inmuebles
-        </button>
-      )}
-      {Object.values(value).some(Boolean) && <button type="button" className={btnGhost} onClick={() => onChange({ ...emptyInventoryFilters })}>Limpiar filtros</button>}
-      <details>
-        <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">
-          Filtros y vistas guardadas ·{" "}
-          {Object.values(value).filter(Boolean).length} activos
-        </summary>
-        <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Field label="Asesor" htmlFor="inventory-advisor">
-            <select
-              id="inventory-advisor"
-              className={selectClass}
-              value={value.advisor}
-              onChange={(e) => change("advisor", e.target.value)}
-            >
-              <option value="">Todos</option>
-              {advisers.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.nombre}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Operación" htmlFor="inventory-operation">
-            <select
-              id="inventory-operation"
-              className={selectClass}
-              value={value.operation}
-              onChange={(e) => change("operation", e.target.value)}
-            >
-              <option value="">Todas</option>
-              <option value="venta">Venta</option>
-              <option value="renta">Renta</option>
-            </select>
-          </Field>
-          <Field label="Publicación" htmlFor="inventory-publication">
-            <select
-              id="inventory-publication"
-              className={selectClass}
-              value={value.publication}
-              onChange={(e) => change("publication", e.target.value)}
-            >
-              <option value="">Todas</option>
-              <option value="publicada">Publicadas</option>
-              <option value="borrador">Pendientes de publicar</option>
-            </select>
-          </Field>
-          <Field label="Estado del inmueble" htmlFor="inventory-status">
-            <select
-              id="inventory-status"
-              className={selectClass}
-              value={value.status}
-              onChange={(e) => change("status", e.target.value)}
-            >
-              <option value="">Todos</option>
-              <option value="disponible">Disponible</option>
-              <option value="apartada">Apartada</option>
-              <option value="vendida">Vendida</option>
-              <option value="rentada">Rentada</option>
-            </select>
-          </Field>
+      {(myAdvisor || active > 0) && <div className="col-span-full flex flex-wrap gap-2">
+        {myAdvisor && <Button variant="ghost" onClick={() => onChange({ ...emptyInventoryFilters, advisor: myAdvisor })}>Mis inmuebles</Button>}
+        {active > 0 && <Button variant="ghost" onClick={() => onChange({ ...emptyInventoryFilters })}>Limpiar filtros</Button>}
+      </div>}
+      <Disclosure className="col-span-full" triggerClassName="text-sm font-medium" title={`Filtros y vistas guardadas · ${active} activos`}>
+        <div className="grid min-w-0 gap-3 pt-1 sm:grid-cols-2 xl:grid-cols-4">
+          <FilterSelect id="inventory-advisor" label="Asesor" value={value.advisor} onChange={v => change("advisor", v)} options={advisers.map(a => [a.id, a.nombre])} />
+          <FilterSelect id="inventory-operation" label="Operación" all="Todas" value={value.operation} onChange={v => change("operation", v)} options={[["venta", "Venta"], ["renta", "Renta"]]} />
+          <FilterSelect id="inventory-publication" label="Publicación" all="Todas" value={value.publication} onChange={v => change("publication", v)} options={[["publicada", "Publicadas"], ["borrador", "Pendientes de publicar"]]} />
+          <FilterSelect id="inventory-status" label="Estado del inmueble" value={value.status} onChange={v => change("status", v)} options={[["disponible", "Disponible"], ["apartada", "Apartada"], ["vendida", "Vendida"], ["rentada", "Rentada"]]} />
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={btnGhost}
-            onClick={() =>
-              onChange({ ...emptyInventoryFilters, publication: "borrador" })
-            }
-          >
-            Pendientes de publicar
-          </button>
-          <button
-            type="button"
-            className={btnGhost}
-            onClick={() => onChange(emptyInventoryFilters)}
-          >
-            Limpiar filtros
-          </button>
+          <Button variant="ghost" onClick={() => onChange({ ...emptyInventoryFilters, publication: "borrador" })}>Pendientes de publicar</Button>
+          <Button variant="ghost" onClick={() => onChange(emptyInventoryFilters)}>Limpiar filtros</Button>
         </div>
         <div className="mt-4 flex flex-wrap items-end gap-2">
           <div className="min-w-0 flex-1">
@@ -181,9 +121,7 @@ export function InventoryControls({
               />
             </Field>
           </div>
-          <button
-            type="button"
-            className={btnGhost}
+          <Button
             disabled={!name.trim()}
             onClick={() => {
               void persist(
@@ -196,33 +134,19 @@ export function InventoryControls({
             }}
           >
             Guardar vista
-          </button>
+          </Button>
         </div>
-        <ul className="mt-3 flex flex-wrap gap-2">
+        {views.length > 0 && <ul className="mt-3 flex flex-wrap gap-2" aria-label="Vistas guardadas">
           {views.map((v) => (
-            <li key={v.name} className="flex rounded-md border border-border">
-              <button
-                type="button"
-                className="px-3 text-sm"
-                onClick={() => onChange(v.filters)}
-              >
-                {v.name}
-              </button>
-              <button
-                type="button"
-                aria-label={`Eliminar vista ${v.name}`}
-                className="border-l border-border"
-                onClick={() => void persist(views.filter((x) => x.name !== v.name))}
-              >
-                ×
-              </button>
+            <li key={v.name} className="flex items-center rounded-[var(--radius-control)] border border-border">
+              <button type="button" className="min-h-11 px-3 text-sm font-medium" onClick={() => onChange(v.filters)}>{v.name}</button>
+              <button type="button" aria-label={`Eliminar vista ${v.name}`} className="inline-flex size-11 items-center justify-center border-l border-border text-muted-foreground hover:text-foreground"
+                onClick={() => void persist(views.filter((x) => x.name !== v.name))}><X size={16} aria-hidden="true" /></button>
             </li>
           ))}
-        </ul>
-        <p role="status" className="mt-2 text-xs text-muted-foreground">
-          {notice}
-        </p>
-      </details>
+        </ul>}
+        {notice && <div className="mt-2">{notice}</div>}
+      </Disclosure>
       <p role="status" className="text-sm text-muted-foreground">
         {count} {count === 1 ? "inmueble" : "inmuebles"}
       </p>

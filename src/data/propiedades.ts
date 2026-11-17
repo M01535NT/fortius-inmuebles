@@ -58,7 +58,8 @@ type InformacionPublica = {
   ocupacionEntrega?: string; // solo condiciones autorizadas para publicación
 };
 
-export type ImagenPropiedad = { src: string; alt: string };
+/** `oculta`: está en las fotos del inmueble pero no se muestra en el sitio hasta que se elija mostrarla (DEC-54). */
+export type ImagenPropiedad = { src: string; alt: string; oculta?: true };
 
 /*
   Documentos descargables por propiedad (PDFs): se entregan a cambio de los

@@ -14,7 +14,7 @@ import { isLevantamiento } from "@/lib/formatos/levantamiento";
   PDF de un documento suelto: se genera con la versión guardada del trabajo y se entrega al
   momento. No se archiva ni deja emisión, porque no pertenece a una operación. Con
   «incompleto=1» sale aunque falten datos, marcado al pie (RP-77), salvo el aviso de privacidad
-  (01) y la promesa (15), que conservan sus reglas.
+  (01), que conserva su regla; la promesa (15) también sale marcada desde FLX-03.
 */
 
 export const runtime = "nodejs";

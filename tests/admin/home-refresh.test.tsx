@@ -1,8 +1,4 @@
-import * as React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
-import { MessagingContact } from "@/components/contact/messaging-actions";
-import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 import { homeText, resolveSiteContent, SITE_COPY } from "@/data/home-copy";
 
 test("the commercial refresh updates shipped defaults without mutating stored content or custom fields", () => {
@@ -45,26 +41,6 @@ test("Fortius branding refreshes stored copy without changing property codes or 
   expect(content.manifiestoTexto).toBe("Expediente MNT-001");
   expect(content.seoDescription).toBe("https://fortius-inmuebles.vercel.app");
   expect(homeText(content, "contratoTexto")).toBe("Contrato de Fortius Inmuebles para MNT-001");
-});
-
-test("contact never invites visitors into a disabled form", () => {
-  const html = renderToStaticMarkup(<PublicFeaturesProvider publicLeadsEnabled={false}>
-    <MessagingContact><form aria-label="Solicitud" /></MessagingContact>
-  </PublicFeaturesProvider>);
-  expect(html).not.toContain("<form");
-  expect(html).not.toContain("<details");
-  expect(html).toContain('href="/inventario"');
-  expect(html).toContain("El contacto directo estará disponible próximamente.");
-});
-
-test("a configured phone remains a usable channel without messaging or forms", () => {
-  const settings = { nombreComercial: "MNT", telefono: "+52 664 123 4567", whatsapp: "", facebook: "", email: "", horario: "", instagram: "", videoInstitucionalUrl: "" };
-  const html = renderToStaticMarkup(<PublicFeaturesProvider publicLeadsEnabled={false} settings={settings}>
-    <MessagingContact><form /></MessagingContact>
-  </PublicFeaturesProvider>);
-  expect(html).toContain('href="tel:+526641234567"');
-  expect(html).not.toContain("próximamente");
-  expect(html).not.toContain("<form");
 });
 
 test("editorial refresh replaces only known legacy defaults and preserves bespoke panel copy", () => {

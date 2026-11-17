@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { InventoryExplorer } from "@/components/property/inventory-explorer";
 import { getPropiedades } from "@/lib/inventario";
+import { filtrosDesdeParams, opcionesDe, parteDe, POR_PARTE, vistaDesdeParams } from "@/lib/inventario-busqueda";
 import { pageMetadata } from "@/lib/seo/page-metadata";
 import "./inventario.css";
 
@@ -15,14 +16,26 @@ export const metadata: Metadata = pageMetadata({
 /* El inventario publicado del panel MNT se consulta en cada solicitud. */
 export const revalidate = 0;
 
-/* Dirección «Nocturno» (boceto InventarioNocturno): cabecera oscura con los
-   filtros y resultados en rejilla o con mapa por zona. */
-export default async function InventarioPage() {
-  const propiedades = await getPropiedades();
+type Busqueda = Promise<Record<string, string | string[] | undefined>>;
+
+/* Inventario, Fortius II (etapa 2, 17/11/2026): la frase es el filtro. El servidor filtra con los
+   datos de la dirección y entrega solo la primera parte; el resto llega con «Cargar más». */
+export default async function InventarioPage({ searchParams }: { searchParams: Busqueda }) {
+  const busqueda = await searchParams;
+  const params = new URLSearchParams();
+  for (const [clave, valor] of Object.entries(busqueda)) {
+    const uno = Array.isArray(valor) ? valor[0] : valor;
+    if (typeof uno === "string") params.set(clave, uno);
+  }
+  const filtros = filtrosDesdeParams(params);
+  const vista = vistaDesdeParams(params);
+  const todas = await getPropiedades();
+  const parte = parteDe(todas, filtros, 0, POR_PARTE);
 
   return (
-    <main className="pg-page inv-page">
-      <InventoryExplorer propiedades={propiedades} />
+    <main className="inv2">
+      {/* Una búsqueda nueva desde fuera (menú, pie, buscador) monta la página de cero. */}
+      <InventoryExplorer key={params.toString()} opciones={opcionesDe(todas)} filtrosIniciales={filtros} vistaInicial={vista} parteInicial={parte} />
     </main>
   );
 }

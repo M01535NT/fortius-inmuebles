@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { nuevoTramite, type Tramite } from "@/lib/tramites";
 import { esFrenoDeFirma } from "@/lib/admin/tramite-firma";
 
-/* TRA-01 · en la etapa de una venta, el freno de la firma se explica con la liga al trámite. */
+/* TRA-01 · en la etapa de una venta, la hipoteca pendiente se avisa con la liga al trámite (desde FLX-03 no frena). */
 const data = vi.hoisted(() => ({ tramites: [] as unknown[] }));
 vi.mock("@/lib/admin/store", async importOriginal => {
   const actual = await importOriginal<typeof import("@/lib/admin/store")>();
@@ -27,6 +27,8 @@ test("antes de la firma avisa con la liga al trámite ligado y el paso en que va
   expect(screen.getByText("La firma espera la cancelación de hipoteca")).toBeTruthy();
   expect(screen.getByRole("link", { name: "Abrir el trámite" }).getAttribute("href")).toBe("/admin/tramites?id=tr-1");
   expect(screen.getByText(/Casa de ejemplo: va en/)).toBeTruthy();
+  // FLX-03: no frena; dice que se puede pasar y que queda anotado.
+  expect(screen.getByText(/Puedes pasar a la firma; quedará anotado en el historial/)).toBeTruthy();
 });
 
 test("si el asesor no ve el trámite y el servidor frenó, lleva a la lista de trámites", () => {

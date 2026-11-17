@@ -1,14 +1,15 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-const { privileged, purge } = vi.hoisted(() => ({ privileged: vi.fn(() => ({ servicio: true })), purge: vi.fn() }));
+const { privileged, purge, bandeja } = vi.hoisted(() => ({ privileged: vi.fn(() => ({ servicio: true })), purge: vi.fn(), bandeja: vi.fn() }));
 vi.mock("@/lib/backend/auth", () => ({ createServerClient: privileged }));
 vi.mock("@/lib/backend/public-file-cleanup", () => ({ purgeRetiredPublicFiles: purge }));
+vi.mock("@/lib/backend/bandeja", () => ({ limpiarBandejaVencida: bandeja }));
 import { readFile } from "node:fs/promises";
 import { GET } from "@/app/api/cron/limpieza-archivos/route";
 
 // Tarea diaria de Vercel que borra lo retirado hace más de 30 días (titular, 13/11/2026).
 const secret = "clave-de-ensayo-1234567890";
 const call = (authorization?: string) => GET(new Request("https://panel.test/api/cron/limpieza-archivos", { headers: authorization ? { authorization } : {} }));
-beforeEach(() => { vi.clearAllMocks(); vi.stubEnv("CRON_SECRET", secret); vi.spyOn(console, "info").mockImplementation(() => {}); });
+beforeEach(() => { vi.clearAllMocks(); bandeja.mockResolvedValue(0); vi.stubEnv("CRON_SECRET", secret); vi.spyOn(console, "info").mockImplementation(() => {}); });
 afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
 
 it("sin la clave configurada no hace nada", async () => {
@@ -25,10 +26,20 @@ it("rechaza a quien no trae la clave correcta", async () => {
 
 it("con la clave de Vercel limpia por tandas hasta terminar", async () => {
   purge.mockResolvedValueOnce({ purged: 100, restored: 0 }).mockResolvedValueOnce({ purged: 7, restored: 1 });
+  bandeja.mockResolvedValueOnce(100).mockResolvedValueOnce(3);
   const response = await call(`Bearer ${secret}`);
   expect(response.status).toBe(200);
-  expect(await response.json()).toEqual({ ok: true, purged: 107, restored: 1 });
+  expect(await response.json()).toEqual({ ok: true, purged: 107, restored: 1, bandeja: 103 });
   expect(purge).toHaveBeenCalledTimes(2);
+  expect(bandeja).toHaveBeenCalledTimes(2);
+});
+
+it("si falla la Bandeja, lo público ya quedó limpio (DEC-54)", async () => {
+  purge.mockResolvedValueOnce({ purged: 2, restored: 0 });
+  bandeja.mockRejectedValueOnce(new Error("sin conexión"));
+  const response = await call(`Bearer ${secret}`);
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ ok: true, purged: 2, restored: 0, bandeja: 0 });
 });
 
 it("vercel.json programa la tarea una vez al día", async () => {

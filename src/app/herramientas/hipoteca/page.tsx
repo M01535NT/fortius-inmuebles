@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
+import { CabezaPagina, Nota } from "@/components/sitio/pagina";
 import { pageMetadata } from "@/lib/seo/page-metadata";
-import "./hipoteca.css";
+import "../herramientas-sitio.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/herramientas/hipoteca",
@@ -13,19 +13,14 @@ export const metadata: Metadata = pageMetadata({
     "Estima la mensualidad de tu crédito hipotecario con enganche, plazo y tasa editables. Compara hasta tres escenarios y descarga cada tabla de pagos en PDF.",
 });
 
+/* Hipoteca, Fortius II (etapa 5, 17/11/2026): la calculadora de siempre bajo la cabeza nueva. */
 export default function HipotecaPage() {
   return (
-    <main className="pg-page">
-      <section className="pg-hero">
-        <div className="pg-container pg-hero-body tl-tool-head">
-          <Link href="/herramientas" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Herramientas</Link>
-          <h1 className="pg-title pg-title-sm">Calculadora de hipoteca.</h1>
-          <p className="pg-lead">Compara hasta tres escenarios y descarga cada pago.</p>
-        </div>
-      </section>
-      <div className="pg-container tl-tool-body">
+    <main className="s-pagina he">
+      <CabezaPagina chico titulo="Calculadora de hipoteca." entrada="Compara hasta tres escenarios y descarga cada pago." volver={{ href: "/herramientas", etiqueta: "Herramientas" }} />
+      <div className="s-contenedor he-calculadora">
         <MortgageCalculator precio={3000000} moneda="MXN" precioEditable />
-        <p className="tl-tool-foot pg-muted">¿Ya sabes qué buscas? <Link href="/inventario">Ver propiedades</Link>.</p>
+        <Nota>¿Ya sabes qué buscas? <Link href="/inventario">Ver propiedades</Link>.</Nota>
       </div>
     </main>
   );

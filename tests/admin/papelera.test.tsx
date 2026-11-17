@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 
 /* NAV-13 (N23): una sola papelera con operaciones y registros, cada uno con su restauración de siempre. */
 const h = vi.hoisted(() => ({ role: "admin" as "admin" | "editor", request: vi.fn(), fetchJson: vi.fn(), confirm: vi.fn(async () => true), load: vi.fn() }));
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin/papelera" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin/papelera", useRouter: () => ({ push: () => undefined }) }));
 vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: h.confirm }));
 vi.mock("@/lib/admin/store", () => ({
   useSession: () => ({ id: "yo", role: h.role }),
@@ -27,7 +27,7 @@ it("reúne operaciones e inmuebles eliminados y restaura cada uno por su ruta de
   expect(screen.getByRole("heading", { level: 1, name: "Eliminados" })).toBeTruthy();
   expect(screen.getByRole("navigation", { name: "Administración" })).toBeTruthy();
   fireEvent.click(await screen.findByRole("button", { name: "Restaurar EXP-0001" }));
-  expect(await screen.findByText("Operación EXP-0001 de vuelta en Operaciones.")).toBeTruthy();
+  expect(await screen.findByText("Asunto EXP-0001 de vuelta en Asuntos.")).toBeTruthy();
   expect(h.fetchJson).toHaveBeenCalledWith("/api/admin/expedientes/e1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ version: 3 }) }));
 
   expect(screen.getByText(/Inmueble · se eliminó el .* · por ti/)).toBeTruthy();
@@ -60,6 +60,6 @@ it("vacía, lo dice; con error, ofrece reintentar", async () => {
   h.request.mockResolvedValue({ entries: [], hasMore: false });
   render(<PapeleraScreen />);
   fireEvent.click(await screen.findByRole("button", { name: "Reintentar" }));
-  expect(await screen.findByText("No hay operaciones eliminadas")).toBeTruthy();
+  expect(await screen.findByText("No hay asuntos eliminados")).toBeTruthy();
   expect(screen.getByText("Nada más que recuperar")).toBeTruthy();
 });

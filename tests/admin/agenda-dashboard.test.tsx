@@ -6,6 +6,7 @@ import AdminDashboard from "@/app/admin/page";
 import { AgendaCalendar as CalendarioPage } from "@/components/admin/agenda/calendar";
 import { clearAdminCache, type Evento } from "@/lib/admin/store";
 import type { Task } from "@/lib/tasks";
+import { dateValue } from "./agenda-helpers";
 
 let events: Evento[] = [];
 let tasks: Task[] = [];
@@ -78,9 +79,12 @@ test("Hoy keeps this evening's eight Tijuana events when UTC is already tomorrow
 
   const agenda = within(await screen.findByRole("list", {name:"Citas de hoy"}));
   await agenda.findByText("Visita 1");
-  expect(agenda.getByText("Visita 8")).toBeTruthy();
-  expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(8);
-  expect(agenda.getAllByRole("listitem")).toHaveLength(8);
+  // Reglas de volumen de Hoy: las primeras 5 citas del día y «Ver las 8 citas» para el resto.
+  expect(agenda.getByText("Visita 5")).toBeTruthy();
+  expect(agenda.queryByText("Visita 6")).toBeNull();
+  expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(5);
+  expect(agenda.getAllByRole("listitem")).toHaveLength(5);
+  expect(screen.getByRole("link", { name: "Ver las 8 citas" }).getAttribute("href")).toBe("/admin/agenda?fecha=2026-09-22");
 });
 
 test("Hoy's agenda shows only the operating day, not later or past days", async () => {
@@ -113,12 +117,21 @@ test("Hoy's agenda includes earlier and untimed events from the operating day, u
   expect(agenda.queryByText("Visita", {exact:true})).toBeNull();
 });
 
+/* «Agendar» es un panel modal (Radix, DEC-52): su formulario existe solo abierto. Para leer la fecha
+   que tomará la captura se abre, se lee y se cierra. */
+const formDate = () => {
+  fireEvent.click(screen.getByRole("button", { name: "Agendar" }));
+  const value = dateValue();
+  fireEvent.keyDown(document.activeElement ?? document, { key: "Escape" });
+  return value;
+};
+
 test("calendar opens the operating day and week even when UTC has crossed the year", async () => {
   vi.setSystemTime(new Date("2027-01-01T07:30:00Z"));
   events = [{ id: "year-end", titulo: "Firma de cierre", fecha: "2026-12-31", hora: "23:59", tipo: "firma" }];
   render(<CalendarioPage />);
 
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-12-31");
+  expect(formDate()).toBe("2026-12-31");
   expect(screen.getByRole("heading", { name: "Jueves 31 de diciembre" })).toBeTruthy();
   expect((await screen.findAllByText("Firma de cierre")).length).toBeGreaterThan(0);
 });
@@ -128,10 +141,10 @@ test("calendar lets staff select a day across the year and keeps the form date i
   render(<CalendarioPage />);
 
   fireEvent.click(screen.getByRole("button", { name: "1 de enero de 2027" }));
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-01");
+  expect(formDate()).toBe("2027-01-01");
   fireEvent.click(screen.getByRole("button", { name: "Semana siguiente" }));
   expect(screen.getByRole("button", { name: "4 de enero de 2027" })).toBeTruthy();
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-08");
+  expect(formDate()).toBe("2027-01-08");
   fireEvent.click(screen.getByRole("button", { name: "Semana anterior" }));
   expect(screen.getByRole("button", { name: "28 de diciembre de 2026" })).toBeTruthy();
 });
@@ -169,7 +182,7 @@ test("calendar saves a linked event with client, property, expediente and advise
   });
   render(<CalendarioPage />);
   // SIM-17: la operación de la dirección se ve como vínculo elegido en «¿Con quién o sobre qué?».
-  await screen.findByText("Operación: EXP-1");
+  await screen.findByText("Asunto: EXP-1");
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita vinculada" } });
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(saved).toMatchObject({ titulo: "Visita vinculada", clienteId: "c1", propiedadSlug: "p1", expedienteId, asesorId: "a1" }));

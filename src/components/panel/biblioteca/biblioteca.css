@@ -1,0 +1,53 @@
+/* Directorio y Biblioteca del panel (boceto aprobado). Bajo .panel-root. */
+.panel-root .db-pagina { display: flex; flex-direction: column; gap: 16px; max-width: 980px; margin: 0 auto; padding: 24px 20px 80px; }
+.panel-root .db-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.panel-root .db-top h1 { margin: 0; font-size: 26px; line-height: 1.1; font-weight: 650; }
+.panel-root .db-top .as-buscar { margin: 0; width: 240px; }
+.panel-root .db-filtro { width: 210px; }
+.panel-root .db-filtro .pn-campo > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.panel-root .db-sub { margin: 4px 0 0; color: var(--ink-muted); font-size: 14px; }
+.panel-root .db-h2 { display: flex; align-items: center; gap: 8px; margin: 0; padding: 0 2px 8px; font-size: 15px; font-weight: 650; }
+
+/* Una persona del Directorio */
+.panel-root .db-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; min-height: 58px; }
+.panel-root .as-card > .db-fila + .db-fila { border-top: 1px solid var(--border); }
+.panel-root .db-quien { display: flex; align-items: center; gap: 12px; flex: 1 1 220px; min-width: 0; }
+.panel-root .db-asuntos { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.panel-root .db-chip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 260px; min-height: 34px; padding: 0 10px 0 4px; border-radius: 10px;
+  background: var(--fill); color: var(--ink); font-size: 13px; font-weight: 550; text-decoration: none;
+}
+.panel-root .db-chip > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .db-chip:hover { background: var(--fill-strong, var(--border)); }
+.panel-root .db-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.panel-root .db-chip[data-cerrado] { color: var(--ink-muted); }
+.panel-root .db-chip[data-cerrado] .as-tile { opacity: 0.55; }
+
+/* Una guía de la Biblioteca */
+.panel-root .db-guia + .db-guia { border-top: 1px solid var(--border); }
+.panel-root .db-guia > button[aria-expanded] > svg:last-child { transition: transform 160ms ease; color: var(--ink-muted); }
+.panel-root .db-guia > button[aria-expanded="true"] > svg:last-child { transform: rotate(90deg); }
+.panel-root .db-cont { display: flex; flex-direction: column; gap: 10px; padding: 0 14px 14px 56px; }
+.panel-root .db-cont ol, .panel-root .db-cont ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.panel-root .db-cont li { display: flex; gap: 8px; align-items: baseline; font-size: 14px; }
+.panel-root .db-cont li > i { font-style: normal; color: var(--ink-muted); font-size: 13px; white-space: nowrap; }
+.panel-root .db-etapa { margin: 4px 0 0; font-size: 13px; font-weight: 650; color: var(--ink-muted); }
+
+/* Editor de una guía */
+.panel-root .db-renglon { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+.panel-root .db-renglon-tarea { grid-template-columns: minmax(0, 1fr) 150px 84px auto; }
+.panel-root .db-bloque { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
+
+@media (max-width: 640px) {
+  .panel-root .db-pagina { padding: 16px 16px 96px; }
+  .panel-root .db-top .as-buscar, .panel-root .db-filtro { width: 100%; }
+  .panel-root .db-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .panel-root .db-quien { grid-column: 1; grid-row: 1; }
+  .panel-root .db-mas { grid-column: 2; grid-row: 1; }
+  .panel-root .db-asuntos { grid-column: 1 / -1; padding-left: 48px; }
+  .panel-root .db-asuntos:empty { display: none; }
+  .panel-root .db-chip { min-height: 44px; }
+  .panel-root .db-cont { padding-left: 14px; }
+  .panel-root .db-renglon-tarea { grid-template-columns: 1fr 1fr; }
+  .panel-root .db-renglon-tarea > :first-child { grid-column: 1 / -1; }
+}

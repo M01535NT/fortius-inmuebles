@@ -154,27 +154,10 @@ test("financial PDFs contain the same results, complete schedule and quotes with
   expect(closingText).toContain("$15,000.00");
   expect(closingText).toContain("precio usado como supuesto");
 });
-test("property detail retains the compact planner and explicit dollar conversion", async ({
-  page,
-}) => {
+test("la ficha muestra la mensualidad aproximada y lleva a la calculadora completa", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto("/inventario/residencia-vista-al-mar-playas");
-  await page.getByText("Mensualidad con crédito", { exact: true }).click();
-  const planner = page.getByRole("region", {
-    name: "Simulador de crédito hipotecario",
-  });
-  await expect(planner).toBeVisible();
-  if (await planner.getByLabel("Tipo de cambio (MXN por USD)").count())
-    await planner.getByLabel("Tipo de cambio (MXN por USD)").fill("20");
-  await expect(
-    planner.getByText("Capital e interés mensual", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    planner.getByRole("link", { name: "Abrir simulador completo" }),
-  ).toHaveAttribute("href", "/herramientas/hipoteca");
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expect(page.getByText("Mensualidad aproximada", { exact: true })).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link", { name: /Calculadora de hipoteca/ }).first()).toHaveAttribute("href", "/herramientas/hipoteca");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

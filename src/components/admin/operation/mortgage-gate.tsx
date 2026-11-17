@@ -10,7 +10,8 @@ const fecha = (iso?: string) => iso ? new Date(iso).toLocaleDateString("es-MX", 
 
 /**
   TRA-01 · en una venta, la firma espera la cancelación de hipoteca ligada. Se avisa antes de llegar
-  a la firma (cuando lo que sigue es el cierre) y siempre que el servidor la frenó (`blocked`).
+  a la firma (cuando lo que sigue es el cierre). Desde FLX-03 (RP-100) no frena: se puede pasar y queda
+  anotado en el historial. `blocked` queda para una base que aún no tenga esa migración y frene.
   El asesor puede no ver el trámite; entonces la liga lleva a la lista de trámites.
 */
 export function MortgageGateNotice({ operationId, operacion, stage, next, blocked, className }: { operationId: string; operacion: string; stage: WorkflowStage; next?: WorkflowStage | null; blocked: boolean; className?: string }) {
@@ -21,11 +22,13 @@ export function MortgageGateNotice({ operationId, operacion, stage, next, blocke
   const nearSignature = !!next && WORKFLOW_STAGES.indexOf(next) >= CIERRE;
   if (abiertos.length || blocked) {
     if (!blocked && !nearSignature) return null;
-    return <Notice className={className} title="La firma espera la cancelación de hipoteca"
+    return <Notice tone={blocked ? undefined : "info"} className={className} title="La firma espera la cancelación de hipoteca"
       actions={abiertos.length
         ? abiertos.slice(0, 3).map(t => <ButtonLink key={t.id} href={`/admin/tramites?id=${encodeURIComponent(t.id)}`}>{abiertos.length > 1 ? `Abrir «${t.titulo}»` : "Abrir el trámite"}</ButtonLink>)
         : <ButtonLink href="/admin/tramites">Ver los trámites</ButtonLink>}>
-      <p>Antes de la firma, la cancelación de hipoteca de esta venta debe quedar inscrita en el Registro Público. Si se firma sin ella, lo decide el director en el trámite, con su motivo.</p>
+      {blocked
+        ? <p>Antes de la firma, la cancelación de hipoteca de esta venta debe quedar inscrita en el Registro Público. Si se firma sin ella, lo decide el director en el trámite, con su motivo.</p>
+        : <p>La cancelación de hipoteca de esta venta aún no está inscrita en el Registro Público. Puedes pasar a la firma; quedará anotado en el historial. Si se firma sin ella, el director lo registra en el trámite, con su motivo.</p>}
       {abiertos.map(t => <p key={t.id} className="mt-1 text-muted-foreground">{t.titulo}: va en «{t.pasoActual >= TOTAL_PASOS ? "Terminado" : pasosDe(t.acreedor)[t.pasoActual].nombre}»{t.estado === "cancelado" ? " · trámite cancelado" : ""}.</p>)}
     </Notice>;
   }

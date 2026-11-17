@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, IBM_Plex_Mono, Schibsted_Grotesk } from "next/font/google";
+import { Archivo, Geist, IBM_Plex_Mono } from "next/font/google";
 import { connection } from "next/server";
 import { headers } from "next/headers";
 
 import "@/app/globals.css";
-import "@/app/editorial.css";
-import "@/app/nocturno.css";
-import "@/app/publico.css";
+// Marca Fortius II del sitio público: todo bajo html.sitio, que el panel nunca recibe (17/11/2026).
+import "@/app/sitio.css";
 import { SiteFooter } from "@/components/home/site-footer";
 import { SiteNav } from "@/components/home/site-nav";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
@@ -29,11 +28,11 @@ const archivo = Archivo({
   preload: false,
 });
 
-// Sitio público (30/10/2026): Schibsted Grotesk en 400/600/700. El panel conserva Archivo.
-const schibsted = Schibsted_Grotesk({
+// Sitio público (17/11/2026): Geist, letra variable (un solo archivo cubre 400, 500 y 600).
+// Su clase solo se pone en <html> fuera del panel; el panel conserva Archivo.
+const geist = Geist({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  variable: "--font-public",
+  variable: "--font-geist",
   display: "swap",
 });
 
@@ -71,7 +70,7 @@ const defaultMetadata: Metadata = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const pathname = (await headers()).get("x-fortius-inmuebles-pathname") ?? "/";
-  const content = pathname.startsWith("/admin")
+  const content = pathname.startsWith("/admin") || pathname.startsWith("/panel")
     ? null
     : await getPublicContent().catch(() => {
         console.error("[public-shell] Contenido público no disponible.");
@@ -92,7 +91,7 @@ export async function generateMetadata(): Promise<Metadata> {
   dark mode (12/11/2026). The panel keeps light unless chosen. Runs inline before
   paint to avoid a flash.
 */
-const themeInit = `(function(){try{var s=localStorage.getItem("fortius-inmuebles-theme");var p=location.pathname;var admin=p==="/admin"||p.indexOf("/admin/")===0;if(s==="dark"||(s===null&&!admin&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
+const themeInit = `(function(){try{var s=localStorage.getItem("fortius-inmuebles-theme");var p=location.pathname;var admin=p==="/admin"||p.indexOf("/admin/")===0||p==="/panel"||p.indexOf("/panel/")===0;if(s==="dark"||(s===null&&!admin&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
 export default async function RootLayout({
   children,
@@ -103,7 +102,10 @@ export default async function RootLayout({
   const requestHeaders = await headers();
   const pathname = requestHeaders.get("x-fortius-inmuebles-pathname") ?? "/";
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  // El panel nuevo (/panel) usa el mismo cascarón limpio que el viejo: sin encabezado ni pie del sitio público.
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/panel" || pathname.startsWith("/panel/");
+  // La piel nueva es solo del sitio: ni /admin ni /panel.
+  const isSitio = !isAdmin;
   const settings = isAdmin
     ? null
     : await getPublicSettings().catch(() => {
@@ -116,7 +118,7 @@ export default async function RootLayout({
       lang="es-MX"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${archivo.variable} ${plexMono.variable}${isAdmin ? "" : ` ${schibsted.variable}`}`}
+      className={`${archivo.variable} ${plexMono.variable}${isSitio ? ` ${geist.variable} sitio` : ""}`}
     >
       <head>
         {/* Browsers hide the nonce content attribute before hydration; the nonce property and CSP remain intact. */}

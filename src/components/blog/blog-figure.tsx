@@ -48,7 +48,7 @@ export function BlogFigureView({ figure }: { figure: BlogFigure }) {
 
       <figcaption id={`${figure.id}-caption`} className="border-t border-border bg-muted/40 px-5 py-5 text-sm leading-relaxed text-muted-foreground sm:px-7">
         <p>{figure.caption}</p>
-        <p className="mt-2 font-medium">{figure.source}.</p>
+        <p className="mt-2 font-normal">{figure.source}.</p>
       </figcaption>
     </figure>
   );

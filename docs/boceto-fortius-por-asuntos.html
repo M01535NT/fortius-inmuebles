@@ -1,0 +1,1287 @@
+<title>Fortius por asuntos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap">
+<style>
+/* Disposición: app de trabajo. Menú lateral con íconos, lista de asuntos, el asunto abierto y una ventana lateral para cada parte.
+   Cada grupo de opciones vive en un solo botón que abre su lista; en pantalla quedan pocas palabras y muchos íconos. */
+:root{
+  --bg:#F5F6F8; --side:#ECEEF2; --card:#FFFFFF; --bd:#E2E5EA; --tx:#0F1218; --tx2:#596070; --tx3:#939AA8; --hov:rgba(15,18,24,.055);
+  --acc:#2F6BFF; --acc-f:#E8EFFF; --on-acc:#FFFFFF; --on-tile:#FFFFFF; --papel:#FFFFFF; --tinta-papel:#16181D;
+  --ok:#0E9F4F; --ok-f:#E3F6EA; --warn:#B56A00; --warn-f:#FFF0D6; --bad:#D8362A; --bad-f:#FDEAE8;
+  --c-blue:#2F6BFF; --c-orange:#F27A0E; --c-red:#E5484D; --c-teal:#0C9CA8; --c-violet:#7B5CFA; --c-green:#12A150; --c-indigo:#4A55E6; --c-gray:#7B8392;
+  --sombra:0 14px 38px rgba(15,18,24,.16),0 2px 6px rgba(15,18,24,.06);
+  --f:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E0F12; --side:#131418; --card:#191A1F; --bd:#292B33; --tx:#EDEEF1; --tx2:#A2A8B4; --tx3:#6D7381; --hov:rgba(255,255,255,.065);
+  --acc:#5C8CFF; --acc-f:#18233F; --on-acc:#FFFFFF; --on-tile:#FFFFFF;
+  --ok:#3DD68C; --ok-f:#11281D; --warn:#F5B94A; --warn-f:#2E2208; --bad:#FF7B72; --bad-f:#33161A;
+  --c-blue:#3D74FF; --c-orange:#F27A0E; --c-red:#E5484D; --c-teal:#0C9CA8; --c-violet:#7B5CFA; --c-green:#12A150; --c-indigo:#5560F0; --c-gray:#6B7382;
+  --sombra:0 14px 38px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E0F12; --side:#131418; --card:#191A1F; --bd:#292B33; --tx:#EDEEF1; --tx2:#A2A8B4; --tx3:#6D7381; --hov:rgba(255,255,255,.065);
+  --acc:#5C8CFF; --acc-f:#18233F; --on-acc:#FFFFFF; --on-tile:#FFFFFF;
+  --ok:#3DD68C; --ok-f:#11281D; --warn:#F5B94A; --warn-f:#2E2208; --bad:#FF7B72; --bad-f:#33161A;
+  --c-blue:#3D74FF; --c-orange:#F27A0E; --c-red:#E5484D; --c-teal:#0C9CA8; --c-violet:#7B5CFA; --c-green:#12A150; --c-indigo:#5560F0; --c-gray:#6B7382;
+  --sombra:0 14px 38px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.3); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--f);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;font-feature-settings:"cv11","ss01"}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;text-align:left}
+h1,h2,h3,p,hr{margin:0}
+svg{flex:none}
+:focus-visible{outline:2px solid var(--acc);outline-offset:1px;border-radius:8px}
+#app{height:100%}
+.app{height:100%;display:grid;grid-template-columns:232px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+
+/* Menú lateral */
+.side{background:var(--side);border-right:1px solid var(--bd);display:flex;flex-direction:column;gap:4px;padding:14px 10px;padding-left:max(10px,env(safe-area-inset-left,0px));min-height:0;overflow-y:auto}
+.ws{display:flex;align-items:center;gap:10px;padding:4px 8px 12px;font-weight:650;font-size:15px;letter-spacing:-.01em}
+.logo{width:26px;height:26px;border-radius:8px;background:var(--tx);color:var(--card);display:grid;place-items:center;font-weight:700;font-size:14px}
+.srch{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border-radius:9px;background:var(--card);border:1px solid var(--bd);color:var(--tx3);margin:8px 0 6px}
+.srch input{flex:1;min-width:0;border:0;background:none;outline:none;height:100%}
+.nv{display:flex;align-items:center;gap:10px;height:34px;padding:0 8px;border-radius:8px;font-weight:500;color:var(--tx2);width:100%}
+.nv:hover{background:var(--hov)}
+.nv[aria-current="page"]{background:var(--card);color:var(--tx);box-shadow:0 0 0 1px var(--bd)}
+.nv .n{margin-left:auto;font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums}
+.sec{font-size:12px;color:var(--tx3);font-weight:550;padding:14px 8px 4px}
+.barra{display:none}
+
+/* Zonas */
+.main{min-width:0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+.main.dos{grid-template-columns:340px minmax(0,1fr)}
+.pane{overflow-y:auto;min-height:0;min-width:0;overscroll-behavior:contain}
+.lista{border-right:1px solid var(--bd)}
+.in{max-width:760px;margin:0 auto;padding-block:22px 80px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+.in.lado{padding-block:16px 60px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:14px;gap:10px}
+.in.ancho{max-width:1040px}
+
+/* Texto */
+.h1{font-size:24px;font-weight:680;letter-spacing:-.022em;line-height:1.15;text-wrap:balance}
+.h2{font-size:15px;font-weight:650;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.m{color:var(--tx2);font-size:13px}
+.t3{color:var(--tx3)}
+.num{font-variant-numeric:tabular-nums}
+.sp{flex:1}
+.fila{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nw{flex-wrap:nowrap}
+
+/* Controles */
+.btn{height:34px;padding:0 12px;border-radius:9px;font-weight:550;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;border:1px solid var(--bd);background:var(--card);transition:transform .1s,background .1s}
+.btn:hover{background:var(--hov)}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.gho{border-color:transparent;background:none}
+.btn.gho:hover{background:var(--hov)}
+.btn.ico{width:34px;padding:0}
+.btn.w{width:100%}
+.dd{height:34px;padding:0 9px 0 11px;border-radius:9px;border:1px solid var(--bd);background:var(--card);display:inline-flex;align-items:center;gap:7px;max-width:100%;font-weight:500}
+.dd:hover{background:var(--hov)}
+.dd>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd>svg:last-child{color:var(--tx3)}
+.dd.vac>span{color:var(--tx3);font-weight:400}
+.dd.w{width:100%;justify-content:space-between}
+.dd.w>span{flex:1}
+.dd.pil{border-radius:999px;height:30px}
+.inp{width:100%;height:34px;border:1px solid var(--bd);border-radius:9px;background:var(--card);padding:0 11px;outline:none}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-f)}
+.inp::placeholder{color:var(--tx3)}
+textarea.inp{height:auto;min-height:92px;padding:9px 11px;resize:vertical;line-height:1.5}
+.uni{position:relative}
+.uni .inp{padding-right:46px}
+.uni i{position:absolute;right:10px;top:8px;font-style:normal;font-size:12px;color:var(--tx3)}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld>span{font-size:12px;color:var(--tx2);font-weight:500}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.seg{display:inline-flex;align-self:flex-start;background:var(--hov);border-radius:9px;padding:2px;gap:2px}
+.seg button{height:30px;padding:0 12px;border-radius:7px;font-weight:500;color:var(--tx2);display:inline-flex;align-items:center;gap:6px}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--tx);box-shadow:0 1px 2px rgba(0,0,0,.12),0 0 0 1px var(--bd)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--hov);color:var(--tx2);white-space:nowrap}
+.pill.ok{background:var(--ok-f);color:var(--ok)} .pill.warn{background:var(--warn-f);color:var(--warn)} .pill.bad{background:var(--bad-f);color:var(--bad)} .pill.acc{background:var(--acc-f);color:var(--acc)}
+.c-warn{color:var(--warn)} .c-bad{color:var(--bad)} .c-ok{color:var(--ok)} .c-acc{color:var(--acc)}
+.tile{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:var(--on-tile);flex:none}
+.tile.ch{width:22px;height:22px;border-radius:6px}
+.sw{width:40px;height:24px;border-radius:999px;background:var(--bd);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--on-tile);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .16s}
+.sw[aria-checked="true"]{background:var(--ok)} .sw[aria-checked="true"]::after{transform:translateX(16px)}
+
+/* Tarjetas y renglones */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px}
+.card:not(.pad)>*+*{border-top:1px solid var(--bd)}
+.pad{padding:14px}
+.ren{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:9px 12px}
+button.ren:hover{background:var(--hov)}
+.card>button.ren:first-child{border-radius:13px 13px 0 0} .card>button.ren:last-child{border-radius:0 0 13px 13px}
+.ren .c{flex:1;min-width:0;display:flex;flex-direction:column}
+.ren .c b{font-weight:600}
+.ren .c span{color:var(--tx2);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ren>svg:last-child{color:var(--tx3)}
+.it{display:flex;gap:10px;width:100%;padding:10px;border-radius:10px;align-items:flex-start}
+.it:hover{background:var(--hov)}
+.it[aria-current="true"]{background:var(--card);box-shadow:0 0 0 1px var(--bd)}
+.it .c{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.it b{font-weight:600;overflow-wrap:anywhere}
+.it .m{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Asunto */
+.top{display:flex;align-items:center;gap:8px;min-height:34px}
+.atras{display:none}
+.sigue{display:flex;align-items:center;gap:6px;padding:8px 12px 8px 6px;border-radius:14px;background:var(--acc-f);border:1px solid transparent}
+.sigue .q{font-size:15px;font-weight:650;letter-spacing:-.01em;overflow-wrap:anywhere}
+
+/* Tareas */
+.t{display:flex;align-items:center;gap:2px;min-height:44px}
+.ckb{width:36px;height:40px;display:grid;place-items:center;flex:none}
+.ck{width:19px;height:19px;border-radius:50%;border:1.6px solid var(--tx3);display:grid;place-items:center}
+.ck.cu{border-radius:6px}
+.t[data-est="hecha"] .ck{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+.t[data-est="na"] .ck{border-style:dashed}
+.t[data-est="bloq"] .ck{border-color:var(--warn);background:var(--warn-f)}
+.tb{flex:1;min-width:0;padding:6px 0;display:flex;flex-direction:column}
+.tb .n{font-weight:500;overflow-wrap:anywhere}
+.t[data-est="hecha"] .tb .n,.t[data-est="na"] .tb .n{color:var(--tx3);text-decoration:line-through}
+.edit{margin:2px 0 10px 36px;padding:12px;border-radius:12px;background:var(--bg);border:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.et{padding:6px 12px 10px}
+.et-h{display:flex;align-items:center;gap:8px;padding:8px 0 2px;font-weight:600}
+.sumar{display:flex;gap:8px;align-items:center;padding-top:6px}
+
+/* Línea de tiempo */
+.eje{display:flex;justify-content:space-between;font-size:12px;color:var(--tx3)}
+.ge{display:grid;gap:5px;padding:6px 0}
+.gb{position:relative;height:18px;border-radius:9px;background:var(--hov)}
+.gb i{position:absolute;display:block}
+.gbar{top:7px;height:4px;border-radius:2px;background:var(--acc);opacity:.45}
+.gd{top:3px;width:12px;height:12px;border-radius:50%;background:var(--card);box-shadow:inset 0 0 0 2px var(--acc);transform:translateX(-50%)}
+.gd.h{background:var(--acc)}
+.gnow{top:-3px;bottom:-3px;width:2px;background:var(--bad);border-radius:1px;transform:translateX(-50%)}
+
+/* Ventana lateral */
+.wvelo{position:fixed;inset:0;background:rgba(10,12,16,.32);z-index:20;animation:funde .15s}
+.win{position:fixed;top:0;right:0;bottom:0;width:min(580px,100%);background:var(--bg);border-left:1px solid var(--bd);box-shadow:var(--sombra);z-index:21;display:flex;flex-direction:column;animation:desliza .24s cubic-bezier(.2,.8,.2,1)}
+.win-h{display:flex;align-items:center;gap:10px;padding:12px max(14px,env(safe-area-inset-right,0px)) 12px 16px;border-bottom:1px solid var(--bd);background:var(--card)}
+.win-h b{font-size:15px;font-weight:650}
+.win-c{flex:1;overflow-y:auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 60px 16px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+.win-c>*{flex-shrink:0}
+.win-c>.btn{align-self:flex-start}
+.quieta,.quieta.pop{animation:none}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--bd);margin:-4px 0 0;overflow-x:auto}
+.tabs button{height:38px;padding:0 10px;display:inline-flex;align-items:center;gap:7px;font-weight:550;color:var(--tx2);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--tx);border-color:var(--acc)}
+.gh{display:flex;align-items:center;gap:8px;width:100%;padding:11px 12px;font-weight:600}
+.gh svg:first-child{color:var(--tx3);transition:transform .16s}
+.gh[aria-expanded="true"] svg:first-child{transform:rotate(90deg)}
+.fotos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.foto{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--hov);border:1px solid var(--bd)}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto .pill{position:absolute;left:6px;top:6px;background:var(--card);color:var(--tx)}
+.foto .btn{position:absolute;right:6px;top:6px;height:26px;width:26px}
+.vacio{border:1.5px dashed var(--bd);border-radius:14px;padding:26px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:var(--tx2)}
+.arch{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:550;color:var(--acc);background:var(--acc-f);padding:3px 8px;border-radius:7px;max-width:100%}
+.arch span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{width:30px;height:30px;border-radius:50%;background:var(--acc-f);color:var(--acc);display:grid;place-items:center;font-weight:650;font-size:11.5px;flex:none}
+.total{display:flex;justify-content:space-between;font-weight:650;padding:12px}
+.mini{width:44px;height:34px;border-radius:8px;object-fit:cover;flex:none;background:var(--hov)}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stat{display:flex;flex-direction:column;padding:10px 12px;border-radius:10px;background:var(--bg);min-width:0}
+.stat b{font-size:18px;font-weight:680;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+.stat span{font-size:12px;color:var(--tx2)}
+.ren.sola{border:1.5px dashed var(--bd);border-radius:14px;color:var(--tx2);font-weight:550;justify-content:center;min-height:46px}
+.cuenta{margin-top:auto;height:auto;padding:8px}
+.cuenta .c{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.25}
+.cuenta .c small{color:var(--tx3);font-size:12px}
+.chipas{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 6px;border-radius:999px;border:1px solid var(--bd);background:var(--card);font-size:12.5px;font-weight:550;max-width:230px}
+.chipas:hover{background:var(--hov)}
+.chipas span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ban{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:14px;background:var(--acc-f);font-weight:550}
+.ban.esp{background:var(--warn-f)}
+.tbl{width:100%;border-collapse:collapse;min-width:420px}
+.tbl th{font-size:12px;color:var(--tx2);font-weight:600;text-align:left;padding:10px 8px 6px}
+.tbl td{padding:4px 4px;min-width:110px}.tbl td:first-child{min-width:190px}.tbl td:last-child{min-width:0;width:40px}
+.tbl .inp{border-color:transparent;background:var(--bg)}
+.gal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fotoc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;aspect-ratio:4/3;background:var(--hov);border-radius:13px 13px 0 0;overflow:hidden;color:var(--tx3)}
+.fotoc img{width:100%;height:100%;object-fit:cover}
+.fmt{position:fixed;inset:0;z-index:30;background:var(--bg);display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+.fmt-h{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--bd);background:var(--card)}
+.fmt-q{padding:22px 20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;border-right:1px solid var(--bd)}
+.fmt-p{overflow-y:auto;padding:24px 20px}
+.papel{max-width:640px;margin:0 auto;background:var(--papel);color:var(--tinta-papel);border-radius:6px;box-shadow:0 2px 14px rgba(0,0,0,.14);padding:44px 48px;font-size:14px;line-height:1.9}
+.papel h3{font-size:15px;text-align:center;margin:0 0 18px;letter-spacing:.02em}
+.hueco{display:inline;border-bottom:1.5px solid var(--tinta-papel);padding:0 4px;font-weight:650;cursor:pointer;border-radius:3px 3px 0 0}
+.hueco.vac{color:transparent;user-select:none}
+.hueco.act{background:var(--acc-f);border-bottom-color:var(--acc);color:var(--tinta-papel)}
+.hueco.vac.act{color:transparent}
+.barra-prog{height:6px;border-radius:3px;background:var(--hov);overflow:hidden}
+.barra-prog i{display:block;height:100%;background:var(--acc)}
+@media (max-width:900px){.fmt{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr)}.fmt-q{border-right:0;border-bottom:1px solid var(--bd);padding:16px}.papel{padding:26px 22px}.gal{grid-template-columns:minmax(0,1fr)}#p-det .top,.in.ancho .top{flex-wrap:wrap;row-gap:10px}#p-det .top>.dd,#p-det .top>.btn.pri{order:2}#p-det .top>.btn.pri{margin-left:auto}}
+.hi{display:flex;gap:10px;padding:10px 12px}
+
+/* Menú desplegable */
+.mvelo{position:fixed;inset:0;z-index:40}
+.pop{position:fixed;z-index:41;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--sombra);padding:5px;overflow-y:auto;animation:brota .14s cubic-bezier(.2,.8,.2,1)}
+.mi{display:flex;align-items:center;gap:9px;width:100%;min-height:34px;padding:6px 9px;border-radius:8px;font-weight:500}
+.mi:hover{background:var(--hov)}
+.mi span{flex:1;min-width:0}
+.mi>svg:first-child{color:var(--tx2)}
+.mi>svg:last-child:not(:first-child){color:var(--acc)}
+.mi.pel,.mi.pel>svg:first-child{color:var(--bad)}
+.pop hr{border:0;border-top:1px solid var(--bd);margin:5px 0}
+.mt{font-size:12px;color:var(--tx3);padding:6px 9px 3px;font-weight:550}
+
+/* Diálogo y aviso */
+.velo{position:fixed;inset:0;background:rgba(10,12,16,.4);display:grid;place-items:center;z-index:50;padding:16px;animation:funde .15s}
+.hoja{background:var(--card);border:1px solid var(--bd);border-radius:16px;box-shadow:var(--sombra);width:min(480px,100%);max-height:84%;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.aviso{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--tx);color:var(--card);border-radius:12px;padding:4px 6px 4px 14px;min-height:42px;display:flex;align-items:center;gap:8px;max-width:calc(100% - 32px);font-weight:500;box-shadow:var(--sombra)}
+.aviso button{color:var(--card);font-weight:650;height:34px;padding:0 10px;border-radius:8px;text-decoration:underline;text-underline-offset:3px}
+.aviso.solo{padding-right:14px}
+.vivo{display:inline-flex;align-items:center;gap:6px}
+.vivo i{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:late 1.8s infinite}
+.dosc{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+@keyframes late{50%{opacity:.25}}
+@keyframes funde{from{opacity:0}to{opacity:1}}
+@keyframes desliza{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes brota{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+
+@media (max-width:900px){
+  body{font-size:15px}
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+  .side{display:none}
+  .barra{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid var(--bd);background:var(--card);padding:5px max(6px,env(safe-area-inset-right,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+  .barra button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;font-size:10.5px;font-weight:550;color:var(--tx3)}
+  .barra button[aria-current="page"]{color:var(--acc)}
+  .barra .mas{width:46px;height:46px;min-height:46px;border-radius:15px;background:var(--acc);color:var(--on-acc);justify-self:center}
+  .main.dos{grid-template-columns:minmax(0,1fr)}
+  .main.dos[data-det="1"] .lista,.main.dos[data-det="0"] .det{display:none}
+  .lista{border-right:0}
+  .atras{display:inline-flex}
+  .in{padding-block:16px 50px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .in.lado{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+  .btn,.dd,.inp{height:40px} textarea.inp{height:auto} .btn.ico{width:40px} .dd.pil{height:34px}
+  .seg button{height:36px} .mi{min-height:42px} .ckb{width:42px;height:44px} .tabs button{height:44px}
+  .win{width:100%;border-left:0}
+  .dosc{grid-template-columns:minmax(0,1fr)}
+  .g3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .aviso{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  .edit{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+<input type="file" id="archivo" hidden>
+
+<script>
+/* ---------- utilidades ---------- */
+const HOY = '2026-11-16';
+const D = (s) => new Date(s + 'T12:00:00');
+const dias = (s) => Math.round((D(s) - D(HOY)) / 864e5);
+const mas = (n) => { const d = D(HOY); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'], MS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const fecha = (s) => { if (!s) return 'Sin fecha'; const n = dias(s); if (n === 0) return 'Hoy'; if (n === 1) return 'Mañana'; if (n === -1) return 'Ayer'; const d = D(s); return `${DS[d.getDay()]} ${d.getDate()} ${MS[d.getMonth()]}`; };
+const dinero = (n) => '$' + Math.round(n || 0).toLocaleString('en-US');
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ini = (n) => n.split(' ').filter(Boolean).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
+let U = 0; const uid = () => 'k' + (++U);
+const I = {
+  hoy: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>',
+  asu: '<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H10l2 2h6.5A1.5 1.5 0 0 1 20 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/>',
+  users: '<circle cx="9" cy="9" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 6.5a2.5 2.5 0 0 1 0 5M17.5 19a4.5 4.5 0 0 0-2-3.7"/>',
+  lib: '<path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13H6.5A1.5 1.5 0 0 0 5 18.5zM5 18.5A1.5 1.5 0 0 0 6.5 20H19M9 8h6M9 11h4"/>',
+  mas: '<path d="M12 5v14M5 12h14"/>', down: '<path d="M6 9l6 6 6-6"/>', ch: '<path d="M9 6l6 6-6 6"/>', at: '<path d="M15 6l-6 6 6 6"/>', ok: '<path d="M5.5 12.5l4.5 4.5 8.5-10"/>',
+  bus: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', dots: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+  edif: '<path d="M4 20V6l8-3v17M12 9l8 2v9M3 20h18M7.5 9v0M7.5 13v0M7.5 17v0M16 14v0M16 17v0"/>',
+  alerta: '<path d="M12 4l9 15H3zM12 10v4M12 17v0"/>', file: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>',
+  balanza: '<path d="M12 4v16M7 20h10M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z"/>',
+  cartera: '<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H18v3M4 7.5V17a2 2 0 0 0 2 2h14V9H5.5A1.5 1.5 0 0 1 4 7.5zM16.5 14v0"/>',
+  lista: '<path d="M4 6.5l1.5 1.5L8 5.5M4 12.5l1.5 1.5L8 11.5M4 18.5l1.5 1.5L8 17.5M11 7h9M11 13h9M11 19h9"/>',
+  reloj: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.5"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+  subir: '<path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 19h14"/>', img: '<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M20 15l-4.5-4.5L8 19"/>',
+  liga: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  lapiz: '<path d="M4 20l1-4L16 5l3 3L8 19zM14 7l3 3"/>', bote: '<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v6M14 11v6"/>',
+  tel: '<path d="M6 3h3l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v3a3 3 0 0 1-3 3A15 15 0 0 1 3 6a3 3 0 0 1 3-3z"/>',
+  chat: '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/>', copia: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+  ojo: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>', etiq: '<path d="M4 4h8l8 8-8 8-8-8zM8.5 8.5v0"/>',
+  sello: '<path d="M9 13V9a3 3 0 1 1 6 0v4M6 13h12v4H6zM5 20h14"/>', band: '<path d="M5 21V4M5 5h12l-2 4 2 4H5"/>',
+  pin: '<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/>', rayo: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
+  regla: '<path d="M3 16L16 3l5 5L8 21zM7 12l2 2M10 9l2 2M13 6l2 2"/>', llave: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/>',
+  nota: '<path d="M5 4h14v11l-5 5H5zM14 20v-5h5M8 9h8M8 13h4"/>', estrella: '<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/>',
+  globo: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c3 3 3 14 0 17M12 3.5c-3 3-3 14 0 17"/>', pdf: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M9.5 17v-4h1.2a1.3 1.3 0 0 1 0 2.6H9.5M14 13v4M14 13h2M14 15h1.5"/>',
+  pago: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14.5h3"/>', escudo: '<path d="M12 3l7 3v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6zM9 12l2 2 4-4.5"/>'
+};
+const ic = (n, s = 18) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n] || ''}</svg>`;
+const tile = (i, c, ch) => `<span class="tile ${ch ? 'ch' : ''}" style="background:var(--c-${c})">${ic(i, ch ? 13 : 16)}</span>`;
+
+/* ---------- catálogos ---------- */
+const MOM = ['En estudio', 'Propuesta', 'En marcha', 'Por cobrar', 'Cerrado'];
+const ENC = { Revisar: ['ojo', 'violet'], Comercializar: ['etiq', 'orange'], Tramitar: ['sello', 'teal'], Asesorar: ['band', 'indigo'] };
+const PAPELES = ['Contacto', 'Propietario', 'Titular', 'Heredero', 'Copropietario', 'Comprador', 'Vendedor', 'Inquilino', 'Inversionista', 'Contraparte', 'Abogado', 'Notaría', 'Otro'];
+const QUIEN = ['Fortius', 'Cliente', 'Abogado', 'Notaría', 'Otro'];
+const EST = [['pend', 'Por hacer'], ['hecha', 'Hecha'], ['na', 'No aplica'], ['bloq', 'No se puede todavía']];
+const HECHOS = [
+  ['quiere', 'Qué quiere', ['Vender', 'Rentar', 'Comprar', 'Regularizar', 'Asesoría'], 'band'],
+  ['dueno', 'De quién es', ['Suyo', 'De un familiar', 'Falleció el titular', 'De una empresa', 'No sabe'], 'users'],
+  ['ocupa', 'Quién lo ocupa', ['Vacío', 'El dueño', 'Un inquilino', 'Invadido', 'No sabe'], 'llave'],
+  ['escritura', 'Escritura', ['Sí', 'No', 'No sabe'], 'file']
+];
+const DEBE = ['Hipoteca', 'Predial', 'Servicios', 'Nada', 'No sabe'];
+const TIPOS = ['Casa', 'Departamento', 'Terreno', 'Local', 'Oficina', 'Nave o bodega', 'Plaza o conjunto'];
+const SN = ['Sí', 'No', 'No sabe'];
+const CAMPOS = {
+  'Casa': [['Medidas', [['terreno', 'Terreno', 'm²'], ['construccion', 'Construcción', 'm²'], ['niveles', 'Niveles', '']]], ['Espacios', [['recamaras', 'Recámaras', ''], ['banos', 'Baños', ''], ['estac', 'Estacionamientos', ''], ['cisterna', 'Cisterna', SN], ['boiler', 'Boiler', ['Gas', 'Solar', 'Eléctrico', 'No tiene', 'No sabe']], ['paneles', 'Paneles solares', SN]]], ['Estado', [['anio', 'Año de construcción', ''], ['conserva', 'Conservación', ['Buena', 'Regular', 'Para remodelar', 'No sabe']]]]],
+  'Departamento': [['Medidas', [['construccion', 'Superficie', 'm²'], ['piso', 'Piso', '']]], ['Espacios', [['recamaras', 'Recámaras', ''], ['banos', 'Baños', ''], ['estac', 'Estacionamientos', ''], ['elevador', 'Elevador', SN]]], ['Condominio', [['mant', 'Mantenimiento', '$/mes'], ['anio', 'Año de construcción', '']]]],
+  'Terreno': [['Medidas', [['terreno', 'Superficie', 'm²'], ['frente', 'Frente', 'm'], ['fondo', 'Fondo', 'm']]], ['Uso y servicios', [['uso', 'Uso de suelo', ['Habitacional', 'Comercial', 'Industrial', 'Mixto', 'No sabe']], ['agua', 'Agua al pie', SN], ['luz', 'Luz al pie', SN], ['drenaje', 'Drenaje', SN], ['topo', 'Topografía', ['Plano', 'Pendiente ligera', 'Pendiente fuerte', 'No sabe']]]]],
+  'Local': [['Medidas', [['construccion', 'Superficie', 'm²'], ['frente', 'Frente', 'm']]], ['Espacios', [['banos', 'Baños', ''], ['estac', 'Estacionamientos', ''], ['giro', 'Giro permitido', '']]], ['Condominio', [['mant', 'Mantenimiento', '$/mes']]]],
+  'Oficina': [['Medidas', [['construccion', 'Superficie', 'm²'], ['piso', 'Piso', '']]], ['Espacios', [['privados', 'Privados', ''], ['banos', 'Baños', ''], ['estac', 'Estacionamientos', '']]], ['Condominio', [['mant', 'Mantenimiento', '$/mes']]]],
+  'Nave o bodega': [['Medidas', [['terreno', 'Terreno', 'm²'], ['construccion', 'Construcción', 'm²'], ['oficinas', 'Oficinas', 'm²'], ['patio', 'Patio de maniobras', 'm²'], ['altura', 'Altura libre', 'm']]], ['Instalaciones', [['kva', 'Carga eléctrica', 'kVA'], ['subestacion', 'Subestación propia', SN], ['andenes', 'Andenes', ''], ['rampas', 'Rampas', ''], ['piso', 'Resistencia del piso', 't/m²'], ['incendio', 'Contra incendio', ['Hidrantes', 'Rociadores', 'Extintores', 'Ninguno', 'No sabe']], ['estac', 'Estacionamientos', '']]], ['Uso y estado', [['uso', 'Uso de suelo', ['Industrial ligero', 'Industrial pesado', 'Mixto', 'Comercial', 'No sabe']], ['anio', 'Año de construcción', ''], ['conserva', 'Conservación', ['Buena', 'Regular', 'Para remodelar', 'No sabe']]]]],
+  'Plaza o conjunto': [['Medidas', [['terreno', 'Terreno', 'm²'], ['construccion', 'Construcción', 'm²']]], ['Locales', [['total', 'Locales en total', ''], ['libres', 'Locales libres', ''], ['estac', 'Estacionamientos', '']]]]
+};
+const GRUPOS = ['Identidad', 'Propiedad', 'Adeudos', 'Juicio', 'Permisos y planos', 'Crédito', 'Otro'];
+const grupoDe = (n) => /identific|acta|curp|poder/i.test(n) ? 'Identidad' : /predial|agua|luz|estado de cuenta|adeudo/i.test(n) ? 'Adeudos' : /sentencia|juicio|rescis|convenio|constancia/i.test(n) ? 'Juicio' : /licencia|permiso|plano|dictamen|factibilidad|uso de suelo/i.test(n) ? 'Permisos y planos' : /precalific|crédito|credito/i.test(n) ? 'Crédito' : /escritura|registro|título|contrato|reglamento|avalúo|levantamiento/i.test(n) ? 'Propiedad' : 'Otro';
+const ligaDe = (t) => /opini[oó]n jur/i.test(t) ? 'opinion' : /presupuesto|honorarios|contrato de (intermedia|presta)|firmar el contrato/i.test(t) ? 'honorarios' : /documento/i.test(t) ? 'documentos' : /foto|levantamiento|visitar|ver la casa|publicar|opini[oó]n de valor|mostrar/i.test(t) ? 'inmueble' : '';
+
+/* ---------- datos de ejemplo ---------- */
+const P = (n, papel, tel = '', nota = '') => ({ n, papel, tel, nota });
+const Dc = (n, de, ok = false, archivo = '') => ({ n, de, ok, grupo: grupoDe(n), archivo: ok && !archivo ? n.toLowerCase().replace(/[^a-záéíóúñ0-9]+/gi, '-').slice(0, 28) + '.pdf' : archivo });
+const T = (t, quien = 'Fortius', off = null, est = 'pend', motivo = '') => ({ id: uid(), t, quien, fecha: off === null ? '' : mas(off), est, motivo });
+const H = (off, tipo, t, quien = 'Moisés') => ({ f: mas(off), tipo, t, quien });
+const Inm = (n, tipo, op, zona, precio = 0, datos = {}, estado = '') => ({ n, tipo, op, zona, dir: '', ciudad: 'Tijuana', ref: '', mapa: '', dirPub: false, precio, estado, datos, fotos: [], video: '', videoUrl: '', r360: '', r360n: 0, pub: false, desc: '' });
+const Hon = (lineas = [], estado = 'Sin enviar', contrato = 'Sin hacer', cobros = []) => ({ lineas, estado, archivo: '', contrato, contratoArchivo: '', cobros });
+const Op = (v = '', analisis = '', resolver = []) => ({ v, analisis, resolver, archivo: '' });
+
+const A = [
+  { id: uid(), folio: 'EXP-000031', titulo: 'Casa en el Murúa', encargo: ['Revisar'], momento: 0, publicado: false,
+    personas: [P('Laura Méndez', 'Contacto', '+1 619 555 0142', 'hija, vive en Estados Unidos'), P('Sra. Méndez', 'Titular', '', 'falleció, sin testamento'), P('Hermano 1', 'Heredero', '', 'le da poder'), P('Hermano 2', 'Heredero', '', 'le da poder')],
+    inmuebles: [Inm('Casa en el Murúa', 'Casa', 'Venta', 'Murúa')],
+    sit: { quiere: 'Vender', dueno: 'Falleció el titular', ocupa: 'Invadido', escritura: 'No sabe', debe: ['No sabe'] },
+    averiguar: ['Cuánto debe de predial', 'Cuánto debe de agua y luz', 'Quién la ocupa y desde cuándo', 'Estado físico'],
+    docs: [Dc('Identificación de Laura', 'Laura', true), Dc('Acta de defunción', 'Laura'), Dc('Actas de nacimiento de los tres hijos', 'Laura'), Dc('Escritura o datos del registro', 'Laura'), Dc('Boleta predial', 'Laura')],
+    opinion: Op(), honor: Hon(),
+    plan: [
+      { etapa: 'Estudio', tareas: [T('Pedirle los documentos', 'Fortius', -1, 'hecha'), T('Consultar el adeudo de predial', 'Fortius', 0), T('Consultar el adeudo de agua', 'Fortius', 2), T('Ver la casa por fuera', 'Fortius', 4), T('Levantamiento por dentro', 'Fortius', null, 'bloq', 'La casa está invadida')] },
+      { etapa: 'Opinión y propuesta', tareas: [T('Revisar el caso con el abogado', 'Abogado', 8), T('Emitir la opinión jurídica', 'Fortius', 10), T('Presupuesto de honorarios', 'Fortius', 11)] }
+    ],
+    hist: [H(-1, 'Nota', 'Llamó desde Estados Unidos. Puede venir a México cuando haga falta.')] },
+
+  { id: uid(), folio: 'EXP-000032', titulo: 'Terreno con sentencia de prescripción', encargo: ['Comercializar'], momento: 0, publicado: false,
+    personas: [P('Lic. Arturo Peña', 'Contacto', '664 555 0118', 'abogado, llevó el juicio')],
+    inmuebles: [Inm('Terreno en La Gloria', 'Terreno', 'Venta', 'La Gloria', 2400000, { terreno: '1,200', frente: '30', fondo: '40', uso: 'Habitacional', topo: 'Pendiente ligera' })],
+    sit: { quiere: 'Vender', dueno: 'Suyo', ocupa: 'Vacío', escritura: 'No', debe: ['No sabe'] },
+    averiguar: ['Si la sentencia ya quedó firme', 'Si ya está inscrita en el Registro Público', 'A nombre de quién sale el predial'],
+    docs: [Dc('Sentencia de prescripción', 'Lic. Peña', true), Dc('Levantamiento certificado', 'Lic. Peña', true), Dc('Avalúo', 'Lic. Peña', true), Dc('Constancia de que la sentencia quedó firme', 'Lic. Peña'), Dc('Inscripción en el Registro Público', 'Lic. Peña'), Dc('Predial al corriente', 'Lic. Peña'), Dc('Identificación del titular', 'Lic. Peña')],
+    opinion: Op(), honor: Hon([{ c: 'Comisión por venta (5 %)', m: 120000 }]),
+    plan: [
+      { etapa: 'Estudio', tareas: [T('Leer la sentencia y el avalúo', 'Fortius', -2, 'hecha'), T('Pedir los documentos que faltan', 'Fortius', 1), T('Visitar el terreno', 'Fortius', 3)] },
+      { etapa: 'Valor y estrategia', tareas: [T('Opinión de valor', 'Fortius', 8), T('Plan de comercialización', 'Fortius', 10), T('Firmar el contrato de intermediación', 'Cliente', 12)] },
+      { etapa: 'Venta', tareas: [T('Publicar', 'Fortius'), T('Visitas y ofertas', 'Fortius')] }
+    ],
+    hist: [H(-2, 'Nota', 'Mandó sentencia, levantamiento y avalúo por WhatsApp.')] },
+
+  { id: uid(), folio: 'EXP-000033', titulo: 'Departamento con reserva de dominio', encargo: ['Asesorar'], momento: 2, publicado: false,
+    personas: [P('Rubén Ochoa', 'Propietario', '664 555 0171'), P('Iván Castro', 'Inversionista', '664 555 0126', 'paga y se queda el departamento'), P('Comprador que incumplió', 'Contraparte', '', 'firmó con reserva de dominio')],
+    inmuebles: [Inm('Departamento en Zona Río', 'Departamento', 'Venta', 'Zona Río', 0, { construccion: '95', recamaras: '2', banos: '2', estac: '1', piso: '6', elevador: 'Sí' })],
+    sit: { quiere: 'Asesoría', dueno: 'Suyo', ocupa: 'Vacío', escritura: 'Sí', debe: ['Nada'] },
+    averiguar: ['Cuánto pagó el comprador y si hay que devolverle'],
+    docs: [Dc('Contrato con reserva de dominio', 'Rubén', true), Dc('Escritura', 'Rubén', true), Dc('Recibos de lo pagado por el comprador', 'Rubén'), Dc('Convenio entre Rubén e Iván', 'Abogado', true), Dc('Constancia de la rescisión', 'Abogado')],
+    opinion: Op('obs', 'El dueño conserva la propiedad por la reserva de dominio. El comprador dejó de pagar hace ocho meses.', [{ t: 'Que el comprador firme la rescisión por convenio', quien: 'Abogado' }, { t: 'Definir si se le devuelve parte de lo pagado', quien: 'Cliente' }]),
+    honor: Hon([{ c: 'Asesoría por las cinco etapas', m: 60000 }], 'Aceptado', 'Firmado', [{ m: 20000, forma: 'Transferencia', f: mas(-6) }]),
+    plan: [
+      { etapa: 'Acuerdo entre los dos', tareas: [T('Convenio entre Rubén e Iván', 'Abogado', -6, 'hecha'), T('Pago de Iván a Rubén', 'Cliente', -4, 'hecha')] },
+      { etapa: 'Rescisión', tareas: [T('Notificar al comprador', 'Abogado', -1, 'hecha'), T('Firmar la rescisión por convenio', 'Abogado', 3), T('Recuperar la posesión', 'Cliente', 6)] },
+      { etapa: 'Rehabilitación', tareas: [T('Presupuesto de obra', 'Fortius', 9), T('Obra', 'Cliente', 30)] },
+      { etapa: 'Escritura a nombre de Iván', tareas: [T('Elegir notaría y pedir requisitos', 'Fortius', 14), T('Firma de la escritura', 'Notaría', 38)] },
+      { etapa: 'Venta', tareas: [T('Abrir el asunto de venta', 'Fortius')] }
+    ],
+    hist: [H(-4, 'Decisión', 'Se rescinde por convenio antes que por juicio. Lo acordaron Rubén e Iván.'), H(-6, 'Nota', 'Piden que los asesore etapa por etapa.')] },
+
+  { id: uid(), folio: 'EXP-000034', titulo: 'Cinco locales de Plaza del Lago', encargo: ['Comercializar'], momento: 2, publicado: true,
+    personas: [P('Elena Ruiz', 'Propietario', '664 555 0190')],
+    inmuebles: [Inm('Local 3', 'Local', 'Renta', 'Plaza del Lago', 14500, { construccion: '42', frente: '6', banos: '1' }, 'Libre'), Inm('Local 5', 'Local', 'Renta', 'Plaza del Lago', 19800, { construccion: '60', frente: '8', banos: '1' }, 'Apartado'), Inm('Local 7', 'Local', 'Renta', 'Plaza del Lago', 27000, { construccion: '85', frente: '10', banos: '2' }, 'Libre'), Inm('Local 9', 'Local', 'Renta', 'Plaza del Lago', 12900, { construccion: '38', frente: '5' }, 'Libre'), Inm('Local 12, esquina', 'Local', 'Renta', 'Plaza del Lago', 39500, { construccion: '120', frente: '14', banos: '2' }, 'Libre')],
+    sit: { quiere: 'Rentar', dueno: 'Suyo', ocupa: 'Vacío', escritura: 'Sí', debe: ['Nada'] }, averiguar: [],
+    docs: [Dc('Escritura de la plaza', 'Elena', true), Dc('Predial al corriente', 'Elena', true), Dc('Identificación', 'Elena', true), Dc('Reglamento de la plaza', 'Elena', true), Dc('Licencia de uso de suelo comercial', 'Elena', true)],
+    opinion: Op('ok', 'Documentos en orden. Sin gravámenes.'), honor: Hon([{ c: 'Un mes de renta por local rentado', m: 113700 }], 'Aceptado', 'Firmado'),
+    plan: [
+      { etapa: 'Preparar', tareas: [T('Fotos y medidas de los cinco locales', 'Fortius', -9, 'hecha'), T('Publicar los cinco', 'Fortius', -7, 'hecha')] },
+      { etapa: 'Rentar', tareas: [T('Enviar contrato del Local 5 al interesado', 'Fortius', 0), T('Mostrar el Local 12', 'Fortius', 1), T('Entregar a la propietaria el informe del mes', 'Fortius', 14)] }
+    ],
+    hist: [H(-2, 'Nota', 'Interesado en el Local 5 dejó apartado.')] },
+
+  { id: uid(), folio: 'EXP-000035', titulo: 'Casa del suegro, solo el trámite', encargo: ['Tramitar'], momento: 2, publicado: false,
+    personas: [P('Manuel Ortega', 'Vendedor', '664 555 0133', 'suegro'), P('Diego Salas', 'Comprador', '664 555 0157', 'paga con crédito Infonavit')],
+    inmuebles: [Inm('Casa en Otay', 'Casa', 'Venta', 'Otay', 1850000, { terreno: '160', construccion: '140', recamaras: '3', banos: '2', estac: '2', niveles: '2' })],
+    sit: { quiere: 'Vender', dueno: 'Suyo', ocupa: 'El dueño', escritura: 'Sí', debe: ['Hipoteca'] }, averiguar: [],
+    docs: [Dc('Escritura', 'Manuel', true), Dc('Predial al corriente', 'Manuel', true), Dc('Estado de cuenta del crédito', 'Manuel'), Dc('Identificación del vendedor', 'Manuel', true), Dc('Precalificación de Infonavit', 'Diego', true), Dc('Identificación y CURP del comprador', 'Diego', true), Dc('Acta de nacimiento del comprador', 'Diego')],
+    opinion: Op('ok'), honor: Hon([{ c: 'Gestión de hipoteca, crédito y escritura', m: 35000 }], 'Aceptado', 'Firmado', [{ m: 10000, forma: 'Efectivo', f: mas(-5) }]),
+    plan: [
+      { etapa: 'Cancelación de hipoteca', tareas: [T('Pedir el saldo para liquidar', 'Fortius', -3, 'hecha'), T('Liquidar el crédito', 'Cliente', 2), T('Carta de instrucción', 'Fortius', 9), T('Inscribir la cancelación', 'Notaría', 20)] },
+      { etapa: 'Crédito Infonavit', tareas: [T('Precalificación', 'Cliente', -5, 'hecha'), T('Solicitar el avalúo', 'Fortius', 1), T('Integrar el expediente', 'Fortius', 8)] },
+      { etapa: 'Escritura', tareas: [T('Entregar requisitos a la notaría', 'Fortius', 12), T('Firma', 'Notaría', 28)] }
+    ],
+    hist: [H(-5, 'Nota', 'Vendedor y comprador ya están de acuerdo en el precio.')] },
+
+  { id: uid(), folio: 'EXP-000036', titulo: 'Nave industrial en El Florido', encargo: ['Comercializar'], momento: 1, publicado: false,
+    personas: [P('Grupo Norte, S.A.', 'Propietario', '664 555 0102', 'empresa'), P('Ing. Paola Vera', 'Contacto', '664 555 0164', 'representante legal')],
+    inmuebles: [Inm('Nave en El Florido', 'Nave o bodega', 'Venta', 'El Florido', 38500000, { terreno: '5,000', construccion: '3,200', oficinas: '240', altura: '9', kva: '500', subestacion: 'Sí', andenes: '4', rampas: '1', incendio: 'Hidrantes', uso: 'Industrial ligero', anio: '2014' })],
+    sit: { quiere: 'Vender', dueno: 'De una empresa', ocupa: 'Vacío', escritura: 'Sí', debe: ['Nada'] }, averiguar: ['Resistencia del piso'],
+    docs: [Dc('Escritura', 'Paola', true), Dc('Acta constitutiva y poder', 'Paola', true), Dc('Predial al corriente', 'Paola', true), Dc('Licencia de uso de suelo', 'Paola', true), Dc('Plano arquitectónico', 'Paola', true), Dc('Dictamen de protección civil', 'Paola'), Dc('Factibilidad de CFE', 'Paola'), Dc('Permiso de construcción', 'Paola')],
+    opinion: Op('ok', 'Título limpio. Falta actualizar el dictamen de protección civil.'), honor: Hon([{ c: 'Comisión por venta (4 %)', m: 1540000 }], 'Enviado'),
+    plan: [
+      { etapa: 'Captación', tareas: [T('Levantamiento de la nave', 'Fortius', -3, 'hecha'), T('Tomar fotos y video', 'Fortius', 1), T('Opinión de valor', 'Fortius', 4), T('Firmar el contrato de intermediación', 'Cliente', 6)] },
+      { etapa: 'Venta', tareas: [T('Publicar', 'Fortius', 8), T('Visitas y ofertas', 'Fortius')] }
+    ],
+    hist: [H(-3, 'Nota', 'Levantamiento hecho con la representante. Subestación de 500 kVA.')] }
+];
+
+const LIB = {
+  docs: [
+    { n: 'Lo básico de cualquier asunto', items: ['Identificación de quien llama', 'Escritura o datos del registro', 'Boleta predial reciente'] },
+    { n: 'Titular fallecido sin testamento', items: ['Acta de defunción', 'Actas de nacimiento de los herederos', 'Acta de matrimonio, si estaba casado'] },
+    { n: 'Título por sentencia', items: ['Sentencia', 'Constancia de que quedó firme', 'Inscripción en el Registro Público'] },
+    { n: 'Inmueble con hipoteca', items: ['Estado de cuenta del crédito', 'Datos del acreedor'] },
+    { n: 'Comprador con Infonavit', items: ['Precalificación', 'Identificación y CURP', 'Acta de nacimiento'] },
+    { n: 'Copropiedad o divorcio', items: ['Acta de matrimonio o de divorcio', 'Convenio de liquidación', 'Identificación del copropietario'] },
+    { n: 'Nave o inmueble industrial', items: ['Licencia de uso de suelo', 'Plano arquitectónico', 'Dictamen de protección civil', 'Factibilidad de CFE', 'Permiso de construcción'] }
+  ],
+  plan: [
+    { n: 'Estudio inicial', tareas: [['Recibir los documentos', 'Cliente'], ['Estudiar el asunto', 'Fortius'], ['Emitir la opinión jurídica', 'Fortius'], ['Presupuesto de honorarios', 'Fortius']] },
+    { n: 'Cancelación de hipoteca', tareas: [['Pedir el saldo para liquidar', 'Fortius'], ['Liquidar el crédito', 'Cliente'], ['Carta de instrucción', 'Fortius'], ['Inscribir la cancelación', 'Notaría']] },
+    { n: 'Crédito Infonavit', tareas: [['Precalificación', 'Cliente'], ['Solicitar el avalúo', 'Fortius'], ['Integrar el expediente', 'Fortius']] },
+    { n: 'Escritura', tareas: [['Entregar requisitos a la notaría', 'Fortius'], ['Pagar impuestos y derechos', 'Cliente'], ['Firma', 'Notaría']] },
+    { n: 'Juicio sucesorio', tareas: [['Reunir actas', 'Cliente'], ['Presentar el juicio', 'Abogado'], ['Adjudicación', 'Abogado']] },
+    { n: 'Rescisión de contrato', tareas: [['Notificar a la contraparte', 'Abogado'], ['Convenio o demanda', 'Abogado'], ['Recuperar la posesión', 'Cliente']] },
+    { n: 'Rehabilitación', tareas: [['Presupuesto de obra', 'Fortius'], ['Obra', 'Cliente'], ['Fotos del resultado', 'Fortius']] },
+    { n: 'Comercializar una venta', tareas: [['Levantamiento', 'Fortius'], ['Opinión de valor', 'Fortius'], ['Contrato de intermediación', 'Cliente'], ['Publicar', 'Fortius'], ['Visitas y ofertas', 'Fortius']] },
+    { n: 'Comercializar una renta', tareas: [['Fotos y medidas', 'Fortius'], ['Publicar', 'Fortius'], ['Revisar al candidato', 'Fortius'], ['Contrato de arrendamiento', 'Fortius']] }
+  ]
+};
+
+/* ---------- estado ---------- */
+const S = { view: 'hoy', aid: A[0].id, det: false, win: null, tab: 'datos', inm: null, pv: 'lista', to: null, menu: null, hoja: null, aviso: null, q: '', fil: '', dir: 'personas', ht: 'Nota', lo: null, d: null, antes: 'hoy', grp: {}, up: null, mant: false };
+const cur = () => A.find((a) => a.id === S.aid);
+const tareas = (a) => a.plan.flatMap((e, ei) => e.tareas.map((t) => ({ a, e, ei, t })));
+const todas = () => A.flatMap(tareas);
+const buscaT = (id) => todas().find((x) => x.t.id === id);
+const ord = (x, y) => (x.t.fecha || '9999').localeCompare(y.t.fecha || '9999');
+const sigue = (a) => tareas(a).filter((x) => x.t.est === 'pend').sort(ord)[0];
+const anota = (a, tipo, t) => a.hist.unshift({ f: HOY, tipo, t, quien: 'Tú' });
+const total = (a) => a.honor.lineas.reduce((s, l) => s + (+l.m || 0), 0);
+const cobrado = (a) => a.honor.cobros.reduce((s, c) => s + (+c.m || 0), 0);
+const OPN = { '': ['Sin emitir', ''], ok: ['Factible', 'ok'], obs: ['Factible con observaciones', 'warn'], no: ['No factible', 'bad'] };
+const inmA = () => cur().inmuebles[S.inm ?? 0];
+
+/* ---------- desplegables ---------- */
+let DR = [];
+function drop(o) {
+  const i = DR.push(o) - 1, par = (x) => Array.isArray(x) ? x : [x, x];
+  const txt = o.multi ? (o.val.length ? o.val.join(', ') : (o.ph || 'Elegir')) : ((o.ops.map(par).find((x) => x[0] === o.val) || [])[1] || o.ph || 'Elegir');
+  const vac = o.multi ? !o.val.length : (o.val === '' || o.val == null);
+  return `<button class="dd ${o.cls || ''} ${vac ? 'vac' : ''}" data-a="drop" data-i="${i}" aria-haspopup="menu" ${o.id ? `id="${o.id}"` : ''} ${o.al ? `aria-label="${o.al}"` : ''}>${o.pre || ''}${o.ic ? ic(o.ic, 15) : ''}<span>${esc(txt)}</span>${ic('down', 14)}</button>`;
+}
+function abrir(el, items, titulo) { const r = el.getBoundingClientRect(); S.menu = { items, titulo, r: { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width } }; }
+function menu() {
+  const m = S.menu; if (!m) { S._m = null; return ''; }
+  const q = S._m === m ? 'quieta' : ''; S._m = m;
+  const w = Math.min(Math.max(250, Math.min(320, m.r.width)), innerWidth - 16), left = Math.max(8, Math.min(m.r.left, innerWidth - w - 8)), h = Math.min(m.items.length * 38 + (m.titulo ? 40 : 14), 340);
+  const pos = m.r.bottom + 6 + h < innerHeight ? `top:${m.r.bottom + 6}px` : `bottom:${Math.max(8, innerHeight - m.r.top + 6)}px`;
+  return `<div class="mvelo" data-a="mcerrar"></div><div class="pop ${q}" role="menu" style="left:${left}px;${pos};width:${w}px;max-height:340px">${m.titulo ? `<div class="mt">${m.titulo}</div>` : ''}${m.items.map((it, i) => it.sep ? '<hr>' : `<button class="mi ${it.pel ? 'pel' : ''}" role="menuitem" data-a="mi" data-i="${i}">${it.ic ? ic(it.ic, 16) : ''}<span>${esc(it.t)}</span>${(typeof it.on === 'function' ? it.on() : it.on) ? ic('ok', 16) : ''}</button>`).join('')}</div>`;
+}
+
+/* ---------- resúmenes ---------- */
+const R = {
+  personas: (a) => a.personas.length ? `${a.personas[0].n}${a.personas.length > 1 ? ` y ${a.personas.length - 1} más` : ''}` : 'Nadie todavía',
+  inmueble: (a) => { const n = a.inmuebles.length; if (!n) return 'Sin inmueble'; if (n > 1) { const r = a.inmuebles.filter((i) => i.estado === 'Rentado' || i.estado === 'Vendido').length, ap = a.inmuebles.filter((i) => i.estado === 'Apartado').length; return `${n} inmuebles · ${r} cerrados${ap ? ` · ${ap} apartado${ap > 1 ? 's' : ''}` : ''}`; } const i = a.inmuebles[0]; return `${i.tipo} · ${i.zona} · ${i.precio ? dinero(i.precio) : 'sin precio'}`; },
+  situacion: (a) => { const s = a.sit, x = []; if (s.dueno === 'Falleció el titular') x.push('Titular fallecido'); if (s.dueno === 'De una empresa') x.push('De una empresa'); if (s.ocupa === 'Invadido') x.push('Invadido'); if (s.escritura === 'No') x.push('Sin escritura'); if (s.debe.includes('Hipoteca')) x.push('Con hipoteca'); if (a.averiguar.length) x.push(`${a.averiguar.length} por averiguar`); return x.length ? x.join(' · ') : 'Sin complicaciones'; },
+  documentos: (a) => a.docs.length ? `${a.docs.filter((d) => d.ok).length} de ${a.docs.length} recibidos` : 'Ninguno pedido',
+  opinion: (a) => OPN[a.opinion.v][0] + (a.opinion.archivo ? ' · PDF cargado' : ''),
+  honorarios: (a) => { const t = total(a); if (!t) return 'Sin presupuesto'; return `${dinero(t)} · ${a.honor.estado.toLowerCase()}${cobrado(a) ? ` · cobrado ${dinero(cobrado(a))}` : ''}`; },
+  plan: (a) => { if (!a.plan.length) return 'Sin plan'; const p = tareas(a).filter((x) => x.t.est === 'pend'); if (!p.length) return 'Todo hecho'; const i = a.plan.findIndex((e) => e.tareas.some((t) => t.est === 'pend')); return `Etapa ${i + 1} de ${a.plan.length} · ${p.length} por hacer`; },
+  historial: (a) => a.hist[0] ? a.hist[0].t : 'Vacío'
+};
+const REN = [['personas', 'Personas', 'users', 'blue'], ['inmueble', 'Inmueble', 'edif', 'orange'], ['situacion', 'Situación', 'alerta', 'red'], ['documentos', 'Documentos', 'file', 'teal'], ['opinion', 'Opinión jurídica', 'balanza', 'violet'], ['honorarios', 'Honorarios', 'cartera', 'green'], ['plan', 'Plan', 'lista', 'indigo'], ['historial', 'Historial', 'reloj', 'gray']];
+const RENM = Object.fromEntries(REN.map((r) => [r[0], r]));
+
+/* ---------- piezas ---------- */
+const campo = (l, h) => `<label class="fld"><span>${l}</span>${h}</label>`;
+const inp = (ruta, val, o = {}) => { const h = `<input class="inp ${o.num ? 'num' : ''}" id="f_${ruta.replace(/\W/g, '_')}" data-b="${ruta}" ${o.dinero ? 'data-num inputmode="numeric"' : ''} value="${esc(val ?? '')}" placeholder="${esc(o.ph || '')}" autocomplete="off">`; return o.uni ? `<span class="uni">${h}<i>${o.uni}</i></span>` : h; };
+const seg = (act, val, ops) => `<div class="seg">${ops.map(([v, l, i]) => `<button data-a="${act}" data-v="${v}" aria-pressed="${val === v}">${i ? ic(i, 15) : ''}${l}</button>`).join('')}</div>`;
+function tarea(x, enHoy) {
+  const t = x.t, venc = t.est === 'pend' && t.fecha && dias(t.fecha) < 0, lg = ligaDe(t.t);
+  const meta = t.est === 'na' ? `No aplica${t.motivo ? ' · ' + esc(t.motivo) : ''}` : t.est === 'bloq' ? `<span class="c-warn">No se puede todavía${t.motivo ? ' · ' + esc(t.motivo) : ''}</span>` : `${enHoy ? esc(x.a.titulo) : esc(t.quien)}${enHoy && t.quien !== 'Fortius' ? ' · ' + esc(t.quien) : ''}`;
+  const ab = !enHoy && S.to === t.id;
+  return `<div class="t" data-est="${t.est}">
+    <button class="ckb" data-a="tog" data-t="${t.id}" aria-label="${t.est === 'hecha' ? 'Desmarcar' : 'Marcar hecha'}: ${esc(t.t)}"><span class="ck">${t.est === 'hecha' ? ic('ok', 12) : ''}</span></button>
+    <button class="tb" ${enHoy ? `data-a="ir" data-id="${x.a.id}" data-row="plan"` : `data-a="topen" data-t="${t.id}" aria-expanded="${ab}"`}><span class="n">${esc(t.t)}</span><span class="m">${meta}</span></button>
+    ${lg && !enHoy ? `<button class="btn gho ico" data-a="win" data-v="${lg}" title="Abrir ${RENM[lg][1].toLowerCase()}" aria-label="Abrir ${RENM[lg][1].toLowerCase()}">${ic('liga', 16)}</button>` : ''}
+    ${t.est === 'pend' ? `<span class="pill ${venc ? 'bad' : dias(t.fecha || '2099-01-01') === 0 ? 'acc' : ''}">${fecha(t.fecha)}</span>` : ''}
+  </div>${ab ? `<div class="edit">
+    ${drop({ ops: EST, val: t.est, path: `t.${t.id}.est`, al: 'Estado' })}
+    ${drop({ ops: QUIEN, val: t.quien, path: `t.${t.id}.quien`, ic: 'users', al: 'Quién lo hace' })}
+    <input class="inp" style="width:150px" type="date" id="e-f" data-b="t.${t.id}.fecha" value="${t.fecha}" aria-label="Fecha">
+    ${t.est === 'na' || t.est === 'bloq' ? `<input class="inp" id="e-m" data-b="t.${t.id}.motivo" value="${esc(t.motivo)}" placeholder="Por qué">` : ''}
+    <span class="sp"></span><button class="btn gho ico" data-a="delt" data-t="${t.id}" aria-label="Quitar tarea">${ic('bote', 16)}</button></div>` : ''}`;
+}
+function linea(a) {
+  const all = tareas(a).filter((x) => x.t.fecha);
+  if (!all.length) return '<div class="pad m">Ponle fecha a las tareas para verlas en el tiempo.</div>';
+  const ds = all.map((x) => x.t.fecha).concat(HOY).sort(), min = D(ds[0]), span = Math.max(1, (D(ds[ds.length - 1]) - min) / 864e5);
+  const pos = (f) => ((D(f) - min) / 864e5) / span * 94 + 3;
+  return `<div class="pad"><div class="eje"><span>${fecha(ds[0])}</span><span>${fecha(ds[ds.length - 1])}</span></div>` + a.plan.map((e) => {
+    const ts = e.tareas.filter((t) => t.fecha), ps = ts.map((t) => pos(t.fecha)), l = Math.min(...ps), r = Math.max(...ps);
+    return `<div class="ge"><span style="font-weight:550">${esc(e.etapa)}</span><div class="gb">${ts.length ? `<i class="gbar" style="left:${l}%;width:${Math.max(r - l, .5)}%"></i>` : ''}<i class="gnow" style="left:${pos(HOY)}%"></i>${ts.map((t) => `<i class="gd ${t.est === 'hecha' ? 'h' : ''}" style="left:${pos(t.fecha)}%" title="${esc(t.t)} · ${fecha(t.fecha)}"></i>`).join('')}</div></div>`;
+  }).join('') + '<p class="m" style="padding-top:6px">La raya roja es hoy. Punto lleno, tarea hecha.</p></div>';
+}
+const archivo = (n) => n ? `<span class="arch">${ic('pdf', 14)}<span>${esc(n)}</span></span>` : '';
+
+/* ---------- ventanas del asunto ---------- */
+const WIN = {
+  personas: (a) => `<div class="card">${a.personas.map((p, i) => `<div class="ren"><span class="av">${ini(p.n)}</span><span class="c"><b>${esc(p.n)}</b><span>${p.tel ? esc(p.tel) : 'Sin teléfono'}${p.nota ? ' · ' + esc(p.nota) : ''}</span></span>${drop({ ops: PAPELES, val: p.papel, path: `a.personas.${i}.papel`, cls: 'pil', al: 'Papel' })}<button class="btn gho ico" data-a="men" data-m="persona" data-i="${i}" aria-label="Más de ${esc(p.n)}">${ic('dots')}</button></div>`).join('')}</div>
+    <div class="card pad"><div class="g2">${campo('Nombre', '<input class="inp" id="pn" data-enter="addp" autocomplete="off">')}${campo('Teléfono', '<input class="inp num" id="pt" data-enter="addp" inputmode="tel" autocomplete="off">')}</div><div class="fila" style="padding-top:10px"><span id="pp-w">${drop({ ops: PAPELES, val: S.np || 'Contacto', path: 'S.np', ic: 'users' })}</span><span class="sp"></span><button class="btn pri" data-a="addp">${ic('mas', 16)}Agregar</button></div></div>`,
+
+  inmueble: (a) => {
+    if (a.inmuebles.length > 1 && S.inm === null) { const ops = a.sit.quiere === 'Rentar' ? ['Libre', 'Apartado', 'Rentado'] : ['Libre', 'Apartado', 'Vendido'];
+      return `<div class="card">${a.inmuebles.map((i, k) => `<div class="ren"><button class="c" data-a="inm" data-i="${k}"><b>${esc(i.n)}</b><span>${i.datos.construccion ? esc(i.datos.construccion) + ' m² · ' : ''}${i.precio ? dinero(i.precio) : 'sin precio'}${i.fotos.length ? ` · ${i.fotos.length} fotos` : ''}</span></button>${drop({ ops, val: i.estado, path: `a.inmuebles.${k}.estado`, cls: 'pil', log: i.n })}<button class="btn gho ico" data-a="inm" data-i="${k}" aria-label="Abrir ${esc(i.n)}">${ic('ch', 16)}</button></div>`).join('')}</div>
+      <button class="btn" data-a="addi">${ic('copia', 16)}Agregar otro igual</button>`; }
+    const i = inmA(), k = S.inm ?? 0, com = a.encargo.includes('Comercializar'), grupos = CAMPOS[i.tipo] || [], per = a.docs.map((d, x) => ({ d, x })).filter((o) => o.d.grupo === 'Permisos y planos' || o.d.grupo === 'Propiedad');
+    const tabs = [['datos', 'Datos', 'regla'], ['fotos', `Fotos${i.fotos.length ? ' ' + i.fotos.length : ''}`, 'img'], ['permisos', 'Permisos y planos', 'escudo']].concat(com ? [['sitio', 'Sitio', 'globo']] : []);
+    const cuerpo = {
+      datos: `<div class="card pad"><div class="g2">${campo('Nombre', inp(`i.n`, i.n))}${campo('Tipo', drop({ ops: TIPOS, val: i.tipo, path: 'i.tipo', cls: 'w', ic: 'edif' }))}${campo('Operación', drop({ ops: ['Venta', 'Renta'], val: i.op, path: 'i.op', cls: 'w' }))}${campo(i.op === 'Renta' ? 'Renta mensual' : 'Precio', `<span class="uni">${inp('i.precio', i.precio ? i.precio.toLocaleString('en-US') : '', { dinero: 1, num: 1, ph: 'A consulta' })}<i>MXN</i></span>`)}${campo('Colonia', inp('i.zona', i.zona))}${campo('Dirección exacta (privada)', inp('i.dir', i.dir, { ph: 'Calle y número' }))}</div></div>` +
+        grupos.map(([g, fs], gi) => { const key = i.tipo + g, ab = S.grp[key] ?? gi === 0, llenos = fs.filter((f) => i.datos[f[0]]).length;
+          return `<div class="card"><button class="gh" data-a="grp" data-v="${esc(key)}" data-d="${gi === 0 ? 1 : 0}" aria-expanded="${ab}">${ic('ch', 15)}<span>${g}</span><span class="sp"></span><span class="pill ${llenos === fs.length ? 'ok' : ''}">${llenos} de ${fs.length}</span></button>${ab ? `<div class="pad"><div class="g2">${fs.map(([c, l, u]) => campo(l, Array.isArray(u) ? drop({ ops: u, val: i.datos[c] || '', path: `i.datos.${c}`, cls: 'w', ph: 'Sin dato' }) : inp(`i.datos.${c}`, i.datos[c], { uni: u, num: 1 }))).join('')}</div></div>` : ''}</div>`; }).join(''),
+      fotos: i.fotos.length ? `<div class="fotos">${i.fotos.map((f, x) => `<div class="foto"><img src="${f.url}" alt="${esc(f.n)}">${x === 0 ? '<span class="pill">Portada</span>' : ''}<button class="btn ico" data-a="men" data-m="foto" data-i="${x}" aria-label="Opciones de la foto">${ic('dots', 15)}</button></div>`).join('')}</div><button class="btn" data-a="subir" data-k="fotos">${ic('subir', 16)}Subir más</button>`
+        : `<div class="vacio">${ic('img', 26)}<b>Sin fotos</b><span class="m">Elige varias a la vez. La primera queda de portada.</span><button class="btn pri" data-a="subir" data-k="fotos">${ic('subir', 16)}Subir fotos</button></div>`,
+      permisos: `<div class="card">${per.length ? per.map(({ d, x }) => docRen(d, x)).join('') : '<div class="pad m">Todavía no hay escritura, licencias ni planos.</div>'}</div><button class="btn" data-a="men" data-m="addpermiso">${ic('mas', 16)}Agregar${ic('down', 14)}</button><p class="m">Son los mismos documentos del asunto: lo que subas aquí aparece allá.</p>`,
+      sitio: `<div class="card"><div class="ren"><span class="c"><b>Publicado en el sitio</b><span>${a.publicado ? 'Visible para el público' : 'Guardar no publica'}</span></span><button class="sw" role="switch" aria-checked="${a.publicado}" data-a="pub" aria-label="Publicado"></button></div><div class="ren"><span class="c"><b>Fotos</b><span>${i.fotos.length} de 5 recomendadas</span></span><button class="btn gho ico" data-a="tab" data-v="fotos" aria-label="Ir a fotos">${ic('ch', 16)}</button></div></div>${campo('Descripción para el sitio', `<textarea class="inp" id="f_desc" data-b="i.desc" placeholder="Lo que verá quien busca">${esc(i.desc || '')}</textarea>`)}<button class="btn" data-a="men" data-m="compartir">${ic('subir', 16)}Compartir${ic('down', 14)}</button>`
+    }[S.tab] || '';
+    return `<div class="tabs" role="tablist">${tabs.map(([v, l, ico]) => `<button role="tab" aria-selected="${S.tab === v}" data-a="tab" data-v="${v}">${ic(ico, 16)}${l}</button>`).join('')}</div>${cuerpo}`;
+  },
+
+  situacion: (a) => `<div class="card pad"><div class="g2">${HECHOS.map(([k, l, o, i]) => campo(l, drop({ ops: o, val: a.sit[k], path: `a.sit.${k}`, cls: 'w', ic: i, log: l }))).join('')}${campo('Qué debe', drop({ ops: DEBE, val: a.sit.debe, multi: 1, cls: 'w', ic: 'pago', ph: 'Elegir' }))}${campo('Te encargaron', drop({ ops: Object.keys(ENC), val: a.encargo, multi: 1, cls: 'w', ic: 'band', ph: 'Elegir' }))}</div></div>
+    <h2 class="h2">${tile('bus', 'red', 1)}Por averiguar <span class="m">${a.averiguar.length || ''}</span></h2>
+    <div class="card">${a.averiguar.map((x, i) => `<div class="t" data-est="pend" style="padding:0 6px"><button class="ckb" data-a="av" data-i="${i}" aria-label="Ya se sabe: ${esc(x)}"><span class="ck cu"></span></button><span class="tb"><span class="n">${esc(x)}</span></span></div>`).join('')}<div class="pad"><input class="inp" id="na" placeholder="Algo más que falta saber" data-enter="addav"></div></div>`,
+
+  documentos: (a) => { const f = a.docs.filter((d) => !d.ok).length, gs = GRUPOS.filter((g) => a.docs.some((d) => d.grupo === g));
+    return `<div class="fila">${f ? `<button class="btn pri" data-a="pedir">${ic('chat', 16)}Pedir los ${f} que faltan</button>` : `<span class="pill ok">${ic('ok', 12)}Completos</span>`}<span class="sp"></span><button class="btn" data-a="men" data-m="adddoc">${ic('mas', 16)}Agregar${ic('down', 14)}</button></div>` +
+      (gs.length ? gs.map((g) => `<div><p class="m" style="padding:0 2px 6px">${g}</p><div class="card">${a.docs.map((d, x) => d.grupo === g ? docRen(d, x) : '').join('')}</div></div>`).join('') : `<div class="vacio">${ic('file', 26)}<b>Sin documentos</b><span class="m">Agrega una lista de la biblioteca o sube lo que ya te mandaron.</span></div>`); },
+
+  opinion: (a) => { const o = a.opinion;
+    return `<div class="card pad" style="display:flex;flex-direction:column;gap:12px">${campo('Resultado', drop({ ops: [['', 'Sin emitir'], ['ok', 'Factible'], ['obs', 'Factible con observaciones'], ['no', 'No factible']], val: o.v, path: 'a.opinion.v', cls: 'w', ic: 'balanza', after: (v) => v && anota(a, 'Decisión', `Opinión jurídica: ${OPN[v][0].toLowerCase()}.`) }))}${campo('Análisis', `<textarea class="inp" id="f_an" data-b="a.opinion.analisis" placeholder="Qué encontraste al estudiar los documentos">${esc(o.analisis)}</textarea>`)}</div>
+    <h2 class="h2">${tile('lista', 'violet', 1)}Qué hay que resolver</h2>
+    <div class="card">${o.resolver.map((r, i) => `<div class="ren"><span class="c"><b style="font-weight:500">${esc(r.t)}</b></span>${drop({ ops: QUIEN, val: r.quien, path: `a.opinion.resolver.${i}.quien`, cls: 'pil', ic: 'users' })}<button class="btn gho ico" data-a="delres" data-i="${i}" aria-label="Quitar">${ic('x', 15)}</button></div>`).join('')}<div class="pad"><input class="inp" id="nr" placeholder="Juicio, regularización, pago de adeudos…" data-enter="addres"></div></div>
+    <div class="card"><div class="ren">${tile('pdf', 'violet')}<span class="c"><b>Documento de la opinión</b><span>${o.archivo ? esc(o.archivo) : 'Se arma con lo de arriba, o carga el tuyo'}</span></span><button class="btn" data-a="men" data-m="docop">${o.archivo ? 'Cambiar' : 'Hacer'}${ic('down', 14)}</button></div></div>
+    <button class="btn" data-a="pasarplan">${ic('lista', 16)}Pasar lo que hay que resolver al plan</button>`; },
+
+  honorarios: (a) => { const h = a.honor, t = total(a), c = cobrado(a);
+    return `<h2 class="h2">${tile('nota', 'green', 1)}Presupuesto<span class="sp"></span>${drop({ ops: ['Sin enviar', 'Enviado', 'Aceptado'], val: h.estado, path: 'a.honor.estado', cls: 'pil', log: 'Presupuesto' })}</h2>
+    <div class="card">${h.lineas.map((l, i) => `<div class="ren"><span class="c"><b style="font-weight:500">${esc(l.c)}</b></span><span class="num">${dinero(l.m)}</span><button class="btn gho ico" data-a="dell" data-i="${i}" aria-label="Quitar">${ic('x', 15)}</button></div>`).join('')}
+      <div class="pad fila nw"><input class="inp" id="hc" placeholder="Concepto" data-enter="addl" style="flex:2"><input class="inp num" id="hm" placeholder="Monto" inputmode="numeric" data-enter="addl" style="flex:1;min-width:80px"><button class="btn ico" data-a="addl" aria-label="Agregar concepto">${ic('mas', 16)}</button></div>
+      ${t ? `<div class="total"><span>Total</span><span class="num">${dinero(t)}</span></div>` : ''}</div>
+    <div class="card"><div class="ren">${tile('pdf', 'green')}<span class="c"><b>Documento del presupuesto</b><span>${h.archivo ? esc(h.archivo) : 'Sin hacer'}</span></span><button class="btn" data-a="men" data-m="docpres">${h.archivo ? 'Cambiar' : 'Hacer'}${ic('down', 14)}</button></div>
+      <div class="ren">${tile('lapiz', 'green')}<span class="c"><b>Contrato</b><span>${h.contratoArchivo ? esc(h.contratoArchivo) : h.contrato}</span></span><button class="btn" data-a="men" data-m="contrato">${h.contrato === 'Sin hacer' ? 'Hacer' : h.contrato}${ic('down', 14)}</button></div></div>
+    <h2 class="h2">${tile('pago', 'green', 1)}Cobros<span class="sp"></span><span class="m num">${t ? `Falta ${dinero(Math.max(0, t - c))}` : ''}</span></h2>
+    <div class="card">${h.cobros.map((x) => `<div class="ren"><span class="c"><b class="num" style="font-weight:550">${dinero(x.m)}</b><span>${esc(x.forma)} · ${fecha(x.f)}</span></span><span class="pill ok">Cobrado</span></div>`).join('')}
+      <div class="pad fila nw"><input class="inp num" id="cm" placeholder="Monto" inputmode="numeric" data-enter="addc" style="flex:1;min-width:80px"><span>${drop({ ops: ['Transferencia', 'Efectivo', 'Cheque'], val: S.nf || 'Transferencia', path: 'S.nf', ic: 'pago' })}</span><button class="btn pri" data-a="addc">Registrar</button></div></div>`; },
+
+  plan: (a) => `<div class="fila">${seg('pv', S.pv, [['lista', 'Lista', 'lista'], ['tiempo', 'En el tiempo', 'cal']])}<span class="sp"></span><button class="btn" data-a="men" data-m="addplan">${ic('mas', 16)}Agregar${ic('down', 14)}</button></div>` +
+    (S.pv === 'tiempo' ? `<div class="card">${linea(a)}</div>` : a.plan.map((e, ei) => `<div class="card"><div class="et"><div class="et-h"><span>${esc(e.etapa)}</span><span class="sp"></span><span class="pill num">${e.tareas.filter((t) => t.est === 'hecha').length} de ${e.tareas.filter((t) => t.est !== 'na').length}</span><button class="btn gho ico" data-a="men" data-m="etapa" data-i="${ei}" aria-label="Opciones de la etapa">${ic('dots', 16)}</button></div>${e.tareas.map((t) => tarea({ a, e, ei, t })).join('')}<div class="sumar"><input class="inp" id="nt-${ei}" placeholder="Agregar tarea" data-enter="addt" data-ei="${ei}"></div></div></div>`).join('')),
+
+  historial: (a) => `<div class="card pad" style="display:flex;flex-direction:column;gap:10px"><div class="fila">${seg('ht', S.ht, [['Nota', 'Nota', 'nota'], ['Decisión', 'Decisión', 'estrella']])}</div><div class="fila nw"><input class="inp" id="hn" placeholder="${S.ht === 'Nota' ? 'Qué pasó' : 'Qué se decidió y quién'}" data-enter="addh"><button class="btn pri" data-a="addh">Guardar</button></div></div>
+    <div class="card">${a.hist.map((h) => `<div class="hi">${tile(h.tipo === 'Decisión' ? 'estrella' : 'nota', h.tipo === 'Decisión' ? 'violet' : 'gray', 1)}<div><p>${esc(h.t)}</p><p class="m">${fecha(h.f)} · ${esc(h.quien)}${h.tipo === 'Decisión' ? ' · Decisión' : ''}</p></div></div>`).join('')}</div>`
+};
+function docRen(d, x) {
+  return `<div class="ren"><button class="ckb" style="margin:0 -6px 0 -8px" data-a="doc" data-i="${x}" aria-label="${d.ok ? 'Marcar faltante' : 'Marcar recibido'}: ${esc(d.n)}"><span class="ck cu" ${d.ok ? 'style="background:var(--ok);border-color:var(--ok);color:var(--on-acc)"' : ''}>${d.ok ? ic('ok', 12) : ''}</span></button><span class="c"><b style="font-weight:500">${esc(d.n)}</b><span>${d.ok ? '' : '<span class="c-warn">Falta</span> · '}${esc(d.de)}</span></span>${archivo(d.archivo)}<button class="btn gho ico" data-a="men" data-m="doc" data-i="${x}" aria-label="Opciones de ${esc(d.n)}">${ic('dots')}</button></div>`;
+}
+function ventana() {
+  if (!S.win) { S._w = null; return ''; } const a = cur(), [k, l, i, c] = RENM[S.win], varios = k === 'inmueble' && a.inmuebles.length > 1 && S.inm !== null;
+  const q = S._w === S.win ? 'quieta' : ''; S._w = S.win;
+  return `<div class="wvelo ${q}" data-a="wcerrar"></div><aside class="win ${q}" role="dialog" aria-label="${l}"><div class="win-h">${varios ? `<button class="btn gho ico" data-a="inm" data-i="-1" aria-label="Volver a los inmuebles">${ic('at')}</button>` : ''}${tile(i, c)}<div style="min-width:0;flex:1"><b>${varios ? esc(inmA().n) : k === 'inmueble' && a.inmuebles.length > 1 ? 'Inmuebles' : l}</b><p class="m" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.titulo)}</p></div><button class="btn gho ico" data-a="wcerrar" aria-label="Cerrar">${ic('x')}</button></div><div class="win-c" id="p-win">${WIN[k](a)}</div></aside>`;
+}
+
+/* ---------- menús de varias opciones ---------- */
+const subir = (k, i) => { S.up = { k, i }; const f = document.getElementById('archivo'); f.multiple = k === 'fotos' || k === 'docs'; f.accept = k === 'fotos' ? 'image/*' : ''; f.click(); };
+const MEN = {
+  nuevo: () => [['lista', 'Tarea', 'plan', 'nt-0'], ['nota', 'Nota o decisión', 'historial', 'hn'], ['file', 'Documento', 'documentos'], ['users', 'Persona', 'personas', 'pn'], ['pago', 'Cobro', 'honorarios', 'cm'], ['img', 'Fotos', 'inmueble']].map(([i, t, w, f]) => ({ ic: i, t, fn() { S.win = w; S.inm = cur().inmuebles.length > 1 ? null : 0; if (w === 'inmueble') S.tab = 'fotos'; S.foco = f; } })),
+  mas: () => { const a = cur(); return [{ ic: 'lapiz', t: 'Cambiar el nombre', fn() { S.hoja = { k: 'nombre' }; } }, { ic: 'copia', t: 'Copiar enlace', fn() { avisa('Enlace copiado'); } }, { ic: 'reloj', t: 'Poner en espera', fn() { anota(a, 'Nota', 'En espera.'); avisa('En espera'); } }, { sep: 1 }, { ic: 'bote', t: 'Archivar', pel: 1, fn() { avisa('Archivado'); } }]; },
+  posponer: (d) => [['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]].map(([t, n]) => ({ ic: 'cal', t, fn() { const x = buscaT(d.t); x.t.fecha = mas(n); avisa(`Pasó a ${fecha(x.t.fecha).toLowerCase()}`); } })),
+  persona: (d) => { const a = cur(), p = a.personas[d.i]; return [{ ic: 'tel', t: p.tel ? 'Copiar teléfono' : 'Sin teléfono', fn() { if (p.tel) copiar(p.tel); } }, { ic: 'chat', t: 'Mensaje de WhatsApp', fn() { S.hoja = { k: 'msg', t: `Hola ${p.n.split(' ')[0]}, te escribo de Fortius por ${a.titulo.toLowerCase()}.` }; } }, { sep: 1 }, { ic: 'bote', t: 'Quitar del asunto', pel: 1, fn() { a.personas.splice(d.i, 1); } }]; },
+  doc: (d) => { const a = cur(), x = a.docs[d.i]; return [{ ic: 'subir', t: x.archivo ? 'Cambiar archivo' : 'Subir archivo o foto', fn() { subir('doc', +d.i); } }, { ic: 'ojo', t: 'Leer datos', fn() { avisa(x.archivo ? 'Datos leídos: por confirmar' : 'Primero sube el archivo'); } }, { ic: 'chat', t: 'Pedirlo por WhatsApp', fn() { S.hoja = { k: 'msg', t: `Hola, para seguir con ${a.titulo.toLowerCase()} me falta: ${x.n}. Me lo puedes mandar por aquí, en foto o PDF.` }; } }, { sep: 1 }, { ic: 'bote', t: 'Quitar', pel: 1, fn() { a.docs.splice(d.i, 1); } }]; },
+  adddoc: () => [{ ic: 'subir', t: 'Subir archivos', fn() { subir('docs'); } }, { ic: 'file', t: 'Documento por pedir', fn() { S.hoja = { k: 'doc' }; } }, { sep: 1 }, ...LIB.docs.map((l) => ({ ic: 'lib', t: l.n, fn() { libadd('docs', l); } }))],
+  addpermiso: () => [{ ic: 'subir', t: 'Subir archivos', fn() { subir('docs'); } }, { sep: 1 }, ...['Licencia de uso de suelo', 'Permiso de construcción', 'Dictamen de protección civil', 'Factibilidad de CFE', 'Plano arquitectónico', 'Plano de instalaciones'].map((n) => ({ ic: 'escudo', t: n, fn() { const a = cur(); if (!a.docs.some((q) => q.n === n)) a.docs.push(Dc(n, a.personas[0] ? a.personas[0].n.split(' ')[0] : 'Cliente')); } }))],
+  addplan: () => [{ ic: 'mas', t: 'Etapa nueva', fn() { S.hoja = { k: 'etapa' }; } }, { sep: 1 }, ...LIB.plan.map((l) => ({ ic: 'lib', t: l.n, fn() { libadd('plan', l); } }))],
+  etapa: (d) => { const a = cur(); return [{ ic: 'ok', t: 'Marcar todo hecho', fn() { a.plan[d.i].tareas.forEach((t) => { if (t.est === 'pend') t.est = 'hecha'; }); } }, { ic: 'bote', t: 'Quitar la etapa', pel: 1, fn() { const e = a.plan.splice(d.i, 1)[0]; avisa('Etapa quitada', () => a.plan.splice(d.i, 0, e)); } }]; },
+  foto: (d) => { const i = inmA(); return [{ ic: 'estrella', t: 'Hacer portada', fn() { i.fotos.unshift(i.fotos.splice(d.i, 1)[0]); } }, { ic: 'bote', t: 'Quitar', pel: 1, fn() { i.fotos.splice(d.i, 1); } }]; },
+  docop: () => { const a = cur(); return [{ ic: 'pdf', t: 'Generar PDF con lo capturado', fn() { a.opinion.archivo = `opinion-juridica-${a.folio}.pdf`; anota(a, 'Nota', 'Se generó la opinión jurídica.'); avisa('PDF generado'); } }, { ic: 'subir', t: 'Cargar un PDF hecho por fuera', fn() { subir('opinion'); } }, ...(a.opinion.archivo ? [{ sep: 1 }, { ic: 'chat', t: 'Enviar por WhatsApp', fn() { S.hoja = { k: 'msg', t: `Te comparto la opinión jurídica de ${a.titulo.toLowerCase()}: ${OPN[a.opinion.v][0].toLowerCase()}.` }; } }, { ic: 'bote', t: 'Quitar el archivo', pel: 1, fn() { a.opinion.archivo = ''; } }] : [])]; },
+  docpres: () => { const a = cur(); return [{ ic: 'pdf', t: 'Generar PDF del presupuesto', fn() { if (!total(a)) return avisa('Agrega al menos un concepto'); a.honor.archivo = `presupuesto-${a.folio}.pdf`; anota(a, 'Nota', 'Se generó el presupuesto.'); avisa('PDF generado'); } }, { ic: 'subir', t: 'Cargar un PDF hecho por fuera', fn() { subir('pres'); } }, { ic: 'chat', t: 'Enviar por WhatsApp', fn() { a.honor.estado = 'Enviado'; S.hoja = { k: 'msg', t: `Te comparto el presupuesto de honorarios por ${a.titulo.toLowerCase()}: ${dinero(total(a))}.` }; } }]; },
+  contrato: () => { const a = cur(); return [['file', 'Intermediación para venta'], ['file', 'Intermediación para renta'], ['file', 'Prestación de servicios']].map(([i, t]) => ({ ic: i, t, fn() { a.honor.contrato = 'Enviado'; a.honor.contratoArchivo = `contrato-${a.folio}.pdf`; anota(a, 'Nota', `Contrato hecho: ${t.toLowerCase()}.`); avisa('Contrato hecho con los datos del asunto'); } })).concat([{ sep: 1 }, { ic: 'subir', t: 'Cargar el contrato firmado', fn() { subir('contrato'); } }, { ic: 'ok', t: 'Marcar como firmado', on: a.honor.contrato === 'Firmado', fn() { a.honor.contrato = 'Firmado'; anota(a, 'Nota', 'Contrato firmado.'); } }]); },
+  compartir: () => [{ ic: 'chat', t: 'Por WhatsApp', fn() { const i = inmA(); S.hoja = { k: 'msg', t: `${i.n} · ${i.zona}\n${i.precio ? dinero(i.precio) : 'Precio a consulta'}\nfortiusinmuebles.com/…` }; } }, { ic: 'copia', t: 'Copiar enlace', fn() { avisa('Enlace copiado'); } }, { ic: 'pdf', t: 'Ficha en PDF', fn() { avisa('Ficha generada') } }]
+};
+function libadd(k, x) { const a = cur(); if (k === 'docs') { const de = a.personas[0] ? a.personas[0].n.split(' ')[0] : 'Cliente'; x.items.forEach((n) => { if (!a.docs.some((q) => q.n === n)) a.docs.push(Dc(n, de)); }); } else a.plan.push({ etapa: x.n, tareas: x.tareas.map(([t, q]) => T(t, q)) }); anota(a, 'Nota', `De la biblioteca: ${x.n}.`); avisa('Agregado al asunto'); }
+function copiar(t) { const ok = () => { avisa('Copiado'); pintar(); }; try { navigator.clipboard.writeText(t).then(ok, ok); } catch (e) { ok(); } }
+
+/* ---------- vistas ---------- */
+function vAsunto() {
+  const a = cur(); if (!a) return ''; const s = sigue(a), op = OPN[a.opinion.v];
+  return `<div class="in">
+    <div class="top"><button class="btn gho atras" data-a="volver">${ic('at', 16)}Asuntos</button><span class="m num">${a.folio}</span><span class="sp"></span>
+      ${drop({ ops: MOM.map((m, i) => [i, m]), val: a.momento, path: 'a.momento', cls: 'pil', al: 'En qué va', after: (v) => anota(a, 'Nota', `Pasó a ${MOM[v].toLowerCase()}.`), pre: '<span style="width:7px;height:7px;border-radius:50%;background:var(--acc)"></span>' })}
+      <button class="btn pri" data-a="men" data-m="nuevo">${ic('mas', 16)}Nuevo${ic('down', 14)}</button><button class="btn ico" data-a="men" data-m="mas" aria-label="Más opciones">${ic('dots')}</button></div>
+    <div><h1 class="h1">${esc(a.titulo)}</h1><div class="fila" style="padding-top:8px">${a.encargo.map((e) => `<span class="pill">${ic(ENC[e][0], 12)}${e}</span>`).join('')}${op[1] ? `<span class="pill ${op[1]}">${ic('balanza', 12)}${op[0]}</span>` : ''}${a.publicado ? `<span class="pill ok">${ic('globo', 12)}En el sitio</span>` : ''}</div></div>
+    ${s ? `<div class="sigue"><button class="ckb" data-a="tog" data-t="${s.t.id}" aria-label="Marcar hecha: ${esc(s.t.t)}"><span class="ck" style="background:var(--card)"></span></button><div style="flex:1;min-width:0"><p class="q">${esc(s.t.t)}</p><p class="m">${esc(s.t.quien)} · <span class="${s.t.fecha && dias(s.t.fecha) < 0 ? 'c-bad' : ''}">${fecha(s.t.fecha)}</span></p></div><button class="btn gho ico" data-a="men" data-m="posponer" data-t="${s.t.id}" title="Posponer" aria-label="Posponer">${ic('reloj')}</button></div>`
+      : `<div class="sigue" style="background:var(--warn-f);padding:10px 12px"><span class="c-warn">${ic('alerta')}</span><input class="inp" id="ns" placeholder="Sin siguiente paso. ¿Qué sigue?" data-enter="addsig"></div>`}
+    <div class="card">${REN.map(([k, l, i, c]) => `<button class="ren" data-a="win" data-v="${k}">${tile(i, c)}<span class="c"><b>${k === 'inmueble' && a.inmuebles.length > 1 ? 'Inmuebles' : l}</b><span>${esc(R[k](a))}</span></span>${ic('ch', 16)}</button>`).join('')}</div>
+  </div>`;
+}
+function vAsuntos() {
+  const q = S.q.trim().toLowerCase();
+  const lista = A.filter((a) => (S.fil === '' || a.momento === S.fil) && (!q || (a.titulo + ' ' + a.folio + ' ' + a.personas.map((p) => p.n).join(' ') + ' ' + a.inmuebles.map((i) => i.zona).join(' ')).toLowerCase().includes(q)));
+  return `<div class="main dos" data-det="${S.det ? 1 : 0}">
+    <section class="pane lista" id="p-lista"><div class="in lado">
+      <div class="fila" style="padding:0 4px"><h1 class="h1" style="font-size:19px">Asuntos</h1><span class="sp"></span>${drop({ ops: [['', `Todos · ${A.length}`]].concat(MOM.map((m, i) => [i, `${m} · ${A.filter((a) => a.momento === i).length}`])), val: S.fil, path: 'S.fil', cls: 'pil', al: 'Qué ver' })}</div>
+      <label class="srch" style="margin:2px 4px">${ic('bus', 16)}<input id="q2" data-b="S.q" data-vivo placeholder="Buscar" value="${esc(S.q)}" aria-label="Buscar asuntos"></label>
+      <div>${lista.length ? lista.map((a) => { const s = sigue(a), e = ENC[a.encargo[0]] || ['asu', 'gray']; return `<button class="it" data-a="abrir" data-id="${a.id}" aria-current="${a.id === S.aid}">${tile(e[0], e[1])}<span class="c"><b>${esc(a.titulo)}</b><span class="m ${s ? '' : 'c-warn'}">${s ? esc(s.t.t) : 'Sin siguiente paso'}</span><span class="fila" style="padding-top:4px;gap:6px"><span class="pill">${MOM[a.momento]}</span>${s && s.t.fecha ? `<span class="pill ${dias(s.t.fecha) < 0 ? 'bad' : dias(s.t.fecha) === 0 ? 'acc' : ''}">${fecha(s.t.fecha)}</span>` : ''}</span></span></button>`; }).join('') : '<p class="m" style="padding:12px">Ningún asunto coincide.</p>'}</div>
+    </div></section>
+    <section class="pane det" id="p-det">${vAsunto()}</section></div>`;
+}
+function vHoy() {
+  const p = todas().filter((x) => x.t.est === 'pend');
+  const mio = p.filter((x) => x.t.quien === 'Fortius' && x.t.fecha && dias(x.t.fecha) <= 0).sort(ord), prox = p.filter((x) => x.t.quien === 'Fortius' && x.t.fecha && dias(x.t.fecha) > 0 && dias(x.t.fecha) <= 7).sort(ord), otros = p.filter((x) => x.t.quien !== 'Fortius' && x.t.fecha && dias(x.t.fecha) <= 7).sort(ord);
+  const cob = A.filter((a) => a.honor.estado === 'Aceptado' && total(a) - cobrado(a) > 0);
+  const bloque = (i, c, t, xs, vacio) => `<div><h2 class="h2" style="padding:0 2px 8px">${tile(i, c, 1)}${t} <span class="m">${xs.length || ''}</span></h2><div class="card" style="padding:2px 8px">${xs.length ? xs.map((x) => tarea(x, true)).join('') : `<p class="m" style="padding:12px 6px">${vacio}</p>`}</div></div>`;
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div class="top"><div><h1 class="h1">Hoy</h1><p class="m">Lunes 16 de noviembre</p></div><span class="sp"></span><button class="btn pri" data-a="consulta">${ic('tel', 16)}Nueva consulta</button></div>
+    ${bloque('hoy', 'blue', 'Para hoy', mio, 'Nada pendiente para hoy.')}${bloque('cal', 'indigo', 'Esta semana', prox, 'Sin nada con fecha esta semana.')}${bloque('users', 'orange', 'Lo esperas de otros', otros, 'Nadie te debe nada esta semana.')}
+    <div><h2 class="h2" style="padding:0 2px 8px">${tile('pago', 'green', 1)}Por cobrar <span class="m">${cob.length || ''}</span></h2><div class="card">${cob.map((a) => `<button class="ren" data-a="ir" data-id="${a.id}" data-row="honorarios"><span class="c"><b style="font-weight:500">${esc(a.titulo)}</b></span><span class="num" style="font-weight:600">${dinero(total(a) - cobrado(a))}</span>${ic('ch', 16)}</button>`).join('') || '<p class="pad m">Nada por cobrar.</p>'}</div></div>
+    <p class="m t3">Datos de ejemplo. Nada de lo que hagas aquí se guarda ni se envía.</p>
+  </div></section></div>`;
+}
+function vDir() {
+  const per = A.flatMap((a) => a.personas.map((p) => ({ a, p }))), inm = A.flatMap((a) => a.inmuebles.map((i, k) => ({ a, i, k })));
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div class="top"><h1 class="h1">Directorio</h1><span class="sp"></span>${seg('dir', S.dir, [['personas', `Personas ${per.length}`, 'users'], ['inmuebles', `Inmuebles ${inm.length}`, 'edif']])}</div>
+    <div class="card">${S.dir === 'personas' ? per.map(({ a, p }) => `<button class="ren" data-a="ir" data-id="${a.id}" data-row="personas"><span class="av">${ini(p.n)}</span><span class="c"><b>${esc(p.n)}</b><span>${esc(a.titulo)}</span></span><span class="pill">${esc(p.papel)}</span>${ic('ch', 16)}</button>`).join('')
+      : inm.map(({ a, i, k }) => `<button class="ren" data-a="ir" data-id="${a.id}" data-row="inmueble" data-inm="${k}">${tile('edif', 'orange')}<span class="c"><b>${esc(i.n)}</b><span>${esc(i.tipo)} · ${esc(i.zona)}</span></span><span class="num" style="font-weight:550">${i.precio ? dinero(i.precio) : ''}</span>${ic('ch', 16)}</button>`).join('')}</div>
+  </div></section></div>`;
+}
+function vLib() {
+  const it = (tipo, x, i, ico, c) => { const k = tipo + i, ab = S.lo === k; return `<div><button class="ren" data-a="lo" data-v="${k}" aria-expanded="${ab}">${tile(ico, c)}<span class="c"><b>${esc(x.n)}</b></span><span class="pill num">${(x.items || x.tareas).length}</span>${ic(ab ? 'down' : 'ch', 16)}</button>${ab ? `<div class="pad" style="padding-left:52px;display:flex;flex-direction:column;gap:4px">${(x.items || x.tareas.map((t) => `${t[0]} · ${t[1]}`)).map((s) => `<p>${esc(s)}</p>`).join('')}</div>` : ''}</div>`; };
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div><h1 class="h1">Biblioteca</h1><p class="m">Tus metodologías, todas al mismo nivel. Se copian a un asunto y ahí se cambian. Contenido de ejemplo.</p></div>
+    <div><h2 class="h2" style="padding:0 2px 8px">Qué pedir</h2><div class="card">${LIB.docs.map((x, i) => it('d', x, i, 'file', 'teal')).join('')}</div></div>
+    <div><h2 class="h2" style="padding:0 2px 8px">Qué hacer</h2><div class="card">${LIB.plan.map((x, i) => it('p', x, i, 'lista', 'indigo')).join('')}</div></div>
+  </div></section></div>`;
+}
+/* Consulta en vivo */
+let nuevaD = () => ({ nombre: '', tel: '', via: 'Llamada', que: '', quiere: '', dueno: '', tipo: '', zona: '', ocupa: '', escritura: '', debe: [], fuera: [] });
+function pedirD(d) {
+  const x = ['Identificación de quien llama']; if (d.escritura !== 'No') x.push('Escritura o datos del registro'); x.push('Boleta predial reciente');
+  if (d.dueno === 'Falleció el titular') x.push('Acta de defunción', 'Actas de nacimiento de los herederos'); if (d.dueno === 'De un familiar') x.push('Poder o carta del dueño'); if (d.dueno === 'De una empresa') x.push('Acta constitutiva y poder del representante');
+  if (d.debe.includes('Hipoteca')) x.push('Estado de cuenta del crédito'); if (d.ocupa === 'Un inquilino') x.push('Contrato de renta vigente'); if (d.quiere === 'Comprar') x.push('Precalificación del crédito');
+  if (d.tipo === 'Nave o bodega') x.push('Licencia de uso de suelo', 'Plano arquitectónico'); return x;
+}
+function encargoD(d) { const e = []; if (d.dueno === 'Falleció el titular' || d.ocupa === 'Invadido' || d.escritura === 'No' || d.quiere === 'Regularizar' || !d.quiere) e.push('Revisar'); if (d.quiere === 'Vender' || d.quiere === 'Rentar') e.push('Comercializar'); if (d.quiere === 'Comprar') e.push('Tramitar'); if (d.quiere === 'Asesoría') e.push('Asesorar'); return e; }
+function vConsulta() {
+  const d = S.d, ped = pedirD(d), enc = encargoD(d), n = ped.filter((x) => !d.fuera.includes(x)).length;
+  return `<div class="main"><section class="pane" id="p-main"><div class="in ancho">
+    <div class="top"><button class="btn gho ico" data-a="salir" aria-label="Cerrar">${ic('x')}</button><h1 class="h1" style="font-size:20px">Consulta</h1><span class="pill ok vivo"><i></i>Se guarda sola</span><span class="sp"></span><button class="btn pri" data-a="guardar">${ic('ok', 16)}Abrir asunto</button></div>
+    <div class="dosc"><div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card pad" style="display:flex;flex-direction:column;gap:12px"><div class="g3">${campo('Quién llama', inp('d.nombre', d.nombre))}${campo('Teléfono', inp('d.tel', d.tel, { num: 1 }))}${campo('Por dónde', drop({ ops: ['Llamada', 'WhatsApp', 'En persona', 'Sitio'], val: d.via, path: 'd.via', cls: 'w', ic: 'tel' }))}</div>
+        ${campo('Qué pasa', `<textarea class="inp" id="f_que" data-b="d.que" placeholder="Como te lo cuenta">${esc(d.que)}</textarea>`)}</div>
+      <div class="card pad"><div class="g3">${campo('Qué quiere', drop({ ops: HECHOS[0][2], val: d.quiere, path: 'd.quiere', cls: 'w', ic: 'band' }))}${campo('De quién es', drop({ ops: HECHOS[1][2], val: d.dueno, path: 'd.dueno', cls: 'w', ic: 'users' }))}${campo('Qué es', drop({ ops: TIPOS, val: d.tipo, path: 'd.tipo', cls: 'w', ic: 'edif' }))}${campo('Colonia', inp('d.zona', d.zona))}${campo('Quién lo ocupa', drop({ ops: HECHOS[2][2], val: d.ocupa, path: 'd.ocupa', cls: 'w', ic: 'llave' }))}${campo('Escritura', drop({ ops: SN, val: d.escritura, path: 'd.escritura', cls: 'w', ic: 'file' }))}${campo('Qué debe', drop({ ops: DEBE, val: d.debe, multi: 1, cls: 'w', ic: 'pago' }))}</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><h2 class="h2" style="padding:0 2px 8px">${tile('file', 'teal', 1)}Para pedirle <span class="m">${n}</span><span class="sp"></span><button class="btn gho ico" data-a="pedirD" title="Mensaje para WhatsApp" aria-label="Mensaje para WhatsApp">${ic('chat')}</button></h2>
+        <div class="card" style="padding:2px 8px">${ped.map((x) => { const f = d.fuera.includes(x); return `<div class="t" data-est="${f ? 'na' : 'hecha'}"><button class="ckb" data-a="dfuera" data-v="${esc(x)}" aria-label="${f ? 'Pedir' : 'No pedir'}: ${esc(x)}"><span class="ck cu">${f ? '' : ic('ok', 12)}</span></button><span class="tb"><span class="n" style="${f ? '' : 'color:var(--tx);text-decoration:none'}">${esc(x)}</span></span></div>`; }).join('')}</div></div>
+      <div class="fila"><span class="m">Se abre para</span>${enc.map((e) => `<span class="pill">${ic(ENC[e][0], 12)}${e}</span>`).join('')}</div>
+    </div></div>
+  </div></section></div>`;
+}
+
+/* ---------- marco ---------- */
+const NAV = [['hoy', 'Hoy', 'hoy'], ['asuntos', 'Asuntos', 'asu'], ['dir', 'Directorio', 'users'], ['lib', 'Biblioteca', 'lib']];
+function hoja() {
+  const h = S.hoja; if (!h) { S._h = null; return ''; } let c = ''; const qh = S._h === h ? 'quieta' : ''; S._h = h;
+  if (h.k === 'msg') c = `<h2 class="h2">${tile('chat', 'green', 1)}Mensaje para WhatsApp</h2><textarea class="inp" id="msg" style="min-height:170px" readonly>${esc(h.t)}</textarea><div class="fila"><span class="m">Tú lo envías; nada sale solo.</span><span class="sp"></span><button class="btn" data-a="cerrar">Cerrar</button><button class="btn pri" data-a="copiarMsg">${ic('copia', 16)}Copiar</button></div>`;
+  if (h.k === 'etapa' || h.k === 'doc' || h.k === 'nombre') { const [t, ph, v] = { etapa: ['Etapa nueva', 'Cómo se llama', ''], doc: ['Documento por pedir', 'Qué documento', ''], nombre: ['Nombre del asunto', '', cur().titulo] }[h.k]; c = `<h2 class="h2">${t}</h2><input class="inp" id="hx" placeholder="${ph}" value="${esc(v)}" data-enter="hojaok"><div class="fila"><span class="sp"></span><button class="btn" data-a="cerrar">Cancelar</button><button class="btn pri" data-a="hojaok">Guardar</button></div>`; }
+  return `<div class="velo ${qh}" data-a="cerrar"><div class="hoja" role="dialog" aria-modal="true" data-quieto>${c}</div></div>`;
+}
+function pintar() {
+  const app = document.getElementById('app'), sc = {}, act = document.activeElement, fid = S.foco || (act && act.id), sel = !S.foco && act && act.id && act.selectionStart != null ? [act.selectionStart, act.selectionEnd] : null;
+  app.querySelectorAll('.pane,.win-c').forEach((p) => { sc[p.id] = p.scrollTop; });
+  DR = []; S.foco = null;
+  const cuerpo = { hoy: vHoy, asuntos: vAsuntos, dir: vDir, lib: vLib, consulta: vConsulta }[S.view]();
+  const nv = NAV.map(([v, l, i]) => `<button class="nv" data-a="nav" data-v="${v}" ${S.view === v ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${v === 'asuntos' ? `<span class="n">${A.length}</span>` : ''}</button>`).join('');
+  const bar = NAV.slice(0, 2).concat([['consulta', '', 'mas']], NAV.slice(2)).map(([v, l, i]) => v === 'consulta' ? `<button class="mas" data-a="consulta" aria-label="Nueva consulta">${ic('mas', 22)}</button>` : `<button data-a="nav" data-v="${v}" ${S.view === v ? 'aria-current="page"' : ''}>${ic(i, 21)}${l}</button>`).join('');
+  app.innerHTML = `<div class="app"><aside class="side"><div class="ws"><span class="logo">F</span>Fortius</div><button class="btn pri w" data-a="consulta">${ic('tel', 16)}Nueva consulta</button><label class="srch">${ic('bus', 16)}<input id="q" data-b="S.q" data-busca placeholder="Buscar" value="${esc(S.q)}" aria-label="Buscar"></label><nav aria-label="Secciones">${nv}</nav><div class="sec">Recientes</div>${A.slice(0, 4).map((a) => { const e = ENC[a.encargo[0]] || ['asu', 'gray']; return `<button class="nv" data-a="ir" data-id="${a.id}">${tile(e[0], e[1], 1)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.titulo)}</span></button>`; }).join('')}</aside>${cuerpo}<nav class="barra" aria-label="Secciones">${bar}</nav></div>${ventana()}${menu()}${hoja()}${S.aviso ? `<div class="aviso ${S.aviso.des ? '' : 'solo'}" role="status"><span>${esc(S.aviso.t)}</span>${S.aviso.des ? '<button data-a="deshacer">Deshacer</button>' : ''}</div>` : ''}`;
+  app.querySelectorAll('.pane,.win-c').forEach((p) => { if (sc[p.id] && S.mant) p.scrollTop = sc[p.id]; });
+  S.mant = true;
+  if (fid) { const el = document.getElementById(fid); if (el) { el.focus(); if (sel && el.setSelectionRange) { try { el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } } }
+}
+let reloj;
+function avisa(t, des) { S.aviso = { t, des }; clearTimeout(reloj); reloj = setTimeout(() => { S.aviso = null; pintar(); }, 5000); }
+function pon(ruta, val) {
+  const p = ruta.split('.'); let o, i = 1;
+  if (p[0] === 'a') o = cur(); else if (p[0] === 'd') o = S.d; else if (p[0] === 'S') o = S; else if (p[0] === 'i') o = inmA(); else if (p[0] === 't') { o = buscaT(p[1]).t; i = 2; }
+  for (; i < p.length - 1; i++) o = o[p[i]];
+  o[p[p.length - 1]] = val;
+}
+const val = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+
+/* ---------- acciones ---------- */
+const ACC = {
+  nav(d) { S.view = d.v; S.det = false; S.win = null; S.mant = false; },
+  consulta() { S.antes = S.view === 'consulta' ? S.antes : S.view; S.d = nuevaD(); S.view = 'consulta'; S.win = null; S.mant = false; S.foco = 'f_d_nombre'; },
+  salir() { S.view = S.antes || 'hoy'; S.mant = false; },
+  abrir(d) { S.aid = d.id; S.det = true; S.to = null; S.win = null; S.mant = false; },
+  ir(d) { S.aid = d.id; S.view = 'asuntos'; S.det = true; S.to = null; S.mant = false; S.win = d.row || null; S.inm = d.inm != null ? +d.inm : (cur().inmuebles.length > 1 ? null : 0); S.tab = 'datos'; },
+  volver() { S.det = false; S.mant = false; },
+  win(d) { S.win = d.v; S.to = null; S.tab = 'datos'; S.inm = cur().inmuebles.length > 1 ? null : 0; },
+  wcerrar() { S.win = null; },
+  inm(d) { S.inm = +d.i < 0 ? null : +d.i; S.tab = 'datos'; },
+  tab(d) { S.tab = d.v; },
+  grp(d) { const ab = S.grp[d.v] ?? d.d === '1'; S.grp[d.v] = !ab; },
+  drop(d, el) { const o = DR[d.i], par = (x) => Array.isArray(x) ? x : [x, x];
+    abrir(el, o.ops.map(par).map(([v, l]) => ({ t: l, keep: o.multi, on: () => o.multi ? o.val.includes(v) : (o.path ? leer(o.path) === v : o.val === v), fn() { if (o.multi) { const i = o.val.indexOf(v); i < 0 ? o.val.push(v) : o.val.splice(i, 1); } else { pon(o.path, v); if (o.log) anota(cur(), 'Nota', `${o.log}: ${String(l).toLowerCase()}.`); if (o.after) o.after(v); } } }))); },
+  men(d, el) { abrir(el, MEN[d.m](d)); },
+  mi(d) { const it = S.menu.items[d.i]; if (!it.keep) S.menu = null; if (it.fn) it.fn(); },
+  mcerrar() { S.menu = null; },
+  tog(d) { const x = buscaT(d.t), antes = x.t.est; x.t.est = antes === 'hecha' ? 'pend' : 'hecha'; if (x.t.est === 'hecha') { anota(x.a, 'Nota', `Hecho: ${x.t.t}.`); avisa('Hecho', () => { x.t.est = antes; x.a.hist.shift(); }); } },
+  topen(d) { S.to = S.to === d.t ? null : d.t; },
+  delt(d) { const x = buscaT(d.t), i = x.e.tareas.indexOf(x.t); x.e.tareas.splice(i, 1); S.to = null; avisa('Tarea quitada', () => x.e.tareas.splice(i, 0, x.t)); },
+  addt(d) { const v = val('nt-' + d.ei); if (!v) return false; cur().plan[d.ei].tareas.push(T(v)); },
+  addsig() { const v = val('ns'); if (!v) return false; const a = cur(); if (!a.plan.length) a.plan.push({ etapa: 'Pendientes', tareas: [] }); a.plan[a.plan.length - 1].tareas.push(T(v, 'Fortius', 1)); },
+  pv(d) { S.pv = d.v; }, ht(d) { S.ht = d.v; }, dir(d) { S.dir = d.v; }, lo(d) { S.lo = S.lo === d.v ? null : d.v; },
+  doc(d) { const a = cur(), x = a.docs[d.i]; x.ok = !x.ok; if (x.ok) { anota(a, 'Nota', `Recibido: ${x.n}.`); avisa('Recibido', () => { x.ok = false; a.hist.shift(); }); } },
+  pedir() { const a = cur(), p = a.personas[0]; S.hoja = { k: 'msg', t: `Hola${p ? ' ' + p.n.split(' ')[0] : ''}, para seguir con ${a.titulo.toLowerCase()} me falta:\n\n${a.docs.filter((x) => !x.ok).map((x) => '• ' + x.n).join('\n')}\n\nMe lo puedes mandar por aquí, en foto o PDF. Gracias.` }; },
+  pedirD() { const d = S.d; S.hoja = { k: 'msg', t: `Hola${d.nombre ? ' ' + d.nombre.split(' ')[0] : ''}, para empezar a revisar tu asunto necesito:\n\n${pedirD(d).filter((x) => !d.fuera.includes(x)).map((x) => '• ' + x).join('\n')}\n\nMe lo puedes mandar por aquí, en foto o PDF. Gracias.` }; },
+  copiarMsg() { copiar(val('msg')); return false; },
+  hojaok() { const v = val('hx'), a = cur(), k = S.hoja.k; if (!v) return false; if (k === 'etapa') a.plan.push({ etapa: v, tareas: [] }); if (k === 'doc') a.docs.push(Dc(v, a.personas[0] ? a.personas[0].n.split(' ')[0] : 'Cliente')); if (k === 'nombre') a.titulo = v; S.hoja = null; },
+  addres() { const v = val('nr'); if (!v) return false; cur().opinion.resolver.push({ t: v, quien: 'Fortius' }); S.foco = 'nr'; },
+  delres(d) { cur().opinion.resolver.splice(d.i, 1); },
+  pasarplan() { const a = cur(), r = a.opinion.resolver; if (!r.length) { avisa('Primero anota qué hay que resolver'); return; } a.plan.push({ etapa: 'Resolver', tareas: r.map((x) => T(x.t, x.quien)) }); anota(a, 'Nota', 'La opinión pasó al plan.'); avisa('Agregado al plan como etapa «Resolver»'); },
+  addl() { const c = val('hc'), m = +val('hm').replace(/[^0-9.]/g, ''); if (!c || !m) return false; cur().honor.lineas.push({ c, m }); S.foco = 'hc'; },
+  dell(d) { cur().honor.lineas.splice(d.i, 1); },
+  addc() { const m = +val('cm').replace(/[^0-9.]/g, ''); if (!m) return false; const a = cur(); a.honor.cobros.push({ m, forma: S.nf || 'Transferencia', f: HOY }); anota(a, 'Nota', `Cobro de ${dinero(m)}.`); avisa('Cobro registrado', () => { a.honor.cobros.pop(); a.hist.shift(); }); },
+  pub() { const a = cur(); a.publicado = !a.publicado; anota(a, 'Nota', a.publicado ? 'Publicado en el sitio.' : 'Retirado del sitio.'); },
+  addp() { const n = val('pn'); if (!n) return false; cur().personas.push(P(n, S.np || 'Contacto', val('pt'))); S.foco = 'pn'; },
+  addi() { const a = cur(), b = a.inmuebles[a.inmuebles.length - 1]; a.inmuebles.push({ ...b, n: 'Local nuevo', precio: 0, estado: 'Libre', datos: {}, fotos: [] }); S.inm = a.inmuebles.length - 1; },
+  addh() { const v = val('hn'); if (!v) return false; anota(cur(), S.ht, v); S.foco = 'hn'; },
+  av(d) { const a = cur(), x = a.averiguar.splice(+d.i, 1)[0]; anota(a, 'Nota', `Ya se sabe: ${x}.`); avisa('Resuelto', () => { a.averiguar.splice(+d.i, 0, x); a.hist.shift(); }); },
+  addav() { const v = val('na'); if (!v) return false; cur().averiguar.push(v); },
+  subir(d) { subir(d.k, d.i); return false; },
+  dfuera(d) { const f = S.d.fuera, i = f.indexOf(d.v); i < 0 ? f.push(d.v) : f.splice(i, 1); },
+  guardar() {
+    const d = S.d, nom = d.nombre.trim() || 'Sin nombre', corto = nom.split(' ')[0], tipo = d.tipo || 'Casa', zona = d.zona.trim(), nombreA = zona ? `${tipo} en ${zona}` : `${tipo} de ${corto}`;
+    const per = [P(nom, 'Contacto', d.tel.trim())]; if (d.dueno === 'Falleció el titular') per.push(P('Titular', 'Titular', '', 'falleció'));
+    const av = []; if (d.debe.includes('No sabe') || !d.debe.length) av.push('Qué debe de predial y servicios'); if (d.ocupa === 'No sabe' || !d.ocupa) av.push('Quién lo ocupa'); if (d.escritura === 'No sabe' || !d.escritura) av.push('Si tiene escritura'); if (d.ocupa === 'Invadido') av.push('Quién lo invade y desde cuándo');
+    const a = { id: uid(), folio: 'EXP-0000' + (31 + A.length), titulo: nombreA, encargo: encargoD(d), momento: 0, publicado: false, personas: per, inmuebles: [Inm(nombreA, tipo, d.quiere === 'Rentar' ? 'Renta' : 'Venta', zona || 'Por confirmar')],
+      sit: { quiere: d.quiere || 'Vender', dueno: d.dueno || 'No sabe', ocupa: d.ocupa || 'No sabe', escritura: d.escritura || 'No sabe', debe: d.debe.length ? [...d.debe] : ['No sabe'] }, averiguar: av,
+      docs: pedirD(d).filter((x) => !d.fuera.includes(x)).map((x) => Dc(x, corto)), opinion: Op(), honor: Hon(),
+      plan: [{ etapa: 'Estudio', tareas: [T('Recibir los documentos', 'Cliente', 3), T('Estudiar el asunto', 'Fortius', 5), T('Emitir la opinión jurídica', 'Fortius', 8), T('Presupuesto de honorarios', 'Fortius', 9)] }],
+      hist: [{ f: HOY, tipo: 'Nota', t: `Consulta por ${d.via.toLowerCase()}. ${d.que.trim() || 'Sin notas de la llamada.'}`, quien: 'Tú' }] };
+    A.unshift(a); S.aid = a.id; S.view = 'asuntos'; S.det = true; S.win = null; S.mant = false; avisa('Asunto abierto con su persona, su inmueble y su lista');
+  },
+  cerrar() { S.hoja = null; },
+  deshacer() { if (S.aviso && S.aviso.des) S.aviso.des(); S.aviso = null; }
+};
+function leer(ruta) { const p = ruta.split('.'); let o, i = 1; if (p[0] === 'a') o = cur(); else if (p[0] === 'd') o = S.d; else if (p[0] === 'S') o = S; else if (p[0] === 'i') o = inmA(); else if (p[0] === 't') { o = buscaT(p[1]).t; i = 2; } for (; i < p.length; i++) o = o == null ? o : o[p[i]]; return o; }
+function hacer(nombre, d, el) { const f = ACC[nombre]; if (!f) return; if (f(d, el) !== false) pintar(); }
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  if (el.dataset.a === 'cerrar' && el.classList.contains('velo') && e.target.closest('[data-quieto]')) return;
+  hacer(el.dataset.a, el.dataset, el);
+});
+document.addEventListener('input', (e) => {
+  const el = e.target; if (!el.dataset || !el.dataset.b || el.type === 'date') return;
+  pon(el.dataset.b, 'num' in el.dataset ? +el.value.replace(/[^0-9.]/g, '') || 0 : el.value);
+  if ('busca' in el.dataset) { S.view = 'asuntos'; S.det = false; pintar(); }
+  if ('vivo' in el.dataset) pintar();
+});
+document.addEventListener('change', (e) => { const el = e.target; if (el.type === 'date' && el.dataset.b) { pon(el.dataset.b, el.value); pintar(); } });
+document.getElementById('archivo').addEventListener('change', (e) => {
+  const fs = [...e.target.files], u = S.up, a = cur(); if (!fs.length || !u) return;
+  if (u.k === 'fotos') { fs.forEach((f) => inmA().fotos.push({ url: URL.createObjectURL(f), n: f.name })); avisa(`${fs.length} foto${fs.length > 1 ? 's' : ''} agregada${fs.length > 1 ? 's' : ''}`); }
+  if (u.k === 'doc') { const x = a.docs[u.i]; x.archivo = fs[0].name; x.ok = true; anota(a, 'Nota', `Recibido: ${x.n}.`); avisa('Archivo guardado y marcado recibido'); }
+  if (u.k === 'docs') { fs.forEach((f) => { const n = f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' '); a.docs.push({ n, de: 'Fortius', ok: true, grupo: grupoDe(n), archivo: f.name }); }); avisa(`${fs.length} archivo${fs.length > 1 ? 's' : ''} guardado${fs.length > 1 ? 's' : ''}`); }
+  if (u.k === 'opinion') { a.opinion.archivo = fs[0].name; anota(a, 'Nota', 'Se cargó la opinión jurídica.'); avisa('Opinión cargada'); }
+  if (u.k === 'pres') { a.honor.archivo = fs[0].name; avisa('Presupuesto cargado'); }
+  if (u.k === 'contrato') { a.honor.contratoArchivo = fs[0].name; a.honor.contrato = 'Firmado'; anota(a, 'Nota', 'Contrato firmado cargado.'); avisa('Contrato firmado'); }
+  e.target.value = ''; S.up = null; pintar();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { if (S.menu) S.menu = null; else if (S.hoja) S.hoja = null; else if (S.win) S.win = null; else if (S.view === 'consulta') return hacer('salir', {}); else return; return pintar(); }
+  if (e.key === 'Enter' && e.target.dataset && e.target.dataset.enter) { e.preventDefault(); hacer(e.target.dataset.enter, e.target.dataset, e.target); }
+});
+
+/* ====== Ampliación: apartados a la medida, sección Inmuebles, Equipo e Inicio ====== */
+Object.assign(I, {
+  casa: '<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/>',
+  video: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5l5-3v9l-5-3z"/>',
+  r360: '<ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M12 3c-3.5 3-3.5 15 0 18M12 3c3.5 3 3.5 15 0 18"/>'
+});
+const EQUIPO = [{ n: 'Moisés Núñez', rol: 'Director' }, { n: 'Nallely De la Cruz', rol: 'Asesora' }, { n: 'Carlos Ejemplo', rol: 'Asesor' }];
+const VIS = () => S.rol === 'director' ? A : A.filter((a) => a.lleva === EQUIPO[1].n);
+const BASE = ['personas', 'plan', 'historial'];
+const apartDe = (a) => { const e = a.encargo, s = new Set(['personas', 'inmueble', 'documentos', 'plan', 'historial']); if (e.includes('Revisar') || e.includes('Asesorar') || e.includes('Comercializar')) s.add('situacion'); if (e.includes('Revisar') || e.includes('Asesorar') || a.opinion.v) s.add('opinion'); if (total(a) || e.includes('Tramitar')) s.add('honorarios'); return REN.map((r) => r[0]).filter((k) => s.has(k)); };
+const conApart = (a, k) => { a.apart = REN.map((r) => r[0]).filter((x) => a.apart.includes(x) || x === k); };
+['Moisés Núñez', 'Nallely De la Cruz', 'Nallely De la Cruz', 'Carlos Ejemplo', 'Moisés Núñez', 'Carlos Ejemplo'].forEach((n, i) => { A[i].lleva = n; });
+A.forEach((a) => { a.apart = apartDe(a); a.propios = []; });
+A[3].inmuebles.forEach((i) => { i.pub = true; });
+Object.assign(S, { rol: 'director', filL: '', inmF: '', up2: null });
+
+function propio(pr) {
+  return `<div class="card">${pr.items.map((x, i) => `<div class="t" data-est="${x.ok ? 'hecha' : 'pend'}" style="padding:0 6px"><button class="ckb" data-a="pitem" data-i="${i}" aria-label="${x.ok ? 'Desmarcar' : 'Marcar'}: ${esc(x.t)}"><span class="ck cu">${x.ok ? ic('ok', 12) : ''}</span></button><span class="tb"><span class="n">${esc(x.t)}</span></span></div>`).join('')}<div class="pad"><input class="inp" id="npi" placeholder="Agregar renglón" data-enter="addpitem"></div></div><p class="m">Apartado propio de este asunto, para lo que no cabe en los demás.</p>`;
+}
+
+vAsunto = function () {
+  const a = cur(); if (!a) return ''; const s = sigue(a), op = OPN[a.opinion.v], dir = S.rol === 'director';
+  const filas = a.apart.map((k) => { const [, l, i, c] = RENM[k]; return `<button class="ren" data-a="win" data-v="${k}">${tile(i, c)}<span class="c"><b>${k === 'inmueble' && a.inmuebles.length > 1 ? 'Inmuebles' : l}</b><span>${esc(R[k](a))}</span></span>${ic('ch', 16)}</button>`; }).join('') +
+    a.propios.map((p) => `<button class="ren" data-a="win" data-v="p:${p.id}">${tile('lista', 'gray')}<span class="c"><b>${esc(p.n)}</b><span>${p.items.length ? `${p.items.filter((x) => x.ok).length} de ${p.items.length}` : 'Vacío'}</span></span>${ic('ch', 16)}</button>`).join('');
+  return `<div class="in">
+    <div class="top"><button class="btn gho atras" data-a="volver">${ic('at', 16)}Asuntos</button><span class="m num">${a.folio}</span><span class="sp"></span>
+      ${drop({ ops: MOM.map((m, i) => [i, m]), val: a.momento, path: 'a.momento', cls: 'pil', al: 'En qué va', after: (v) => anota(a, 'Nota', `Pasó a ${MOM[v].toLowerCase()}.`), pre: '<span style="width:7px;height:7px;border-radius:50%;background:var(--acc)"></span>' })}
+      <button class="btn pri" data-a="men" data-m="nuevo">${ic('mas', 16)}Nuevo${ic('down', 14)}</button><button class="btn ico" data-a="men" data-m="mas" aria-label="Más opciones">${ic('dots')}</button></div>
+    <div><h1 class="h1">${esc(a.titulo)}</h1><div class="fila" style="padding-top:8px">${a.encargo.map((e) => `<span class="pill">${ic(ENC[e][0], 12)}${e}</span>`).join('')}${op[1] ? `<span class="pill ${op[1]}">${ic('balanza', 12)}${op[0]}</span>` : ''}${a.inmuebles.some((i) => i.pub) ? `<span class="pill ok">${ic('globo', 12)}En el sitio</span>` : ''}${dir ? drop({ ops: EQUIPO.map((e) => e.n), val: a.lleva, path: 'a.lleva', cls: 'pil', ic: 'users', al: 'Quién lo lleva', after: (v) => anota(a, 'Nota', `Lo lleva ${v}.`) }) : `<span class="pill">${ic('users', 12)}${esc(a.lleva)}</span>`}</div></div>
+    ${s ? `<div class="sigue"><button class="ckb" data-a="tog" data-t="${s.t.id}" aria-label="Marcar hecha: ${esc(s.t.t)}"><span class="ck" style="background:var(--card)"></span></button><div style="flex:1;min-width:0"><p class="q">${esc(s.t.t)}</p><p class="m">${esc(s.t.quien)} · <span class="${s.t.fecha && dias(s.t.fecha) < 0 ? 'c-bad' : ''}">${fecha(s.t.fecha)}</span></p></div><button class="btn gho ico" data-a="men" data-m="posponer" data-t="${s.t.id}" title="Posponer" aria-label="Posponer">${ic('reloj')}</button></div>`
+      : `<div class="sigue" style="background:var(--warn-f);padding:10px 12px"><span class="c-warn">${ic('alerta')}</span><input class="inp" id="ns" placeholder="Sin siguiente paso. ¿Qué sigue?" data-enter="addsig"></div>`}
+    <div class="card">${filas}</div>
+    <button class="ren sola" data-a="men" data-m="apart">${ic('mas', 16)}Agregar apartado</button>
+  </div>`;
+};
+
+ventana = function () {
+  if (!S.win) { S._w = null; return ''; }
+  const a = cur(), pr = S.win.startsWith('p:') ? a.propios.find((x) => x.id === S.win.slice(2)) : null;
+  if (!pr && !RENM[S.win]) { S.win = null; S._w = null; return ''; }
+  if (!pr && !a.apart.includes(S.win)) conApart(a, S.win);
+  const [k, l, i, c] = pr ? [S.win, pr.n, 'lista', 'gray'] : RENM[S.win], varios = k === 'inmueble' && a.inmuebles.length > 1 && S.inm !== null, q = S._w === S.win ? 'quieta' : ''; S._w = S.win;
+  return `<div class="wvelo ${q}" data-a="wcerrar"></div><aside class="win ${q}" role="dialog" aria-label="${esc(l)}"><div class="win-h">${varios ? `<button class="btn gho ico" data-a="inm" data-i="-1" aria-label="Volver a los inmuebles">${ic('at')}</button>` : ''}${tile(i, c)}<div style="min-width:0;flex:1"><b>${varios || (k === 'inmueble' && a.inmuebles.length === 1) ? esc(inmA().n) : k === 'inmueble' ? 'Inmuebles' : esc(l)}</b><p class="m" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.titulo)}</p></div>${S.view !== 'asuntos' ? `<button class="btn" data-a="ir" data-id="${a.id}" title="Ir a su asunto">${ic('asu', 16)}Asunto</button>` : ''}${BASE.includes(k) ? '' : `<button class="btn gho ico" data-a="men" data-m="apartop" aria-label="Opciones del apartado">${ic('dots')}</button>`}<button class="btn gho ico" data-a="wcerrar" aria-label="Cerrar">${ic('x')}</button></div><div class="win-c" id="p-win">${pr ? propio(pr) : WIN[k](a)}</div></aside>`;
+};
+
+WIN.inmueble = (a) => {
+  if (a.inmuebles.length > 1 && S.inm === null) { const ops = a.sit.quiere === 'Rentar' ? ['Libre', 'Apartado', 'Rentado'] : ['Libre', 'Apartado', 'Vendido'];
+    return `<div class="card">${a.inmuebles.map((i, k) => `<div class="ren">${i.fotos[0] ? `<img class="mini" src="${i.fotos[0].url}" alt="">` : ''}<button class="c" data-a="inm" data-i="${k}"><b>${esc(i.n)}</b><span>${i.datos.construccion ? esc(i.datos.construccion) + ' m² · ' : ''}${i.precio ? dinero(i.precio) : 'sin precio'}${i.pub ? ' · publicado' : ''}</span></button>${drop({ ops, val: i.estado, path: `a.inmuebles.${k}.estado`, cls: 'pil', log: i.n })}<button class="btn gho ico" data-a="inm" data-i="${k}" aria-label="Abrir ${esc(i.n)}">${ic('ch', 16)}</button></div>`).join('')}</div>
+    <button class="btn" data-a="addi">${ic('copia', 16)}Agregar otro igual</button>`; }
+  const i = inmA(), grupos = CAMPOS[i.tipo] || [], per = a.docs.map((d, x) => ({ d, x })).filter((o) => o.d.grupo === 'Permisos y planos' || o.d.grupo === 'Propiedad');
+  const campos = grupos.flatMap((g) => g[1]), llenos = campos.filter((f) => i.datos[f[0]]).length, planos = a.docs.filter((d) => /plano/i.test(d.n) && d.ok).length;
+  const tabs = [['datos', 'Ficha técnica', 'regla'], ['fotos', `Fotos${i.fotos.length ? ' ' + i.fotos.length : ''}`, 'img'], ['media', 'Video y 360', 'video'], ['permisos', 'Planos y permisos', 'escudo'], ['ubic', 'Ubicación', 'pin'], ['sitio', 'Sitio', 'globo']];
+  const lleva = [['datos', 'Ficha técnica', llenos >= Math.ceil(campos.length * .6), `${llenos} de ${campos.length} datos`], ['fotos', 'Fotos', i.fotos.length >= 5, `${i.fotos.length} de 5 recomendadas`], ['media', 'Video', !!(i.video || i.videoUrl), i.video || (i.videoUrl ? 'Enlace puesto' : 'Sin video')], ['media', 'Recorrido 360', !!(i.r360 || i.r360n), i.r360n ? `${i.r360n} tomas` : i.r360 ? 'Enlace puesto' : 'Sin recorrido'], ['permisos', 'Planos', planos > 0, planos ? `${planos} cargado${planos > 1 ? 's' : ''}` : 'Sin planos'], ['ubic', 'Ubicación', !!i.zona && i.zona !== 'Por confirmar', i.zona || 'Sin colonia']];
+  const cuerpo = {
+    datos: `<div class="card pad"><div class="g2">${campo('Nombre', inp('i.n', i.n))}${campo('Tipo', drop({ ops: TIPOS, val: i.tipo, path: 'i.tipo', cls: 'w', ic: 'edif' }))}${campo('Operación', drop({ ops: ['Venta', 'Renta'], val: i.op, path: 'i.op', cls: 'w' }))}${campo(i.op === 'Renta' ? 'Renta mensual' : 'Precio', `<span class="uni">${inp('i.precio', i.precio ? i.precio.toLocaleString('en-US') : '', { dinero: 1, num: 1, ph: 'A consulta' })}<i>MXN</i></span>`)}</div></div>` +
+      grupos.map(([g, fs], gi) => { const key = i.tipo + g, ab = S.grp[key] ?? gi === 0, n = fs.filter((f) => i.datos[f[0]]).length;
+        return `<div class="card"><button class="gh" data-a="grp" data-v="${esc(key)}" data-d="${gi === 0 ? 1 : 0}" aria-expanded="${ab}">${ic('ch', 15)}<span>${g}</span><span class="sp"></span><span class="pill ${n === fs.length ? 'ok' : ''}">${n} de ${fs.length}</span></button>${ab ? `<div class="pad"><div class="g2">${fs.map(([c, l, u]) => campo(l, Array.isArray(u) ? drop({ ops: u, val: i.datos[c] || '', path: `i.datos.${c}`, cls: 'w', ph: 'Sin dato' }) : inp(`i.datos.${c}`, i.datos[c], { uni: u, num: 1 }))).join('')}</div></div>` : ''}</div>`; }).join(''),
+    fotos: i.fotos.length ? `<div class="fotos">${i.fotos.map((f, x) => `<div class="foto"><img src="${f.url}" alt="${esc(f.n)}">${x === 0 ? '<span class="pill">Portada</span>' : ''}<button class="btn ico" data-a="men" data-m="foto" data-i="${x}" aria-label="Opciones de la foto">${ic('dots', 15)}</button></div>`).join('')}</div><button class="btn" data-a="subir" data-k="fotos">${ic('subir', 16)}Subir más</button>`
+      : `<div class="vacio">${ic('img', 26)}<b>Sin fotos</b><span class="m">Elige varias a la vez. La primera queda de portada.</span><button class="btn pri" data-a="subir" data-k="fotos">${ic('subir', 16)}Subir fotos</button></div>`,
+    media: `<div class="card"><div class="ren">${tile('video', 'red')}<span class="c"><b>Video</b><span>${i.video ? esc(i.video) : i.videoUrl ? 'Enlace puesto' : 'Sin video'}</span></span><button class="btn" data-a="subir2" data-k="video">${ic('subir', 16)}Subir</button></div><div class="pad">${campo('O pega el enlace del video', inp('i.videoUrl', i.videoUrl, { ph: 'https://' }))}</div></div>
+      <div class="card"><div class="ren">${tile('r360', 'violet')}<span class="c"><b>Recorrido 360</b><span>${i.r360n ? `${i.r360n} tomas cargadas` : i.r360 ? 'Enlace puesto' : 'Sin recorrido'}</span></span><button class="btn" data-a="subir2" data-k="r360">${ic('subir', 16)}Subir tomas</button></div><div class="pad">${campo('O pega el enlace del recorrido', inp('i.r360', i.r360, { ph: 'https://' }))}</div></div>`,
+    permisos: `<div class="card">${per.length ? per.map(({ d, x }) => docRen(d, x)).join('') : '<div class="pad m">Todavía no hay escritura, licencias ni planos.</div>'}</div><button class="btn" data-a="men" data-m="addpermiso">${ic('mas', 16)}Agregar${ic('down', 14)}</button><p class="m">Son los mismos documentos del asunto: lo que subas aquí aparece allá.</p>`,
+    ubic: `<div class="card pad"><div class="g2">${campo('Colonia', inp('i.zona', i.zona))}${campo('Ciudad', inp('i.ciudad', i.ciudad))}${campo('Dirección exacta (privada)', inp('i.dir', i.dir, { ph: 'Calle y número' }))}${campo('Referencias', inp('i.ref', i.ref, { ph: 'Entre qué calles' }))}</div><div style="padding-top:12px">${campo('Enlace del mapa', inp('i.mapa', i.mapa, { ph: 'https://maps…' }))}</div></div>
+      <div class="card"><div class="ren">${tile('ojo', 'gray')}<span class="c"><b>Dirección exacta en el sitio</b><span>${i.dirPub ? 'El público ve calle y número' : 'El público ve solo la colonia'}</span></span><button class="sw" role="switch" aria-checked="${!!i.dirPub}" data-a="dirpub" aria-label="Mostrar la dirección exacta en el sitio"></button></div></div>`,
+    sitio: `<div class="card"><div class="ren">${tile('globo', i.pub ? 'green' : 'gray')}<span class="c"><b>${i.pub ? 'Publicado' : 'Sin publicar'}</b><span>${i.pub ? 'Visible en el sitio' : 'Guardar no publica'}</span></span><button class="sw" role="switch" aria-checked="${!!i.pub}" data-a="pub" aria-label="Publicado en el sitio"></button></div></div>
+      <div><p class="m" style="padding:0 2px 6px">Qué lleva</p><div class="card">${lleva.map(([t, l, ok, det]) => `<button class="ren" data-a="tab" data-v="${t}"><span class="c"><b style="font-weight:500">${l}</b><span>${esc(det)}</span></span><span class="pill ${ok ? 'ok' : 'warn'}">${ok ? 'Listo' : 'Falta'}</span>${ic('ch', 16)}</button>`).join('')}</div></div>
+      ${campo('Descripción para el sitio', `<textarea class="inp" id="f_desc" data-b="i.desc" placeholder="Lo que verá quien busca">${esc(i.desc || '')}</textarea>`)}<button class="btn" data-a="men" data-m="compartir">${ic('subir', 16)}Compartir${ic('down', 14)}</button>`
+  }[S.tab] || '';
+  return `<div class="tabs" role="tablist">${tabs.map(([v, l, ico]) => `<button role="tab" aria-selected="${S.tab === v}" data-a="tab" data-v="${v}">${ic(ico, 16)}${l}</button>`).join('')}</div>${cuerpo}`;
+};
+
+vAsuntos = function () {
+  const q = S.q.trim().toLowerCase(), base = VIS(), dir = S.rol === 'director';
+  const lista = base.filter((a) => (S.fil === '' || a.momento === S.fil) && (!S.filL || a.lleva === S.filL) && (!q || (a.titulo + ' ' + a.folio + ' ' + a.personas.map((p) => p.n).join(' ') + ' ' + a.inmuebles.map((i) => i.zona).join(' ')).toLowerCase().includes(q)));
+  return `<div class="main dos" data-det="${S.det ? 1 : 0}">
+    <section class="pane lista" id="p-lista"><div class="in lado">
+      <div class="fila" style="padding:0 4px"><h1 class="h1" style="font-size:19px">Asuntos</h1><span class="sp"></span><button class="btn pri ico" data-a="consulta" title="Nueva consulta" aria-label="Nueva consulta">${ic('mas', 16)}</button></div>
+      <label class="srch" style="margin:2px 4px">${ic('bus', 16)}<input id="q2" data-b="S.q" data-vivo placeholder="Buscar" value="${esc(S.q)}" aria-label="Buscar asuntos"></label>
+      <div class="fila" style="padding:0 4px">${drop({ ops: [['', `Todos · ${base.length}`]].concat(MOM.map((m, i) => [i, `${m} · ${base.filter((a) => a.momento === i).length}`])), val: S.fil, path: 'S.fil', cls: 'pil', al: 'Qué ver' })}${dir ? drop({ ops: [['', 'Todo el equipo']].concat(EQUIPO.map((e) => [e.n, e.n])), val: S.filL, path: 'S.filL', cls: 'pil', ic: 'users', al: 'Quién lo lleva' }) : ''}</div>
+      <div>${lista.length ? lista.map((a) => { const s = sigue(a), e = ENC[a.encargo[0]] || ['asu', 'gray']; return `<button class="it" data-a="abrir" data-id="${a.id}" aria-current="${a.id === S.aid}">${tile(e[0], e[1])}<span class="c"><b>${esc(a.titulo)}</b><span class="m ${s ? '' : 'c-warn'}">${s ? esc(s.t.t) : 'Sin siguiente paso'}</span><span class="fila" style="padding-top:4px;gap:6px"><span class="pill">${MOM[a.momento]}</span>${s && s.t.fecha ? `<span class="pill ${dias(s.t.fecha) < 0 ? 'bad' : dias(s.t.fecha) === 0 ? 'acc' : ''}">${fecha(s.t.fecha)}</span>` : ''}${dir ? `<span class="pill" title="${esc(a.lleva)}">${ini(a.lleva)}</span>` : ''}</span></span></button>`; }).join('') : '<p class="m" style="padding:12px">Ningún asunto coincide.</p>'}</div>
+    </div></section>
+    <section class="pane det" id="p-det">${lista.length || base.includes(cur()) ? vAsunto() : ''}</section></div>`;
+};
+
+vHoy = function () {
+  const p = VIS().flatMap(tareas).filter((x) => x.t.est === 'pend');
+  const mio = p.filter((x) => x.t.quien === 'Fortius' && x.t.fecha && dias(x.t.fecha) <= 0).sort(ord), prox = p.filter((x) => x.t.quien === 'Fortius' && x.t.fecha && dias(x.t.fecha) > 0 && dias(x.t.fecha) <= 7).sort(ord), otros = p.filter((x) => x.t.quien !== 'Fortius' && x.t.fecha && dias(x.t.fecha) <= 7).sort(ord);
+  const cob = VIS().filter((a) => a.honor.estado === 'Aceptado' && total(a) - cobrado(a) > 0);
+  const bloque = (i, c, t, xs, vacio) => `<div><h2 class="h2" style="padding:0 2px 8px">${tile(i, c, 1)}${t} <span class="m">${xs.length || ''}</span></h2><div class="card" style="padding:2px 8px">${xs.length ? xs.map((x) => tarea(x, true)).join('') : `<p class="m" style="padding:12px 6px">${vacio}</p>`}</div></div>`;
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div class="top"><div><h1 class="h1">Inicio</h1><p class="m">Lunes 16 de noviembre${S.rol === 'director' ? ' · todo el equipo' : ''}</p></div><span class="sp"></span><button class="btn pri" data-a="consulta">${ic('tel', 16)}Nueva consulta</button></div>
+    ${bloque('hoy', 'blue', 'Hoy', mio, 'Nada pendiente para hoy.')}${bloque('cal', 'indigo', 'Esta semana', prox, 'Sin nada con fecha esta semana.')}${bloque('users', 'orange', 'Lo esperas de otros', otros, 'Nadie te debe nada esta semana.')}
+    <div><h2 class="h2" style="padding:0 2px 8px">${tile('pago', 'green', 1)}Por cobrar <span class="m">${cob.length || ''}</span></h2><div class="card">${cob.map((a) => `<button class="ren" data-a="ir" data-id="${a.id}" data-row="honorarios"><span class="c"><b style="font-weight:500">${esc(a.titulo)}</b></span><span class="num" style="font-weight:600">${dinero(total(a) - cobrado(a))}</span>${ic('ch', 16)}</button>`).join('') || '<p class="pad m">Nada por cobrar.</p>'}</div></div>
+    <p class="m t3">Datos de ejemplo. Nada de lo que hagas aquí se guarda ni se envía.</p>
+  </div></section></div>`;
+};
+
+vDir = function () {
+  const mapa = new Map(); VIS().forEach((a) => a.personas.forEach((p) => { const k = p.n.toLowerCase(); if (!mapa.has(k)) mapa.set(k, { p, as: [] }); mapa.get(k).as.push({ a, papel: p.papel }); }));
+  const q = S.q.trim().toLowerCase(), per = [...mapa.values()].filter((x) => !q || (x.p.n + ' ' + x.p.tel).toLowerCase().includes(q)).sort((x, y) => x.p.n.localeCompare(y.p.n));
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div class="top"><h1 class="h1">Directorio</h1><span class="m num">${per.length}</span><span class="sp"></span><label class="srch" style="margin:0;width:200px">${ic('bus', 16)}<input id="q3" data-b="S.q" data-vivo placeholder="Buscar" value="${esc(S.q)}" aria-label="Buscar personas"></label></div>
+    <div class="card">${per.map(({ p, as }) => `<div class="ren" style="flex-wrap:wrap"><span class="av">${ini(p.n)}</span><span class="c" style="min-width:150px"><b>${esc(p.n)}</b><span>${p.tel ? esc(p.tel) : 'Sin teléfono'}</span></span>${as.map(({ a, papel }) => { const e = ENC[a.encargo[0]] || ['asu', 'gray']; return `<button class="chipas" data-a="ir" data-id="${a.id}" data-row="personas" title="${esc(papel)} en ${esc(a.titulo)}">${tile(e[0], e[1], 1)}<span>${esc(a.titulo)}</span></button>`; }).join('')}</div>`).join('') || '<p class="pad m">Nadie coincide.</p>'}</div>
+  </div></section></div>`;
+};
+
+function vInm() {
+  const todos = VIS().flatMap((a) => a.inmuebles.map((i, k) => ({ a, i, k }))), f = S.inmF;
+  const ver = todos.filter(({ i }) => f === '' || (f === 'pub' ? i.pub : f === 'no' ? !i.pub : i.op === f));
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div class="top"><h1 class="h1">Inmuebles</h1><span class="m num">${todos.length}</span><span class="sp"></span>${drop({ ops: [['', 'Todos'], ['pub', 'Publicados'], ['no', 'Sin publicar'], ['Venta', 'En venta'], ['Renta', 'En renta']], val: f, path: 'S.inmF', cls: 'pil', al: 'Qué ver' })}<button class="btn pri" data-a="nuevoinm">${ic('mas', 16)}Nuevo</button></div>
+    <div class="card">${ver.map(({ a, i, k }) => `<button class="ren" data-a="inmver" data-id="${a.id}" data-i="${k}">${i.fotos[0] ? `<img class="mini" src="${i.fotos[0].url}" alt="">` : tile('edif', 'orange')}<span class="c"><b>${esc(i.n)}</b><span>${esc(i.tipo)} · ${esc(i.zona)}${i.precio ? ' · ' + dinero(i.precio) : ''}</span></span><span class="fila nw" style="gap:5px;color:var(--tx3)">${i.fotos.length ? ic('img', 15) : ''}${i.video || i.videoUrl ? ic('video', 15) : ''}${i.r360 || i.r360n ? ic('r360', 15) : ''}</span><span class="pill ${i.pub ? 'ok' : ''}">${i.pub ? 'Publicado' : 'Sin publicar'}</span>${ic('ch', 16)}</button>`).join('') || '<p class="pad m">Ningún inmueble coincide.</p>'}</div>
+    <p class="m">Aquí se carga todo lo que sale en el sitio: ficha técnica, fotos, video, recorrido 360, planos y ubicación.</p>
+  </div></section></div>`;
+}
+function vEq() {
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div class="top"><h1 class="h1">Equipo</h1><span class="m">Solo lo ve el director</span></div>
+    ${EQUIPO.map((e) => { const as = A.filter((a) => a.lleva === e.n && a.momento < 4), ts = as.flatMap(tareas).filter((x) => x.t.est === 'pend' && x.t.quien === 'Fortius' && x.t.fecha), hoy = ts.filter((x) => dias(x.t.fecha) === 0).length, ven = ts.filter((x) => dias(x.t.fecha) < 0).length, sin = as.filter((a) => !sigue(a)).length, cob = as.reduce((s, a) => s + (a.honor.estado === 'Aceptado' ? Math.max(0, total(a) - cobrado(a)) : 0), 0);
+      return `<div class="card"><div class="ren"><span class="av">${ini(e.n)}</span><span class="c"><b>${e.n}</b><span>${e.rol}</span></span>${ven ? `<span class="pill bad">${ven} vencida${ven > 1 ? 's' : ''}</span>` : ''}${sin ? `<span class="pill warn">${sin} sin siguiente paso</span>` : ''}<button class="btn" data-a="verde" data-v="${e.n}">${ic('asu', 16)}Ver</button></div><div class="pad"><div class="g4"><div class="stat"><b>${as.length}</b><span>Asuntos</span></div><div class="stat"><b>${hoy}</b><span>Para hoy</span></div><div class="stat"><b>${ts.filter((x) => dias(x.t.fecha) > 0 && dias(x.t.fecha) <= 7).length}</b><span>Esta semana</span></div><div class="stat"><b>${dinero(cob)}</b><span>Por cobrar</span></div></div></div></div>`; }).join('')}
+  </div></section></div>`;
+}
+
+const hoja0 = hoja;
+hoja = function () {
+  const h = S.hoja; if (!h || (h.k !== 'apart' && h.k !== 'apartn')) return hoja0();
+  const q = S._h === h ? 'quieta' : ''; S._h = h; const pr = h.k === 'apartn' ? cur().propios.find((x) => 'p:' + x.id === S.win) : null;
+  return `<div class="velo ${q}" data-a="cerrar"><div class="hoja" role="dialog" aria-modal="true" data-quieto><h2 class="h2">${pr ? 'Nombre del apartado' : 'Apartado propio'}</h2><input class="inp" id="hx" placeholder="Visitas, Ofertas, Obra…" value="${pr ? esc(pr.n) : ''}" data-enter="hojaok"><div class="fila"><span class="sp"></span><button class="btn" data-a="cerrar">Cancelar</button><button class="btn pri" data-a="hojaok">Guardar</button></div></div></div>`;
+};
+
+Object.assign(MEN, {
+  apart: () => { const a = cur(), faltan = REN.filter((r) => !a.apart.includes(r[0])).map(([k, l, i]) => ({ ic: i, t: l, fn() { conApart(a, k); } })); return faltan.concat(faltan.length ? [{ sep: 1 }] : [], [{ ic: 'mas', t: 'Apartado propio…', fn() { S.hoja = { k: 'apart' }; S.foco = 'hx'; } }]); },
+  apartop: () => { const a = cur(), k = S.win, mio = k.startsWith('p:'); return (mio ? [{ ic: 'lapiz', t: 'Cambiar el nombre', fn() { S.hoja = { k: 'apartn' }; S.foco = 'hx'; } }] : []).concat([{ ic: 'bote', t: 'Quitar del asunto', pel: 1, fn() { if (mio) { const i = a.propios.findIndex((x) => x.id === k.slice(2)), p = a.propios.splice(i, 1)[0]; avisa('Apartado quitado', () => a.propios.splice(i, 0, p)); } else { const antes = a.apart; a.apart = a.apart.filter((x) => x !== k); avisa('Apartado quitado. Sus datos se conservan', () => { a.apart = antes; }); } S.win = null; } }]); },
+  cuenta: () => [{ ic: 'band', t: 'Ver como director', on: S.rol === 'director', fn() { S.rol = 'director'; } }, { ic: 'users', t: 'Ver como asesora', on: S.rol === 'asesor', fn() { S.rol = 'asesor'; S.filL = ''; if (S.view === 'eq') S.view = 'hoy'; } }],
+  masnav: () => [{ ic: 'users', t: 'Directorio', fn() { ACC.nav({ v: 'dir' }); } }, { ic: 'lib', t: 'Biblioteca', fn() { ACC.nav({ v: 'lib' }); } }].concat(S.rol === 'director' ? [{ ic: 'band', t: 'Equipo', fn() { ACC.nav({ v: 'eq' }); } }] : [], [{ sep: 1 }], MEN.cuenta())
+});
+const hojaok0 = ACC.hojaok, guardar0 = ACC.guardar;
+Object.assign(ACC, {
+  hojaok(d) { const k = S.hoja.k; if (k !== 'apart' && k !== 'apartn') return hojaok0(d); const v = val('hx'); if (!v) return false; if (k === 'apart') { const p = { id: uid(), n: v, items: [] }; cur().propios.push(p); S.win = 'p:' + p.id; S.foco = 'npi'; } else { const p = cur().propios.find((x) => 'p:' + x.id === S.win); if (p) p.n = v; } S.hoja = null; },
+  guardar() { guardar0(); const a = A[0]; a.lleva = S.rol === 'director' ? EQUIPO[0].n : EQUIPO[1].n; a.apart = apartDe(a); a.propios = []; },
+  pitem(d) { const p = cur().propios.find((x) => 'p:' + x.id === S.win); p.items[d.i].ok = !p.items[d.i].ok; },
+  addpitem() { const v = val('npi'); if (!v) return false; cur().propios.find((x) => 'p:' + x.id === S.win).items.push({ t: v, ok: false }); },
+  pub() { const i = inmA(), a = cur(); i.pub = !i.pub; anota(a, 'Nota', `${i.n}: ${i.pub ? 'publicado en el sitio' : 'retirado del sitio'}.`); avisa(i.pub ? 'Publicado' : 'Retirado del sitio', () => { i.pub = !i.pub; a.hist.shift(); }); },
+  dirpub() { const i = inmA(); i.dirPub = !i.dirPub; },
+  inmver(d) { S.aid = d.id; S.inm = +d.i; S.win = 'inmueble'; S.tab = 'datos'; },
+  nuevoinm() { const d0 = S.d; S.d = Object.assign(nuevaD(), { nombre: 'Propietario por definir', quiere: 'Vender', tipo: 'Casa' }); guardar0(); S.d = d0; const a = A[0]; a.titulo = 'Inmueble nuevo'; a.inmuebles[0].n = 'Inmueble nuevo'; a.encargo = ['Comercializar']; a.lleva = S.rol === 'director' ? EQUIPO[0].n : EQUIPO[1].n; a.apart = apartDe(a); a.propios = []; S.view = 'inm'; S.det = false; S.inm = 0; S.win = 'inmueble'; S.tab = 'datos'; avisa('Inmueble creado con su asunto de captación'); },
+  verde(d) { S.filL = d.v; S.fil = ''; S.view = 'asuntos'; S.det = false; S.mant = false; const p = A.find((a) => a.lleva === d.v); if (p) S.aid = p.id; },
+  subir2(d) { S.up = null; S.up2 = { k: d.k }; const f = document.getElementById('archivo'); f.multiple = d.k === 'r360'; f.accept = d.k === 'video' ? 'video/*' : 'image/*'; f.click(); return false; }
+});
+document.getElementById('archivo').addEventListener('change', (e) => {
+  const fs = [...e.target.files], u = S.up2; if (!fs.length || !u) return; const i = inmA();
+  if (u.k === 'video') { i.video = fs[0].name; avisa('Video cargado'); } else { i.r360n = (i.r360n || 0) + fs.length; avisa(`${fs.length} toma${fs.length > 1 ? 's' : ''} cargada${fs.length > 1 ? 's' : ''}`); }
+  e.target.value = ''; S.up2 = null; pintar();
+});
+
+const NAV2 = [['hoy', 'Inicio', 'casa'], ['asuntos', 'Asuntos', 'asu'], ['inm', 'Inmuebles', 'edif'], ['dir', 'Directorio', 'users'], ['lib', 'Biblioteca', 'lib'], ['eq', 'Equipo', 'band']];
+pintar = function () {
+  const app = document.getElementById('app'), sc = {}, act = document.activeElement, fid = S.foco || (act && act.id), sel = !S.foco && act && act.id && act.selectionStart != null ? [act.selectionStart, act.selectionEnd] : null;
+  app.querySelectorAll('.pane,.win-c').forEach((p) => { sc[p.id] = p.scrollTop; });
+  DR = []; S.foco = null;
+  const vis = VIS(); if (!vis.includes(cur()) && vis[0]) S.aid = vis[0].id;
+  if (S.view === 'eq' && S.rol !== 'director') S.view = 'hoy';
+  const navs = NAV2.filter((n) => n[0] !== 'eq' || S.rol === 'director'), yo = S.rol === 'director' ? EQUIPO[0] : EQUIPO[1];
+  const cuerpo = { hoy: vHoy, asuntos: vAsuntos, inm: vInm, dir: vDir, lib: vLib, eq: vEq, consulta: vConsulta }[S.view]();
+  const cuenta = { asuntos: vis.length, inm: vis.reduce((s, a) => s + a.inmuebles.length, 0) };
+  const nv = navs.map(([v, l, i]) => `<button class="nv" data-a="nav" data-v="${v}" ${S.view === v ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${cuenta[v] != null ? `<span class="n">${cuenta[v]}</span>` : ''}</button>`).join('');
+  const enMas = ['dir', 'lib', 'eq'].includes(S.view);
+  const bar = [['hoy', 'Inicio', 'casa'], ['asuntos', 'Asuntos', 'asu']].map(([v, l, i]) => `<button data-a="nav" data-v="${v}" ${S.view === v ? 'aria-current="page"' : ''}>${ic(i, 21)}${l}</button>`).join('') + `<button class="mas" data-a="consulta" aria-label="Nueva consulta">${ic('mas', 22)}</button><button data-a="nav" data-v="inm" ${S.view === 'inm' ? 'aria-current="page"' : ''}>${ic('edif', 21)}Inmuebles</button><button data-a="men" data-m="masnav" ${enMas ? 'aria-current="page"' : ''}>${ic('dots', 21)}Más</button>`;
+  app.innerHTML = `<div class="app"><aside class="side"><div class="ws"><span class="logo">F</span>Fortius</div><label class="srch" style="margin-top:0">${ic('bus', 16)}<input id="q" data-b="S.q" data-busca placeholder="Buscar" value="${esc(S.q)}" aria-label="Buscar"></label><nav aria-label="Secciones">${nv}</nav><div class="sec">Recientes</div>${vis.slice(0, 4).map((a) => { const e = ENC[a.encargo[0]] || ['asu', 'gray']; return `<button class="nv" data-a="ir" data-id="${a.id}">${tile(e[0], e[1], 1)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.titulo)}</span></button>`; }).join('')}<button class="nv cuenta" data-a="men" data-m="cuenta"><span class="av">${ini(yo.n)}</span><span class="c"><span style="color:var(--tx);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${yo.n}</span><small>${yo.rol}</small></span>${ic('down', 14)}</button></aside>${cuerpo}<nav class="barra" aria-label="Secciones">${bar}</nav></div>${ventana()}${menu()}${hoja()}${S.aviso ? `<div class="aviso ${S.aviso.des ? '' : 'solo'}" role="status"><span>${esc(S.aviso.t)}</span>${S.aviso.des ? '<button data-a="deshacer">Deshacer</button>' : ''}</div>` : ''}`;
+  app.querySelectorAll('.pane,.win-c').forEach((p) => { if (sc[p.id] && S.mant) p.scrollTop = sc[p.id]; });
+  S.mant = true;
+  if (fid) { const el = document.getElementById(fid); if (el) { el.focus(); if (sel && el.setSelectionRange) { try { el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } } }
+};
+
+/* ====== Ampliación 2: Herramientas, Interesados, vistas de apartado, formato por preguntas, solicitudes, contactos y lo demás ====== */
+Object.assign(I, { calc: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7.5h7M8.5 12v0M12 12v0M15.5 12v0M8.5 16v0M12 16v0M15.5 16v0"/>' });
+const HORAS = [['', 'Sin hora']].concat(Array.from({ length: 23 }, (_, i) => { const v = String(8 + Math.floor(i / 2)).padStart(2, '0') + ':' + (i % 2 ? '30' : '00'); return [v, v]; }));
+REN.splice(2, 0, ['interesados', 'Interesados', 'etiq', 'blue']); RENM.interesados = REN[2];
+Object.assign(S, { h: null, fm: null, sueltos: [], selI: {}, nv: 'lista', opp: 'Titular', up3: null,
+  contactos: [{ n: 'Marcos Ejemplo', tel: '664 555 0199', nota: 'Pidió informes de rentas en Zona Río', volver: mas(6) }],
+  sol: [{ id: uid(), n: 'Rubén Ejemplo', tel: '664 555 0144', msg: '¿Sigue disponible? ¿El precio es en dólares?', inm: A[5].inmuebles[0].n, aid: A[5].id, k: 0, min: 130, de: '' }, { id: uid(), n: 'Alma Ejemplo', tel: '664 555 0121', msg: 'Busco un local chico para una cafetería', inm: A[3].inmuebles[3].n, aid: A[3].id, k: 3, min: 25, de: '' }] });
+const alDia = (a) => { a.interesados = a.interesados || []; a.honor.gastos = a.honor.gastos || []; a.honor.paga = a.honor.paga || ''; a.honor.vigencia = a.honor.vigencia || ''; a.inmuebles.forEach((i) => { i.moneda = i.moneda || 'MXN'; i.phist = i.phist || []; i.conjunto = i.conjunto || ''; }); a.propios = a.propios || []; if (!a._dia) { a._dia = 1; if (a.encargo.includes('Comercializar')) conApart(a, 'interesados'); } };
+A.forEach(alDia);
+A[3].interesados = [{ n: 'Sofía Ejemplo', tel: '664 555 0111', inm: 1, fecha: mas(1), hora: '11:00', oferta: 19800, resp: 'Aceptada' }, { n: 'Café del Centro', tel: '664 555 0175', inm: 4, fecha: mas(3), hora: '16:00', oferta: 0, resp: '' }];
+A[5].interesados = [{ n: 'Logística Baja', tel: '664 555 0188', inm: 0, fecha: mas(2), hora: '10:00', oferta: 0, resp: '' }];
+A[3].inmuebles.forEach((i) => { i.conjunto = 'Plaza del Lago · 12 locales, 5 libres'; });
+A[2].honor.paga = A[2].personas[0].n;
+A[4].docs.forEach((d) => { if (/precalific|aval/i.test(d.n)) d.vence = mas(/aval/i.test(d.n) ? 150 : 12); });
+A[4].honor.gastos.push({ c: 'Notaría: escritura y cancelación', m: 38000 }, { c: 'Avalúo', m: 4500 });
+A.forEach((a) => tareas(a).forEach((x) => { if (/^firma$|firmar la escritura|mostrar el local/i.test(x.t.t)) x.t.hora = '12:00'; }));
+A[5].inmuebles[0].moneda = 'USD';
+A[1].propios.push({ id: uid(), n: 'Comparables', vista: 'galeria', cartas: [{ t: 'Terreno en La Gloria', precio: 1950000, m2: '1000', url: '' }, { t: 'Terreno en Santa Fe', precio: 2900000, m2: '1400', url: '' }], items: [] });
+A[2].propios.push({ id: uid(), n: 'Pagos entre las partes', vista: 'tabla', cols: ['Concepto', 'Monto', 'Fecha'], filas: [['Pago de Iván a Rubén', '$350,000', '12 nov'], ['Devolución al comprador', 'Por definir', '']], items: [] });
+
+/* --- Interesados --- */
+R.interesados = (a) => { const x = a.interesados || []; if (!x.length) return 'Nadie todavía'; const v = x.filter((i) => i.fecha).length, o = x.filter((i) => i.oferta).length; return `${x.length} · ${v} con visita${o ? ` · ${o} con oferta` : ''}`; };
+WIN.interesados = (a) => { const x = a.interesados, varios = a.inmuebles.length > 1;
+  return (x.length ? x.map((p, k) => `<div class="card"><div class="ren"><span class="av">${ini(p.n)}</span><span class="c"><b>${esc(p.n)}</b><span>${p.tel ? esc(p.tel) : 'Sin teléfono'}</span></span>${varios ? drop({ ops: a.inmuebles.map((i, j) => [j, i.n]), val: p.inm, path: `a.interesados.${k}.inm`, cls: 'pil', ic: 'edif', al: 'Inmueble que le interesa' }) : ''}<button class="btn gho ico" data-a="men" data-m="interesado" data-i="${k}" aria-label="Más de ${esc(p.n)}">${ic('dots')}</button></div>
+    <div class="pad"><div class="g3">${campo('Visita', `<input class="inp" type="date" id="iv-${k}" data-b="a.interesados.${k}.fecha" value="${p.fecha || ''}">`)}${campo('Hora', drop({ ops: HORAS, val: p.hora || '', path: `a.interesados.${k}.hora`, cls: 'w', ic: 'reloj' }))}${campo('Oferta', inp(`a.interesados.${k}.oferta`, p.oferta ? p.oferta.toLocaleString('en-US') : '', { dinero: 1, num: 1, ph: 'Sin oferta' }))}</div>${p.oferta ? `<div style="padding-top:12px">${campo('Respuesta del dueño', drop({ ops: ['Sin respuesta', 'Aceptada', 'Rechazada', 'Contraoferta'], val: p.resp || 'Sin respuesta', path: `a.interesados.${k}.resp`, cls: 'w', log: `Oferta de ${p.n}` }))}</div>` : ''}</div></div>`).join('') : `<div class="vacio">${ic('etiq', 26)}<b>Nadie todavía</b><span class="m">Quien pregunte por este inmueble en el sitio cae aquí.</span></div>`) +
+    `<div class="card pad"><div class="g2">${campo('Nombre', '<input class="inp" id="in-n" data-enter="addint" autocomplete="off">')}${campo('Teléfono', '<input class="inp num" id="in-t" data-enter="addint" inputmode="tel" autocomplete="off">')}</div><div class="fila" style="padding-top:10px"><span class="sp"></span><button class="btn pri" data-a="addint">${ic('mas', 16)}Agregar interesado</button></div></div>`; };
+
+/* --- Apartados propios con vista --- */
+const propio0 = propio;
+propio = function (pr) {
+  const v = pr.vista || 'lista', k = cur().propios.indexOf(pr), b = `a.propios.${k}`;
+  pr.cols = pr.cols || ['Concepto', 'Monto', 'Fecha']; pr.filas = pr.filas || []; pr.cartas = pr.cartas || []; pr.texto = pr.texto || '';
+  if (v === 'lista') return propio0(pr);
+  if (v === 'texto') return `<textarea class="inp" style="min-height:280px" id="ptx" data-b="${b}.texto" placeholder="Escribe aquí">${esc(pr.texto)}</textarea>`;
+  if (v === 'tabla') return `<div class="card" style="overflow-x:auto"><table class="tbl"><thead><tr>${pr.cols.map((c) => `<th>${esc(c)}</th>`).join('')}<th></th></tr></thead><tbody>${pr.filas.map((f, i) => `<tr>${pr.cols.map((c, j) => `<td><input class="inp" id="tc-${i}-${j}" data-b="${b}.filas.${i}.${j}" value="${esc(f[j] || '')}" aria-label="${esc(c)}"></td>`).join('')}<td><button class="btn gho ico" data-a="delfila" data-i="${i}" aria-label="Quitar renglón">${ic('x', 15)}</button></td></tr>`).join('')}</tbody></table></div><div class="fila"><button class="btn" data-a="addfila">${ic('mas', 16)}Renglón</button><input class="inp" id="ncol" placeholder="Nueva columna" data-enter="addcol" style="flex:1;min-width:130px"></div>`;
+  const con = pr.cartas.filter((c) => c.precio && +String(c.m2).replace(/,/g, '')), prom = con.length ? con.reduce((s, c) => s + c.precio / +String(c.m2).replace(/,/g, ''), 0) / con.length : 0;
+  return `${prom ? `<div class="ban">${ic('rayo', 16)}Promedio: ${dinero(prom)} por m² en ${con.length} tarjetas</div>` : ''}<div class="gal">${pr.cartas.map((c, i) => { const m = +String(c.m2).replace(/,/g, ''); return `<div class="card"><button class="fotoc" data-a="subir3" data-i="${i}" aria-label="Poner foto">${c.url ? `<img src="${c.url}" alt="">` : `${ic('img', 22)}<span class="m">Poner foto</span>`}</button><div class="pad" style="display:grid;gap:8px"><input class="inp" id="gt-${i}" data-b="${b}.cartas.${i}.t" value="${esc(c.t || '')}" placeholder="Nombre" aria-label="Nombre"><div class="g2">${campo('Precio', inp(`${b}.cartas.${i}.precio`, c.precio ? c.precio.toLocaleString('en-US') : '', { dinero: 1, num: 1 }))}${campo('Superficie', inp(`${b}.cartas.${i}.m2`, c.m2, { uni: 'm²', num: 1 }))}</div><div class="fila"><span class="m num">${c.precio && m ? dinero(c.precio / m) + ' por m²' : 'Sin precio por m²'}</span><span class="sp"></span><button class="btn gho ico" data-a="delcarta" data-i="${i}" aria-label="Quitar">${ic('bote', 15)}</button></div></div></div>`; }).join('')}</div><button class="btn" data-a="addcarta">${ic('mas', 16)}Agregar tarjeta</button>`;
+};
+
+/* --- Tarea con hora, fecha de volver a preguntar y «Recordarle» --- */
+tarea = function (x, enHoy) {
+  const t = x.t, venc = t.est === 'pend' && t.fecha && dias(t.fecha) < 0, lg = ligaDe(t.t), otro = t.quien !== 'Fortius';
+  const meta = t.est === 'na' ? `No aplica${t.motivo ? ' · ' + esc(t.motivo) : ''}` : t.est === 'bloq' ? `<span class="c-warn">No se puede todavía${t.motivo ? ' · ' + esc(t.motivo) : ''}</span>` : `${enHoy ? esc(x.a.titulo) : esc(t.quien)}${enHoy && otro ? ' · ' + esc(t.quien) : ''}`;
+  const ab = !enHoy && S.to === t.id;
+  return `<div class="t" data-est="${t.est}">
+    <button class="ckb" data-a="tog" data-t="${t.id}" aria-label="${t.est === 'hecha' ? 'Desmarcar' : 'Marcar hecha'}: ${esc(t.t)}"><span class="ck">${t.est === 'hecha' ? ic('ok', 12) : ''}</span></button>
+    <button class="tb" ${enHoy ? `data-a="ir" data-id="${x.a.id}" data-row="plan"` : `data-a="topen" data-t="${t.id}" aria-expanded="${ab}"`}><span class="n">${esc(t.t)}</span><span class="m">${meta}</span></button>
+    ${otro && t.est === 'pend' ? `<button class="btn gho ico" data-a="recordar" data-t="${t.id}" title="Recordarle" aria-label="Recordarle a ${esc(t.quien)}">${ic('chat', 16)}</button>` : ''}
+    ${lg && !enHoy ? `<button class="btn gho ico" data-a="win" data-v="${lg}" title="Abrir ${RENM[lg][1].toLowerCase()}" aria-label="Abrir ${RENM[lg][1].toLowerCase()}">${ic('liga', 16)}</button>` : ''}
+    ${t.est === 'pend' ? `<span class="pill ${venc ? 'bad' : dias(t.fecha || '2099-01-01') === 0 ? 'acc' : ''}">${fecha(t.fecha)}${t.hora ? ' · ' + t.hora : ''}</span>` : ''}
+  </div>${ab ? `<div class="edit">
+    ${drop({ ops: EST, val: t.est, path: `t.${t.id}.est`, al: 'Estado' })}
+    ${drop({ ops: QUIEN, val: t.quien, path: `t.${t.id}.quien`, ic: 'users', al: 'Quién lo hace', after: (v) => { if (v !== 'Fortius' && !t.fecha) { t.fecha = mas(3); avisa('Le puse fecha para volver a preguntar'); } } })}
+    <input class="inp" style="width:150px" type="date" id="e-f" data-b="t.${t.id}.fecha" value="${t.fecha}" aria-label="Fecha">
+    ${drop({ ops: HORAS, val: t.hora || '', path: `t.${t.id}.hora`, ic: 'reloj', al: 'Hora' })}
+    ${t.est === 'na' || t.est === 'bloq' ? `<input class="inp" id="e-m" data-b="t.${t.id}.motivo" value="${esc(t.motivo)}" placeholder="Por qué">` : ''}
+    <span class="sp"></span><button class="btn gho ico" data-a="delt" data-t="${t.id}" aria-label="Quitar tarea">${ic('bote', 16)}</button></div>` : ''}`;
+};
+
+/* --- Documentos con quién lo entrega y vencimiento --- */
+docRen = function (d, x) {
+  const v = d.vence ? dias(d.vence) : null;
+  return `<div class="ren"><button class="ckb" style="margin:0 -6px 0 -8px" data-a="doc" data-i="${x}" aria-label="${d.ok ? 'Marcar faltante' : 'Marcar recibido'}: ${esc(d.n)}"><span class="ck cu" ${d.ok ? 'style="background:var(--ok);border-color:var(--ok);color:var(--on-acc)"' : ''}>${d.ok ? ic('ok', 12) : ''}</span></button><span class="c"><b style="font-weight:500">${esc(d.n)}</b><span>${d.ok ? '' : '<span class="c-warn">Falta</span> · '}Lo entrega ${esc(d.de)}</span></span>${d.vence ? `<span class="pill ${v < 0 ? 'bad' : v <= 15 ? 'warn' : ''}">${v < 0 ? 'Venció' : 'Vence'} ${fecha(d.vence).toLowerCase()}</span>` : ''}${archivo(d.archivo)}<button class="btn gho ico" data-a="men" data-m="doc" data-i="${x}" aria-label="Opciones de ${esc(d.n)}">${ic('dots')}</button></div>`;
+};
+
+/* --- Personas: empresa, fallecida --- */
+WIN.personas = (a) => `<div class="card">${a.personas.map((p, i) => `<div class="ren"><span class="av">${p.empresa ? ic('edif', 15) : ini(p.n)}</span><span class="c"><b>${esc(p.n)}</b><span>${p.fallecida ? 'Sin contacto' : p.tel ? esc(p.tel) : 'Sin teléfono'}${p.nota ? ' · ' + esc(p.nota) : ''}</span></span>${p.fallecida ? '<span class="pill">Falleció</span>' : ''}${p.empresa ? '<span class="pill">Empresa</span>' : ''}${drop({ ops: PAPELES, val: p.papel, path: `a.personas.${i}.papel`, cls: 'pil', al: 'Papel' })}<button class="btn gho ico" data-a="men" data-m="persona" data-i="${i}" aria-label="Más de ${esc(p.n)}">${ic('dots')}</button></div>`).join('')}</div>
+  <div class="card pad"><div class="g2">${campo('Nombre', '<input class="inp" id="pn" data-enter="addp" autocomplete="off">')}${campo('Teléfono (con clave si es de otro país)', '<input class="inp num" id="pt" data-enter="addp" inputmode="tel" placeholder="+1 619…" autocomplete="off">')}</div><div class="fila" style="padding-top:10px">${drop({ ops: PAPELES, val: S.np || 'Contacto', path: 'S.np', ic: 'users' })}<span class="sp"></span><button class="btn pri" data-a="addp">${ic('mas', 16)}Agregar</button></div></div>`;
+A[0].personas[1].fallecida = true; A[5].personas[0].empresa = true;
+
+/* --- Situación: lo que falta averiguar se vuelve tarea --- */
+WIN.situacion = (a) => `<div class="card pad"><div class="g2">${HECHOS.map(([k, l, o, i]) => campo(l, drop({ ops: o, val: a.sit[k], path: `a.sit.${k}`, cls: 'w', ic: i, log: l }))).join('')}${campo('Qué debe', drop({ ops: DEBE, val: a.sit.debe, multi: 1, cls: 'w', ic: 'pago', ph: 'Elegir' }))}${campo('Te encargaron', drop({ ops: Object.keys(ENC), val: a.encargo, multi: 1, cls: 'w', ic: 'band', ph: 'Elegir' }))}</div></div>
+  <h2 class="h2">${tile('bus', 'red', 1)}Por averiguar <span class="m">${a.averiguar.length || ''}</span></h2>
+  <div class="card">${a.averiguar.map((x, i) => `<div class="t" data-est="pend" style="padding:0 6px"><button class="ckb" data-a="av" data-i="${i}" aria-label="Ya se sabe: ${esc(x)}"><span class="ck cu"></span></button><span class="tb"><span class="n">${esc(x)}</span></span><button class="btn gho" data-a="avtarea" data-i="${i}" title="Pasarlo al plan como tarea">${ic('lista', 15)}Hacer tarea</button></div>`).join('')}<div class="pad"><input class="inp" id="na" placeholder="Algo más que falta saber" data-enter="addav"></div></div>`;
+
+/* --- Opinión: salidas cuando no es factible --- */
+const opinion0 = WIN.opinion;
+WIN.opinion = (a) => opinion0(a) + (a.opinion.v === 'no' ? `<div class="ban esp">${ic('alerta', 16)}<span>No es factible. ¿Qué sigue?</span><span class="sp"></span><button class="btn" data-a="men" data-m="nofact">Elegir${ic('down', 14)}</button></div>` : '');
+
+/* --- Honorarios: recibo, vigencia, quién paga y gastos de terceros --- */
+const honor0 = WIN.honorarios;
+WIN.honorarios = (a) => { const h = a.honor; let k = 0;
+  if (h.estado === 'Enviado' && !h.segui) { h.segui = true; if (!h.vigencia) h.vigencia = mas(15); if (!a.plan.length) a.plan.push({ etapa: 'Pendientes', tareas: [] }); a.plan[a.plan.length - 1].tareas.push(T('Dar seguimiento al presupuesto', 'Fortius', 3)); }
+  const base = honor0(a).replace(/<span class="pill ok">Cobrado<\/span>/g, () => { const x = h.cobros[k], j = k++; return x && x.recibo ? '<span class="pill ok">Con recibo</span>' : `<button class="btn" data-a="recibo" data-i="${j}">${ic('pdf', 15)}Hacer recibo</button>`; });
+  return base + `<h2 class="h2">${tile('lapiz', 'green', 1)}Condiciones</h2><div class="card pad"><div class="g2">${campo('Vigencia del presupuesto', `<input class="inp" type="date" id="hv" data-b="a.honor.vigencia" value="${h.vigencia}">`)}${campo('Quién paga', drop({ ops: [['', 'Sin definir']].concat(a.personas.filter((p) => !p.fallecida).map((p) => [p.n, p.n])), val: h.paga, path: 'a.honor.paga', cls: 'w', ic: 'users' }))}</div></div>
+    <h2 class="h2">${tile('pago', 'gray', 1)}Gastos de terceros <span class="m">los paga el cliente</span></h2><div class="card">${h.gastos.map((g, i) => `<div class="ren"><span class="c"><b style="font-weight:500">${esc(g.c)}</b></span><span class="num">${dinero(g.m)}</span><button class="btn gho ico" data-a="delgasto" data-i="${i}" aria-label="Quitar">${ic('x', 15)}</button></div>`).join('')}<div class="pad fila nw"><input class="inp" id="gc" placeholder="Notaría, abogado, impuestos…" data-enter="addgasto" style="flex:2"><input class="inp num" id="gm" placeholder="Monto" inputmode="numeric" data-enter="addgasto" style="flex:1;min-width:80px"><button class="btn ico" data-a="addgasto" aria-label="Agregar gasto">${ic('mas', 16)}</button></div></div>`; };
+
+/* --- Inmueble: moneda, historial de precio y conjunto --- */
+const inmueble0 = WIN.inmueble;
+WIN.inmueble = (a) => { const h = inmueble0(a); if (S.tab !== 'datos' || (a.inmuebles.length > 1 && S.inm === null)) return h; const i = inmA();
+  return h + `<div class="card"><div class="ren">${tile('pago', 'green')}<span class="c"><b>Precio</b><span>${i.precio ? dinero(i.precio) + ' ' + i.moneda : 'A consulta'}${i.phist.length ? ` · ${i.phist.length} cambio${i.phist.length > 1 ? 's' : ''}` : ''}</span></span>${drop({ ops: [['MXN', 'Pesos'], ['USD', 'Dólares']], val: i.moneda, path: 'i.moneda', cls: 'pil' })}<button class="btn" data-a="hojaprecio">Cambiar</button></div>${i.phist.map((p) => `<div class="hi">${tile('reloj', 'gray', 1)}<div><p>${dinero(p.de)} → ${dinero(p.a)}${p.por ? ' · ' + esc(p.por) : ''}</p><p class="m">${fecha(p.f)} · Tú</p></div></div>`).join('')}</div>
+    <div class="card pad">${campo('Pertenece a un conjunto', inp('i.conjunto', i.conjunto, { ph: 'Plaza, torre o fraccionamiento' }))}</div>`; };
+
+/* --- Asunto: lo que el sistema propone, espera y cierre --- */
+const sugiere = (a) => { const t = total(a);
+  if (a.cierre) return null;
+  if (a.honor.contrato === 'Firmado' && a.momento < 2) return ['c', 'El contrato ya está firmado. ¿Pasar a «En marcha»?', () => { a.momento = 2; }];
+  if (t && cobrado(a) >= t && a.momento < 4) return ['k', 'Ya está todo cobrado. ¿Cerrar el asunto?', () => { a.momento = 4; a.cierre = 'Se logró'; }];
+  if (a.opinion.v && a.opinion.v !== 'no' && a.momento === 0) return ['o', 'Ya hay opinión jurídica. ¿Pasar a «Propuesta»?', () => { a.momento = 1; }];
+  return null; };
+const asunto0 = vAsunto;
+const VISTAS = { tabla: ['regla', (p) => `${(p.filas || []).length} renglones`], galeria: ['img', (p) => `${(p.cartas || []).length} tarjetas`], texto: ['nota', (p) => (p.texto ? 'Con texto' : 'Vacío')] };
+vAsunto = function () { const a = cur(); if (!a) return ''; let h = asunto0(); const s = sugiere(a); let b = '';
+  a.propios.forEach((p) => { const v = VISTAS[p.vista]; if (v) h = h.replace(new RegExp(`(data-v="p:${p.id}">[\\s\\S]*?</b><span>)[^<]*`), (m, x) => x + v[1](p)); });
+  if (a.cierre) b += `<div class="ban">${ic('ok', 16)}<span>Cerrado: ${a.cierre.toLowerCase()}</span><span class="sp"></span><button class="btn" data-a="reabrir">Reabrir</button></div>`;
+  if (a.espera) b += `<div class="ban esp">${ic('reloj', 16)}<span>En espera hasta ${fecha(a.espera).toLowerCase()}</span><span class="sp"></span><button class="btn" data-a="reanudar">Reanudar</button></div>`;
+  if (s && a.noSug !== s[0]) b += `<div class="ban">${ic('rayo', 16)}<span>${s[1]}</span><span class="sp"></span><button class="btn" data-a="sug" data-v="no">Ahora no</button><button class="btn pri" data-a="sug" data-v="si">Sí</button></div>`;
+  return b ? h.replace('<div class="card">', b + '<div class="card">') : h; };
+
+/* --- Consulta: otras personas, lo que ya mandó y salir sin asunto --- */
+const nuevaD0 = nuevaD; nuevaD = () => Object.assign(nuevaD0(), { otras: [], mando: [] });
+const consulta0 = vConsulta;
+vConsulta = function () { const d = S.d; d.otras = d.otras || []; d.mando = d.mando || [];
+  const extra = `<div><h2 class="h2" style="padding:0 2px 8px">${tile('users', 'blue', 1)}Otras personas del caso <span class="m">${d.otras.length || ''}</span></h2><div class="card">${d.otras.map((o, i) => `<div class="ren"><span class="av">${ini(o.n)}</span><span class="c"><b>${esc(o.n)}</b></span><span class="pill">${esc(o.papel)}</span><button class="btn gho ico" data-a="delotra" data-i="${i}" aria-label="Quitar">${ic('x', 15)}</button></div>`).join('')}<div class="pad fila nw"><input class="inp" id="op-n" placeholder="Nombre" data-enter="addotra" style="flex:1;min-width:90px">${drop({ ops: PAPELES, val: S.opp, path: 'S.opp' })}<button class="btn ico" data-a="addotra" aria-label="Agregar persona">${ic('mas', 16)}</button></div></div></div>
+    <div><h2 class="h2" style="padding:0 2px 8px">${tile('subir', 'teal', 1)}Lo que ya mandó <span class="m">${d.mando.length || ''}</span></h2><div class="card">${d.mando.map((n) => `<div class="ren"><span class="c"><b style="font-weight:500">${esc(n)}</b></span><span class="pill ok">Recibido</span></div>`).join('')}<div class="pad"><button class="btn" data-a="subir4">${ic('subir', 16)}Adjuntar archivos</button></div></div></div>`;
+  return consulta0().replace('<div class="fila"><span class="m">Se abre para</span>', extra + '<div class="fila"><span class="m">Se abre para</span>')
+    .replace('<span>Teléfono</span>', '<span>Teléfono (con clave si es de otro país)</span>')
+    .replace('<button class="btn pri" data-a="guardar">', `<button class="btn" data-a="men" data-m="sinasunto">Sin asunto${ic('down', 14)}</button><button class="btn pri" data-a="guardar">`); };
+
+/* --- Inicio: por atender, visitas y lo que lleva más días esperando --- */
+const hoy0 = vHoy;
+vHoy = function () { const dir = S.rol === 'director', vis = VIS();
+  const sol = S.sol.filter((s) => dir || s.de === EQUIPO[1].n || !s.de);
+  const visitas = vis.flatMap((a) => (a.interesados || []).filter((p) => p.fecha && dias(p.fecha) >= 0 && dias(p.fecha) <= 7).map((p) => ({ a, p }))).sort((x, y) => (x.p.fecha + (x.p.hora || '')).localeCompare(y.p.fecha + (y.p.hora || '')));
+  const esp = vis.flatMap(tareas).filter((x) => x.t.est === 'pend' && x.t.quien !== 'Fortius').map((x) => ({ x, d: x.t.fecha ? -dias(x.t.fecha) : 0 })).sort((p, q) => q.d - p.d).slice(0, 5);
+  const cab = (i, c, t, n) => `<h2 class="h2" style="padding:0 2px 8px">${tile(i, c, 1)}${t} <span class="m">${n || ''}</span></h2>`;
+  const bSol = sol.length ? `<div>${cab('chat', 'red', 'Por atender', sol.length)}<div class="card">${sol.map((s) => `<div class="ren" style="flex-wrap:wrap"><span class="av">${ini(s.n)}</span><span class="c" style="min-width:180px"><b>${esc(s.n)}</b><span>${esc(s.msg)} · ${esc(s.inm)}</span></span>${s.de ? `<span class="pill" title="${esc(s.de)}">${ini(s.de)}</span>` : ''}<span class="pill ${s.min > 120 ? 'bad' : s.min > 60 ? 'warn' : ''}">${s.min >= 60 ? `${Math.floor(s.min / 60)} h ${s.min % 60} min` : s.min + ' min'}</span><button class="btn" data-a="men" data-m="sol" data-id="${s.id}">Atender${ic('down', 14)}</button></div>`).join('')}</div></div>` : '';
+  const bVis = visitas.length ? `<div>${cab('cal', 'blue', 'Visitas', visitas.length)}<div class="card">${visitas.map(({ a, p }) => `<button class="ren" data-a="ir" data-id="${a.id}" data-row="interesados"><span class="c"><b style="font-weight:500">${esc(p.n)}</b><span>${esc((a.inmuebles[p.inm] || a.inmuebles[0]).n)} · ${esc(a.titulo)}</span></span><span class="pill ${dias(p.fecha) === 0 ? 'acc' : ''}">${fecha(p.fecha)}${p.hora ? ' · ' + p.hora : ''}</span>${ic('ch', 16)}</button>`).join('')}</div></div>` : '';
+  const bEsp = esp.length ? `<div>${cab('reloj', 'orange', 'Lleva más días esperando', '')}<div class="card">${esp.map(({ x, d }) => `<div class="ren" style="flex-wrap:wrap"><button class="c" style="min-width:180px" data-a="ir" data-id="${x.a.id}" data-row="plan"><b style="font-weight:500">${esc(x.t.t)}</b><span>${esc(x.t.quien)} · ${esc(x.a.titulo)}</span></button><span class="pill ${d > 0 ? 'bad' : ''}">${d > 0 ? `${d} día${d > 1 ? 's' : ''} de atraso` : fecha(x.t.fecha)}</span><button class="btn" data-a="recordar" data-t="${x.t.id}">${ic('chat', 15)}Recordarle</button></div>`).join('')}</div></div>` : '';
+  const ancla = '<div><h2 class="h2" style="padding:0 2px 8px">', cobrar = ancla + tile('pago', 'green', 1) + 'Por cobrar';
+  return hoy0().replace(ancla, bSol + ancla).replace(cobrar, bVis + bEsp + cobrar); };
+
+/* --- Directorio con contactos sin asunto --- */
+vDir = function () {
+  const mapa = new Map(); VIS().forEach((a) => a.personas.forEach((p) => { const k = p.n.toLowerCase(); if (!mapa.has(k)) mapa.set(k, { p, as: [] }); mapa.get(k).as.push({ a, papel: p.papel }); }));
+  S.contactos.forEach((c) => { const k = c.n.toLowerCase(); if (!mapa.has(k)) mapa.set(k, { p: c, as: [], contacto: c }); });
+  const q = S.q.trim().toLowerCase(), per = [...mapa.values()].filter((x) => !q || (x.p.n + ' ' + (x.p.tel || '')).toLowerCase().includes(q)).sort((x, y) => x.p.n.localeCompare(y.p.n));
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div class="top"><h1 class="h1">Directorio</h1><span class="m num">${per.length}</span><span class="sp"></span><label class="srch" style="margin:0;width:200px">${ic('bus', 16)}<input id="q3" data-b="S.q" data-vivo placeholder="Buscar" value="${esc(S.q)}" aria-label="Buscar personas"></label></div>
+    <div class="card">${per.map(({ p, as, contacto }) => `<div class="ren" style="flex-wrap:wrap"><span class="av">${p.empresa ? ic('edif', 15) : ini(p.n)}</span><span class="c" style="min-width:150px"><b>${esc(p.n)}</b><span>${p.fallecida ? 'Falleció' : p.tel ? esc(p.tel) : 'Sin teléfono'}${contacto ? ' · ' + esc(contacto.nota) : ''}</span></span>${contacto ? `<span class="pill warn">Sin asunto · llamarle ${fecha(contacto.volver).toLowerCase()}</span>` : ''}${as.map(({ a, papel }) => { const e = ENC[a.encargo[0]] || ['asu', 'gray']; return `<button class="chipas" data-a="ir" data-id="${a.id}" data-row="personas" title="${esc(papel)} en ${esc(a.titulo)}">${tile(e[0], e[1], 1)}<span>${esc(a.titulo)}</span></button>`; }).join('')}<button class="btn gho ico" data-a="men" data-m="dirp" data-n="${esc(p.n)}" data-t="${esc(p.tel || '')}" aria-label="Más de ${esc(p.n)}">${ic('dots')}</button></div>`).join('') || '<p class="pad m">Nadie coincide.</p>'}</div>
+  </div></section></div>`; };
+
+/* --- Inmuebles: elegir varios a la vez --- */
+vInm = function () {
+  const todos = VIS().flatMap((a) => a.inmuebles.map((i, k) => ({ a, i, k, id: a.id + ':' + k }))), f = S.inmF;
+  const ver = todos.filter(({ i }) => f === '' || (f === 'pub' ? i.pub : f === 'no' ? !i.pub : i.op === f)), sel = todos.filter((x) => S.selI[x.id]);
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div class="top"><h1 class="h1">Inmuebles</h1><span class="m num">${todos.length}</span><span class="sp"></span>${drop({ ops: [['', 'Todos'], ['pub', 'Publicados'], ['no', 'Sin publicar'], ['Venta', 'En venta'], ['Renta', 'En renta']], val: f, path: 'S.inmF', cls: 'pil', al: 'Qué ver' })}<button class="btn pri" data-a="nuevoinm">${ic('mas', 16)}Nuevo</button></div>
+    ${sel.length ? `<div class="ban"><span>${sel.length} elegido${sel.length > 1 ? 's' : ''}</span><span class="sp"></span><button class="btn" data-a="selnada">Quitar selección</button><button class="btn pri" data-a="men" data-m="lote">Hacer con ellos${ic('down', 14)}</button></div>` : ''}
+    <div class="card">${ver.map(({ a, i, k, id }) => `<div class="ren"><button class="ckb" style="margin:0 -6px 0 -8px" data-a="selinm" data-v="${id}" aria-label="${S.selI[id] ? 'Quitar de' : 'Agregar a'} la selección: ${esc(i.n)}"><span class="ck cu" ${S.selI[id] ? 'style="background:var(--acc);border-color:var(--acc);color:var(--on-acc)"' : ''}>${S.selI[id] ? ic('ok', 12) : ''}</span></button>${i.fotos[0] ? `<img class="mini" src="${i.fotos[0].url}" alt="">` : tile('edif', 'orange')}<button class="c" data-a="inmver" data-id="${a.id}" data-i="${k}"><b>${esc(i.n)}</b><span>${esc(i.tipo)} · ${esc(i.zona)}${i.precio ? ' · ' + dinero(i.precio) + (i.moneda === 'USD' ? ' USD' : '') : ''}</span></button><span class="fila nw" style="gap:5px;color:var(--tx3)">${i.fotos.length ? ic('img', 15) : ''}${i.video || i.videoUrl ? ic('video', 15) : ''}${i.r360 || i.r360n ? ic('r360', 15) : ''}</span><span class="pill ${i.pub ? 'ok' : ''}">${i.pub ? 'Publicado' : 'Sin publicar'}</span><button class="btn gho ico" data-a="inmver" data-id="${a.id}" data-i="${k}" aria-label="Abrir ${esc(i.n)}">${ic('ch', 16)}</button></div>`).join('') || '<p class="pad m">Ningún inmueble coincide.</p>'}</div>
+    <p class="m">Aquí se carga todo lo que sale en el sitio: ficha técnica, fotos, video, recorrido 360, planos y ubicación.</p>
+  </div></section></div>`; };
+
+/* --- Herramientas --- */
+const HERR = [['valor', 'Opinión de valor', 'rayo', 'violet', 'Con comparables'], ['isr', 'Cálculo de ISR', 'calc', 'red', 'Del vendedor'], ['compra', 'Gastos del comprador', 'cartera', 'teal', 'Escritura, impuestos y derechos'], ['venta', 'Gastos del vendedor', 'cartera', 'orange', 'Lo que le queda al propietario'], ['credito', 'Crédito', 'pago', 'blue', 'Mensualidad y enganche'], ['comision', 'Comisión', 'etiq', 'green', 'Con IVA'], ['formato', 'Contratos y formatos', 'file', 'indigo', 'Se llenan por preguntas']];
+const FORMATOS = ['Contrato de intermediación', 'Promesa de compraventa', 'Contrato de arrendamiento', 'Recibo de honorarios'];
+const nn = (id, ruta, v, ph) => `<input class="inp num" id="${id}" data-b="${ruta}" data-num data-vivo inputmode="decimal" value="${v || ''}" placeholder="${ph || ''}">`;
+function abreHerr(k, aid) { const a = aid ? A.find((x) => x.id === aid) : null, i = a ? a.inmuebles[0] : null;
+  S.h = { k, aid: aid || '', precio: i ? i.precio : 0, pct: 5, eng: 20, plazo: 20, tasa: 10.5, m2: i ? +String(i.datos.construccion || i.datos.terreno || '').replace(/,/g, '') || 0 : 0, comp: a && a.propios ? ((a.propios.find((p) => p.vista === 'galeria') || {}).cartas || []).map((c) => ({ t: c.t, precio: c.precio, m2: +String(c.m2).replace(/,/g, '') })) : [] }; S.win = null; }
+function resultado(h) {
+  if (h.k === 'comision') { const c = h.precio * h.pct / 100; return [['Comisión', c], ['IVA (16 %)', c * .16], ['Total', c * 1.16]]; }
+  if (h.k === 'credito') { const P = h.precio * (1 - h.eng / 100), r = h.tasa / 1200, n = h.plazo * 12, m = !P ? 0 : r ? P * r / (1 - Math.pow(1 + r, -n)) : P / n; return [['Enganche', h.precio * h.eng / 100], ['Crédito', P], ['Mensualidad', m]]; }
+  if (h.k === 'valor') { const c = h.comp.filter((x) => x.precio && x.m2), p = c.length ? c.reduce((s, x) => s + x.precio / x.m2, 0) / c.length : 0; return [['Precio promedio por m²', p], ['Valor estimado', p * h.m2]]; }
+  return null; }
+function vHerr() { const dir = S.rol === 'director';
+  return `<div class="main"><section class="pane" id="p-main"><div class="in">
+    <div><h1 class="h1">Herramientas</h1><p class="m">Se usan en cualquier momento, con asunto o sin él.</p></div>
+    <div class="card">${HERR.map(([k, l, i, c, d]) => `<button class="ren" data-a="herr" data-v="${k}">${tile(i, c)}<span class="c"><b>${l}</b><span>${d}</span></span>${ic('ch', 16)}</button>`).join('')}</div>
+    <div><h2 class="h2" style="padding:0 2px 8px">${tile('file', 'gray', 1)}Trabajos sueltos <span class="m">${S.sueltos.length || ''}</span></h2><div class="card">${S.sueltos.map((s, i) => `<div class="ren"><span class="c"><b style="font-weight:500">${esc(s.t)}</b><span>${esc(s.res)} · ${fecha(s.f)}</span></span><button class="btn" data-a="men" data-m="pasar" data-i="${i}">Pasar a un asunto${ic('down', 14)}</button></div>`).join('') || '<p class="pad m">Lo que hagas sin asunto queda aquí, para pasarlo a su asunto cuando el cliente contrate.</p>'}</div></div>
+  </div></section></div>`; }
+function winHerr() { const h = S.h; if (!h) return ''; const a = h.aid ? A.find((x) => x.id === h.aid) : null, q = S._hh === h.k ? 'quieta' : ''; S._hh = h.k;
+  const [, l, ico, c] = h.k === 'lista' ? [0, 'Herramientas y formatos', 'calc', 'indigo'] : HERR.find((x) => x[0] === h.k), r = resultado(h);
+  const cuerpo = h.k === 'lista' ? `<div class="card">${HERR.map(([k, t, i, col, d]) => `<button class="ren" data-a="herr" data-v="${k}" data-aid="${h.aid}">${tile(i, col)}<span class="c"><b>${t}</b><span>${d}</span></span>${ic('ch', 16)}</button>`).join('')}</div>`
+    : h.k === 'formato' ? `<div class="card">${FORMATOS.map((f, i) => `<button class="ren" data-a="formato" data-i="${i}" data-aid="${h.aid}">${tile('file', 'indigo')}<span class="c"><b>${f}</b><span>${a ? 'Con los datos de este asunto' : 'En blanco'}</span></span>${ic('ch', 16)}</button>`).join('')}</div>`
+    : h.k === 'comision' ? `<div class="card pad"><div class="g2">${campo('Precio', nn('h1', 'S.h.precio', h.precio))}${campo('Porcentaje', nn('h2', 'S.h.pct', h.pct))}</div></div>`
+    : h.k === 'credito' ? `<div class="card pad"><div class="g2">${campo('Precio', nn('h1', 'S.h.precio', h.precio))}${campo('Enganche (%)', nn('h2', 'S.h.eng', h.eng))}${campo('Plazo (años)', nn('h3', 'S.h.plazo', h.plazo))}${campo('Tasa anual (%)', nn('h4', 'S.h.tasa', h.tasa))}</div></div>`
+    : h.k === 'valor' ? `<div class="card pad">${campo('Superficie del inmueble (m²)', nn('h1', 'S.h.m2', h.m2))}</div><h2 class="h2">${tile('img', 'violet', 1)}Comparables <span class="m">${h.comp.length || ''}</span></h2><div class="card">${h.comp.map((x, i) => `<div class="ren"><span class="c"><b style="font-weight:500">${esc(x.t)}</b><span>${dinero(x.precio)} · ${x.m2} m²${x.m2 ? ' · ' + dinero(x.precio / x.m2) + ' por m²' : ''}</span></span><button class="btn gho ico" data-a="delcomp" data-i="${i}" aria-label="Quitar">${ic('x', 15)}</button></div>`).join('')}<div class="pad" style="display:grid;gap:8px"><input class="inp" id="cn" placeholder="Comparable" data-enter="addcomp"><div class="fila nw"><input class="inp num" id="cp" placeholder="Precio" inputmode="numeric" data-enter="addcomp"><input class="inp num" id="cm2" placeholder="m²" inputmode="numeric" data-enter="addcomp"><button class="btn ico" data-a="addcomp" aria-label="Agregar comparable">${ic('mas', 16)}</button></div></div></div>`
+    : `<div class="card pad"><div class="g2">${campo('Precio de la operación', nn('h1', 'S.h.precio', h.precio))}${campo('Valor de adquisición', nn('h2', 'S.h.adq', h.adq))}</div></div><div class="ban esp">${ic('alerta', 16)}<span>Pendiente: falta cargar la regla vigente y su fuente. El sistema no inventa tasas.</span></div>`;
+  return `<div class="wvelo ${q}" data-a="herrcerrar"></div><aside class="win ${q}" role="dialog" aria-label="${l}"><div class="win-h">${h.k !== 'lista' && h.desdeLista ? `<button class="btn gho ico" data-a="herr" data-v="lista" data-aid="${h.aid}" aria-label="Volver">${ic('at')}</button>` : ''}${tile(ico, c)}<div style="min-width:0;flex:1"><b>${l}</b><p class="m" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a ? esc(a.titulo) : 'Sin asunto'}</p></div><button class="btn gho ico" data-a="herrcerrar" aria-label="Cerrar">${ic('x')}</button></div><div class="win-c" id="p-herr">${cuerpo}${r ? `<div class="card">${r.map(([t, v], i) => `<div class="ren"><span class="c"><b style="font-weight:${i === r.length - 1 ? 650 : 500}">${t}</b></span><span class="num" style="font-weight:${i === r.length - 1 ? 700 : 500};font-size:${i === r.length - 1 ? 17 : 14}px">${dinero(v)}</span></div>`).join('')}</div><p class="m">Cálculo de referencia.</p><button class="btn pri" data-a="herrguardar">${ic('ok', 16)}${a ? 'Guardar en el asunto' : 'Guardar'}</button>` : ''}</div></aside>`; }
+
+/* --- Formato por preguntas --- */
+function abreFormato(titulo, aid) { const a = aid ? A.find((x) => x.id === aid) : null, p = a ? a.personas.find((x) => !x.fallecida) || {} : {}, i = a ? a.inmuebles[0] : {}, x = {};
+  const C = [[p, 'n', 'Nombre completo', 'persona'], [p, 'civil', 'Estado civil', 'persona'], [p, 'curp', 'CURP', 'persona'], [p, 'rfc', 'RFC', 'persona'], [p, 'dom', 'Domicilio', 'persona'], [p, 'tel', 'Teléfono', 'persona'], [i, 'n', 'Inmueble', 'inmueble'], [i, 'zona', 'Colonia', 'inmueble'], [i, 'precio', 'Precio', 'inmueble'], [x, 'pct', 'Comisión (%)', ''], [x, 'meses', 'Vigencia (meses)', '']];
+  const faltan = C.map((c, k) => (c[0][c[1]] ? -1 : k)).filter((k) => k >= 0);
+  S.fm = { titulo, aid: aid || '', C, faltan, pos: 0, total: faltan.length, quien: p.n || '', listo: !faltan.length }; S.h = null; S.win = null; S.foco2 = 'fq'; }
+function winFormato() { const f = S.fm; if (!f) return ''; const a = f.aid ? A.find((x) => x.id === f.aid) : null, k = f.listo ? -1 : f.faltan[f.pos], c = k >= 0 ? f.C[k] : null;
+  const val = (j) => { const v = f.C[j][0][f.C[j][1]]; return v ? (f.C[j][1] === 'precio' ? dinero(v) : esc(v)) : ''; };
+  const hu = (j) => `<span class="hueco ${val(j) ? '' : 'vac'} ${j === k ? 'act' : ''}" data-a="fmir" data-i="${j}" title="${f.C[j][2]}">${val(j) || '________________'}</span>`;
+  const hechos = f.total - (f.listo ? 0 : f.faltan.length - f.pos);
+  const izq = f.listo ? `<div><h2 class="h2">${tile('ok', 'green', 1)}Listo</h2><p class="m" style="padding-top:6px">${!a ? 'El documento está completo.' : f.total ? 'Lo que capturaste quedó guardado en el asunto: no se volverá a pedir.' : 'No faltaba nada: todo salió del asunto.'}</p></div><button class="btn pri" data-a="fmfin" data-v="Descargado">${ic('pdf', 16)}Descargar PDF</button><button class="btn" data-a="fmfin" data-v="Listo para enviar">${ic('chat', 16)}Enviar por WhatsApp</button><button class="btn" data-a="fmfin" data-v="Firmado cargado">${ic('subir', 16)}Cargar el firmado (PDF o foto)</button><button class="btn gho" data-a="fmcerrar">${a ? 'Volver al asunto' : 'Cerrar'}</button>`
+    : `<div><p class="m">Pregunta ${f.pos + 1} de ${f.faltan.length}</p><div class="barra-prog" style="margin-top:6px"><i style="width:${f.total ? hechos / f.total * 100 : 100}%"></i></div></div>
+      <label class="fld"><span style="font-size:15px;color:var(--tx);font-weight:650">${c[2]}</span><input class="inp" id="fq" data-enter="fmsig" autocomplete="off" style="height:44px" placeholder="Escribe o dicta"></label>
+      ${c[3] && a ? `<p class="m">Se guarda en ${c[3] === 'persona' ? 'la ficha de ' + esc(f.quien || 'la persona') : 'el inmueble'}.</p>` : ''}
+      <button class="btn pri" style="height:44px" data-a="fmsig">Siguiente${ic('ch', 16)}</button>
+      <div class="fila nw"><button class="btn gho" data-a="fmant" ${f.pos ? '' : 'disabled style="opacity:.4"'}>${ic('at', 16)}Anterior</button><span class="sp"></span><button class="btn gho" data-a="fmsalta">No lo sé todavía</button></div>
+      <p class="m">${a ? 'Solo se pregunta lo que falta. Lo demás ya salió del asunto. ' : ''}Tocar un espacio de la hoja lleva a ese dato.</p>`;
+  return `<div class="fmt" role="dialog" aria-label="${esc(f.titulo)}"><div class="fmt-h"><button class="btn gho ico" data-a="fmcerrar" aria-label="Cerrar">${ic('x')}</button>${tile('file', 'indigo')}<div style="min-width:0;flex:1"><b>${esc(f.titulo)}</b><p class="m">${a ? esc(a.titulo) + ' · ' + a.folio : 'Sin asunto'}</p></div><span class="pill ok vivo"><i></i>Se guarda solo</span></div>
+    <div class="fmt-q">${izq}</div>
+    <div class="fmt-p"><div class="papel"><h3>${esc(f.titulo).toUpperCase()}</h3>
+      <p>${hu(0)}, de estado civil ${hu(1)}, con CURP ${hu(2)} y RFC ${hu(3)}, con domicilio en ${hu(4)} y teléfono ${hu(5)}, en adelante «el cliente», y Fortius Inmuebles, acuerdan lo siguiente.</p>
+      <p>El cliente encarga a Fortius el inmueble conocido como ${hu(6)}, ubicado en la colonia ${hu(7)}, con un precio de ${hu(8)}.</p>
+      <p>Los honorarios de Fortius serán del ${hu(9)} por ciento del precio, y este acuerdo tendrá una vigencia de ${hu(10)} meses.</p>
+      <p style="font-size:12px;opacity:.6;margin-top:28px">Texto de ejemplo para el boceto. No es la plantilla real${a ? ' · ' + a.folio : ''}.</p></div></div></div>`; }
+function fmGuarda() { const f = S.fm, el = document.getElementById('fq'); if (!f || f.listo || !el) return; const v = el.value.trim(); if (!v) return; const c = f.C[f.faltan[f.pos]]; c[0][c[1]] = c[1] === 'precio' ? +v.replace(/[^0-9.]/g, '') || 0 : v; if (c[3] && f.aid) avisa(`Guardado en ${c[3] === 'persona' ? 'la ficha de ' + (f.quien || 'la persona') : 'el inmueble'}`); }
+
+/* --- Hojas nuevas: apartado con vista y cambio de precio --- */
+const hoja1 = hoja;
+hoja = function () { const h = S.hoja; if (!h || (h.k !== 'apart' && h.k !== 'precio')) return hoja1();
+  const q = S._h === h ? 'quieta' : ''; S._h = h;
+  const c = h.k === 'apart' ? `<h2 class="h2">Apartado propio</h2>${campo('Nombre', '<input class="inp" id="hx" placeholder="Visitas, Ofertas, Comparables, Obra…" data-enter="hojaok">')}${campo('Cómo se ve', drop({ ops: [['lista', 'Lista que se marca'], ['tabla', 'Tabla con tus columnas'], ['galeria', 'Galería con fotos y datos'], ['texto', 'Texto']], val: S.nv, path: 'S.nv', cls: 'w', ic: 'lista' }))}`
+    : `<h2 class="h2">Cambiar el precio</h2>${campo('Precio nuevo', '<input class="inp num" id="hx" inputmode="numeric" data-enter="hojaok">')}${campo('Por qué', '<input class="inp" id="hy" placeholder="Lo pidió el dueño, lleva mucho sin visitas…" data-enter="hojaok">')}`;
+  return `<div class="velo ${q}" data-a="cerrar"><div class="hoja" role="dialog" aria-modal="true" data-quieto>${c}<div class="fila"><span class="sp"></span><button class="btn" data-a="cerrar">Cancelar</button><button class="btn pri" data-a="hojaok">Guardar</button></div></div></div>`; };
+
+/* --- Menús nuevos y ampliados --- */
+const men0 = { mas: MEN.mas, doc: MEN.doc, adddoc: MEN.adddoc, addplan: MEN.addplan, persona: MEN.persona, nuevo: MEN.nuevo, apartop: MEN.apartop, masnav: MEN.masnav, contrato: MEN.contrato };
+Object.assign(MEN, {
+  interesado: (d) => { const a = cur(), p = a.interesados[d.i], i = a.inmuebles[p.inm] || a.inmuebles[0]; return [{ ic: 'chat', t: 'Enviarle la ficha', fn() { S.hoja = { k: 'msg', t: `Hola ${p.n.split(' ')[0]}, te comparto la ficha de ${i.n}: ${i.precio ? dinero(i.precio) : 'precio a consulta'}.\nfortiusinmuebles.com/…` }; } }, { ic: 'tel', t: p.tel ? 'Copiar teléfono' : 'Sin teléfono', fn() { if (p.tel) copiar(p.tel); } }, { ic: 'asu', t: 'Abrirle su propio asunto', fn() { S.d = Object.assign(nuevaD(), { nombre: p.n, tel: p.tel, quiere: a.sit.quiere === 'Rentar' ? 'Rentar' : 'Comprar', que: `Interesado en ${i.n}.` }); S.view = 'consulta'; S.win = null; } }, { sep: 1 }, { ic: 'bote', t: 'Quitar', pel: 1, fn() { a.interesados.splice(d.i, 1); } }]; },
+  mas: () => { const a = cur(); return [men0.mas()[0], men0.mas()[1], { ic: 'reloj', t: a.espera ? 'Reanudar' : 'Poner en espera', fn() { a.espera = a.espera ? '' : mas(14); anota(a, 'Nota', a.espera ? 'En espera.' : 'Se reanudó.'); } }, { ic: 'liga', t: 'Continuar en un asunto nuevo', fn() { const n = { ...a, id: uid(), folio: 'EXP-0000' + (31 + A.length), titulo: a.titulo + ' (continúa)', momento: 0, cierre: '', espera: '', noSug: '', sit: { ...a.sit, debe: [...a.sit.debe] }, averiguar: [], personas: a.personas.map((p) => ({ ...p })), docs: a.docs.map((x) => ({ ...x })), plan: [], propios: [], interesados: [], apart: [...a.apart], opinion: Op(), honor: Hon(), hist: [{ f: HOY, tipo: 'Nota', t: `Viene de ${a.folio}, ${a.titulo}.`, quien: 'Tú' }] }; alDia(n); anota(a, 'Nota', `Continúa en ${n.folio}.`); A.unshift(n); S.aid = n.id; avisa('Asunto nuevo con las mismas personas, inmueble y documentos'); } }, { sep: 1 }, { ic: 'ok', t: 'Cerrar: se logró', fn() { a.momento = 4; a.cierre = 'Se logró'; anota(a, 'Decisión', 'Asunto cerrado: se logró.'); } }, { ic: 'x', t: 'Cerrar: no se dio', fn() { a.momento = 4; a.cierre = 'No se dio'; anota(a, 'Decisión', 'Asunto cerrado: no se dio.'); } }, men0.mas()[4]]; },
+  nofact: () => { const a = cur(); return [{ ic: 'pago', t: 'Cobrar el estudio', fn() { a.honor.lineas.push({ c: 'Estudio del asunto', m: 5000 }); S.win = 'honorarios'; } }, { ic: 'x', t: 'Cerrar el asunto', fn() { a.momento = 4; a.cierre = 'No se dio'; S.win = null; } }, { ic: 'reloj', t: 'Dejar en espera', fn() { a.espera = mas(30); S.win = null; } }]; },
+  doc: (d) => { const a = cur(), x = a.docs[d.i], m = men0.doc(d); m.splice(2, 0, { ic: 'cal', t: x.vence ? 'Quitar el vencimiento' : 'Vence en 30 días', fn() { x.vence = x.vence ? '' : mas(30); } }, { ic: 'users', t: 'Cambiar quién lo entrega', fn() { const n = a.personas.map((p) => p.n.split(' ')[0]); x.de = n[(n.indexOf(x.de) + 1) % n.length] || x.de; } }); return m; },
+  adddoc: () => { const a = cur(), m = men0.adddoc(); m.splice(1, 0, { ic: 'liga', t: 'Liga para que el cliente suba', fn() { S.hoja = { k: 'msg', t: `Hola, para subir tus documentos de ${a.titulo.toLowerCase()} entra a esta liga:\nfortiusinmuebles.com/subir/${a.folio.toLowerCase()}\n\nSolo eliges el archivo o tomas la foto. Gracias.` }; } }); return m; },
+  addplan: () => { const a = cur(), m = men0.addplan(); m.splice(1, 0, { ic: 'lib', t: 'Guardar este plan en la Biblioteca', fn() { if (!a.plan.length) return avisa('Este asunto todavía no tiene plan'); LIB.plan.unshift({ n: `Plan de «${a.titulo}»`, tareas: a.plan.flatMap((e) => e.tareas.map((t) => [t.t, t.quien])) }); avisa('Guardado en la Biblioteca'); } }); return m; },
+  persona: (d) => { const p = cur().personas[d.i], m = men0.persona(d); m.splice(2, 0, { ic: 'edif', t: 'Es una empresa o institución', on: !!p.empresa, fn() { p.empresa = !p.empresa; } }, { ic: 'reloj', t: 'Falleció', on: !!p.fallecida, fn() { p.fallecida = !p.fallecida; } }); return m; },
+  nuevo: () => { const m = men0.nuevo(); m.push({ ic: 'calc', t: 'Herramienta o formato', fn() { abreHerr('lista', cur().id); } }); return m; },
+  apartop: () => { const a = cur(), k = S.win, m = men0.apartop(); if (!k.startsWith('p:')) return m; const p = a.propios.find((x) => 'p:' + x.id === k); return [['lista', 'Ver como lista'], ['tabla', 'Ver como tabla'], ['galeria', 'Ver como galería'], ['texto', 'Ver como texto']].map(([v, t]) => ({ ic: 'ojo', t, on: (p.vista || 'lista') === v, fn() { p.vista = v; } })).concat([{ ic: 'lib', t: 'Guardar en la Biblioteca', fn() { avisa('Apartado guardado en la Biblioteca'); } }, { sep: 1 }], m); },
+  masnav: () => [{ ic: 'calc', t: 'Herramientas', fn() { ACC.nav({ v: 'herr' }); } }].concat(men0.masnav()),
+  contrato: () => { const a = cur(), m = men0.contrato(); return ['Contrato de intermediación', 'Contrato de arrendamiento', 'Promesa de compraventa'].map((t) => ({ ic: 'file', t: t + ' (por preguntas)', fn() { abreFormato(t, a.id); } })).concat([{ sep: 1 }], m.slice(-2)); },
+  sinasunto: () => { const d = S.d; return [{ ic: 'users', t: 'Guardar como contacto', fn() { S.contactos.push({ n: d.nombre.trim() || 'Sin nombre', tel: d.tel, nota: d.que.trim() || 'Pidió informes', volver: mas(14) }); S.view = 'dir'; avisa('Queda en el Directorio. Te lo recuerdo en dos semanas'); } }, { ic: 'x', t: 'No procede', fn() { S.view = S.antes || 'hoy'; avisa('Consulta cerrada: no procede'); } }]; },
+  sol: (d) => { const s = S.sol.find((x) => x.id === d.id), a = A.find((x) => x.id === s.aid), quita = () => { S.sol = S.sol.filter((x) => x !== s); };
+    return [{ ic: 'tel', t: 'Atender: abrir la consulta', fn() { S.antes = 'hoy'; S.d = Object.assign(nuevaD(), { nombre: s.n, tel: s.tel, via: 'Sitio', que: `${s.msg} (preguntó por ${s.inm})`, quiere: 'Comprar' }); S.view = 'consulta'; quita(); } }].concat(a ? [{ ic: 'etiq', t: `Anotarlo en Interesados de ${s.inm}`, fn() { a.interesados.push({ n: s.n, tel: s.tel, inm: s.k, fecha: '', hora: '', oferta: 0, resp: '' }); conApart(a, 'interesados'); anota(a, 'Nota', `Nuevo interesado desde el sitio: ${s.n}.`); quita(); avisa(`Quedó en Interesados de ${a.titulo}`); } }] : [], S.rol === 'director' ? [{ sep: 1 }].concat(EQUIPO.slice(1).map((e) => ({ ic: 'users', t: 'Pasar a ' + e.n.split(' ')[0], on: s.de === e.n, fn() { s.de = e.n; avisa('Asignada a ' + e.n.split(' ')[0]); } }))) : [], [{ sep: 1 }, { ic: 'x', t: 'No procede', pel: 1, fn() { quita(); } }]); },
+  dirp: (d) => [{ ic: 'asu', t: 'Nuevo asunto con esta persona', fn() { S.antes = 'dir'; S.d = Object.assign(nuevaD(), { nombre: d.n, tel: d.t }); S.contactos = S.contactos.filter((c) => c.n !== d.n); S.view = 'consulta'; } }, { ic: 'tel', t: d.t ? 'Copiar teléfono' : 'Sin teléfono', fn() { if (d.t) copiar(d.t); } }],
+  lote: () => { const ids = Object.keys(S.selI).filter((k) => S.selI[k]), cada = (f) => ids.forEach((id) => { const [aid, k] = id.split(':'); f(A.find((a) => a.id === aid).inmuebles[+k]); }); return [{ ic: 'globo', t: 'Publicar', fn() { cada((i) => { i.pub = true; }); avisa(`${ids.length} publicados`); S.selI = {}; } }, { ic: 'x', t: 'Retirar del sitio', fn() { cada((i) => { i.pub = false; }); avisa(`${ids.length} retirados`); S.selI = {}; } }, { ic: 'chat', t: 'Compartir por WhatsApp', fn() { let t = ''; cada((i) => { t += `${i.n} · ${i.zona} · ${i.precio ? dinero(i.precio) : 'a consulta'}\n`; }); S.hoja = { k: 'msg', t: t + 'fortiusinmuebles.com/…' }; } }]; },
+  pasar: (d) => VIS().map((a) => ({ ic: 'asu', t: a.titulo, fn() { const s = S.sueltos.splice(d.i, 1)[0]; a.docs.push({ n: s.t, de: 'Fortius', ok: true, grupo: 'Otro', archivo: s.t.toLowerCase().replace(/\s+/g, '-') + '.pdf' }); anota(a, 'Nota', `Se pasó de Herramientas: ${s.t}.`); avisa('Quedó en los Documentos del asunto'); } }))
+});
+
+/* --- Acciones nuevas --- */
+const acc0 = { hojaok: ACC.hojaok, guardar: ACC.guardar, addc: ACC.addc };
+Object.assign(ACC, {
+  addint() { const n = val('in-n'); if (!n) return false; cur().interesados.push({ n, tel: val('in-t'), inm: S.inm || 0, fecha: '', hora: '', oferta: 0, resp: '' }); S.foco = 'in-n'; },
+  hojaok(d) { const k = S.hoja.k, a = cur();
+    if (k === 'precio') { const v = +val('hx').replace(/[^0-9.]/g, ''), i = inmA(); if (!v) return false; i.phist.unshift({ de: i.precio, a: v, por: val('hy'), f: HOY }); i.precio = v; anota(a, 'Nota', `Precio de ${i.n}: ${dinero(v)}.`); S.hoja = null; return; }
+    const antes = a.propios.length, r = acc0.hojaok(d); if (a.propios.length > antes) { const p = a.propios[a.propios.length - 1]; p.vista = S.nv; S.foco = S.nv === 'lista' ? 'npi' : null; } return r; },
+  hojaprecio() { S.hoja = { k: 'precio' }; S.foco = 'hx'; },
+  addfila() { const p = cur().propios.find((x) => 'p:' + x.id === S.win); p.filas.push(p.cols.map(() => '')); S.foco = `tc-${p.filas.length - 1}-0`; },
+  delfila(d) { cur().propios.find((x) => 'p:' + x.id === S.win).filas.splice(d.i, 1); },
+  addcol() { const v = val('ncol'); if (!v) return false; const p = cur().propios.find((x) => 'p:' + x.id === S.win); p.cols.push(v); p.filas.forEach((f) => f.push('')); },
+  addcarta() { const p = cur().propios.find((x) => 'p:' + x.id === S.win); p.cartas.push({ t: '', precio: 0, m2: '', url: '' }); S.foco = `gt-${p.cartas.length - 1}`; },
+  delcarta(d) { cur().propios.find((x) => 'p:' + x.id === S.win).cartas.splice(d.i, 1); },
+  subir3(d) { S.up = null; S.up2 = null; S.up3 = { k: 'carta', i: +d.i }; const f = document.getElementById('archivo'); f.multiple = false; f.accept = 'image/*'; f.click(); return false; },
+  subir4() { S.up = null; S.up2 = null; S.up3 = { k: 'mando' }; const f = document.getElementById('archivo'); f.multiple = true; f.accept = ''; f.click(); return false; },
+  recordar(d) { const x = buscaT(d.t); x.t.fecha = mas(3); anota(x.a, 'Nota', `Se le recordó a ${x.t.quien.toLowerCase()}: ${x.t.t}.`); S.hoja = { k: 'msg', t: `Hola, te escribo de Fortius por ${x.a.titulo.toLowerCase()}.\n\n¿Cómo vas con esto?: ${x.t.t.toLowerCase()}.\n\nSi necesitas algo de mi parte, dime. Gracias.` }; },
+  avtarea(d) { const a = cur(), t = a.averiguar.splice(+d.i, 1)[0]; if (!a.plan.length) a.plan.push({ etapa: 'Estudio', tareas: [] }); a.plan[0].tareas.push(T('Averiguar: ' + t.charAt(0).toLowerCase() + t.slice(1), 'Fortius', 3)); avisa('Pasó al plan como tarea'); },
+  recibo(d) { const a = cur(), x = a.honor.cobros[d.i]; x.recibo = true; a.docs.push({ n: `Recibo de ${dinero(x.m)}`, de: 'Fortius', ok: true, grupo: 'Otro', archivo: `recibo-${a.folio}-${+d.i + 1}.pdf` }); avisa('Recibo hecho con el monto, la persona y el asunto'); },
+  addc(d) { const r = acc0.addc(d); if (r !== false) avisa('Cobro registrado. ¿Hacer el recibo? Está en la lista de cobros'); return r; },
+  addgasto() { const c = val('gc'), m = +val('gm').replace(/[^0-9.]/g, ''); if (!c || !m) return false; cur().honor.gastos.push({ c, m }); S.foco = 'gc'; },
+  delgasto(d) { cur().honor.gastos.splice(d.i, 1); },
+  sug(d) { const a = cur(), s = sugiere(a); if (!s) return; if (d.v === 'si') { s[2](); anota(a, 'Nota', `Pasó a ${MOM[a.momento].toLowerCase()}.`); } else a.noSug = s[0]; },
+  reanudar() { cur().espera = ''; }, reabrir() { const a = cur(); a.cierre = ''; a.momento = 2; anota(a, 'Nota', 'Asunto reabierto.'); },
+  addotra() { const n = val('op-n'); if (!n) return false; S.d.otras.push({ n, papel: S.opp }); S.foco = 'op-n'; },
+  delotra(d) { S.d.otras.splice(d.i, 1); },
+  guardar() { const d = S.d; acc0.guardar(); const a = A[0], de = (d.nombre.trim() || 'Cliente').split(' ')[0]; (d.otras || []).forEach((o) => { const p = P(o.n, o.papel); if (o.papel === 'Titular' && d.dueno === 'Falleció el titular') { p.fallecida = true; a.personas = a.personas.filter((x) => !(x.n === 'Titular' && x.nota === 'falleció')); } a.personas.push(p); }); (d.mando || []).forEach((n) => { const t = n.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' '); a.docs.push({ n: t, de, ok: true, grupo: grupoDe(t), archivo: n }); }); alDia(a); },
+  selinm(d) { S.selI[d.v] = !S.selI[d.v]; }, selnada() { S.selI = {}; },
+  herr(d) { if (d.v === 'lista' || !S.h || S.h.k !== 'lista') { const dl = S.h && S.h.k === 'lista'; abreHerr(d.v, d.aid || (S.h && S.h.aid) || ''); S.h.desdeLista = dl; } else { const aid = S.h.aid; abreHerr(d.v, aid); S.h.desdeLista = true; } },
+  herrcerrar() { const aid = S.h && S.h.aid; S.h = null; S._hh = null; if (aid) { S.aid = aid; } },
+  herrguardar() { const h = S.h, r = resultado(h), l = HERR.find((x) => x[0] === h.k)[1], res = r[r.length - 1][0] + ': ' + dinero(r[r.length - 1][1]); if (h.aid) { const a = A.find((x) => x.id === h.aid); a.docs.push({ n: l, de: 'Fortius', ok: true, grupo: 'Otro', archivo: l.toLowerCase().replace(/\s+/g, '-') + '-' + a.folio + '.pdf' }); anota(a, 'Nota', `${l}. ${res}.`); avisa('Guardado en los Documentos del asunto'); } else { S.sueltos.unshift({ t: l, res, f: HOY }); avisa('Guardado en trabajos sueltos'); } S.h = null; S._hh = null; },
+  addcomp() { const t = val('cn'), p = +val('cp').replace(/[^0-9.]/g, ''), m = +val('cm2').replace(/[^0-9.]/g, ''); if (!t || !p || !m) return false; S.h.comp.push({ t, precio: p, m2: m }); S.foco2 = 'cn'; },
+  delcomp(d) { S.h.comp.splice(d.i, 1); },
+  formato(d) { abreFormato(FORMATOS[d.i], d.aid || ''); },
+  fmsig() { fmGuarda(); const f = S.fm; if (f.pos >= f.faltan.length - 1) f.listo = true; else f.pos++; S.foco2 = 'fq'; },
+  fmsalta() { const f = S.fm; if (f.pos >= f.faltan.length - 1) f.listo = true; else f.pos++; S.foco2 = 'fq'; },
+  fmant() { const f = S.fm; if (f.pos > 0) f.pos--; S.foco2 = 'fq'; },
+  fmir(d) { const f = S.fm, j = +d.i; let p = f.faltan.indexOf(j); if (p < 0) { f.faltan.push(j); f.faltan.sort((x, y) => x - y); f.total = Math.max(f.total, f.faltan.length); p = f.faltan.indexOf(j); } f.pos = p; f.listo = false; S.foco2 = 'fq'; },
+  fmfin(d) { const f = S.fm, a = f.aid ? A.find((x) => x.id === f.aid) : null; if (a) { if (!a.docs.some((x) => x.n === f.titulo)) a.docs.push({ n: f.titulo, de: 'Fortius', ok: true, grupo: 'Propiedad', archivo: f.titulo.toLowerCase().replace(/\s+/g, '-') + '-' + a.folio + '.pdf' }); if (/intermedia|arrenda|promesa/i.test(f.titulo)) { a.honor.contrato = d.v === 'Firmado cargado' ? 'Firmado' : 'Enviado'; a.honor.contratoArchivo = f.titulo.toLowerCase().replace(/\s+/g, '-') + '.pdf'; } anota(a, 'Nota', `${f.titulo}: ${d.v.toLowerCase()}.`); S.aid = a.id; S.view = 'asuntos'; S.det = true; } else S.sueltos.unshift({ t: f.titulo, res: d.v, f: HOY }); S.fm = null; avisa(a ? 'Quedó en los Documentos del asunto' : 'Guardado en trabajos sueltos'); },
+  fmcerrar() { const f = S.fm; S.fm = null; if (f && f.aid) { S.aid = f.aid; S.view = 'asuntos'; S.det = true; } }
+});
+document.getElementById('archivo').addEventListener('change', (e) => {
+  const fs = [...e.target.files], u = S.up3; if (!fs.length || !u) return;
+  if (u.k === 'carta') { const p = cur().propios.find((x) => 'p:' + x.id === S.win); if (p && p.cartas[u.i]) p.cartas[u.i].url = URL.createObjectURL(fs[0]); } else fs.forEach((f) => S.d.mando.push(f.name));
+  e.target.value = ''; S.up3 = null; pintar();
+});
+
+/* --- Marco: sección Herramientas y ventanas nuevas --- */
+NAV2.splice(5, 0, ['herr', 'Herramientas', 'calc']);
+const pintar1 = pintar;
+pintar = function () {
+  const act = document.activeElement, fid = S.foco2 || (S.foco ? null : act && act.id), sel = !S.foco2 && act && act.id && act.selectionStart != null ? [act.selectionStart, act.selectionEnd] : null, sh = (document.getElementById('p-herr') || {}).scrollTop;
+  S.foco2 = null; A.forEach(alDia);
+  if (S.view === 'herr') { const h = vHoy; vHoy = vHerr; S.view = 'hoy'; try { pintar1(); } finally { vHoy = h; S.view = 'herr'; } document.querySelectorAll('[data-a="nav"]').forEach((b) => { if (b.dataset.v === 'herr') b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }); const mm = document.querySelector('.barra [data-m="masnav"]'); if (mm) mm.setAttribute('aria-current', 'page'); } else pintar1();
+  document.getElementById('app').insertAdjacentHTML('beforeend', winHerr() + winFormato());
+  if (sh && document.getElementById('p-herr')) document.getElementById('p-herr').scrollTop = sh;
+  if (fid) { const el = document.getElementById(fid); if (el && document.activeElement !== el) { el.focus(); if (sel && el.setSelectionRange) { try { el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } } }
+};
+pintar();
+</script>

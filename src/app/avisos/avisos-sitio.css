@@ -1,0 +1,27 @@
+/* Avisos, Privacidad y Términos, Fortius II (etapa 5, 17/11/2026). */
+.av { padding-bottom: var(--s-seccion); }
+.av-lista { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-ink); }
+.av-fila { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-4) var(--s-8); padding: var(--s-6) 0; border-bottom: 1px solid var(--s-line); scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
+.av-texto { flex: 1 1 420px; display: flex; flex-direction: column; gap: var(--s-1); }
+.av-texto p { margin: 0; }
+.av-titulo { margin: 0; font-size: var(--s-type-fila); font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; }
+.av-lectura { flex-basis: 100%; }
+.av-lectura summary { display: inline-flex; align-items: center; min-height: 44px; color: var(--s-accent); font-weight: 600; cursor: pointer; }
+.av-lectura .s-prosa { padding: var(--s-4) 0 var(--s-6); }
+.av-lectura .s-prosa h3:first-child { margin-top: 0; }
+
+/* Texto legal con índice al lado */
+.lg { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); align-items: start; padding-bottom: var(--s-seccion); }
+.lg-sin-indice { grid-template-columns: minmax(0, 1fr); }
+.lg-indice { position: sticky; top: calc(var(--s-cabecera) + var(--s-6)); }
+.lg-indice ol { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-line); }
+.lg-indice li { border-bottom: 1px solid var(--s-line); }
+.lg-indice a { display: flex; align-items: center; min-height: 44px; padding: var(--s-2) 0; font-size: var(--s-type-detalle); line-height: 1.4; color: var(--s-ink); }
+.lg-indice a:hover { color: var(--s-accent); }
+.lg-datos { margin-bottom: var(--s-8); }
+.lg-pie { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); margin-top: var(--s-10); padding-top: var(--s-6); border-top: 1px solid var(--s-line); }
+
+@media (max-width: 1023px) {
+  .lg { grid-template-columns: minmax(0, 1fr); }
+  .lg-indice { position: static; }
+}

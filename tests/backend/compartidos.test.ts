@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseRecord, projectPublic, projectTeamProperty } from "@/lib/backend/validation";
-import { assertPropertyPublicationAllowed } from "@/lib/backend/publication-gate";
+import { publicationWarnings } from "@/lib/backend/publication-gate";
 import { propiedades } from "../fixtures/propiedades";
 
 // PUB-02 (RP-95, DEC-40): el sitio dice con quién colabora y nada más; publicar pide la autorización.
@@ -33,11 +33,12 @@ describe("inmueble compartido", () => {
     expect(() => parseRecord("propiedades", shared.slug, { ...shared, aliado: { ...aliado, telefonoPropietario: "664" } })).toThrow();
   });
 
-  it("se publica con la autorización y no pide captación; sin ella, dice qué falta", async () => {
-    await expect(assertPropertyPublicationAllowed(client as never, shared.slug, shared)).resolves.toBeUndefined();
-    await expect(assertPropertyPublicationAllowed(client as never, shared.slug, { ...shared, aliado: { inmobiliaria: aliado.inmobiliaria } }))
-      .rejects.toMatchObject({ status: 400, message: expect.stringContaining("Adjunta la autorización escrita") });
-    await expect(assertPropertyPublicationAllowed(client as never, shared.slug, { ...shared, origen: undefined }))
-      .rejects.toMatchObject({ message: expect.stringContaining("captación") });
+  // Sin frenos (titular, 16/11/2026): lo que falta para publicar se avisa, no frena.
+  it("con la autorización no avisa ni pide captación; sin ella, avisa qué falta", async () => {
+    await expect(publicationWarnings(client as never, shared.slug, shared)).resolves.toEqual([]);
+    await expect(publicationWarnings(client as never, shared.slug, { ...shared, aliado: { inmobiliaria: aliado.inmobiliaria } }))
+      .resolves.toEqual(expect.arrayContaining([expect.stringContaining("Adjunta la autorización escrita")]));
+    await expect(publicationWarnings(client as never, shared.slug, { ...shared, origen: undefined }))
+      .resolves.toEqual(expect.arrayContaining([expect.stringContaining("captación")]));
   });
 });

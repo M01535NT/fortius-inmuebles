@@ -476,10 +476,11 @@ export function formatoById(id: string): FormatoDefinition {
 
 /**
   PDF con datos faltantes (titular, 27/10/2026): se descarga avisando y pidiendo confirmación, y
-  sale marcado como incompleto. No aplica al aviso de privacidad (01), documento legal cotejado,
-  ni a la promesa (15), que exige su revisión jurídica.
+  sale marcado como incompleto. Desde el 16/11/2026 («sin frenos de protección») también el aviso de
+  privacidad (01) y la promesa (15): lo que les falta, incluida la revisión jurídica de la promesa,
+  se avisa antes de emitir y queda en el pie de cada hoja y en la emisión (datosFaltantes).
 */
-const SIN_INCOMPLETO = new Set(["01", "15"]);
+const SIN_INCOMPLETO = new Set<string>();
 export const emiteIncompleto = (id: string) => !SIN_INCOMPLETO.has(id);
 /** Leyenda del pie de un PDF al que le faltan datos. */
 export const avisoIncompleto = (missing: readonly string[]) => missing.length ? `Documento incompleto: ${missing.length === 1 ? "falta 1 dato" : `faltan ${missing.length} datos`}` : undefined;

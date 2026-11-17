@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { operationWorkflowSchema } from "./operation-workflow";
+import { operationWorkflowSchema, WORKFLOW_STAGES } from "./operation-workflow";
 import { EXPEDIENTE_OPERACIONES } from "./expediente-operations";
 
 const id = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/);
@@ -17,6 +17,8 @@ const data = z.record(z.string().max(120), z.union([
 export const expedienteCreate = z.object({
   clienteId: id, asesorId: id, folio: folio.optional(), operacion: operation,
   flujo: operationWorkflowSchema.optional(),
+  // FLX-03 B: un asunto puede empezar en cualquier etapa; la base anota como aviso lo que quedó atrás.
+  etapa: z.enum(WORKFLOW_STAGES).optional(),
   propiedadSlug: id.optional(), unidad: z.string().max(160).default(""),
 }).strict();
 export const expedienteWrite = z.object({

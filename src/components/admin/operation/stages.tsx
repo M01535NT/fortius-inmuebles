@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, Building2, Check, ChevronLeft, ChevronRight, docIcon, FileDown, FileText, Mail, MessageCircle, MoreHorizontal, Phone, stageIcon } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, IconTile, Pill, Sheet, Thumb } from "@/components/admin/kit";
+import { AlertCircle, AlertTriangle, Building2, Check, ChevronLeft, ChevronRight, docIcon, FileDown, FileText, Mail, MessageCircle, Phone, stageIcon } from "@/components/admin/icons";
+import { ActionsMenu, Avatar, Button, ButtonLink, Faces, IconTile, Pill, Sheet, Thumb } from "@/components/admin/kit";
 import { flowOf, isGuided, phaseFormats, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
@@ -44,12 +44,12 @@ function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | und
 
 
 /**
-  Panel azul de la operación (LV-06 «Moderno», 31/10/2026): regreso y folio, quién y qué quiere, el
-  número de etapa grande, las diez etapas como barras (cada una conserva su nombre accesible y, si ya
+  Encabezado de la operación (LV-09, 14/11/2026; reemplaza el panel azul de LV-06): migas, quién y
+  qué quiere, la etapa actual con su ícono, las diez etapas como barras (cada una conserva su nombre accesible y, si ya
   pasó, abre «Ver etapas» en ella), lo que quedó pendiente de etapas anteriores y, al pie, la persona
   con Llamar y WhatsApp. En las demás pestañas va compacto, con las partes de la operación.
 */
-export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, photo, facts = [], onOpenStages, menu: menuItems = [], children }: {
+export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, photo, facts = [], adviser, onOpenStages, menu: menuItems = [], children }: {
   op: OperationRecord; today: string; docs: DocumentsController; checklist?: Task; compact: boolean;
   /** A dónde vuelve el círculo de regreso. */
   back: string;
@@ -62,42 +62,40 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
   photo?: string | null;
   /** Datos bajo el título: inmueble, precio y responsable. */
   facts?: string[];
+  /** Nombre del asesor responsable: su cara va junto a la del cliente (LV-10c). */
+  adviser?: string;
   onOpenStages: (focus?: SalePhase) => void;
   /** «Más opciones»: datos de la operación, corregir etapa y eliminar. */
   menu?: Array<{ label: string; icon?: React.ReactNode; onSelect: () => void }>;
   /** Las partes de la operación (pestañas), en el panel compacto. */
   children?: React.ReactNode;
 }) {
-  const [menu, setMenu] = React.useState(false);
   const guided = isGuided(op);
   const { stages, current } = stageTrack(op, today);
   const gaps = pastGaps(op, today, docs.status);
   const gapAt = new Map(gaps.map(g => [g.n, g]));
   const here = stages[current];
   const first = gaps[0];
-  const moreMenu = menuItems.length > 0 && <span className="relative">
-    <button type="button" className={s.round} aria-label="Más opciones" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(open => !open)}><MoreHorizontal size={20} aria-hidden="true" /></button>
-    {menu && <div role="menu" className={s.menu}>{menuItems.map(item => <button key={item.label} type="button" role="menuitem" className={s.menuItem} onClick={() => { setMenu(false); item.onSelect(); }}>{item.icon}{item.label}</button>)}</div>}
-  </span>;
+  const moreMenu = <ActionsMenu label="Más opciones" actions={menuItems} triggerClassName={s.round} iconSize={20} />;
   /*
     Boceto «desde cero» (14/11/2026): migas, foto, título grande con sus datos y Llamar/WhatsApp con su
     nombre; debajo, el riel en su propia tarjeta con las fases arriba, los números abajo y solo la etapa
     actual con ícono y nombre. Lo pendiente de etapas anteriores va en una línea al pie del riel.
   */
-  if (!compact) return <section className={s.opHead} aria-label="Avance de la operación">
+  if (!compact) return <section className={s.opHead} aria-label="Avance del asunto">
     <nav aria-label="Dónde estás" className={s.crumbs}>
-      <Link href={back} aria-label="Volver a Operaciones">Operaciones</Link>
+      <Link href={back} aria-label="Volver a Asuntos">Asuntos</Link>
       <ChevronRight size={14} aria-hidden="true" />
       <span aria-current="page">{op.folio}</span>
     </nav>
     <div className={s.titleRow}>
-      {photo !== undefined && <Thumb src={photo ?? undefined} size={72} icon={<Building2 size={24} aria-hidden="true" />} className={s.titlePhoto} />}
+      {photo !== undefined && <span className={s.titlePhoto}><Thumb src={photo ?? undefined} ratio="10 / 7" icon={<Building2 size={24} aria-hidden="true" />} /></span>}
       <div className={s.titleText}>
         <div className={s.opTitle}>
           <h1 className={s.whoName}>{who.href ? <Link href={who.href} className={s.whoLink}>{who.name}</Link> : who.name}</h1>
           {who.wants && <span> {who.wants}</span>}
         </div>
-        {facts.length > 0 && <p className={s.opFacts}>{facts.join(" · ")}</p>}
+        {(facts.length > 0 || person || adviser) && <p className={s.opFacts}>{(person || adviser) && <Faces people={[person, adviser && { name: adviser }].filter((p): p is { name: string } => !!p)} size={28} />}<span>{facts.join(" · ")}</span></p>}
         {tags.length > 0 && <span className={s.navyTags}>{tags.map(tag => <span key={tag.text} className={s.navyTag} title={tag.detail}>{tag.text}</span>)}</span>}
       </div>
       <div className={s.opActions}>
@@ -117,7 +115,8 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
         const label = `${stage.n} · ${stage.label}: ${now ? "aquí vas" : gap ? gap.gap.toLowerCase() : done ? "lista" : "pendiente"}`;
         const inner = <><span className={s.railBar} aria-hidden="true" /><span className={s.railNum} aria-hidden="true">{now ? <>{React.createElement(stageIcon(stage, i), { size: 14, "aria-hidden": true })}<b>{stage.label}</b></> : stage.n}</span></>;
         return <li key={stage.n} aria-current={now ? "step" : undefined} className={s.railStep} data-state={state} data-now={now || undefined}>
-          {done && stage.key
+          {/* LV-10c: el riel es clicable completo; cada etapa abre «Ver etapas» en ella. */}
+          {stage.key
             ? <button type="button" className={s.railBtn} title={label} aria-label={label} onClick={() => onOpenStages(stage.key)}>{inner}</button>
             : <span className={s.railBtn} title={label}>{inner}<span className="sr-only">{label}</span></span>}
           {now && <CloseSteps stage={stage} onDark />}
@@ -134,9 +133,9 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
     </div>}
     {children}
   </section>;
-  return <section className={cn(s.navy, compact && s.navyCompact)} aria-label="Avance de la operación">
+  return <section className={cn(s.navy, compact && s.navyCompact)} aria-label="Avance del asunto">
     <div className={s.navyTop}>
-      <Link href={back} className={s.round} aria-label="Volver a Operaciones"><ChevronLeft size={20} aria-hidden="true" /></Link>
+      <Link href={back} className={s.round} aria-label="Volver a Asuntos"><ChevronLeft size={20} aria-hidden="true" /></Link>
       <span className={s.onNavyMuted}>{op.folio}</span>
       <span className="flex-1" />
       {moreMenu}
@@ -192,11 +191,13 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
   }, [focus]);
   function open(action: () => unknown) { onClose(); action(); }
   function stageDocs(stage: TrackStage) {
-    if (!stage.key || stage.n - 1 > current) return null;
+    if (!stage.key) return null;
+    // FLX-02: las etapas que vienen también muestran sus documentos para adelantarlos; sin aviso de falta.
+    const ahead = stage.n - 1 > current;
     if (stage.key === "documentos") {
       const received = checklist?.pasos.filter(pasoCompleto).length ?? 0, total = checklist?.pasos.length ?? 0;
       return <ul className={s.stageDocs}><li className={s.stageDoc}>
-        <span className="min-w-0 flex-1">{checklist ? `Lista · ${received} de ${total} listos` : <span className="font-semibold text-[var(--warning)]">Falta la lista de documentos</span>}</span>
+        <span className="min-w-0 flex-1">{checklist ? `Lista · ${received} de ${total} listos` : ahead ? <span className="text-muted-foreground">Lista de documentos · todavía no se crea</span> : <span className="font-semibold text-[var(--warning)]">Falta la lista de documentos</span>}</span>
         {checklist ? <><Link className={s.docLink} href={`/admin/tareas/${encodeURIComponent(checklistTaskId(op.id))}`}>Ver</Link><button type="button" className={s.docLink} onClick={() => docs.checklistFile("pdf")}>PDF</button></>
           : <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => open(() => docs.startChecklist())}>Crear</button>}
       </li></ul>;
@@ -207,9 +208,9 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
     return <ul className={s.stageDocs}>{formats.map(formato => {
       const doc = docs.latest(formato), pdf = docs.pdfOf(doc);
       const faltan = doc ? draftProgress(doc).missing : 0;
-      const text = !doc ? "No se generó" : faltan ? (pdf ? "PDF incompleto" : "En captura") : pdf ? "Terminado" : "Falta su PDF";
+      const text = !doc ? (ahead ? "Todavía no empieza" : "No se generó") : faltan ? (pdf ? "PDF incompleto" : "En captura") : pdf ? "Terminado" : "Falta su PDF";
       return <li key={formato} className={s.stageDoc}>
-        <span className="flex min-w-0 flex-1 flex-col"><span className="[overflow-wrap:anywhere]">{formatTitle(formato, doc)}</span><span className={cn("text-xs", doc ? "text-muted-foreground" : "font-semibold text-[var(--warning)]")}>{text}</span></span>
+        <span className="flex min-w-0 flex-1 flex-col"><span className="[overflow-wrap:anywhere]">{formatTitle(formato, doc)}</span><span className={cn("text-xs", doc || ahead ? "text-muted-foreground" : "font-semibold text-[var(--warning)]")}>{text}</span></span>
         <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => open(() => docs.start(formato))}>{doc ? "Abrir" : "Iniciar"}</button>
         {pdf && <a className={s.docLink} href={`/api/admin/emisiones/${pdf.id}/descargar`}>PDF</a>}
         {doc && copiaEditable(doc.formato_id) && <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => docs.word(doc)}>{copiaEditable(doc.formato_id)}</button>}
@@ -218,7 +219,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
   }
   return <Sheet open onClose={onClose} title="Etapas" description="Abre el documento de cada etapa.">
     {(() => {
-      return <section aria-label="Etapas de la operación" className="flex flex-col gap-1">
+      return <section aria-label="Etapas del asunto" className="flex flex-col gap-1">
         <ol className="flex flex-col gap-1">{stages.map(stage => {
           const i = stage.n - 1, gap = gaps.get(stage.n), now = i === current, done = i < current;
           return <li key={stage.n}>
@@ -240,7 +241,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
 /** Documentos de toda la operación, por etapa, para la pestaña Expediente. */
 export function DocumentsByStage({ docs, folio }: { docs: DocumentsController; folio: string }) {
   if (docs.documents === undefined) return <p role="status" className="text-sm text-muted-foreground">Consultando documentos…</p>;
-  if (!docs.list.length) return <p className="text-sm text-muted-foreground">Todavía no hay documentos en esta operación ({folio}).</p>;
+  if (!docs.list.length) return <p className="text-sm text-muted-foreground">Todavía no hay documentos en este asunto ({folio}).</p>;
   const sorted = [...docs.list].sort((a, b) => a.formato_id.localeCompare(b.formato_id) || b.updated_at.localeCompare(a.updated_at));
   return <ul className={s.items}>{sorted.map(doc => {
     const pdf = docs.pdfOf(doc), latest = docs.latest(doc.formato_id.startsWith("04") ? "04" : doc.formato_id)?.id === doc.id;
