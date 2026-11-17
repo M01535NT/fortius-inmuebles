@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Container } from "@/components/layout/container";
+import { DatosLineas } from "@/components/sitio/lineas";
+import { CabezaPagina } from "@/components/sitio/pagina";
 import { SITE_TERMS } from "@/data/site-terms";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "../avisos/avisos-sitio.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/terminos",
@@ -12,52 +14,40 @@ export const metadata: Metadata = pageMetadata({
     "Términos de uso de Fortius Inmuebles: publicaciones, solicitudes, herramientas, contratación y canales de aclaración.",
 });
 
+/*
+  Términos y condiciones, Fortius II (etapa 5, 17/11/2026): el mismo texto con un índice fijo al
+  lado (arriba en el teléfono) y lectura de 720 px.
+*/
 export default function TerminosPage() {
   return (
-    <main className="bg-background pt-28 md:pt-32">
-      <Container className="max-w-3xl pb-24 md:pb-32">
-        <article>
-          <header className="border-b border-border pb-8">
-            <h1 className="display-title text-titulo text-foreground">
-              Términos y condiciones.
-            </h1>
-            <p className="mt-5 text-sm text-muted-foreground">
-              Versión vigente desde el <time dateTime={SITE_TERMS.effectiveDate}>{SITE_TERMS.dateLabel}</time>.
-            </p>
-            <dl className="mt-7 space-y-4 text-base leading-7">
-              <div><dt className="font-medium text-foreground">Responsable del sitio</dt><dd className="text-muted-foreground">{SITE_TERMS.responsible} · {SITE_TERMS.commercialName}</dd></div>
-              <div><dt className="font-medium text-foreground">Lugar de atención</dt><dd className="text-muted-foreground">{SITE_TERMS.location}. La atención se coordina previamente por correo.</dd></div>
-              <div><dt className="font-medium text-foreground">Correo para contacto y aclaraciones</dt><dd><a href={`mailto:${SITE_TERMS.email}`} className="break-all text-primary-ink underline decoration-primary/40 underline-offset-4 hover:decoration-primary">{SITE_TERMS.email}</a></dd></div>
-            </dl>
-          </header>
-
-          <nav aria-label="Contenido de los términos" className="border-b border-border py-7">
-            <ol className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
-              {SITE_TERMS.sections.map((section, index) => <li key={section.id}>
-                <a href={`#${section.id}`} className="inline-flex min-h-11 items-center py-2 text-sm leading-6 text-foreground/80 underline-offset-4 hover:text-primary-ink hover:underline">
-                  {index + 1}. {section.title}
-                </a>
-              </li>)}
-            </ol>
-          </nav>
-
-          <div className="mt-10 space-y-10 md:space-y-12">
-            {SITE_TERMS.sections.map((section, index) => <section key={section.id} id={section.id} aria-labelledby={`${section.id}-title`} className="scroll-mt-28">
-              <h2 id={`${section.id}-title`} className="display-soft text-subtitulo leading-tight text-foreground">{index + 1}. {section.title}</h2>
-              <div className="mt-4 space-y-4 text-base leading-8 text-foreground/85">
-                {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-                {section.id === "datos" && <p><Link href="/privacidad" className="text-primary-ink underline decoration-primary/40 underline-offset-4 hover:decoration-primary">Consultar el aviso de privacidad</Link>.</p>}
-                {section.id === "aclaraciones" && <p><a href={`mailto:${SITE_TERMS.email}`} className="break-all text-primary-ink underline decoration-primary/40 underline-offset-4 hover:decoration-primary">{SITE_TERMS.email}</a></p>}
-              </div>
-            </section>)}
-          </div>
-
-          <div className="mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-6">
-            <Link href="/" className="inline-flex min-h-11 items-center text-primary-ink underline-offset-4 hover:underline">Volver al inicio</Link>
-            <a href="#" className="inline-flex min-h-11 items-center text-foreground/80 underline-offset-4 hover:underline">Volver arriba</a>
+    <main className="s-pagina">
+      <CabezaPagina chico titulo="Términos y condiciones." entrada={<>Versión vigente desde el <time dateTime={SITE_TERMS.effectiveDate}>{SITE_TERMS.dateLabel}</time>.</>} />
+      <div className="s-contenedor lg">
+        <nav aria-label="Contenido de los términos" className="lg-indice">
+          <ol>
+            {SITE_TERMS.sections.map((seccion, i) => <li key={seccion.id}><a href={`#${seccion.id}`}>{i + 1}. {seccion.title}</a></li>)}
+          </ol>
+        </nav>
+        <article className="s-prosa">
+          <DatosLineas className="lg-datos" filas={[
+            { dato: "Responsable del sitio", valor: `${SITE_TERMS.responsible} · ${SITE_TERMS.commercialName}` },
+            { dato: "Lugar de atención", valor: `${SITE_TERMS.location}. La atención se coordina previamente por correo.` },
+            { dato: "Correo para contacto y aclaraciones", valor: <a href={`mailto:${SITE_TERMS.email}`}>{SITE_TERMS.email}</a> },
+          ]} />
+          {SITE_TERMS.sections.map((seccion, i) => (
+            <section key={seccion.id} id={seccion.id} aria-labelledby={`${seccion.id}-title`}>
+              <h2 id={`${seccion.id}-title`}>{i + 1}. {seccion.title}</h2>
+              {seccion.paragraphs.map((p) => <p key={p}>{p}</p>)}
+              {seccion.id === "datos" && <p><Link href="/privacidad">Consultar el aviso de privacidad</Link>.</p>}
+              {seccion.id === "aclaraciones" && <p><a href={`mailto:${SITE_TERMS.email}`}>{SITE_TERMS.email}</a></p>}
+            </section>
+          ))}
+          <div className="lg-pie">
+            <Link href="/" className="s-enlace">Volver al inicio</Link>
+            <a href="#" className="s-enlace s-enlace-subrayado">Volver arriba</a>
           </div>
         </article>
-      </Container>
+      </div>
     </main>
   );
 }

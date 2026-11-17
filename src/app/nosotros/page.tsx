@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { AboutReveal } from "@/components/about/about-reveal";
-import { getPublishedTeam } from "@/lib/backend/public-team";
-import { getPublicSettings } from "@/lib/backend/public";
-import { publicContact } from "@/lib/public-contact";
-import { SITE_TERMS } from "@/data/site-terms";
+
+import { Boton } from "@/components/sitio/boton";
+import { FlechaDiagonal } from "@/components/sitio/iconos";
+import { Bloque, CabezaPagina, Filas } from "@/components/sitio/pagina";
 import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
-import "./nosotros.css";
+import { SITE_TERMS } from "@/data/site-terms";
+import { getPublicSettings } from "@/lib/backend/public";
+import { getPublishedTeam } from "@/lib/backend/public-team";
+import { publicContact } from "@/lib/public-contact";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./nosotros-sitio.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/nosotros",
@@ -18,129 +19,106 @@ export const metadata: Metadata = pageMetadata({
     "Conoce a Fortius Inmuebles en Tijuana: cómo trabajamos y los principios con que acompañamos tu compra o venta, con cada acuerdo por escrito.",
 });
 
-/* Dirección «Nocturno» (lienzo, artboard Nosotros): portada oscura con el
-   asesor, misión y visión como dos tarjetas, valores numerados y video. */
-const values: { title: string; text: string; wide?: boolean }[] = [
-  { title: "Claridad", text: "Precio, honorarios y condiciones, antes de decidir." },
-  { title: "Responsabilidad", text: "Acuerdos por escrito." },
-  { title: "Discreción", text: "Tus documentos, solo con quien participa." },
-  { title: "Criterio", text: "Lo comprobado, separado de lo pendiente.", wide: true },
-  { title: "Respeto a tu decisión", text: "Tú decides precio y condiciones.", wide: true },
+const VALORES = [
+  { titulo: "Claridad", texto: "Precio, honorarios y condiciones, antes de decidir." },
+  { titulo: "Responsabilidad", texto: "Acuerdos por escrito." },
+  { titulo: "Discreción", texto: "Tus documentos, solo con quien participa." },
+  { titulo: "Criterio", texto: "Lo comprobado, separado de lo pendiente." },
+  { titulo: "Respeto a tu decisión", texto: "Tú decides precio y condiciones." },
 ];
 
+/*
+  Nosotros, Fortius II (etapa 5, 17/11/2026): quién te atiende (los perfiles publicados en el
+  panel; mientras no haya, el perfil ilustrativo con sus iniciales), misión y visión con foto,
+  valores en filas y el video institucional solo si el panel tiene uno.
+*/
 export default async function NosotrosPage() {
-  const [team, settings] = await Promise.all([getPublishedTeam(), getPublicSettings()]);
+  const [team, settings] = await Promise.all([getPublishedTeam(), getPublicSettings().catch(() => null)]);
   const contact = publicContact(settings);
   const videoUrl = settings?.videoInstitucionalUrl;
-  const profiles = team.length ? team : [{
+  const perfiles = team.length ? team : [{
     ...PERFIL_ILUSTRATIVO, telefono: settings?.telefono, whatsapp: settings?.whatsapp,
     email: contact.email || SITE_TERMS.email, instagram: undefined, facebook: undefined, linkedin: undefined,
   }];
-  const [lead, ...rest] = profiles;
-  const channelsOf = (profile: typeof lead) => publicContact({ telefono: profile.telefono || "", whatsapp: profile.whatsapp || "", email: profile.email || "", facebook: "" } as Parameters<typeof publicContact>[0]);
-  const isIllustrative = (profile: typeof lead) => profile.id === "moises" && !team.length;
+  type Perfil = (typeof perfiles)[number];
+  const ilustrativo = !team.length;
 
-  const portrait = (profile: typeof lead, priority = false) => profile.foto
-    ? <Image unoptimized preload={priority} src={profile.foto} alt={isIllustrative(profile) ? `Retrato ilustrativo; no representa a ${profile.nombre}` : profile.nombre} fill sizes="(max-width: 899px) 100vw, 480px" />
-    : <span className="ab-initials" aria-label={`Iniciales de ${profile.nombre}`}>{profile.iniciales}</span>;
-
-  const channelLinks = (profile: typeof lead) => {
-    const channels = channelsOf(profile);
-    return <>
-      {channels.whatsapp && <a href={channels.whatsapp} className="ab-chip ab-chip-primary">WhatsApp</a>}
-      {channels.phoneHref && <a href={channels.phoneHref} className="ab-chip">Llamar</a>}
-      {channels.emailHref && <a href={channels.emailHref} className="ab-chip">Correo</a>}
-      {!channels.whatsapp && !channels.phoneHref && !channels.emailHref && <Link href="/contacto" className="ab-chip">Contactar a Fortius</Link>}
-    </>;
+  const canales = (p: Perfil) => {
+    const c = publicContact({ telefono: p.telefono || "", whatsapp: p.whatsapp || "", email: p.email || "", facebook: "" } as Parameters<typeof publicContact>[0]);
+    const hay = c.whatsapp || c.phoneHref || c.emailHref;
+    return (
+      <div className="s-acciones">
+        {c.whatsapp && <Boton href={c.whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp</Boton>}
+        {c.phoneHref && <Boton href={c.phoneHref} variante="contorno">Llamar</Boton>}
+        {c.emailHref && <Boton href={c.emailHref} variante="contorno">Correo</Boton>}
+        {!hay && <Boton href="/contacto" variante="contorno">Contactar a Fortius</Boton>}
+      </div>
+    );
   };
-  const socialLinks = (profile: typeof lead) => ([["Instagram", profile.instagram], ["Facebook", profile.facebook], ["LinkedIn", profile.linkedin]] as const)
-    .filter(([, url]) => url).map(([label, url]) => <a key={label} href={url} target="_blank" rel="noopener noreferrer">{label} <ArrowUpRight size={14} aria-hidden="true" /></a>);
+  const redes = (p: Perfil) => {
+    const lista = ([["Instagram", p.instagram], ["Facebook", p.facebook], ["LinkedIn", p.linkedin]] as const).filter(([, url]) => url);
+    if (!lista.length) return null;
+    return (
+      <nav className="no-redes" aria-label={`Redes de ${p.nombre}`}>
+        {lista.map(([nombre, url]) => <a key={nombre} href={url} target="_blank" rel="noopener noreferrer">{nombre}<FlechaDiagonal size={16} /></a>)}
+      </nav>
+    );
+  };
+  const retrato = (p: Perfil, prioridad = false) => p.foto && !ilustrativo
+    ? <Image unoptimized preload={prioridad} src={p.foto} alt={p.nombre} fill sizes="(max-width: 899px) 100vw, 480px" />
+    : <span className="no-iniciales" aria-label={`Iniciales de ${p.nombre}`}>{p.iniciales}</span>;
 
-  return <main className="about-page">
-    <AboutReveal>
-    <section className="ab-hero" aria-labelledby="about-title">
-      <div className="nx-container ab-hero-grid">
-        <div className="ab-hero-copy" data-reveal>
-          <h1 id="about-title" className="ab-hero-title" data-reveal-item>Personas detrás de cada operación.</h1>
-          <p className="ab-hero-lead" data-reveal-item>De la primera llamada a la entrega.</p>
-          <nav className="ab-index" aria-label="En esta página" data-reveal-item>
-            <a href="#agentes">Asesores</a><a href="#identidad">Misión y visión</a><a href="#valores">Valores</a>{videoUrl && <a href="#video">Video</a>}
-          </nav>
-        </div>
-        <figure id="agentes" className="ab-portrait" data-reveal>
-          <div className="ab-portrait-media">{isIllustrative(lead)
-            ? <span className="ab-mark"><span className="ab-initials" aria-label={`Iniciales de ${lead.nombre}`}>{lead.iniciales}</span></span>
-            : portrait(lead, true)}</div>
-          <figcaption className="ab-portrait-card">
-            <span className="ab-portrait-role">{lead.cargo}</span>
-            <span className="ab-portrait-name">{lead.nombre}</span>
-            <span className="ab-portrait-actions">{channelLinks(lead)}</span>
-            {socialLinks(lead).length > 0 && <nav className="ab-social" aria-label={`Redes de ${lead.nombre}`}>{socialLinks(lead)}</nav>}
-          </figcaption>
-        </figure>
-      </div>
-    </section>
+  return (
+    <main className="s-pagina no">
+      <CabezaPagina titulo="Personas detrás de cada operación." entrada="De la primera llamada a la entrega." />
 
-    <section className="ab-band" aria-labelledby="agent-heading">
-      <div className="nx-container">
-        <div className="ab-agent-intro" data-reveal>
-          <div data-reveal-item>
-            <h2 id="agent-heading" className="ab-title">Quién te atiende en Fortius.</h2>
+      <section id="agentes" className="s-contenedor no-equipo" aria-labelledby="no-equipo">
+        <h2 id="no-equipo" className="s-h2">Quién te atiende en Fortius.</h2>
+        <ul className="no-perfiles">
+          {perfiles.map((p, i) => (
+            <li key={p.id} className={i === 0 ? "no-perfil no-perfil-principal" : "no-perfil"}>
+              <span className="no-retrato">{retrato(p, i === 0)}</span>
+              <div className="no-perfil-texto">
+                <h3 className="no-nombre">{p.nombre}</h3>
+                <p className="no-cargo">{p.cargo}</p>
+                {p.descripcion && <p className="no-descripcion">{p.descripcion}</p>}
+                {canales(p)}
+                {redes(p)}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section id="identidad" className="s-contenedor no-proposito" aria-label="Misión y visión">
+        <article id="mision" aria-label="Misión" className="no-tarjeta s-banda">
+          <Image src="/hero/etapa-01-revisamos.webp" alt="" fill sizes="(max-width: 899px) 100vw, 50vw" />
+          <span className="no-velo" aria-hidden="true" />
+          <div className="no-tarjeta-texto">
+            <h2>Que decidas con información comprobable.</h2>
+            <p>Revisamos documentos y precio antes de que firmes.</p>
           </div>
-          {lead.descripcion && <p className="ab-agent-text" data-reveal-item>{lead.descripcion}</p>}
-        </div>
-        {rest.length > 0 && <ul className="ab-team" data-reveal>
-          {rest.map(profile => <li key={profile.id} className="ab-member" data-reveal-item>
-            <div className="ab-member-media">{portrait(profile)}</div>
-            <div className="ab-member-body">
-              <p className="ab-eyebrow">{profile.cargo}</p>
-              <h3>{profile.nombre}</h3>
-              {profile.descripcion && <p className="ab-member-text">{profile.descripcion}</p>}
-              <div className="ab-portrait-actions">{channelLinks(profile)}</div>
-              {socialLinks(profile).length > 0 && <nav className="ab-social" aria-label={`Redes de ${profile.nombre}`}>{socialLinks(profile)}</nav>}
-            </div>
-          </li>)}
-        </ul>}
-      </div>
-    </section>
-
-    <section id="identidad" className="ab-band" aria-label="Misión y visión">
-      <div className="nx-container ab-purpose" data-reveal>
-        <article id="mision" className="ab-purpose-card" data-reveal-item>
-          <span className="ab-purpose-photo"><Image src="/hero/etapa-01-revisamos.webp" alt="Escritura y pluma sobre un escritorio" fill sizes="(max-width: 899px) 100vw, 50vw" /></span>
-          <h2>Que decidas con información comprobable.</h2>
-          <p>Revisamos documentos y precio antes de que firmes.</p>
         </article>
-        <article id="vision" className="ab-purpose-card ab-purpose-card-accent" data-reveal-item>
-          <span className="ab-purpose-photo"><Image src="/hero/ciudad-tijuana.webp" alt="Zona Río de Tijuana con el Centro Cultural y los cerros al fondo" fill sizes="(max-width: 899px) 100vw, 50vw" /></span>
-          <h2>Ser la referencia en Baja California, también después de la firma.</h2>
-        </article>
-      </div>
-    </section>
-
-    <section id="valores" className="ab-band" aria-labelledby="values-heading">
-      <div className="nx-container">
-        <h2 id="values-heading" className="ab-title ab-values-title" data-reveal>Lo que guía nuestro trabajo.</h2>
-        <ol className="ab-values" data-reveal>
-          {values.map((value, index) => <li key={value.title} className={"ab-value" + (value.wide ? " ab-value-wide" : "")} data-reveal-item>
-            <span className="ab-value-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-            <div><h3>{value.title}</h3><p>{value.text}</p></div>
-          </li>)}
-        </ol>
-      </div>
-    </section>
-
-    {/* El video solo aparece cuando el panel tiene un video institucional real. */}
-    {videoUrl && <section id="video" className="ab-band ab-band-last" aria-labelledby="video-heading">
-      <div className="nx-container">
-        <div className="ab-video dark" data-reveal>
-          <div className="ab-video-head">
-            <h2 id="video-heading">Cómo trabajamos, en video.</h2>
+        <article id="vision" aria-label="Visión" className="no-tarjeta s-banda">
+          <Image src="/hero/ciudad-tijuana.webp" alt="" fill sizes="(max-width: 899px) 100vw, 50vw" />
+          <span className="no-velo" aria-hidden="true" />
+          <div className="no-tarjeta-texto">
+            <h2>Ser la referencia en Baja California, también después de la firma.</h2>
           </div>
-          <video src={videoUrl} controls preload="metadata" className="ab-video-player">Tu navegador no puede reproducir este video.</video>
-        </div>
-      </div>
-    </section>}
-    </AboutReveal>
-  </main>;
+        </article>
+      </section>
+
+      <Bloque id="valores" titulo="Lo que guía nuestro trabajo.">
+        <Filas filas={VALORES} />
+      </Bloque>
+
+      {/* El video solo aparece cuando el panel tiene un video institucional real. */}
+      {videoUrl && (
+        <section id="video" className="s-contenedor no-video" aria-labelledby="no-video">
+          <h2 id="no-video" className="s-h2">Cómo trabajamos, en video.</h2>
+          <video src={videoUrl} controls preload="metadata" className="no-video-reproductor">Tu navegador no puede reproducir este video.</video>
+        </section>
+      )}
+    </main>
+  );
 }

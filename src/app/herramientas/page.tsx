@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+
+import { FlechaDiagonal } from "@/components/sitio/iconos";
+import { CabezaPagina, Nota } from "@/components/sitio/pagina";
 import { pageMetadata } from "@/lib/seo/page-metadata";
-import "./herramientas.css";
+import "./herramientas-sitio.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/herramientas",
@@ -10,37 +13,45 @@ export const metadata: Metadata = pageMetadata({
     "Calcula la mensualidad de tu crédito hipotecario y los gastos de compraventa en Tijuana, Rosarito, Tecate y Ensenada. Gratis, sin registro y en minutos.",
 });
 
-/* Boceto Herramientas: tarjetas grandes con vista previa de cada calculadora. La opinión de valor no es una herramienta: se entrega dentro del método (30/10/2026). */
+/*
+  Herramientas, Fortius II (etapa 5, 17/11/2026): dos tarjetas grandes, cada una con una vista
+  previa de lo que calcula. La de hipoteca va en banda oscura y la de gastos en tarjeta clara.
+*/
 export default function HerramientasPage() {
   return (
-    <main className="pg-page">
-      <section className="pg-hero">
-        <div className="pg-container pg-hero-body">
-          <h1 className="pg-title">Haz los números antes de decidir.</h1>
-          <p className="pg-lead">Mensualidad y gastos, sin registro.</p>
-          <div className="tl-grid">
-            <Link href="/herramientas/hipoteca" className="tl-card">
-              <span className="tl-card-head"><span className="tl-open">Abrir</span></span>
-              <span className="tl-card-title">Calculadora de hipoteca</span>
-              <span className="tl-card-text">Escenarios, abonos y tabla de pagos.</span>
-              <span className="tl-preview">
-                <span><span className="tl-preview-label">Mensualidad de ejemplo</span><span className="tl-preview-value">$23,961</span></span>
-                <svg viewBox="0 0 200 80" width="200" height="80" aria-hidden="true"><path d="M0 8 C60 14 120 34 200 76" fill="none" stroke="currentColor" strokeWidth="3" /><path d="M0 79.5 H200" stroke="currentColor" strokeOpacity="0.2" /></svg>
+    <main className="s-pagina he">
+      <CabezaPagina titulo="Haz los números antes de decidir." entrada="Mensualidad y gastos, sin registro." />
+
+      <div className="s-contenedor he-cuerpo">
+        <ul className="he-tarjetas">
+          <li>
+            <Link href="/herramientas/hipoteca" className="he-tarjeta s-banda">
+              <span className="he-tarjeta-cabeza">
+                <span className="he-tarjeta-titulo">Calculadora de hipoteca</span>
+                <FlechaDiagonal size={28} />
+              </span>
+              <span className="he-tarjeta-texto">Escenarios, abonos y tabla de pagos.</span>
+              <span className="he-vista">
+                <span className="he-vista-dato"><span>Mensualidad de ejemplo</span><span className="he-vista-cifra">$23,961</span></span>
+                <svg viewBox="0 0 200 80" aria-hidden="true" className="he-curva"><path d="M0 8 C60 14 120 34 200 76" fill="none" stroke="currentColor" strokeWidth="3" /><path d="M0 79.5 H200" stroke="currentColor" strokeOpacity="0.25" /></svg>
               </span>
             </Link>
-            <Link href="/herramientas/gastos-de-cierre" className="tl-card">
-              <span className="tl-card-head"><span className="tl-open">Abrir</span></span>
-              <span className="tl-card-title">Gastos de cierre</span>
-              <span className="tl-card-text">Efectivo para comprar o neto al vender.</span>
-              <span className="tl-preview">
-                <span className="tl-preview-label">Incluye</span>
-                <span className="tl-legend"><span>ISAI</span><span>Notaría</span><span>Registro</span><span>Avalúo</span></span>
+          </li>
+          <li>
+            <Link href="/herramientas/gastos-de-cierre" className="he-tarjeta he-tarjeta-clara">
+              <span className="he-tarjeta-cabeza">
+                <span className="he-tarjeta-titulo">Gastos de cierre</span>
+                <FlechaDiagonal size={28} />
+              </span>
+              <span className="he-tarjeta-texto">Efectivo para comprar o neto al vender.</span>
+              <span className="he-vista">
+                <span className="he-vista-dato"><span>Incluye</span><span className="he-vista-lista">ISAI · Notaría · Registro · Avalúo</span></span>
               </span>
             </Link>
-          </div>
-          <p className="tl-foot">¿Vendes? <Link href="/vender-propiedad">Empieza con la entrevista</Link>.</p>
-        </div>
-      </section>
+          </li>
+        </ul>
+        <Nota>¿Vendes? <Link href="/vender-propiedad">Empieza con la entrevista</Link>.</Nota>
+      </div>
     </main>
   );
 }

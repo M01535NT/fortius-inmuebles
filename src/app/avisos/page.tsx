@@ -1,9 +1,10 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Download, FileText } from 'lucide-react';
-import { notices, noticeContent } from '@/lib/public-notices';
+import type { Metadata } from "next";
+
+import { Boton } from "@/components/sitio/boton";
+import { CabezaPagina } from "@/components/sitio/pagina";
+import { notices, noticeContent } from "@/lib/public-notices";
 import { pageMetadata } from "@/lib/seo/page-metadata";
-import "./avisos.css";
+import "./avisos-sitio.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/avisos",
@@ -12,33 +13,48 @@ export const metadata: Metadata = pageMetadata({
     "Consulta y descarga privacidad, derechos del consumidor, no discriminación, términos, honorarios y canales de atención de Fortius Inmuebles.",
 });
 
-const INLINE = ['derechos', 'no-discriminacion'];
+const EN_LINEA = ["derechos", "no-discriminacion"];
 
-/* Boceto Avisos: cabecera oscura y biblioteca de documentos en tarjetas con Leer / Descargar. */
+/*
+  Avisos, Fortius II (etapa 5, 17/11/2026): los documentos en filas con líneas, cada uno con
+  «Consultar» y «Descargar PDF». Los dos que no tienen página propia se leen aquí mismo.
+*/
 export default function AvisosPage() {
-  return <main className="pg-page">
-    <section className="pg-hero">
-      <div className="pg-container pg-hero-body">
-        <h1 className="pg-title">Información para tener a la mano.</h1>
-        <p className="pg-lead">Consulta nuestros documentos o guarda una copia en PDF.</p>
-      </div>
-    </section>
-    <section className="pg-container pg-section pg-section-last" aria-label="Documentos">
-      <div className="pg-grid-3 nt-grid">
-        {notices.map(notice => <article key={notice.id} id={notice.id} className="pg-card pg-card-pad nt-card">
-          <div className="nt-card-head"><span className="nt-badge"><FileText size={14} aria-hidden="true" />PDF</span></div>
-          <h2 className="pg-h3">{notice.title}</h2>
-          <p className="pg-muted">{notice.description}</p>
-          <div className="nt-actions">
-            {!INLINE.includes(notice.id) && <Link href={notice.href} className="pg-pill">Consultar</Link>}
-            <a href={`/avisos/${notice.id}.pdf`} download className="pg-pill pg-pill-download">Descargar PDF <Download size={16} aria-hidden="true" /></a>
-          </div>
-          {INLINE.includes(notice.id) && <details className="nt-reading">
-            <summary>Leer documento</summary>
-            {noticeContent(notice.id)!.sections.map(section => <section key={section.title}><h3>{section.title}</h3>{section.paragraphs.map(p => <p key={p}>{p}</p>)}</section>)}
-          </details>}
-        </article>)}
-      </div>
-    </section>
-  </main>;
+  return (
+    <main className="s-pagina">
+      <CabezaPagina titulo="Información para tener a la mano." entrada="Consulta nuestros documentos o guarda una copia en PDF." />
+      <section className="s-contenedor av" aria-label="Documentos">
+        <ul className="av-lista">
+          {notices.map((aviso) => {
+            const enLinea = EN_LINEA.includes(aviso.id);
+            return (
+              <li key={aviso.id} id={aviso.id} className="av-fila">
+                <div className="av-texto">
+                  <h2 className="av-titulo">{aviso.title}</h2>
+                  <p className="s-apoyo">{aviso.description}</p>
+                </div>
+                <div className="s-acciones">
+                  {!enLinea && <Boton href={aviso.href} variante="contorno" tamano="chico">Consultar</Boton>}
+                  <a href={`/avisos/${aviso.id}.pdf`} download className="s-btn s-btn-contorno s-btn-chico">Descargar PDF</a>
+                </div>
+                {enLinea && (
+                  <details className="av-lectura">
+                    <summary>Leer documento</summary>
+                    <div className="s-prosa">
+                      {noticeContent(aviso.id)!.sections.map((seccion) => (
+                        <section key={seccion.title}>
+                          <h3>{seccion.title}</h3>
+                          {seccion.paragraphs.map((p) => <p key={p}>{p}</p>)}
+                        </section>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    </main>
+  );
 }

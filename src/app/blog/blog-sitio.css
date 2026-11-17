@@ -1,0 +1,73 @@
+/* Blog, Fortius II (etapa 5, 17/11/2026). Índice y tarjetas. */
+.bl-cuerpo { display: flex; flex-direction: column; gap: var(--s-10); padding-bottom: var(--s-seccion); }
+
+/* Búsqueda y filtros */
+.bl-formulario { display: flex; flex-direction: column; gap: var(--s-3); }
+.bl-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); padding: var(--s-3) 0; border-top: 1px solid var(--s-ink); border-bottom: 1px solid var(--s-line); }
+.bl-busqueda { flex: 999 1 320px; display: flex; align-items: center; gap: var(--s-3); min-height: 52px; color: var(--s-ink-muted); }
+.bl-busqueda input { flex: 1; min-width: 0; height: 52px; padding: 0; border: 0; background: transparent; color: var(--s-ink); font: inherit; font-size: var(--s-type-fila); letter-spacing: -0.02em; }
+.bl-busqueda input::placeholder { color: color-mix(in srgb, var(--s-ink-muted) 70%, transparent); }
+.bl-lista { position: relative; flex: 1 1 180px; display: flex; align-items: center; }
+.bl-lista select { width: 100%; min-height: 48px; padding: 0 40px 0 var(--s-4); border: 1px solid var(--s-line-strong); border-radius: var(--s-r-pastilla); background: transparent; color: var(--s-ink); font: inherit; font-size: var(--s-type-interfaz); font-weight: 500; appearance: none; cursor: pointer; }
+.bl-lista select:hover { border-color: var(--s-ink); }
+.bl-lista svg { position: absolute; right: var(--s-4); pointer-events: none; color: var(--s-ink-muted); }
+.bl-mas summary { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px; font-size: var(--s-type-interfaz); font-weight: 500; color: var(--s-ink-muted); list-style: none; cursor: pointer; }
+.bl-mas summary::-webkit-details-marker { display: none; }
+.bl-mas summary:hover { color: var(--s-ink); }
+.bl-mas summary svg { transition: transform 300ms ease; }
+.bl-mas[open] summary svg { transform: rotate(180deg); }
+.bl-mas-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-4); max-width: 760px; padding: var(--s-2) 0 var(--s-4); }
+.bl-error { margin: 0; color: var(--s-error); }
+
+/* Resultados */
+.bl-resultados { display: flex; flex-direction: column; gap: var(--s-8); }
+.bl-resultados-cabeza { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-4) var(--s-7); }
+.bl-resultados-titulo { display: flex; flex-direction: column; gap: var(--s-2); }
+.bl-conteo { margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
+.bl-resultados-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5); }
+.bl-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--s-9) var(--s-6); margin: 0; padding: 0; list-style: none; }
+.bl-lista-articulos { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-ink); }
+.bl-lista-articulos > li { border-bottom: 1px solid var(--s-line); }
+.bl-paginas { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--s-4); }
+.bl-vacio { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-3); padding: var(--s-8) 0; }
+.bl-vacio p { margin: 0; }
+
+/* Tarjeta */
+.bl-tarjeta { position: relative; display: flex; flex-direction: column; gap: var(--s-2); }
+.bl-tarjeta-enlace { display: flex; flex-direction: column; gap: var(--s-4); color: var(--s-ink); }
+.bl-tarjeta-foto { display: block; overflow: hidden; aspect-ratio: 3 / 2; border-radius: var(--s-r-grande); background: var(--s-muted); }
+.bl-tarjeta-foto img { width: 100%; height: 100%; object-fit: cover; transition: transform 900ms var(--s-ease); }
+.bl-tarjeta-enlace:hover .bl-tarjeta-foto img { transform: scale(1.03); }
+.bl-tarjeta-cuerpo { display: flex; flex-direction: column; gap: var(--s-2); }
+.bl-tarjeta-tipo, .bl-tarjeta-fecha { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
+.bl-tarjeta-titulo { margin: 0; font-size: 24px; font-weight: 500; line-height: 1.15; letter-spacing: var(--s-track-sub); }
+.bl-tarjeta-enlace:hover .bl-tarjeta-titulo { color: var(--s-accent); }
+.bl-tarjeta-resumen { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 3; -webkit-box-orient: vertical; color: var(--s-ink-muted); line-height: 1.5; }
+.bl-tarjeta-credito { font-size: 12px; color: var(--s-ink-muted); }
+
+.bl-tarjeta-destacada .bl-tarjeta-enlace { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: var(--s-7) var(--s-10); }
+.bl-tarjeta-destacada .bl-tarjeta-foto { flex: 1.6 1 520px; aspect-ratio: 16 / 10; }
+.bl-tarjeta-destacada .bl-tarjeta-cuerpo { flex: 1 1 320px; gap: var(--s-4); }
+.bl-tarjeta-destacada .bl-tarjeta-titulo { font-size: var(--s-type-bloque); line-height: 1.05; letter-spacing: var(--s-track-seccion); }
+.bl-tarjeta-destacada .bl-tarjeta-resumen { font-size: var(--s-type-entrada); -webkit-line-clamp: 4; }
+
+.bl-tarjeta-lista .bl-tarjeta-enlace { flex-direction: row; align-items: center; gap: var(--s-6); padding: var(--s-5) 0; }
+.bl-tarjeta-lista .bl-tarjeta-foto { flex: none; width: 240px; }
+.bl-tarjeta-lista .bl-tarjeta-cuerpo { flex: 1; min-width: 0; }
+.bl-tarjeta-lista .bl-tarjeta-credito { padding-bottom: var(--s-3); }
+
+/* Pie: herramientas y guías */
+.bl-pie { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--s-10) var(--s-12); padding-top: var(--s-10); }
+.bl-pie-bloque { display: flex; flex-direction: column; align-items: stretch; gap: var(--s-6); }
+.bl-pie-bloque > .s-enlace { align-self: flex-start; }
+
+@media (max-width: 639px) {
+  .bl-lista { flex-basis: 100%; }
+  .bl-barra > .s-btn { flex: 1 1 100%; }
+  .bl-tarjeta-lista .bl-tarjeta-enlace { flex-direction: column; align-items: stretch; }
+  .bl-tarjeta-lista .bl-tarjeta-foto { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bl-tarjeta-foto img, .bl-mas summary svg { transition: none; }
+  .bl-tarjeta-enlace:hover .bl-tarjeta-foto img { transform: none; }
+}

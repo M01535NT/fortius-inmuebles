@@ -258,7 +258,7 @@ html.sitio .s-pestanas .s-pestana:focus-visible { outline-offset: -3px; }
   transition: background-color 300ms ease, color 300ms ease;
 }
 .s-pestana:hover { background: color-mix(in srgb, var(--s-ink) 6%, transparent); }
-.s-pestana[aria-selected="true"], .s-pestana[aria-pressed="true"] { background: var(--s-accent); color: var(--s-accent-ink); }
+.s-pestana[aria-selected="true"], .s-pestana[aria-pressed="true"], .s-pestana[aria-current="page"] { background: var(--s-accent); color: var(--s-accent-ink); }
 .s-pestanas-tenue .s-pestana[aria-pressed="true"], .s-pestanas-tenue .s-pestana[aria-selected="true"] { background: var(--s-card); color: var(--s-ink); box-shadow: 0 1px 2px rgba(24, 32, 42, 0.08); }
 .s-pestanas-chicas .s-pestana { min-height: 36px; padding: 0 var(--s-4); font-size: var(--s-type-detalle); }
 
@@ -383,10 +383,65 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 .s-frase-opcion svg { flex: none; color: var(--s-accent); opacity: 0; }
 .s-frase-opcion[aria-selected="true"] svg { opacity: 1; }
 
+/* Páginas interiores (etapa 5): cabeza, bloques, filas, prosa y siguiente paso. */
+.s-pagina { padding-top: var(--s-cabecera); }
+.s-cabeza { display: flex; flex-direction: column; gap: var(--s-7); padding-top: var(--s-12); padding-bottom: var(--s-10); }
+.s-cabeza-fila { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-6) var(--s-11); }
+.s-cabeza-titulo { flex: 999 1 560px; max-width: 1000px; margin: 0; font-size: clamp(44px, 6.4vw, 104px); font-weight: 500; line-height: 0.96; letter-spacing: -0.055em; text-wrap: balance; }
+.s-cabeza-titulo-chico { font-size: var(--s-type-titulo); }
+.s-cabeza-lado { flex: 1 1 300px; max-width: 420px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-5); }
+.s-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); }
+.s-volver { align-self: flex-start; display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px; color: var(--s-ink-muted); font-size: var(--s-type-interfaz); font-weight: 500; }
+.s-volver:hover { color: var(--s-ink); }
+
+.s-foto-ancha { position: relative; display: block; height: clamp(320px, 42vw, 620px); overflow: hidden; border-radius: var(--s-r-grande); background: var(--s-muted); }
+.s-foto-ancha img { object-fit: cover; }
+
+.s-bloque { display: flex; flex-wrap: wrap; gap: var(--s-7) var(--s-12); padding-block: var(--s-seccion); }
+.s-bloque + .s-bloque { padding-top: 0; }
+.s-bloque-cabeza { flex: 1 1 340px; display: flex; flex-direction: column; gap: var(--s-4); }
+.s-bloque-cabeza .s-entrada { max-width: 420px; }
+.s-bloque-cuerpo { flex: 1.6 1 520px; min-width: 0; display: flex; flex-direction: column; gap: var(--s-6); }
+
+.s-filas { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-ink); }
+.s-filas > li { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s-1) var(--s-6); padding: 22px 0; border-bottom: 1px solid var(--s-line); }
+.s-filas-titulo { flex: 1 1 240px; font-size: var(--s-type-fila); font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; }
+.s-filas-texto { flex: 1 1 260px; max-width: 420px; color: var(--s-ink-muted); line-height: 1.5; }
+.s-nota { margin: 0; font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
+.s-nota a { color: var(--s-accent); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+.s-siguiente { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-7) var(--s-10); padding-block: var(--s-10) var(--s-seccion); border-top: 1px solid var(--s-line); }
+.s-siguiente-texto { flex: 1 1 420px; display: flex; flex-direction: column; gap: var(--s-3); }
+
+.s-preguntas { border-top: 1px solid var(--s-ink); }
+.s-pregunta { border-bottom: 1px solid var(--s-line); scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
+.s-pregunta summary { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 64px; padding: var(--s-4) 0; font-size: var(--s-type-fila); font-weight: 500; line-height: 1.25; letter-spacing: var(--s-track-tarjeta); list-style: none; cursor: pointer; }
+.s-pregunta summary::-webkit-details-marker { display: none; }
+.s-pregunta summary svg { flex: none; color: var(--s-accent); transition: transform 300ms var(--s-ease); }
+.s-pregunta[open] summary svg { transform: rotate(45deg); }
+.s-pregunta-respuesta { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); padding-bottom: var(--s-6); }
+.s-pregunta-respuesta p { max-width: 62ch; margin: 0; color: var(--s-ink-muted); line-height: 1.6; }
+
+/* Texto largo (avisos, términos, artículos) */
+.s-prosa { max-width: 720px; font-size: 18px; line-height: 1.7; }
+.s-prosa :is(p, ul, ol, dl) { margin-bottom: 0; }
+.s-prosa > * + *, .s-prosa section > * + * { margin-top: 1em; }
+.s-prosa > section:first-child > h2:first-child { margin-top: 0; }
+.s-prosa h2 { margin-top: 2.2em; margin-bottom: 0; font-size: var(--s-type-sub); font-weight: 500; line-height: 1.15; letter-spacing: var(--s-track-sub); scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
+.s-prosa h3 { margin-top: 1.8em; margin-bottom: 0; font-size: 22px; font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
+.s-prosa p, .s-prosa li { color: color-mix(in srgb, var(--s-ink) 86%, transparent); }
+.s-prosa a { color: var(--s-accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; overflow-wrap: anywhere; }
+.s-prosa :is(ul, ol) { padding-left: 1.2em; }
+
+@media (max-width: 639px) {
+  .s-cabeza { padding-top: var(--s-9); padding-bottom: var(--s-8); }
+}
+
 /* Logo */
 .s-logo { display: inline-flex; flex: none; color: var(--s-ink); }
 .s-logo svg { display: block; height: 100%; width: auto; }
 
 @media (prefers-reduced-motion: reduce) {
+  .s-pregunta summary svg,
   .s-btn, .s-btn svg, .s-enlace svg, .s-pestana, .s-linea > svg, .s-tarjeta-foto img, .s-interruptor-pista, .s-interruptor-pista::after { transition: none; }
 }

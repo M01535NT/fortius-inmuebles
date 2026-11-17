@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 4 construidas (17/11/2026). Todo está guardado en la rama y el Inicio ya se revisó en el navegador local. Falta tu visto bueno a la etapa 0. Etapa 5 empezada: Vender y Contacto ya están construidos según el boceto aprobado y revisados en el navegador local, sin guardar todavía. Siguen las demás páginas.
+Etapas 1 a 5 construidas (17/11/2026). Vender y Contacto están guardados en la rama; las demás páginas ya tienen el diseño nuevo y se revisaron en el navegador local, sin guardar todavía. Falta tu visto bueno a la etapa 0. Sigue la etapa 6 (movimiento y teléfono) cuando lo indiques.
 
 ## Etapas
 
@@ -80,15 +80,17 @@ Etapas 1 a 4 construidas (17/11/2026). Todo está guardado en la rama y el Inici
 - [x] Vender: portada con video y entrevista en dos pasos, cómo vendemos, qué falta, checklist, «Antes de decidir» y cierre propio.
 - [x] Contacto: «Hola, quiero [motivo]», formulario corto, canales directos y quién te atiende.
 - [ ] Probar el envío de los dos formularios (no se mandaron para no crear contactos).
-- [ ] Rehacer Comprar, Herramientas, Nosotros, Blog, Preguntas frecuentes, Avisos, Privacidad, Términos y Opinión de valor.
+- [x] Comprar, Herramientas (con hipoteca y gastos de cierre), Opinión de valor, Nosotros, Preguntas frecuentes, Blog (índice y artículo), Avisos, Privacidad y Términos con el diseño nuevo.
+- [ ] Dar a las calculadoras de hipoteca y gastos de cierre el aspecto nuevo por dentro (hoy solo toman colores y letra).
 
 ## Lo que te toca a ti
 
 - Confirmar los nombres de los asuntos de la portada (hoy: Vender, Comprar, Rentar, Saber cuánto vale, Poner papeles en orden y Otro asunto).
+- Confirmar el texto de Opinión de valor: ahora dice que se entrega después de conocer el inmueble, sin decir que solo sale dentro del método.
 - Dar la foto de cada asesor.
 - Capturar en el panel los lugares cercanos de cada inmueble.
 - Decidir si «Qué hay alrededor» necesita los grupos iglesias y hoteles: hoy el panel no los tiene.
-- Aprobar el reemplazo de las pruebas del diseño anterior. Con la etapa 1 ya no pasan: la que pide la letra anterior y las que buscan el botón «Cambiar a tema oscuro» (ahora es un interruptor «Tema oscuro»). Con la etapa 2, las dos pruebas del inventario anterior (filtros en una fila y lectura de la dirección) y las de comparar en el navegador. Con la etapa 3, las del navegador que buscan la galería anterior de la ficha. Con la etapa 4, las del inicio anterior (portada con escenas, método, expediente, «Comprar también empieza por revisar» y el cierre «¿Hablamos de tu propiedad?»). Con la etapa 5, la que busca el título «Antes de publicar.» en Vender y la que busca «¿Compras o vendes? Hablemos.» y la tarjeta «Quiero vender» en Contacto. Las de la galería, la tarjeta de visita y la barra del teléfono anteriores siguen pasando porque esas piezas siguen en el código hasta la etapa 7.
+- Aprobar el reemplazo de las pruebas del diseño anterior. Con la etapa 1 ya no pasan: la que pide la letra anterior y las que buscan el botón «Cambiar a tema oscuro» (ahora es un interruptor «Tema oscuro»). Con la etapa 2, las dos pruebas del inventario anterior (filtros en una fila y lectura de la dirección) y las de comparar en el navegador. Con la etapa 3, las del navegador que buscan la galería anterior de la ficha. Con la etapa 4, las del inicio anterior (portada con escenas, método, expediente, «Comprar también empieza por revisar» y el cierre «¿Hablamos de tu propiedad?»). Con la etapa 5, la que busca el título «Antes de publicar.» en Vender, la que busca «¿Compras o vendes? Hablemos.» y la tarjeta «Quiero vender» en Contacto, las del blog que eligen tema y tipo con botones (ahora son listas), la del buscador de Comprar y la de Términos que cambia el tema con el botón anterior. Las de la galería, la tarjeta de visita y la barra del teléfono anteriores siguen pasando porque esas piezas siguen en el código hasta la etapa 7.
 
 ## Al integrar
 

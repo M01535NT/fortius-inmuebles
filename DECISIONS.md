@@ -96,3 +96,15 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **O directo:** WhatsApp, llamar y correo, con los datos y el horario que ya tiene el sistema. Solo sale el canal que existe; si no hay ninguno, lo dice.
 - **Quién te atiende:** foto con «Responde Fortius, con un asesor asignado a tu asunto» y el enlace al equipo.
 - Las piezas anteriores de Vender y Contacto quedan en el código sin uso hasta la etapa 7.
+
+## Demás páginas (17/11/2026)
+
+- **Piezas comunes:** las páginas interiores son claras y empiezan con un título grande y una línea de apoyo. Cada tema va con su título a un lado y filas con líneas finas al otro; al final, un «siguiente paso». La banda oscura de invitación la pone el pie.
+- **Comprar:** documentos, gastos, forma de pago y pasos al cierre en filas; al final, hasta tres propiedades publicadas (primero las destacadas). El buscador de la página se retiró: «Ver propiedades» lleva al inventario, que ya filtra con su frase.
+- **Herramientas:** dos tarjetas grandes con una vista previa. Las calculadoras conservan sus cálculos y su acomodo; por ahora solo toman los colores y la letra nuevos.
+- **Opinión de valor:** se entrega por escrito después de conocer el inmueble y sus papeles. Ya no dice que solo sale dentro del método, porque desde el 16/11/2026 es un servicio que se hace cuando se pide.
+- **Nosotros:** los perfiles publicados en el panel; mientras no haya, el perfil ilustrativo con sus iniciales. Misión y visión en fotos con texto; valores en filas, sin números.
+- **Blog:** la búsqueda y los filtros siguen en la dirección. Tema y tipo pasan a listas desplegables; fechas y orden siguen plegados. «Guía · tema» va en la línea de datos, no encima del título.
+- **Preguntas frecuentes:** se abren con un toque, agrupadas como antes.
+- **Avisos, Privacidad y Términos:** documentos en filas con «Consultar» y «Descargar PDF»; el texto largo se lee a 720 px de ancho, con índice al lado en Términos.
+- Las piezas anteriores de estas páginas quedan en el código sin uso hasta la etapa 7.
