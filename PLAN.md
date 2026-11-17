@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Sigue la etapa 8: comprobación completa y PR en borrador, cuando lo pidas. Falta tu visto bueno a la etapa 0.
+Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etapa 8 (17/11/2026): la comprobación completa pasa y el PR en borrador hacia `main` está abierto; sale cuando tú lo decidas. Falta tu visto bueno a la etapa 0.
 
 ## Etapas
 

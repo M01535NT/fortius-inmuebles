@@ -48,7 +48,7 @@ export function FichaVisor({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, s
   const opciones: Opcion<Modo>[] = modos.map((valor) => ({ valor, etiqueta: ETIQUETAS[valor] }));
   const [modo, setModo] = React.useState<Modo>("fotos");
   const [index, setIndex] = React.useState(0);
-  const [pausado, setPausado] = React.useState(false);
+  const [pausado, setPausado] = React.useState(true);
   const marcoRef = React.useRef<HTMLDivElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const dialogRef = React.useRef<HTMLDialogElement>(null);
@@ -65,14 +65,15 @@ export function FichaVisor({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, s
   React.useEffect(() => {
     if (modo !== "video" || !videoRef.current) return;
     const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducido) { videoRef.current.pause(); setPausado(true); return; }
-    videoRef.current.play().then(() => setPausado(false)).catch(() => setPausado(true));
+    // El botón sigue al video por sus eventos de reproducir y pausar.
+    if (reducido) { videoRef.current.pause(); return; }
+    videoRef.current.play().catch(() => {});
   }, [modo]);
 
   function alternarVideo() {
     const video = videoRef.current;
     if (!video) return;
-    if (video.paused) { void video.play(); setPausado(false); } else { video.pause(); setPausado(true); }
+    if (video.paused) void video.play().catch(() => {}); else video.pause();
   }
 
   function pantallaCompleta() {
@@ -99,7 +100,8 @@ export function FichaVisor({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, s
         )}
         {modo === "video" && videoUrl && (videoEmbed
           ? <iframe src={videoEmbed} title={`Video de ${titulo}`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />
-          : <video ref={videoRef} src={videoUrl} muted loop playsInline preload="metadata" aria-label={`Video de ${titulo}`} />)}
+          : <video ref={videoRef} src={videoUrl} muted loop playsInline preload="metadata" aria-label={`Video de ${titulo}`}
+            onLoadStart={() => setPausado(true)} onPlay={() => setPausado(false)} onPause={() => setPausado(true)} />)}
         {modo === "360" && tour360Url && <iframe src={tour360Url} title={`Recorrido 360° de ${titulo}`} allowFullScreen />}
       </div>
 

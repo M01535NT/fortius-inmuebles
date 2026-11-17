@@ -148,6 +148,14 @@ html.sitio .s-banda {
 html.sitio .s-banda {
   background: var(--s-bg);
   color: var(--s-ink);
+  /* Las piezas compartidas (avisos de formularios) leen estos nombres: también oscuros aquí. */
+  --background: var(--s-bg);
+  --foreground: var(--s-ink);
+  --card: var(--s-card);
+  --muted: var(--s-muted);
+  --muted-foreground: var(--s-ink-muted);
+  --border: var(--s-line);
+  --input: var(--s-line-strong);
 }
 /* Texto sobre foto o video: siempre claro, con velo propio en cada pieza. */
 html.sitio .s-sobre-media { color: #ededef; }

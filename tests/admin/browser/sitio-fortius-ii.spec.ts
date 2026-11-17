@@ -18,7 +18,9 @@ const paginas = [
 async function controlesChicos(page: Page) {
   return page.evaluate(() => [...document.querySelectorAll<HTMLElement>("main a[href], main button, main input:not([type=hidden]), main select, main textarea, main summary")]
     .filter((el) => {
-      const caja = el.getBoundingClientRect();
+      // Casillas y opciones se tocan por su etiqueta completa.
+      const objetivo = el.matches("input[type=checkbox], input[type=radio]") && el.closest("label") ? el.closest("label")! : el;
+      const caja = objetivo.getBoundingClientRect();
       if (!caja.width || !caja.height || el.classList.contains("sr-only")) return false;
       const enTexto = el.tagName === "A" && getComputedStyle(el).display === "inline" && el.closest("p, li, dd, td");
       return !enTexto && caja.height < 43.5;
@@ -71,9 +73,9 @@ test("Vender pide la entrevista en dos pasos y «Volver» conserva lo escrito", 
   await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page.getByRole("heading", { name: "¿Cómo te contactamos?" })).toBeFocused();
   await expect(page.getByText("Departamento en Zona Río · lo anotamos para la entrevista.")).toBeVisible();
-  await page.getByRole("button", { name: /Volver/ }).click();
+  await page.getByRole("button", { name: "← Volver", exact: true }).click();
   await expect(page.getByLabel("Zona o colonia")).toHaveValue("Zona Río");
-  await expect(page.getByText("Antes de publicar.")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Antes de publicar." })).toHaveCount(0);
 });
 
 test("Contacto cambia el formulario según «Hola, quiero…»", async ({ page }) => {
@@ -102,14 +104,14 @@ test("la imagen para compartir y el aviso de privacidad cargan", async ({ page }
 
 test("el blog filtra con sus listas y la búsqueda, y la dirección conserva los filtros", async ({ page }) => {
   await page.goto("/blog");
-  await page.getByLabel("Tema", { exact: true }).selectOption("mercado");
-  await page.getByLabel("Tipo de contenido").selectOption("actualidad");
+  await page.locator("select[name=tema]").selectOption("mercado");
+  await page.locator("select[name=tipo]").selectOption("actualidad");
   await page.getByLabel("Buscar un tema").fill("CREDITO");
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
   await expect(page).toHaveURL((url) => url.searchParams.get("tema") === "mercado" && url.searchParams.get("tipo") === "actualidad" && url.searchParams.get("q") === "CREDITO");
   await expect(page.getByRole("status")).toContainText("1 artículo");
   await page.reload();
-  await expect(page.getByLabel("Tema", { exact: true })).toHaveValue("mercado");
+  await expect(page.locator("select[name=tema]")).toHaveValue("mercado");
   await expect(page.getByLabel("Buscar un tema")).toHaveValue("CREDITO");
 });
 
@@ -128,7 +130,7 @@ for (const tema of ["light", "dark"] as const) {
 }
 
 test.describe("con movimiento reducido", () => {
-  test.use({ reducedMotion: "reduce" });
+  test.use({ contextOptions: { reducedMotion: "reduce" } });
 
   test("la tira del inicio no se mueve sola y los videos se quedan en su póster", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });

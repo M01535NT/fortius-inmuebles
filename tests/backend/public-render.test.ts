@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Children, createElement, type ReactElement } from "react";
+import { Children, type ReactElement } from "react";
 import RootLayout, { generateMetadata } from "@/app/layout";
 import HomePage from "@/app/page";
 import NosotrosPage from "@/app/nosotros/page";

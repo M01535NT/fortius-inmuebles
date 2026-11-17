@@ -651,7 +651,7 @@ export function MortgagePlanner({
                 href={FINANCIAL_SOURCES.cat.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary-ink underline underline-offset-4"
+                className="inline-flex min-h-11 items-center text-primary-ink underline underline-offset-4"
               >
                 Banxico: qué incluye el CAT
               </a>
