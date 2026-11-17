@@ -14,9 +14,11 @@ import styles from "./site-nav.module.css";
 /*
   Cabecera del sitio, Fortius II (17/11/2026): logo a la izquierda y, arriba a la derecha, la lupa
   del buscador y el botón «Menú» de hamburguesa, en todos los tamaños. Sin enlaces sueltos.
-  En el inicio flota clara sobre el video; al bajar, o en cualquier otra página, toma el fondo
-  del tema con una línea fina abajo.
+  En el inicio y en Vender flota clara sobre el video; al bajar, o en cualquier otra página, toma
+  el fondo del tema con una línea fina abajo.
 */
+const PORTADAS_OSCURAS = new Set(["/", "/vender-propiedad"]);
+
 export function SiteNav() {
   const pathname = usePathname();
   const { scrollY } = useScroll();
@@ -34,7 +36,7 @@ export function SiteNav() {
   /* El panel /admin trae su propio shell: sin cabecera pública. */
   if (pathname.startsWith("/admin")) return null;
 
-  const solid = pathname !== "/" || scrolled;
+  const solid = !PORTADAS_OSCURAS.has(pathname) || scrolled;
   const openMenu = () => { setMenuReady(true); setMenuOpen(true); };
   const menu = menuReady ? <FullscreenMenu open={menuOpen} onClose={closeMenu} /> : null;
 

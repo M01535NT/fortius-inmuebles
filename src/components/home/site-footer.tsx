@@ -72,8 +72,8 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
     { name: "WhatsApp", href: contact.whatsapp, Icon: WhatsApp },
   ].filter((item) => item.href);
   if (pathname.startsWith("/admin")) return null;
-  /* El inicio cierra con su propia invitación y Contacto ya es la invitación (12/11/2026). */
-  const showInvitation = pathname !== "/" && pathname !== "/contacto";
+  /* El inicio y Vender cierran con su propia invitación y Contacto ya es la invitación (17/11/2026). */
+  const showInvitation = !["/", "/contacto", "/vender-propiedad"].includes(pathname);
 
   return (
     <footer className={styles.footer}>

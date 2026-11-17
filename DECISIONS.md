@@ -80,3 +80,19 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **En el mercado ahora:** hasta ocho propiedades publicadas, primero las destacadas.
 - **Haz números:** 20 % de enganche, 20 años y la tasa de referencia de 10.5 %, la misma de la ficha.
 - **Cierre:** llega al panel como contacto, con lo que escribió en «¿Qué necesitas?» como mensaje. Es la única invitación del inicio; el pie no repite la suya aquí.
+
+## Vender (17/11/2026)
+
+- **Boceto:** el lienzo «Fortius: Vender y Contacto», aprobado el 17/11/2026.
+- **Portada:** el video de la casa, el mismo del asunto Vender del inicio. La cabecera flota clara sobre él, como en el inicio.
+- **Entrevista en dos pasos:** es el único formulario de la página. Paso 1: tipo de propiedad en lista (casa, departamento, local u oficina, nave industrial, terreno) y zona. Paso 2: nombre y teléfono. Llega al panel como contacto con el mensaje «Vender · tipo · zona». «Volver» no borra lo escrito. Si la recepción está apagada, el paso 2 ofrece WhatsApp y teléfono.
+- **Checklist:** se descarga directo, sin pedir datos.
+- **Cierre propio** «¿Empezamos con la entrevista?»; el pie no repite su invitación aquí.
+
+## Contacto (17/11/2026)
+
+- **El título es el motivo:** «Hola, quiero [vender, comprar, rentar, preguntar por un inmueble o contarles otro asunto]», con la misma lista de la frase del inventario. Al cambiarlo cambian la guía, el tercer campo y el mensaje que lleva WhatsApp; lo escrito no se borra.
+- **Formulario:** nombre, teléfono y un detalle según el motivo. Llega al panel como contacto con el mensaje «Quiere [motivo] · detalle».
+- **O directo:** WhatsApp, llamar y correo, con los datos y el horario que ya tiene el sistema. Solo sale el canal que existe; si no hay ninguno, lo dice.
+- **Quién te atiende:** foto con «Responde Fortius, con un asesor asignado a tu asunto» y el enlace al equipo.
+- Las piezas anteriores de Vender y Contacto quedan en el código sin uso hasta la etapa 7.
