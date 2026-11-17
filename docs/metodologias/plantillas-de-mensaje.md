@@ -126,5 +126,5 @@ Si la visita se cancela sin nueva fecha, el asesor borra la pregunta del horario
 ## Por decidir con el titular (una por una)
 
 1. ~~¿Usted o tú?~~ **Decidido: tú** (12/11/2026).
-2. ~~¿El primer mensaje lleva la liga al aviso de privacidad cuando la persona llegó por teléfono o WhatsApp?~~ **Decidido: no la lleva** (12/11/2026); el asesor lo explica en persona o en la llamada cuando haga falta. Pendiente para el abogado: confirmar cómo se pone el aviso a disposición de quien da sus datos por teléfono o WhatsApp (ver `docs/erp-crm/privacy/data-processing-register.md`).
+2. ~~¿El primer mensaje lleva la liga al aviso de privacidad cuando la persona llegó por teléfono o WhatsApp?~~ **Decidido: no la lleva** (12/11/2026); el asesor lo explica en persona o en la llamada cuando haga falta. Pendiente para el abogado: confirmar cómo se pone el aviso a disposición de quien da sus datos por teléfono o WhatsApp (ver `docs/operacion/registro-de-datos-personales.md`).
 3. ~~¿Falta alguna situación que los asesores viven seguido?~~ **Decidido** (12/11/2026): se agregan «ya se vendió o se rentó», «cambiar o cancelar una visita» y «pedirle sus documentos para apartar» (mensajes 11 a 13). El aviso de cambio de precio no se agrega.

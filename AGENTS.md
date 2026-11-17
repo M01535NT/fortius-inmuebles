@@ -2,7 +2,7 @@
 
 **Responde siempre en español**, aunque las herramientas, los archivos, los resúmenes de la conversación o los informes de otros agentes estén en inglés. Los encargos a subagentes y sesiones auxiliares también van en español, y piden la respuesta en español.
 
-Un solo producto: el sitio público de **Fortius Inmuebles** y su panel operativo (Next.js, Supabase, Vercel). El panel nuevo vive en `/panel`; el viejo `/admin` es legado. COTA e Inmobiliaria OS son otros proyectos: no copies sus reglas ni datos.
+Un solo producto: el sitio público de **Fortius Inmuebles** y su panel operativo (Next.js, Supabase, Vercel). El panel vive en `/panel`; `/admin` es el panel provisional que sigue en producción hasta que el nuevo lo reemplace. COTA e Inmobiliaria OS son otros proyectos: no copies sus reglas ni datos.
 
 Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregúntale solo negocio y autorizaciones, una cosa a la vez. Distingue lo comprobado de lo supuesto; no afirmes lo que no verificaste.
 
@@ -10,28 +10,38 @@ Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregún
 
 | Qué | Dónde |
 | --- | --- |
-| Qué falta y cómo va (único plan) | `PLAN.md` |
-| Reglas (RP) y decisiones (DEC) vigentes | `SPEC.md` |
-| Qué hace cada pantalla del panel nuevo (manda sobre lo construido) | `docs/diseno/nuevo-panel/DECISIONES.md` |
-| Qué es legado y cómo se aísla | `docs/diseno/nuevo-panel/LEGADO.md` |
-| Marca del sitio público | `docs/brand.md` |
-| Lo demás (privacidad, publicación, respaldos, formatos, calculadoras) | `docs/README.md` |
+| Cómo debe funcionar el sistema (manda sobre lo construido) | `SPEC.md` |
+| Qué falta y en qué etapa vamos (único plan) | `PLAN.md` |
+| Cómo se ve y cómo responde el panel (boceto aprobado) | `docs/boceto-fortius-por-asuntos.html` |
+| Casos reales con los que se prueba cada etapa | `docs/casos-reales.md` |
+| Metodologías que se copian a un asunto | `docs/metodologias/` |
+| Marca del sitio público | `docs/sitio-publico/marca.md` |
+| Lo demás (operación, respaldos, privacidad, formatos, cálculos, legal) | `docs/README.md` |
 
-Lo terminado y lo reemplazado no se guarda en documentos: queda en el historial de git. Si un documento viejo contradice a `SPEC.md` o a `DECISIONES.md`, se corrige o se borra; no se dejan reglas viejas vivas. Todo avance se anota en `PLAN.md`; las reglas nuevas, en `SPEC.md` o `DECISIONES.md`. Si una indicación nueva choca con algo escrito, se corrige la fuente y se avisa del choque.
+`SPEC.md` y `PLAN.md` los lee también el titular, que no es programador: se escriben en lenguaje sencillo, sin claves internas ni tecnicismos, y sin mencionar trabajo anterior, archivado o reemplazado. Lo reemplazado no se guarda en documentos: queda en el historial de git. Si un documento contradice a `SPEC.md`, se corrige o se borra. Todo avance se anota en `PLAN.md`; toda regla o decisión nueva, en `SPEC.md`. Si una indicación nueva choca con algo escrito, se corrige la fuente y se avisa del choque.
 
-## Panel nuevo
+Las claves del tipo `RP-00` o `DEC-00` y las menciones a `DECISIONES.md` que aparecen en comentarios del código son de versiones anteriores de la especificación y ya no existen: manda `SPEC.md`.
 
-- **Código** en `src/app/panel/`, `src/components/panel/` y `src/lib/panel/`, con estilos bajo `.panel-root`. Nada nuevo en `/admin` salvo seguridad o caída del sitio, avisando.
-- **Aislamiento:** el panel nuevo solo usa el viejo a través de `src/lib/panel/legado/`; el lint lo hace cumplir y no se desactiva. El backend (`src/lib/backend`, `src/app/api`, `supabase/migrations`) es compartido.
-- **Diseño:** manda el boceto aprobado «Fortius por asuntos» (DEC-68, RP-104; enlace y detalle en `DECISIONES.md`): app moderna, pocas palabras en pantalla, opciones agrupadas en desplegables y menús, íconos en todo, claro y oscuro. Minimalista es agrupar, no quitar funciones. Los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx` se ajustan al boceto al reconstruir. Lo que el boceto no define se anota en `DECISIONES.md`, no se inventa.
-- **Cualquier caso cabe (DEC-67):** la app sirve para cualquier caso inmobiliario; ninguna metodología es regla del panel ni su columna vertebral. Una metodología es una guía para un trabajo específico (captar una venta, captar una renta, cancelar una hipoteca); hay muchas, viven en la Biblioteca y en `docs/metodologias/`, y nunca se generalizan a todo el panel. Si un caso real no cabe, dilo con claridad y propón cambiar el diseño; no acomodes el caso a la fuerza. Los casos del titular están en `docs/diseno/nuevo-panel/casos-reales.md`.
-- **Comportamiento:** nada frena, solo avisa (DEC-61). De 3 opciones en adelante, desplegable; con 2, interruptor; nunca filas de chips. Arrastrar y soltar con equivalente de teclado (RP-102 PN). Primero para el director, después para el asesor; la visibilidad se hace cumplir en la base con RLS (RP-101 PN).
-- **Pantalla:** lenguaje sencillo, una acción principal, sin rastros de IA («Por confirmar», no «propuesto»). Teclado, foco visible, botones de al menos 44 px y movimiento reducido.
-- **Auditoría:** al cerrar una etapa, un revisor de solo lectura audita la lógica y prueba los casos de `casos-reales.md`; lo que encuentre se corrige o se anota en `PLAN.md` (RP-103 PN).
+## Cambios y contradicciones (regla del titular, 16/11/2026)
+
+- `SPEC.md` y `PLAN.md` son la versión vigente, no definitiva.
+- **Si lo que pide el titular contradice lo escrito, dilo antes de hacerlo:** «eso contradice esto», citando la parte. No lo apliques en silencio ni dejes las dos reglas vivas.
+- **Pregúntale qué prefiere:** corregirlo en la misma rama (ajuste chico) o **abrir una rama nueva** (cambio grande o de dirección), donde se modifican `SPEC.md`, `PLAN.md` y lo necesario sin tocar la versión en curso. Sugiere la rama nueva cuando el cambio afecte varias secciones o trabajo ya hecho.
+- **Propón.** Si entiendes lo que busca y ves una mejor forma de lograrlo, o notas que falta algo, sugiérelo con su razón, sin esperar a que lo pida. Él decide.
+
+## Panel
+
+- **Código** en `src/app/panel/`, `src/components/panel/` y `src/lib/panel/`, con estilos bajo `.panel-root`. Nada nuevo en `/admin` (el panel provisional) salvo seguridad o caída del sitio, avisando.
+- **Aislamiento:** el panel solo usa el provisional a través de `src/lib/panel/legado/`; el lint lo hace cumplir y no se desactiva. El backend (`src/lib/backend`, `src/app/api`, `supabase/migrations`) es compartido.
+- **Diseño:** manda el boceto aprobado. App moderna, pocas palabras en pantalla, opciones agrupadas en listas desplegables y menús, íconos en todo, claro y oscuro. Minimalista es agrupar, no quitar funciones. Los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx` se ajustan al boceto. Lo que el boceto no define se pregunta y se anota en `SPEC.md`; no se inventa.
+- **Cualquier caso cabe:** ninguna metodología es regla del panel ni su centro. Una metodología es una guía para un trabajo específico (captar una venta, captar una renta, cancelar una hipoteca); hay muchas, viven en la Biblioteca y nunca se generalizan a todo el panel. Si un caso real no cabe, dilo con claridad y propón cambiar el diseño; no acomodes el caso a la fuerza.
+- **Comportamiento:** el sistema nunca impide seguir por falta de un dato o un paso; avisa y deja continuar. De 3 opciones en adelante, lista desplegable; con 2, interruptor; nunca un botón por opción. La visibilidad (director ve todo, asesor lo suyo) se hace cumplir en la base con RLS.
+- **Pantalla:** lenguaje sencillo, sin rastros de IA («Por confirmar», no «propuesto»). Teclado, foco visible, botones de al menos 44 px en el teléfono y movimiento reducido.
+- **Revisión:** al cerrar una etapa, un revisor de solo lectura repasa la lógica y prueba los casos de `docs/casos-reales.md`; lo que encuentre se corrige o se anota en `PLAN.md`.
 
 ## Sitio público
 
-Conserva su identidad actual (`docs/brand.md`) hasta que el titular pida aplicar el nuevo sistema (DEC-59). Sin cejas (antetítulos sobre los títulos).
+Conserva su identidad actual (`docs/sitio-publico/marca.md`) hasta que el titular pida cambiarla. Sin cejas (antetítulos sobre los títulos).
 
 ## Formatos y documentos
 

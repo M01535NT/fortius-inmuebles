@@ -28,7 +28,7 @@ El verificador también exige que los PDFs emitidos, copias firmadas, adjuntos y
 
 `node tools/fortius-inmuebles-backup.mjs --restore-objects DIRECTORIO_BACKUP --target DIRECTORIO_NUEVO_AISLADO` copia los bytes verificados a un directorio local nuevo con permisos restringidos. Conserva en `objects.json` las rutas/buckets originales y comprueba la huella del archivo recuperado. No requiere credenciales, no sube a Supabase ni reemplaza destinos existentes. El resultado marca expresamente `storageServiceRecovery: not_checked`.
 
-La política y el ensayo del proveedor pendientes están descritos en `docs/erp-crm/recovery-policy.md`. Un ensayo local no acredita recuperación de Auth/Storage del proveedor ni un RPO/RTO operativo.
+La política y el ensayo del proveedor pendientes están descritos en `docs/operacion/politica-de-recuperacion.md`. Un ensayo local no acredita recuperación de Auth/Storage del proveedor ni un RPO/RTO operativo.
 
 ## Restauración de Storage en un proyecto aislado (12/11/2026)
 
@@ -47,7 +47,7 @@ Salvaguardas comprobadas por `tests/tools/restore-storage.test.mjs`:
 - Con la clave anónima comprueba que ningún objeto privado se pueda descargar sin sesión (`privateDenial: verified`); sin ella, el informe dice `not_checked`.
 - Mide la duración total, de subida y de relectura en milisegundos, para contrastar con el RTO de ocho horas.
 
-El informe se guarda en el directorio del respaldo como `storage-restore-REF-FECHA.json`, sin claves ni contenido. Lo que **no** cubre: el propietario original de cada objeto (`owner_id`; las subidas usan el rol de servicio del destino), las cuentas de Auth y sus contraseñas, y la configuración del proyecto (correo, URL de retorno, límites de Auth). Esas partes requieren el procedimiento del proveedor descrito en `docs/erp-crm/recovery-policy.md`.
+El informe se guarda en el directorio del respaldo como `storage-restore-REF-FECHA.json`, sin claves ni contenido. Lo que **no** cubre: el propietario original de cada objeto (`owner_id`; las subidas usan el rol de servicio del destino), las cuentas de Auth y sus contraseñas, y la configuración del proyecto (correo, URL de retorno, límites de Auth). Esas partes requieren el procedimiento del proveedor descrito en `docs/operacion/politica-de-recuperacion.md`.
 
 **Estado (12/11/2026):** ensayo completo **aprobado** en un proyecto gratuito aparte; ver «Resultado del ensayo del 12/11/2026». No había Docker para la pila local, y las ramas de Supabase exigen el plan Pro.
 
@@ -96,7 +96,7 @@ Un segundo intento sobre el mismo proyecto se negó («Target already has applic
 
 ### Copia diaria automática
 
-El flujo `.github/workflows/backup-daily.yml` hace cada noche export propietario (`tools/fortius-inmuebles-owner-export.mjs`, una sola instantánea de solo lectura), copia de Storage, verificación, ensayo en memoria y cifrado para la llave del titular (`tools/fortius-inmuebles-backup-crypt.mjs`), y sube a Cloudflare R2. Cómo activarlo y cómo abrir una copia: [copia diaria](erp-crm/respaldo-diario.md).
+El flujo `.github/workflows/backup-daily.yml` hace cada noche export propietario (`tools/fortius-inmuebles-owner-export.mjs`, una sola instantánea de solo lectura), copia de Storage, verificación, ensayo en memoria y cifrado para la llave del titular (`tools/fortius-inmuebles-backup-crypt.mjs`), y sube a Cloudflare R2. Cómo activarlo y cómo abrir una copia: [copia diaria](/docs/operacion/respaldo-diario.md).
 
 ### Equipos con Windows
 

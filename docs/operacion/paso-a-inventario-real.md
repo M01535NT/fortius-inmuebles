@@ -1,6 +1,6 @@
 # Paso de datos de prueba a inventario real
 
-Estado: propuesta del 13/11/2026, sin ejecutar. Nada de esto se hace sin el acuerdo del titular, y el borrado lo ejecuta o aprueba él el día del paso; hasta entonces no se borra nada. Relacionado: [recuperación](recovery-policy.md), [copia diaria](respaldo-diario.md), [entornos](environment-release.md), [acceso](access-policy.md) y [registro de tratamiento](privacy/data-processing-register.md).
+Estado: propuesta del 13/11/2026, sin ejecutar. Nada de esto se hace sin el acuerdo del titular, y el borrado lo ejecuta o aprueba él el día del paso; hasta entonces no se borra nada. Relacionado: [recuperación](/docs/operacion/politica-de-recuperacion.md), [copia diaria](/docs/operacion/respaldo-diario.md), [entornos](/docs/operacion/entornos.md), [acceso](/docs/operacion/accesos.md) y [registro de tratamiento](/docs/operacion/registro-de-datos-personales.md).
 
 ## Qué hay hoy en la base (conteo del 13/11/2026)
 

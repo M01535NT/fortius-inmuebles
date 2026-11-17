@@ -78,7 +78,7 @@ El flujo empieza a correr cuando llega a `main` con el PR que apruebes. Ese día
 
    Si el archivo fue alterado o la llave no corresponde, se detiene y no deja nada a medias.
 3. Desempaqueta con `tar -xzf respaldo.tgz`. Comprueba la copia con `node tools/fortius-inmuebles-backup.mjs --verify CARPETA` y `node tools/fortius-inmuebles-restore-rehearsal.mjs CARPETA`.
-4. Para reconstruir el sistema completo, sigue «Ensayo completo en un proyecto aislado» en [el procedimiento](../fortius-inmuebles-backup-restore.md).
+4. Para reconstruir el sistema completo, sigue «Ensayo completo en un proyecto aislado» en [el procedimiento](/docs/operacion/respaldo-y-restauracion.md).
 
 Se recomienda hacer los pasos 1 a 3 una vez al mes: una copia que nunca se ha abierto no está comprobada.
 

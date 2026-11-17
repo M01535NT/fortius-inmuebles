@@ -30,7 +30,7 @@ function Monto({ etiqueta, valor, alCambiar, ayuda }: { etiqueta: string; valor:
 
 /**
  * Costos de cierre en Baja California (Tijuana, Rosarito, Tecate, Ensenada), fechas de 2026.
- * Usa el mismo cálculo que el sitio público y el panel viejo (`calculateClosingBudget`, docs/financial-method.md):
+ * Usa el mismo cálculo que el sitio público y el panel viejo (`calculateClosingBudget`, docs/herramientas/metodo-de-calculo.md):
  * compra = ISAI por tabla municipal + Registro Público por la ley estatal (18/06/2026) + cotizaciones;
  * venta = comisión con IVA + cancelación + ISR ya determinado + saldo del crédito. Lo que no se escribe queda pendiente.
  */

@@ -15,7 +15,7 @@
   los leen por nombre.
 */
 /*
-  Paleta del panel desde cero (titular, 14/11/2026; ver docs/brand.md). Cuatro capas, cada color
+  Paleta del panel desde cero (titular, 14/11/2026; ver docs/sitio-publico/marca.md). Cuatro capas, cada color
   con un solo trabajo:
   - Marca: azul #061F3F (títulos y tinta), borgoña #8A1634 solo para rellenar el botón principal
     (#74112B al pulsar; nunca como texto), blanco y blanco azulado #F8F8FF.
@@ -130,7 +130,7 @@
 }
 
 /*
-  Escala tipográfica del panel (aprobada por el titular el 13/11/2026; ver docs/brand.md).
+  Escala tipográfica del panel (aprobada por el titular el 13/11/2026; ver docs/sitio-publico/marca.md).
   Archivo en anchura 96 (92 en títulos, 62 en cifras) y cuatro grosores: 620 títulos y cifras,
   600 secciones, 540 nombres y pastillas, 400 texto. Tamaños fijos, salvo la calificación grande.
 */

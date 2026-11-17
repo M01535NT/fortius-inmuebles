@@ -10,7 +10,7 @@
 
 ## Variables
 
-Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. El 12/11/2026 se borraron las cinco entradas de preview ligadas a dos ramas ya inexistentes. Quedan 13 variables de producción de la integración de Supabase que el código no usa; su retiro está propuesto en [controles y evidencia](erp-crm/environment-release.md). Consultar [controles y evidencia](erp-crm/environment-release.md).
+Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. El 12/11/2026 se borraron las cinco entradas de preview ligadas a dos ramas ya inexistentes. Quedan 13 variables de producción de la integración de Supabase que el código no usa; su retiro está propuesto en [controles y evidencia](/docs/operacion/entornos.md). Consultar [controles y evidencia](/docs/operacion/entornos.md).
 
 El sitio público y el panel son un mismo producto. Los nombres de los proyectos cambiaron conservando sus IDs, datos, secretos y dominio público. La conexión Git existente identifica el repositorio por su ID y conserva la rama main.
 
@@ -18,7 +18,7 @@ La protección de Vercel se mantiene en all_except_custom_domains: el dominio p�
 
 ## Corte y verificación
 
-Consulta [Identidad Fortius Inmuebles](fortius-inmuebles-identity.md) para la secuencia de migración, compatibilidad temporal e identificación del archivo histórico.
+Consulta [Identidad Fortius Inmuebles](/docs/operacion/identidad-tecnica.md) para la secuencia de migración, compatibilidad temporal e identificación del archivo histórico.
 
 Comprobar salud, Inicio, inventario, blog, herramientas, acceso al panel, robots y sitemap. Comprobar autenticación, escrituras con control de versión, separación de datos privados, almacenamiento y generación de PDF. Los enlaces para compartir y metadatos usan el dominio Fortius Inmuebles.
 
@@ -35,7 +35,7 @@ Comprobar salud, Inicio, inventario, blog, herramientas, acceso al panel, robots
 
 ## Control de publicación (12 de octubre de 2026)
 
-Deployment Check GitHub `verify` activado en Fortius y en el proyecto adicional conectado entonces al mismo repositorio; al 12/11/2026 ese proyecto ya no aparece en el equipo y solo queda el check de Fortius. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. La preparación de controles no publicó producción. Posteriormente, [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15) integró `36e3ba64` y documentó su despliegue productivo tras Verify exitoso. La actualización documental actual no publica otra revisión. Ver [estado y alcance de la evidencia](erp-crm/environment-release.md).
+Deployment Check GitHub `verify` activado en Fortius y en el proyecto adicional conectado entonces al mismo repositorio; al 12/11/2026 ese proyecto ya no aparece en el equipo y solo queda el check de Fortius. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. La preparación de controles no publicó producción. Posteriormente, [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15) integró `36e3ba64` y documentó su despliegue productivo tras Verify exitoso. La actualización documental actual no publica otra revisión. Ver [estado y alcance de la evidencia](/docs/operacion/entornos.md).
 
 ## Regresar a la versión anterior (ensayado el 12/11/2026)
 

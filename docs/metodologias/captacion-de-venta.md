@@ -1,13 +1,25 @@
-# Metodología: captación de un inmueble en venta
+# Metodología: captar un inmueble en venta
 
-Es **una** metodología de la Biblioteca, para un trabajo específico: captar un inmueble para venderlo. No es regla del panel ni su columna vertebral (DEC-67). Se copia a un asunto cuando sirve y ahí se cambia con libertad. Igual que esta puede haber otras: captar en renta, atender a un inversionista, cancelar una hipoteca.
+Es **una** metodología de la Biblioteca, para un trabajo específico: captar un inmueble para venderlo. No es regla del panel. Se copia a un asunto cuando sirve y ahí se cambia con libertad. Igual que esta puede haber otras: captar en renta, atender a un inversionista, cancelar una hipoteca.
 
-Las reglas de abajo salieron de `SPEC.md` el 16/11/2026. Donde dicen que la opinión de valor va después de la jurídica, vale solo dentro de esta metodología: fuera de ella se hace cuando se pida (DEC-70). Valen solo cuando el asesor decide seguir esta metodología en un asunto. Hablan de «etapas» y estados del diseño anterior; al pasarla a la Biblioteca se reescribe como un plan con sus tareas y su lista de documentos.
+Lo de abajo vale solo cuando el asesor decide seguir esta metodología en un asunto. Es un borrador: el titular la revisa y la ajusta antes de subirla a la Biblioteca.
 
-- **RP-89 · Entrevista con lo necesario y «Ampliar»:** pide solo lo que se usa; lo demás, plegado; lo no sabido queda «por confirmar».
-- **RP-91 · Inmueble captado = intermediación firmada.** Antes está «En captación» y no se publica ni se ofrece (con RP-100, avisa y queda anotado; excepción: compartidos, RP-95). Sin exclusiva también capta. Al terminar, pausar o descartar, se crea tarea urgente para retirarlo; retirar archiva, no borra.
-- **RP-96 · Tomar el encargo con viabilidad (avisa, no frena).** Vale solo dentro de la guía de captación de venta; en otros asuntos no aplica (DEC-67). Primero la opinión jurídica (06); la de valor (07) solo si pasa o pasa con condiciones. El director toma el encargo con precio dentro de ±10 % de la opinión de valor; fuera, con motivo. Con condición jurídica subsanable: «En regularización». Nunca se firma en la primera cita.
-- **RP-97 · Registro de la firma.** Contrato completo firmado (escaneo legible), fecha y firmantes; registra el asesor y revisa el director. Varios propietarios: «Firma incompleta» hasta que firmen todos. Apoderado o empresa: cliente es el representado. Al vencer o rescindirse: «Cliente anterior» y tarea para retirar el inmueble. Descartes con motivo de lista.
-- **RP-98 · Ciclos, pausas y cierre.** Oferta rechazada no mueve la etapa; promesa caída vuelve a publicación con historial. Estados del asunto: Activo, En pausa, En regularización, Descartado; del inmueble: En captación, Disponible, Apartado, Vendido o Rentado. Archivo a 30 días de la entrega sin pendientes. Informe al propietario registrado a mano; vence un mes después de publicar. Inversión y administración de rentas, sin trabajo nuevo hasta un caso real. (revisar si sigue frente a «Se logró» y «No se dio», DEC-63 y RP-107)
-**Listas de documentos del vendedor** por forma de pago (B-06) y por tipo de inmueble y municipio (B-07), aprobadas el 26/10/2026 con fuentes oficiales: texto completo en el historial de reglas. Son base de las guías de FLX-03. (revisar si sigue)
-| DEC-22 | Preguntas de la entrevista | El titular valida la lista base antes de FLX-04. |
+## Pasos sugeridos
+
+1. **Entrevista inicial,** en persona. Se pide solo lo necesario; lo que no se sabe queda «por confirmar».
+2. **Levantamiento del inmueble,** por dentro. Si no hay acceso, queda como «no se puede todavía» con su motivo.
+3. **Revisión de documentos** y opinión jurídica.
+4. **Opinión de valor.** Dentro de esta metodología va después de la opinión jurídica.
+5. **Tomar el encargo.** El director lo acepta con el precio dentro del 10 % de la opinión de valor; fuera de ese rango, con el motivo anotado. No se firma en la primera cita.
+6. **Firma del contrato de intermediación.** Se guarda el contrato firmado completo, con fecha y firmantes. Si hay varios propietarios, firman todos.
+7. **Publicar y comercializar.**
+
+## Reglas propias de esta metodología
+
+- Un inmueble se considera captado cuando la intermediación está firmada.
+- Si un comprador se cae, el inmueble vuelve a ofrecerse y queda en el historial lo que pasó.
+- Al terminar o cancelarse el encargo, se crea la tarea de retirar el inmueble del sitio.
+
+## Qué pedir
+
+Las listas de documentos del vendedor, por forma de pago y por tipo de inmueble, las sube el titular a la Biblioteca.

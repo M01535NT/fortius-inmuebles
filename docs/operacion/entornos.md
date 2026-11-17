@@ -37,7 +37,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 
 **Acceso (AUT-01), según el código.** El panel tiene inicio de sesión, cambio de contraseña y recuperación por correo (`requestRecovery` en `src/lib/backend/auth.ts`). El código no tiene invitación de personal ni MFA; USR-01 las cubrirá. La entrega real de correos no se probó: requiere un buzón de prueba autorizado.
 
-**Copia diaria (12/11/2026).** Nuevo flujo `Respaldo diario` (`.github/workflows/backup-daily.yml`), solo en `main`, con secretos en el entorno de GitHub `respaldo` limitado a `main`. El entorno se creó el 12/11/2026 con sus siete secretos y la política de rama `main` ([copia diaria](respaldo-diario.md)).
+**Copia diaria (12/11/2026).** Nuevo flujo `Respaldo diario` (`.github/workflows/backup-daily.yml`), solo en `main`, con secretos en el entorno de GitHub `respaldo` limitado a `main`. El entorno se creó el 12/11/2026 con sus siete secretos y la política de rama `main` ([copia diaria](/docs/operacion/respaldo-diario.md)).
 
 ### Cambios de proveedor propuestos (no aplicados)
 
@@ -47,7 +47,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 4. **GitHub:** ~~borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`)~~ **Hecho el 12/11/2026**, tras confirmar que ningún flujo, regla ni proyecto de Vercel los usa.
 5. **GitHub (decide el titular):** la regla deja que el administrador la salte. Mientras sea la única cuenta, conviene conservarla así y no saltarla salvo urgencia (I-04).
 6. **Recuperación de la aplicación:** ~~ensayar el rollback de Vercel~~ **Ensayado el 12/11/2026** (ida y vuelta en ~2 s cada una; el sitio respondió con ambas versiones). Pasos y límites en [despliegue](../deployment-fortius.md#regresar-a-la-versión-anterior-ensayado-el-12112026).
-7. **Supabase:** ~~autorizar el conector de solo lectura `supabase-fortius`~~ **Autorizado el 13/11/2026.** Sirve para el historial de migraciones, el esquema y el asesor de seguridad ([acceso](access-policy.md)). No lee SMTP, URL de retorno, MFA ni copias del proveedor: eso sigue en el panel de Supabase o con un token de administración de solo lectura.
+7. **Supabase:** ~~autorizar el conector de solo lectura `supabase-fortius`~~ **Autorizado el 13/11/2026.** Sirve para el historial de migraciones, el esquema y el asesor de seguridad ([acceso](/docs/operacion/accesos.md)). No lee SMTP, URL de retorno, MFA ni copias del proveedor: eso sigue en el panel de Supabase o con un token de administración de solo lectura.
 8. **Avisos de fallas con Sentry (OBS-01, DEC-19; titular, 13/11/2026: «Sentry gratuito»).** El código ya los manda si existe `FORTIUS_SENTRY_DSN` (solo servidor). Pasos del titular:
    1. Crear la cuenta en sentry.io (plan gratuito) y un proyecto de tipo **Node.js** llamado `fortius-inmuebles`.
    2. En el proyecto, **Settings → Security & Privacy**: dejar activado *Data Scrubber* y activar *Prevent Storing of IP Addresses*.
@@ -96,7 +96,7 @@ Esta rama comparte datos reales y permite las operaciones de los usuarios autori
 
 **Cuándo corre Verify (decisión del titular, 12/11/2026):** no en cada cambio. El trabajo del día vive en un PR en borrador (draft); sus pushes no disparan Verify (el job queda «skipped», y un borrador no se puede integrar). Verify corre al marcar el PR «Ready for review» y en los pushes posteriores, en cada push a `main` (el Deployment Check de Vercel lo necesita para asignar el dominio de producción) y a mano con «Run workflow» en Actions. Si llega un push nuevo mientras corre, la corrida anterior del mismo PR se cancela. La regla «main exige verify» no cambia.
 
-Archivo revisable: [configuración](github-main-protection.json).
+Archivo revisable: [configuración](/docs/operacion/proteccion-de-main.json).
 
 Requiere PR, check `verify` de GitHub Actions (app 15368), rama actualizada, conversaciones resueltas y aplica también a administradores. Prohíbe force-push y eliminar main. Revisión humana obligatoria: cero aprobaciones por ahora, para evitar exigir a Moisés una segunda cuenta inexistente; el requisito de PR y pruebas se mantiene. Incorporar revisión por otra persona cuando exista un equipo autorizado.
 
@@ -108,7 +108,7 @@ La integración actual no puede aplicar ni leer la configuración administrativa
 
 ## Recuperación y límites
 
-La API de backups Supabase devolvió `pitr_enabled=false`, `backups=[]` y sin ventana física informada. Esto **no prueba ausencia de todas las copias externas**, pero no permite dar por existente una recuperación gestionada del proveedor. Ver [recuperación](recovery-policy.md).
+La API de backups Supabase devolvió `pitr_enabled=false`, `backups=[]` y sin ventana física informada. Esto **no prueba ausencia de todas las copias externas**, pero no permite dar por existente una recuperación gestionada del proveedor. Ver [recuperación](/docs/operacion/politica-de-recuperacion.md).
 
 Pendientes: custodia y destino aislado aprobados, Auth/Storage recuperados con prueba y backend de preview separado. Moisés aprobó el objetivo inicial de copia diaria y recuperación en hasta ocho horas; aún no es capacidad demostrada. La aprobación para desarrollar no autoriza compras, restaurar producción ni dar por aprobado un plazo de recuperación.
 

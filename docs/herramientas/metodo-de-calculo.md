@@ -30,7 +30,7 @@ Optional ISR simulation is only for a resident individual, single owner, ordinar
 
 ## Evidence and updates
 
-See [legal research](legal/financial-tools-2026-10-04.md), `src/data/financial-rules.ts` and `tools/financial-sources.json`. Expected payment/tax cases were independently calculated with Python Decimal before implementation. Tests also check principal conservation, zero-rate purchases, prepayment limits, pending quotes and registration overrides.
+See [legal research](/docs/herramientas/fuentes-fiscales.md), `src/data/financial-rules.ts` and `tools/financial-sources.json`. Expected payment/tax cases were independently calculated with Python Decimal before implementation. Tests also check principal conservation, zero-rate purchases, prepayment limits, pending quotes and registration overrides.
 
 `npm run check:financial-sources` checks PDF hashes, current legislative catalog links and year expiration. The scheduled workflow reports changes as a failed check and uploads a report; it never edits fiscal rates or contacts clients. A failed remote request requires retry/manual source verification; it does not prove a legal amendment. When a rule changes, verify its effective date and transaction scope, update the versioned rules/manifest/research, add independent boundary cases, then review and deploy. The public tool automatically withholds expired date-dependent rules.
 

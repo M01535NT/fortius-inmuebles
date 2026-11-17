@@ -3,7 +3,7 @@ import type { AdminProperty } from "@/lib/domain/records";
 
 /*
   Mensajes listos (RP-22; textos base aprobados por el titular el 12/11/2026, en
-  docs/erp-crm/plantillas-de-mensaje-borrador.md). Se llenan con los datos de la persona y del
+  docs/metodologias/plantillas-de-mensaje.md). Se llenan con los datos de la persona y del
   inmueble; lo que va entre corchetes lo completa el asesor antes de enviar. Solo se ofrece un
   inmueble publicado y disponible (RP-91); si el precio es «a consulta», la frase del precio se
   quita. Abrir WhatsApp no registra nada: el envío queda en el historial cuando el asesor confirma.
