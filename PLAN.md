@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 6 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etapa 7 construida (17/11/2026). Falta tu visto bueno a la etapa 0.
+Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Sigue la etapa 8: comprobación completa y PR en borrador, cuando lo pidas. Falta tu visto bueno a la etapa 0.
 
 ## Etapas
 
