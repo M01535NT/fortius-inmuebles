@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 6 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`; la 6 falta guardarla. Falta tu visto bueno a la etapa 0. Sigue la etapa 7 (limpieza) cuando lo indiques.
+Etapas 1 a 6 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Falta tu visto bueno a la etapa 0. Sigue la etapa 7 (limpieza) cuando lo indiques.
 
 ## Etapas
 
