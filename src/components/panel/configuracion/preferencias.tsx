@@ -14,24 +14,23 @@ import { SeccionConfig } from "./partes";
 export function SeccionApariencia() {
   const [tema, guardar] = usePreferencia(CLAVE_TEMA, "auto");
   return (
-    <SeccionConfig id="conf-apariencia" titulo="Apariencia" intro="Se recuerda en este navegador.">
-      <div className="pn-conf-caja">
-        <Desplegable etiqueta="Tema" valor={temaValido(tema)} opciones={TEMAS} alElegir={(v) => guardar(temaAGuardar(temaValido(v)))} />
-      </div>
+    <SeccionConfig id="conf-apariencia" titulo="Apariencia">
+      <Desplegable etiqueta="Tema" valor={temaValido(tema)} opciones={TEMAS} alElegir={(v) => guardar(temaAGuardar(temaValido(v)))} ayuda="Se recuerda en este navegador." />
     </SeccionConfig>
   );
 }
 
 /**
- * Avisos: mientras el panel no mande avisos fuera de la pantalla, no se ofrecen interruptores que no hagan nada
- * (revisión móvil, 16/11/2026). Los cuatro interruptores (`AVISOS` en `configuracion.ts`) vuelven cuando haya envío.
+ * Avisos, como el boceto: un interruptor por cada aviso. La elección se guarda en este navegador; el envío fuera de la
+ * pantalla (teléfono o correo) todavía no existe, y se dice debajo.
  */
 export function SeccionAvisos() {
   return (
     <SeccionConfig id="conf-avisos" titulo="Avisos">
-      <div className="pn-conf-caja">
-        <p className="pn-conf-nota">Por ahora lo pendiente se ve en Hoy. Los avisos al teléfono o por correo llegan pronto.</p>
+      <div className="pn-conf-tarjeta">
+        {AVISOS.map((a) => <FilaAvisoPreferencia key={a.clave} clave={a.clave} />)}
       </div>
+      <p className="pn-conf-intro">Por ahora lo pendiente se ve en Hoy. Los avisos al teléfono o por correo llegan pronto; tu elección ya queda guardada.</p>
     </SeccionConfig>
   );
 }

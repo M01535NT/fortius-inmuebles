@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 
+import "@/components/panel/fichas/fichas.css";
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo } from "@/components/panel/kit/campo";
 import { Desplegable } from "@/components/panel/kit/desplegable";
@@ -20,25 +21,34 @@ export type DestinoElegido =
 
 type Datos = { asuntos: readonly FilaAsunto[]; inmuebles: readonly Property[]; personas: readonly Cliente[] };
 
-/** Vista previa del archivo (sale de este navegador; todavía no tiene destino). */
+/** Vista previa grande del archivo (boceto): la hoja del PDF, la foto o el video. Todavía no tiene destino. */
 export function VistaPrevia({ archivo, url }: { archivo: ArchivoBandeja; url: string | null }) {
   const clase = claseArchivo(archivo.tipo);
   if (clase === "pdf" || !url) {
     return (
-      <div className="bj-bloque" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span className="bj-mini" aria-hidden>{clase === "pdf" ? "PDF" : clase === "video" ? "Video" : "Foto"}</span>
-        <span style={{ flex: 1 }} className="pn-sub">{tamano(archivo.bytes)}</span>
-        {url ? <a className="pn-btn pn-btn-texto" href={url} target="_blank" rel="noopener noreferrer">Ver el PDF</a> : null}
+      <div className="fx-pv" aria-label={`Vista previa de ${archivo.nombre}`}>
+        <div className="fx-pv-hoja" aria-hidden>
+          <b style={{ fontSize: 12, color: "var(--ink-muted)" }}>{clase === "pdf" ? "PDF" : clase === "video" ? "Video" : "Foto"}</b>
+          <i style={{ width: "70%" }} /><i /><i /><i style={{ width: "85%" }} /><i /><i style={{ width: "60%" }} />
+        </div>
       </div>
     );
   }
   return (
-    <div className="bj-vista">
+    <div className="fx-pv">
       {/* eslint-disable-next-line @next/next/no-img-element -- vista previa local (blob:), next/image no aplica */}
       {clase === "foto" ? <img src={url} alt={`Vista previa de ${archivo.nombre}`} />
         : <video src={url} controls muted preload="metadata" aria-label={`Vista previa de ${archivo.nombre}`} />}
     </div>
   );
+}
+
+/** Cómo se llama un destino ya elegido, para el bloque «Va a». */
+function nombreDestino(d: DestinoElegido, datos: Datos): string {
+  if (d.clase === "inmueble") return datos.inmuebles.find((p) => p.slug === d.slug)?.titulo ?? "El inmueble anterior";
+  const asunto = datos.asuntos.find((a) => a.id === d.asuntoId)?.titulo ?? "El asunto anterior";
+  if (d.clase === "persona") return `${datos.personas.find((c) => c.id === d.personaId)?.nombre ?? "La persona anterior"} · ${asunto}`;
+  return asunto;
 }
 
 const QUE_ES = [
@@ -71,6 +81,8 @@ export function DetalleArchivo({ archivo, url, datos, anterior, alGuardar, alQui
   const inmueble = clase === "inmueble" ? datos.inmuebles.find((p) => p.slug === elegido) ?? null : null;
   const ocupado = archivo.estado === "subiendo" || archivo.estado === "guardando";
   const nombreClase = { asunto: "asunto", inmueble: "inmueble", persona: "persona" }[clase];
+  // Recomendación (boceto): sin lectura automática, se propone el lugar del archivo anterior. «Cambiar» abre el selector.
+  const [cambiando, setCambiando] = useState(() => !repetir);
 
   const destino: DestinoElegido | null = motivo || !elegido ? null
     : clase === "asunto" ? { clase, asuntoId: elegido, titulo: titulo.trim() || undefined }
@@ -85,14 +97,39 @@ export function DetalleArchivo({ archivo, url, datos, anterior, alGuardar, alQui
   return (
     <div style={{ display: "grid", gap: 16, marginTop: 8 }}>
       <VistaPrevia archivo={archivo} url={url} />
-      <p className="pn-sub" style={{ margin: 0 }}>{textoEstado(archivo)}</p>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+          <h2 style={{ margin: 0, fontSize: 19, lineHeight: 1.3, fontWeight: 600, overflowWrap: "anywhere" }}>{archivo.nombre}</h2>
+          <span className="pn-sub" style={{ margin: 0 }}>{tamano(archivo.bytes)} · {textoEstado(archivo)}</span>
+        </div>
+        {url ? <a className="pn-btn pn-btn-secundario" href={url} target="_blank" rel="noopener noreferrer">Abrir</a> : null}
+      </div>
+      {ocupado ? <div className="fx-pbar" aria-hidden><span /></div> : null}
       {archivo.error && archivo.estado !== "error" ? <p role="alert" style={{ margin: 0, color: "var(--error)" }}>{archivo.error}</p> : null}
+
+      {archivo.estado !== "error" && repetir && !cambiando ? (
+        <section className="fx-recblk" aria-label="Dónde va">
+          <span className="fx-rec-v">Va a</span>
+          <span className="fx-rec-t">{nombreDestino(repetir, datos)}</span>
+          <span className="fx-rec-r">Mismo lugar que el archivo anterior</span>
+          <div className="fx-filas-btn" style={{ marginTop: 6 }}>
+            <Boton variante="secundario" className="fx-btn-claro" deshabilitado={ocupado}
+              onClick={() => { if (!ocupado) alGuardar(repetir.clase === "inmueble" ? repetir : { ...repetir, titulo: titulo.trim() || undefined }); }}>Confirmar</Boton>
+            <Boton variante="secundario" className="fx-btn-oscuro" onClick={() => setCambiando(true)}>Cambiar</Boton>
+          </div>
+        </section>
+      ) : archivo.estado !== "error" && !repetir ? (
+        <div className="fx-warnbox" role="note"><b>Sin coincidencia clara</b><span>Elige a dónde va: un asunto, una persona o un inmueble.</span></div>
+      ) : null}
 
       {archivo.estado === "error" ? (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Boton onClick={alReintentar}>Volver a subir</Boton>
+          {/* Uno recuperado del servidor no tiene sus bytes aquí: no se puede volver a subir desde este navegador. */}
+          {archivo.enMemoria ? <Boton onClick={alReintentar}>Volver a subir</Boton> : null}
           <Boton variante="texto" onClick={alQuitar}>Quitar de la Bandeja</Boton>
         </div>
+      ) : !cambiando ? (
+        <div><button type="button" className="fx-linkbtn" disabled={ocupado} onClick={() => { if (!ocupado) alQuitar(); }}>Quitar de la Bandeja</button></div>
       ) : (
         <section className="bj-bloque" aria-label="Dónde va">
           <h3 className="pn-grupo" style={{ margin: 0, padding: 0 }}>Dónde va</h3>
@@ -132,7 +169,7 @@ export function DetalleArchivo({ archivo, url, datos, anterior, alGuardar, alQui
               <a href="/panel/asuntos" target="_blank" rel="noopener" className="pn-btn pn-btn-secundario">Abrir un asunto en otra pestaña</a>
             ) : null}
           </div>
-          <Boton variante="texto" deshabilitado={ocupado} onClick={() => { if (!ocupado) alQuitar(); }}>Quitar de la Bandeja</Boton>
+          <button type="button" className="fx-linkbtn" disabled={ocupado} onClick={() => { if (!ocupado) alQuitar(); }}>Quitar de la Bandeja</button>
         </section>
       )}
     </div>

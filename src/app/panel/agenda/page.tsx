@@ -1,35 +1,40 @@
 "use client";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent as TeclaReact } from "react";
 
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
 import { useFichaEnDireccion } from "@/components/panel/datos/use-ficha-url";
 import { FormularioCita } from "@/components/panel/agenda/formulario";
 import { ComoTeFue, type RespuestaComoFue } from "@/components/panel/agenda/como-fue";
+import { DetalleCita } from "@/components/panel/agenda/detalle-cita";
 import { DiaLineaDeTiempo } from "@/components/panel/agenda/dia";
+import { MoverCita } from "@/components/panel/agenda/mover";
+import { NuevaEnUnaLinea } from "@/components/panel/agenda/nueva-linea";
+import { SemanaCuadro } from "@/components/panel/agenda/semana";
+import { useMovimientosQueVencen } from "@/components/panel/hoy/pendientes";
 import { usePreferencia } from "@/components/panel/almacen";
-import { Desplegable, DesplegableFecha } from "@/components/panel/kit/desplegable";
+import { useBarraTelefono } from "@/components/panel/kit/barra";
 import { Interruptor } from "@/components/panel/kit/segmentado";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Gesto, Icono } from "@/components/panel/icons";
 import { Boton } from "@/components/panel/kit/boton";
-import { Relacionado } from "@/components/panel/kit/relacionado";
-import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
-import { Ficha } from "@/components/panel/kit/ficha";
-import { HojaAdaptable } from "@/components/panel/ui/hoja-adaptable";
+import { Cargando, EstadoError } from "@/components/panel/kit/estados";
+import { HojaAdaptable, useEsTelefono } from "@/components/panel/ui/hoja-adaptable";
 import { Fila, GrupoLista } from "@/components/panel/kit/lista";
 import type { Property } from "@/data/propiedades";
 import type { Cliente } from "@/lib/backend/contracts";
 import type { Evento, Lead } from "@/lib/domain/records";
-import { relacionadoCita } from "@/lib/panel/datos/relacionado";
-import { aTexto, diaLargo, horaTexto } from "@/lib/panel/calendario";
-import { conFecha, conHora, correrFecha, horasParaMover } from "@/lib/panel/datos/agenda-dia";
+import { aTexto, deTexto, diaLargo, horaTexto } from "@/lib/panel/calendario";
+import { conFecha, conHora, correrFecha } from "@/lib/panel/datos/agenda-dia";
 import { tareasDeLaSemana, tareasPorFecha, textoSemana, type TareaDia } from "@/lib/panel/datos/agenda-semana";
-import { datosDeCita, deHoraGuardada, editarCita, nuevaCita, seEmpalma, type DatosCita } from "@/lib/panel/datos/agenda-acciones";
+import { datosDeCita, deHoraGuardada, editarCita, nuevaCita, nuevaDesdeDireccion, seEmpalma, type DatosCita } from "@/lib/panel/datos/agenda-acciones";
 import { anotarEnAsunto, leerExpedientes, leerMiAsesor, leerVencimientos } from "@/lib/panel/datos/colecciones";
-import { nuevoSiguiente, type Expediente } from "@/lib/panel/datos/asuntos";
+import { filasAsuntos, nuevoSiguiente, type Expediente } from "@/lib/panel/datos/asuntos";
+import { vencenAsuntos, vencenMovimientos, vencenTramites } from "@/lib/panel/datos/vencimientos";
+import type { Tramite } from "@/lib/tramites";
 import type { ContratoServidor } from "@/lib/panel/datos/hoy";
 import {
-  anotarResultado, notaDeshecha, notaParaAsunto, pideComoFue, textoResultado, vencimientosEnDias, vencimientosPorFecha,
+  anotarResultado, notaDeshecha, notaParaAsunto, pideComoFue, vencimientosEnDias, vencimientosPorFecha,
   type EventoConResultado, type VenceDia,
 } from "@/lib/panel/datos/agenda-resultado";
 import type { Task } from "@/lib/tasks";
@@ -40,10 +45,16 @@ import "./agenda.css";
 type AsesorNombre = { id: string; nombre?: string };
 /** Tipo de dato del arrastre de una cita (solo lo entiende la tira de días de esta página). */
 const TIPO_ARRASTRE = "application/x-fortius-cita";
+const rutaAsunto = (id: string) => `/panel/asuntos?ver=${encodeURIComponent(id)}`;
+const mayuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+type Vista = "calendario" | "lista";
+type Nueva = { modo: "linea" } | { modo: "detalle"; inicial: DatosCita };
 
 /**
- * Agenda (PN-04): la semana con sus citas y los vencimientos de contratos y licencia en su día; nueva cita (botón o N),
- * cambiarla y cancelarla con Deshacer. Una cita que ya pasó y no se anotó pregunta «¿Cómo te fue?».
+ * Agenda (boceto «Agenda»). Escritorio: la semana en cuadro de 7 columnas (o en lista), la fila «Todo el día» con los
+ * vencimientos, «Ya pasó · ¿Cómo te fue?» arriba, «Más adelante» abajo y el detalle al costado. Teléfono: la tira de
+ * 7 días, el día en línea de tiempo (o la lista) y las hojas desde abajo. Nueva cita en una línea (botón, «+» o N);
+ * Mover, Cambiar datos y Cancelar con Deshacer.
  */
 function Agenda() {
   const { cargando, error, datos: eventos, reintentar, guardar, borrar } = useColeccion<Evento>("eventos");
@@ -52,45 +63,61 @@ function Agenda() {
   const tareas = useColeccion<Task>("tareas");
   // Asuntos (para ligar «lo que sigue») y vencimientos (fin del encargo y licencia), leídos una vez; si fallan, la agenda sigue.
   const [expedientes, setExpedientes] = useState<Expediente[]>([]);
-  const [vencen, setVencen] = useState<VenceDia[]>([]);
+  const [vencenContratos, setVencenContratos] = useState<VenceDia[]>([]);
   useEffect(() => {
     const c = new AbortController();
     leerExpedientes<Expediente>(c.signal).then(setExpedientes, () => undefined);
-    leerVencimientos<ContratoServidor>(c.signal).then((v) => setVencen(vencimientosEnDias(v)), () => undefined);
+    leerVencimientos<ContratoServidor>(c.signal).then((v) => setVencenContratos(vencimientosEnDias(v)), () => undefined);
     return () => c.abort();
   }, []);
-  const vencenPorDia = useMemo(() => vencimientosPorFecha(vencen), [vencen]);
-  // «Ahora no» esconde la pregunta mientras la ficha siga abierta; vuelve a salir la próxima vez.
-  const [sinPregunta, setSinPregunta] = useState<string | null>(null);
+  // Más vencimientos (DECISIONES, Agenda): las esperas de los trámites, los cobros de Dinero (nada si el servidor aún no
+  // tiene la tabla) y la fecha clave de los asuntos. Cada uno en su día, en «Todo el día» y en «Más adelante».
+  const tramites = useColeccion<Tramite>("tramites");
+  const movimientos = useMovimientosQueVencen();
   const { avisar } = useAvisos();
+  const router = useRouter();
+  const params = useSearchParams();
+  const telefono = useEsTelefono();
   const [miAsesor, setMiAsesor] = useState<string | null>(null);
   useEffect(() => { const c = new AbortController(); leerMiAsesor(c.signal).then(setMiAsesor); return () => c.abort(); }, []);
-  // Hoja abierta: «nueva» o el id de la cita que se cambia.
-  const [editando, setEditando] = useState<"nueva" | string | null>(null);
+  // Hojas: nueva cita, cambiar datos (id), mover (id) y «¿Cómo te fue?» (id).
+  const [nueva, setNueva] = useState<Nueva | null>(null);
+  const [cambiando, setCambiando] = useState<string | null>(null);
+  const [moviendo, setMoviendo] = useState<string | null>(null);
+  const [comoFue, setComoFue] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
-  const [confirmarCancelar, setConfirmarCancelar] = useState(false);
+  // «Buscar o crear» → «Cita nueva» llega con ?nueva=1. Desde un inmueble, una persona o un asunto llega además con
+  // ?inmueble=, ?persona= o ?asunto= (y ?tipo=): se abre el formulario completo con eso ya elegido.
   useEffect(() => {
-    const tecla = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
-      const t = e.target as HTMLElement | null;
-      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-      if (e.key === "n" || e.key === "N") { e.preventDefault(); setEditando("nueva"); }
-    };
-    window.addEventListener("keydown", tecla);
-    return () => window.removeEventListener("keydown", tecla);
-  }, []);
+    if (params.get("nueva") !== "1") return;
+    const desde = nuevaDesdeDireccion(params);
+    setNueva(desde ? { modo: "detalle", inicial: {
+      tipo: desde.tipo ?? "visita", titulo: "", fecha: aTexto(new Date()), hora: 10 * 60, clienteId: desde.clienteId, propiedadSlug: desde.propiedadSlug,
+      notas: "", asesorId: null, expedienteId: desde.expedienteId || undefined,
+    } } : { modo: "linea" });
+    router.replace("/panel/agenda", { scroll: false });
+  }, [params, router]);
   const clientes = useColeccion<Cliente>("clientes");
   const leads = useColeccion<Lead>("leads");
   const inmuebles = useColeccion<Property>("propiedades");
   const asesores = useColeccion<AsesorNombre>("asesores");
   const [hoy] = useState(() => new Date());
+  const hoyTexto = aTexto(hoy);
+  const filas = useMemo(() => filasAsuntos(expedientes, { personas: clientes.datos, inmuebles: inmuebles.datos, tareas: tareas.datos, hoy: hoyTexto }),
+    [expedientes, clientes.datos, inmuebles.datos, tareas.datos, hoyTexto]);
+  const vencen = useMemo<VenceDia[]>(() => {
+    const titulos = new Map(filas.map((f) => [f.id, f.titulo]));
+    return [...vencenContratos, ...vencenTramites(tramites.datos), ...vencenMovimientos(movimientos.datos, (id) => titulos.get(id)), ...vencenAsuntos(expedientes, filas)]
+      .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.titulo.localeCompare(b.titulo, "es"));
+  }, [vencenContratos, tramites.datos, movimientos.datos, expedientes, filas]);
+  const vencenPorDia = useMemo(() => vencimientosPorFecha(vencen), [vencen]);
   // Semana a la vista: 0 es la que empieza hoy; las flechas la mueven de 7 en 7 (AUD-03, A1).
   const [salto, setSalto] = useState(0);
   const desde = useMemo(() => sumarDias(hoy, salto * 7), [hoy, salto]);
   const [dia, setDia] = useState<string | null>(null);
-  // Vista: Semana (lista) o Día (línea de tiempo). Se recuerda en este navegador.
-  const [vistaGuardada, guardarVista] = usePreferencia("fortius-agenda-vista", "semana");
-  const vista: "semana" | "dia" = vistaGuardada === "dia" ? "dia" : "semana";
+  // Vista: Semana (cuadro en escritorio, día en el teléfono) o Lista. Se recuerda en este navegador.
+  const [vistaGuardada, guardarVista] = usePreferencia("fortius-agenda-vista2", "calendario");
+  const vista: Vista = vistaGuardada === "lista" ? "lista" : "calendario";
   const [ahoraMin, setAhoraMin] = useState(() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); });
   useEffect(() => {
     const t = window.setInterval(() => { const d = new Date(); setAhoraMin(d.getHours() * 60 + d.getMinutes()); }, 60_000);
@@ -102,8 +129,9 @@ function Agenda() {
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       if (document.querySelector("[role=dialog]")) return;
-      if (e.key === "1") { e.preventDefault(); guardarVista("semana"); }
-      else if (e.key === "2") { e.preventDefault(); guardarVista("dia"); }
+      if (e.key === "n" || e.key === "N") { e.preventDefault(); setNueva({ modo: "linea" }); }
+      else if (e.key === "1") { e.preventDefault(); guardarVista("calendario"); }
+      else if (e.key === "2") { e.preventDefault(); guardarVista("lista"); }
       else if (e.key === "t" || e.key === "T") { e.preventDefault(); setSalto(0); setDia(null); }
       else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         if (t?.closest("[role=group]")) return;
@@ -119,38 +147,37 @@ function Agenda() {
   const subtitulo = (c: FilaCita) => [c.tipo, variosAsesores && c.asesorId ? nombreAsesor.get(c.asesorId) || null : null].filter(Boolean).join(" · ");
   const { abierta: citaId, abrir, cerrar } = useFichaEnDireccion("cita");
   const evAbierto = citaId ? datos.find((e) => e.id === citaId) ?? null : null;
-  const abierta = useMemo<FilaCita | null>(() => {
-    const ev = citaId ? datos.find((e) => e.id === citaId) : undefined;
-    return ev ? citasDelDia(datos, ev.fecha).find((c) => c.id === ev.id) ?? null : null;
-  }, [citaId, datos]);
+  const filaAbierta = useMemo<FilaCita | null>(() => (evAbierto ? citasDelDia(datos, evAbierto.fecha).find((c) => c.id === evAbierto.id) ?? null : null), [evAbierto, datos]);
 
-  const enEdicion = editando && editando !== "nueva" ? datos.find((e) => e.id === editando) ?? null : null;
+  const irAFecha = (fecha: string) => { setSalto(saltoDe(fecha)); setDia(fecha); };
   const guardarCita = async (d: DatosCita, persona?: string) => {
     setOcupado(true);
     try {
-      if (enEdicion) {
-        const previa = enEdicion;
+      const previa = cambiando ? datos.find((e) => e.id === cambiando) ?? null : null;
+      if (previa) {
         await guardar(previa.id, editarCita(previa, d, persona));
-        setEditando(null);
+        setCambiando(null);
         avisar("Cita cambiada", { etiqueta: "Deshacer", alAccionar: () => { guardar(previa.id, previa).then(() => avisar("Se deshizo"), (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer.")); } });
       } else {
-        const n = nuevaCita({ ...d, asesorId: miAsesor }, persona);
+        const n = nuevaCita({ ...d, asesorId: d.asesorId ?? miAsesor }, persona);
         await guardar(n.id, n);
-        setEditando(null);
+        setNueva(null);
         irAFecha(n.fecha);
-        avisar(`Cita agendada: ${diaLargo(n.fecha)}${n.hora ? `, ${n.hora}` : ""}`);
+        avisar(`Cita agendada: ${diaLargo(n.fecha)}${n.hora ? `, ${n.hora}` : ""}`, { etiqueta: "Deshacer", alAccionar: () => {
+          borrar(n.id).then(() => avisar("Se quitó"), (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer."));
+        } });
       }
     } catch (e) {
       avisar(e instanceof Error ? e.message : "No se guardó. Vuelve a intentarlo.");
     } finally { setOcupado(false); }
   };
+  // Cancelar no pide confirmación: se deshace desde el aviso (boceto).
   const cancelarCita = async (id: string) => {
     const previa = datos.find((e) => e.id === id);
     if (!previa) return;
     setOcupado(true);
     try {
       await borrar(id);
-      setConfirmarCancelar(false);
       cerrar();
       // Deshacer la vuelve a agendar igual, con un id nuevo (la quitada queda en el historial).
       avisar("Cita cancelada", { etiqueta: "Deshacer", alAccionar: () => { const otra = { ...previa, id: crypto.randomUUID() }; guardar(otra.id, otra).then(() => avisar("Se volvió a agendar"), (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer.")); } });
@@ -169,6 +196,7 @@ function Agenda() {
       setOcupado(false);
       return;
     }
+    setComoFue(null);
     const faltas: string[] = [];
     let enAsunto = false;
     let tarea: Task | null = null;
@@ -184,7 +212,7 @@ function Agenda() {
       }
     }
     setOcupado(false);
-    const texto = `Anotado en la cita${enAsunto ? " y en el asunto" : ""}${tarea ? "; lo que sigue quedó como pendiente" : ""}${faltas.length ? `, pero ${faltas.join(" y ")}` : ""}.`;
+    const texto = `${r.estado === "no_llego" ? "Anotado que no llegó" : "Anotado en la cita"}${enAsunto ? " y en el asunto" : ""}${tarea ? "; lo que sigue quedó como pendiente" : ""}${faltas.length ? `, pero ${faltas.join(" y ")}` : ""}.`;
     avisar(texto, {
       etiqueta: "Deshacer",
       alAccionar: () => {
@@ -200,21 +228,22 @@ function Agenda() {
   const enfocar = useRef<string | null>(null);
   const moverCita = async (ev: Evento, cambio: { minutos?: number; fecha?: string }) => {
     const previa = ev;
-    let nueva: Evento = ev;
+    let nuevaEv: Evento = ev;
     if (cambio.fecha !== undefined) {
-      const otra = conFecha(ev, cambio.fecha, aTexto(hoy));
-      if (!otra) { if (cambio.fecha < aTexto(hoy)) avisar("No se puede mover a un día que ya pasó."); return; }
-      nueva = otra;
+      const otra = conFecha(ev, cambio.fecha, hoyTexto);
+      if (!otra) { if (cambio.fecha < hoyTexto) avisar("No se puede mover a un día que ya pasó."); return; }
+      nuevaEv = otra;
     }
-    if (cambio.minutos !== undefined) nueva = conHora(nueva, cambio.minutos);
-    const hora = nueva.hora ? deHoraGuardada(nueva.hora) : null;
+    if (cambio.minutos !== undefined) nuevaEv = conHora(nuevaEv, cambio.minutos);
+    const hora = nuevaEv.hora ? deHoraGuardada(nuevaEv.hora) : null;
     const donde = cambio.fecha !== undefined
-      ? `al ${diaLargo(nueva.fecha)}${hora !== null ? `, ${horaTexto(hora)}` : ""}`
+      ? `al ${diaLargo(nuevaEv.fecha)}${hora !== null ? `, ${horaTexto(hora)}` : ""}`
       : `a las ${horaTexto(cambio.minutos ?? 0)}`;
     try {
-      await guardar(ev.id, nueva);
-      if (cambio.fecha !== undefined) { enfocar.current = ev.id; seguirA(nueva.fecha); }
-      const choque = seEmpalma(nueva, datos);
+      await guardar(ev.id, nuevaEv);
+      setMoviendo(null);
+      if (cambio.fecha !== undefined) { enfocar.current = ev.id; seguirA(nuevaEv.fecha); }
+      const choque = seEmpalma(nuevaEv, datos);
       avisar(`«${ev.titulo}» pasó ${donde}.${choque ? ` ${choque}` : ""}`, {
         etiqueta: "Deshacer",
         alAccionar: () => {
@@ -233,7 +262,7 @@ function Agenda() {
     const destino = el?.matches("button") ? el : el?.querySelector<HTMLElement>("button");
     if (destino) { destino.focus(); enfocar.current = null; }
   }, [datos, dia, salto]);
-  // Arrastre a un día de la tira (lista de la semana: arrastre del navegador; vista de Día: puntero, ver dia.tsx).
+  // Arrastre a un día de la tira (lista: arrastre del navegador; Día: puntero, ver dia.tsx).
   const [diaDestino, setDiaDestino] = useState<string | null>(null);
   const esArrastreDeCita = (e: DragEvent) => e.dataTransfer.types.includes(TIPO_ARRASTRE);
   const teclaDia = (e: TeclaReact<HTMLElement>, id: string) => {
@@ -246,25 +275,23 @@ function Agenda() {
 
   const tira = useMemo(() => semanaDesde(desde, datos, hoy), [desde, datos, hoy]);
   const tareasPorDia = useMemo(() => tareasPorFecha(tareasDeLaSemana(tareas.datos, desde, hoy)), [tareas.datos, desde, hoy]);
-  const totalTareas = useMemo(() => [...tareasPorDia.values()].reduce((n, l) => n + l.length, 0), [tareasPorDia]);
   const semana = useMemo(() => semanaEnLista(datos, desde, hoy), [datos, desde, hoy]);
   const finSemana = aTexto(sumarDias(desde, 7));
   const proxima = useMemo(() => proximaFecha(datos, finSemana), [datos, finSemana]);
   const irA = (s: number) => { setSalto(s); setDia(null); };
-  const saltoDe = (fecha: string) => {
+  function saltoDe(fecha: string) {
     const [a, m, d] = fecha.split("-").map(Number);
     const dias = Math.round((new Date(a, m - 1, d).getTime() - new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime()) / 86_400_000);
     return Math.floor(dias / 7);
-  };
-  const irAFecha = (fecha: string) => { setSalto(saltoDe(fecha)); setDia(fecha); };
-  // La vista sigue a una cita que cambió de día: en Día (o con un día elegido) se abre ese día; en la semana, solo si salió de ella.
+  }
+  // La vista sigue a una cita que cambió de día: con un día elegido se abre ese día; si salió de la semana, se va a la suya.
   const seguirA = (fecha: string) => {
-    if (vista === "dia" || dia) irAFecha(fecha);
+    if (telefono || dia) irAFecha(fecha);
     else if (saltoDe(fecha) !== salto) setSalto(saltoDe(fecha));
   };
-  // Días con citas o con vencimientos; los vencimientos van al final de su día y se ven distintos de las citas.
+  // Lista: días con citas, vencimientos o tareas.
   const grupos = useMemo(() => {
-    if (dia) return [{ fecha: dia, titulo: diaLargo(dia), citas: citasDelDia(datos, dia), vencen: vencenPorDia.get(dia) ?? [], tareas: tareasPorDia.get(dia) ?? [] }];
+    if (dia && vista === "lista" && !telefono) return [{ fecha: dia, titulo: diaLargo(dia), citas: citasDelDia(datos, dia), vencen: vencenPorDia.get(dia) ?? [], tareas: tareasPorDia.get(dia) ?? [] }];
     const titulos = new Map(semana.map((g) => [g.fecha, g]));
     const manana = aTexto(sumarDias(hoy, 1));
     return tira
@@ -276,198 +303,266 @@ function Agenda() {
         vencen: vencenPorDia.get(d.fecha) ?? [],
         tareas: tareasPorDia.get(d.fecha) ?? [],
       }));
-  }, [dia, datos, semana, tira, vencenPorDia, tareasPorDia, hoy]);
-  // Tarea con fecha (solo lectura): se distingue de las citas por el ícono y «Tarea»; abre su asunto si lo tiene.
+  }, [dia, vista, telefono, datos, semana, tira, vencenPorDia, tareasPorDia, hoy]);
   const filaTarea = (t: TareaDia) => {
     const fila = {
-      titulo: t.titulo, subtitulo: t.expedienteId ? "Abre su asunto" : undefined, detalle: t.vencida ? "Vencida" : undefined, tonoDetalle: t.vencida ? ("error" as const) : ("normal" as const), lado: "Tarea",
+      titulo: t.titulo, subtitulo: t.expedienteId ? "Abre su asunto" : undefined, detalle: t.vencida ? "Vencida" : undefined, tonoDetalle: t.vencida ? ("error" as const) : ("normal" as const), lado: t.hora ?? "Tarea",
       izquierda: <span className="pn-av" aria-hidden style={{ borderRadius: "var(--r-md)" }}><Icono nombre="expediente" tamano={18} /></span>,
     };
-    return t.expedienteId ? <Fila key={t.id} {...fila} href={`/panel/asuntos?ver=${encodeURIComponent(t.expedienteId)}`} /> : <Fila key={t.id} {...fila} />;
+    return t.expedienteId ? <Fila key={t.id} {...fila} href={rutaAsunto(t.expedienteId)} /> : <Fila key={t.id} {...fila} />;
+  };
+  const destinoVence = (v: VenceDia) => v.href ?? (v.expedienteId ? rutaAsunto(v.expedienteId) : undefined);
+  const filaVence = (v: VenceDia) => {
+    const fila = { titulo: v.titulo, subtitulo: v.detalle, lado: "Vence", izquierda: <span className="pn-av" aria-hidden style={{ borderRadius: "var(--r-md)", color: "var(--warning)", background: "var(--warning-soft)" }}><Icono nombre="alerta" tamano={18} /></span> };
+    const destino = destinoVence(v);
+    return destino ? <Fila key={v.id} {...fila} href={destino} /> : <Fila key={v.id} {...fila} />;
   };
   const porId = useMemo(() => new Map(datos.map((e) => [e.id, e])), [datos]);
   const pregunta = (id: string) => { const e = porId.get(id); return e ? pideComoFue(e, hoy) : false; };
   const cuentaVence = (fecha: string) => vencenPorDia.get(fecha)?.length ?? 0;
   const total = tira.reduce((n, d) => n + d.citas, 0);
-  // Día a la vista: el elegido en la tira; si no, hoy (si está en la semana) o el primero de la semana.
-  const fechaDia = dia ?? tira.find((d) => d.hoy)?.fecha ?? tira[0]?.fecha ?? aTexto(hoy);
+  // Día a la vista (teléfono): el elegido en la tira; si no, hoy (si está en la semana) o el primero.
+  const fechaDia = dia ?? tira.find((d) => d.hoy)?.fecha ?? tira[0]?.fecha ?? hoyTexto;
   const citasDia = useMemo(() => datos.filter((e) => e.fecha === fechaDia), [datos, fechaDia]);
   const sinHoraDia = useMemo(() => citasDelDia(datos, fechaDia).filter((c) => !c.hora), [datos, fechaDia]);
-  const pidenComoFue = useMemo(() => new Set(citasDia.filter((e) => pideComoFue(e, hoy)).map((e) => e.id)), [citasDia, hoy]);
+  const citasSemana = useMemo(() => datos.filter((e) => tira.some((d) => d.fecha === e.fecha)), [datos, tira]);
+  const pidenComoFue = useMemo(() => new Set(datos.filter((e) => pideComoFue(e, hoy)).map((e) => e.id)), [datos, hoy]);
+  // «Ya pasó · ¿Cómo te fue?»: las de la última semana sin anotar, la más reciente primero.
+  const preguntas = useMemo(() => {
+    const hace = aTexto(sumarDias(hoy, -7));
+    return datos.filter((e) => e.fecha >= hace && pidenComoFue.has(e.id))
+      .sort((a, b) => `${b.fecha} ${b.hora ?? ""}`.localeCompare(`${a.fecha} ${a.hora ?? ""}`)).slice(0, 3);
+  }, [datos, pidenComoFue, hoy]);
+  // «Más adelante»: vencimientos después de la semana a la vista.
+  const masAdelante = useMemo(() => vencen.filter((v) => v.fecha >= finSemana).sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 5), [vencen, finSemana]);
+  const enDias = (fecha: string) => { const d = deTexto(fecha); return d ? Math.round((d.getTime() - new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime()) / 86_400_000) : 0; };
+
+  const esHoyAVista = telefono ? fechaDia === hoyTexto : salto === 0;
+  useBarraTelefono({
+    volver: { href: "/panel", texto: "Hoy" }, titulo: "Agenda", sinBuscar: true,
+    nuevo: { etiqueta: "Nueva cita", alPulsar: () => setNueva({ modo: "linea" }) },
+    extra: esHoyAVista ? null : { etiqueta: "Hoy", alPulsar: () => irA(0) },
+  });
+
+  const tituloDia = fechaDia === hoyTexto ? "Hoy" : fechaDia === aTexto(sumarDias(hoy, 1)) ? "Mañana" : mayuscula(diaLargo(fechaDia));
+  const cuantasDia = citasDia.length;
+  const exp = evAbierto?.expedienteId ? expedientes.find((x) => x.id === evAbierto.expedienteId) : undefined;
+  const evCambiando = cambiando ? datos.find((e) => e.id === cambiando) ?? null : null;
+  const evMoviendo = moviendo ? datos.find((e) => e.id === moviendo) ?? null : null;
+  const evComoFue = comoFue ? datos.find((e) => e.id === comoFue) ?? null : null;
+  const inicialNueva: DatosCita = { tipo: "visita", titulo: "", fecha: dia ?? hoyTexto, hora: 10 * 60, clienteId: "", propiedadSlug: "", notas: "", asesorId: miAsesor };
+
+  const interruptor = (
+    <Interruptor etiqueta="Vista" sinEtiqueta opciones={[{ valor: "calendario", etiqueta: telefono ? "Día" : "Semana" }, { valor: "lista", etiqueta: "Lista" }]} valor={vista} alElegir={(v) => guardarVista(v)} />
+  );
 
   return (
-    <div className="pn-pagina" style={{ maxWidth: 760 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <h1 className="pn-h1">Agenda</h1>
-        <Boton variante="secundario" onClick={() => setEditando("nueva")} aria-keyshortcuts="N">Nueva cita</Boton>
-      </div>
-      <p className="pn-sub">
-        {textoSemana(desde)}
-        {cargando ? "" : ` · ${total ? `${total} ${total === 1 ? "cita" : "citas"}` : "sin citas"}${totalTareas ? `, ${totalTareas} ${totalTareas === 1 ? "tarea" : "tareas"}` : ""}`}
-      </p>
-
-      <div style={{ display: "flex", alignItems: "flex-end", flexWrap: "wrap", gap: 4, marginTop: 20 }}>
-        <button type="button" className="pn-iconbtn" aria-label="Semana anterior" title="Semana anterior" onClick={() => irA(salto - 1)}><Gesto nombre="izquierda" tamano={18} /></button>
-        <button type="button" className="pn-iconbtn" aria-label="Semana siguiente" title="Semana siguiente" onClick={() => irA(salto + 1)}><Gesto nombre="derecha" tamano={18} /></button>
-        {salto !== 0 ? <Boton variante="texto" onClick={() => irA(0)}>Volver a hoy</Boton> : null}
-        <span style={{ flex: 1 }} />
-        <Interruptor etiqueta="Vista" opciones={[{ valor: "semana", etiqueta: "Semana" }, { valor: "dia", etiqueta: "Día" }]} valor={vista} alElegir={(v) => guardarVista(v)} />
-      </div>
-      <div className="pn-tira" role="group" aria-label={salto === 0 ? "Próximos 7 días" : "Semana a la vista"} style={{ marginTop: 8 }}>
-        {tira.map((d) => (
-          <button
-            key={d.fecha}
-            type="button"
-            className={d.hoy ? "pn-tira-hoy" : undefined}
-            aria-pressed={vista === "dia" ? fechaDia === d.fecha : dia === d.fecha}
-            aria-label={`${d.hoy ? "Hoy, " : ""}${diaLargo(d.fecha)}: ${d.citas ? `${d.citas} ${d.citas === 1 ? "cita" : "citas"}` : "sin citas"}${cuentaVence(d.fecha) ? `, ${cuentaVence(d.fecha) === 1 ? "1 vencimiento" : `${cuentaVence(d.fecha)} vencimientos`}` : ""}${tareasPorDia.get(d.fecha)?.length ? `, ${tareasPorDia.get(d.fecha)!.length === 1 ? "1 tarea" : `${tareasPorDia.get(d.fecha)!.length} tareas`}` : ""}`}
-            onClick={() => setDia((x) => (vista === "dia" ? d.fecha : x === d.fecha ? null : d.fecha))}
-            data-dia-destino={d.fecha >= aTexto(hoy) ? d.fecha : undefined}
-            data-destino-activo={diaDestino === d.fecha ? "" : undefined}
-            onDragOver={(e) => { if (!esArrastreDeCita(e) || d.fecha < aTexto(hoy)) return; e.preventDefault(); e.dataTransfer.dropEffect = "move"; if (diaDestino !== d.fecha) setDiaDestino(d.fecha); }}
-            onDragLeave={() => setDiaDestino((x) => (x === d.fecha ? null : x))}
-            onDrop={(e) => {
-              if (!esArrastreDeCita(e)) return;
-              e.preventDefault();
-              setDiaDestino(null);
-              const ev = datos.find((x) => x.id === e.dataTransfer.getData(TIPO_ARRASTRE));
-              if (ev) void moverCita(ev, { fecha: d.fecha });
-            }}
-          >
-            <span className="pn-tira-letra" aria-hidden>{d.letra}</span>
-            <span className="pn-tira-num" aria-hidden>{d.numero}</span>
-            <span aria-hidden style={{ display: "flex", gap: 3 }}>
-              <span className="pn-tira-punto" data-vacio={d.citas ? undefined : ""} />
-              {/* Vencimiento: marca cuadrada en ámbar, distinta del punto redondo de las citas. */}
-              {cuentaVence(d.fecha) ? <span style={{ width: 6, height: 6, borderRadius: 1, background: "var(--warning)" }} /> : null}
+    <div className="pn-pagina" style={telefono ? undefined : { maxWidth: 1180 }}>
+      <header className="pn-encabezado">
+        <div>
+          <h1 className="pn-h1">{telefono ? tituloDia : "Agenda"}</h1>
+          <p className="pn-sub">
+            {telefono
+              ? (cargando ? "" : cuantasDia ? `${cuantasDia} ${cuantasDia === 1 ? "cita" : "citas"}` : "Sin citas")
+              : `${textoSemana(desde)}${cargando ? "" : ` · ${total ? `${total} ${total === 1 ? "cita" : "citas"}` : "sin citas"} en 7 días`} · Datos de ejemplo`}
+          </p>
+        </div>
+        {telefono ? null : (
+          <div className="pn-ag-ctl">
+            {interruptor}
+            <span className="pn-ag-nav">
+              <button type="button" className="pn-iconbtn" aria-label="Semana anterior" title="Semana anterior" onClick={() => irA(salto - 1)}><Gesto nombre="izquierda" tamano={18} /></button>
+              <button type="button" className="pn-ag-hoy" aria-keyshortcuts="T" onClick={() => irA(0)}>Hoy</button>
+              <button type="button" className="pn-iconbtn" aria-label="Semana siguiente" title="Semana siguiente" onClick={() => irA(salto + 1)}><Gesto nombre="derecha" tamano={18} /></button>
             </span>
-          </button>
-        ))}
-      </div>
-      {dia && vista === "semana" ? <div style={{ marginTop: 8 }}><Boton variante="texto" onClick={() => setDia(null)}>Ver toda la semana</Boton></div> : null}
-      {vista === "semana" && !cargando && grupos.some((g) => g.citas.length) ? (
-        <p className="pn-campo-ayuda pn-agenda-pista" style={{ margin: "8px 0 0" }}>Arrastra una cita a otro día de la tira, o enfócala y usa Alt con ← y →.</p>
+            <Boton onClick={() => setNueva({ modo: "linea" })} aria-keyshortcuts="N">Nueva cita</Boton>
+          </div>
+        )}
+      </header>
+
+      {telefono ? (
+        <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <button type="button" className="pn-iconbtn" aria-label="Semana anterior" onClick={() => irA(salto - 1)}><Gesto nombre="izquierda" tamano={18} /></button>
+            <div className="pn-dstrip" role="group" aria-label={salto === 0 ? "Próximos 7 días" : "Semana a la vista"} style={{ flex: 1 }}>
+              {tira.map((d) => (
+                <button
+                  key={d.fecha} type="button" className="pn-dpill" aria-pressed={fechaDia === d.fecha}
+                  aria-label={`${d.hoy ? "Hoy, " : ""}${diaLargo(d.fecha)}: ${d.citas ? `${d.citas} ${d.citas === 1 ? "cita" : "citas"}` : "sin citas"}${cuentaVence(d.fecha) ? `, ${cuentaVence(d.fecha) === 1 ? "1 vencimiento" : `${cuentaVence(d.fecha)} vencimientos`}` : ""}`}
+                  onClick={() => setDia(d.fecha)}
+                  data-dia-destino={d.fecha >= hoyTexto ? d.fecha : undefined}
+                  data-destino-activo={diaDestino === d.fecha ? "" : undefined}
+                >
+                  <span className="pn-dw" aria-hidden>{d.letra}</span>
+                  <span className="pn-dn" aria-hidden>{d.numero}</span>
+                  <span className="pn-dt" aria-hidden>
+                    {Array.from({ length: Math.min(d.citas, 3) }, (_, i) => <i key={i} />)}
+                    {cuentaVence(d.fecha) ? <i data-vence="" /> : null}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <button type="button" className="pn-iconbtn" aria-label="Semana siguiente" onClick={() => irA(salto + 1)}><Gesto nombre="derecha" tamano={18} /></button>
+          </div>
+          {interruptor}
+        </div>
       ) : null}
 
-      <div style={{ display: "grid", gap: 20, marginTop: 20 }}>
+      <div className="pn-ag-cuerpo">
+        {preguntas.map((e) => (
+          <div key={e.id} className="pn-ask pn-ask-linea">
+            <span style={{ flex: 1, minWidth: 0, fontSize: 14 }}>
+              <span style={{ color: "var(--ink-muted)" }}>Ya pasó · {e.fecha === hoyTexto ? "" : `${diaLargo(e.fecha)}, `}{e.hora ?? "sin hora"} </span>
+              <b>{e.titulo}</b>
+            </span>
+            <button type="button" className="pn-sbtn" onClick={() => setComoFue(e.id)}>¿Cómo te fue?</button>
+          </div>
+        ))}
+
         {cargando ? <Cargando lineas={4} etiqueta="Cargando agenda" /> : null}
         {error ? <EstadoError texto={error} alReintentar={reintentar} /> : null}
-        {!cargando && !error && vista === "dia" ? (
+
+        {!cargando && !error && vista === "calendario" && !telefono ? (
+          <SemanaCuadro dias={tira} citas={citasSemana} vencen={vencenPorDia} tareas={tareasPorDia} hoy={hoyTexto} ahoraMin={ahoraMin}
+            pidenComoFue={pidenComoFue} abierta={citaId} alAbrir={abrir} alMover={(ev, c) => void moverCita(ev, c)} alAbrirTarea={(id) => router.push(rutaAsunto(id))} alIr={(h) => router.push(h)} />
+        ) : null}
+
+        {!cargando && !error && vista === "calendario" && telefono ? (
           <>
-            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{fechaDia === aTexto(hoy) ? `Hoy, ${diaLargo(fechaDia)}` : diaLargo(fechaDia)}</h2>
-            {sinHoraDia.length || (vencenPorDia.get(fechaDia)?.length ?? 0) || (tareasPorDia.get(fechaDia)?.length ?? 0) ? (
+            {sinHoraDia.length || cuentaVence(fechaDia) || (tareasPorDia.get(fechaDia)?.length ?? 0) ? (
               <GrupoLista titulo="Todo el día">
                 {sinHoraDia.map((c) => (
                   <Fila key={c.id} titulo={c.titulo} subtitulo={subtitulo(c)} lado="Sin hora" alPulsar={() => abrir(c.id)}
                     detalle={pregunta(c.id) ? "¿Cómo te fue?" : undefined} tonoDetalle={pregunta(c.id) ? "aviso" : "normal"} />
                 ))}
-                {(vencenPorDia.get(fechaDia) ?? []).map((v) => {
-                  const fila = { titulo: v.titulo, subtitulo: v.detalle, lado: "Vence", izquierda: <span className="pn-av" aria-hidden style={{ borderRadius: "var(--r-md)", color: "var(--warning)" }}><Icono nombre="alerta" tamano={18} /></span> };
-                  return v.expedienteId ? <Fila key={v.id} {...fila} href={`/panel/asuntos?ver=${encodeURIComponent(v.expedienteId)}`} /> : <Fila key={v.id} {...fila} />;
-                })}
+                {(vencenPorDia.get(fechaDia) ?? []).map(filaVence)}
                 {(tareasPorDia.get(fechaDia) ?? []).map(filaTarea)}
               </GrupoLista>
             ) : null}
             {citasDia.some((e) => e.hora) ? (
-              <DiaLineaDeTiempo citas={citasDia.filter((e) => e.hora)} esHoy={fechaDia === aTexto(hoy)} ahoraMin={ahoraMin} pidenComoFue={pidenComoFue}
+              <DiaLineaDeTiempo citas={citasDia.filter((e) => e.hora)} esHoy={fechaDia === hoyTexto} ahoraMin={ahoraMin} pidenComoFue={pidenComoFue}
                 alAbrir={abrir} alMover={(ev, m) => void moverCita(ev, { minutos: m })}
                 alMoverDia={(ev, f) => void moverCita(ev, { fecha: f })} alSobreDia={setDiaDestino} />
-            ) : (
-              <Vacio titulo="Sin citas con hora" texto={citasDia.length ? "Las de este día no tienen hora." : "Este día está libre."} icono="cita" />
-            )}
-          </>
-        ) : null}
-        {!cargando && !error && vista === "semana" && grupos.every((g) => g.citas.length === 0 && g.vencen.length === 0 && g.tareas.length === 0) ? (
-          <>
-            <Vacio titulo={dia ? "Día libre" : "Semana libre"} texto={proxima ? `La próxima cita es el ${diaLargo(proxima)}.` : "Las visitas, firmas y llamadas que se agenden aparecen aquí."} icono="cita" />
-            {proxima && !dia ? <div><Boton variante="secundario" onClick={() => irAFecha(proxima)}>Ver la próxima cita</Boton></div> : null}
-          </>
-        ) : null}
-        {!cargando && !error && vista === "semana" ? grupos.filter((g) => g.citas.length || g.vencen.length || g.tareas.length).map((g) => (
-          <GrupoLista key={g.fecha} titulo={g.titulo}>
-            {g.citas.map((c) => (
-              <div
-                key={c.id}
-                className="pn-agenda-mover"
-                data-cita-id={c.id}
-                draggable
-                onDragStart={(e) => { e.dataTransfer.setData(TIPO_ARRASTRE, c.id); e.dataTransfer.effectAllowed = "move"; }}
-                onDragEnd={() => setDiaDestino(null)}
-                onKeyDown={(e) => teclaDia(e, c.id)}
-              >
-                <Fila
-                  titulo={c.titulo}
-                  subtitulo={subtitulo(c)}
-                  detalle={c.empalme ? "Se empalma con otra cita" : pregunta(c.id) ? "¿Cómo te fue?" : undefined}
-                  tonoDetalle={c.empalme || pregunta(c.id) ? "aviso" : "normal"}
-                  lado={c.hora ?? "Sin hora"}
-                  alPulsar={() => abrir(c.id)}
-                />
+            ) : !sinHoraDia.length ? (
+              <div className="pn-tarjeta" style={{ display: "grid", gap: 10, justifyItems: "start", padding: "20px 16px" }}>
+                <b style={{ fontSize: 16 }}>Día libre</b>
+                <span style={{ fontSize: 14, color: "var(--ink-muted)" }}>{proxima ? `La próxima cita es el ${diaLargo(proxima)}.` : "No hay citas este día."}</span>
+                <button type="button" className="pn-sbtn pn-sbtn-suave" onClick={() => setNueva({ modo: "linea" })}>Agendar una cita</button>
               </div>
+            ) : null}
+          </>
+        ) : null}
+
+        {!cargando && !error && vista === "lista" ? (
+          <>
+            {grupos.every((g) => g.citas.length === 0 && g.vencen.length === 0 && g.tareas.length === 0) ? (
+              <div className="pn-tarjeta" style={{ display: "grid", gap: 10, justifyItems: "start", padding: "20px 16px" }}>
+                <b style={{ fontSize: 16 }}>Semana libre</b>
+                <span style={{ fontSize: 14, color: "var(--ink-muted)" }}>{proxima ? `La próxima cita es el ${diaLargo(proxima)}.` : "Las visitas, firmas y llamadas que se agenden aparecen aquí."}</span>
+                {proxima ? <button type="button" className="pn-sbtn pn-sbtn-suave" onClick={() => irAFecha(proxima)}>Ver la próxima cita</button> : null}
+              </div>
+            ) : null}
+            {grupos.filter((g) => g.citas.length || g.vencen.length || g.tareas.length).map((g) => (
+              <GrupoLista key={g.fecha} titulo={g.titulo}>
+                {g.citas.map((c) => (
+                  <div
+                    key={c.id} className="pn-agenda-mover" data-cita-id={c.id} draggable={!telefono}
+                    onDragStart={(e) => { e.dataTransfer.setData(TIPO_ARRASTRE, c.id); e.dataTransfer.effectAllowed = "move"; }}
+                    onDragEnd={() => setDiaDestino(null)}
+                    onKeyDown={(e) => teclaDia(e, c.id)}
+                  >
+                    <Fila
+                      titulo={c.titulo} subtitulo={subtitulo(c)}
+                      detalle={c.empalme ? "Se empalma con otra cita" : pregunta(c.id) ? "¿Cómo te fue?" : undefined}
+                      tonoDetalle={c.empalme || pregunta(c.id) ? "aviso" : "normal"}
+                      lado={c.hora ?? "Sin hora"} alPulsar={() => abrir(c.id)}
+                    />
+                  </div>
+                ))}
+                {g.vencen.map(filaVence)}
+                {g.tareas.map(filaTarea)}
+              </GrupoLista>
             ))}
-            {g.vencen.map((v) => {
-              const fila = { titulo: v.titulo, subtitulo: v.detalle, lado: "Vence", izquierda: <span className="pn-av" aria-hidden style={{ borderRadius: "var(--r-md)", color: "var(--warning)" }}><Icono nombre="alerta" tamano={18} /></span> };
-              return v.expedienteId ? <Fila key={v.id} {...fila} href={`/panel/asuntos?ver=${encodeURIComponent(v.expedienteId)}`} /> : <Fila key={v.id} {...fila} />;
-            })}
-            {g.tareas.map(filaTarea)}
-          </GrupoLista>
-        )) : null}
+          </>
+        ) : null}
+
+        {masAdelante.length ? (
+          <section className="pn-ag-mas" aria-labelledby="ag-mas">
+            <h2 id="ag-mas" className="pn-h2" style={{ margin: 0 }}>Más adelante</h2>
+            <div className="pn-tarjeta" style={{ overflow: "hidden" }}>
+              {masAdelante.map((v) => {
+                const n = enDias(v.fecha);
+                const cuerpo = (
+                  <>
+                    <span className="pn-av" aria-hidden style={{ borderRadius: "var(--r-md)", color: "var(--warning)", background: "var(--warning-soft)" }}><Icono nombre="alerta" tamano={18} /></span>
+                    <span style={{ flex: 1, minWidth: 0, display: "grid", gap: 1 }}><b>{v.titulo}</b><span>{v.detalle}</span></span>
+                    <span className="pn-ag-en">en {n} {n === 1 ? "día" : "días"}</span>
+                  </>
+                );
+                const destino = destinoVence(v);
+                return destino
+                  ? <a key={v.id} className="pn-ag-mas-fila" data-cerca={n <= 14 ? "" : undefined} href={destino} onClick={(e) => { e.preventDefault(); router.push(destino); }}>{cuerpo}</a>
+                  : <div key={v.id} className="pn-ag-mas-fila" data-cerca={n <= 14 ? "" : undefined}>{cuerpo}</div>;
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        {!telefono ? (
+          <p className="pn-kbd-linea pn-solo-escritorio">
+            <span><kbd className="pn-kbd">N</kbd> nueva cita</span>
+            <span><kbd className="pn-kbd">←</kbd> <kbd className="pn-kbd">→</kbd> semana</span>
+            <span><kbd className="pn-kbd">T</kbd> hoy</span>
+            <span><kbd className="pn-kbd">1</kbd> <kbd className="pn-kbd">2</kbd> semana o lista</span>
+            <span><kbd className="pn-kbd">Esc</kbd> cerrar</span>
+            <span>Arrastra una cita para cambiarla de hora o de día</span>
+          </p>
+        ) : null}
       </div>
 
-      <HojaAdaptable abierta={abierta !== null} titulo={abierta?.titulo ?? "Cita"} alCerrar={() => cerrar()}>
-        {abierta ? (
-          <>
-            <Ficha secciones={[{ titulo: "Cita", datos: [
-              { etiqueta: "Tipo", valor: abierta.tipo },
-              ...(abierta.asesorId && nombreAsesor.get(abierta.asesorId) ? [{ etiqueta: "Asesor", valor: nombreAsesor.get(abierta.asesorId) ?? "" }] : []),
-              { etiqueta: "Día", valor: diaLargo(abierta.fecha) },
-              abierta.hora ? { etiqueta: "Hora", valor: abierta.hora } : { etiqueta: "Hora", valor: "Sin hora", falta: true },
-              ...(abierta.notas ? [{ etiqueta: "Notas", valor: abierta.notas }] : []),
-              ...(evAbierto?.resultado ? [{ etiqueta: "Cómo fue", valor: textoResultado(evAbierto.resultado) }] : []),
-              ...(abierta.empalme ? [{ etiqueta: "Aviso", valor: "Se empalma con otra cita", falta: true }] : []),
-            ] }]} />
-            {evAbierto && pideComoFue(evAbierto, hoy) && sinPregunta !== evAbierto.id ? (
-              <ComoTeFue key={evAbierto.id} conAsunto={Boolean(evAbierto.expedienteId)} hoy={hoy} ocupado={ocupado}
-                alGuardar={(r) => void guardarComoFue(evAbierto, r)} alCancelar={() => setSinPregunta(evAbierto.id)} />
-            ) : null}
-            {evAbierto ? (
-              <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-                <Desplegable etiqueta="Mover a" valor={horasParaMover().some((h) => h.valor === evAbierto.hora) ? (evAbierto.hora ?? "") : ""} vacio="Elige una hora"
-                  opciones={horasParaMover()} ayuda="El mismo día. En la vista de Día también se arrastra."
-                  alElegir={(h) => { const m = deHoraGuardada(h); if (m !== null && h !== evAbierto.hora) void moverCita(evAbierto, { minutos: m }); }} />
-                {/* En el teléfono no hay arrastre a otro día: aquí se cambia el día con la misma hora. */}
-                <DesplegableFecha key={evAbierto.fecha} etiqueta="Cambiar de día" valor={evAbierto.fecha >= aTexto(hoy) ? evAbierto.fecha : null} hoy={hoy}
-                  sinFecha={evAbierto.fecha >= aTexto(hoy) ? null : "Elige un día"}
-                  alElegir={(f) => { if (f && f !== evAbierto.fecha) void moverCita(evAbierto, { fecha: f }); }} />
-              </div>
-            ) : null}
-            <Relacionado grupos={relacionadoCita(abierta, { clientes: clientes.datos, leads: leads.datos, inmuebles: inmuebles.datos })} />
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
-              <Boton variante="secundario" onClick={() => { setConfirmarCancelar(false); setEditando(abierta.id); }}>Cambiar</Boton>
-              {confirmarCancelar ? null : <Boton variante="texto" onClick={() => setConfirmarCancelar(true)}>Cancelar cita</Boton>}
-            </div>
-            {confirmarCancelar ? (
-              <div role="group" aria-label="Confirmar" style={{ display: "grid", gap: 8, marginTop: 12, padding: 12, border: "1px solid var(--border)", borderRadius: "var(--r-lg)" }}>
-                <p style={{ margin: 0 }}>¿Cancelar «{abierta.titulo}»? Si fue un error, se puede deshacer.</p>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <Boton variante="peligro" deshabilitado={ocupado} onClick={() => void cancelarCita(abierta.id)}>Sí, cancelar</Boton>
-                  <Boton variante="texto" onClick={() => setConfirmarCancelar(false)}>No</Boton>
-                </div>
-              </div>
-            ) : null}
-          </>
+      <HojaAdaptable abierta={evAbierto !== null} titulo={evAbierto?.titulo ?? "Cita"} alCerrar={() => cerrar()}
+        cabecera={<span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-muted)" }}>Cita</span>}>
+        {evAbierto ? (
+          <DetalleCita
+            ev={evAbierto} empalme={Boolean(filaAbierta?.empalme)} hoy={hoy}
+            cliente={evAbierto.clienteId ? clientes.datos.find((c) => c.id === evAbierto.clienteId) : undefined}
+            lead={evAbierto.leadId ? leads.datos.find((l) => l.id === evAbierto.leadId) : undefined}
+            inmueble={evAbierto.propiedadSlug ? inmuebles.datos.find((p) => p.slug === evAbierto.propiedadSlug) : undefined}
+            asunto={exp ? { id: exp.id, texto: exp.titulo?.trim() || exp.folio || "Asunto" } : undefined}
+            asesor={variosAsesores && evAbierto.asesorId ? nombreAsesor.get(evAbierto.asesorId) || undefined : undefined}
+            pide={pidenComoFue.has(evAbierto.id)} ocupado={ocupado}
+            alAnotar={() => setComoFue(evAbierto.id)}
+            alNoLlego={() => void guardarComoFue(evAbierto, { estado: "no_llego", nota: "", siguiente: "", vence: null })}
+            alMover={() => setMoviendo(evAbierto.id)}
+            alCambiar={() => setCambiando(evAbierto.id)}
+            alCancelar={() => void cancelarCita(evAbierto.id)}
+          />
         ) : null}
       </HojaAdaptable>
-      <HojaAdaptable abierta={editando !== null} titulo={enEdicion ? "Cambiar cita" : "Nueva cita"} alCerrar={() => setEditando(null)}>
-        {editando !== null ? (
-          <FormularioCita
-            key={editando}
-            inicial={enEdicion ? datosDeCita(enEdicion) : { tipo: "visita", titulo: "", fecha: dia ?? aTexto(hoy), hora: 10 * 60, clienteId: "", propiedadSlug: "", notas: "", asesorId: miAsesor }}
-            citas={enEdicion ? datos.filter((e) => e.id !== enEdicion.id) : datos}
-            personas={clientes.datos} inmuebles={inmuebles.datos} hoy={hoy} ocupado={ocupado}
-            textoGuardar={enEdicion ? "Guardar cambios" : "Agendar"}
-            alGuardar={(d, persona) => void guardarCita(d, persona)}
-          />
+
+      <HojaAdaptable abierta={evComoFue !== null} titulo="¿Cómo te fue?" descripcion={evComoFue ? `${evComoFue.titulo} · ${diaLargo(evComoFue.fecha)}${evComoFue.hora ? `, ${evComoFue.hora}` : ""}` : undefined} alCerrar={() => setComoFue(null)}>
+        {evComoFue ? <ComoTeFue key={evComoFue.id} conAsunto={Boolean(evComoFue.expedienteId)} hoy={hoy} ocupado={ocupado} alGuardar={(r) => void guardarComoFue(evComoFue, r)} /> : null}
+      </HojaAdaptable>
+
+      <HojaAdaptable abierta={evMoviendo !== null} titulo="Mover" descripcion={evMoviendo?.titulo} alCerrar={() => setMoviendo(null)}>
+        {evMoviendo ? <MoverCita key={evMoviendo.id} cita={evMoviendo} citas={datos} hoy={hoy} alMover={(c) => void moverCita(evMoviendo, c)} /> : null}
+      </HojaAdaptable>
+
+      <HojaAdaptable abierta={nueva !== null} titulo="Nueva cita" alCerrar={() => setNueva(null)}>
+        {nueva?.modo === "linea" ? (
+          <NuevaEnUnaLinea personas={clientes.datos} citas={datos} hoy={hoy} asesorId={miAsesor} ocupado={ocupado}
+            alAgendar={(d) => void guardarCita(d)} alDetalle={(d) => setNueva({ modo: "detalle", inicial: d.titulo ? d : inicialNueva })} />
+        ) : nueva?.modo === "detalle" ? (
+          <FormularioCita key="nueva" inicial={nueva.inicial} citas={datos} personas={clientes.datos} inmuebles={inmuebles.datos} hoy={hoy} ocupado={ocupado}
+            textoGuardar="Agendar" alGuardar={(d, persona) => void guardarCita(d, persona)} />
+        ) : null}
+      </HojaAdaptable>
+
+      <HojaAdaptable abierta={evCambiando !== null} titulo="Cambiar datos" alCerrar={() => setCambiando(null)}>
+        {evCambiando ? (
+          <FormularioCita key={evCambiando.id} inicial={datosDeCita(evCambiando)} citas={datos.filter((e) => e.id !== evCambiando.id)}
+            personas={clientes.datos} inmuebles={inmuebles.datos} hoy={hoy} ocupado={ocupado} textoGuardar="Guardar cambios"
+            alGuardar={(d, persona) => void guardarCita(d, persona)} />
         ) : null}
       </HojaAdaptable>
     </div>

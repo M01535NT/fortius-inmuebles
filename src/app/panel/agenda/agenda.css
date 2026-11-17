@@ -1,5 +1,69 @@
-/* Agenda (PN-04): filas de cita que se arrastran a otro día y la tira como destino. */
+/* Agenda (boceto «Agenda»): filas de cita que se arrastran a otro día y la tira como destino. */
 .pn-lista > .pn-agenda-mover:first-child > .pn-fila { border-top: 0; }
 .pn-agenda-mover[draggable="true"] > .pn-fila { cursor: grab; }
 .pn-tira button[data-destino-activo] { border-color: var(--accent); background: var(--accent-soft); outline: 2px solid var(--accent); outline-offset: 1px; }
 @media (hover: none) { .pn-agenda-pista { display: none; } }
+
+.panel-root .pn-ag-ctl { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.panel-root .pn-ag-nav { display: inline-flex; align-items: center; gap: 4px; }
+.panel-root .pn-ag-hoy { min-height: 44px; padding: 0 14px; border: 1px solid transparent; border-radius: var(--r-md); background: var(--fill); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.panel-root .pn-ag-hoy:hover { background: var(--muted); }
+.panel-root .pn-ag-cuerpo { display: grid; gap: 16px; margin-top: 16px; }
+.panel-root .pn-ag-mas { display: grid; gap: 8px; }
+.panel-root .pn-ag-mas-fila { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; border-top: 1px solid var(--border); color: inherit; text-decoration: none; }
+.panel-root .pn-ag-mas-fila:first-child { border-top: 0; }
+.panel-root a.pn-ag-mas-fila:hover { background: var(--muted); }
+.panel-root .pn-ag-mas-fila b { font-size: 14px; font-weight: 600; }
+.panel-root .pn-ag-mas-fila span { font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-ag-mas-fila[data-cerca] .pn-ag-en { color: var(--warning); font-weight: 600; }
+
+/* Bloques de cita por tipo (visita, firma, llamada, levantamiento y otros). */
+.panel-root .pn-evb {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; overflow: hidden; text-align: left; padding: 4px 8px;
+  border: 0; border-left: 3px solid var(--accent); border-radius: var(--r-sm); background: var(--accent-soft); color: var(--ink); font: inherit; touch-action: pan-y;
+}
+.panel-root .pn-evb[data-tipo="firma"] { border-left-color: var(--ink); }
+.panel-root .pn-evb[data-tipo="llamada"] { background: var(--card); border: 1px solid transparent; border-left: 3px solid var(--accent); }
+.panel-root .pn-evb[data-tipo="otro"], .panel-root .pn-evb[data-tipo="reunion"] { background: var(--muted); border-left-color: var(--ink-muted); }
+.panel-root .pn-evb[data-pide] { border-left-color: var(--warning); }
+.panel-root .pn-evb[data-abierta] { outline: 2px solid var(--accent); outline-offset: 1px; }
+.panel-root .pn-evb:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.panel-root .pn-evb-h { font-size: 11px; color: var(--ink-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.panel-root .pn-evb-t { max-width: 100%; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .pn-evb-punto { width: 10px; height: 10px; border-radius: 999px; background: var(--accent); }
+.panel-root .pn-evb-punto[data-tipo="firma"] { background: var(--ink); }
+.panel-root .pn-evb-punto[data-tipo="otro"], .panel-root .pn-evb-punto[data-tipo="reunion"] { background: var(--ink-muted); }
+
+/* Semana en cuadro (escritorio). */
+.panel-root .pn-sem { background: var(--card); border: 1px solid transparent; border-radius: var(--r-lg); overflow: hidden; }
+.panel-root .pn-sem-cab, .panel-root .pn-sem-todo, .panel-root .pn-sem-cuerpo { display: grid; grid-template-columns: 48px repeat(7, minmax(0, 1fr)); }
+.panel-root .pn-sem-cab { border-bottom: 1px solid var(--border); }
+.panel-root .pn-sem-dia { display: flex; align-items: baseline; justify-content: center; gap: 6px; padding: 10px 4px; border-left: 1px solid var(--border); font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-sem-dia b { font-size: 17px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.panel-root .pn-sem-dia[data-hoy] { color: var(--accent); }
+.panel-root .pn-sem-dia[data-hoy] b { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+.panel-root .pn-sem-todo { border-bottom: 1px solid var(--border); }
+.panel-root .pn-sem-todo-et { padding: 6px 4px; font-size: 11px; line-height: 1.2; color: var(--ink-muted); }
+.panel-root .pn-sem-todo-col { display: grid; align-content: start; gap: 3px; padding: 4px; border-left: 1px solid var(--border); min-width: 0; }
+.panel-root .pn-sem-chip {
+  display: block; min-height: 22px; padding: 2px 6px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--muted); color: var(--ink);
+  font: inherit; font-size: 12px; font-weight: 500; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;
+}
+.panel-root span.pn-sem-chip { cursor: default; }
+.panel-root .pn-sem-chip[data-vence] { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning) 35%, transparent); color: var(--warning); font-weight: 600; }
+.panel-root .pn-sem-chip[data-tarea] { background: var(--card); }
+.panel-root .pn-sem-chip[data-tarea][data-vencida] { color: var(--error); border-color: color-mix(in srgb, var(--error) 35%, transparent); }
+.panel-root .pn-sem-cuerpo { position: relative; }
+.panel-root .pn-sem-horas { position: relative; }
+.panel-root .pn-sem-horas span { position: absolute; right: 6px; transform: translateY(-50%); font-size: 11px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.panel-root .pn-sem-horas span:first-child { transform: none; }
+.panel-root .pn-sem-col { position: relative; border-left: 1px solid var(--border); min-width: 0; }
+.panel-root .pn-sem-col[data-pasado] { background: color-mix(in srgb, var(--muted) 45%, transparent); }
+.panel-root .pn-sem-col[data-destino] { background: var(--accent-soft); }
+.panel-root .pn-sem-linea { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); }
+.panel-root .pn-sem-ahora { position: absolute; left: 0; right: 0; z-index: 3; height: 2px; background: var(--accent); }
+.panel-root .pn-sem-ahora::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 999px; background: var(--accent); }
+.panel-root .pn-sem-fantasma {
+  position: absolute; left: 2px; right: 2px; z-index: 5; padding: 3px 6px; border: 1px solid var(--accent); border-radius: var(--r-sm);
+  background: var(--raised); box-shadow: var(--sombra-flota); font-size: 12px; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; pointer-events: none;
+}

@@ -50,10 +50,12 @@ export function useColeccion<T>(nombre: NombreColeccion, opciones: Opciones = {}
     setIntento((n) => n + 1);
   }, []);
 
-  const guardar = useCallback(async (id: string, data: T): Promise<T> => {
+  /** `alAvisos` recibe lo que el servidor avisa al guardar (por ejemplo, al publicar un inmueble). */
+  const guardar = useCallback(async (id: string, data: T, alAvisos?: (avisos: string[]) => void): Promise<T> => {
     const version = versiones.current.get(id) ?? null;
     try {
       const r = await guardarRegistro<T>(nombre, id, data, version);
+      if (r.avisos?.length) alAvisos?.(r.avisos);
       versiones.current.set(r.id, r.version);
       setEstado((s) => {
         const existe = s.filas.some((f) => f.id === r.id);

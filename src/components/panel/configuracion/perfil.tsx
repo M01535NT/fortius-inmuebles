@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 
+import { Gesto } from "@/components/panel/icons";
+import { Hoja } from "@/components/panel/kit/hoja";
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo } from "@/components/panel/kit/campo";
 import { Cargando, EstadoError } from "@/components/panel/kit/estados";
@@ -22,29 +24,46 @@ type Props = {
   guardar: (id: string, data: Asesor) => Promise<Asesor>;
 };
 
-/** Perfil: nombre y teléfono de la ficha del asesor de quien está en sesión. El correo es el de la cuenta y no se cambia aquí. */
+/**
+ * Tu perfil, como el boceto: dos filas (Nombre con la foto, Teléfono) que abren la edición en una hoja.
+ * Es la ficha del asesor de quien está en sesión. El correo es el de la cuenta y no se cambia aquí.
+ */
 export function SeccionPerfil({ correo, nombreSesion, miAsesor, cargando, error, alReintentar, guardar }: Props) {
+  const [editando, setEditando] = useState(false);
   return (
-    <SeccionConfig id="conf-perfil" titulo="Perfil" intro="Así te ven el equipo y los clientes en los documentos.">
-      <div className="pn-conf-caja">
-        {cargando || miAsesor === undefined ? <Cargando lineas={3} etiqueta="Cargando tu perfil" />
-          : error ? <EstadoError texto={error} alReintentar={alReintentar} />
-          : miAsesor ? <FormularioPerfil key={miAsesor.id} asesor={miAsesor} correo={correo} guardar={guardar} />
-          : (
-            <>
-              <div className="pn-conf-quien">
-                <FotoAsesor nombre={nombreSesion ?? correo ?? "?"} />
-                <span className="pn-conf-quien-txt"><strong>{nombreSesion ?? "Dirección"}</strong><span className="pn-conf-nota">{correo}</span></span>
-              </div>
-              <p className="pn-conf-nota">Tu cuenta es de dirección: no tiene nombre ni teléfono que cambiar aquí.</p>
-            </>
-          )}
-      </div>
+    <SeccionConfig id="conf-perfil" titulo="Tu perfil">
+      {cargando || miAsesor === undefined ? <div className="pn-conf-caja"><Cargando lineas={2} etiqueta="Cargando tu perfil" /></div>
+        : error ? <div className="pn-conf-caja"><EstadoError texto={error} alReintentar={alReintentar} /></div>
+        : miAsesor ? (
+          <>
+            <div className="pn-conf-tarjeta">
+              <button type="button" className="pn-conf-prow" onClick={() => setEditando(true)} aria-label={`Nombre: ${miAsesor.nombre}. Cambiar`}>
+                <FotoAsesor asesor={miAsesor} nombre={miAsesor.nombre} />
+                <span className="pn-conf-k">Nombre</span><span className="pn-conf-v">{miAsesor.nombre}</span><Gesto nombre="derecha" tamano={18} aria-hidden />
+              </button>
+              <button type="button" className="pn-conf-prow" onClick={() => setEditando(true)} aria-label={`Teléfono: ${miAsesor.telefono || "sin anotar"}. Cambiar`}>
+                <span className="pn-conf-k">Teléfono</span><span className="pn-conf-v" data-falta={!miAsesor.telefono || undefined}>{miAsesor.telefono || "Sin anotar"}</span><Gesto nombre="derecha" tamano={18} aria-hidden />
+              </button>
+            </div>
+            <Hoja abierta={editando} titulo="Tu perfil" alCerrar={() => setEditando(false)}>
+              <FormularioPerfil key={miAsesor.id + String(editando)} asesor={miAsesor} correo={correo} guardar={guardar} alTerminar={() => setEditando(false)} />
+            </Hoja>
+          </>
+        ) : (
+          <div className="pn-conf-tarjeta">
+            <div className="pn-conf-prow">
+              <FotoAsesor nombre={nombreSesion ?? correo ?? "?"} />
+              <span className="pn-conf-k">Nombre</span><span className="pn-conf-v">{nombreSesion ?? "Dirección"}</span>
+            </div>
+            <div className="pn-conf-prow"><span className="pn-conf-k">Correo</span><span className="pn-conf-v">{correo ?? "—"}</span></div>
+          </div>
+        )}
+      {miAsesor === null && !cargando && !error ? <p className="pn-conf-intro">Tu cuenta es de dirección: no tiene nombre ni teléfono que cambiar aquí.</p> : null}
     </SeccionConfig>
   );
 }
 
-function FormularioPerfil({ asesor, correo, guardar }: { asesor: Asesor; correo?: string; guardar: Props["guardar"] }) {
+function FormularioPerfil({ asesor, correo, guardar, alTerminar }: { asesor: Asesor; correo?: string; guardar: Props["guardar"]; alTerminar: () => void }) {
   const { avisar } = useAvisos();
   const [perfil, setPerfil] = useState<Perfil>(() => perfilDe(asesor));
   const [errores, setErrores] = useState<ErroresPerfil>({});
@@ -61,6 +80,7 @@ function FormularioPerfil({ asesor, correo, guardar }: { asesor: Asesor; correo?
     try {
       const guardado = await guardar(asesor.id, aplicarPerfil(asesor, perfil));
       setPerfil(perfilDe(guardado));
+      alTerminar();
       avisar("Perfil guardado.", {
         etiqueta: "Deshacer",
         alAccionar: () => {
@@ -75,7 +95,7 @@ function FormularioPerfil({ asesor, correo, guardar }: { asesor: Asesor; correo?
   }
 
   return (
-    <form onSubmit={enviar} noValidate style={{ display: "contents" }}>
+    <form onSubmit={enviar} noValidate style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div className="pn-conf-quien">
         <FotoAsesor asesor={asesor} nombre={perfil.nombre} />
         <span className="pn-conf-quien-txt"><strong>{asesor.nombre}</strong><span className="pn-conf-nota">{asesor.cargo || "Asesor"}</span></span>
@@ -89,7 +109,7 @@ function FormularioPerfil({ asesor, correo, guardar }: { asesor: Asesor; correo?
       <p className="pn-conf-nota">La foto es la de tu perfil público.</p>
       <div className="pn-conf-acciones">
         <Boton type="submit" deshabilitado={!cambio || ocupado}>{ocupado ? "Guardando…" : "Guardar"}</Boton>
-        {cambio && !ocupado ? <Boton type="button" variante="texto" onClick={() => { setPerfil(perfilDe(asesor)); setErrores({}); }}>Descartar cambios</Boton> : null}
+        <Boton type="button" variante="texto" onClick={alTerminar}>Cancelar</Boton>
       </div>
     </form>
   );

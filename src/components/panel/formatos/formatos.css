@@ -1,0 +1,46 @@
+/* Formatos, lista (boceto Formatos y FormatosEscritorio): número del formato en un cuadro, catálogo por grupos, buscar al lado. */
+.panel-root .pn-fmt-h1 { margin: 0; font-size: 34px; line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+@media (min-width: 768px) { .panel-root .pn-fmt-h1 { font-size: 26px; line-height: 1.1; } }
+.panel-root .pn-fmt-controles { display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 768px) { .panel-root .pn-fmt-controles { flex-direction: row; align-items: center; } .panel-root .pn-fmt-controles > :first-child { flex: none; width: 380px; } }
+.panel-root .pn-fmt-buscar { flex: 1; display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--r-md); background: var(--fill); color: var(--ink-muted); }
+.panel-root .pn-fmt-buscar:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.panel-root .pn-fmt-buscar input { flex: 1; min-width: 0; height: 44px; border: 0; outline: none; background: none; color: var(--ink); font: inherit; font-size: 16px; }
+.panel-root .pn-fmt-num { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 28px; padding: 0 6px; border-radius: var(--r-md); background: var(--muted); color: var(--ink); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.panel-root .pn-fmt-flecha { flex: none; color: var(--ink-muted); }
+.panel-root .pn-fmt-grupo { margin: 0 0 8px; padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .pn-fmt-vacio { display: flex; flex-direction: column; gap: 4px; padding: 20px 16px; }
+.panel-root .pn-fmt-vacio strong { font-size: 16px; font-weight: 600; }
+.panel-root .pn-fmt-vacio span { font-size: 14px; color: var(--ink-muted); }
+.panel-root .pn-fmt-pie { display: none; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--ink-muted); }
+@media (hover: hover) and (pointer: fine) { .panel-root .pn-fmt-pie { display: flex; } }
+/* Hoja de empezar: cada opción es una fila que se pulsa (tipo de levantamiento, luego el asunto). */
+.panel-root .pn-fmt-opc { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 8px 14px; border: 0; border-top: 1px solid var(--border); background: var(--card); color: var(--ink); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+.panel-root .pn-fmt-opc:first-child { border-top: 0; }
+.panel-root .pn-fmt-opc:hover { background: var(--bg); }
+.panel-root .pn-fmt-opc:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.panel-root .pn-fmt-opc[aria-disabled="true"] { color: var(--ink-muted); cursor: default; }
+.panel-root .pn-fmt-opc small { font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-fmt-sugerido { flex: none; height: 22px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; }
+/* Borradores y Emitidos (boceto): una tarjeta por documento; el borrador lleva su avance y el emitido sus acciones. */
+.panel-root .pn-fmt-docs { display: flex; flex-direction: column; gap: 10px; }
+.panel-root .pn-fmt-dcard { display: flex; flex-direction: column; gap: 10px; width: 100%; padding: 14px; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--card); color: var(--ink); text-align: left; text-decoration: none; box-sizing: border-box; }
+.panel-root .pn-fmt-dcard-enlace { transition: background-color 120ms ease; }
+.panel-root .pn-fmt-dcard-enlace:hover { background: var(--bg); }
+.panel-root .pn-fmt-dcard-enlace:focus-visible, .panel-root .pn-fmt-dcab-enlace:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.panel-root .pn-fmt-dcab-enlace { color: inherit; text-decoration: none; border-radius: var(--r-md); }
+.panel-root .pn-fmt-dcab-enlace:hover .pn-fmt-cn { color: var(--accent); }
+.panel-root .pn-fmt-dcab { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.panel-root .pn-fmt-ctx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.panel-root .pn-fmt-cn { font-size: 15px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.panel-root .pn-fmt-ch { font-size: 13px; line-height: 1.35; color: var(--ink-muted); overflow-wrap: anywhere; }
+.panel-root .pn-fmt-lado { flex: none; font-size: 13px; color: var(--ink-muted); }
+.panel-root .pn-fmt-avance { display: flex; flex-direction: column; gap: 6px; }
+.panel-root .pn-fmt-pbar { display: block; height: 6px; border-radius: 999px; background: var(--muted); overflow: hidden; }
+.panel-root .pn-fmt-pbar > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width 300ms cubic-bezier(.23, 1, .32, 1); }
+.panel-root .pn-fmt-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.panel-root .pn-fmt-sbtn { gap: 6px; }
+.panel-root .pn-fmt-firmada { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
+.panel-root .pn-fmt-firmada:hover { text-decoration: underline; }
+.panel-root .pn-fmt-cuenta { margin-left: 4px; font-size: 12px; font-weight: 500; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .panel-root .pn-fmt-pbar > span, .panel-root .pn-fmt-dcard-enlace { transition: none; } }

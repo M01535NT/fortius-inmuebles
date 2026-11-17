@@ -134,7 +134,7 @@ export function DiaLineaDeTiempo({ citas, esHoy, ahoraMin, pidenComoFue, alAbrir
 
   return (
     <div>
-      <p id={ayuda} className="pn-campo-ayuda" style={{ margin: "0 0 8px" }}>Arrastra una cita para cambiarla de hora, o a un día de la tira para cambiarla de día. Con teclado, enfócala y usa Alt con ↑ y ↓ (30 minutos) o con ← y → (un día).</p>
+      <p id={ayuda} className="pn-solo-lector">Arrastra una cita para cambiarla de hora, o a un día de la tira para cambiarla de día. Con teclado, enfócala y usa Alt con ↑ y ↓ (30 minutos) o con ← y → (un día).</p>
       <div ref={caja} role="group" aria-label="Citas del día por hora" style={{ position: "relative", height: alto, border: "1px solid var(--border)", borderRadius: "var(--r-lg)", background: "var(--card)", overflow: "hidden", userSelect: arrastre?.activo ? "none" : undefined }}>
         {marcasDeHora(inicio, fin).map((m) => (
           <div key={m} aria-hidden style={{ position: "absolute", left: 0, right: 0, top: yDe(m, inicio), borderTop: "1px solid var(--border)" }}>
@@ -166,13 +166,11 @@ export function DiaLineaDeTiempo({ citas, esHoy, ahoraMin, pidenComoFue, alAbrir
               onPointerUp={alSoltar}
               onPointerCancel={alCancelar}
               onKeyDown={(e) => alTeclear(e, b.id, b.ini)}
+              className="pn-evb" data-tipo={cita.tipo} data-pide={pide ? "" : undefined}
               style={{
                 position: "absolute", top: yDe(b.ini, inicio) + 1, height: Math.max(ALTO_MIN, (b.fin - b.ini) * PX_MIN - 2),
                 left: `calc(${MEDIANIL}px + ${ancho} * ${b.carril})`, width: `calc(${ancho} - 4px)`,
-                display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2, padding: "4px 8px", overflow: "hidden", textAlign: "left",
-                border: "1px solid var(--border)", borderLeft: `3px solid ${pide ? "var(--warning)" : "var(--accent)"}`, borderRadius: "var(--r-md)",
-                background: "var(--accent-soft)", color: "var(--ink)", font: "inherit", cursor: enArrastre ? "grabbing" : "grab",
-                touchAction: "pan-y", zIndex: enArrastre ? 4 : 2, opacity: enArrastre ? 0.55 : 1,
+                cursor: enArrastre ? "grabbing" : "grab", zIndex: enArrastre ? 4 : 2, opacity: enArrastre ? 0.55 : 1,
               }}
             >
               {(b.fin - b.ini) * PX_MIN < 60 ? (

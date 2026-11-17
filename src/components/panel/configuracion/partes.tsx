@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 import type { Asesor } from "@/lib/domain/records";
 import { fotoDe, inicialesDe } from "@/lib/panel/datos/configuracion";
 
-/** Bloque de Configuración: título, una línea de contexto y su caja. */
-export function SeccionConfig({ id, titulo, intro, children }: { id: string; titulo: string; intro?: string; children: ReactNode }) {
+/** Grupo de Configuración, como el boceto: título pequeño (con una acción a la derecha, si la hay) y su tarjeta. */
+export function SeccionConfig({ id, titulo, intro, accion, children }: { id: string; titulo: string; intro?: string; accion?: ReactNode; children: ReactNode }) {
   return (
     <section className="pn-conf-seccion" aria-labelledby={id}>
-      <h2 id={id}>{titulo}</h2>
+      {accion ? <div className="pn-conf-cab"><h2 id={id}>{titulo}</h2>{accion}</div> : <h2 id={id}>{titulo}</h2>}
       {intro ? <p className="pn-conf-intro">{intro}</p> : null}
       {children}
     </section>

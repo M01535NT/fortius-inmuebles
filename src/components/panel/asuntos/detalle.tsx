@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Boton } from "@/components/panel/kit/boton";
@@ -11,9 +12,13 @@ import {
   autorDeNota, avisosDelAsunto, cambiarFechaObjetivo, llevaCierre, cuentaDocumentos, documentosDelAsunto, marcarDocumento, motivoDelEstado, MOTIVOS_NO_SE_DIO, noSeDio, ponerEnEspera, reanudar,
   type Actividad, type AvisoAsunto, type CambioOperacion, type EstadoAsunto, type EstadoDocumento, type Expediente,
 } from "@/lib/panel/datos/asuntos";
+import { avisosAceptados, leerAvisosDelServidor, notaSeguirAsi, unirAvisos } from "@/lib/panel/datos/asuntos-avisos";
 import { anotarEnAsunto, leerActividad } from "@/lib/panel/datos/colecciones";
+import { crearDocumento } from "@/lib/panel/datos/formatos-acciones";
+import { useAvisos } from "@/components/panel/kit/avisos";
 import { leerCuentas, type Cuenta } from "@/lib/panel/datos/configuracion-cuentas";
 import type { Asesor } from "@/lib/domain/records";
+import type { Tramite } from "@/lib/tramites";
 import { useSession } from "@/lib/panel/legado/sesion";
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
 
@@ -37,7 +42,9 @@ export function PestanasAsunto({ expediente, estado, resumen, ocupado, alCambiar
   const docs = documentosDelAsunto(expediente);
   const [pestana, setPestana] = useState("resumen");
   const [hoy] = useState(() => aTexto(new Date()));
-  const avisos = avisosDelAsunto(expediente, hoy);
+  // La cancelación de hipoteca ligada ya no frena la firma: se avisa (16/11/2026).
+  const tramites = useColeccion<Tramite>("tramites");
+  const avisos = avisosDelAsunto(expediente, hoy, tramites.datos);
   return (
     <Tabs value={pestana} onValueChange={setPestana} style={{ marginTop: 12 }}>
       <TabsList>
@@ -47,7 +54,7 @@ export function PestanasAsunto({ expediente, estado, resumen, ocupado, alCambiar
         <TabsTrigger value="actividad">Actividad</TabsTrigger>
       </TabsList>
       <TabsContent value="resumen">
-        <AvisosDelAsunto key={expediente.id} avisos={avisos} alAccionar={(clave) => { if (clave === "documentos") setPestana("documentos"); }} />
+        <AvisosDelAsunto key={expediente.id} expedienteId={expediente.id} avisos={avisos} alVerDocumentos={() => setPestana("documentos")} />
         <EstadoDelAsunto key={`${expediente.id}-${estado}`} expediente={expediente} estado={estado} ocupado={ocupado} alCambiar={alCambiar} />
         {estado !== "cerrado" ? <FechaObjetivo key={`${expediente.id}-${expediente.fecha_objetivo ?? ""}`} expediente={expediente} ocupado={ocupado} alCambiar={alCambiar} /> : null}
         {resumen}
@@ -212,11 +219,71 @@ function ActividadDelAsunto({ id, solo }: { id: string; solo: "nota" | "cambio" 
   );
 }
 
-/** Avisos plegados en una línea ámbar: «2 avisos · el primero»; al tocarla se abren con su acción. */
-function AvisosDelAsunto({ avisos, alAccionar }: { avisos: readonly AvisoAsunto[]; alAccionar: (clave: AvisoAsunto["clave"]) => void }) {
+/**
+ * Avisos plegados en una línea ámbar: «2 avisos · el primero»; al tocarla se abren, cada uno con su acción y «Seguir así»,
+ * que queda como nota en el historial del asunto (DEC-61: nada frena, todo avisa). Suma los que calcula el servidor con los
+ * documentos (arranque 02, 04 y checklist; revisión del 15; aviso de privacidad 01). Los legales van primero y aparte.
+ */
+function AvisosDelAsunto({ expedienteId, avisos, alVerDocumentos }: { expedienteId: string; avisos: readonly AvisoAsunto[]; alVerDocumentos: () => void }) {
+  const router = useRouter();
+  const { avisar } = useAvisos();
   const [abierto, setAbierto] = useState(false);
-  if (!avisos.length) return null;
-  const resumen = `${avisos.length === 1 ? "1 aviso" : `${avisos.length} avisos`} · ${avisos[0]?.texto ?? ""}`;
+  const [servidor, setServidor] = useState<AvisoAsunto[]>([]);
+  const [aceptados, setAceptados] = useState<Set<string>>(() => new Set());
+  const [ocupado, setOcupado] = useState<string | null>(null);
+  useEffect(() => {
+    const c = new AbortController();
+    // Si no se pueden leer, se quedan los avisos que ya sabe la pantalla.
+    leerAvisosDelServidor(expedienteId, c.signal).then(setServidor, () => undefined);
+    leerActividad<Actividad>(expedienteId, c.signal).then((a) => setAceptados(avisosAceptados(a)), () => undefined);
+    return () => c.abort();
+  }, [expedienteId]);
+  const lista = unirAvisos(avisos, servidor, aceptados);
+  if (!lista.length) return null;
+  const legales = lista.filter((a) => a.legal), otros = lista.filter((a) => !a.legal);
+  const resumen = [lista.length === 1 ? "1 aviso" : `${lista.length} avisos`, legales.length ? (legales.length === 1 ? "1 legal" : `${legales.length} legales`) : null, lista[0]?.texto].filter(Boolean).join(" · ");
+
+  const accionar = async (a: AvisoAsunto) => {
+    if (a.clave === "hipoteca") { router.push("/panel/tramites"); return; }
+    if (!a.documento) { alVerDocumentos(); return; }
+    if (a.documento.id) { router.push(`/panel/formatos/${a.documento.id}`); return; }
+    // El levantamiento pide el tipo de inmueble: se elige en «Crear documento» de la pestaña Documentos.
+    if (a.documento.formato === "04") { alVerDocumentos(); return; }
+    setOcupado(a.clave);
+    try {
+      const d = await crearDocumento(expedienteId, a.documento.formato);
+      router.push(`/panel/formatos/${d.id}`);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : "No se pudo crear. Vuelve a intentarlo.");
+      setOcupado(null);
+    }
+  };
+  const seguirAsi = async (a: AvisoAsunto) => {
+    setOcupado(a.clave);
+    try {
+      await anotarEnAsunto(expedienteId, notaSeguirAsi(a));
+      setAceptados((s) => new Set(s).add(a.texto));
+      avisar("Queda anotado en las notas del asunto");
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : "No se guardó. Vuelve a intentarlo.");
+    } finally { setOcupado(null); }
+  };
+  const fila = (a: AvisoAsunto) => (
+    <li key={a.clave} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 44, color: "var(--ink)" }}>
+      <span style={{ flex: "1 1 220px" }}>{a.texto}</span>
+      <span style={{ display: "flex", gap: 4 }}>
+        {a.accion ? <Boton variante="texto" deshabilitado={ocupado !== null} onClick={() => void accionar(a)}>{ocupado === a.clave ? "Abriendo…" : a.accion}</Boton> : null}
+        <Boton variante="texto" deshabilitado={ocupado !== null} onClick={() => void seguirAsi(a)}>Seguir así</Boton>
+      </span>
+    </li>
+  );
+  const grupo = (titulo: string, xs: readonly AvisoAsunto[], ayuda?: string) => xs.length ? (
+    <div style={{ display: "grid", gap: 2 }}>
+      {(legales.length > 0 && otros.length > 0) || ayuda ?<p style={{ margin: "4px 0 0", fontSize: 13, fontWeight: 600, color: "var(--ink-muted)" }}>{titulo}</p> : null}
+      {ayuda ? <p className="pn-sub" style={{ margin: 0, fontSize: 13 }}>{ayuda}</p> : null}
+      <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 2 }}>{xs.map(fila)}</ul>
+    </div>
+  ) : null;
   return (
     <section aria-label="Avisos del asunto" style={{ margin: "8px 0", border: "1px solid var(--warning)", borderRadius: "var(--r-md)", background: "var(--warning-soft)" }}>
       <button type="button" aria-expanded={abierto} onClick={() => setAbierto((v) => !v)}
@@ -224,14 +291,10 @@ function AvisosDelAsunto({ avisos, alAccionar }: { avisos: readonly AvisoAsunto[
         <span>{resumen}</span><span aria-hidden="true">{abierto ? "Ocultar" : "Ver"}</span>
       </button>
       {abierto ? (
-        <ul style={{ listStyle: "none", margin: 0, padding: "0 12px 8px", display: "grid", gap: 4 }}>
-          {avisos.map((a) => (
-            <li key={a.clave} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 44, color: "var(--ink)" }}>
-              <span>{a.texto}</span>
-              {a.accion ? <Boton variante="texto" onClick={() => alAccionar(a.clave)}>{a.accion}</Boton> : null}
-            </li>
-          ))}
-        </ul>
+        <div style={{ display: "grid", gap: 8, padding: "0 12px 8px" }}>
+          {grupo("Avisos legales", legales, "Los pide la ley o el abogado. Puedes seguir, pero conviene resolverlos antes de firmar.")}
+          {grupo("Otros avisos", otros)}
+        </div>
       ) : null}
     </section>
   );

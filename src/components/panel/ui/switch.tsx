@@ -10,7 +10,7 @@ export function Switch({ className, ...props }: ComponentProps<typeof S.Root>) {
     <S.Root
       className={cn(
         "peer relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full border border-border bg-muted transition-[color,background-color,border-color] duration-150",
-        "before:absolute before:-inset-2.5 data-[state=checked]:border-primary data-[state=checked]:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50",
+        "before:absolute before:-inset-2.5 data-[state=checked]:border-[var(--exito)] data-[state=checked]:bg-[var(--exito)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50",
         className,
       )}
       {...props}

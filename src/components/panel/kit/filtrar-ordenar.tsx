@@ -1,13 +1,11 @@
 "use client";
-import { useId, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
-import { Icono } from "@/components/panel/icons";
-import { Boton } from "@/components/panel/kit/boton";
+import { Gesto, Icono } from "@/components/panel/icons";
 import { HojaAdaptable, useEsTelefono } from "@/components/panel/ui/hoja-adaptable";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/panel/ui/popover";
-import { Switch } from "@/components/panel/ui/switch";
 
-export type Interruptor = { etiqueta: string; ayuda?: string; valor: boolean; alCambiar: (v: boolean) => void };
+export type Interruptor = { etiqueta: string; ayuda?: string; valor: boolean; alCambiar: (v: boolean) => void; cuenta?: number };
 
 type Props<O extends string> = {
   orden: O;
@@ -21,29 +19,26 @@ type Props<O extends string> = {
 };
 
 /**
- * «Filtrar y ordenar» (sugerencia 9, DECISIONES.md): ventana flotante en escritorio y hoja desde abajo en el teléfono.
- * El botón dice cuántos filtros hay puestos; los cambios se ven al momento y «Ver N» solo cierra.
+ * «Filtrar y ordenar» (boceto «Inicio», «Inmuebles» y «Personas»): botón de ajustes de 48 × 44 con el número de filtros
+ * puestos; abre una ventana flotante junto al botón en escritorio y una hoja desde abajo en el teléfono.
+ * Arriba «Limpiar»; «Mostrar» con casillas y «Ordenar por» con opciones; los cambios se ven al momento y «Ver N» solo cierra.
  */
 export function FiltrarYOrdenar<O extends string>({ orden, ordenes, alOrdenar, interruptores, resultado, nombreResultado, alQuitar }: Props<O>) {
   const [abierto, setAbierto] = useState(false);
   const telefono = useEsTelefono();
-  const activos = interruptores.filter((i) => i.valor).length + (orden !== ordenes[0]?.valor ? 1 : 0);
+  const activos = contarFiltros(interruptores, orden, ordenes);
   const boton = (
-    <button type="button" className="pn-btn pn-btn-secundario" aria-haspopup="dialog" aria-expanded={abierto} onClick={telefono ? () => setAbierto(true) : undefined}>
-      <Icono nombre="filtrar" tamano={18} />
-      Filtrar y ordenar
-      {activos ? <span className="pn-contador" aria-label={`${activos} ${activos === 1 ? "filtro puesto" : "filtros puestos"}`}>{activos}</span> : null}
+    <button type="button" className="pn-fbtn" aria-haspopup="dialog" aria-expanded={abierto} title="Filtrar y ordenar"
+      aria-label={activos ? `Filtrar y ordenar, ${activos} ${activos === 1 ? "filtro puesto" : "filtros puestos"}` : "Filtrar y ordenar"}
+      onClick={telefono ? () => setAbierto(true) : undefined}>
+      <Icono nombre="filtrar" tamano={20} />
+      {activos ? <span className="pn-fbtn-n" aria-hidden>{activos}</span> : null}
     </button>
   );
   const cuerpo = (
     <Cuerpo
-      orden={orden} ordenes={ordenes} alOrdenar={alOrdenar} interruptores={interruptores}
-      pie={
-        <div style={{ display: "flex", gap: 8, justifyContent: "space-between", alignItems: "center" }}>
-          <Boton variante="texto" onClick={alQuitar} deshabilitado={!activos}>Quitar filtros</Boton>
-          <Boton onClick={() => setAbierto(false)}>Ver {resultado} {resultado === 1 ? nombreResultado[0] : nombreResultado[1]}</Boton>
-        </div>
-      }
+      orden={orden} ordenes={ordenes} alOrdenar={alOrdenar} interruptores={interruptores} activos={activos} alQuitar={alQuitar} conTitulo={!telefono}
+      pie={<button type="button" className="pn-fdone" onClick={() => setAbierto(false)}>Ver {resultado} {resultado === 1 ? nombreResultado[0] : nombreResultado[1]}</button>}
     />
   );
   if (telefono) {
@@ -57,44 +52,65 @@ export function FiltrarYOrdenar<O extends string>({ orden, ordenes, alOrdenar, i
   return (
     <Popover open={abierto} onOpenChange={setAbierto}>
       <PopoverTrigger asChild>{boton}</PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-4" aria-label="Filtrar y ordenar">{cuerpo}</PopoverContent>
+      <PopoverContent align="end" className="w-[340px] p-4" aria-label="Filtrar y ordenar">{cuerpo}</PopoverContent>
     </Popover>
   );
 }
 
-function Cuerpo<O extends string>({ orden, ordenes, alOrdenar, interruptores, pie }: Pick<Props<O>, "orden" | "ordenes" | "alOrdenar" | "interruptores"> & { pie: ReactNode }) {
-  const nombre = useId();
+/** Cuántos filtros hay puestos: los encendidos y el orden si no es el primero. */
+export function contarFiltros<O extends string>(interruptores: readonly Pick<Interruptor, "valor">[], orden: O, ordenes: readonly { valor: O }[]): number {
+  return interruptores.filter((i) => i.valor).length + (orden !== ordenes[0]?.valor ? 1 : 0);
+}
+
+/** Línea bajo los controles con lo filtrado («Solo solicitudes del sitio · Lo vencido primero») y «Limpiar». */
+export function ResumenFiltros({ partes, alLimpiar }: { partes: string[]; alLimpiar: () => void }) {
+  if (!partes.length) return null;
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <fieldset style={{ border: 0, margin: 0, padding: 0, display: "grid", gap: 4 }}>
-        <legend className="pn-grupo" style={{ padding: 0, marginBottom: 4 }}>Ordenar por</legend>
-        {ordenes.map((o) => (
-          <label key={o.valor} className="pn-opcion">
-            <input type="radio" name={nombre} value={o.valor} checked={orden === o.valor} onChange={() => alOrdenar(o.valor)} />
-            {o.etiqueta}
-          </label>
-        ))}
-      </fieldset>
-      {interruptores.length ? (
-        <div style={{ display: "grid", gap: 4 }}>
-          <span className="pn-grupo" style={{ margin: 0 }}>Mostrar</span>
-          {interruptores.map((i) => <FilaInterruptor key={i.etiqueta} {...i} />)}
-        </div>
-      ) : null}
-      {pie}
+    <div className="pn-fsum" aria-live="polite">
+      <span>{partes.join(" · ")}</span>
+      <button type="button" onClick={alLimpiar}>Limpiar</button>
     </div>
   );
 }
 
-function FilaInterruptor({ etiqueta, ayuda, valor, alCambiar }: Interruptor) {
-  const id = useId();
+function Cuerpo<O extends string>({ orden, ordenes, alOrdenar, interruptores, pie, activos, alQuitar, conTitulo }: Pick<Props<O>, "orden" | "ordenes" | "alOrdenar" | "interruptores" | "alQuitar"> & { pie: ReactNode; activos: number; conTitulo: boolean }) {
   return (
-    <div className="pn-opcion" style={{ justifyContent: "space-between" }}>
-      <label htmlFor={id} style={{ display: "grid", gap: 2, cursor: "pointer" }}>
-        <span>{etiqueta}</span>
-        {ayuda ? <span style={{ fontSize: 13, color: "var(--ink-muted)" }}>{ayuda}</span> : null}
-      </label>
-      <Switch id={id} checked={valor} onCheckedChange={alCambiar} />
+    <div style={{ display: "grid", gap: 14 }}>
+      <div className="pn-fcab">
+        {conTitulo ? <h2>Filtrar y ordenar</h2> : <span />}
+        <button type="button" className="pn-dlink" aria-disabled={!activos || undefined} onClick={activos ? alQuitar : undefined}>Limpiar</button>
+      </div>
+      {interruptores.length ? (
+        <div style={{ display: "grid", gap: 8 }}>
+          <span className="pn-fh">Mostrar</span>
+          <div className="pn-fgrupo" role="group" aria-label="Mostrar">
+            {interruptores.map((i) => (
+              <button key={i.etiqueta} type="button" className="pn-ck" role="checkbox" aria-checked={i.valor} onClick={() => i.alCambiar(!i.valor)}>
+                <span className="pn-ck-caja" aria-hidden><Gesto nombre="palomita" tamano={14} /></span>
+                <span style={{ flex: 1, display: "grid", gap: 1 }}>
+                  <span>{i.etiqueta}</span>
+                  {i.ayuda ? <span style={{ fontSize: 13, fontWeight: 400, color: "var(--ink-muted)" }}>{i.ayuda}</span> : null}
+                </span>
+                {i.cuenta !== undefined ? <span className="pn-ck-n">{i.cuenta}</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      {ordenes.length > 1 ? (
+        <div style={{ display: "grid", gap: 8 }}>
+          <span className="pn-fh">Ordenar por</span>
+          <div className="pn-fgrupo" role="radiogroup" aria-label="Ordenar por">
+            {ordenes.map((o) => (
+              <button key={o.valor} type="button" className="pn-ck" role="radio" aria-checked={orden === o.valor} onClick={() => alOrdenar(o.valor)}>
+                <span className="pn-ck-caja" aria-hidden />
+                <span style={{ flex: 1 }}>{o.etiqueta}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      {pie}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { cn } from "@/lib/panel/utils";
 import { contenedorPanel } from "./contenedor";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "./drawer";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./dropdown-menu";
 
 /** Preferencia de este navegador: el detalle se abre en grande (ventana centrada) en vez del panel lateral. */
 const CLAVE_GRANDE = "panel-hoja-grande";
@@ -49,10 +49,20 @@ export function useEsAncho() {
  * Con `volver`, la hoja se abre encima de otra (la persona o el inmueble de un asunto): lleva arriba «Volver a …»,
  * Esc regresa a la de abajo y el foco vuelve al vínculo que la abrió.
  */
-export function HojaAdaptable({ abierta, alCerrar, titulo, descripcion, volver, children }: {
+export function HojaAdaptable({ abierta, alCerrar, titulo, descripcion, volver, children, anchoPanel, pegado, cabecera, herramientas, opciones }: {
   abierta: boolean; alCerrar: () => void; titulo: string; descripcion?: string;
   volver?: { etiqueta: string; alPulsar: () => void };
   children: ReactNode;
+  /** Escritorio ancho: panel flotante de este ancho (Asuntos, 680 px) en vez del lateral de 440 px pegado al borde. */
+  anchoPanel?: number;
+  /** Con `anchoPanel`: el panel va pegado al borde derecho, de arriba abajo (Inmuebles), en vez de flotar con margen (Asuntos). */
+  pegado?: boolean;
+  /** Escritorio ancho: lo que va a la izquierda de la barra (folio, «3 de 5») en lugar del título, que queda para el lector. */
+  cabecera?: ReactNode;
+  /** Escritorio ancho: botones antes de los tres puntos (anterior y siguiente). */
+  herramientas?: ReactNode;
+  /** Escritorio ancho: acciones propias en el menú de los tres puntos, antes de «Abrir en grande». */
+  opciones?: readonly { etiqueta: string; alElegir: () => void; peligro?: boolean }[];
 }) {
   const telefono = useEsTelefono();
   const ancho = useEsAncho();
@@ -123,19 +133,29 @@ export function HojaAdaptable({ abierta, alCerrar, titulo, descripcion, volver, 
               "fixed z-40 flex flex-col bg-popover text-popover-foreground outline-none",
               grande
                 ? "inset-x-0 top-[3dvh] mx-auto h-[94dvh] w-[calc(100vw-48px)] max-w-[1100px] rounded-[var(--r-xl)] border border-border shadow-[var(--sombra-flota)] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.98]"
-                : "inset-y-0 right-0 w-[440px] border-l border-border data-[state=open]:animate-in data-[state=open]:slide-in-from-right-4 data-[state=open]:fade-in-0",
+                : anchoPanel && pegado
+                  ? "inset-y-0 right-0 max-w-[calc(100vw-20px)] border-l border-border shadow-[var(--sombra-flota)] data-[state=open]:animate-in data-[state=open]:slide-in-from-right-4 data-[state=open]:fade-in-0"
+                : anchoPanel
+                  ? "inset-y-[10px] right-[10px] max-w-[calc(100vw-20px)] rounded-[var(--r-xl)] border border-border shadow-[var(--sombra-flota)] data-[state=open]:animate-in data-[state=open]:slide-in-from-right-8 data-[state=open]:fade-in-0"
+                  : "inset-y-0 right-0 w-[440px] border-l border-border data-[state=open]:animate-in data-[state=open]:slide-in-from-right-4 data-[state=open]:fade-in-0",
               "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 duration-200 motion-reduce:animate-none",
             )}
+            style={anchoPanel && !grande ? { width: anchoPanel } : undefined}
           >
-            <div className={cn("flex flex-col gap-1 border-b border-border pb-4 pt-5", grande ? "px-10" : "px-6")}>
+            <div className={cn("flex flex-col gap-1 border-b border-border", cabecera ? "bg-card py-[5px] pl-6 pr-[10px]" : cn("pb-4 pt-5", grande ? "px-10" : "px-6"))}>
               {botonVolver}
-              <div className="flex items-start gap-1">
-                <D.Title className="min-w-0 flex-1 pt-2 text-lg font-semibold">{titulo}</D.Title>
+              <div className={cn("flex gap-1", cabecera ? "items-center" : "items-start")}>
+                {cabecera ? (
+                  <><D.Title className="sr-only">{titulo}</D.Title><div className="flex min-w-0 flex-1 items-center gap-[10px]">{cabecera}</div></>
+                ) : <D.Title className="min-w-0 flex-1 pt-2 text-lg font-semibold">{titulo}</D.Title>}
+                {herramientas}
                 <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger className="grid size-11 shrink-0 place-items-center rounded-[var(--r-md)] text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring" aria-label="Más opciones">
+                  <DropdownMenuTrigger className="grid size-11 shrink-0 place-items-center rounded-[var(--r-md)] text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring" aria-label={opciones?.length ? "Más acciones" : "Más opciones"}>
                     <Gesto nombre="puntos" tamano={18} />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent onCloseAutoFocus={(e) => { e.preventDefault(); lateral.current?.querySelector<HTMLElement>("[aria-label='Más opciones']")?.focus(); }}>
+                  <DropdownMenuContent onCloseAutoFocus={(e) => { e.preventDefault(); lateral.current?.querySelector<HTMLElement>("[aria-label='Más opciones'], [aria-label='Más acciones']")?.focus(); }}>
+                    {opciones?.map((o) => <DropdownMenuItem key={o.etiqueta} peligro={o.peligro} onSelect={o.alElegir}>{o.etiqueta}</DropdownMenuItem>)}
+                    {opciones?.length ? <DropdownMenuSeparator /> : null}
                     <DropdownMenuItem onSelect={() => setPreferencia(grande ? null : "1")}>
                       <Gesto nombre="panel" tamano={16} />{grande ? "Volver al lateral" : "Abrir en grande"}
                     </DropdownMenuItem>
@@ -147,7 +167,7 @@ export function HojaAdaptable({ abierta, alCerrar, titulo, descripcion, volver, 
               </div>
             </div>
             {descripcion ? <D.Description className={cn("pt-3 text-sm text-muted-foreground", grande ? "px-10" : "px-6")}>{descripcion}</D.Description> : <D.Description className="sr-only">{titulo}</D.Description>}
-            <div data-cuerpo="" className={cn("flex-1 overflow-y-auto overscroll-contain pb-6 pt-2", grande ? "px-10" : "px-6")}>
+            <div data-cuerpo="" className={cn("flex-1 overflow-y-auto overscroll-contain", cabecera ? cn("pb-12 pt-[22px]", grande ? "px-10" : "px-7") : cn("pb-6 pt-2", grande ? "px-10" : "px-6"))}>
               <div className={grande ? "mx-auto w-full max-w-[760px]" : undefined}>{children}</div>
             </div>
           </D.Content>

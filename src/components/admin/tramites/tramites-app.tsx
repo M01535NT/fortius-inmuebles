@@ -33,7 +33,8 @@ const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
 const phoneDigits = (p?: string) => (p ?? "").replace(/\D/g, "");
 
 export function TramitesApp({ initialId = null }: { initialId?: string | null }) {
-  const tramites = useCollection(db.tramites);
+  // Seguridad del legado: el panel nuevo guarda también otros tipos de trámite (servicios, avalúo…); aquí solo la hipoteca.
+  const tramites = useCollection(db.tramites).filter(t => t.tipo === "cancelacion_hipoteca");
   const load = useLoadState(db.tramites);
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);

@@ -14,12 +14,14 @@ import { rutaPersona } from "@/lib/panel/datos/relacionado";
 import { KEY_PLACES, type KeyPlace } from "@/lib/propiedad-seguimiento";
 
 /** Propietario: ligado a Personas o «Sin propietario ligado», que se permite. */
-export function PropietarioInmueble({ inmueble, personas, ocupado, alLigar, alDesligar }: {
+export function PropietarioInmueble({ inmueble, personas, ocupado, alLigar, alDesligar, sinTitulo, buscandoAlAbrir }: {
   inmueble: Property; personas: readonly Cliente[]; ocupado: boolean;
   alLigar: (c: Cliente) => void; alDesligar: (c: Cliente) => void;
+  /** Dentro de una hoja que ya lleva el título. */
+  sinTitulo?: boolean; buscandoAlAbrir?: boolean;
 }) {
   const ligados = propietariosDe(personas, inmueble.slug);
-  const [buscando, setBuscando] = useState(false);
+  const [buscando, setBuscando] = useState(buscandoAlAbrir === true);
   const [q, setQ] = useState("");
   const opciones = useMemo(() => {
     const n = normalizar(q);
@@ -27,8 +29,8 @@ export function PropietarioInmueble({ inmueble, personas, ocupado, alLigar, alDe
     return personas.filter((c) => c.propiedadSlug !== inmueble.slug && (normalizar(c.nombre ?? "").includes(n) || (c.telefono ?? "").replace(/\D/g, "").includes(q.replace(/\D/g, "") || "~"))).slice(0, 6);
   }, [personas, q, inmueble.slug]);
   return (
-    <section style={{ display: "grid", gap: 8, marginTop: 20 }}>
-      <h3 className="pn-grupo" style={{ margin: 0, padding: 0 }}>Propietario</h3>
+    <section style={{ display: "grid", gap: 8, marginTop: sinTitulo ? 8 : 20 }}>
+      {sinTitulo ? null : <h3 className="pn-grupo" style={{ margin: 0, padding: 0 }}>Propietario</h3>}
       {ligados.length ? (
         <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 4 }}>
           {ligados.map((c) => (
@@ -63,8 +65,8 @@ export function PropietarioInmueble({ inmueble, personas, ocupado, alLigar, alDe
 const LUGARES = Object.entries(KEY_PLACES) as [KeyPlace, string][];
 
 /** Llaves: dónde están y a quién se prestaron, para no perder visitas. Privado. */
-export function LlavesInmueble({ inmueble, hoy, ocupado, alGuardar, alPrestar, alRegresar }: {
-  inmueble: Property; hoy: Date; ocupado: boolean;
+export function LlavesInmueble({ inmueble, hoy, ocupado, alGuardar, alPrestar, alRegresar, sinTitulo }: {
+  inmueble: Property; hoy: Date; ocupado: boolean; sinTitulo?: boolean;
   alGuardar: (d: { lugar?: KeyPlace; copias?: number; detalle: string }) => void;
   alPrestar: (d: { persona: string; regresoPrevisto: string | null }) => void;
   alRegresar: (id: string) => void;
@@ -80,8 +82,8 @@ export function LlavesInmueble({ inmueble, hoy, ocupado, alGuardar, alPrestar, a
   const cambio = lugar !== actual.lugar || n !== actual.copias || detalle.trim() !== actual.detalle;
   const hoyTexto = aTexto(hoy);
   return (
-    <section style={{ display: "grid", gap: 8, marginTop: 20 }}>
-      <h3 className="pn-grupo" style={{ margin: 0, padding: 0 }}>Llaves</h3>
+    <section style={{ display: "grid", gap: 8, marginTop: sinTitulo ? 8 : 20 }}>
+      {sinTitulo ? null : <h3 className="pn-grupo" style={{ margin: 0, padding: 0 }}>Llaves</h3>}
       <Desplegable<KeyPlace> etiqueta="Dónde están" valor={lugar ?? ""} vacio="Sin anotar" opciones={LUGARES.map(([valor, etiqueta]) => ({ valor, etiqueta }))} alElegir={(v) => setLugar(v || undefined)} />
       <div style={{ display: "grid", gap: 8, gridTemplateColumns: "120px 1fr" }}>
         <Campo etiqueta="Copias" inputMode="numeric" autoComplete="off" maxLength={2} value={copias} onChange={(e) => setCopias(e.target.value.replace(/\D/g, ""))} />

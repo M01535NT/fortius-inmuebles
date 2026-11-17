@@ -27,20 +27,14 @@ export function Resultado({ lineas, vacio, titulo, para, supuestos = [], leyenda
   ].filter((x): x is string => x !== null).join("\n");
   return (
     <>
-      <Tarjeta style={{ overflow: "hidden" }} aria-live="polite">
+      <Tarjeta className="pn-her-res" aria-live="polite">
         {lineas.map((l) => l.grande ? (
-          <div key={l.k} style={{ padding: "16px 16px 14px", display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontSize: 13, color: "var(--ink-muted)", fontWeight: 500 }}>{l.k}</span>
-            <span style={{ fontSize: 34, lineHeight: 1.1, fontWeight: 700, letterSpacing: "-0.01em", fontVariantNumeric: "tabular-nums" }}>{l.v}</span>
-          </div>
+          <div key={l.k} className="pn-her-big"><span>{l.k}</span><span>{l.v}</span></div>
         ) : (
-          <div key={l.k} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "12px 16px", borderTop: "1px solid var(--border)", fontSize: 15 }}>
-            <span style={{ color: "var(--ink-muted)" }}>{l.k}</span>
-            <b style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{l.v}</b>
-          </div>
+          <div key={l.k} className="pn-her-ln"><span>{l.k}</span><b>{l.v}</b></div>
         ))}
       </Tarjeta>
-      <Boton variante="secundario" bloque onClick={() => navigator.clipboard?.writeText(texto).then(() => avisar("Cuenta copiada"), () => avisar("No se pudo copiar"))}>Copiar la cuenta</Boton>
+      <Boton variante="secundario" bloque style={{ minHeight: 48 }} onClick={() => navigator.clipboard?.writeText(texto).then(() => avisar(`Copiado: ${lineas[0].k} ${lineas[0].v}`), () => avisar("No se pudo copiar"))}>Copiar resultado</Boton>
     </>
   );
 }

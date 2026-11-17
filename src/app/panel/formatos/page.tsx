@@ -1,20 +1,19 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
-import { FilaEmitido } from "@/components/panel/formatos/emitido";
+import { FilaEmitido, TarjetaBorrador } from "@/components/panel/formatos/emitido";
 import { useAvisos } from "@/components/panel/kit/avisos";
-import { Boton } from "@/components/panel/kit/boton";
-import { Campo } from "@/components/panel/kit/campo";
-import { Desplegable } from "@/components/panel/kit/desplegable";
+import "@/components/panel/formatos/formatos.css";
+import { Gesto, Icono } from "@/components/panel/icons";
 import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
-import { Fila, GrupoLista } from "@/components/panel/kit/lista";
+import { Fila } from "@/components/panel/kit/lista";
 import { HojaAdaptable } from "@/components/panel/ui/hoja-adaptable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/panel/ui/tabs";
 import type { Property } from "@/data/propiedades";
 import type { Cliente } from "@/lib/backend/contracts";
-import { diaLargo, aTexto } from "@/lib/panel/calendario";
+import { aTexto } from "@/lib/panel/calendario";
 import { filasAsuntos, type Expediente } from "@/lib/panel/datos/asuntos";
 import { leerExpedientes } from "@/lib/panel/datos/colecciones";
 import {
@@ -25,8 +24,10 @@ import { crearDocumento, leerDocumentos } from "@/lib/panel/datos/formatos-accio
 import { entradaDeFormato, rutaAsunto, rutaCaptura } from "@/lib/panel/datos/formatos-navegacion";
 
 /**
- * Formatos (PN-06, boceto del 15/11/2026): catálogo por lo que quieres hacer, Borradores y Emitidos.
- * Empezar uno pide el asunto (los de su operación primero) y abre su ventana de captura; el folio y los datos del asunto los pone el servidor.
+ * Formatos (PN-06), como el boceto: Catálogo, Borradores y Emitidos con el buscador al lado; cada formato con su número.
+ * Empezar uno pregunta el tipo (levantamientos) y «¿Para qué asunto?» (los de su operación primero, el primero «Sugerido»)
+ * y abre su ventana de captura; el folio y los datos del asunto los pone el servidor.
+ * Teclas: / busca; 1, 2 y 3 cambian entre catálogo, borradores y emitidos.
  */
 type Vista = "catalogo" | "borradores" | "emitidos";
 
@@ -85,70 +86,110 @@ function Formatos() {
   };
 
   const cargando = !error && (expedientes === null || docs === null);
+  const q = buscar.trim().toLowerCase();
+  const coincide = (f: { titulo: string; linea: string }) => !q || `${f.titulo} ${f.linea}`.toLowerCase().includes(q);
+  const borradoresVistos = borradores.filter(coincide);
+  const emitidosVistos = emitidos.filter(coincide);
+
+  // «/» busca; 1, 2 y 3 cambian de vista. No actúan mientras se escribe ni con una hoja abierta.
+  const caja = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.closest("[role=dialog]"))) return;
+      if (e.key === "/") { e.preventDefault(); caja.current?.focus(); return; }
+      const v = ({ "1": "catalogo", "2": "borradores", "3": "emitidos" } as const)[e.key as "1" | "2" | "3"];
+      if (v) { e.preventDefault(); setVista(v); }
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, []);
+
 
   return (
-    <div className="pn-pagina" style={{ maxWidth: 760 }}>
-      <h1 className="pn-h1">Formatos</h1>
-      <p className="pn-sub">{cargando ? "Cargando…" : `${borradores.length} ${borradores.length === 1 ? "borrador" : "borradores"} · ${emitidos.length} ${emitidos.length === 1 ? "emitido" : "emitidos"}`}</p>
+    <div className="pn-pagina" style={{ maxWidth: 860, display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <h1 className="pn-fmt-h1">Formatos</h1>
+        <span className="pn-sub" style={{ margin: 0, fontSize: 13 }}>Se llenan sobre el documento y el PDF sale igual</span>
+      </div>
       {asuntoPedido && !pedido && !cargando ? (
-        <p className="pn-sub" style={{ marginTop: 8 }}>
+        <p className="pn-sub" style={{ margin: 0 }}>
           {nombreAsunto(asuntoPedido) ? `Para ${nombreAsunto(asuntoPedido)}: elige el formato.` : "Ese asunto ya no está abierto; elige el asunto al empezar."}
         </p>
       ) : null}
-      <Tabs value={vista} onValueChange={(v) => setVista(v as Vista)} style={{ marginTop: 20 }}>
-        <TabsList>
-          <TabsTrigger value="catalogo">Catálogo</TabsTrigger>
-          <TabsTrigger value="borradores">Borradores{borradores.length ? ` (${borradores.length})` : ""}</TabsTrigger>
-          <TabsTrigger value="emitidos">Emitidos{emitidos.length ? ` (${emitidos.length})` : ""}</TabsTrigger>
-        </TabsList>
+      <Tabs value={vista} onValueChange={(v) => setVista(v as Vista)}>
+        <div className="pn-fmt-controles">
+          <TabsList>
+            <TabsTrigger value="catalogo">Catálogo</TabsTrigger>
+            <TabsTrigger value="borradores">Borradores{borradores.length ? <span className="pn-fmt-cuenta">{borradores.length}</span> : null}</TabsTrigger>
+            <TabsTrigger value="emitidos">Emitidos{emitidos.length ? <span className="pn-fmt-cuenta">{emitidos.length}</span> : null}</TabsTrigger>
+          </TabsList>
+          <label className="pn-fmt-buscar">
+            <Icono nombre="buscar" tamano={18} aria-hidden />
+            <span className="pn-solo-lector">Buscar un formato</span>
+            <input ref={caja} type="search" value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Número o nombre (09, recibo)" autoComplete="off" />
+          </label>
+        </div>
 
         <TabsContent value="catalogo">
-          <div style={{ marginTop: 16 }}>
-            <Campo etiqueta="Buscar" placeholder="Número o nombre" value={buscar} onChange={(e) => setBuscar(e.target.value)} type="search" autoComplete="off" />
-          </div>
-          <div style={{ display: "grid", gap: 20, marginTop: 20 }}>
-            {entradas.length === 0 ? <Vacio titulo="Nada coincide" texto="Prueba con el número del formato." icono="buscar" /> : null}
+          <div style={{ display: "grid", gap: 20, marginTop: 16 }}>
+            {entradas.length === 0 ? (
+              <div className="pn-tarjeta pn-fmt-vacio"><strong>Ningún formato coincide</strong><span>Prueba con el número (09) o una palabra del nombre (recibo, contrato, visita).</span></div>
+            ) : null}
             {agruparCatalogo(entradas).map(({ grupo, entradas: es }) => (
-              <GrupoLista key={grupo} titulo={NOMBRE_GRUPO_FORMATO[grupo]}>
-                {es.map((e) => (
-                  <Fila key={e.id} izquierda={<span className="pn-av" aria-hidden style={{ borderRadius: "var(--r-md)", fontWeight: 600, fontSize: 13 }}>{e.numero}</span>}
-                    titulo={e.titulo} subtitulo={e.queEs} detalle={e.abogado ? "Falta revisión del abogado" : undefined} tonoDetalle="aviso"
-                    alPulsar={() => setEligiendo(e)} />
-                ))}
-              </GrupoLista>
+              <section key={grupo}>
+                <h2 className="pn-fmt-grupo">{NOMBRE_GRUPO_FORMATO[grupo]}</h2>
+                <div className="pn-tarjeta pn-lista">
+                  {es.map((e) => (
+                    <Fila key={e.id} izquierda={<span className="pn-fmt-num" aria-hidden>{e.numero}</span>}
+                      titulo={e.titulo} subtitulo={e.queEs} detalle={e.abogado ? "Falta revisión del abogado" : undefined} tonoDetalle="aviso"
+                      derecha={<Gesto nombre="derecha" tamano={18} className="pn-fmt-flecha" aria-hidden />}
+                      alPulsar={() => setEligiendo(e)} />
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         </TabsContent>
 
         {(["borradores", "emitidos"] as const).map((v) => {
-          const lista = v === "borradores" ? borradores : emitidos;
+          const lista = v === "borradores" ? borradoresVistos : emitidosVistos;
+          const total = v === "borradores" ? borradores.length : emitidos.length;
           return (
             <TabsContent key={v} value={v}>
-              <div style={{ display: "grid", gap: 20, marginTop: 20 }}>
+              <div style={{ display: "grid", gap: 20, marginTop: 16 }}>
                 {cargando ? <Cargando lineas={4} etiqueta="Cargando documentos" /> : null}
                 {error ? <EstadoError texto={error} alReintentar={() => { setError(null); setIntento((n) => n + 1); }} /> : null}
-                {!cargando && !error && lista.length === 0 ? (
-                  <Vacio icono="escritura"
-                    titulo={v === "borradores" ? "Sin borradores" : "Sin emitidos"}
-                    texto={v === "borradores" ? "Lo que empiezas queda aquí con su avance hasta generar el PDF." : "Cada PDF que generas aparece aquí, con su copia firmada cuando la subas."}
-                    accion={<Boton variante="secundario" onClick={() => setVista("catalogo")}>Ver el catálogo</Boton>} />
+                {!cargando && !error && total === 0 ? (
+                  <div className="pn-tarjeta pn-fmt-vacio">
+                    <strong>{v === "borradores" ? "Sin borradores" : "Sin emitidos"}</strong>
+                    <span>{v === "borradores" ? "Lo que empieces en el catálogo queda aquí hasta que generes el PDF." : "Cada PDF que generas aparece aquí, con su copia firmada cuando la subas."}</span>
+                  </div>
+                ) : null}
+                {!cargando && !error && total > 0 && lista.length === 0 ? (
+                  <div className="pn-tarjeta pn-fmt-vacio"><strong>Nada coincide</strong><span>Prueba con el número del formato o el nombre del asunto.</span></div>
                 ) : null}
                 {lista.length ? (
-                  <GrupoLista>
-                    {lista.map((f) => v === "emitidos" ? <FilaEmitido key={f.id} fila={f} href={`/panel/formatos/${f.id}`} /> : (
-                      <Fila key={f.id} titulo={f.titulo} subtitulo={f.linea || undefined} lado={diaLargo(aTexto(new Date(f.actualizadoEl)))}
-                        href={`/panel/formatos/${f.id}`} />
-                    ))}
-                  </GrupoLista>
+                  <div className="pn-fmt-docs">
+                    {lista.map((f) => v === "emitidos"
+                      ? <FilaEmitido key={f.id} fila={f} href={`/panel/formatos/${f.id}`} />
+                      : <TarjetaBorrador key={f.id} fila={f} href={`/panel/formatos/${f.id}`} />)}
+                  </div>
                 ) : null}
               </div>
             </TabsContent>
           );
         })}
       </Tabs>
+      <div className="pn-fmt-pie">
+        <span><kbd className="pn-kbd">/</kbd> buscar</span>
+        <span><kbd className="pn-kbd">1</kbd> <kbd className="pn-kbd">2</kbd> <kbd className="pn-kbd">3</kbd> catálogo, borradores, emitidos</span>
+        <span><kbd className="pn-kbd">Esc</kbd> cerrar</span>
+      </div>
 
-      <HojaAdaptable abierta={eligiendo !== null} titulo={eligiendo ? `${eligiendo.numero} · ${eligiendo.titulo}` : "Empezar"}
-        descripcion="Elige el asunto. El folio y sus datos se llenan solos." alCerrar={() => setEligiendo(null)}>
+      <HojaAdaptable abierta={eligiendo !== null} titulo={eligiendo?.tipos ? "Tipo de levantamiento" : "¿Para qué asunto?"}
+        descripcion={eligiendo ? `${eligiendo.numero} · ${eligiendo.titulo}` : undefined} alCerrar={() => setEligiendo(null)}>
         {eligiendo ? (
           cargando ? <Cargando lineas={3} etiqueta="Cargando asuntos" />
             : <Empezar key={eligiendo.id} entrada={eligiendo} asuntos={ordenarAsuntosPara(eligiendo.id, asuntos)} alEmpezar={empezar}
@@ -160,28 +201,62 @@ function Formatos() {
   );
 }
 
+/**
+ * Empezar, como el boceto: si el formato tiene tipos (levantamiento), primero la lista de tipos; luego «¿Para qué asunto?»
+ * con una fila por asunto. Pulsar el asunto empieza el documento. El asunto de donde se llegó (o el primero de su operación) va «Sugerido».
+ */
 function Empezar({ entrada, asuntos, alEmpezar, asuntoInicial, tipoInicial = "" }: {
   entrada: EntradaCatalogo;
   asuntos: readonly { id: string; titulo: string; folio: string }[];
   alEmpezar: (formatoId: string, expedienteId: string) => Promise<boolean>;
   asuntoInicial?: string; tipoInicial?: string;
 }) {
-  const [asunto, setAsunto] = useState<string>(asuntoInicial ?? asuntos[0]?.id ?? "");
   const [tipo, setTipo] = useState<string>(tipoInicial);
-  const [ocupado, setOcupado] = useState(false);
-  const formatoId = entrada.tipos ? tipo : entrada.id;
+  const [ocupado, setOcupado] = useState<string | null>(null);
+  if (entrada.tipos && !tipo) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <p className="pn-sub" style={{ margin: 0 }}>Distinguimos siempre el tipo del inmueble y su uso.</p>
+        <div className="pn-tarjeta" style={{ overflow: "hidden" }}>
+          {entrada.tipos.map((t) => (
+            <button key={t.valor} type="button" className="pn-fmt-opc" onClick={() => setTipo(t.valor)}><span>{t.etiqueta}</span><small>{t.valor}</small></button>
+          ))}
+        </div>
+      </div>
+    );
+  }
   if (!asuntos.length) {
     return <Vacio titulo="Sin asuntos abiertos" texto="Los formatos se llenan dentro de un asunto. Abre uno desde Asuntos." icono="expediente" />;
   }
+  const formatoId = entrada.tipos ? tipo : entrada.id;
+  const sugerido = asuntoInicial ?? asuntos[0]?.id;
+  const orden = asuntoInicial ? [...asuntos].sort((a, b) => Number(b.id === asuntoInicial) - Number(a.id === asuntoInicial)) : asuntos;
+  const elegir = (id: string) => {
+    if (ocupado || !formatoId) return;
+    setOcupado(id);
+    void alEmpezar(formatoId, id).then((ok) => { if (!ok) setOcupado(null); });
+  };
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {entrada.abogado ? <p className="pn-sub" style={{ margin: 0, color: "var(--warning)" }}>Falta revisión del abogado: revísalo antes de firmarlo.</p> : null}
-      {entrada.tipos ? <Desplegable etiqueta="Tipo de inmueble" valor={tipo} vacio="Elige el tipo" opciones={entrada.tipos} alElegir={setTipo} /> : null}
-      <Desplegable etiqueta="Asunto" valor={asunto} opciones={asuntos.map((a) => ({ valor: a.id, etiqueta: [a.folio, a.titulo].filter(Boolean).join(" · ") }))} alElegir={setAsunto} />
-      <Boton bloque deshabilitado={ocupado || !asunto || !formatoId}
-        onClick={() => { setOcupado(true); void alEmpezar(formatoId, asunto).then((ok) => { if (!ok) setOcupado(false); }); }}>
-        {ocupado ? "Abriendo…" : "Empezar"}
-      </Boton>
+      {entrada.tipos ? (
+        <p className="pn-sub" style={{ margin: 0 }}>
+          ¿Para qué asunto? · {entrada.tipos.find((t) => t.valor === tipo)?.etiqueta}{" "}
+          <button type="button" className="pn-vinculo" style={{ margin: 0, minHeight: 0 }} onClick={() => setTipo("")}>Cambiar tipo</button>
+        </p>
+      ) : null}
+      <div className="pn-tarjeta" style={{ overflow: "hidden" }}>
+        {orden.map((a) => (
+          <button key={a.id} type="button" className="pn-fmt-opc" aria-disabled={ocupado !== null || undefined} onClick={() => elegir(a.id)}>
+            <span style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+              <span style={{ overflowWrap: "anywhere" }}>{a.titulo}</span>
+              {a.folio ? <small>{a.folio}</small> : null}
+            </span>
+            {ocupado === a.id ? <small>Abriendo…</small> : a.id === sugerido ? <span className="pn-fmt-sugerido">Sugerido</span> : null}
+          </button>
+        ))}
+      </div>
+      <span className="pn-sub" style={{ margin: 0, fontSize: 13 }}>El folio y los datos del asunto se llenan solos.</span>
     </div>
   );
 }

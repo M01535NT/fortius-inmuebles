@@ -4,50 +4,64 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useLoLleva } from "@/components/panel/datos/lo-lleva";
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
 import { useFichaEnDireccion } from "@/components/panel/datos/use-ficha-url";
-
+import { Avatar, BotonFiltros, Buscador, MaestroDetalle, ResumenFiltros, Rol, type GrupoFiltro } from "@/components/panel/fichas/piezas";
+import { Gesto, Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Boton } from "@/components/panel/kit/boton";
-import { Campo } from "@/components/panel/kit/campo";
+import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
+import { Segmentado } from "@/components/panel/kit/segmentado";
 import { DetallePersona } from "@/components/panel/personas/detalle-persona";
 import { FormularioPersona } from "@/components/panel/personas/formularios";
-import { leerMiAsesor } from "@/lib/panel/datos/colecciones";
-import { nuevaPersona, type DatosNuevaPersona } from "@/lib/panel/datos/personas-acciones";
-import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
-import { Fila, GrupoLista } from "@/components/panel/kit/lista";
-import { Segmentado } from "@/components/panel/kit/segmentado";
-import type { Cliente } from "@/lib/backend/contracts";
-import type { Asesor, Lead } from "@/lib/domain/records";
-import { pestanaDe } from "@/lib/panel/datos/consultas";
-import { FiltrarYOrdenar } from "@/components/panel/kit/filtrar-ordenar";
-import { rutaPersona } from "@/lib/panel/datos/relacionado";
-import { MenuFila } from "@/components/panel/kit/menu-fila";
 import { HojaAdaptable } from "@/components/panel/ui/hoja-adaptable";
-import { NOMBRE_TIPO_PERSONA, PLURAL_TIPO_PERSONA, filaPersona, filtrarPersonas, ordenarPersonas, type FilaPersona, type OrdenPersonas } from "@/lib/panel/datos/vistas";
+import type { Property } from "@/data/propiedades";
+import type { Cliente } from "@/lib/backend/contracts";
+import type { Asesor } from "@/lib/domain/records";
+import { leerMiAsesor } from "@/lib/panel/datos/colecciones";
+import { enlaceWhatsApp } from "@/lib/panel/datos/consultas";
+import { nuevaPersona, type DatosNuevaPersona } from "@/lib/panel/datos/personas-acciones";
+import { canalDeFila, coincideBusqueda, diasSinContacto, esDueno, lineaDeLista, perfilDe, rangoSiguiente, ROL_DE_TIPO, sinSeguimiento, estaArchivada } from "@/lib/panel/datos/personas-ficha";
 
 type Ver = "todas" | "propietario" | "sin_contacto";
-const ORDEN_TIPOS: Cliente["tipo"][] = ["propietario", "comprador", "arrendador", "arrendatario", "inversionista", "otro"];
+type Quien = "todas" | "vende" | "compra" | "renta" | "aliado";
+type Orden = "sigue" | "nombre" | "sin_contacto";
 
-const iniciales = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "?";
+const QUIEN: { valor: Quien; etiqueta: string; pasa: (t: Cliente["tipo"]) => boolean }[] = [
+  { valor: "todas", etiqueta: "Todos los roles", pasa: () => true },
+  { valor: "vende", etiqueta: "Propietarios", pasa: esDueno },
+  { valor: "compra", etiqueta: "Compran", pasa: (t) => t === "comprador" || t === "inversionista" },
+  { valor: "renta", etiqueta: "Rentan", pasa: (t) => t === "arrendatario" },
+  { valor: "aliado", etiqueta: "Aliados", pasa: (t) => t === "otro" },
+];
+const ORDENES: { valor: Orden; etiqueta: string }[] = [
+  { valor: "sigue", etiqueta: "Por siguiente paso" },
+  { valor: "nombre", etiqueta: "Por nombre" },
+  { valor: "sin_contacto", etiqueta: "Más tiempo sin contacto" },
+];
+const ICONO_CANAL = { llamada: "llamada", whatsapp: "mensaje", correo: "expediente" } as const;
+const VERBO_CANAL = { llamada: "Llamar", whatsapp: "WhatsApp", correo: "Correo" } as const;
 
-function Avatar({ nombre }: { nombre: string }) {
-  return <span className="pn-av" aria-hidden>{iniciales(nombre)}</span>;
-}
-
-/** Personas (PN-03): lista con búsqueda y filtros, ficha, alta («Nueva persona», tecla N) y edición de datos, con aviso de duplicado. */
+/**
+ * Personas como el boceto (16/11/2026): lista con buscador (nombre, teléfono o inmueble), «Filtrar y ordenar»,
+ * Todas · Propietarios · Sin contacto (sin seguimiento) y aviso de los que llevan más de 14 días sin seguimiento;
+ * la ficha a la derecha en escritorio y a pantalla completa en el teléfono.
+ */
 function Personas() {
-  const { cargando, error, datos, reintentar, guardar } = useColeccion<Cliente>("clientes");
+  const { cargando, error, datos, reintentar, guardar, versionDe } = useColeccion<Cliente>("clientes");
   const { avisar } = useAvisos();
   const [miAsesor, setMiAsesor] = useState<string | null>(null);
   useEffect(() => { const c = new AbortController(); leerMiAsesor(c.signal).then(setMiAsesor); return () => c.abort(); }, []);
   const [creando, setCreando] = useState(false);
+  const [nombreNuevo, setNombreNuevo] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [ver, setVer] = useState<Ver>("todas");
+  const [quien, setQuien] = useState<Quien>("todas");
+  const [orden, setOrden] = useState<Orden>("sigue");
   const [buscar, setBuscar] = useState("");
+  // Archivadas (boceto, como Inmuebles): salen de la lista y se recuperan desde «Filtrar y ordenar».
+  const [verArchivados, setVerArchivados] = useState(false);
   const { abierta: abiertaId, abrir, cerrar } = useFichaEnDireccion();
   const abierta = useMemo(() => datos.find((c) => c.id === abiertaId) ?? null, [datos, abiertaId]);
-  // Consultas: para «Solo con consultas abiertas» (lectura; el servidor decide qué ve cada quien).
-  const leads = useColeccion<Lead>("leads");
-  const [ahora] = useState(() => new Date());
+  const [hoy] = useState(() => new Date());
 
   const crear = async (d: DatosNuevaPersona) => {
     const n = nuevaPersona(d, miAsesor);
@@ -70,100 +84,143 @@ function Personas() {
       if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-      if (e.key === "n" || e.key === "N") { e.preventDefault(); setCreando(true); }
+      if (e.key === "n" || e.key === "N") { e.preventDefault(); setNombreNuevo(""); setCreando(true); }
     };
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
   }, []);
 
-  const telefonoDe = useMemo(() => new Map(datos.map((c) => [c.id, c.telefono || undefined])), [datos]);
-  const filas = useMemo(() => datos.map(filaPersona).sort((a, b) => a.nombre.localeCompare(b.nombre, "es")), [datos]);
-  const cuentas = useMemo(() => ({
-    todas: filas.length,
-    propietario: filas.filter((f) => f.tipo === "propietario").length,
-    sin_contacto: filas.filter((f) => f.sinContacto).length,
-  }), [filas]);
-
-  // Filtrar y ordenar (sugerencia 9): orden y «solo con consultas abiertas».
-  const [orden, setOrden] = useState<OrdenPersonas>("nombre");
-  const [conConsulta, setConConsulta] = useState(false);
-  const conConsultaAbierta = useMemo(() => new Set(leads.datos.filter((l) => l.clienteId && pestanaDe(l) !== "cerradas").map((l) => l.clienteId as string)), [leads.datos]);
-  const asesoresDe = useMemo(() => new Map(datos.map((c) => [c.id, c.asesorId])), [datos]);
   const equipo = useColeccion<Asesor>("asesores");
-  const loLleva = useLoLleva(useMemo(() => [...asesoresDe.values()], [asesoresDe]), miAsesor, equipo.datos);
+  const inmuebles = useColeccion<Property>("propiedades");
+  const loLleva = useLoLleva(useMemo(() => datos.map((c) => c.asesorId), [datos]), miAsesor, equipo.datos);
+  // La búsqueda también encuentra por el inmueble ligado (boceto: «Nombre, teléfono o inmueble»).
+  const tituloDe = useMemo(() => new Map(inmuebles.datos.map((x) => [x.slug, x.titulo])), [inmuebles.datos]);
+  const archivadas = useMemo(() => datos.filter(estaArchivada).length, [datos]);
+  const base = useMemo(() => datos.filter((c) => estaArchivada(c) === verArchivados && loLleva.pasa(c.asesorId) && coincideBusqueda(c, buscar, c.propiedadSlug ? tituloDe.get(c.propiedadSlug) : undefined)),
+    [datos, buscar, tituloDe, loLleva, verArchivados]);
+  const pasaQuien = (c: Cliente, q: Quien) => QUIEN.find((x) => x.valor === q)!.pasa(c.tipo);
+  const cuentaQuien = (q: Quien) => base.filter((c) => pasaQuien(c, q)).length;
+  const cuentas = useMemo(() => ({
+    todas: base.length,
+    propietario: base.filter((c) => esDueno(c.tipo)).length,
+    sin_contacto: base.filter((c) => sinSeguimiento(c, hoy)).length,
+  }), [base, hoy]);
+  const sinSeg = base.filter((c) => pasaQuien(c, quien) && sinSeguimiento(c, hoy)).length;
+
   const visibles = useMemo(() => {
-    const base = filas.filter((f) => (ver === "todas" || (ver === "propietario" ? f.tipo === "propietario" : f.sinContacto)) && (!conConsulta || conConsultaAbierta.has(f.id)) && loLleva.pasa(asesoresDe.get(f.id)));
-    return ordenarPersonas(filtrarPersonas(base, buscar), orden);
-  }, [filas, ver, buscar, conConsulta, conConsultaAbierta, orden, loLleva, asesoresDe]);
+    const q = QUIEN.find((x) => x.valor === quien)!;
+    const r = base.filter((c) => (ver === "todas" || (ver === "propietario" ? esDueno(c.tipo) : sinSeguimiento(c, hoy))) && q.pasa(c.tipo));
+    const nombre = (c: Cliente) => c.nombre?.trim() || "Sin nombre";
+    if (orden === "nombre") r.sort((a, b) => nombre(a).localeCompare(nombre(b), "es"));
+    else if (orden === "sin_contacto") r.sort((a, b) => (diasSinContacto(b, hoy) ?? -1) - (diasSinContacto(a, hoy) ?? -1));
+    else r.sort((a, b) => rangoSiguiente(a, hoy).localeCompare(rangoSiguiente(b, hoy)) || nombre(a).localeCompare(nombre(b), "es"));
+    return r;
+  }, [base, ver, quien, orden, hoy]);
 
-  const grupos = useMemo(() => ORDEN_TIPOS.map((t) => ({ tipo: t, filas: visibles.filter((f) => f.tipo === t) })).filter((g) => g.filas.length), [visibles]);
+  const activos = (quien !== "todas" ? 1 : 0) + (orden !== "sigue" ? 1 : 0) + (loLleva.activo ? 1 : 0) + (verArchivados ? 1 : 0);
+  const limpiar = () => { setQuien("todas"); setOrden("sigue"); setVerArchivados(false); loLleva.quitar(); };
+  const resumen = [
+    verArchivados ? "Archivadas" : "",
+    quien !== "todas" ? QUIEN.find((x) => x.valor === quien)!.etiqueta : "",
+    orden !== "sigue" ? ORDENES.find((x) => x.valor === orden)!.etiqueta : "",
+  ].filter(Boolean).join(" · ");
+  const abrirNueva = (nombre = "") => { setNombreNuevo(nombre); setCreando(true); };
+  const grupos: GrupoFiltro[] = [
+    { titulo: "Quiénes", tipo: "radio", opciones: QUIEN.map((x) => ({ etiqueta: x.etiqueta, cuenta: cuentaQuien(x.valor), activa: quien === x.valor, alPulsar: () => setQuien(x.valor) })) },
+    { titulo: "Ordenar por", tipo: "radio", opciones: ORDENES.map((x) => ({ etiqueta: x.etiqueta, activa: orden === x.valor, alPulsar: () => setOrden(x.valor) })) },
+    ...(archivadas || verArchivados ? [{ tipo: "interruptores" as const, opciones: [
+      { etiqueta: "Ver archivados", ayuda: `${archivadas} ${archivadas === 1 ? "archivada" : "archivadas"}`, activa: verArchivados, alPulsar: () => setVerArchivados((x) => !x) },
+    ] }] : []),
+  ];
 
-  return (
-    <div className="pn-pagina" style={{ maxWidth: 760 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <h1 className="pn-h1">Personas</h1>
-        <Boton variante="secundario" onClick={() => setCreando(true)} aria-keyshortcuts="N">Nueva persona</Boton>
-      </div>
-      <p className="pn-sub">{cargando ? "Cargando…" : `${cuentas.todas} ${cuentas.todas === 1 ? "persona" : "personas"}`}</p>
-      <div style={{ display: "grid", gap: 12, marginTop: 20 }}>
-        <Campo etiqueta="Buscar" placeholder="Nombre, teléfono o correo" value={buscar} onChange={(e) => setBuscar(e.target.value)} type="search" autoComplete="off" />
-        <Segmentado
-          etiqueta="Ver"
-          valor={ver}
-          alElegir={setVer}
-          opciones={[{ valor: "todas", etiqueta: "Todas", cuenta: cuentas.todas }, { valor: "propietario", etiqueta: "Propietarios", cuenta: cuentas.propietario }, { valor: "sin_contacto", etiqueta: "Sin datos de contacto", cuenta: cuentas.sin_contacto }]}
-        />
-        {loLleva.control}
-        <div>
-          <FiltrarYOrdenar
-            orden={orden}
-            ordenes={[{ valor: "nombre", etiqueta: "Nombre" }, { valor: "recientes", etiqueta: "Las más recientes primero" }]}
-            alOrdenar={setOrden}
-            interruptores={[{ etiqueta: "Solo con consultas abiertas", ayuda: "Por atender o en seguimiento", valor: conConsulta, alCambiar: setConConsulta }]}
-            resultado={visibles.length}
-            nombreResultado={["persona", "personas"]}
-            alQuitar={() => { setOrden("nombre"); setConConsulta(false); }}
-          />
+  const lista = (
+    <>
+      <div className="fx-lista-cab">
+        <div className="fx-titulo">
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <h1>Personas</h1>
+            <span className="fx-cuenta">{cargando ? "Cargando…" : `${cuentas.todas} ${cuentas.todas === 1 ? "persona" : "personas"}${verArchivados ? (cuentas.todas === 1 ? " archivada" : " archivadas") : ""} · Datos de ejemplo`}</span>
+          </div>
+          <Boton onClick={() => abrirNueva()} aria-keyshortcuts="N"><Gesto nombre="mas" tamano={18} />Nueva</Boton>
         </div>
+        <div className="fx-fila-ctl">
+          <Buscador valor={buscar} alCambiar={setBuscar} etiqueta="Buscar personas" placeholder="Nombre, teléfono o inmueble" />
+          <BotonFiltros grupos={grupos} activos={activos} alLimpiar={limpiar} verTexto={visibles.length ? `Ver ${visibles.length} ${visibles.length === 1 ? "persona" : "personas"}` : "Nadie coincide"} extra={loLleva.control} />
+        </div>
+        <Segmentado etiqueta="Ver" valor={ver} alElegir={setVer}
+          opciones={[{ valor: "todas", etiqueta: "Todas", cuenta: cuentas.todas }, { valor: "propietario", etiqueta: "Propietarios", cuenta: cuentas.propietario }, { valor: "sin_contacto", etiqueta: "Sin contacto", cuenta: cuentas.sin_contacto }]} />
+        {resumen ? <ResumenFiltros texto={resumen} alLimpiar={limpiar} /> : null}
       </div>
-      <div style={{ display: "grid", gap: 20, marginTop: 20 }}>
+      <div className="fx-lista-cuerpo">
+        {sinSeg > 0 && ver !== "sin_contacto" && !buscar.trim() ? (
+          <button type="button" className="fx-banda" onClick={() => setVer("sin_contacto")}>
+            <span className="fx-banda-icono"><Icono nombre="alerta" tamano={18} /></span>
+            <span><b>{sinSeg} sin seguimiento</b> · más de 14 días sin contacto y sin siguiente paso</span>
+            <Gesto nombre="derecha" tamano={16} />
+          </button>
+        ) : null}
         {cargando ? <Cargando lineas={5} etiqueta="Cargando personas" /> : null}
         {error ? <EstadoError texto={error} alReintentar={reintentar} /> : null}
-        {!cargando && !error && cuentas.todas === 0 ? <Vacio titulo="Todavía no hay personas" texto="Cuando entre una consulta o se dé de alta una persona, aparece aquí." icono="cliente" accion={<Boton onClick={() => setCreando(true)}>Nueva persona</Boton>} /> : null}
-        {!cargando && !error && cuentas.todas > 0 && visibles.length === 0 ? <Vacio titulo="Nada coincide" texto="Prueba con otra palabra o quita el filtro." icono="buscar" /> : null}
-        {grupos.map((g) => (
-          <GrupoLista key={g.tipo} titulo={g.filas.length > 1 ? PLURAL_TIPO_PERSONA[g.tipo] : NOMBRE_TIPO_PERSONA[g.tipo]}>
-            {g.filas.map((f: FilaPersona) => (
-              <Fila
-                key={f.id}
-                izquierda={<Avatar nombre={f.nombre} />}
-                titulo={f.nombre}
-                subtitulo={f.subtitulo}
-                detalle={f.sinContacto ? "Sin teléfono ni correo" : f.contacto}
-                tonoDetalle={f.sinContacto ? "aviso" : "normal"}
-                alPulsar={() => abrir(f.id)}
-                seleccionada={f.id === abiertaId}
-                acciones={<MenuFila nombre={f.nombre} telefono={telefonoDe.get(f.id)} ruta={rutaPersona(f.id)} />}
-              />
-            ))}
-          </GrupoLista>
-        ))}
+        {!cargando && !error && cuentas.todas === 0 && verArchivados && !buscar.trim() ? <Vacio titulo="No hay archivadas" texto="Lo que archives sale de la lista y se recupera aquí." icono="cliente"
+          accion={<Boton variante="secundario" onClick={() => setVerArchivados(false)}>Ver la lista</Boton>} /> : null}
+        {!cargando && !error && cuentas.todas === 0 && !verArchivados && !buscar.trim() ? <Vacio titulo="Todavía no hay personas" texto="Cuando entre una consulta o se dé de alta una persona, aparece aquí." icono="cliente" accion={<Boton onClick={() => abrirNueva()}>Nueva persona</Boton>} /> : null}
+        {!cargando && !error && datos.length > 0 && visibles.length === 0 && (cuentas.todas > 0 || buscar.trim()) ? (
+          buscar.trim()
+            ? <Vacio titulo={`Nadie coincide con «${buscar.trim()}»`} texto="Revisa cómo se escribe o dala de alta." icono="buscar"
+                accion={<Boton variante="secundario" onClick={() => abrirNueva(buscar.trim())}>Crear «{buscar.trim()}»</Boton>} />
+            : <Vacio titulo="Nadie coincide" texto="Quita el filtro para ver a todas." icono="buscar"
+                accion={<Boton variante="secundario" onClick={() => { limpiar(); setVer("todas"); }}>Limpiar</Boton>} />
+        ) : null}
+        {visibles.length ? (
+          <div className="fx-tarjeta" role="list">
+            {visibles.map((c) => {
+              const f = { nombre: c.nombre?.trim() || "Sin nombre" };
+              const linea = lineaDeLista(c, hoy);
+              const p = perfilDe(c);
+              const canal = canalDeFila(c);
+              const href = canal === "correo" ? `mailto:${c.email}` : canal === "llamada" ? `tel:${c.telefono.replace(/[^\d+]/g, "")}`
+                : canal === "whatsapp" ? enlaceWhatsApp(p.whatsapp || c.telefono, `Hola ${f.nombre.split(/\s+/)[0]}, te escribo de Fortius Inmuebles.`) : null;
+              return (
+                <div key={c.id} role="listitem" className="fx-fila" data-actual={c.id === abiertaId || undefined}>
+                  <button type="button" className="fx-fila-btn" onClick={() => abrir(c.id)} aria-current={c.id === abiertaId || undefined}>
+                    <Avatar nombre={f.nombre} />
+                    <span className="fx-fila-txt">
+                      <span className="fx-fila-nombre"><b>{f.nombre}</b><Rol>{ROL_DE_TIPO[c.tipo]}</Rol></span>
+                      <span className="fx-sig" data-tono={linea.tono}>{linea.texto}</span>
+                    </span>
+                  </button>
+                  <span className="fx-qa">
+                    {canal && href ? (
+                      p.noContactar ? (
+                        <span className="fx-icono-btn" aria-hidden style={{ opacity: 0.35 }}><Icono nombre={ICONO_CANAL[canal]} tamano={18} /></span>
+                      ) : (
+                        <a className="fx-icono-btn" href={href} target={canal === "whatsapp" ? "_blank" : undefined} rel={canal === "whatsapp" ? "noopener noreferrer" : undefined}
+                          aria-label={`${VERBO_CANAL[canal]} a ${f.nombre}`} title={VERBO_CANAL[canal]}><Icono nombre={ICONO_CANAL[canal]} tamano={18} /></a>
+                      )
+                    ) : null}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
-      <HojaAdaptable abierta={abierta !== null} titulo={abierta?.nombre?.trim() || "Sin nombre"} alCerrar={() => cerrar()}>
-        {abierta ? <DetallePersona persona={abierta} personas={datos} guardar={guardar} alAbrirPersona={(id) => abrir(id)} /> : null}
-      </HojaAdaptable>
+    </>
+  );
+
+  return (
+    <>
+      <MaestroDetalle abierta={abierta !== null} ancho={380} lista={lista} volver={{ etiqueta: "Personas", alPulsar: () => cerrar() }}
+        detalle={abierta ? (
+          <div className="fx-detalle-in"><DetallePersona persona={abierta} personas={datos} guardar={guardar} alAbrirPersona={(id) => abrir(id)} versionDe={versionDe} alUnido={() => reintentar()} /></div>
+        ) : <div className="fx-nada">Elige una persona para ver su ficha.</div>} />
       <HojaAdaptable abierta={creando} titulo="Nueva persona" descripcion="Lo mínimo para darle seguimiento. Lo demás se completa después." alCerrar={() => setCreando(false)}>
         {creando ? (
-          <FormularioPersona
-            personas={datos}
-            hoy={ahora}
-            ocupado={ocupado}
-            alGuardar={(d) => void crear(d)}
-            alAbrirExistente={(id) => { setCreando(false); abrir(id); }}
-          />
+          <FormularioPersona personas={datos} hoy={hoy} ocupado={ocupado} nombreInicial={nombreNuevo} alCancelar={() => setCreando(false)} alGuardar={(d) => void crear(d)}
+            alAbrirExistente={(id) => { setCreando(false); abrir(id); }} />
         ) : null}
       </HojaAdaptable>
-    </div>
+    </>
   );
 }
 

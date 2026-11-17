@@ -9,7 +9,7 @@ import type { Cliente } from "@/lib/backend/contracts";
 import type { Asesor, Lead } from "@/lib/domain/records";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import { operacionSugerida } from "@/lib/panel/datos/consultas-acciones";
-import { buscarPersonas, coincidenciasDeConsulta, hayDuplicadoFuerte, MOTIVO_COINCIDENCIA, operacionDeConsulta } from "@/lib/panel/datos/consultas-persona";
+import { buscarPersonas, coincidenciasDeConsulta, hayDuplicadoFuerte, MOTIVO_COINCIDENCIA, operacionDeConsulta, UNIR_PENDIENTE } from "@/lib/panel/datos/consultas-persona";
 import { rutaPersona } from "@/lib/panel/datos/relacionado";
 
 const TIPOS = Object.entries(EXPEDIENTE_OPERACIONES).map(([valor, etiqueta]) => ({ valor, etiqueta }));
@@ -24,14 +24,19 @@ export type AsuntoReciente = { id: string; folio: string | null };
  * - Ya ligada: dice quién es, abre su ficha y ofrece abrir un asunto (o abrir el que se acaba de crear).
  * - Sin ligar: sugiere a quien pueda ser la misma persona (teléfono, correo, nombre) y deja buscar en Personas;
  *   «Crear persona» (con asunto si se elige) usa la conversión verificada de la base. Los parecidos avisan, no frenan.
- *   Ligar la consulta a una ficha que ya existe necesita una función de la base que todavía no hay (ver PLAN, PN-05).
+ * - «Unir con esta ficha» liga la consulta a una persona que ya existe. Si el servidor todavía no sabe hacerlo
+ *   (migración pendiente, ver PLAN, PN-05), `unirPendiente` lo dice con calma y queda «Abrir su ficha».
  */
-export function PersonaDeLaConsulta({ lead, personas, asesores, miAsesor, ocupado, asuntoReciente, alCrear, alAbrirAsunto }: {
+export function PersonaDeLaConsulta({ lead, personas, asesores, miAsesor, ocupado, asuntoReciente, alCrear, alAbrirAsunto, alUnir, unirPendiente }: {
   lead: Lead; personas: readonly Cliente[]; asesores: readonly Asesor[]; miAsesor: string | null; ocupado: boolean;
   asuntoReciente: AsuntoReciente | null;
   /** Crea la persona y, con `asunto`, abre también el asunto. Devuelve si se pudo. */
   alCrear: (asunto: { operacion: string; asesorId: string } | null) => Promise<boolean>;
   alAbrirAsunto: (d: DatosAsunto) => Promise<boolean>;
+  /** Liga la consulta a esa persona. Devuelve si se pudo. */
+  alUnir: (persona: Cliente) => Promise<boolean>;
+  /** El servidor todavía no sabe unir: se avisa y se ofrece abrir su ficha. */
+  unirPendiente: boolean;
 }) {
   const persona = lead.clienteId ? personas.find((p) => p.id === lead.clienteId) ?? null : null;
   const fijo = lead.asesorId || miAsesor || "";
@@ -43,7 +48,7 @@ export function PersonaDeLaConsulta({ lead, personas, asesores, miAsesor, ocupad
     return <PersonaLigada lead={lead} clienteId={lead.clienteId} persona={persona} asuntoReciente={asuntoReciente} ocupado={ocupado}
       asesorId={asesorId} setAsesorId={setAsesorId} eligeAsesor={eligeAsesor} opcionesAsesor={opcionesAsesor} alAbrirAsunto={alAbrirAsunto} />;
   }
-  return <PersonaSinLigar lead={lead} personas={personas} ocupado={ocupado}
+  return <PersonaSinLigar lead={lead} personas={personas} ocupado={ocupado} alUnir={alUnir} unirPendiente={unirPendiente}
     asesorId={asesorId} setAsesorId={setAsesorId} eligeAsesor={eligeAsesor} opcionesAsesor={opcionesAsesor} alCrear={alCrear} />;
 }
 
@@ -82,8 +87,8 @@ function PersonaLigada({ lead, clienteId, persona, asuntoReciente, ocupado, ases
   );
 }
 
-function PersonaSinLigar({ lead, personas, ocupado, asesorId, setAsesorId, eligeAsesor, opcionesAsesor, alCrear }: {
-  lead: Lead; personas: readonly Cliente[]; ocupado: boolean;
+function PersonaSinLigar({ lead, personas, ocupado, asesorId, setAsesorId, eligeAsesor, opcionesAsesor, alCrear, alUnir, unirPendiente }: {
+  lead: Lead; personas: readonly Cliente[]; ocupado: boolean; alUnir: (p: Cliente) => Promise<boolean>; unirPendiente: boolean;
   alCrear: (asunto: { operacion: string; asesorId: string } | null) => Promise<boolean>;
 } & Asesoria) {
   const sugeridas = useMemo(() => coincidenciasDeConsulta(lead, personas), [lead, personas]);
@@ -95,15 +100,35 @@ function PersonaSinLigar({ lead, personas, ocupado, asesorId, setAsesorId, elige
   const fuerte = hayDuplicadoFuerte(sugeridas);
   const faltaAsesor = conAsunto === "si" && !asesorId;
 
-  const filaPersona = (p: Cliente, motivo?: string) => (
-    <li key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 44 }}>
-      <span style={{ minWidth: 0 }}>
-        <span style={{ fontWeight: 500 }}>{p.nombre?.trim() || "Sin nombre"}</span>
-        <span className="pn-sub" style={{ display: "block", margin: 0 }}>{[motivo, p.telefono, p.email].filter(Boolean).join(" · ")}</span>
-      </span>
-      <a className="pn-btn pn-btn-texto" href={rutaPersona(p.id)} aria-label={`Abrir la ficha de ${p.nombre?.trim() || "esta persona"}`}>Abrir su ficha</a>
-    </li>
-  );
+  // Unir no se deshace desde aquí: se pide confirmar en la misma fila antes de hacerlo.
+  const [porUnir, setPorUnir] = useState<string | null>(null);
+  const filaPersona = (p: Cliente, motivo?: string) => {
+    const nombre = p.nombre?.trim() || "esta persona";
+    const confirmando = porUnir === p.id && !unirPendiente;
+    return (
+      <li key={p.id} style={{ display: "grid", gap: 6, padding: "6px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 44, flexWrap: "wrap" }}>
+          <span style={{ minWidth: 0, flex: "1 1 160px" }}>
+            <span style={{ fontWeight: 500 }}>{p.nombre?.trim() || "Sin nombre"}</span>
+            <span className="pn-sub" style={{ display: "block", margin: 0 }}>{[motivo, p.telefono, p.email].filter(Boolean).join(" · ")}</span>
+          </span>
+          <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {!unirPendiente && !confirmando ? <Boton variante="secundario" deshabilitado={ocupado} onClick={() => setPorUnir(p.id)} aria-label={`Unir la consulta con la ficha de ${nombre}`}>Unir con esta ficha</Boton> : null}
+            <a className="pn-btn pn-btn-texto" href={rutaPersona(p.id)} aria-label={`Abrir la ficha de ${nombre}`}>Abrir su ficha</a>
+          </span>
+        </div>
+        {confirmando ? (
+          <div role="group" aria-label={`Confirmar unir con ${nombre}`} style={{ display: "grid", gap: 8, padding: 10, border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
+            <p style={{ margin: 0 }}>La consulta queda en la ficha de {nombre} y no se crea otra persona. Para cambiarlo después, hay que pedirlo al director.</p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Boton deshabilitado={ocupado} autoFocus onClick={() => { void alUnir(p).then((ok) => { if (ok) setPorUnir(null); }); }}>Unir con {p.nombre?.trim().split(/\s+/)[0] || "esta ficha"}</Boton>
+              <Boton variante="texto" onClick={() => setPorUnir(null)}>Cancelar</Boton>
+            </div>
+          </div>
+        ) : null}
+      </li>
+    );
+  };
 
   return (
     <section style={caja} aria-labelledby={`persona-${lead.id}`}>
@@ -114,6 +139,7 @@ function PersonaSinLigar({ lead, personas, ocupado, asesorId, setAsesorId, elige
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid" }}>{sugeridas.map((c) => filaPersona(c.persona, MOTIVO_COINCIDENCIA[c.por]))}</ul>
         </div>
       ) : <p style={{ margin: 0 }}>Todavía no está en Personas.</p>}
+      {unirPendiente ? <p className="pn-sub" role="status" style={{ margin: 0 }}>{UNIR_PENDIENTE}</p> : null}
 
       {buscando ? (
         <div style={{ display: "grid", gap: 4 }}>
@@ -137,7 +163,7 @@ function PersonaSinLigar({ lead, personas, ocupado, asesorId, setAsesorId, elige
             {eligeAsesor ? <Desplegable etiqueta="Lo lleva" valor={asesorId} vacio="Elige…" opciones={opcionesAsesor} alElegir={setAsesorId} /> : null}
           </>
         ) : null}
-        {fuerte ? <p className="pn-tono-aviso" style={{ margin: 0 }}>Ya hay alguien con su {sugeridas.some((c) => c.por === "telefono") ? "teléfono" : "correo"}. Si es la misma persona, abre su ficha; si no, créala.</p> : null}
+        {fuerte ? <p className="pn-tono-aviso" style={{ margin: 0 }}>Ya hay alguien con su {sugeridas.some((c) => c.por === "telefono") ? "teléfono" : "correo"}. Si es la misma persona, {unirPendiente ? "abre su ficha" : "únela con su ficha"}; si no, créala.</p> : null}
         <div><Boton type="submit" variante={fuerte ? "secundario" : "primario"} deshabilitado={ocupado || faltaAsesor}>{conAsunto === "si" ? "Crear persona y asunto" : "Crear persona"}</Boton></div>
         <span className="pn-campo-ayuda">Se crea con su nombre y contacto, y la consulta queda ligada a la ficha.</span>
       </form>

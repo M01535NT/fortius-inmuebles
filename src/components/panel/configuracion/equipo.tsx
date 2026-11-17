@@ -1,22 +1,30 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 
+import { usePreferencia } from "@/components/panel/almacen";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Boton } from "@/components/panel/kit/boton";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Cargando, EstadoError, SinPermiso, Vacio } from "@/components/panel/kit/estados";
 import { Ficha } from "@/components/panel/kit/ficha";
-import { Fila, GrupoLista } from "@/components/panel/kit/lista";
+import { Fila, Tarjeta } from "@/components/panel/kit/lista";
+import { ListaReordenable } from "@/components/panel/kit/reordenable";
 import { HojaAdaptable } from "@/components/panel/ui/hoja-adaptable";
 import type { Asesor } from "@/lib/domain/records";
 import { fichaAsesor, ordenarEquipo } from "@/lib/panel/datos/configuracion";
 import { conFicha, cuentasParaLigar, leerCuentas, ligarCuenta, rolDe, unirCuentas, type Cuenta } from "@/lib/panel/datos/configuracion-cuentas";
+import {
+  alcanceDe, CLAVE_ORDEN_EQUIPO, escribirOrdenEquipo, fichasParaInvitar, ordenEquipoGuardado, papelDeCuenta, QUE_VE, type Invitacion,
+} from "@/lib/panel/datos/configuracion-invitaciones";
+
+import { InvitarEquipo } from "./invitar";
 
 import { FotoAsesor, SeccionConfig } from "./partes";
 
 /**
  * Equipo (solo el director): fichas de asesor con la cuenta que usa cada quien para entrar.
- * Ligar una cuenta a su ficha usa la ruta que ya existe; invitar, quitar acceso y roles no tienen ruta todavía (PN-10).
+ * Ligar una cuenta a su ficha usa la ruta que ya existe. Invitar se prepara sin enviar nada; quitar acceso y cambiar
+ * el papel no tienen ruta todavía (PN-10). El orden de la lista es solo presentación: se recuerda en este navegador.
  */
 export function SeccionEquipo({ esDirector, asesores, cargando, error, alReintentar, miId }: {
   esDirector: boolean; asesores: Asesor[]; cargando: boolean; error: string | null; alReintentar: () => void; miId: string | null;
@@ -26,7 +34,10 @@ export function SeccionEquipo({ esDirector, asesores, cargando, error, alReinten
   // Se conserva el último abierto para que la hoja no se vacíe mientras se cierra.
   const [visto, setVisto] = useState<Asesor | null>(null);
   const abrir = (a: Asesor) => { setVisto(a); setAbierto(a); };
-  const lista = useMemo(() => ordenarEquipo(asesores), [asesores]);
+  const [ordenGuardado, guardarOrden] = usePreferencia(CLAVE_ORDEN_EQUIPO, "");
+  const lista = useMemo(() => ordenEquipoGuardado(ordenarEquipo(asesores), ordenGuardado), [asesores, ordenGuardado]);
+  const [preparadas, setPreparadas] = useState<Invitacion[]>([]);
+  const [invitando, setInvitando] = useState(false);
   const nombreFicha = useMemo(() => new Map(lista.map((a) => [a.id, a.nombre])), [lista]);
   // Si las cuentas no se leen, la lista de fichas sigue sirviendo.
   const [cuentas, setCuentas] = useState<Cuenta[] | null>(null);
@@ -76,30 +87,41 @@ export function SeccionEquipo({ esDirector, asesores, cargando, error, alReinten
 
   const candidatas = visto && cuentas ? cuentasParaLigar(cuentas, visto.id) : [];
   const ligadas = visto ? porAsesor.get(visto.id) ?? [] : [];
+  const paraInvitar = useMemo(() => fichasParaInvitar(lista, new Set(porAsesor.keys()), preparadas), [lista, porAsesor, preparadas]);
 
   return (
-    <SeccionConfig id="conf-equipo" titulo="Equipo" intro={esDirector && !cargando && !error ? `${activos} ${activos === 1 ? "asesor activo" : "asesores activos"}.` : undefined}>
+    <SeccionConfig id="conf-equipo" titulo={esDirector && !cargando && !error ? `Equipo · ${activos}` : "Equipo"}
+      accion={esDirector ? <button type="button" className="pn-conf-cab-btn" aria-disabled={!cuentas || undefined} onClick={() => { if (cuentas) setInvitando(true); }}>Invitar</button> : undefined}>
       {!esDirector ? <SinPermiso texto="El equipo lo administra el director." />
         : cargando ? <Cargando lineas={3} etiqueta="Cargando el equipo" />
         : error ? <EstadoError texto={error} alReintentar={alReintentar} />
         : !lista.length ? <Vacio titulo="Todavía no hay asesores" texto="Los asesores aparecen aquí." icono="cliente" />
         : (
-          <GrupoLista>
-            {lista.map((a) => (
-              <Fila key={a.id} alPulsar={() => { setEleccion(""); abrir(a); }}
-                izquierda={<FotoAsesor asesor={a} nombre={a.nombre} chica />}
-                titulo={a.id === miId ? `${a.nombre} (tú)` : a.nombre}
-                subtitulo={a.cargo || "Asesor"}
-                detalle={a.activo === false ? "Inactivo" : accesoDe(a.id)}
-                tonoDetalle={a.activo === false || (cuentas && !porAsesor.has(a.id)) ? "aviso" : "normal"} />
-            ))}
-          </GrupoLista>
+          <Tarjeta className="pn-lista">
+            <ListaReordenable items={lista} clave={(a) => a.id} nombre={(a) => a.nombre} etiqueta="Equipo"
+              alReordenar={(nuevo) => guardarOrden(escribirOrdenEquipo(nuevo))}
+              renderItem={(a, { asa }) => (
+                <div className="pn-conf-equipo-fila">
+                  {asa}
+                  <Fila alPulsar={() => { setEleccion(""); abrir(a); }}
+                    izquierda={<FotoAsesor asesor={a} nombre={a.nombre} chica />}
+                    titulo={a.id === miId ? `${a.nombre} (tú)` : a.nombre}
+                    subtitulo={a.cargo || "Asesor"}
+                    detalle={a.activo === false ? "Inactivo" : accesoDe(a.id)}
+                    tonoDetalle={a.activo === false || (cuentas && !porAsesor.has(a.id)) ? "aviso" : "normal"} />
+                </div>
+              )} />
+          </Tarjeta>
         )}
+      {esDirector && lista.length > 1 && !cargando && !error ? (
+        <p className="pn-conf-intro">Arrastra para acomodar la lista a tu gusto (o Alt con las flechas). El orden no cambia lo que cada quien ve.</p>
+      ) : null}
       {esDirector && sinFicha.length ? (
         <div style={{ marginTop: 12 }}>
-          <GrupoLista titulo="Otras cuentas">
-            {sinFicha.map((c) => <Fila key={c.user_id} izquierda={<FotoAsesor nombre={c.email} chica />} titulo={c.email || "Cuenta sin correo"} subtitulo={rolDe(c)} />)}
-          </GrupoLista>
+          <h3 className="pn-grupo">Otras cuentas</h3>
+          <Tarjeta className="pn-lista">
+            {sinFicha.map((c) => <Fila key={c.user_id} izquierda={<FotoAsesor nombre={c.email} chica />} titulo={c.email || "Cuenta sin correo"} subtitulo={`${rolDe(c)} · ${alcanceDe(c)}`} />)}
+          </Tarjeta>
         </div>
       ) : null}
       {esDirector && errorCuentas ? (
@@ -109,12 +131,10 @@ export function SeccionEquipo({ esDirector, asesores, cargando, error, alReinten
         </div>
       ) : null}
       {esDirector ? (
-        <div className="pn-conf-caja" style={{ marginTop: 12 }}>
-          <p className="pn-conf-nota">Invitar a alguien nuevo llega pronto.</p>
-          <div className="pn-conf-acciones">
-            <Boton variante="secundario" deshabilitado title="Llega pronto">Invitar a alguien</Boton>
-          </div>
-        </div>
+        <InvitarEquipo abierta={invitando} alCerrar={() => setInvitando(false)} cuentas={cuentas} fichas={paraInvitar} nombreFicha={(id) => nombreFicha.get(id)} preparadas={preparadas}
+          alPreparar={(i) => setPreparadas((xs) => [...xs, i])}
+          alQuitar={(correo) => setPreparadas((xs) => xs.filter((x) => x.correo !== correo))}
+          alDevolver={(i) => setPreparadas((xs) => (xs.some((x) => x.correo === i.correo) ? xs : [...xs, i]))} />
       ) : null}
       <HojaAdaptable abierta={abierto !== null} alCerrar={() => setAbierto(null)} titulo={visto?.nombre ?? "Asesor"} descripcion={visto?.cargo}>
         {visto ? (
@@ -122,9 +142,13 @@ export function SeccionEquipo({ esDirector, asesores, cargando, error, alReinten
             <Ficha secciones={[
               ...fichaAsesor(visto),
               ...(cuentas ? [{ titulo: "Cuenta para entrar", datos: ligadas.length
-                ? ligadas.map((c) => ({ etiqueta: rolDe(c), valor: c.email || "Cuenta sin correo" }))
+                ? ligadas.flatMap((c) => [
+                    { etiqueta: rolDe(c), valor: c.email || "Cuenta sin correo" },
+                    { etiqueta: "Qué ve", valor: c.active ? QUE_VE[papelDeCuenta(c)] : "No puede entrar al panel." },
+                  ])
                 : [{ etiqueta: "Cuenta", valor: "Sin cuenta para entrar", falta: true }] }] : []),
             ]} />
+            {ligadas.length ? <p className="pn-conf-nota" style={{ marginTop: 12 }}>Cambiar el papel o quitar el acceso todavía no se hace desde aquí.</p> : null}
             {cuentas && visto.activo !== false ? (
               candidatas.length ? (
                 <form noValidate style={{ display: "grid", gap: 12, marginTop: 16 }}

@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useRef, useState, type DragEvent } from "react";
+import { useEffect, useId, useRef, useState, type DragEvent, type ReactNode } from "react";
 
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo } from "@/components/panel/kit/campo";
 import { ListaReordenable } from "@/components/panel/kit/reordenable";
+import { Switch } from "@/components/panel/ui/switch";
 import type { ImagenPropiedad, Property } from "@/data/propiedades";
 import { leerRequisitosPublicacion } from "@/lib/panel/datos/colecciones";
 import { altDeArchivo, estadoPublicacion, fotoPublica, textoDescripcion } from "@/lib/panel/datos/inmueble-sitio";
@@ -139,15 +140,31 @@ export function TextosSitio({ inmueble, ocupado, alGuardar }: {
   );
 }
 
-/** Publicar es un paso propio. Los avisos no detienen («Publicar así»); lo que el servidor exige, sí, y se dice cómo resolverlo. */
-export function PublicarInmueble({ inmueble, propietarioLigado, ocupado, alPublicar, alQuitar }: {
+/** Lo que falta de la autorización del aliado es aviso legal (se publica un inmueble ajeno con permiso por escrito). */
+const esLegal = (texto: string) => /autorizaci[oó]n/i.test(texto);
+
+/**
+ * Publicar es un paso propio. Desde DEC-61 (16/11/2026) nada lo frena salvo lo que el sitio necesita para mostrarlo
+ * (salir de captación y una foto): lo que falta de la captación o de la autorización del aliado se avisa antes
+ * («Publicar así») y lo que el servidor devuelve al publicar se muestra después.
+ */
+export function PublicarInmueble({ inmueble, propietarioLigado, ocupado, alPublicar, alQuitar, avisosExtra = [], direccionExacta, alDireccionExacta }: {
   inmueble: Property; propietarioLigado: boolean; ocupado: boolean;
-  alPublicar: () => void; alQuitar: () => void;
+  /** `aceptados`: los avisos que se repasaron con «Publicar así» (quedan en el historial del inmueble). */
+  alPublicar: (alAvisos: (avisos: string[]) => void, aceptados: readonly string[]) => void; alQuitar: () => void;
+  /** Avisos propios del panel que también se repasan antes de publicar (contrato de intermediación). */
+  avisosExtra?: readonly string[];
+  /** Interruptor «Dirección exacta» del boceto; sin `alDireccionExacta` no se muestra. */
+  direccionExacta?: boolean; alDireccionExacta?: (v: boolean) => void;
 }) {
   const e = estadoPublicacion(inmueble, propietarioLigado);
-  const [confirmando, setConfirmando] = useState(false);
-  // Lo que exige el servidor (captación vinculada con sus revisiones). Se vuelve a pedir cuando cambia el inmueble.
+  const [modo, setModo] = useState<"" | "publicar" | "quitar" | "falta">("");
+  const idPub = useId();
+  const idDir = useId();
+  // Lo que falta según el servidor (captación vinculada con sus revisiones, o la autorización del aliado). Ya no frena: avisa.
   const [servidor, setServidor] = useState<{ clave: string; faltantes: string[] | null; error: string }>({ clave: "", faltantes: null, error: "" });
+  // Lo que el servidor avisó al publicar.
+  const [tras, setTras] = useState<string[]>([]);
   const clave = `${inmueble.slug}:${inmueble.estado}:${inmueble.publicada === true}`;
   useEffect(() => {
     if (inmueble.publicada === true) return;
@@ -159,48 +176,72 @@ export function PublicarInmueble({ inmueble, propietarioLigado, ocupado, alPubli
     return () => c.abort();
   }, [clave, inmueble.slug, inmueble.publicada]);
   const vigente = servidor.clave === clave;
-  const bloqueos = [...e.bloqueos, ...(vigente && servidor.faltantes ? servidor.faltantes : [])];
+  const delServidor = vigente && servidor.faltantes ? servidor.faltantes : [];
+  const avisos = [...delServidor.filter(esLegal), ...delServidor.filter((a) => !esLegal(a)), ...avisosExtra, ...e.avisos];
   const revisando = !e.publicado && !vigente;
+  const lista = (xs: readonly string[]) => (
+    <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 4 }}>{xs.map((a) => <li key={a}>{esLegal(a) ? <><strong style={{ fontWeight: 600 }}>Aviso legal:</strong> {a}</> : a}</li>)}</ul>
+  );
+  const publicarAhora = (aceptados: readonly string[] = []) => { setModo(""); alPublicar((xs) => setTras(xs), aceptados); };
+  // El interruptor «Publicado» del boceto: encender repasa los avisos (Publicar así); apagar pide confirmar.
+  const alternar = (encender: boolean) => {
+    if (!encender) { setModo("quitar"); return; }
+    if (e.bloqueos.length) { setModo("falta"); return; }
+    if (avisos.length) { setModo("publicar"); return; }
+    publicarAhora();
+  };
+  const desde = inmueble.publicadaEl ? new Date(`${inmueble.publicadaEl.slice(0, 10)}T12:00:00`).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) : "";
+  const caja = (tono: "aviso" | "neutro", hijos: ReactNode, rol?: "status") => (
+    <div role={rol} style={{ display: "grid", gap: 8, border: `1px solid ${tono === "aviso" ? "color-mix(in srgb, var(--warning) 35%, transparent)" : "var(--border)"}`, borderRadius: "var(--r-lg)", padding: 12, background: tono === "aviso" ? "var(--warning-soft)" : "var(--card)", fontSize: 14 }}>{hijos}</div>
+  );
   return (
-    <section style={{ display: "grid", gap: 8, marginTop: 20 }}>
-      <h3 className="pn-grupo" style={{ margin: 0, padding: 0 }}>En el sitio</h3>
-      {e.publicado ? (
-        <>
-          <p style={{ margin: 0 }}>Publicado{inmueble.publicadaEl ? ` desde el ${new Date(`${inmueble.publicadaEl.slice(0, 10)}T12:00:00`).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })}` : ""}.</p>
-          {confirmando ? (
-            <div style={{ display: "grid", gap: 8, border: "1px solid var(--border)", borderRadius: "var(--r-lg)", padding: 12, background: "var(--warning-soft)" }}>
-              <p style={{ margin: 0 }}>Deja de verse en el sitio al momento. Para volver a publicarlo, el servidor pedirá la captación vinculada con sus revisiones.</p>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <Boton variante="peligro" deshabilitado={ocupado} onClick={() => { setConfirmando(false); alQuitar(); }}>Quitar del sitio</Boton>
-                <Boton variante="texto" onClick={() => setConfirmando(false)}>Dejarlo publicado</Boton>
-              </div>
-            </div>
-          ) : <div><Boton variante="secundario" deshabilitado={ocupado} onClick={() => setConfirmando(true)}>Quitar del sitio</Boton></div>}
-        </>
-      ) : (
-        <>
-          <p className="pn-sub" style={{ margin: 0 }}>Sin publicar. Solo lo ve el equipo.</p>
-          {revisando ? <p className="pn-sub" style={{ margin: 0 }}>Revisando si se puede publicar…</p>
-          : vigente && servidor.error ? <p role="alert" style={{ margin: 0, color: "var(--warning)" }}>{servidor.error}</p>
-          : bloqueos.length ? (
-            <div style={{ display: "grid", gap: 4 }}>
-              <p style={{ margin: 0, fontWeight: 500 }}>Para publicar falta:</p>
-              <ul style={{ margin: 0, paddingLeft: 18, color: "var(--warning)" }}>{bloqueos.map((b) => <li key={b}>{b}</li>)}</ul>
-            </div>
-          ) : confirmando && e.avisos.length ? (
-            <div style={{ display: "grid", gap: 8, border: "1px solid var(--border)", borderRadius: "var(--r-lg)", padding: 12, background: "var(--warning-soft)" }}>
-              <p style={{ margin: 0, fontWeight: 500 }}>Antes de publicar, revisa:</p>
-              <ul style={{ margin: 0, paddingLeft: 18 }}>{e.avisos.map((a) => <li key={a}>{a}</li>)}</ul>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <Boton deshabilitado={ocupado} onClick={() => { setConfirmando(false); alPublicar(); }}>Publicar así</Boton>
-                <Boton variante="texto" onClick={() => setConfirmando(false)}>Todavía no</Boton>
-              </div>
-            </div>
-          ) : (
-            <div><Boton deshabilitado={ocupado} onClick={() => (e.avisos.length ? setConfirmando(true) : alPublicar())}>Publicar en el sitio</Boton></div>
-          )}
-        </>
-      )}
+    <section className="fx-seccion">
+      <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>En el sitio</h3>
+      <div className="fx-tarjeta">
+        <div className="fx-swrow">
+          <label htmlFor={idPub} className="fx-swrow-txt" style={{ cursor: "pointer" }}>
+            <b>Publicado</b>
+            <span>{e.publicado ? `Se ve en el sitio${desde ? ` desde el ${desde}` : ""}` : revisando ? "Revisando lo que falta…" : "Guardar no publica: tú decides cuándo sale"}</span>
+          </label>
+          <Switch id={idPub} checked={e.publicado} disabled={ocupado || revisando} onCheckedChange={alternar} />
+        </div>
+        {alDireccionExacta ? (
+          <div className="fx-swrow">
+            <label htmlFor={idDir} className="fx-swrow-txt" style={{ cursor: "pointer" }}>
+              <b>Dirección exacta</b>
+              <span>{direccionExacta ? "Se ve la dirección completa" : "Solo se ve la colonia"}</span>
+            </label>
+            <Switch id={idDir} checked={direccionExacta === true} disabled={ocupado} onCheckedChange={alDireccionExacta} />
+          </div>
+        ) : null}
+      </div>
+      {vigente && servidor.error && !e.publicado ? <p role="alert" style={{ margin: 0, fontSize: 14, color: "var(--warning)" }}>{servidor.error}</p> : null}
+      {modo === "falta" && !e.publicado ? caja("aviso", <>
+        <p style={{ margin: 0, fontWeight: 600 }}>Para que el sitio lo muestre falta:</p>
+        {lista(e.bloqueos)}
+        <div><Boton variante="texto" onClick={() => setModo("")}>Entendido</Boton></div>
+      </>) : null}
+      {modo === "publicar" && !e.publicado ? caja("aviso", <>
+        <div><p style={{ margin: 0, fontWeight: 600 }}>Antes de publicar</p><p style={{ margin: "2px 0 0", color: "var(--ink-muted)" }}>Puedes publicarlo así. Esto queda pendiente:</p></div>
+        {lista(avisos)}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+          <Boton variante="secundario" onClick={() => setModo("")}>Ahora no</Boton>
+          <Boton deshabilitado={ocupado} onClick={() => publicarAhora(avisos)}>Publicar así</Boton>
+        </div>
+        <p style={{ margin: 0, fontSize: 12, color: "var(--ink-muted)" }}>Queda anotado en el historial del inmueble.</p>
+      </>) : null}
+      {modo === "quitar" && e.publicado ? caja("neutro", <>
+        <p style={{ margin: 0 }}>Deja de verse en el sitio al momento. Si lo vuelves a publicar, se avisará lo que falte de la captación.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+          <Boton variante="secundario" onClick={() => setModo("")}>Dejarlo publicado</Boton>
+          <Boton variante="peligro" deshabilitado={ocupado} onClick={() => { setModo(""); setTras([]); alQuitar(); }}>Quitar del sitio</Boton>
+        </div>
+      </>) : null}
+      {tras.length && e.publicado ? caja("aviso", <>
+        <p style={{ margin: 0, fontWeight: 600 }}>Se publicó, pero falta:</p>
+        {lista(tras)}
+        <div><Boton variante="texto" onClick={() => setTras([])}>Entendido</Boton></div>
+      </>, "status") : null}
     </section>
   );
 }

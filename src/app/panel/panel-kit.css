@@ -7,7 +7,7 @@
 .pn-btn svg { flex: none; }
 
 /* Campo */
-.pn-campo textarea, .pn-campo select { min-height: 44px; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--r-md); background: var(--card); color: var(--ink); font: inherit; font-size: 16px; }
+.pn-campo textarea, .pn-campo select { min-height: 44px; padding: 10px 12px; border: 1px solid transparent; border-radius: var(--r-md); background: var(--fill); color: var(--ink); font: inherit; font-size: 16px; }
 .pn-campo input:disabled, .pn-campo textarea:disabled, .pn-campo select:disabled { background: var(--muted); color: var(--ink-muted); }
 .pn-campo [aria-invalid="true"] { border-color: var(--error); }
 .pn-campo-ayuda { font-size: 13px; font-weight: 400; color: var(--ink-muted); }
@@ -68,7 +68,7 @@ button.pn-fila:hover, a.pn-fila:hover { background: var(--bg); }
 @keyframes pn-brilla { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
 /* Calendario y hora */
-.pn-cal { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--card); }
+.pn-cal { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--card); }
 .pn-cal-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pn-cal-cab b { font-size: 15px; font-weight: 600; text-transform: capitalize; }
 .pn-cal-rejilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
@@ -78,7 +78,7 @@ button.pn-fila:hover, a.pn-fila:hover { background: var(--bg); }
 .pn-cal-dia[data-hoy="true"] { font-weight: 700; box-shadow: inset 0 0 0 1.5px var(--border-strong); }
 .pn-cal-dia[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
 .pn-cal-dia:disabled { color: var(--border-strong); opacity: 0.45; cursor: default; }
-.pn-hora { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--card); }
+.pn-hora { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--card); }
 .pn-hora b { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* Arrastrar y soltar */
@@ -127,7 +127,7 @@ button.pn-fila:hover, a.pn-fila:hover { background: var(--bg); }
 
 /* Tira de 7 días de la Agenda (PN-04): un punto en los días con citas. */
 .pn-tira { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-.pn-tira button { display: grid; justify-items: center; gap: 2px; min-height: 64px; padding: 8px 0; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; }
+.pn-tira button { display: grid; justify-items: center; gap: 2px; min-height: 64px; padding: 8px 0; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; }
 .pn-tira button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .pn-tira-letra { font-size: 12px; color: var(--ink-muted); }
 .pn-tira-num { font-size: 17px; font-weight: 600; }
@@ -173,7 +173,7 @@ button.pn-fila:active, a.pn-fila:active { transform: scale(0.995); background: v
 .pn-btn .pn-contador { margin-left: 2px; }
 
 /* Atajos de elección (Mañana, En 3 días…): botón con estado presionado. */
-.panel-root .pn-chip { min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--card); color: var(--ink); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease-out; }
+.panel-root .pn-chip { min-height: 44px; padding: 0 14px; border: 1px solid transparent; border-radius: var(--r-md); background: var(--card); color: var(--ink); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease-out; }
 .panel-root .pn-chip:hover { background: var(--muted); }
 .panel-root .pn-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .panel-root .pn-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -191,6 +191,125 @@ button.pn-fila:active, a.pn-fila:active { transform: scale(0.995); background: v
 
 
 /* «Saltar al contenido»: invisible hasta recibir el foco con Tab. */
-.panel-root .pn-saltar { position: absolute; left: 8px; top: -100px; z-index: 100; padding: 10px 14px; border-radius: var(--r-md); background: var(--card); color: var(--ink); border: 1px solid var(--border-strong); font-weight: 600; text-decoration: none; }
+.panel-root .pn-saltar { position: absolute; left: 8px; top: -100px; z-index: 100; padding: 10px 14px; border-radius: var(--r-md); background: var(--fill); color: var(--ink); border: 1px solid transparent; font-weight: 600; text-decoration: none; }
 .panel-root .pn-saltar:focus { top: 8px; outline: 2px solid var(--accent); outline-offset: 2px; }
 .panel-root .pn-main:focus { outline: none; }
+
+/* ======================= Piezas de los bocetos (16/11/2026): las comparten todas las pantallas ======================= */
+/* Título de bloque con su enlace («Agenda de hoy · Ver agenda»). */
+.pn-bloque-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pn-bloque-cab a, .pn-bloque-cab .pn-enlace-btn { display: inline-flex; align-items: center; min-height: 44px; margin: -12px 0; font-size: 14px; font-weight: 500; color: var(--accent); }
+.pn-bloque-cab a.pn-enlace-suave { color: var(--ink-muted); }
+.pn-bloque-cab a:hover { text-decoration: underline; }
+.pn-enlace-btn { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; }
+
+/* Botón de ajustes «Filtrar y ordenar»: ícono de 48 × 44 con el número de filtros puestos. */
+.pn-fbtn { position: relative; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 44px; padding: 0; border: 1px solid transparent; border-radius: var(--r-md); background: var(--fill); color: var(--ink); cursor: pointer; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1); }
+.pn-fbtn:hover { background: var(--muted); }
+.pn-fbtn:active { transform: scale(0.97); }
+.pn-fbtn[aria-expanded="true"] { border-color: var(--ink); }
+.pn-fbtn-n { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--bg); }
+/* Contenido de «Filtrar y ordenar»: grupos en tarjeta, casillas y opciones de 50 px. */
+.pn-fcab { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px; }
+.pn-fcab h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.pn-dlink { flex: none; min-height: 44px; margin-right: -8px; padding: 0 10px; border: 0; border-radius: var(--r-md); background: none; color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pn-dlink[aria-disabled="true"] { color: var(--ink-muted); opacity: 0.6; pointer-events: none; }
+.pn-fh { padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.pn-fgrupo { background: var(--card); border: 1px solid transparent; border-radius: var(--r-lg); overflow: hidden; }
+.pn-ck { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 50px; padding: 0 16px; border: 0; border-top: 1px solid var(--border); background: var(--card); color: var(--ink); font: inherit; font-size: 15px; font-weight: 500; text-align: left; cursor: pointer; }
+.pn-ck:first-child { border-top: 0; }
+.pn-ck:hover { background: var(--bg); }
+.pn-ck .pn-ck-n { font-size: 13px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.pn-ck-caja { flex: none; width: 20px; height: 20px; border: 1.5px solid var(--border-strong); border-radius: var(--r-sm); display: inline-flex; align-items: center; justify-content: center; color: var(--accent-ink); transition: background-color 140ms ease, border-color 140ms ease; }
+.pn-ck-caja svg { opacity: 0; transform: scale(0.8); transition: opacity 140ms ease, transform 180ms cubic-bezier(0.23, 1, 0.32, 1); }
+.pn-ck[aria-checked="true"] .pn-ck-caja { background: var(--accent); border-color: var(--accent); }
+.pn-ck[aria-checked="true"] .pn-ck-caja svg { opacity: 1; transform: none; }
+.pn-ck[role="radio"] .pn-ck-caja { border-radius: 999px; }
+.pn-ck[role="radio"][aria-checked="true"] .pn-ck-caja { background: var(--card); border: 6px solid var(--accent); }
+.pn-fdone { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 46px; border: 1px solid var(--accent); border-radius: var(--r-md); background: var(--accent); color: var(--accent-ink); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.pn-fdone:hover { background: var(--accent-hover); }
+/* Resumen de lo filtrado bajo los controles, con «Limpiar». */
+.pn-fsum { display: flex; align-items: center; gap: 8px; min-height: 28px; font-size: 13px; color: var(--ink-muted); }
+.pn-fsum span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-fsum button { flex: none; min-height: 32px; padding: 0 6px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* Línea ámbar (las solicitudes del sitio sin responder, avisos). */
+.pn-linea-aviso { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent); border-radius: var(--r-lg); background: var(--warning-soft); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.pn-linea-aviso > span:first-child { flex: 1; font-size: 14px; font-weight: 600; }
+.pn-linea-aviso > span:last-child { font-size: 13px; font-weight: 600; color: var(--accent); }
+.pn-warnline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--warning); }
+.pn-warnline::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 999px; background: var(--warning); }
+.pn-warnbox { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent); border-radius: var(--r-md); background: var(--warning-soft); color: var(--warning); font-size: 14px; }
+/* «Ya pasó · ¿Cómo te fue?» */
+.pn-ask { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--accent); border-radius: var(--r-lg); background: var(--card); }
+.pn-ask-linea { flex-direction: row; align-items: center; gap: 12px; padding: 10px 10px 10px 14px; }
+/* Botón chico (primario o suave) de 44 px. */
+.pn-sbtn { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1px solid var(--accent); border-radius: var(--r-md); background: var(--accent); color: var(--accent-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 120ms ease; }
+.pn-sbtn:hover { background: var(--accent-hover); }
+.pn-sbtn:active { transform: scale(0.97); }
+.pn-sbtn-suave { background: var(--card); border-color: var(--border-strong); color: var(--ink); }
+.pn-sbtn-suave:hover { background: var(--muted); }
+/* Tres accesos grandes de una ficha (Llamar, WhatsApp, Expediente). */
+.pn-accesos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pn-acceso-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 68px; border: 0; border-radius: var(--r-md); background: var(--muted); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.pn-acceso-btn:hover { background: var(--border); }
+.pn-acceso-btn[aria-disabled="true"] { opacity: 0.45; pointer-events: none; }
+/* Pastilla de estado o de fecha. */
+.pn-pill { align-self: flex-start; display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: var(--muted); color: var(--ink); font-size: 12px; font-weight: 600; }
+.pn-pill-acento { background: var(--accent-soft); color: var(--accent); }
+.pn-pill-error { background: var(--error-soft); color: var(--error); }
+.pn-pill-aviso { background: var(--warning-soft); color: var(--warning); }
+/* Pastilla de lo leído en una línea («Día · Mañana»). */
+.pn-chp { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: var(--card); border: 1px solid transparent; font-size: 13px; }
+.pn-chp i { font-style: normal; color: var(--ink-muted); }
+.pn-chp b { font-weight: 600; }
+/* Tira de 7 días (Agenda y «Mover»). */
+.pn-dstrip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.pn-dpill { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 60px; padding: 8px 0 6px; border: 0; border-radius: var(--r-lg); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; box-shadow: inset 0 0 0 1px var(--border); }
+.pn-dpill:active { transform: scale(0.96); }
+.pn-dpill .pn-dw { font-size: 13px; font-weight: 500; color: var(--ink-muted); text-transform: capitalize; }
+.pn-dpill .pn-dn { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pn-dpill[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+.pn-dpill[aria-pressed="true"] .pn-dw { color: var(--accent-soft); }
+.pn-dpill .pn-dt { display: flex; gap: 3px; height: 5px; }
+.pn-dpill .pn-dt i { width: 5px; height: 5px; border-radius: 999px; background: var(--accent); }
+.pn-dpill .pn-dt i[data-vence] { border-radius: 1px; background: var(--warning); }
+.pn-dpill[aria-pressed="true"] .pn-dt i { background: var(--card); }
+.pn-dpill[data-destino-activo] { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pn-dpill[disabled] { opacity: 0.45; cursor: default; }
+/* Paso de 30 minutos (‹ 11:00 ›). */
+.pn-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--card); }
+.pn-step b { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Campo de una línea con su etiqueta gris encima (boceto). */
+.pn-field { display: flex; flex-direction: column; gap: 6px; }
+.pn-field > span { font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.pn-field input, .pn-field textarea { min-height: 48px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--r-md); background: var(--fill); color: var(--ink); font: inherit; font-size: 16px; }
+.pn-field textarea { padding: 10px 12px; }
+/* Tarjeta de dato (persona, lugar, asunto) dentro de una ficha. */
+.pn-dato { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 10px 10px 14px; background: var(--card); border: 1px solid transparent; border-radius: var(--r-lg); color: var(--ink); font: inherit; text-align: left; }
+a.pn-dato:hover, button.pn-dato:hover { background: var(--bg); }
+button.pn-dato { cursor: pointer; }
+.pn-dato .pn-av { width: 40px; height: 40px; font-size: 13px; }
+/* Cifra en mosaico (Asuntos en curso). */
+.pn-mosaicos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pn-mosaico { display: flex; flex-direction: column; gap: 6px; min-height: 76px; padding: 12px 10px; background: var(--card); border: 1px solid transparent; border-radius: var(--r-lg); color: var(--ink); text-decoration: none; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1); }
+.pn-mosaico:active { transform: scale(0.97); }
+.pn-mosaico b { font-size: 22px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.pn-mosaico span { font-size: 12px; font-weight: 500; color: var(--ink-muted); }
+.pn-mosaico[data-tono="aviso"] { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning) 35%, transparent); }
+.pn-mosaico[data-tono="aviso"] b, .pn-mosaico[data-tono="aviso"] span { color: var(--warning); }
+.pn-kbd-linea { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--ink-muted); }
+
+/* Buscar o crear: iniciales o ícono a la izquierda de cada resultado; «O crea» al pie. */
+.pn-paleta-ini { width: 28px; height: 28px; flex: none; border-radius: var(--r-md); background: var(--muted); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+.pn-paleta-ini-acento { background: var(--accent); color: var(--accent-ink); }
+.pn-paleta-op { min-height: 48px; }
+.pn-paleta-pie { align-items: center; background: var(--bg); }
+.pn-paleta-crea { min-height: 32px; padding: 0 2px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .pn-fbtn, .pn-sbtn, .pn-mosaico, .pn-dpill { transition: none; } .pn-fbtn:active, .pn-sbtn:active, .pn-mosaico:active, .pn-dpill:active { transform: none; } }
+
+/* «Más» del teléfono (boceto): filas de 72 px con ícono, nombre, descripción, número y flecha. */
+.panel-root .pn-mas-fila { display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 12px 16px; color: var(--ink); text-decoration: none; }
+.panel-root .pn-mas-fila:hover { background: var(--muted); }
+.panel-root .pn-mas-fila > svg:last-child { color: var(--ink-muted); }
+.panel-root .pn-mas-ic { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--r-md); background: var(--muted); color: var(--ink); }

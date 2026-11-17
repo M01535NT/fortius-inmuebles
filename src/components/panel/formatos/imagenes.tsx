@@ -26,7 +26,13 @@ export function ElegirImagen({ ranura, documentoId, adjuntos, valor, alElegir, a
       {opciones.length ? (
         <Desplegable etiqueta={r.nombre} valor={elegido} vacio="Sin imagen" opciones={opciones} alElegir={alElegir} />
       ) : <p className="pn-sub" style={{ margin: 0 }}>Todavía no hay {r.tipo === "foto" ? "fotografías" : "croquis"} en este documento. Sube {r.tipo === "foto" ? "una" : "uno"} abajo.</p>}
-      {elegido ? <Miniatura id={elegido} texto={opciones.find((o) => o.valor === elegido)?.etiqueta ?? r.nombre} /> : null}
+      {elegido ? (
+        <>
+          <Miniatura id={elegido} texto={opciones.find((o) => o.valor === elegido)?.etiqueta ?? r.nombre} />
+          {/* Saca la imagen de su espacio; la imagen sigue en el documento para elegirla otra vez. Se guarda con Deshacer. */}
+          <div><Boton variante="texto" onClick={() => alElegir("")}>Quitar de la hoja</Boton></div>
+        </>
+      ) : null}
       <SubirImagen documentoId={documentoId} tipo={r.tipo} alSubir={(a) => { alSubir(a); alElegir(a.id); }} />
     </div>
   );
@@ -36,6 +42,31 @@ export function Miniatura({ id, texto }: { id: string; texto: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element -- imagen privada servida por la API con sesión; next/image no aplica
     <img src={rutaAdjunto(id)} alt={texto} style={{ width: "100%", maxHeight: 180, objectFit: "contain", border: "1px solid var(--border)", borderRadius: "var(--r-md)", background: "var(--muted)" }} />
+  );
+}
+
+/**
+ * Las imágenes subidas al documento, con «Quitar» (recuperable, con Deshacer). Si la hoja la usa, al quitarla también sale de su espacio.
+ */
+export function ImagenesDelDocumento({ adjuntos, enUso, ocupado, alQuitar }: {
+  adjuntos: readonly Adjunto[]; enUso: ReadonlySet<string>; ocupado: boolean; alQuitar: (a: Adjunto) => void;
+}) {
+  if (!adjuntos.length) return null;
+  const tipo = (k: Adjunto["kind"]) => TIPOS_ADJUNTO.find((t) => t.valor === k)?.etiqueta ?? "Imagen";
+  return (
+    <ul className="pn-captura-imagenes">
+      {adjuntos.map((a) => (
+        <li key={a.id}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- imagen privada servida por la API con sesión; next/image no aplica */}
+          <img src={rutaAdjunto(a.id)} alt="" loading="lazy" />
+          <span>
+            <strong>{a.caption}</strong>
+            <span>{[tipo(a.kind), a.observed_on, enUso.has(a.id) ? "en la hoja" : null].filter(Boolean).join(" · ")}</span>
+          </span>
+          <Boton variante="texto" deshabilitado={ocupado} onClick={() => alQuitar(a)} aria-label={`Quitar la imagen ${a.caption}`}>Quitar</Boton>
+        </li>
+      ))}
+    </ul>
   );
 }
 

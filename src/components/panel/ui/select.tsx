@@ -25,8 +25,8 @@ export function Seleccion({ id, valor, opciones, alElegir, vacio, etiquetaAccesi
         aria-label={etiquetaAccesible}
         aria-describedby={describedBy}
         className={cn(
-          "group flex min-h-11 w-full items-center justify-between gap-2 rounded-[var(--r-md)] border border-[var(--border-strong)] bg-[var(--card)] px-3 text-left text-base text-[var(--ink)]",
-          "transition-[color,background-color,border-color] duration-150 hover:border-[var(--ink-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]",
+          "group flex min-h-11 w-full items-center justify-between gap-2 rounded-[var(--r-md)] border border-transparent bg-[var(--fill)] px-3 text-left text-base text-[var(--ink)]",
+          "transition-[color,background-color,border-color] duration-150 hover:bg-[var(--muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]",
           "data-[placeholder]:text-[var(--ink-muted)]",
         )}
       >

@@ -5,14 +5,19 @@ import { Desplegable } from "@/components/panel/kit/desplegable";
 import {
   agregarFila, apagada, cambiarCelda, filaInfo, filasDe, puedeAgregar, quitarFila, textoAgregar, type Tabla,
 } from "@/lib/panel/datos/formatos-tablas";
+import { unirDictado } from "@/lib/panel/datos/formatos-dictado";
+
+import { Dictar } from "./dictado";
 
 /**
  * Tabla con filas de un formato: una tarjeta por fila con sus columnas. Las filas fijas llevan su nombre y no se quitan;
  * las opcionales («Otro cargo») y las libres se agregan y quitan. Las celdas de imagen se eligen entre `fotos`.
  */
-export function EditorTabla({ tabla, valor, alCambiar, fotos = [] }: {
+export function EditorTabla({ tabla, valor, alCambiar, fotos = [], alFallarDictado }: {
   tabla: Tabla; valor: unknown; alCambiar: (filas: unknown) => void;
   fotos?: readonly { valor: string; etiqueta: string }[];
+  /** Con él, las celdas de texto se pueden dictar (donde el navegador lo permite). */
+  alFallarDictado?: (mensaje: string) => void;
 }) {
   const filas = filasDe(tabla, valor);
   return (
@@ -37,15 +42,20 @@ export function EditorTabla({ tabla, valor, alCambiar, fotos = [] }: {
                   <div key={c.key} className="pn-campo">
                     <label htmlFor={`t-${i}-${c.key}`}>{c.label}</label>
                     <textarea id={`t-${i}-${c.key}`} rows={3} value={texto} onChange={(e) => cambiar(e.target.value)} />
+                    {alFallarDictado ? <div><Dictar etiqueta={`${c.label} de ${nombre}`} alDictar={(t) => cambiar(unirDictado(texto, t))} alFallar={alFallarDictado} /></div> : null}
                   </div>
                 );
               }
               const apagado = apagada(c, f);
+              const dictable = c.tipo === "texto" && !apagado && alFallarDictado;
               return (
-                <Campo key={c.key} etiqueta={c.label} type={c.tipo === "fecha" ? "date" : "text"} dinero={c.tipo === "dinero"}
-                  inputMode={c.tipo === "numero" || c.tipo === "dinero" ? "decimal" : undefined} disabled={apagado}
-                  ayuda={apagado ? "No aplica: sin importe." : undefined}
-                  value={c.tipo === "dinero" && texto ? formatoMonto(texto) : texto} autoComplete="off" onChange={(e) => cambiar(e.target.value)} />
+                <div key={c.key} style={{ display: "grid", gap: 4 }}>
+                <Campo etiqueta={c.label} type={c.tipo === "fecha" ? "date" : "text"} dinero={c.tipo === "dinero"}
+                    inputMode={c.tipo === "numero" || c.tipo === "dinero" ? "decimal" : undefined} disabled={apagado}
+                    ayuda={apagado ? "No aplica: sin importe." : undefined}
+                    value={c.tipo === "dinero" && texto ? formatoMonto(texto) : texto} autoComplete="off" onChange={(e) => cambiar(e.target.value)} />
+                  {dictable ? <div><Dictar etiqueta={`${c.label} de ${nombre}`} alDictar={(t) => cambiar(unirDictado(texto, t))} alFallar={alFallarDictado} /></div> : null}
+                </div>
               );
             })}
             {quitable ? <div><Boton variante="texto" onClick={() => alCambiar(quitarFila(tabla, filas, i))}>Quitar</Boton></div> : null}

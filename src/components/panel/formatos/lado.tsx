@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+import { useAvisos } from "@/components/panel/kit/avisos";
 import { Boton } from "@/components/panel/kit/boton";
 import { formatoById, type FormatoField } from "@/lib/formatos/catalog";
 import { datoParaCelda, llenarDesdeDatos, valorPara, type DatosGuardados } from "@/lib/formatos/datos-expediente";
 import { aTexto, diaLargo } from "@/lib/panel/calendario";
 import { textoDe } from "@/lib/panel/datos/formatos";
 import {
-  faltaParaFirmado, leerArchivosDelCliente, leerCopiasFirmadas, rutaArchivoDelCliente, rutaCopiaFirmada, subirFirmado,
+  devolver, faltaParaFirmado, leerArchivosDelCliente, leerCopiasFirmadas, quitarFirmado, restaurarFirmado, rutaArchivoDelCliente, rutaCopiaFirmada, subirFirmado,
   type ArchivoDelCliente, type CopiaFirmada,
 } from "@/lib/panel/datos/formatos-adjuntos";
 import type { EmisionFormato } from "@/lib/panel/datos/formatos-acciones";
@@ -100,12 +101,17 @@ export function DocumentosDelCliente({ expedienteId }: { expedienteId: string })
   );
 }
 
-/** Un PDF emitido: se descarga y se le sube la copia firmada (un PDF de hasta 20 MB), que queda junto a él. */
+/**
+ * Un PDF emitido: se descarga y se le sube la copia firmada (un PDF de hasta 20 MB), que queda junto a él.
+ * Una copia equivocada se quita (recuperable: el archivo se conserva) con Deshacer.
+ */
 export function PdfEmitido({ emision, actual, alDescargar, alAvisar }: {
   emision: EmisionFormato; actual: boolean; alDescargar: () => void; alAvisar: (t: string) => void;
 }) {
   const [copias, setCopias] = useState<CopiaFirmada[] | null>(null);
   const [subiendo, setSubiendo] = useState(false);
+  const [quitando, setQuitando] = useState(false);
+  const { avisar } = useAvisos();
   const entrada = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const c = new AbortController();
@@ -124,13 +130,32 @@ export function PdfEmitido({ emision, actual, alDescargar, alAvisar }: {
       alAvisar(e instanceof Error ? e.message : "No se subió. Vuelve a intentarlo.");
     } finally { setSubiendo(false); }
   };
+  const quitar = async (copia: CopiaFirmada) => {
+    setQuitando(true);
+    try {
+      await quitarFirmado(copia.id);
+      setCopias((xs) => (xs ?? []).filter((x) => x.id !== copia.id));
+      avisar("Copia firmada quitada", { etiqueta: "Deshacer", alAccionar: () => {
+        restaurarFirmado(copia.id).then((r) => { setCopias((xs) => devolver(xs ?? [], { ...copia, ...r }, true)); avisar("Se deshizo"); },
+          (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer."));
+      } });
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : "No se pudo quitar la copia firmada.");
+    } finally { setQuitando(false); }
+  };
+  const copia = copias?.[0];
   return (
     <li style={{ display: "grid", gap: 2, padding: "4px 0", borderBottom: "1px solid var(--border)" }}>
       <button type="button" onClick={alDescargar}>{fecha(emision.created_at)}{actual ? " · versión actual" : ""}</button>
-      {copias?.length ? (
-        <a href={rutaCopiaFirmada(copias[0].id)} target="_blank" rel="noopener noreferrer" style={{ display: "block", minHeight: 44, padding: "10px 8px", color: "var(--accent)", fontSize: 14 }}>
-          Copia firmada del {fecha(copias[0].created_at)}{copias.length > 1 ? ` (y ${copias.length - 1} más)` : ""}
-        </a>
+      {copia && copias ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+          <a href={rutaCopiaFirmada(copia.id)} target="_blank" rel="noopener noreferrer" style={{ display: "block", minHeight: 44, padding: "10px 8px", color: "var(--accent)", fontSize: 14 }}>
+            Copia firmada del {fecha(copia.created_at)}{copias.length > 1 ? ` (y ${copias.length - 1} más)` : ""}
+          </a>
+          <Boton variante="texto" deshabilitado={quitando || subiendo} onClick={() => void quitar(copia)} aria-label={`Quitar la copia firmada del ${fecha(copia.created_at)}`}>
+            {quitando ? "Quitando…" : "Quitar"}
+          </Boton>
+        </div>
       ) : null}
       <div style={{ paddingLeft: 0 }}>
         <Boton variante="texto" deshabilitado={subiendo || copias === null} onClick={() => entrada.current?.click()}>
