@@ -257,7 +257,6 @@ No pongo fechas porque no las puedo cumplir con honestidad: depende de cuántas 
 **Pendiente de seguridad, aparte del panel nuevo:**
 
 6. **Activar la entrada en dos pasos** de tu cuenta de director en fortiusinmuebles.com/admin. Es lo único con riesgo real mientras no esté.
-7. **Autorizar una actualización de seguridad.** El programa con el que está hecho el sitio (Next.js) publicó un aviso de seguridad de nivel moderado y recomienda pasar a su versión 16.4.6. Por lo revisado, el sitio no usa la función afectada, así que no hay urgencia, pero conviene hacerlo. Se hace en una rama aparte, se prueba y solo se publica con tu visto bueno.
 
 ## 5. Cómo se trabaja
 
