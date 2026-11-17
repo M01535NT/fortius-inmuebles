@@ -109,3 +109,10 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Preguntas frecuentes:** se abren con un toque, agrupadas como antes.
 - **Avisos, Privacidad y Términos:** documentos en filas con «Consultar» y «Descargar PDF»; el texto largo se lee a 720 px de ancho, con índice al lado en Términos.
 - Las piezas anteriores de estas páginas quedan en el código sin uso hasta la etapa 7.
+
+## Teléfono y accesibilidad (17/11/2026)
+
+- **Medida mínima:** en el teléfono todo lo que se toca mide al menos 44 px de alto, también los filtros dentro de la frase del inventario.
+- **Textos largos:** en las páginas de lectura una palabra o una línea de firma muy larga se parte para no ensanchar la página.
+- **Efectos al bajar:** solo en el inicio, como en el boceto. Las demás páginas no llevan efectos de entrada.
+- **Movimiento reducido:** una regla general apaga transiciones y animaciones; los efectos del inicio y los videos se quedan quietos.

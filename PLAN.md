@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 5 construidas (17/11/2026). Vender y Contacto están guardados en la rama; las demás páginas ya tienen el diseño nuevo y se revisaron en el navegador local, sin guardar todavía. Falta tu visto bueno a la etapa 0. Sigue la etapa 6 (movimiento y teléfono) cuando lo indiques.
+Etapas 1 a 6 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`; la 6 falta guardarla. Falta tu visto bueno a la etapa 0. Sigue la etapa 7 (limpieza) cuando lo indiques.
 
 ## Etapas
 
@@ -84,6 +84,16 @@ Etapas 1 a 5 construidas (17/11/2026). Vender y Contacto están guardados en la 
 - [ ] Probar el envío de los dos formularios (no se mandaron para no crear contactos).
 - [x] Comprar, Herramientas (con hipoteca y gastos de cierre), Opinión de valor, Nosotros, Preguntas frecuentes, Blog (índice y artículo), Avisos, Privacidad y Términos con el diseño nuevo.
 - [ ] Dar a las calculadoras de hipoteca y gastos de cierre el aspecto nuevo por dentro (hoy solo toman colores y letra).
+
+## Etapa 6, paso a paso
+
+- [x] Revisión de las 16 páginas a 375 px: nada se sale de la pantalla, todo lo que se toca mide 44 px, todo control tiene nombre.
+- [x] Corregido: los filtros de la frase y las vistas del inventario medían 35 px en el teléfono; las líneas de firma del aviso de privacidad ensanchaban la página.
+- [x] Teclado: el menú abre y cierra con Esc y regresa el foco; las listas de la frase también. Anillo de foco en todo el sitio.
+- [x] Contraste en claro y oscuro sin fallas en el texto.
+- [x] Movimiento reducido: sin efectos al bajar, videos quietos en su póster y transiciones apagadas.
+- [ ] Recorrerlo en tu teléfono (la revisión fue en el navegador del agente con tamaño de teléfono).
+- [ ] El enlace a Banxico de la calculadora de hipoteca mide 18 px de alto; se arregla con el aspecto nuevo de las calculadoras.
 
 ## Lo que te toca a ti
 

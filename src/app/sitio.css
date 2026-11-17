@@ -423,7 +423,7 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 .s-pregunta-respuesta p { max-width: 62ch; margin: 0; color: var(--s-ink-muted); line-height: 1.6; }
 
 /* Texto largo (avisos, términos, artículos) */
-.s-prosa { max-width: 720px; font-size: 18px; line-height: 1.7; }
+.s-prosa { max-width: 720px; font-size: 18px; line-height: 1.7; overflow-wrap: anywhere; }
 .s-prosa :is(p, ul, ol, dl) { margin-bottom: 0; }
 .s-prosa > * + *, .s-prosa section > * + * { margin-top: 1em; }
 .s-prosa > section:first-child > h2:first-child { margin-top: 0; }
@@ -435,6 +435,12 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 
 @media (max-width: 639px) {
   .s-cabeza { padding-top: var(--s-9); padding-bottom: var(--s-8); }
+}
+
+/* Teléfono (etapa 6): todo lo que se toca mide al menos 44 px de alto. */
+@media (max-width: 767px) {
+  .s-frase-boton { min-height: 44px; }
+  .s-pestanas-chicas .s-pestana { min-height: 44px; }
 }
 
 /* Logo */
