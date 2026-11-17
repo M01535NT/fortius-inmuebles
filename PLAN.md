@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1, 2 y 3 construidas (17/11/2026). Inventario y Ficha ya se vieron en el navegador local con el único inmueble de prueba. Falta tu visto bueno a la etapa 0. Sigue la etapa 4 (Inicio) cuando lo indiques.
+Etapas 1 a 4 construidas (17/11/2026). Las etapas 1 a 3 y los videos nuevos ya están guardados en la rama; el Inicio está construido y revisado en el navegador local, sin guardar todavía. Falta tu visto bueno a la etapa 0. Sigue la etapa 5 (demás páginas, empezando por el boceto de Vender y Contacto) cuando lo indiques.
 
 ## Etapas
 
@@ -61,13 +61,25 @@ Etapas 1, 2 y 3 construidas (17/11/2026). Inventario y Ficha ya se vieron en el 
 - [x] Preguntas, asesor con días de visita, propiedades parecidas y barra flotante.
 - [ ] Verla con un inmueble con lugares cercanos, video, 360°, sin crédito y en renta (hoy solo hay uno, de venta con crédito).
 
+## Etapa 4, paso a paso
+
+- [x] Portada por asuntos: seis asuntos; al elegir uno cambian el fondo, el texto y el botón.
+- [x] Quiénes somos con el video que crece al bajar y sus tres columnas.
+- [x] En el mercado ahora: tira de propiedades publicadas que se desliza de lado.
+- [x] Haz números: mensualidad al mover el precio.
+- [x] Zonas: las cuatro ciudades se abren al pasar el cursor o al tocarlas.
+- [x] Guías: los cuatro artículos más recientes del blog.
+- [x] Cierre «Cuéntanos tu asunto» con qué necesitas, nombre y teléfono.
+- [x] Tres videos nuevos (casa, plaza, nave) convertidos a WebM ligero, con respaldo MP4 y póster.
+- [ ] Probar el envío del cierre (no se mandó para no crear un contacto).
+
 ## Lo que te toca a ti
 
-- Confirmar los nombres de los asuntos de la portada.
+- Confirmar los nombres de los asuntos de la portada (hoy: Vender, Comprar, Rentar, Saber cuánto vale, Poner papeles en orden y Otro asunto).
 - Dar la foto de cada asesor.
 - Capturar en el panel los lugares cercanos de cada inmueble.
 - Decidir si «Qué hay alrededor» necesita los grupos iglesias y hoteles: hoy el panel no los tiene.
-- Aprobar el reemplazo de las pruebas del diseño anterior. Con la etapa 1 ya no pasan: la que pide la letra anterior y las que buscan el botón «Cambiar a tema oscuro» (ahora es un interruptor «Tema oscuro»). Con la etapa 2, las dos pruebas del inventario anterior (filtros en una fila y lectura de la dirección) y las de comparar en el navegador. Con la etapa 3, las del navegador que buscan la galería anterior de la ficha. Las de la galería, la tarjeta de visita y la barra del teléfono anteriores siguen pasando porque esas piezas siguen en el código hasta la etapa 7.
+- Aprobar el reemplazo de las pruebas del diseño anterior. Con la etapa 1 ya no pasan: la que pide la letra anterior y las que buscan el botón «Cambiar a tema oscuro» (ahora es un interruptor «Tema oscuro»). Con la etapa 2, las dos pruebas del inventario anterior (filtros en una fila y lectura de la dirección) y las de comparar en el navegador. Con la etapa 3, las del navegador que buscan la galería anterior de la ficha. Con la etapa 4, las del inicio anterior (portada con escenas, método, expediente, «Comprar también empieza por revisar» y el cierre «¿Hablamos de tu propiedad?»). Las de la galería, la tarjeta de visita y la barra del teléfono anteriores siguen pasando porque esas piezas siguen en el código hasta la etapa 7.
 
 ## Al integrar
 

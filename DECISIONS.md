@@ -68,3 +68,15 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Asesor:** iniciales mientras no haya foto. Cinco días hábiles para proponer la visita; el día viaja en el mensaje.
 - **Barra flotante:** aparece al pasar el marco y se esconde junto al asesor y en el pie. Lleva el precio, WhatsApp y «Solicitar visita», que abre el formulario del asesor. Reemplaza la barra de contacto que solo salía en el teléfono.
 - **Preguntas:** cuatro generales; la del crédito y la de los gastos cambian según el inmueble sea de venta o renta y admita o no crédito.
+
+## Inicio (17/11/2026)
+
+- **Portada:** seis asuntos. Vender, Comprar y Rentar llevan video; Saber cuánto vale, Poner papeles en orden y Otro asunto llevan foto. Al elegir un asunto cambian el fondo, el texto y el botón. Los que no tienen página propia bajan al cierre con la frase ya escrita.
+- **Videos:** solo se descarga el del asunto elegido y solo mientras se ve. Con movimiento reducido o ahorro de datos se queda el póster.
+- **Formato de los videos:** WebM ligero (unos 1.4 MB cada uno), sin audio, de 1280 px de ancho. Lleva un MP4 de respaldo del mismo peso para iPhone anteriores a iOS 17.4, que no reproducen WebM. Los originales no se guardan en el repositorio.
+- **Qué video va dónde:** la casa es el fondo de Vender; la plaza comercial, el de Rentar; la nave industrial es el video que crece en «Quiénes somos», porque muestra la parte del negocio que la portada no enseña. Comprar conserva el recorrido por el interior de una casa.
+- Ya no se usan en el inicio el video de portada con escenas ni el de la sala frente al mar; sus archivos se retiran en la etapa 7.
+- **Efectos ligados al desplazamiento:** el video de «Quiénes somos» crece hasta el ancho completo y la tira de propiedades se desliza de lado. En el teléfono y con movimiento reducido no hay efecto: el video ya está abierto y la tira se recorre con el dedo.
+- **En el mercado ahora:** hasta ocho propiedades publicadas, primero las destacadas.
+- **Haz números:** 20 % de enganche, 20 años y la tasa de referencia de 10.5 %, la misma de la ficha.
+- **Cierre:** llega al panel como contacto, con lo que escribió en «¿Qué necesitas?» como mensaje. Es la única invitación del inicio; el pie no repite la suya aquí.

@@ -1,48 +1,56 @@
 import type { Metadata } from "next";
-import { NocturnoHero } from "@/components/home/nocturno-hero";
-import { NocturnoHacemos } from "@/components/home/nocturno-hacemos";
-import { NocturnoExpediente } from "@/components/home/nocturno-expediente";
-import { NocturnoMetodo } from "@/components/home/nocturno-metodo";
-import { NocturnoDestacadas } from "@/components/home/nocturno-sections";
-import { NocturnoCierre, NocturnoComprar, NocturnoEquipo, NocturnoRecursos, NocturnoTestimonios } from "@/components/home/nocturno-extras";
-import { entregablesDe, etapasDe, pilaresDe } from "@/components/home/nocturno-content";
-import { Respuestas } from "@/components/home/respuestas";
-import { homeText } from "@/data/home-copy";
-import { getPublicContent, getPublicSettings } from "@/lib/backend/public";
+import Link from "next/link";
+
+import { CalculadoraInicio } from "@/components/sitio/inicio/calculadora-inicio";
+import { CierreAsunto } from "@/components/sitio/inicio/cierre-asunto";
+import { PortadaAsuntos } from "@/components/sitio/inicio/portada-asuntos";
+import { QuienesSomos } from "@/components/sitio/inicio/quienes-somos";
+import { TiraPropiedades } from "@/components/sitio/inicio/tira-propiedades";
+import { Zonas } from "@/components/sitio/inicio/zonas";
+import { FlechaDerecha } from "@/components/sitio/iconos";
+import { FilaLinea, ListaLineas } from "@/components/sitio/lineas";
+import { getBlogPosts } from "@/lib/blog";
+import { getPublicSettings } from "@/lib/backend/public";
+import { getPropiedades } from "@/lib/inventario";
 import { publicContact } from "@/lib/public-contact";
-import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
-import { getPublishedTeam } from "@/lib/backend/public-team";
-import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
-import "./inicio.css";
+import "./inicio-sitio.css";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 /*
-  Inicio (30/10/2026): cada sección responde una pregunta, en este orden: qué hacemos,
-  cómo te ayudamos a vender (método), lo que recibes (expediente), cómo te ayudamos a
-  comprar (buscador), qué tenemos (baraja), quién te atiende, herramientas y preguntas;
-  cierra una sola invitación a hablar (12/11/2026: el pie no repite la suya aquí). La
-  portada, «Comprar» y el cierre llevan video.
+  Inicio · Fortius II (17/11/2026), según el lienzo «Fortius desde cero»: portada por asuntos,
+  quiénes somos con el video que crece, tira de propiedades, calculadora, zonas, guías y el
+  cierre «Cuéntanos tu asunto». Ya no lleva el método de cinco etapas ni el expediente.
 */
 export default async function HomePage() {
-  const [content, propiedades, destacadas, team, settings] = await Promise.all([
-    getPublicContent(), getPropiedades(), getFeaturedProperties(), getPublishedTeam().catch(() => []), getPublicSettings().catch(() => null),
+  const [propiedades, guias, settings] = await Promise.all([
+    getPropiedades().catch(() => []),
+    getBlogPosts().catch(() => []),
+    getPublicSettings().catch(() => null),
   ]);
-  const contact = publicContact(settings, "Hola, quiero conversar sobre una propiedad con Fortius.");
-  const entregables = entregablesDe(content);
+  const contact = publicContact(settings, "Hola, quiero contarles mi asunto.");
+  const enMercado = propiedades
+    .filter((p) => p.demo || p.estado === "disponible")
+    .sort((a, b) => Number(Boolean(b.destacada)) - Number(Boolean(a.destacada)))
+    .slice(0, 8);
+
   return (
-    <main className="nocturno-home">
-      <NocturnoHero />
-      <NocturnoHacemos />
-      <NocturnoMetodo title={homeText(content, "metodoTitulo")} stages={etapasDe(content)} />
-      <NocturnoExpediente intro={entregables.intro} pillars={pilaresDe(content)} documents={entregables.documents} />
-      <NocturnoComprar properties={propiedades} />
-      <NocturnoDestacadas properties={destacadas} />
-      <NocturnoTestimonios items={content.testimonios ?? []} />
-      <NocturnoEquipo team={team.length ? team : [PERFIL_ILUSTRATIVO]} ilustrativo={!team.length} />
-      <NocturnoRecursos />
-      <div className="nx-faq"><Respuestas content={content} /></div>
-      <NocturnoCierre whatsapp={contact.whatsapp} />
+    <main className="ini">
+      <PortadaAsuntos whatsapp={contact.whatsapp || undefined} />
+      <QuienesSomos />
+      <TiraPropiedades propiedades={enMercado} />
+      <CalculadoraInicio />
+      <Zonas />
+      {guias.length > 0 && <section className="s-contenedor gu" aria-labelledby="gu-titulo">
+        <div className="gu-cabeza">
+          <h2 id="gu-titulo" className="s-h2">Guías para decidir</h2>
+          <Link href="/blog" className="s-enlace">Ver todas las guías<FlechaDerecha /></Link>
+        </div>
+        <ListaLineas grande fuerte className="gu-lista">
+          {guias.slice(0, 4).map((g) => <FilaLinea key={g.slug} href={`/blog/${g.slug}`} titulo={g.titulo} />)}
+        </ListaLineas>
+      </section>}
+      <CierreAsunto whatsapp={contact.whatsapp || undefined} />
     </main>
   );
 }
