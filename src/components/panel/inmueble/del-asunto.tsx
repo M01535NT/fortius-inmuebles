@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
@@ -10,6 +10,7 @@ import {
 } from "@/lib/panel/inmuebles/api";
 
 import { Pildora } from "../asunto/pildora";
+import { useRegresoDeVentana } from "../asunto/ventana";
 import { FichaInmueble } from "./ficha";
 
 /**
@@ -22,6 +23,9 @@ export function InmueblesDelAsunto({ a, recargar, nombreDe }: { a: Asunto; recar
   const [ocupado, setOcupado] = useState(false);
   const solo = a.inmuebles.length === 1 ? a.inmuebles[0].id : null;
   const ver = abierto ?? solo;
+  // De la ficha de un local a la lista de locales: lo hace la flecha ← de la ventana.
+  const aLaLista = useCallback(() => setAbierto(null), []);
+  const enVentana = useRegresoDeVentana(Boolean(abierto) && !solo, aLaLista, `los ${a.inmuebles.length} inmuebles`);
 
   const hacer = async (accion: () => Promise<unknown>, aviso: string) => {
     setOcupado(true);
@@ -44,8 +48,8 @@ export function InmueblesDelAsunto({ a, recargar, nombreDe }: { a: Asunto; recar
   if (ver) {
     return (
       <div className="as-form">
-        {!solo ? (
-          <button type="button" className="as-btn as-gho as-atras" onClick={() => setAbierto(null)}>
+        {!solo && !enVentana ? (
+          <button type="button" className="as-btn as-gho as-atras" onClick={aLaLista}>
             <Icono nombre="at" tamano={16} />Los {a.inmuebles.length} inmuebles
           </button>
         ) : null}

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useId, useRef, useState } from "react";
 
 import { Icono } from "@/components/panel/icons";
@@ -227,12 +228,13 @@ function Contrato({ a, hacer }: { a: Asunto; hacer: Hacer }) {
           <Icono nombre={firmado ? "ok" : "file"} tamano={18} />
           <span className="as-ren-c">
             <b>{doc?.nombre ?? "Sin contrato todavía"}</b>
-            <span>{firmado ? "Firmado" : doc ? "Sin firmar" : "Carga el firmado. Hacerlo aquí por preguntas llega con los formatos."}</span>
+            <span>{firmado ? "Firmado" : doc ? "Sin firmar" : "Hazlo aquí por preguntas o carga el firmado."}</span>
           </span>
           <DropdownMenu>
             <DropdownMenuTrigger className="as-btn">{doc ? "Opciones" : "Cargar"}<Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
             <DropdownMenuContent className="min-w-56">
               {doc?.archivos[0] ? <DropdownMenuItem asChild><a href={urlArchivo(a.id, doc.archivos[0].id)} target="_blank" rel="noopener noreferrer"><Icono nombre="ojo" tamano={16} />Ver</a></DropdownMenuItem> : null}
+              <DropdownMenuItem asChild><Link href={`/panel/herramientas/formatos?asunto=${a.id}&ver=honorarios`}><Icono nombre="lapiz" tamano={16} />Hacer el contrato aquí</Link></DropdownMenuItem>
               <DropdownMenuItem onSelect={() => archivo.current?.click()}><Icono nombre="subir" tamano={16} />Cargar el contrato firmado</DropdownMenuItem>
               {doc && !firmado ? (
                 <DropdownMenuItem onSelect={() => void hacer(() => cambiar(a.id, "documentos", { id: doc.id, version: doc.version, paso: "firmado", estado: "recibido" }), "Contrato firmado")}>

@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { Gesto, Icono } from "@/components/panel/icons";
@@ -32,6 +32,8 @@ export function useEmpezarFormato() {
   const router = useRouter();
   const ctx = useAsuntoDeLaCuenta();
   const { avisar } = useAvisos();
+  // Si se llegó desde un apartado del asunto (?ver=honorarios), al cerrar se regresa a ese apartado.
+  const apartado = useSearchParams().get("ver");
   const [empezando, setEmpezando] = useState<string | null>(null);
   async function empezar(tipo: string) {
     if (empezando) return;
@@ -39,7 +41,7 @@ export function useEmpezarFormato() {
     try {
       const asunto = ctx?.asunto ?? null;
       const id = await empezarTrabajo({ clase: "formato", tipo, asunto_id: asunto?.id ?? null });
-      const volver = asunto ? `/panel/asuntos?ver=${asunto.id}` : "/panel/herramientas";
+      const volver = asunto ? `/panel/asuntos/${asunto.id}${apartado && /^[a-z_]{1,20}$/.test(apartado) ? `?ver=${apartado}` : ""}` : "/panel/herramientas";
       router.push(`/panel/documento/${id}?volver=${encodeURIComponent(volver)}`);
     } catch (e) {
       avisar(e instanceof Error ? e.message : "No se pudo empezar");

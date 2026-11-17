@@ -174,7 +174,7 @@ La vista se puede cambiar después sin perder lo capturado. Un apartado propio s
 
 Cuando el cliente pide saber cómo va su asunto, el informe se hace desde el mismo asunto: «Nuevo» → «Informe para el cliente».
 
-- **Se arma solo con lo que el asunto ya tiene,** con la hoja a la vista, igual que un formato. El asesor no vuelve a capturar nada.
+- **Se arma solo con lo que el asunto ya tiene,** con la hoja a la vista, igual que un formato, y con el membrete de Fortius. El asesor no vuelve a capturar nada.
 - **Para quién:** se elige a una o varias personas del asunto.
 - **Qué lleva,** en una hoja tamaño carta con el encabezado de Fortius, el número de informe, la fecha, el nombre del asunto y su folio:
 
@@ -187,11 +187,12 @@ Cuando el cliente pide saber cómo va su asunto, el informe se hace desde el mis
 | **Actividad del inmueble** | Solo si se comercializa: cuántas personas preguntaron, cuántas visitas hubo y qué ofertas llegaron, por cada inmueble |
 | **Dinero** | Lo acordado, lo cobrado y lo que falta, y los gastos de terceros |
 
-- **Cada parte se enciende o se apaga** antes de mandarlo. Una parte sin contenido no sale.
+- **Cada parte se enciende o se apaga** antes de guardarlo, y de cada parte se pueden quitar renglones. Una parte sin contenido no sale. El dinero empieza apagado.
 - **Nunca lleva** notas internas, decisiones internas, el análisis de la opinión jurídica ni los nombres o teléfonos de los interesados.
-- **Sale en PDF o como mensaje para WhatsApp.** No se manda solo: lo envía el asesor.
+- **Primero se guarda;** después se descarga en PDF o se manda como mensaje por WhatsApp. No se manda solo: lo envía el asesor.
 - **Queda guardado** en los Documentos del asunto, en el grupo «Informes», con su número, y anotado en el Historial. Un informe ya mandado no cambia; el siguiente es uno nuevo.
-- **Se puede repetir:** cada semana, cada 15 días o cada mes. El asunto crea la tarea «Mandar el informe» para ese día y aparece en Inicio; al mandarlo, nace la del siguiente.
+- **Se puede repetir:** cada semana, cada 15 días o cada mes. Al guardar un informe nace la tarea «Mandar el informe» para la fecha siguiente y aparece en Inicio ese día; al guardar el siguiente, esa tarea queda hecha y nace otra.
+- Es distinto del **Reporte de comercialización al propietario**, que es un formato por preguntas con el detalle de publicidad y canales. El informe sirve para cualquier asunto.
 
 ### Cerrar un asunto
 
@@ -355,9 +356,10 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 
 ### Las ventanas
 
-Los apartados de un asunto, la ficha de un inmueble, las herramientas y las guías de la Biblioteca se abren en una ventana, sin perder de vista dónde se estaba.
+Los apartados de un asunto y la ficha de un inmueble se abren en una ventana, sin perder de vista dónde se estaba.
 
-- **Regresar:** toda ventana tiene una flecha ← que regresa a la ventana anterior: de la ficha de un local a la lista de locales, de un contrato al apartado de Honorarios, de una herramienta a la lista de herramientas. Si no hay ventana anterior, la flecha cierra la ventana y deja a la vista el asunto o la sección de donde se abrió.
+- **Regresar:** toda ventana tiene una flecha ← que regresa a la ventana anterior: de la ficha de un local a la lista de locales, o de Honorarios a la Opinión jurídica desde la que se llegó. Si no hay ventana anterior, la flecha cierra la ventana y deja a la vista el asunto o la sección de donde se abrió.
+- **Lo que se abre aparte regresa a su lugar:** un formato, una herramienta o un informe que se abre desde un asunto regresa a ese asunto al cerrarlo. El contrato que se hace desde Honorarios regresa a Honorarios.
 - **Dónde se abre:** un botón en la cabecera de la ventana abre una lista con cuatro opciones:
 
 | Opción | Cómo se ve |

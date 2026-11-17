@@ -34,7 +34,7 @@ Qué hay hoy, qué falta para terminar y en qué orden. Cómo debe funcionar el 
 - Antes de empezar se comprobó que lo que ya existe está sano: la revisión del código no marca errores, las 2,276 pruebas automáticas pasan y el sitio se arma completo sin fallas.
 - Ese punto quedó marcado en el repositorio con el nombre `inicio-panel-por-asuntos`. Si algo sale mal durante la construcción, se puede comparar contra él o volver a él.
 
-**En una frase: el diseño está terminado y aprobado; las etapas 0 a 8 están aprobadas; la etapa 9, Equipo, está construida y espera tu aprobación.**
+**En una frase: el diseño está terminado y aprobado; las etapas 0 a 8 están aprobadas; la etapa 9, Equipo, y las dos primeras funciones de la etapa 10 (ventanas e informes para el cliente) están construidas y esperan tu aprobación.**
 
 ## 2. Las etapas
 
@@ -190,7 +190,7 @@ Una etapa se da por buena cuando todo lo de su lista se puede hacer en el panel,
 Las ventanas:
 
 - [ ] En el asunto de la plaza, de la ficha de un local regresas con la flecha a la lista de locales.
-- [ ] De un contrato regresas al apartado de Honorarios; de una herramienta, a la lista de herramientas.
+- [ ] Desde Honorarios haces el contrato y, al cerrarlo, regresas a Honorarios. De la Opinión jurídica pasas a Honorarios y la flecha te regresa a la Opinión.
 - [ ] Si no hay ventana anterior, la flecha cierra y quedas en el asunto.
 - [ ] Abres una ventana a la derecha, a la izquierda, al centro y a pantalla completa.
 - [ ] El panel recuerda la que elegiste: la siguiente ventana abre igual, también al volver a entrar.
@@ -202,9 +202,9 @@ Los informes para el cliente:
 - [ ] Desde la casa del suegro haces un informe para el comprador sin capturar nada: sale con lo hecho, lo que sigue y lo que le falta entregar.
 - [ ] Desde la plaza, el informe para la propietaria dice cuántos preguntaron, cuántas visitas hubo y qué ofertas llegaron por cada local, sin nombres ni teléfonos de los interesados.
 - [ ] En el caso de asesoría eliges a cuál de los dos clientes va, o a los dos.
-- [ ] Cambias el párrafo de «En qué va» y apagas una parte (por ejemplo, Dinero): la hoja cambia al momento.
+- [ ] Cambias el párrafo de «En qué va», apagas una parte y quitas un renglón: la hoja cambia al momento.
 - [ ] El informe no lleva notas internas, decisiones internas ni el análisis de la opinión jurídica.
-- [ ] Lo descargas en PDF y lo mandas por WhatsApp. El panel no lo envía solo.
+- [ ] Lo guardas, lo descargas en PDF y lo mandas por WhatsApp. El panel no lo envía solo.
 - [ ] Queda en Documentos, en «Informes», con su número, y anotado en el Historial.
 - [ ] Lo pones cada mes: nace la tarea de mandarlo, aparece en Inicio y, al mandarlo, nace la del mes siguiente.
 
@@ -213,7 +213,13 @@ Lo demás:
 - [ ] Cada función de la lista de `SPEC.md` que haya entrado se prueba con uno de los casos reales.
 - [ ] Las que no entren quedan anotadas aquí, con su motivo.
 
-*17/11: las ventanas y los informes para el cliente ya están escritos en `SPEC.md`; el boceto todavía no los muestra. La hoja del informe es una propuesta: la ves y la apruebas cuando se construya. Las tareas que se repiten, pendientes de la etapa 5, se construyen aquí porque el informe periódico las usa.*
+*17/11: construidas las ventanas y los informes para el cliente; falta que los veas. El boceto no los muestra.*
+
+*Las ventanas: toda ventana tiene la flecha ← (regresa al apartado anterior o a la lista de locales; si no hay, cierra), el botón que elige dónde se abre (derecha, izquierda, centro o pantalla completa) y el de pantalla completa. Lo que elijas se recuerda en ese navegador. En el teléfono siguen a pantalla completa. De paso se corrigió «Volver al asunto» desde un formato o una herramienta, que dejaba en la lista de asuntos en vez de abrir el asunto; y en Honorarios ya está «Hacer el contrato aquí».*
+
+*Los informes: en el asunto, «Nuevo → Informe para el cliente» abre la pantalla con la hoja a la vista y el membrete de Fortius. Eliges para quién, cambias «En qué va», enciendes o apagas cada parte, quitas renglones y dices si se repite. «Guardar informe» lo deja en Documentos, en «Informes», con su número, y lo anota en el Historial; después se descarga en PDF o se manda por WhatsApp. No hizo falta ningún cambio en la base de datos. La hoja es una propuesta: dime qué cambiarle.*
+
+*Falta: probar la lista con datos reales (no se corrieron revisiones ni pruebas; se corren antes de integrar en `main`). Las tareas que se repiten en general siguen pendientes: por ahora solo se repite la de mandar el informe. Que el cliente vea su último informe en su liga queda para después, como dice `SPEC.md`.*
 
 **11. El cambio**
 
@@ -274,5 +280,5 @@ No pongo fechas porque no las puedo cumplir con honestidad: depende de cuántas 
 | 7. Directorio y Biblioteca | Aprobada el 17/11 con datos simulados; falta probarla con datos reales |
 | 8. Inicio | Aprobada el 17/11 con datos simulados; falta probarla con datos reales |
 | 9. Equipo | Construida el 17/11 con datos simulados; espera tu aprobación |
-| 10. Funciones extra | Pendiente. Empieza por las ventanas y los informes para el cliente |
+| 10. Funciones extra | Ventanas e informes para el cliente construidos el 17/11; esperan tu revisión. Lo demás, pendiente |
 | 11. El cambio | Pendiente |

@@ -65,7 +65,7 @@ export function CapturaPorPreguntas({ id, volver }: { id: string; volver: string
   const zonas = useRef(new Map<string, HTMLButtonElement>());
   const pregunta = useRef<HTMLDivElement>(null);
   const firmado = useRef<HTMLInputElement>(null);
-  const regreso = volver && volver.startsWith("/panel") ? volver : abierto?.asunto ? `/panel/asuntos?ver=${abierto.asunto.id}` : "/panel/herramientas";
+  const regreso = volver && volver.startsWith("/panel") ? volver : abierto?.asunto ? `/panel/asuntos/${abierto.asunto.id}` : "/panel/herramientas";
 
   const cargar = useCallback(() => abrirTrabajo(id).then((x) => { setAbierto(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo abrir.")), [id]);
   useEffect(() => { void cargar(); }, [cargar]);
@@ -414,7 +414,8 @@ function CampoPregunta({ campo, valor, alCambiar, enfocar, unico }: { campo: For
   );
 }
 
-function Dibujo({ trazo, alto }: { trazo: Trazo; alto: number }) {
+/** Un trazo de la hoja (texto, recuadro, línea o imagen), con las medidas del PDF. Lo usan también los informes. */
+export function Dibujo({ trazo, alto }: { trazo: Trazo; alto: number }) {
   switch (trazo.kind) {
     // El ancho medido por el PDF manda: cada renglón calza igual aunque la letra de pantalla difiera un poco.
     case "text": return <text className={trazo.serif ? "pn-doc-serif" : "pn-doc-texto"} x={trazo.x} y={alto - trazo.y} fontSize={trazo.size} fontWeight={trazo.bold ? (trazo.serif ? 700 : 600) : 400} fill={`#${trazo.color}`} {...(trazo.w > 0 && trazo.text.trim() ? { textLength: trazo.w, lengthAdjust: "spacingAndGlyphs" as const } : {})}>{trazo.text}</text>;

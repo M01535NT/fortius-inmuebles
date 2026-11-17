@@ -65,6 +65,8 @@ export function DetalleAsunto({ id }: { id: string }) {
   const [foco, setFoco] = useState<string | null>(null);
   const [siguienteNuevo, setSiguienteNuevo] = useState("");
   const [noAhora, setNoAhora] = useState<string[]>([]);
+  // Las ventanas por las que se pasó antes de la que está abierta (la más reciente al final).
+  const [anteriores, setAnteriores] = useState<string[]>([]);
 
   const cargar = useCallback(async () => {
     try {
@@ -88,12 +90,17 @@ export function DetalleAsunto({ id }: { id: string }) {
     anotarReciente({ id, nombre: nombreReciente, icono, color });
   }, [id, nombreReciente, encargoReciente]);
 
-  const abrir = useCallback((clave: string | null, conFoco?: string) => {
+  /**
+   * Abre la ventana de un apartado (o la cierra con null). Si ya había otra abierta, se recuerda para que la flecha ←
+   * regrese a ella; `regreso` es justo ese paso atrás.
+   */
+  const abrir = useCallback((clave: string | null, conFoco?: string, regreso = false) => {
     const p = new URLSearchParams(params.toString());
     if (clave) p.set("ver", clave); else p.delete("ver");
     setFoco(conFoco ?? null);
+    setAnteriores((pila) => (clave === null ? [] : regreso ? pila.slice(0, -1) : ver && ver !== clave ? [...pila, ver].slice(-12) : pila));
     router.replace(`${ruta}${p.size ? `?${p}` : ""}`, { scroll: false });
-  }, [params, router, ruta]);
+  }, [params, router, ruta, ver]);
 
   /** Corre un cambio y vuelve a leer el asunto. Si falla, avisa con el mensaje del servidor. */
   const hacer = useCallback(async (accion: () => Promise<unknown>, aviso?: string, deshacer?: () => Promise<unknown>) => {
@@ -135,7 +142,9 @@ export function DetalleAsunto({ id }: { id: string }) {
   const tareaSig = s ? a.tareas.find((t) => t.id === s.tarea_id) : undefined;
   const visibles = a.apartados.filter((x) => x.visible).sort((x, y) => x.orden - y.orden);
   const faltan = CLAVES_APARTADO.filter((c) => !visibles.some((x) => x.clave === c));
-  const abierto: Apartado | undefined = ver ? a.apartados.find((x) => x.clave === ver || x.id === ver) : undefined;
+  const apartadoDe = (clave: string | undefined) => (clave ? a.apartados.find((x) => x.clave === clave || x.id === clave) : undefined);
+  const abierto: Apartado | undefined = apartadoDe(ver ?? undefined);
+  const anterior = apartadoDe(anteriores[anteriores.length - 1]);
   const cerrado = a.en_que_va === "cerrado";
   const propuesta = (() => { const p = propuestaDe(a); return p && !noAhora.includes(p.clave) && !yaDijoQueNo(a.id, p.clave) ? p : null; })();
   const continuar = () => void (async () => {
@@ -170,6 +179,7 @@ export function DetalleAsunto({ id }: { id: string }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => router.push(`/panel/herramientas/formatos?asunto=${a.id}`)}><Icono nombre="contrato" tamano={16} />Contrato o formato</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => router.push(`/panel/herramientas/valor?asunto=${a.id}`)}><Icono nombre="calc" tamano={16} />Herramienta</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push(`/panel/informe/${a.id}`)}><Icono nombre="file" tamano={16} />Informe para el cliente</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <DropdownMenu>
@@ -338,6 +348,8 @@ export function DetalleAsunto({ id }: { id: string }) {
       <Ventana
         abierta={Boolean(abierto)}
         alCerrar={() => abrir(null)}
+        alRegresar={anterior ? () => abrir(anterior.clave === "propio" ? anterior.id : anterior.clave, undefined, true) : undefined}
+        anterior={anterior ? nombreApartado(anterior) : undefined}
         titulo={abierto ? nombreApartado(abierto) : ""}
         subtitulo={a.nombre}
         icono={abierto ? (abierto.clave !== "propio" ? APARTADO[abierto.clave].icono : iconoPropio(abierto)) : "lista"}

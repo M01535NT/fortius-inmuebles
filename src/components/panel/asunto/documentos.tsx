@@ -63,7 +63,7 @@ function Renglon({ a, d, hacer, pedir }: { a: Asunto; d: DocumentoDelAsunto; hac
       </span>
       <Vence d={d} />
       {d.trabajo_id && d.origen === "formato" ? (
-        <Link className="as-btn as-gho as-ico" href={`/panel/documento/${d.trabajo_id}?volver=${encodeURIComponent(`/panel/asuntos?ver=${a.id}`)}`} aria-label={`Abrir ${d.nombre}`} title="Abrir y seguir llenando">
+        <Link className="as-btn as-gho as-ico" href={`/panel/documento/${d.trabajo_id}?volver=${encodeURIComponent(`/panel/asuntos/${a.id}?ver=documentos`)}`} aria-label={`Abrir ${d.nombre}`} title="Abrir y seguir llenando">
           <Icono nombre="lapiz" tamano={17} />
         </Link>
       ) : null}

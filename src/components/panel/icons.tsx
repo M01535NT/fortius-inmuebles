@@ -48,6 +48,13 @@ const GESTOS = {
   puntos: "M5 12h.01M12 12h.01M19 12h.01",
   agarre: "M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01",
   panel: "M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM9 3v18",
+  // Dónde se abre una ventana (SPEC.md, «Las ventanas»): a un lado, al centro o en toda la pantalla.
+  ventanaDerecha: "M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2zM14.5 4.5v15",
+  ventanaIzquierda: "M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2zM9.5 4.5v15",
+  ventanaCentro: "M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2zM8 9h8v6H8z",
+  ventanaCompleta: "M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2zM3 9h18",
+  ampliar: "M9 4.5H4.5V9M15 4.5h4.5V9M9 19.5H4.5V15M15 19.5h4.5V15",
+  reducir: "M4.5 9H9V4.5M19.5 9H15V4.5M4.5 15H9v4.5M19.5 15H15v4.5",
 } as const;
 export type NombreGesto = keyof typeof GESTOS;
 

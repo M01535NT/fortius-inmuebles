@@ -160,6 +160,21 @@ button.as-ren:hover { background: var(--fill); }
 .as-win-c > * { flex-shrink: 0; }
 @keyframes as-funde { from { opacity: 0; } }
 @keyframes as-desliza { from { transform: translateX(24px); opacity: 0; } }
+@keyframes as-desliza-izq { from { transform: translateX(-24px); opacity: 0; } }
+@keyframes as-brota { from { transform: scale(0.97); opacity: 0; } }
+
+/* Dónde se abre la ventana (SPEC.md, «Las ventanas»): solo en pantallas anchas; en el teléfono siempre ocupa la pantalla. */
+.as-solo-pc { display: none; }
+@media (min-width: 901px) {
+  .as-solo-pc { display: inline-flex; }
+  .as-win[data-modo="izquierda"] { right: auto; left: 0; border-left: 0; border-right: 1px solid var(--border); animation-name: as-desliza-izq; }
+  .as-win[data-modo="centro"] {
+    inset: 5vh 0; margin-inline: auto; width: min(920px, calc(100% - 64px)); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; animation-name: as-brota;
+  }
+  .as-win[data-modo="completa"] { left: 0; width: 100%; border-left: 0; animation-name: as-funde; }
+  .as-win[data-modo="completa"] .as-win-c { padding-inline: max(16px, calc((100% - 880px) / 2)); }
+}
 @media (prefers-reduced-motion: reduce) { .as-velo, .as-win { animation: none; } .as-cargando span { animation: none; } }
 
 /* Teléfono y tableta: una columna a la vez */

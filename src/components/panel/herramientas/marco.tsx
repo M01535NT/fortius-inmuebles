@@ -74,7 +74,7 @@ function ParaElAsunto() {
     <div className="pn-her-asunto" role="status">
       <Icono nombre="asu" tamano={18} />
       <span><b>{ctx.asunto.folio}</b> {ctx.asunto.nombre}</span>
-      <Link href={`/panel/asuntos?ver=${ctx.asunto.id}`} className="pn-her-asunto-ir">Volver</Link>
+      <Link href={`/panel/asuntos/${ctx.asunto.id}`} className="pn-her-asunto-ir">Volver</Link>
       <button type="button" className="pn-iconbtn" aria-label="Trabajar sin asunto" onClick={ctx.quitar}><Icono nombre="x" tamano={16} /></button>
     </div>
   );
