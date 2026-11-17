@@ -88,15 +88,18 @@ function Agenda() {
   const [ocupado, setOcupado] = useState(false);
   // «Buscar o crear» → «Cita nueva» llega con ?nueva=1. Desde un inmueble, una persona o un asunto llega además con
   // ?inmueble=, ?persona= o ?asunto= (y ?tipo=): se abre el formulario completo con eso ya elegido.
-  useEffect(() => {
-    if (params.get("nueva") !== "1") return;
+  // La hoja se abre durante el render (sin efecto); el efecto solo limpia la dirección.
+  const pideNueva = params.get("nueva") === "1";
+  const [paramsVistos, setParamsVistos] = useState<typeof params | null>(null);
+  if (pideNueva && paramsVistos !== params) {
+    setParamsVistos(params);
     const desde = nuevaDesdeDireccion(params);
     setNueva(desde ? { modo: "detalle", inicial: {
       tipo: desde.tipo ?? "visita", titulo: "", fecha: aTexto(new Date()), hora: 10 * 60, clienteId: desde.clienteId, propiedadSlug: desde.propiedadSlug,
       notas: "", asesorId: null, expedienteId: desde.expedienteId || undefined,
     } } : { modo: "linea" });
-    router.replace("/panel/agenda", { scroll: false });
-  }, [params, router]);
+  }
+  useEffect(() => { if (pideNueva) router.replace("/panel/agenda", { scroll: false }); }, [pideNueva, router]);
   const clientes = useColeccion<Cliente>("clientes");
   const leads = useColeccion<Lead>("leads");
   const inmuebles = useColeccion<Property>("propiedades");

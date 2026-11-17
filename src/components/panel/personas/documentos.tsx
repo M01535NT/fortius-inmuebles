@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import "./personas.css";
 import { Icono } from "@/components/panel/icons";
@@ -69,7 +69,7 @@ export function DocumentosPersona({ persona, aviso, alAviso, ancha }: {
   const otros = useMemo(() => (docs ?? []).filter((d) => !REQUERIDOS.some((r) => r.coincide.test(d.titulo))), [docs]);
   const enVisor = useMemo(() => [...deRequerido.flatMap((x) => (x.doc ? [x.doc] : [])), ...otros], [deRequerido, otros]);
 
-  const subir = useCallback(async (f: File, titulo: string) => {
+  const subir = async (f: File, titulo: string) => {
     if (!destino) { avisar("Para guardar sus documentos, ábrele un asunto primero."); return; }
     if (!(TIPOS_ASUNTO as readonly string[]).includes(f.type)) { avisar("Ese tipo de archivo no se guarda: usa PDF, JPG, PNG o WEBP."); return; }
     if (f.size > MAX_BYTES_BANDEJA) { avisar("El archivo pesa más de 20 MB."); return; }
@@ -86,7 +86,7 @@ export function DocumentosPersona({ persona, aviso, alAviso, ancha }: {
     } catch (e) {
       avisar(e instanceof Error ? e.message : "No se pudo guardar el documento. Vuelve a intentarlo.");
     } finally { setSubiendo(null); }
-  }, [destino, asuntos, avisar]);
+  };
 
   const elegir = (titulo: string | null) => { tituloPendiente.current = titulo; entrada.current?.click(); };
   const alElegirArchivo = (lista: FileList | null) => {

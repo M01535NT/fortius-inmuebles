@@ -33,7 +33,9 @@ export function DetalleMovimiento({ m, asunto, alCambiar, pedirCobro }: {
   const campoMonto = useRef<HTMLDivElement>(null);
   const entrada = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setMonto(formatoMonto(String(faltaDe(m)))); setError(null); }, [m]);
+  // Al cambiar el movimiento se reinician el monto y el error (durante el render, sin efecto).
+  const [movVisto, setMovVisto] = useState(m);
+  if (movVisto !== m) { setMovVisto(m); setMonto(formatoMonto(String(faltaDe(m)))); setError(null); }
   useEffect(() => { if (pedirCobro) campoMonto.current?.querySelector("input")?.focus(); }, [pedirCobro]);
 
   async function hacer(cambio: CambioMovimiento, texto: string, deshacer?: (nuevo: Movimiento) => CambioMovimiento) {

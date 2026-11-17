@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo, formatoMonto, montoANumero } from "@/components/panel/kit/campo";
@@ -32,10 +32,12 @@ export function MovimientoNuevo({ abierta, alCerrar, asuntos, sinServidor, alGua
   const [guardando, setGuardando] = useState(false);
   const entrada = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (abierta) return;
-    setTipo("comision"); setAsunto(""); setMonto(""); setMoneda("MXN"); setConcepto(""); setVence("0"); setArchivo(null); setError(null);
-  }, [abierta]);
+  // Al cerrarse la hoja se limpia el formulario (durante el render, sin efecto).
+  const [abiertaVista, setAbiertaVista] = useState(abierta);
+  if (abiertaVista !== abierta) {
+    setAbiertaVista(abierta);
+    if (!abierta) { setTipo("comision"); setAsunto(""); setMonto(""); setMoneda("MXN"); setConcepto(""); setVence("0"); setArchivo(null); setError(null); }
+  }
 
   const cantidad = montoANumero(monto);
   const falta = !asunto ? "Elige el asunto." : !(cantidad > 0) ? "Escribe el monto." : null;

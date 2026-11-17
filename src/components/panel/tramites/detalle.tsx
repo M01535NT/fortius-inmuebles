@@ -79,12 +79,15 @@ export function DetalleTramite({ t, persona, inmueble, documentos, tareas, ocupa
   const alternar = (clave: string) => setAbiertos((s) => { const n = new Set(s); if (n.has(clave)) n.delete(clave); else n.add(clave); return n; });
 
   // Atajos T y R y «Anotar respuesta» de la fila: la página los pide y aquí se abren.
-  useEffect(() => {
-    if (!pedido || pedido.id !== t.id) return;
-    if (pedido.tipo === "tarea") setNuevaTarea(true);
-    else if (pedido.tipo === "avance") setAvance(true);
-    else if (t.espera) setResponder(true);
-  }, [pedido, t.id, t.espera]);
+  const [pedidoVisto, setPedidoVisto] = useState(pedido);
+  if (pedidoVisto !== pedido) {
+    setPedidoVisto(pedido);
+    if (pedido && pedido.id === t.id) {
+      if (pedido.tipo === "tarea") setNuevaTarea(true);
+      else if (pedido.tipo === "avance") setAvance(true);
+      else if (t.espera) setResponder(true);
+    }
+  }
 
   const pasoActual = pasos[t.pasoActual];
   // «Subir «…»» de Documentos: el documento del paso actual; en partes, lo primero de qué llevar.

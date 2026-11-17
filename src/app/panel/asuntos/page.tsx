@@ -326,7 +326,7 @@ function Asuntos() {
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger className="as-icon" aria-label="Más acciones"><Gesto nombre="puntos" tamano={18} /></DropdownMenuTrigger>
             <DropdownMenuContent>
-              {opcionesMenu.map((o) => <DropdownMenuItem key={o.etiqueta} peligro={"peligro" in o ? o.peligro : undefined} onSelect={o.alElegir}>{o.etiqueta}</DropdownMenuItem>)}
+              <OpcionesDelMenu opciones={opcionesMenu} />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -477,6 +477,11 @@ function Asuntos() {
 }
 
 /** Teléfono: tarjetas del boceto. Deslizar a la derecha marca hecho lo que sigue (o abre el asunto para anotarlo); a la izquierda, a mañana. */
+// Las opciones se pintan en su propio componente: sus acciones leen la versión vigente (ref) solo al elegirse.
+function OpcionesDelMenu({ opciones }: { opciones: { etiqueta: string; alElegir: () => void; peligro?: boolean }[] }) {
+  return <>{opciones.map((o) => <DropdownMenuItem key={o.etiqueta} peligro={o.peligro} onSelect={o.alElegir}>{o.etiqueta}</DropdownMenuItem>)}</>;
+}
+
 function Tarjetas({ filas, porId, avisos, abierta, alAbrir, alHecho, alManana }: {
   filas: readonly FilaAsunto[]; porId: ReadonlyMap<string, Expediente>; avisos: ReadonlyMap<string, number>; abierta: string | null;
   alAbrir: (id: string) => void; alHecho: (f: FilaAsunto) => void; alManana: (f: FilaAsunto) => void;
