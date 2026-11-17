@@ -44,6 +44,16 @@ export function DropdownMenuRadioItem({ className, children, ...props }: Compone
   );
 }
 
+/** Para elegir varias a la vez (por ejemplo, «Qué debe»). */
+export function DropdownMenuCheckboxItem({ className, children, ...props }: ComponentProps<typeof M.CheckboxItem>) {
+  return (
+    <M.CheckboxItem className={cn(fila, "pr-9", className)} {...props}>
+      {children}
+      <M.ItemIndicator className="absolute right-3"><Gesto nombre="palomita" tamano={16} /></M.ItemIndicator>
+    </M.CheckboxItem>
+  );
+}
+
 export function DropdownMenuLabel({ className, ...props }: ComponentProps<typeof M.Label>) {
   return <M.Label className={cn("px-3 py-2 text-xs font-semibold text-muted-foreground", className)} {...props} />;
 }

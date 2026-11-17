@@ -32,6 +32,7 @@ export function CalculadoraComision({ precioInicial, para }: { precioInicial?: n
         para={para}
         supuestos={[`precio de venta ${pesos(montoANumero(precio))}`, `comisión ${pct}% más IVA`]}
         leyenda={LEYENDA}
+        tipo="comision"
       />
       <p className="pn-her-leyenda">{LEYENDA}</p>
     </div>

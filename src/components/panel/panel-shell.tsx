@@ -4,22 +4,21 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { aplicarOrden, leerOrdenGuardado } from "@/lib/panel/ordenar";
-import { BARRA_TELEFONO, CONFIGURACION, SECCIONES, seccionPorRuta, type Seccion } from "@/lib/panel/secciones";
-import type { Lead } from "@/lib/domain/records";
-import { pestanaDe } from "@/lib/panel/datos/consultas";
+import { BARRA_TELEFONO, CONFIGURACION, CONSULTA, seccionPorRuta, seccionesPara, type Seccion } from "@/lib/panel/secciones";
 import { errorMessage, isLoggedIn, login, logout, needsMfaCode, useSession, verifyMfaCode } from "@/lib/panel/legado/sesion";
 
 import { usePreferencia } from "./almacen";
+import { Recientes } from "./asunto/recientes";
 import { Gesto, Icono, Logo } from "./icons";
 import { useAtajo, useTecladoEnListas } from "./kit/atajos";
-import { useCuentaBandeja } from "./bandeja/cuenta";
-import { useColeccion } from "./datos/use-coleccion";
 import { AvisosProvider, useAvisos } from "./kit/avisos";
-import { ProveedorBarra, useBarraActual } from "./kit/barra";
+import { ProveedorBarra } from "./kit/barra";
 import { BuscarOCrear } from "./kit/paleta";
 import { ListaReordenable } from "./kit/reordenable";
 import { TooltipProvider } from "./ui/tooltip";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 const CLAVE_ORDEN = "fortius-panel-menu";
 const CLAVE_MINI = "fortius-nav";
@@ -46,7 +45,7 @@ function Acceso() {
     <main className="pn-acceso">
       <form className="pn-tarjeta" onSubmit={enviar}>
         <Logo alto={24} />
-        <h1 className="pn-h1" style={{ fontSize: 22 }}>{pasoCodigo ? "Código de verificación" : "Entra al panel"}</h1>
+        <h1 className="pn-h1">{pasoCodigo ? "Código de verificación" : "Entra al panel"}</h1>
         {pasoCodigo ? (
           <label className="pn-campo">Código de 6 dígitos
             <input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={codigo} onChange={(e) => setCodigo(e.target.value)} autoFocus required />
@@ -70,11 +69,11 @@ function Acceso() {
 
 const activaEn = (ruta: string) => (s: Seccion) => (s.ruta === "/panel" ? ruta === "/panel" : ruta === s.ruta || ruta.startsWith(s.ruta + "/"));
 
-/** Las secciones del menú lateral, en el orden que el asesor eligió arrastrando (RP-102). */
-function Menu({ contraido, numeros }: { contraido: boolean; numeros: Partial<Record<string, number>> }) {
+/** Las secciones del menú lateral (boceto), en el orden que el asesor eligió arrastrando. */
+function Menu({ contraido, secciones }: { contraido: boolean; secciones: Seccion[] }) {
   const ruta = usePathname();
   const [guardado, guardarOrden] = usePreferencia(CLAVE_ORDEN, "[]");
-  const items = useMemo(() => aplicarOrden(SECCIONES, leerOrdenGuardado(guardado), (s) => s.slug), [guardado]);
+  const items = useMemo(() => aplicarOrden(secciones, leerOrdenGuardado(guardado), (s) => s.slug), [guardado, secciones]);
   const activa = activaEn(ruta);
   return (
     <ListaReordenable
@@ -83,110 +82,78 @@ function Menu({ contraido, numeros }: { contraido: boolean; numeros: Partial<Rec
       nombre={(s) => s.nombre}
       etiqueta="Secciones"
       alReordenar={(nuevo) => guardarOrden(JSON.stringify(nuevo.map((s) => s.slug)))}
-      renderItem={(s, { asa }) => {
-        const n = numeros[s.slug] ?? 0;
-        return (
-          <div className="pn-item-fila">
-            <Link href={s.ruta} className="pn-link" aria-current={activa(s) ? "page" : undefined} title={contraido ? s.nombre : undefined}
-              aria-label={contraido ? (n ? `${s.nombre}, ${n}` : s.nombre) : undefined} data-con-numero={n ? "" : undefined}>
-              <span className="pn-tile" data-sec={s.slug}><Icono nombre={s.icono} tamano={18} /></span>
-              <span className="pn-txt">{s.nombre}</span>
-              {n ? <span className="pn-nav-n" aria-label={`${n} por atender`}>{n}</span> : null}
-            </Link>
-            <span className="pn-asa-menu">{asa}</span>
-          </div>
-        );
-      }}
+      renderItem={(s, { asa }) => (
+        <div className="pn-item-fila">
+          <Link href={s.ruta} className="pn-link" aria-current={activa(s) ? "page" : undefined} title={contraido ? s.nombre : undefined}
+            aria-label={contraido ? s.nombre : undefined}>
+            <Icono nombre={s.icono} tamano={18} />
+            <span className="pn-txt">{s.nombre}</span>
+          </Link>
+          <span className="pn-asa-menu">{asa}</span>
+        </div>
+      )}
     />
   );
 }
 
-/** Al pie del menú (boceto): tu inicial, tu nombre y «Configuración». Abre Configuración y Cerrar sesión. */
-function MenuCuenta({ iniciales, nombre, correo }: { iniciales: string; nombre: string; correo?: string }) {
+const TEMAS = [["auto", "Como el dispositivo"], ["light", "Claro"], ["dark", "Oscuro"]] as const;
+
+/** Las opciones de tu cuenta: apariencia, configuración y salir. Las usan el pie del menú y «Más» del teléfono. */
+function OpcionesCuenta() {
   const router = useRouter();
   const { avisar } = useAvisos();
+  const [tema, guardarTema] = usePreferencia(CLAVE_TEMA, "auto");
   const salir = () => {
-    logout().catch(() => avisar("No se pudo cerrar la sesión en el servidor. Vuelve a intentarlo."));
+    logout().catch(() => avisar("No se pudo cerrar la sesión. Vuelve a intentarlo."));
   };
+  return (
+    <>
+      <DropdownMenuLabel>Apariencia</DropdownMenuLabel>
+      <DropdownMenuRadioGroup value={tema} onValueChange={(v) => guardarTema(v === "auto" ? null : v)}>
+        {TEMAS.map(([v, t]) => <DropdownMenuRadioItem key={v} value={v}>{t}</DropdownMenuRadioItem>)}
+      </DropdownMenuRadioGroup>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onSelect={() => router.push(CONFIGURACION.ruta)}><Icono nombre="llave" tamano={16} />Configuración</DropdownMenuItem>
+      <DropdownMenuItem peligro onSelect={salir}><Icono nombre="x" tamano={16} />Cerrar sesión</DropdownMenuItem>
+    </>
+  );
+}
+
+/** Al pie del menú (boceto): tu inicial, tu nombre y si eres director o asesor. */
+function MenuCuenta({ iniciales, nombre, rol }: { iniciales: string; nombre: string; rol: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="pn-cuenta" aria-label={`Cuenta de ${nombre}`}>
         <span className="pn-av" aria-hidden>{iniciales}</span>
-        <span className="pn-txt" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-          <span style={{ fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nombre}</span>
-          <span style={{ fontSize: 12, color: "var(--ink-muted)" }}>Configuración</span>
+        <span className="pn-txt pn-cuenta-c">
+          <span className="pn-cuenta-n">{nombre}</span>
+          <small>{rol}</small>
         </span>
+        <span className="pn-txt" aria-hidden><Icono nombre="down" tamano={14} /></span>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start" className="w-60">
-        <DropdownMenuLabel>{correo ?? nombre}</DropdownMenuLabel>
-        <DropdownMenuItem onSelect={() => router.push(CONFIGURACION.ruta)}>Configuración</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem peligro onSelect={salir}>Cerrar sesión</DropdownMenuItem>
+        <OpcionesCuenta />
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-/** Cuántas consultas esperan respuesta, para el número del menú y de «Más» (AUD-03, G4). */
-export function usePorAtender(): number {
-  const { datos } = useColeccion<Lead>("leads", { refrescarCada: 90_000 });
-  return useMemo(() => datos.filter((l) => pestanaDe(l) === "por_atender").length, [datos]);
-}
-
-/**
- * El nombre de la pantalla aparece al centro de la barra del teléfono cuando el título grande ya salió de la vista
- * (boceto «Inicio»: «Baja la pantalla: el título se encoge»). También dice si hay que poner la línea bajo la barra.
- */
-function useTituloFuera(ruta: string): { fuera: boolean; bajado: boolean } {
-  // El estado lleva la ruta en la que se midió: al cambiar de pantalla vale «no» hasta la primera medición, sin reiniciarlo dentro del efecto.
-  const [estado, setEstado] = useState({ ruta, fuera: false, bajado: false });
-  useEffect(() => {
-    const main = document.getElementById("pn-contenido");
-    if (!main) return;
-    let observado: Element | null = null;
-    const io = new IntersectionObserver(([e]) => setEstado((s) => ({ ...s, ruta, fuera: !e.isIntersecting && e.boundingClientRect.top < 60 })), { rootMargin: "-52px 0px 0px 0px" });
-    const buscar = () => {
-      const h1 = main.querySelector("h1");
-      if (h1 && h1 !== observado) { if (observado) io.unobserve(observado); observado = h1; io.observe(h1); }
-    };
-    buscar();
-    const mo = new MutationObserver(buscar);
-    mo.observe(main, { childList: true, subtree: true });
-    const alBajar = () => setEstado((s) => (s.ruta === ruta && s.bajado === window.scrollY > 4 ? s : { ...s, ruta, bajado: window.scrollY > 4 }));
-    window.addEventListener("scroll", alBajar, { passive: true });
-    return () => { io.disconnect(); mo.disconnect(); window.removeEventListener("scroll", alBajar); };
-  }, [ruta]);
-  return estado.ruta === ruta ? { fuera: estado.fuera, bajado: estado.bajado } : { fuera: false, bajado: false };
-}
-
-/** Barra de arriba del teléfono (boceto): la O, el título al centro y Buscar, «+» y tu perfil. Cada pantalla puede cambiarla. */
-function BarraArriba({ iniciales, alBuscar }: { iniciales: string; alBuscar: () => void }) {
-  const ruta = usePathname();
-  const barra = useBarraActual();
-  const { fuera, bajado } = useTituloFuera(ruta);
-  const nombre = barra?.titulo ?? (ruta === "/panel/mas" ? "Más" : seccionPorRuta(ruta)?.nombre ?? "");
-  const nuevo = barra?.nuevo ?? { etiqueta: "Nuevo", alPulsar: alBuscar };
+/** «Más» de la barra del teléfono (boceto): las secciones que no caben y tu cuenta, en un solo menú. */
+function MenuMas({ secciones, activo }: { secciones: Seccion[]; activo: boolean }) {
+  const router = useRouter();
   return (
-    <header className="pn-arriba" data-sombra={bajado || Boolean(barra?.volver)} data-titulo={Boolean(barra?.titulo) || fuera}>
-      <span className="pn-arriba-izq">
-        {barra?.volver ? (
-          <Link href={barra.volver.href} className="pn-arriba-volver"><Gesto nombre="izquierda" tamano={20} />{barra.volver.texto}</Link>
-        ) : (
-          <Link href="/panel" aria-label="Hoy" style={{ display: "inline-flex", minHeight: 44, alignItems: "center" }}><Logo alto={28} solo="o" /></Link>
-        )}
-      </span>
-      <span className="pn-arriba-titulo" aria-hidden>{nombre}</span>
-      <span className="pn-arriba-der">
-        {barra?.extra ? <button type="button" className="pn-arriba-sec" onClick={barra.extra.alPulsar}>{barra.extra.etiqueta}</button> : null}
-        {barra?.sinBuscar ? null : (
-          <button type="button" className="pn-iconbtn" aria-label="Buscar" onClick={alBuscar}><Icono nombre="buscar" tamano={22} /></button>
-        )}
-        <button type="button" className="pn-arriba-nuevo" aria-label={nuevo.etiqueta} title={nuevo.etiqueta} onClick={nuevo.alPulsar}><Gesto nombre="mas" tamano={22} /></button>
-        {barra?.sinBuscar ? null : (
-          <Link href={CONFIGURACION.ruta} className="pn-arriba-perfil" aria-label="Tu perfil y configuración"><span className="pn-av" aria-hidden>{iniciales}</span></Link>
-        )}
-      </span>
-    </header>
+    <DropdownMenu>
+      <DropdownMenuTrigger aria-current={activo ? "page" : undefined} aria-label="Más secciones">
+        <Icono nombre="dots" tamano={21} />Más
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="end" className="w-64">
+        {secciones.map((s) => (
+          <DropdownMenuItem key={s.slug} onSelect={() => router.push(s.ruta)}><Icono nombre={s.icono} tamano={16} />{s.nombre}</DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <OpcionesCuenta />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -202,21 +169,26 @@ function Armazon({ children }: { children: ReactNode }) {
   const abrirBuscar = useCallback((texto?: string) => setPaleta({ abierta: true, texto: texto ?? "" }), []);
   useAtajo("k", (e) => { e.preventDefault(); abrirBuscar(); }, { conControl: true });
   useTecladoEnListas();
-  const iniciales = (sesion?.name ?? sesion?.email ?? "?").split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
-  const barra = BARRA_TELEFONO.map((slug) => SECCIONES.find((s) => s.slug === slug)).filter((s): s is Seccion => Boolean(s));
-  const activaBarra = activaEn(ruta);
-  const enMas = !barra.some(activaBarra) && ruta !== "/panel";
-  const porAtender = usePorAtender();
-  // Números del menú (boceto): archivos por revisar en la Bandeja y consultas por atender.
-  const enBandeja = useCuentaBandeja();
-  const numeros: Partial<Record<string, number>> = { bandeja: enBandeja, consultas: porAtender };
+  const esDirector = sesion?.role === "admin";
+  const secciones = useMemo(() => seccionesPara(esDirector), [esDirector]);
+  const iniciales = (sesion?.name ?? sesion?.email ?? "?").split(/[\s@.]+/).filter((p) => /^\p{L}/u.test(p)).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
+  const activa = activaEn(ruta);
+  const enBarra = (slugs: readonly string[]) => slugs.map((slug) => secciones.find((s) => s.slug === slug)).filter((s): s is Seccion => Boolean(s));
+  const antes = enBarra(BARRA_TELEFONO.antes);
+  const despues = enBarra(BARRA_TELEFONO.despues);
+  const fuera = secciones.filter((s) => !antes.includes(s) && !despues.includes(s));
+  const enMas = fuera.some(activa) || ruta.startsWith(CONFIGURACION.ruta);
   const alternar = () => { guardarMini(esMini ? "pinned" : "mini"); setEncima(false); };
+  const ligaBarra = (s: Seccion) => (
+    <Link key={s.slug} href={s.ruta} aria-current={activa(s) ? "page" : undefined}>
+      <Icono nombre={s.icono} tamano={21} />{s.nombre}
+    </Link>
+  );
 
   return (
     <ProveedorBarra abrirBuscar={abrirBuscar}>
       <div className="pn-app">
         <a href="#pn-contenido" className="pn-saltar">Saltar al contenido</a>
-        <BarraArriba iniciales={iniciales} alBuscar={() => abrirBuscar()} />
         <aside
           className="pn-side"
           data-mini={esMini}
@@ -229,8 +201,8 @@ function Armazon({ children }: { children: ReactNode }) {
         >
           <div className="pn-side-in">
             <div className="pn-side-top">
-              <span className="pn-lbl"><Logo alto={18} /></span>
-              <span className="pn-mark" aria-hidden><Logo alto={26} solo="o" /></span>
+              <Link href="/panel" className="pn-lbl" aria-label="Inicio"><Logo alto={18} /></Link>
+              <span className="pn-mark" aria-hidden><Logo alto={24} solo="o" /></span>
               {abierto ? (
                 <button type="button" className="pn-navbtn pn-lbl" style={{ flex: "none" }} onClick={alternar}
                   aria-label={esMini ? "Fijar el menú" : "Contraer el menú"} title={esMini ? "Fijar el menú" : "Contraer el menú"}>
@@ -238,30 +210,25 @@ function Armazon({ children }: { children: ReactNode }) {
                 </button>
               ) : null}
             </div>
-            <button type="button" className="pn-busca" title="Buscar o crear (Ctrl K)" aria-label="Buscar o crear" aria-keyshortcuts="Control+K" onClick={() => abrirBuscar()}>
-              <Icono nombre="buscar" tamano={16} /><span>Buscar o crear</span><kbd>Ctrl K</kbd>
+            <button type="button" className="pn-busca" title="Buscar (Ctrl K)" aria-label="Buscar" aria-keyshortcuts="Control+K" onClick={() => abrirBuscar()}>
+              <Icono nombre="bus" tamano={16} /><span>Buscar</span><kbd>Ctrl K</kbd>
             </button>
-            <nav aria-label="Principal" style={{ minHeight: 0, display: "flex", flexDirection: "column" }}>
-              <Menu contraido={!abierto} numeros={numeros} />
+            <nav aria-label="Secciones" className="pn-nav">
+              <Menu contraido={!abierto} secciones={secciones} />
             </nav>
-            <MenuCuenta iniciales={iniciales} nombre={sesion?.name ?? "Equipo Fortius"} correo={sesion?.email} />
+            <Recientes contraido={!abierto} />
+            <MenuCuenta iniciales={iniciales} nombre={sesion?.name ?? sesion?.email ?? "Equipo Fortius"} rol={esDirector ? "Director" : "Asesor"} />
           </div>
         </aside>
         <main className="pn-main" id="pn-contenido" tabIndex={-1}>{children}</main>
         <BuscarOCrear key={paleta.abierta ? `a-${paleta.texto}` : "c"} abierta={paleta.abierta} textoInicial={paleta.texto} alCerrar={() => setPaleta({ abierta: false, texto: "" })} />
-        <nav className="pn-barra" aria-label="Principal">
-          {barra.map((s) => {
-            const n = numeros[s.slug] ?? 0;
-            return (
-              <Link key={s.slug} href={s.ruta} aria-current={activaBarra(s) ? "page" : undefined}>
-                <Icono nombre={s.icono} tamano={22} />{s.nombre}
-                {n ? <span className="pn-barra-n" aria-label={`${n} por atender`}>{n}</span> : null}
-              </Link>
-            );
-          })}
-          <Link href="/panel/mas" aria-current={enMas || ruta === "/panel/mas" ? "page" : undefined}>
-            <Gesto nombre="puntos" tamano={22} />Más
+        <nav className="pn-barra" aria-label="Secciones">
+          {antes.map(ligaBarra)}
+          <Link href={CONSULTA.ruta} className="pn-barra-mas" aria-label="Nueva consulta" aria-current={ruta.startsWith(CONSULTA.ruta) ? "page" : undefined}>
+            <Icono nombre="mas" tamano={22} />
           </Link>
+          {despues.map(ligaBarra)}
+          <MenuMas secciones={fuera} activo={enMas} />
         </nav>
       </div>
     </ProveedorBarra>

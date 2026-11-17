@@ -1,0 +1,44 @@
+import type { Carga, Consulta, ConsultaAbierta } from "@/lib/backend/consultas-contrato";
+import { FalloPanel } from "@/lib/panel/asuntos/api";
+
+export * from "@/lib/backend/consultas-contrato";
+
+async function pedir<T>(ruta: string, metodo = "GET", cuerpo?: unknown): Promise<T> {
+  let r: Response;
+  try {
+    const esForm = cuerpo instanceof FormData;
+    r = await fetch(ruta, {
+      method: metodo, credentials: "same-origin", cache: "no-store",
+      headers: cuerpo === undefined || esForm ? undefined : { "Content-Type": "application/json" },
+      body: cuerpo === undefined ? undefined : esForm ? cuerpo : JSON.stringify(cuerpo),
+    });
+  } catch {
+    throw new FalloPanel(0, "Sin conexión. Lo capturado sigue en este equipo y se guarda al volver la conexión.");
+  }
+  const datos = (await r.json().catch(() => ({}))) as { error?: string };
+  if (!r.ok) throw new FalloPanel(r.status, datos.error ?? "No se pudo terminar. Vuelve a intentarlo.");
+  return datos as T;
+}
+
+const base = "/api/admin/consultas";
+export type CambioConsulta = Partial<Pick<Consulta,
+  "quien_nombre" | "quien_telefonos" | "canal" | "que_pasa" | "datos" | "otras_personas" | "documentos_pedir">>;
+
+export const leerAbiertas = () => pedir<{ consultas: ConsultaAbierta[] }>(base).then((r) => r.consultas);
+export const empezarConsulta = (cuerpo: { quien_nombre?: string; persona_id?: string } = {}) =>
+  pedir<{ consulta: { id: string; version: number } }>(base, "POST", cuerpo).then((r) => r.consulta);
+export const leerConsulta = (id: string) => pedir<{ consulta: Consulta }>(`${base}/${id}`).then((r) => r.consulta);
+export const guardarConsulta = (id: string, version: number, cambio: CambioConsulta) =>
+  pedir<{ version: number }>(`${base}/${id}`, "PATCH", { version, ...cambio });
+export const abrirAsuntoDe = (id: string, version: number) =>
+  pedir<{ asunto: { id: string; folio: string } }>(`${base}/${id}/abrir`, "POST", { version }).then((r) => r.asunto);
+export const cerrarComoContacto = (id: string, version: number, volver: string) =>
+  pedir<{ persona_id: string }>(`${base}/${id}/cerrar`, "POST", { como: "contacto", version, volver });
+export const cerrarNoProcede = (id: string, version: number, motivo: string) =>
+  pedir<object>(`${base}/${id}/cerrar`, "POST", { como: "no_procede", version, motivo: motivo || undefined });
+export function adjuntar(id: string, archivo: File) {
+  const f = new FormData();
+  f.append("archivo", archivo);
+  return pedir<{ carga: Carga }>(`${base}/${id}/archivos`, "POST", f).then((r) => r.carga);
+}
+export const quitarAdjunto = (id: string, carga: string) => pedir<object>(`${base}/${id}/archivos?carga=${carga}`, "DELETE");

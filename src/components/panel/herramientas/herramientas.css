@@ -43,3 +43,27 @@ a.pn-her-fila:hover { background: var(--bg); }
   .pn-her-cab h2 { font-size: 22px; }
 }
 @media (min-width: 900px) { .pn-her-fila[data-elegida-escritorio] { background: var(--muted); } }
+
+/* Etapa 6: asunto de la cuenta, grupos del catálogo, trabajos sueltos y acciones del resultado. */
+button.pn-her-fila { cursor: pointer; }
+button.pn-her-fila:hover:not(:disabled) { background: var(--bg); }
+button.pn-her-fila:disabled { opacity: 0.6; cursor: default; }
+.pn-her-fila:focus-visible { outline: 2px solid var(--focus, var(--ink)); outline-offset: -2px; }
+.pn-her-lista-cuerpo { display: flex; flex-direction: column; gap: 12px; }
+.pn-her-asunto { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 6px 6px 12px; border-radius: var(--r-md); background: var(--muted); font-size: 14px; }
+.pn-her-asunto > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-her-asunto b { font-weight: 600; margin-right: 4px; }
+.pn-her-asunto-ir { font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.pn-her-asunto .pn-iconbtn { width: 44px; height: 44px; }
+.pn-her-grupo { display: flex; flex-direction: column; gap: 8px; }
+.pn-her-grupo h3, .pn-her-sueltos h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.pn-her-sueltos { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.pn-her-acciones { display: grid; gap: 10px; }
+.pn-her-fuente { padding: 10px 12px; border-radius: var(--r-md); background: var(--muted); }
+@media (min-width: 900px) {
+  .pn-her-lista-cuerpo { gap: 0; overflow-y: auto; }
+  .pn-her-asunto { margin: 14px 12px 0; }
+  .pn-her-sueltos { margin: 0 12px 14px; }
+  .pn-her-sueltos h2 { padding: 4px 4px 0; }
+  .pn-her-acciones { grid-template-columns: 1fr 1fr; }
+}

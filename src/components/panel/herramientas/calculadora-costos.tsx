@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Campo, formatoMonto, montoANumero } from "@/components/panel/kit/campo";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Interruptor } from "@/components/panel/kit/segmentado";
-import { MUNICIPALITIES, type Municipality } from "@/data/financial-rules";
+import { FINANCIAL_SOURCES, MUNICIPALITIES, type Municipality } from "@/data/financial-rules";
 import { calculateClosingBudget } from "@/lib/finance/closing";
 import { D, cents, localToday } from "@/lib/finance/money";
 import { pesos } from "@/lib/panel/herramientas";
@@ -12,7 +12,16 @@ import { pesos } from "@/lib/panel/herramientas";
 import { Resultado, type LineaResultado } from "./resultado";
 
 const LEYENDA_COMPRA = "Cuenta de referencia, no asesoría fiscal. El ISAI y el Registro salen de las leyes de ingresos 2026; la notaría, el avalúo y el banco son cotizaciones. Lo que falta queda por cotizar.";
-const LEYENDA_VENTA = "Cuenta de referencia, no asesoría fiscal. El ISR se escribe ya determinado (notaría o contador); la calculadora no lo estima.";
+const LEYENDA_VENTA = "Cuenta de referencia, no asesoría fiscal. El ISR se escribe ya determinado (notaría, contador o «Cálculo de ISR»).";
+
+/** De dónde sale cada regla y desde cuándo vale (SPEC.md, sección 9). */
+const FUENTE_COMPRA = `ISAI: Ley de Ingresos 2026 del municipio elegido y Ley de Hacienda Municipal, ${FINANCIAL_SOURCES.fiscalBase.article}. Registro Público: Ley de Ingresos del Estado 2026, ${FINANCIAL_SOURCES.registration.article}, vigente desde el ${fechaCorta(FINANCIAL_SOURCES.registration.validFrom)}.`;
+const FUENTE_VENTA = "Comisión e IVA: lo que se escriba aquí. El ISR no lo estima esta cuenta: va en «Cálculo de ISR».";
+
+function fechaCorta(iso: string) {
+  const [a, m, d] = iso.split("-");
+  return `${d}/${m}/${a}`;
+}
 
 const MUNICIPIOS = (Object.keys(MUNICIPALITIES) as Municipality[]).map((m) => ({ valor: m, etiqueta: MUNICIPALITIES[m] }));
 const ENGANCHES = ["10", "20", "30", "40"].map((v) => ({ valor: v, etiqueta: `${v}%` }));
@@ -34,8 +43,8 @@ function Monto({ etiqueta, valor, alCambiar, ayuda }: { etiqueta: string; valor:
  * compra = ISAI por tabla municipal + Registro Público por la ley estatal (18/06/2026) + cotizaciones;
  * venta = comisión con IVA + cancelación + ISR ya determinado + saldo del crédito. Lo que no se escribe queda pendiente.
  */
-export function CalculadoraCostos({ precioInicial, para }: { precioInicial?: number | null; para?: string }) {
-  const [lado, setLado] = useState<"compra" | "venta">("compra");
+export function CalculadoraCostos({ precioInicial, para, ladoInicial = "compra" }: { precioInicial?: number | null; para?: string; ladoInicial?: "compra" | "venta" }) {
+  const lado = ladoInicial;
   const [precio, setPrecio] = useState(() => (precioInicial === null ? "" : String(precioInicial ?? 2500000)));
   const [municipio, setMunicipio] = useState<Municipality>("tijuana");
   const [pago, setPago] = useState<"contado" | "credito">("credito");
@@ -100,7 +109,6 @@ export function CalculadoraCostos({ precioInicial, para }: { precioInicial?: num
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Interruptor etiqueta="Para quién" valor={lado} alElegir={setLado} opciones={[{ valor: "compra", etiqueta: "Comprador" }, { valor: "venta", etiqueta: "Vendedor" }]} />
       <Campo etiqueta={lado === "compra" ? "Precio de compra" : "Precio de venta"} dinero inputMode="decimal" value={formatoMonto(precio)} onChange={(e) => setPrecio(limpiar(e.target.value))} />
       {lado === "compra" ? (
         <>
@@ -129,6 +137,8 @@ export function CalculadoraCostos({ precioInicial, para }: { precioInicial?: num
         para={para}
         supuestos={supuestos}
         leyenda={leyenda}
+        tipo={lado}
+        fuente={lado === "compra" ? FUENTE_COMPRA : FUENTE_VENTA}
       />
       {lado === "compra" && isai?.note ? <p className="pn-her-leyenda">ISAI: {isai.note}</p> : null}
       {cuenta && cuenta.pending.length ? <p className="pn-her-leyenda pn-tono-aviso">Falta cotizar: {cuenta.pending.join(", ").toLowerCase()}.</p> : null}

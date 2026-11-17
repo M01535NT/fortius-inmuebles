@@ -6,7 +6,7 @@ import "./panel-ds.css";
 import "./panel-kit.css";
 import "./panel-shadcn.css";
 
-// Estilo tipo Apple (16/11/2026): letra del sistema en Apple; Inter en Windows y Android. Solo se carga en el panel nuevo.
+// Letra del boceto aprobado: Inter. Solo se carga en el panel nuevo.
 const letra = Inter({ subsets: ["latin"], variable: "--font-panel", display: "swap" });
 
 export const metadata: Metadata = {

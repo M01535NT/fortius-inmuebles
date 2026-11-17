@@ -1,5 +1,6 @@
-import { PantallaHerramienta } from "@/components/panel/herramientas/pantalla";
+import { redirect } from "next/navigation";
 
+/** «Costos de cierre» se separó en Gastos del comprador y Gastos del vendedor. */
 export default function Costos() {
-  return <PantallaHerramienta cual="costos" />;
+  redirect("/panel/herramientas/compra");
 }

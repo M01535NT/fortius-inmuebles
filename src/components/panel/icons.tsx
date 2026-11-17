@@ -1,15 +1,20 @@
 import type { SVGProps } from "react";
 
-import { ICONOS, type NombreIcono } from "./iconos-datos";
+import { ICONOS_BOCETO, type NombreIconoBoceto } from "./iconos-boceto";
+import { ICONOS, type NombreIcono as NombreIconoPdf } from "./iconos-datos";
 import { LOGO } from "./logo-datos";
 
-export type { NombreIcono };
+/** Íconos del boceto aprobado y, mientras se rehacen las pantallas viejas, los del sistema anterior. Si un nombre está en los dos, manda el boceto. */
+export type NombreIcono = NombreIconoBoceto | NombreIconoPdf;
 
 type Props = Omit<SVGProps<SVGSVGElement>, "name"> & { tamano?: number; titulo?: string };
 
-/** Ícono del sistema de diseño: trazo fino en el color del texto y un toque de acento. */
+const esBoceto = (n: NombreIcono): n is NombreIconoBoceto => n in ICONOS_BOCETO;
+
+/** Ícono del panel: trazo de 1.7 en el color del texto, como el boceto. */
 export function Icono({ nombre, tamano = 20, titulo, ...rest }: Props & { nombre: NombreIcono }) {
-  const ic = ICONOS[nombre];
+  const boceto = esBoceto(nombre);
+  const pdf = boceto ? null : ICONOS[nombre as NombreIconoPdf];
   return (
     <svg
       width={tamano}
@@ -17,7 +22,7 @@ export function Icono({ nombre, tamano = 20, titulo, ...rest }: Props & { nombre
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.25}
+      strokeWidth={boceto ? 1.7 : 1.4}
       strokeLinecap="round"
       strokeLinejoin="round"
       role={titulo ? "img" : undefined}
@@ -25,8 +30,9 @@ export function Icono({ nombre, tamano = 20, titulo, ...rest }: Props & { nombre
       aria-hidden={titulo ? undefined : true}
       {...rest}
     >
-      <path d={ic.ink} />
-      {ic.acc ? <path d={ic.acc} style={{ stroke: "var(--accent)" }} /> : null}
+      {boceto ? <path d={ICONOS_BOCETO[nombre]} /> : null}
+      {pdf ? <path d={pdf.ink} /> : null}
+      {pdf?.acc ? <path d={pdf.acc} /> : null}
     </svg>
   );
 }

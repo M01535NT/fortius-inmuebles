@@ -70,6 +70,14 @@ Las solicitudes que llegan por el sitio público caen en Inicio, en «Por atende
 - **Quién atiende una solicitud del sitio:** le llega al director, que la asigna a un asesor con el botón «Pasar a…». El tiempo de espera se pone en rojo al pasar de dos horas.
 - **Si la solicitud es por un inmueble publicado,** queda además anotada en el apartado Interesados del asunto de ese inmueble.
 
+### Cómo nace el asunto
+
+- **Quien llama** queda como «Contacto», o como «Propietario» si el inmueble es suyo. Se cambia después en Personas.
+- **El inmueble:** si se dijo qué es o dónde está, el asunto trae su apartado Inmueble, aunque solo se haya encargado una revisión.
+- **El nombre del asunto** sale de lo capturado («Casa en la Murúa»); se cambia cuando se quiera.
+- **El primer plan** es un ejemplo para que el asunto no nazca sin un siguiente paso: recibir los documentos, estudiar el asunto, emitir la opinión (si es una revisión) y el presupuesto. Cuando exista la Biblioteca, se elige de ahí.
+- **Si se corta la llamada o la conexión,** lo capturado queda en el equipo y se manda al volver. Una consulta a medias se retoma desde la misma pantalla.
+
 ### Cuando una consulta no se vuelve asunto
 
 No se pierde. Al cerrarla hay dos salidas:
@@ -97,7 +105,7 @@ No abren asunto por sí solas una visita, un archivo que llega o un cambio de pr
 - **Un folio** que pone el sistema (ejemplo: EXP-000031). No se repite ni se reutiliza.
 - **Un nombre** que se puede cambiar.
 - **Qué encargaron:** revisar, comercializar, tramitar o asesorar. Puede ser más de una cosa.
-- **En qué va:** en estudio, propuesta, en marcha, por cobrar o cerrado. Además, cualquier asunto se puede poner **en espera**, con el motivo y la fecha para retomarlo; mientras tanto no cuenta como atrasado. Lo cambia el asesor cuando quiere; no hay pasos forzosos. El sistema lo propone en el momento oportuno y el asesor acepta con un toque: al cargar el contrato firmado, «¿Pasar a En marcha?»; al cobrar todo, «¿Cerrar el asunto?». Nunca lo cambia solo.
+- **En qué va:** en estudio, propuesta, en marcha, por cobrar o cerrado. Además, cualquier asunto se puede poner **en espera**, con el motivo y la fecha para retomarlo; mientras tanto no cuenta como atrasado. Lo cambia el asesor cuando quiere; no hay pasos forzosos. El sistema lo propone en el momento oportuno y el asesor acepta con un toque: al emitir la opinión jurídica (si no es «no factible»), «¿Pasar a Propuesta?»; al cargar el contrato firmado, «¿Pasar a En marcha?»; al cobrar todo, «¿Cerrar el asunto?». Nunca lo cambia solo. Si el asesor contesta «Ahora no», no se vuelve a proponer.
 - **Quién lo lleva:** un asesor responsable. El director puede cambiarlo.
 - **Lo que sigue:** la próxima tarea, siempre a la vista, con marcar hecha y posponer. Si no hay, el asunto lo dice y pide escribirla.
 
@@ -111,7 +119,7 @@ Las partes de un asunto se llaman **apartados**. Cada uno es un renglón con su 
 
 | Apartado | Qué lleva |
 | --- | --- |
-| **Personas** | Todas las personas del asunto, cada una con su papel: contacto, propietario, titular, heredero, copropietario, comprador, vendedor, inquilino, inversionista, contraparte, abogado o notaría |
+| **Personas** | Todas las personas del asunto, cada una con su papel: contacto, propietario, titular, heredero, copropietario, comprador, vendedor, inquilino, inversionista, contraparte, apoderado, abogado, notaría o banco |
 | **Inmueble** | Uno o varios. Con varios (por ejemplo, cinco locales de una plaza), cada uno lleva su precio, su estado y su propio cierre |
 | **Interesados** | Solo cuando se comercializa. Cada persona interesada, con el inmueble o los inmuebles que le interesan, su visita (día y hora) y su oferta (monto y respuesta del dueño). Las visitas aparecen en Inicio el día que tocan |
 | **Situación** | Lo que se sabe del caso y la lista de lo que falta averiguar. Cada cosa por averiguar se vuelve tarea con un toque |
@@ -142,15 +150,15 @@ La vista se puede cambiar después sin perder lo capturado. Un apartado propio s
 - Una tarea puede esperar a que termine otra, y puede repetirse (por ejemplo, un informe cada mes).
 - El plan se ve como lista o en una línea de tiempo.
 - Las tareas con fecha aparecen solas en Inicio.
-- **Toda tarea que le toca a otro** (el cliente, el abogado, la notaría) nace con una fecha de «volver a preguntar», para que no se quede dormida.
-- Esa tarea trae un botón **«Recordarle»**, que abre WhatsApp con el mensaje ya escrito.
+- **Toda tarea que le toca a otro** (el cliente, el abogado, la notaría) nace con una fecha de «volver a preguntar», tres días después de su fecha, para que no se quede dormida.
+- Esa tarea trae un botón **«Recordarle»**, que abre WhatsApp con el mensaje ya escrito y recorre la fecha de volver a preguntar tres días más.
 - Inicio muestra lo que lleva más días esperando a otra persona, empezando por lo que más tarda.
 
 ### Cerrar un asunto
 
 Un asunto se cierra como **se logró** o **no se dio**, con el motivo. Al cerrar se anota quién captó y quién vendió. Un asunto cerrado se puede reabrir.
 
-Cuando un trabajo termina y de él nace otro (una revisión que se vuelve venta, una asesoría que termina en vender), el botón **«Continuar en un asunto nuevo»** copia las personas, el inmueble y los documentos, y deja anotado en los dos de dónde viene cada uno.
+Cuando un trabajo termina y de él nace otro (una revisión que se vuelve venta, una asesoría que termina en vender), el botón **«Continuar en un asunto nuevo»** copia las personas, el inmueble y los documentos (con sus archivos), y deja anotado en los dos de dónde viene cada uno. Los recibos no se copian: se quedan con su cobro.
 
 ## 6. Personas
 
@@ -171,9 +179,9 @@ Cuando un trabajo termina y de él nace otro (una revisión que se vuelve venta,
 Inmuebles es también el panel de lo que sale en el sitio público: aquí se carga todo.
 
 - Cada inmueble lleva un **folio** que pone el sistema (ejemplo: FORTIUS-000011).
-- **Un inmueble siempre pertenece a un asunto.** Al agregar uno desde Inmuebles se piden sus datos y los del propietario, y con eso se abre solo su asunto.
+- **Un inmueble siempre pertenece a un asunto.** Al agregar uno desde Inmuebles se piden nombre, tipo, operación y, si se sabe, el propietario; con eso se abre solo su asunto de captación. Desde un asunto, se agrega ahí mismo.
 - **Tipos:** casa, departamento, terreno, local, oficina, nave o bodega, y plaza o conjunto.
-- Un inmueble puede **pertenecer a un conjunto**: los locales de una plaza se ligan a su plaza, que dice cuántos tiene en total y cuántos están libres.
+- Un inmueble puede **pertenecer a un conjunto**: los locales de una plaza se ligan a su plaza, que dice cuántos tiene en total y cuántos están libres. En el asunto, «Agregar otro igual» suma un local más de la misma plaza, con su propio folio, precio y estado, y «Publicar todos» los publica de una vez.
 - **El precio dice su moneda** (pesos o dólares) y guarda su **historial**: cada cambio, con quién lo hizo, cuándo y por qué.
 - Se pueden **elegir varios inmuebles a la vez** para publicarlos, compartirlos o cambiarles el estado.
 
@@ -182,8 +190,8 @@ Inmuebles es también el panel de lo que sale en el sitio público: aquí se car
 | Pestaña | Qué lleva |
 | --- | --- |
 | **Ficha técnica** | Nombre, tipo, venta o renta y precio; después los datos propios de su tipo. Una nave pide altura libre, carga eléctrica, andenes y uso de suelo; una casa pide recámaras, baños y estacionamientos |
-| **Fotos** | Se suben varias a la vez y se elige la portada |
-| **Video y 360** | Video y recorrido 360, subidos o por enlace |
+| **Fotos** | Se suben varias a la vez y se elige la portada; se ordenan y se quitan. Al subirlas se les quita la ubicación y los datos de la cámara |
+| **Video y 360** | Video y recorrido 360, subidos (hasta 20 MB cada archivo) o por enlace. En el sitio sale el recorrido por enlace |
 | **Planos y permisos** | Escritura, licencias, dictámenes y planos. Son los mismos documentos del asunto |
 | **Ubicación** | Colonia, ciudad, dirección exacta, referencias y mapa |
 | **Sitio** | Publicar, qué lleva y qué falta, descripción y compartir |
@@ -193,7 +201,8 @@ Inmuebles es también el panel de lo que sale en el sitio público: aquí se car
 - **Guardar no publica.** Publicar es una acción aparte y se puede deshacer.
 - En el sitio solo aparece lo que se autorizó a mostrar.
 - **La dirección exacta es privada.** El público ve solo la colonia, salvo que se encienda mostrarla.
-- Al publicar, el sistema avisa lo que falta (fotos, descripción, contrato) y deja publicar de todos modos.
+- Al publicar, el sistema avisa lo que falta (fotos, descripción, contrato) y deja publicar de todos modos. Un inmueble sin fotos queda publicado pero no aparece en el sitio hasta tener una; uno «retirado» tampoco aparece.
+- El enlace del inmueble en el sitio usa su folio y nace al publicarlo por primera vez.
 - Un inmueble de otra inmobiliaria se marca como compartido y el sitio no muestra datos de su dueño.
 
 ## 8. Documentos y formatos
@@ -213,13 +222,21 @@ Fortius tiene sus propios formatos (avisos, entrevistas, contratos, recibos). Si
 
 - Todo documento se puede **hacer aquí o cargar hecho por fuera**.
 - **El cliente puede subir sus propios documentos** por una liga que le manda el asesor. Lo que sube entra al asunto y se marca como recibido.
-- El botón **«Subir varios»** recibe muchos archivos de una vez y acomoda cada uno en su renglón de la lista.
+- **La liga del cliente** dura 14 días, recibe hasta 60 archivos y se puede cancelar en cualquier momento. El cliente solo ve el nombre de lo que falta: no ve su asunto, ni a las demás personas, ni lo ya recibido. Deja de servir si el asunto se cierra o si el asesor que la hizo ya no está en el equipo.
+- El botón **«Subir varios»** recibe muchos archivos de una vez y acomoda cada uno en su renglón por el nombre del archivo; lo que no reconoce queda en «Otros» para acomodarlo a mano.
+- Las fotos se guardan sin la ubicación ni los datos del teléfono.
 - **Un documento puede tener fecha de vencimiento** (una precalificación de crédito, un avalúo, un poder). El sistema avisa antes de que venza.
 - Un documento ya emitido no cambia. Si los datos cambian después, el sistema avisa y ofrece hacer una versión nueva.
 - **Descargar no es aprobar.** Un documento pasa de borrador a revisado y a firmado, y cada paso lo marca una persona.
 - Un formato generado no es una aprobación jurídica: lo legal lo revisa el abogado.
 - Los documentos son privados. No se publican ni salen del panel.
 - **Leer un documento** (por ejemplo una identificación) y sacar sus datos es una ayuda: lo leído queda «por confirmar» hasta que una persona lo revise.
+- **Qué vuelve a la ficha.** Lo que se contesta en un documento llena la ficha de la persona y los datos para contratos del inmueble (folio real, clave catastral, escritura, gravámenes y demás). La ficha pública del inmueble (domicilio, medidas) solo se llena donde está vacía; lo que ya tiene no lo cambia un documento. Un CURP o un RFC mal escrito se queda solo en el documento y el sistema avisa que no pasó a la ficha.
+- **Lo escrito en el documento manda** sobre lo que trae el asunto; lo que el documento no tiene se toma del asunto cada vez que se abre.
+- Si un formato no exige ningún dato (la opinión de valor), se pregunta todo espacio vacío.
+- **Cada PDF descargado queda en los Documentos del asunto.** Si el documento cambió desde el último, queda como versión nueva; si no cambió, no se repite.
+- Al cargar un contrato firmado, el asunto propone pasar a En marcha.
+- Los documentos hechos en el panel tienen un lápiz en Documentos para seguir llenándolos.
 
 ## 9. Herramientas
 
@@ -230,6 +247,11 @@ Trabajo que se puede hacer en cualquier momento, con asunto o sin él.
 - **Desde un asunto:** sale ya llena con los datos del asunto, y lo hecho queda en sus Documentos.
 - La opinión de valor es un servicio, como un avalúo: se hace cuando alguien la pide.
 - Todo cálculo fiscal dice de dónde sale y en qué fecha se revisó. Si no hay una regla vigente, el sistema dice «pendiente»; nunca inventa una tasa.
+- **Los trabajos sueltos** los ve solo quien los hizo y el director. Uno se pasa a un asunto una sola vez y ya no cambia de asunto.
+- Desde un asunto, «Nuevo» ofrece «Contrato o formato» y «Herramienta»; lo que se guarda va a sus Documentos.
+- La lista de formatos se agrupa (contratos, para el cliente, del inmueble, entrevistas y registros, levantamiento) solo para encontrarlos rápido: ningún grupo es un orden obligatorio.
+- **Gastos del vendedor** no estima el ISR: se escribe el que dé la notaría o el que salga del cálculo de ISR.
+- El cálculo de ISR toma lo que falte como falta, no como cero: si no se escribe la comisión o los gastos, el resultado dice «Pendiente» y qué falta.
 
 ## 10. Biblioteca
 
@@ -247,12 +269,13 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 
 - Cada asunto lleva sus **honorarios**: el presupuesto por conceptos, el contrato y los cobros con lo que falta.
 - El presupuesto separa **los honorarios de Fortius** de **los gastos de terceros** que paga el cliente (notaría, abogado, impuestos, derechos).
-- Un honorario puede ser un **porcentaje del precio**: se calcula solo cuando se conoce el precio final.
+- Un honorario puede ser un **porcentaje del precio**: se calcula solo sobre el precio del inmueble y cambia si el precio cambia. Mientras el inmueble no tenga precio, dice que falta.
 - Cuando el asunto tiene varios clientes, el presupuesto dice **quién paga**.
 - Cuando el asunto tiene varios inmuebles, cada contrato y cada cobro dice **de cuál inmueble** es.
 - Toda cantidad dice su moneda. **Pesos y dólares no se mezclan** ni se convierten solos.
-- Cada cobro dice cuánto, cómo se pagó y cuándo. Al registrarlo, el sistema ofrece **«Hacer recibo»**, ya lleno con el monto, la persona y el asunto.
-- **El presupuesto tiene vigencia.** Al enviarlo se crea sola la tarea de darle seguimiento a los tres días, y al vencer aparece en Inicio.
+- Cada cobro dice cuánto, cómo se pagó y cuándo. Al registrarlo, el sistema ofrece **«Hacer recibo»**, ya lleno con el monto, la persona y el asunto, en el formato de recibo de Fortius; queda en Documentos como borrador.
+- **El presupuesto tiene vigencia** (15 días si no se dice otra). Al enviarlo se crea sola la tarea de darle seguimiento a los tres días, y al vencer aparece en Inicio. Se puede hacer otra versión, que copia los conceptos de la anterior.
+- Mientras no esté la plantilla del presupuesto del titular, el presupuesto y la opinión jurídica en PDF se cargan hechos por fuera; hacerlos desde el panel llega con su plantilla.
 - **Reparto de comisión:** 25 % para quien captó y 25 % para quien vendió; si es la misma persona, 50 %.
 - Si Fortius recibe un apartado, queda anotado con su comprobante hasta que se entregue.
 

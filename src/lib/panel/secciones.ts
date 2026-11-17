@@ -1,43 +1,47 @@
-import type { NombreIcono } from "@/components/panel/iconos-datos";
+import type { NombreIcono } from "@/components/panel/icons";
 
-/** Una sección del menú del panel nuevo. `etapa` es la clave de PN-xx en PLAN.md que la construye. */
+/** Una sección del menú del panel (SPEC.md, sección 3). `etapa` es la etapa de PLAN.md que la construye. */
 export type Seccion = {
   slug: string;
   nombre: string;
   icono: NombreIcono;
-  etapa: string;
+  etapa: number;
   resumen: string;
-  /** Ruta dentro de /panel. Hoy es la raíz. */
+  /** Ruta dentro de /panel. Inicio es la raíz. */
   ruta: string;
+  /** Solo la ve el director. */
+  soloDirector?: boolean;
 };
 
-/**
- * Orden por omisión del menú (el titular lo puede cambiar arrastrando).
- * Íconos elegidos en DECISIONES.md, «Sistema visual». Las etapas siguen el roadmap de PLAN.md.
- */
+/** Orden del boceto aprobado. El asesor lo puede cambiar arrastrando. */
 export const SECCIONES: readonly Seccion[] = [
-  { slug: "hoy", nombre: "Hoy", icono: "casa", etapa: "PN-04", resumen: "Lo que toca hoy, lo vencido y lo que espera respuesta.", ruta: "/panel" },
-  { slug: "bandeja", nombre: "Bandeja", icono: "descargar", etapa: "PN-06", resumen: "Archivos que llegan y se reparten a la persona, el inmueble o el asunto.", ruta: "/panel/bandeja" },
-  { slug: "consultas", nombre: "Consultas", icono: "llamada", etapa: "PN-05", resumen: "Personas que escriben por el sitio, WhatsApp, llamada o en persona.", ruta: "/panel/consultas" },
-  { slug: "personas", nombre: "Personas", icono: "cliente", etapa: "PN-03", resumen: "Propietarios, compradores, inquilinos y aliados.", ruta: "/panel/personas" },
-  { slug: "inmuebles", nombre: "Inmuebles", icono: "edificio", etapa: "PN-03", resumen: "Casas, departamentos, terrenos y locales.", ruta: "/panel/inmuebles" },
-  { slug: "asuntos", nombre: "Asuntos", icono: "expediente", etapa: "PN-04", resumen: "Cada negocio o gestión en curso, con sus guías, documentos y notas.", ruta: "/panel/asuntos" },
-  { slug: "agenda", nombre: "Agenda", icono: "cita", etapa: "PN-04", resumen: "Citas, visitas y vencimientos.", ruta: "/panel/agenda" },
-  { slug: "formatos", nombre: "Formatos", icono: "escritura", etapa: "PN-06", resumen: "Contratos, recibos y fichas con los datos ya llenos.", ruta: "/panel/formatos" },
-  { slug: "tramites", nombre: "Trámites", icono: "verificado", etapa: "PN-07", resumen: "Cancelación de hipoteca, servicios, avalúos, Catastro y Registro Público.", ruta: "/panel/tramites" },
-  { slug: "dinero", nombre: "Dinero", icono: "precio", etapa: "PN-08", resumen: "Lo que te deben, lo que tienes en resguardo y lo cobrado.", ruta: "/panel/dinero" },
-  { slug: "equipo", nombre: "Equipo", icono: "mensaje", etapa: "PN-11", resumen: "Chat del equipo con temas.", ruta: "/panel/equipo" },
-  { slug: "herramientas", nombre: "Herramientas", icono: "costos", etapa: "PN-09", resumen: "Calculadoras de crédito y de comisión.", ruta: "/panel/herramientas" },
+  { slug: "inicio", nombre: "Inicio", icono: "casa", etapa: 8, resumen: "Lo que hay que atender hoy y esta semana.", ruta: "/panel" },
+  { slug: "asuntos", nombre: "Asuntos", icono: "asu", etapa: 2, resumen: "Todos los trabajos, abiertos y cerrados.", ruta: "/panel/asuntos" },
+  { slug: "inmuebles", nombre: "Inmuebles", icono: "edif", etapa: 4, resumen: "El inventario y lo que sale en el sitio.", ruta: "/panel/inmuebles" },
+  { slug: "directorio", nombre: "Directorio", icono: "users", etapa: 7, resumen: "Las personas, con el asunto de cada una.", ruta: "/panel/directorio" },
+  { slug: "biblioteca", nombre: "Biblioteca", icono: "lib", etapa: 7, resumen: "Listas de qué pedir y planes de qué hacer.", ruta: "/panel/biblioteca" },
+  { slug: "herramientas", nombre: "Herramientas", icono: "calc", etapa: 6, resumen: "Opinión de valor, cálculos y contratos sueltos.", ruta: "/panel/herramientas" },
+  { slug: "equipo", nombre: "Equipo", icono: "band", etapa: 9, resumen: "Cómo va cada asesor.", ruta: "/panel/equipo", soloDirector: true },
 ] as const;
 
-export const CONFIGURACION: Seccion = {
-  slug: "configuracion", nombre: "Configuración", icono: "filtrar", etapa: "PN-09", resumen: "Tu perfil, avisos, apariencia y equipo.", ruta: "/panel/configuracion",
+/** La consulta: se abre con «Nueva consulta» (Inicio, Asuntos y el botón del centro en el teléfono). No va en el menú. */
+export const CONSULTA: Seccion = {
+  slug: "consulta", nombre: "Nueva consulta", icono: "tel", etapa: 3, resumen: "Lo que cuenta quien llama, mientras habla.", ruta: "/panel/consulta",
 };
 
-/** Las cinco de la barra del teléfono (la sexta es «Más»). */
-export const BARRA_TELEFONO = ["hoy", "bandeja", "personas", "inmuebles", "asuntos"] as const;
+/** Tu perfil y la apariencia. Se abre desde tu cuenta, al pie del menú. */
+export const CONFIGURACION: Seccion = {
+  slug: "configuracion", nombre: "Configuración", icono: "llave", etapa: 9, resumen: "Tu perfil y la apariencia.", ruta: "/panel/configuracion",
+};
+
+/** Barra del teléfono (boceto): Inicio, Asuntos, el botón de nueva consulta al centro, Inmuebles y «Más». */
+export const BARRA_TELEFONO = { antes: ["inicio", "asuntos"], despues: ["inmuebles"] } as const;
+
+export function seccionesPara(esDirector: boolean): Seccion[] {
+  return SECCIONES.filter((s) => esDirector || !s.soloDirector);
+}
 
 export function seccionPorRuta(ruta: string): Seccion | undefined {
   if (ruta === "/panel") return SECCIONES[0];
-  return [...SECCIONES, CONFIGURACION].find((s) => s.ruta !== "/panel" && (ruta === s.ruta || ruta.startsWith(s.ruta + "/")));
+  return [...SECCIONES, CONSULTA, CONFIGURACION].find((s) => s.ruta !== "/panel" && (ruta === s.ruta || ruta.startsWith(s.ruta + "/")));
 }

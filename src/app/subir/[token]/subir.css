@@ -1,0 +1,21 @@
+/* La liga del cliente: una sola columna, tipografía y colores del sitio público. */
+.subir { min-height: 70dvh; padding: 120px 16px 80px; display: flex; justify-content: center; background: var(--background); color: var(--foreground); }
+.subir-caja { width: min(560px, 100%); display: flex; flex-direction: column; gap: 16px; }
+.subir-caja h1 { font-size: clamp(28px, 6vw, 40px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
+.subir-m { color: var(--muted-foreground); font-size: 15px; }
+.subir-lista { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--corner-tarjeta, 14px); overflow: hidden; }
+.subir-lista li { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 16px; min-height: 60px; }
+.subir-lista li + li { border-top: 1px solid var(--border); }
+.subir-lista li > span { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.subir-btn {
+  min-height: 44px; padding: 0 18px; border-radius: var(--corner-pulsable, 10px); border: 1px solid var(--foreground); background: var(--foreground);
+  color: var(--background); font: inherit; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.subir-btn:disabled { opacity: 0.5; cursor: default; }
+.subir-btn:focus-visible { outline: 2px solid var(--ns-accent, currentColor); outline-offset: 2px; }
+.subir-otro { align-self: flex-start; background: none; color: var(--foreground); }
+.subir-ok { font-weight: 600; }
+.subir-error { color: #b42318; font-weight: 600; }
+.subir-listos { border-radius: var(--corner-tarjeta, 14px); padding: 12px 16px; background: color-mix(in srgb, var(--foreground) 6%, transparent); }
+.subir-listos ul { margin: 6px 0 0; padding-left: 18px; }
+.subir-pie { font-size: 13px; }

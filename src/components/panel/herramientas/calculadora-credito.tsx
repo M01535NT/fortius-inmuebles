@@ -40,6 +40,7 @@ export function CalculadoraCredito({ precioInicial, para }: { precioInicial?: nu
         para={para}
         supuestos={[`precio ${pesos(montoANumero(precio))}`, `enganche ${enganche}%`, `plazo ${plazo} años`, `tasa ${t}% anual`]}
         leyenda={LEYENDA}
+        tipo="credito"
       />
       <p className="pn-her-leyenda">{LEYENDA}</p>
     </div>

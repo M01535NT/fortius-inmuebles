@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // El panel y la API no son contenido; las páginas del panel además llevan noindex.
-      disallow: ["/admin", "/api/"],
+      disallow: ["/admin", "/panel", "/api/", "/subir/"],
     },
     sitemap: `${siteConfig.url}/sitemap.xml`,
   };

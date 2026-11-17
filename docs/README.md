@@ -11,6 +11,6 @@ Lo principal está en la carpeta de arriba: `SPEC.md` (cómo debe funcionar el s
 | `herramientas/` | Cómo se hacen los cálculos (crédito, comisión, costos de cierre) y de qué fuentes salen. |
 | `legal/` | Lo que debe revisar el abogado y el control de los avisos públicos. |
 | `sitio-publico/` | La marca del sitio público y cómo se opera el blog. |
-| `operacion/` | Lo técnico del día a día: publicar, respaldos, accesos, datos personales y el paso al inventario real. |
+| `operacion/` | Lo técnico del día a día: publicar, respaldos, accesos, datos personales, el paso al inventario real y el modelo de datos del panel (`modelo-de-datos-panel.md`). |
 
 Los documentos de `operacion/`, `formatos/` y `herramientas/` son técnicos: los usa el agente. Algunos conservan claves de versiones anteriores de la especificación; donde digan algo distinto a `SPEC.md`, manda `SPEC.md`.

@@ -32,7 +32,7 @@ const CREAR: Opcion[] = [
   { id: "crear-persona", titulo: "Persona nueva", grupo: "Crear", icono: "cliente", ruta: "/panel/personas", claves: ["cliente", "propietario", "comprador", "contacto"] },
   { id: "crear-inmueble", titulo: "Inmueble nuevo", grupo: "Crear", icono: "edificio", ruta: "/panel/inmuebles", claves: ["casa", "departamento", "terreno", "propiedad"] },
   { id: "crear-asunto", titulo: "Asunto nuevo", grupo: "Crear", icono: "expediente", ruta: "/panel/asuntos", claves: ["negocio", "venta", "renta", "busqueda", "expediente"] },
-  { id: "crear-consulta", titulo: "Anotar una consulta", grupo: "Crear", icono: "llamada", ruta: "/panel/consultas", claves: ["llamada", "visita", "whatsapp"] },
+  { id: "crear-consulta", titulo: "Nueva consulta", grupo: "Crear", icono: "llamada", ruta: "/panel/consulta", claves: ["llamada", "visita", "whatsapp"] },
   { id: "crear-cita", titulo: "Cita nueva", grupo: "Crear", icono: "cita", ruta: "/panel/agenda?nueva=1", claves: ["visita", "agenda", "recordatorio"] },
   { id: "crear-movimiento", titulo: "Movimiento de dinero", grupo: "Crear", icono: "precio", ruta: "/panel/dinero", claves: ["cobro", "comision", "apartado", "gasto"] },
 ];
