@@ -2,6 +2,8 @@
 
 Fecha: 12/11/2026. Estado: **propuesta con las seis preguntas contestadas por el titular el 12/11/2026; nada de esto está programado.** No modifica `PLAN.md` ni `SPEC.md`; las decisiones aprobadas deben pasar a `SPEC.md`.
 
+> **Nota (14/11/2026):** el panel flexible (FLX, en `PLAN.md`) absorbe CRM-01 y CRM-03 en FLX-04 (poda del 14/11/2026). Las decisiones del titular de abajo siguen valiendo como insumo, pero la pantalla se diseñará dentro de FLX. Los colores del boceto son anteriores a la paleta del panel nuevo (LV-09).
+
 Bocetos navegables (datos de ejemplo): https://claude.ai/artifact/N8ZFG6NK4okiPDrHZRSj49 · copia en el repositorio: [`docs/diseno/boceto-seguimiento-comercial.html`](../diseno/boceto-seguimiento-comercial.html) (se abre en el navegador; las fuentes vienen de Google Fonts)
 
 ## Decisiones del titular (12/11/2026), para pasar al plan

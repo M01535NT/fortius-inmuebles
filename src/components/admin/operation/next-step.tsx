@@ -2,11 +2,13 @@
 import * as React from "react";
 import { calendarDayOf } from "@/lib/admin/operational-date";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Check, docIcon, FileDown, FileText, House, PlayCircle, Plus, Trash2 } from "@/components/admin/icons";
+import { ArrowRight, CalendarDays, Check, docIcon, FileDown, FileText, House, Mail, MessageCircle, MoreHorizontal, Phone, PlayCircle, Plus, Trash2, UserRound } from "@/components/admin/icons";
+import { DateField } from "@/components/ui/date-field";
+import { Checkbox } from "@/components/ui/controls";
 import Image from "next/image";
 import { Button, ButtonLink, Card, DocBadge, Hint, IconTile, Notice } from "@/components/admin/kit";
 import { TIPO_LABELS, type Property as Propiedad } from "@/data/propiedades";
-import { AsyncSelect, inputClass, selectClass } from "@/components/admin/ui";
+import { ErrorNotice, inputClass, selectClass } from "@/components/admin/ui";
 import { offerCandidates, offerOwner, withoutOffer } from "@/lib/admin/lead-offers";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
@@ -26,12 +28,15 @@ import type { DocumentsController } from "./use-documents";
 import type { Documento } from "./documents-tab";
 import type { ArchivoCliente } from "./client-documents-tab";
 import { saveError } from "./use-operation";
+import { Fold, OptionSelect, PersonSelect } from "./pickers";
 import { useIsDirector } from "@/lib/admin/staff-scope";
 import { ContractSignatureCard } from "./contract-signature";
+import { REPEATABLE } from "./create-document";
 import { OwnerAppraisalCard } from "./owner-appraisal";
 import { CloseCard } from "./close-card";
 import { MortgageGateNotice } from "./mortgage-gate";
 import { esFrenoDeFirma } from "@/lib/admin/tramite-firma";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { EncargoDecisionCard, encargoTomado } from "./encargo-decision";
 import { PriorVisitCard } from "./prior-visit";
 import { moverOferta } from "./offer-link";
@@ -39,6 +44,9 @@ import { WaitingSeekers } from "@/components/admin/properties/waiting-seekers";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
 
+
+/** Ícono de cada canal de entrega del informe (COR-08). */
+const CANAL_ICON: Record<EntregaInforme["canal"], typeof Phone> = { whatsapp: MessageCircle, correo: Mail, en_persona: UserRound, telefono: Phone, otro: MoreHorizontal };
 /*
   «Esta etapa» (boceto C, aprobado el 17/10/2026): arriba «Ahora toca» con una sola acción
   principal; debajo «Para terminar la etapa» reúne los documentos que se llenan, lo que se
@@ -121,10 +129,17 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   const quick = (key: RequirementKey, state: "pendiente" | "recibido") => void changeRequirement(key, quickReview(flow, key, state, today)).catch(() => undefined);
   const target = advanceTarget(op, today);
   const blockers = missingItems(op, tasks, today);
+  // FLX-03 (RP-100): lo que falta no frena; se confirma una vez y la base lo anota en el historial del asunto.
   async function advance() {
-    if (!target?.target || blockers.length) return;
+    if (!target?.target) return;
+    const pending = blockers.map(b => b.text);
+    if (pending.length && !await confirmAction(`Todavía falta: ${pending.join("; ")}. Puedes pasar igual; lo que falta quedará anotado en el historial del asunto.`, { title: `¿Pasar a «${target.label}»?`, confirmLabel: "Pasar igual" })) return;
     setBusy(true); setError(""); setNotice("");
-    try { await onSave({ etapa: target.target }); setNotice(`Listo: la operación pasó a «${target.label}».`); window.scrollTo({ top: 0, behavior: "instant" }); }
+    try {
+      await onSave({ etapa: target.target });
+      setNotice(pending.length ? `Listo: el asunto pasó a «${target.label}». Lo que faltaba quedó anotado en el historial.` : `Listo: el asunto pasó a «${target.label}».`);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     catch (cause) { const message = saveError(cause); if (esFrenoDeFirma(message)) setMortgageBlocked(true); else setError(`No se pudo avanzar: ${message}`); } finally { setBusy(false); }
   }
   function goToPending(item: Extract<StageItem, { kind: "pendiente" }>) {
@@ -150,7 +165,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     setBusy(true); setError(""); setNotice("");
     try {
       await onSave({ flujo: { ...flow, estado: action === "pausa" ? "pausada" : "descartada", motivo: action === "pausa" ? "Pausada en la entrevista inicial" : "Referida" } });
-      setNotice(action === "pausa" ? "La operación quedó en pausa." : "La operación quedó descartada como referida.");
+      setNotice(action === "pausa" ? "El asunto quedó en pausa." : "El asunto quedó descartado como referido.");
     } catch (cause) { setError(`No se pudo guardar: ${saveError(cause)}`); } finally { setBusy(false); }
   }
   const counted = items.filter(itemCounted), done = counted.filter(itemDone).length;
@@ -165,13 +180,13 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   const showEncargo = phase === "verificacion" || items.some(i => i.kind === "pendiente" && i.place === "encargo") || (!!flow.resolucion && !encargoTomado(flow));
   const surveySelect = <label className="text-sm">Tipo de levantamiento<select className={selectClass} value={survey} disabled={lock} onChange={e => setSurvey(e.target.value as LevantamientoId)}>{(Object.keys(LEVANTAMIENTO_TITLES) as LevantamientoId[]).map(id => <option key={id} value={id}>{id} · {LEVANTAMIENTO_TITLES[id]}</option>)}</select></label>;
 
-  /** La barra flotante: lo que toca en una línea y un solo botón; «Pasar a» con los mismos candados de siempre. */
+  /** La barra flotante: lo que toca en una línea y un solo botón; «Pasar a» pide confirmar si algo falta (FLX-03). */
   function floatingBar() {
-    const pass = target?.target ? <Button variant={now ? "secondary" : "primary"} disabled={lock || blockers.length > 0} onClick={() => void advance()}>Pasar a: {target.label}</Button> : null;
+    const pass = target?.target ? <Button variant={now ? "secondary" : "primary"} disabled={lock} onClick={() => void advance()}>Pasar a: {target.label}</Button> : null;
     let title = "", text = "", action: React.ReactNode = null;
     if (!now) {
-      title = target?.target ? "Todo lo de esta etapa está listo" : stageOf(op) === "cerrado" ? "Operación archivada" : "Todo listo en esta etapa";
-      text = target?.target ? `Pasa a ${target.label} cuando quieras.` : target ? `La siguiente etapa, «${target.label}», se abre sola.` : "No hay más pasos en esta operación.";
+      title = target?.target ? "Todo lo de esta etapa está listo" : stageOf(op) === "cerrado" ? "Asunto archivado" : "Todo listo en esta etapa";
+      text = target?.target ? `Pasa a ${target.label} cuando quieras.` : target ? `La siguiente etapa, «${target.label}», se abre sola.` : "No hay más pasos en este asunto.";
       action = pass;
     } else if (now.kind === "inicio") {
       title = now.step === "levantamiento" ? "Iniciar el levantamiento" : "Iniciar la lista de documentos";
@@ -198,7 +213,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       } else if (!director && directorReview(now.key)) {
         // COR-23: el asesor lo deja listo y el director lo marca revisado.
         title = `Para el director: ${name}`;
-        text = now.state === "recibido" ? "Ya está listo. Falta que el director lo revise para seguir." : "Cuando tengas el documento, márcalo «Lo tengo»; el director lo revisa.";
+        text = now.state === "recibido" ? "Ya está listo. Falta que el director lo revise; puedes seguir igual." : "Cuando tengas el documento, márcalo «Lo tengo»; el director lo revisa.";
         action = now.state === "recibido" ? null : <Button variant="primary" disabled={held} onClick={() => quick(now.key, "recibido")}>Lo tengo</Button>;
       } else {
         title = `Confirmar: ${name}`; text = now.state === "recibido" ? "Ya tienes el documento; escribe qué encontraste." : "Su documento ya viene elegido; escribe qué encontraste.";
@@ -207,7 +222,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     } else if (now.kind === "abogado") {
       if (!now.task) {
         title = "Revisión del abogado antes del levantamiento";
-        text = condition ? `Mencionó: ${condition.text.toLowerCase()}.` : "La entrevista pide evaluar la operación.";
+        text = condition ? `Mencionó: ${condition.text.toLowerCase()}.` : "La entrevista pide evaluar el asunto.";
         action = <Button variant="primary" disabled={lock} onClick={() => void requestLawyer()}>Pedir revisión al abogado</Button>;
       } else {
         title = "Esperando la revisión del abogado";
@@ -216,8 +231,8 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       }
     } else if (now.kind === "decision02") {
       title = now.action === "pausa" ? "La entrevista dice: pausar" : "La entrevista dice: referir";
-      text = now.action === "pausa" ? "Deja la operación en pausa. Se reactiva desde «Más opciones»." : "Se descarta con el motivo «Referida».";
-      action = <Button variant="primary" disabled={lock} onClick={() => void applyDecision(now.action)}>{now.action === "pausa" ? "Pausar la operación" : "Referir y descartar"}</Button>;
+      text = now.action === "pausa" ? "Deja el asunto en pausa. Se reactiva desde «Más opciones»." : "Se descarta con el motivo «Referida».";
+      action = <Button variant="primary" disabled={lock} onClick={() => void applyDecision(now.action)}>{now.action === "pausa" ? "Pausar el asunto" : "Referir y descartar"}</Button>;
     } else {
       title = now.text; text = now.why ? now.why.replace(/^./, c => c.toUpperCase()) + "." : "";
       action = <Button variant="primary" disabled={lock} onClick={() => goToPending(now)}>{now.place === "ajustes" ? "Abrir los datos" : now.place === "encargo" ? "Ir a la decisión" : now.place === "tarea" ? "Agendar la próxima tarea" : now.place === "firma" ? "Ir a la firma" : now.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button>;
@@ -235,7 +250,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   }
 
   return <section aria-label="Esta etapa" className={s.grid}>
-    {flow.estado !== "activa" && <p className={cn(s.span6, "font-semibold text-[var(--warning)]")}>Operación {flow.estado === "pausada" ? "en pausa" : flow.estado === "regularizacion" ? "en regularización" : "descartada"}{flow.motivo ? `: ${flow.motivo}` : ""}</p>}
+    {flow.estado !== "activa" && <p className={cn(s.span6, "font-semibold text-[var(--warning)]")}>Asunto {flow.estado === "pausada" ? "en pausa" : flow.estado === "regularizacion" ? "en regularización" : "descartado"}{flow.motivo ? `: ${flow.motivo}` : ""}</p>}
     {locked && reviewsGroup.some(i => !i.earlier && CONTRACT_KEYS.includes(i.key)) && <div className={s.span6}><Notice tone="info">Primero dictamen jurídico, opinión de valor y decisión del encargo. Luego, contrato y preparación.</Notice></div>}
     <MortgageGateNotice className={s.span6} operationId={op.id} operacion={op.operacion} stage={stageOf(op)} next={target?.target ?? null} blocked={mortgageBlocked} />
     {porConfirmar > 0 && <div className={s.span6}><Notice tone="info" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice></div>}
@@ -243,10 +258,10 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {/* Boceto «desde cero» (14/11/2026): a la izquierda la etapa con lo que hay que confirmar y sus documentos; a la derecha la próxima tarea y el inmueble. */}
     <div className={cn(s.span6, s.bodyCols)}>
       <div className={s.bodyMain}>
-    {(reviewsGroup.length > 0 || otherGroup.length > 0 || !!stageText) && <section aria-labelledby="etapa-actual" data-tour="operacion-confirma" className={cn(s.piece, s.stagePiece)}>
+    {(reviewsGroup.length > 0 || otherGroup.length > 0 || !!stageText) && <section aria-labelledby="etapa-actual" className={cn(s.piece, s.stagePiece)}>
       <div className={s.stageIntro}><h2 id="etapa-actual" className={s.stageTitle}>{stageName}</h2>{stageText && <p className={s.stageText}>{stageText}</p>}</div>
       {(reviewsGroup.length > 0 || otherGroup.length > 0) && <>
-      <div className={s.pieceHead}><h3 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h3><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que la operación pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
+      <div className={s.pieceHead}><h3 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h3><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que el asunto pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
       <ul className={s.items}>
         {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} inFloat={now?.kind === "requisito" && now.key === item.key} onQuick={quick} onSheet={setSheet} />)}
         {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>
@@ -255,26 +270,26 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
           <div className={s.itemActions}><Button disabled={lock} onClick={() => goToPending(item)}>{item.place === "ajustes" ? "Abrir los datos" : item.place === "encargo" ? "Ir a la decisión" : item.place === "tarea" ? "Ir a la próxima tarea" : item.place === "firma" ? "Ir a la firma" : item.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button></div>
         </div></li>)}
       </ul>
-      <details className={s.meaning}><summary>¿Qué significa cada estado?</summary><ul className="mb-2 mt-1 flex flex-col gap-2 text-sm text-muted-foreground">
+      <Fold className={s.meaning} triggerClassName={s.foldTrigger} summary="¿Qué significa cada estado?"><ul className="mb-2 mt-1 flex flex-col gap-2 text-sm text-muted-foreground">
         <li><strong className="text-foreground">Lo tengo</strong>: ya llegó el documento; todavía no se revisa. <strong className="text-foreground">Revisado</strong> exige decir con qué se comprobó, quién y cuándo.</li>
         <li>El panel guarda cada revisión, pero no emite dictámenes ni sustituye la revisión de un profesional.</li>
-      </ul></details>
+      </ul></Fold>
       </>}
     </section>}
 
-    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" data-tour="operacion-documentos" className={s.piece}>
+    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" className={s.piece}>
       <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><Hint term="los documentos de la etapa">Los formatos que deja esta etapa. Cada uno se abre en su propia ventana para llenarlo.</Hint><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
       <ul className={s.docList}>{documentsGroup.map(item => item.kind === "abogado"
         ? <li key="abogado" className={s.docWait}>
           <StateIcon state={item.task ? "recibido" : "pendiente"} done={item.done} />
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong>Revisión del abogado</strong><span className="text-sm text-muted-foreground">{item.done ? "Hecha. Ya puedes seguir con el levantamiento." : item.task ? "Pedida. El levantamiento espera su respuesta." : item.condition ? `Mencionó: ${item.condition.toLowerCase()}. Va antes del levantamiento.` : "La entrevista pide evaluar la operación antes del levantamiento."}</span></span>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong>Revisión del abogado</strong><span className="text-sm text-muted-foreground">{item.done ? "Hecha. Ya puedes seguir con el levantamiento." : item.task ? "Pedida. El levantamiento espera su respuesta." : item.condition ? `Mencionó: ${item.condition.toLowerCase()}. Va antes del levantamiento.` : "La entrevista pide evaluar el asunto antes del levantamiento."}</span></span>
           {item.task && <Link className="text-sm font-semibold underline underline-offset-4" href={`/admin/tareas/${encodeURIComponent(item.task.id)}`}>Ver la tarea</Link>}
         </li>
         : item.kind === "inicio"
         ? <li key={item.step} className={s.docWait}>
           <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
-          <span className="flex min-w-[12rem] flex-1 flex-col gap-0.5"><strong>{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: lista de documentos"}</strong><span className="text-sm text-muted-foreground">{item.step === "levantamiento" && waitsLawyer ? "Espera la revisión del abogado." : "Al iniciarlo pasa a la siguiente etapa."}</span></span>
-          {item.step === "levantamiento" && !waitsLawyer && surveySelect}
+          <span className="flex min-w-[12rem] flex-1 flex-col gap-0.5"><strong>{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: lista de documentos"}</strong><span className="text-sm text-muted-foreground">{item.step === "levantamiento" && waitsLawyer ? "Conviene esperar la revisión del abogado; si hace falta, puedes iniciarlo ya." : item.step === "levantamiento" && docs.status("02") !== "terminado" ? "Puedes hacerlo aunque la entrevista no esté terminada. Al iniciarlo pasa a la siguiente etapa." : "Al iniciarlo pasa a la siguiente etapa."}</span></span>
+          {item.step === "levantamiento" && surveySelect}
         </li>
         : item.kind === "checklist"
         ? <li key="checklist" className={s.docChecklist}>{checklist ? <Checklist task={checklist} answers={docs.checklistAnswers} expedienteId={op.id} disabled={lock} onError={setError} /> : <span className="text-sm text-muted-foreground">Checklist de documentos · todavía no se crea.</span>}</li>
@@ -321,26 +336,26 @@ function FloatBar({ children }: { children: React.ReactNode }) {
     observer.observe(el);
     return () => { observer.disconnect(); root.style.removeProperty("--op-float"); root.removeAttribute("data-op-float"); };
   }, []);
-  return <div ref={ref} role="region" aria-label="Siguiente acción" data-tour="operacion-continuar" className={s.float}>{children}</div>;
+  return <div ref={ref} role="region" aria-label="Siguiente acción" className={s.float}>{children}</div>;
 }
 
 /** Formatos que se hacen más de una vez en la misma operación: uno por visita, reporte, oferta o presupuesto. */
-const REPEATABLE: Record<string, string> = { "11": "Nuevo reporte", "13": "Registrar otra visita", "14": "Otra propuesta", "19": "Otro presupuesto", "22": "Solicitud de otro candidato" };
 
 function DocRow({ item, now, docs, signed, disabled, survey, surveySelect }: { item: Extract<StageItem, { kind: "documento" }>; now: boolean; docs: DocumentsController; signed: boolean; disabled: boolean; survey: LevantamientoId; surveySelect: React.ReactNode }) {
   const doc = docs.latest(item.formato), pdf = docs.pdfOf(doc);
   // SIM-05 (C15): en la etapa, el documento por su nombre; el número se ve en Documentos.
   const [, ...rest] = formatTitle(item.formato, doc).split(" · ");
-  const waits = item.formato === "06" && !doc && docs.status("05") !== "terminado";
-  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar la revisión jurídica" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en esta operación") : "Todavía no empieza";
+  // FLX-02: el 06 ya no espera al 05; solo se avisa que conviene terminar antes la revisión jurídica.
+  const early = item.formato === "06" && !doc && docs.status("05") !== "terminado";
+  const text = doc ? draftText(doc, !!pdf) : early ? "Conviene terminar antes la revisión jurídica" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en este asunto") : "Todavía no empieza";
   return <li className="flex flex-col gap-2">
     <div className={s.docRowWrap}>
-      <button type="button" className={cn(s.docRow, waits && s.docRowWait)} data-now={now || undefined} disabled={disabled || waits} aria-label={`${doc ? "Abrir" : "Iniciar"} ${rest.join(" · ")}`} onClick={() => void docs.start(item.formato, survey)}>
+      <button type="button" className={s.docRow} data-now={now || undefined} disabled={disabled} aria-label={`${doc ? "Abrir" : "Iniciar"} ${rest.join(" · ")}`} onClick={() => void docs.start(item.formato, survey)}>
         <IconTile icon={docIcon(item.formato)} size={36} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{rest.join(" · ")}</strong><span className="text-sm text-muted-foreground">{text}</span></span>
         {/* LV-02 (V05): el distintivo dice si es borrador o ya firmado; «Terminado · PDF» lo dice el texto. */}
         {signed ? <DocBadge status="firmado" /> : doc && !pdf && <DocBadge status="borrador" />}
-        {item.status === "terminado" ? <Check size={20} aria-hidden="true" className="shrink-0 text-[var(--primary-text)]" /> : !waits && <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />}
+        {item.status === "terminado" ? <Check size={20} aria-hidden="true" className="shrink-0 text-[var(--primary-text)]" /> : <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />}
       </button>
       {pdf && <ButtonLink variant="ghost" prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`} aria-label={`PDF de ${rest.join(" · ")}`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
       {doc && REPEATABLE[item.formato] && <Button variant="ghost" disabled={disabled} onClick={() => void docs.createAndOpen(item.formato)}><Plus size={16} aria-hidden="true" />{REPEATABLE[item.formato]}</Button>}
@@ -380,7 +395,7 @@ function PropertyPiece({ op, property, interview, className, onLink }: { op: Ope
 function FirstContact({ interview, op, disabled }: { interview: OperationalInterview | null; op: OperationRecord; disabled: boolean }) {
   const a = interview?.respuestas ?? {};
   const flow = flowOf(op);
-  return <details className={cn(s.why, "mt-5")}><summary>Lo que dijo en el primer contacto</summary><div className="mt-3 flex flex-col gap-4">
+  return <Fold className={cn(s.why, "mt-5")} triggerClassName={s.foldMuted} summary="Lo que dijo en el primer contacto"><div className="mt-3 flex flex-col gap-4">
     {interview ? <dl className={s.facts}>
       {a.ubicacion && <><dt>Inmueble</dt><dd>{a.ubicacion}{a.zona ? ` · ${a.zona}` : ""}</dd></>}
       {a.tipoInmueble && <><dt>Tipo</dt><dd>{answerLabel(a.tipoInmueble)}</dd></>}
@@ -390,7 +405,7 @@ function FirstContact({ interview, op, disabled }: { interview: OperationalInter
       {a.condiciones && <><dt>Notas</dt><dd className="whitespace-pre-line">{a.condiciones}</dd></>}
     </dl> : <p className="text-sm text-muted-foreground">Todavía no hay entrevista del primer contacto.</p>}
     <InterviewAccess key={op.id} expedienteId={op.id} clienteId={op.cliente_id} intencion={flow.ruta === "arrendador" ? "arrendar" : "vender"} disabled={disabled} />
-  </div></details>;
+  </div></Fold>;
 }
 
 /**
@@ -462,7 +477,7 @@ function Checklist({ task, answers, expedienteId, disabled, onError }: { task: T
               {paso.noAplica ? <span className="text-sm text-muted-foreground">No aplica: {paso.noAplica}</span> : <span className="text-sm text-[var(--warning)]">Por confirmar: {paso.porConfirmar}</span>}
             </div>
             : <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3">
-              <input type="checkbox" className="size-5 shrink-0" checked={paso.hecho} disabled={lock} onChange={e => void cambiar(paso.id, { hecho: e.target.checked, ...(e.target.checked ? {} : { archivoId: undefined }) })} />
+              <Checkbox checked={paso.hecho} disabled={lock} onCheckedChange={next => { const hecho = next === true; void cambiar(paso.id, { hecho, ...(hecho ? {} : { archivoId: undefined }) }); }} />
               <span className={paso.hecho ? "text-muted-foreground" : ""}>{paso.texto}</span>
             </label>}
           <span className="flex flex-wrap gap-1">
@@ -528,12 +543,12 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
       {next ? <>
         <span className="flex min-w-0 flex-col gap-0.5"><span className={cn("text-sm", late ? s.lateText : "text-muted-foreground")}>{next.vence ? `${late ? "Venció el " : next.vence === today ? "Hoy · " : ""}${weekdayDate(next.vence)} ${shortDate(next.vence).split(" ")[1]}` : "Sin fecha"}</span><Link href={`/admin/tareas/${encodeURIComponent(next.id)}`} className={s.taskTitle}>{next.titulo}</Link></span>
         {!editing && <div className={s.taskActions}><Button disabled={busy} onClick={() => void finish()}><Check size={16} aria-hidden="true" />Hecha</Button><button type="button" className={s.linkButton} onClick={() => { setDate(next.vence ?? ""); setEditing(true); }}>Cambiar fecha</button></div>}
-        {editing && <div className="flex flex-col gap-2"><label className="text-sm">Nueva fecha<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label><div className="flex gap-2"><Button variant="primary" disabled={busy || !date} onClick={() => void changeDate()}>Guardar fecha</Button><Button variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancelar</Button></div></div>}
+        {editing && <div className="flex flex-col gap-2"><span className="flex flex-col gap-1.5 text-sm"><span>Nueva fecha</span><DateField aria-label="Nueva fecha" required value={date} onChange={setDate} disabled={busy} /></span><div className="flex gap-2"><Button variant="primary" disabled={busy || !date} onClick={() => void changeDate()}>Guardar fecha</Button><Button variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancelar</Button></div></div>}
       </> : <form onSubmit={create} className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">{stageOf(op) === "cerrado" ? "Operación archivada: no necesita próxima tarea." : "Esta operación no tiene una próxima tarea con fecha. Agenda el siguiente paso para no perderlo de vista."}</p>
+        <p className="text-sm text-muted-foreground">{stageOf(op) === "cerrado" ? "Asunto archivado: no necesita próxima tarea." : "Este asunto no tiene una próxima tarea con fecha. Agenda el siguiente paso para no perderlo de vista."}</p>
         {stageOf(op) !== "cerrado" && <>
           <label className="text-sm">Qué sigue<input className={inputClass} maxLength={160} value={title} onChange={e => setTitle(e.target.value)} /></label>
-          <label className="text-sm">Fecha<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label>
+          <span className="flex flex-col gap-1.5 text-sm"><span>Fecha</span><DateField aria-label="Fecha" required value={date} onChange={setDate} disabled={busy} /></span>
           <Button type="submit" variant="primary" disabled={busy || !title.trim() || !date}>Agendar</Button>
         </>}
       </form>}
@@ -546,7 +561,7 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
 function Declared({ op, interview }: { op: OperationRecord; interview: OperationalInterview }) {
   const properties = useCollection(db.propiedades);
   const property = properties.find(p => p.slug === op.propiedad_slug);
-  return <Card className="p-5"><details><summary className="cursor-pointer font-semibold">Lo que dijo el propietario y lo que dice la ficha</summary>
+  return <Card className="p-5"><Fold summary="Lo que dijo el propietario y lo que dice la ficha">
     <dl className={cn(s.facts, "mt-3")}>
       <dt>Ubicación que dio</dt><dd>{interview.respuestas.ubicacion || "No la dio"}</dd>
       <dt>Ubicación en la ficha</dt><dd>{property?.direccionAproximada || "Sin inmueble vinculado"}</dd>
@@ -556,7 +571,7 @@ function Declared({ op, interview }: { op: OperationRecord; interview: Operation
     </dl>
     <p className="mt-3 text-sm text-muted-foreground">Si no coinciden, corrige la ficha y registra el acuerdo. Los documentos generados no cambian.</p>
     {op.propiedad_slug && <Link className="mt-2 inline-block text-sm font-semibold underline underline-offset-4" href={`/admin/propiedades/${encodeURIComponent(op.propiedad_slug)}/editar`}>Revisar la ficha del inmueble</Link>}
-  </details></Card>;
+  </Fold></Card>;
 }
 
 function useRuns(slug: string, ids: string[]) {
@@ -604,7 +619,7 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
   const preparadoEl = prepared?.[0]?.updatedAt, preparado = preparadoEl ? calendarDayOf(preparadoEl) : undefined;
   return <Card className="flex flex-col gap-2 p-5" aria-label="Informe al propietario">
     <h2 className="m-0 flex items-center gap-2 text-base"><FileText size={18} aria-hidden="true" />Informe mensual al propietario</h2>
-    <p className={cn("text-sm", status && status.estado !== "al_dia" && s.lateText)}>{runs === undefined ? "Consultando informes…" : runs === null && !ultima ? "No se pudieron consultar los informes. Recarga la página para reintentar." : !status ? "Todavía no hay un informe preparado para esta operación."
+    <p className={cn("text-sm", status && status.estado !== "al_dia" && s.lateText)}>{runs === undefined ? "Consultando informes…" : runs === null && !ultima ? "No se pudieron consultar los informes. Recarga la página para reintentar." : !status ? "Todavía no hay un informe preparado para este asunto."
       : status.estado === "vencido" ? `Vencido desde el ${shortDate(status.proximo!)}.` : `Al día; el siguiente toca el ${shortDate(status.proximo ?? today)}.`}</p>
     <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
       <dt className="text-muted-foreground">Último preparado</dt><dd>{preparado ? shortDate(preparado) : "Ninguno"}</dd>
@@ -612,10 +627,9 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
     </dl>
     {preparado && (!ultima || ultima.fecha < preparado) && !form && <p className="text-sm text-[var(--warning)]">El último informe preparado todavía no se registra como entregado.</p>}
     {form ? <form onSubmit={registrar} className="mt-1 grid gap-2 sm:grid-cols-3" aria-label="Registrar entrega del informe">
-      <label className="text-sm">Fecha de entrega<input type="date" className={inputClass} required max={today} value={form.fecha} disabled={lock} onChange={e => setForm({ ...form, fecha: e.target.value })} /></label>
-      <label className="text-sm">Canal<select className={selectClass} required value={form.canal} disabled={lock} onChange={e => setForm({ ...form, canal: e.target.value as EntregaInforme["canal"] })}>
-        <option value="">Elige…</option>{Object.entries(CANALES_INFORME).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-      </select></label>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Fecha de entrega</span><DateField aria-label="Fecha de entrega" required max={today} value={form.fecha} disabled={lock} onChange={fecha => setForm({ ...form, fecha })} /></span>
+      <span className="flex flex-col gap-1.5 text-sm"><span>Canal</span><OptionSelect aria-label="Canal" placeholder="Elige…" value={form.canal} disabled={lock} onChange={canal => setForm({ ...form, canal })}
+        options={(Object.entries(CANALES_INFORME) as Array<[EntregaInforme["canal"], string]>).map(([value, label]) => ({ value, label, icon: React.createElement(CANAL_ICON[value], { size: 18, "aria-hidden": true }) }))} /></span>
       <label className="text-sm">Quién lo entregó<input className={inputClass} required maxLength={160} value={form.responsable} disabled={lock} onChange={e => setForm({ ...form, responsable: e.target.value })} /></label>
       <span className="flex flex-wrap gap-2 sm:col-span-3">
         <Button type="submit" variant="primary" disabled={lock || !form.fecha || !form.canal || !form.responsable.trim()}>Guardar entrega</Button>
@@ -627,9 +641,9 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
     </span>}
     {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-    {entregas.length > 1 && <details className="text-sm"><summary className="cursor-pointer">Entregas anteriores</summary>
+    {entregas.length > 1 && <Fold className="text-sm" triggerClassName="font-medium" summary="Entregas anteriores">
       <ul className="mt-1 flex flex-col gap-0.5">{entregas.slice(1).map(e => <li key={`${e.fecha}-${e.registradoEl ?? e.responsable}`}>{shortDate(e.fecha)} · {CANALES_INFORME[e.canal]} · {e.responsable}</li>)}</ul>
-    </details>}
+    </Fold>}
     <p className="text-sm text-muted-foreground">Informe mensual al propietario. Prepararlo no es entregarlo: registra cuándo, por dónde y quién.</p>
   </Card>;
 }
@@ -664,12 +678,20 @@ function VisitsAndOffers({ op, today, documents }: { op: OperationRecord; today:
         {offers === undefined ? <p className="text-muted-foreground">Consultando ofertas…</p> : offers === null ? <p className="text-muted-foreground">No se pudieron consultar las ofertas.</p> : offers.length ? <ul className="flex flex-col gap-1">{offers.slice(0, 5).map(run => <li key={run.id}>{run.title} · {shortDate(run.updatedAt)}{run.context?.expedienteId && run.context.expedienteId !== op.id ? " · del comprador" : ""}</li>)}</ul> : <p className="text-muted-foreground">Sin ofertas comparadas.</p>}
         {offerDocs.length ? <ul className="flex flex-col gap-2">{offerDocs.map(d => { const owner = offerOwner(leads, d.id), fecha = (d.updated_at ?? today).slice(0, 10), options = owner && !candidates.some(c => c.id === owner.id) ? [owner, ...candidates] : candidates; return <li key={d.id} className="flex flex-col gap-1">
           <span>Oferta por escrito (14) · {shortDate(fecha)}{owner ? <> · de <Link className="font-semibold underline underline-offset-4" href={`/admin/leads/${encodeURIComponent(owner.id)}`}>{owner.nombre}</Link></> : ""}</span>
-          {options.length ? <label className="flex flex-col gap-1"><span className="text-muted-foreground">¿De quién es esta oferta?</span><AsyncSelect value={owner?.id ?? ""} className={selectClass} onChange={async value => { if (value) await link(d.id, fecha, value); else if (owner) await upsert(db.leads, withoutOffer(owner, d.id), db.leads.version(owner)); }}>
-            <option value="">Sin ligar</option>{options.map(l => <option key={l.id} value={l.id}>{l.nombre}</option>)}
-          </AsyncSelect></label> : !owner && <span className="text-muted-foreground">Para ligarla, relaciona al interesado con el inmueble o agenda su visita.</span>}
+          {options.length ? <span className="flex flex-col gap-1"><span className="text-muted-foreground">¿De quién es esta oferta?</span><OfferOwner value={owner?.id ?? ""} people={options} onPick={async value => { if (value) await link(d.id, fecha, value); else if (owner) await upsert(db.leads, withoutOffer(owner, d.id), db.leads.version(owner)); }} /></span> : !owner && <span className="text-muted-foreground">Para ligarla, relaciona al interesado con el inmueble o agenda su visita.</span>}
         </li>; })}</ul> : <p className="text-muted-foreground">Sin oferta por escrito (formato 14) en el expediente.</p>}
         <Link className="font-semibold underline underline-offset-4" href={`/admin/apps/ofertas?expedienteId=${encodeURIComponent(op.id)}`}>Comparar una oferta</Link>
       </div>
     </div>
   </Card>;
+}
+
+/** Quién hizo la oferta (14): el interesado con su cara. Mientras se guarda, el selector espera. */
+function OfferOwner({ value, people, onPick }: { value: string; people: Array<{ id: string; nombre: string }>; onPick: (id: string) => Promise<unknown> }) {
+  const [busy, setBusy] = React.useState(false), [error, setError] = React.useState<string | null>(null);
+  return <div aria-busy={busy}>
+    <PersonSelect aria-label="¿De quién es esta oferta?" people={people} value={value} emptyLabel="Sin ligar" disabled={busy}
+      onChange={next => { setBusy(true); setError(null); void onPick(next).catch(cause => setError(errorMessage(cause))).finally(() => setBusy(false)); }} />
+    <ErrorNotice error={error} />
+  </div>;
 }

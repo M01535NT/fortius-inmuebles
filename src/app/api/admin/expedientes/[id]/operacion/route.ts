@@ -27,7 +27,8 @@ export async function PUT(request: Request, context: Context) {
     const { client } = await requireStaff();
     const id = z.uuid().parse((await context.params).id);
     const input = expedienteOperationWrite.parse(await readJson(request));
-    const current = await client.from("fortius_inmuebles_expedientes").select("flujo").eq("id", id).is("deleted_at", null).maybeSingle();
+    // Estado actual del asunto: el descarte compara con él.
+    const current = await client.from("fortius_inmuebles_expedientes").select("etapa,operacion,flujo").eq("id", id).is("deleted_at", null).maybeSingle();
     if (current.error) databaseError(current.error);
     if (!current.data) throw new ApiError(404, "Expediente no encontrado");
     // COR-14 (RP-97): al descartar, el motivo sale de la lista fija; los ya descartados conservan el suyo.

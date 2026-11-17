@@ -71,9 +71,9 @@ test("every task due today or overdue stays on Hoy, oldest deadline first", asyn
 
 test("an empty operations module offers creation without forcing the form open", async () => {
   install(); render(<OperacionesPage/>);
-  await screen.findByText("Todavía no hay operaciones");
-  expect(screen.getByRole("link",{name:"Nueva operación"}).getAttribute("href")).toBe("/admin/operaciones/nueva");
-  expect(screen.queryByRole("button",{name:"Abrir operación"})).toBeNull();
+  await screen.findByText("Todavía no hay asuntos");
+  expect(screen.getByRole("link",{name:"Nuevo asunto"}).getAttribute("href")).toBe("/admin/operaciones/nueva");
+  expect(screen.queryByRole("button",{name:"Abrir asunto"})).toBeNull();
   // C38: la alta directa ya no es una tarjeta fija al pie del tablero.
   expect(screen.queryByRole("button", {name:"Alta directa, sin entrevista"})).toBeNull();
 });

@@ -138,11 +138,11 @@ export function ExpedienteDatosPanel({ operationId, refresh = 0, solo, onSaved, 
       let n = 0;
       for (const [clave, dato] of Object.entries(r.datos ?? {})) {
         if (dato.estado !== "confirmado" || datos[clave]) continue;
-        datos[clave] = { valor: dato.valor, estado: "propuesto", fuente: { documento: `Operación ${otra.folio}`, operacionId: otra.id }, actualizadoEl: ahora() };
+        datos[clave] = { valor: dato.valor, estado: "propuesto", fuente: { documento: `Asunto ${otra.folio}`, operacionId: otra.id }, actualizadoEl: ahora() };
         n++;
       }
-      if (!n) { setNotice(`La operación ${otra.folio} no tiene datos confirmados que falten aquí.`); setOtras(undefined); return; }
-      void guardar(datos, `Se trajeron ${n === 1 ? "1 dato" : `${n} datos`} de la operación ${otra.folio}; revísalos y confírmalos.`).then(() => setOtras(undefined));
+      if (!n) { setNotice(`El asunto ${otra.folio} no tiene datos confirmados que falten aquí.`); setOtras(undefined); return; }
+      void guardar(datos, `Se trajeron ${n === 1 ? "1 dato" : `${n} datos`} del asunto ${otra.folio}; revísalos y confírmalos.`).then(() => setOtras(undefined));
     } catch (cause) { setError(errorMessage(cause)); }
   }
 
@@ -159,7 +159,7 @@ export function ExpedienteDatosPanel({ operationId, refresh = 0, solo, onSaved, 
       <span className="flex flex-wrap gap-1">
         {propuestos.length > 1 && <Button variant="primary" disabled={busy} onClick={() => confirmar(propuestos)}><Check size={16} aria-hidden="true" />Confirmar los {propuestos.length} pendientes</Button>}
         <Button variant="ghost" aria-expanded={pegando} disabled={busy || !estado} onClick={() => { setPegando(open => !open); setOtras(undefined); }}><Paste size={16} aria-hidden="true" />Pegar texto</Button>
-        <Button variant="ghost" aria-expanded={otras !== undefined} disabled={busy || !estado} onClick={() => { if (otras !== undefined) setOtras(undefined); else { setPegando(false); void buscarOtras(); } }}><ArrowLeftRight size={16} aria-hidden="true" />Tomar de otra operación</Button>
+        <Button variant="ghost" aria-expanded={otras !== undefined} disabled={busy || !estado} onClick={() => { if (otras !== undefined) setOtras(undefined); else { setPegando(false); void buscarOtras(); } }}><ArrowLeftRight size={16} aria-hidden="true" />Tomar de otro asunto</Button>
       </span>
     </div>
     {pegando && <section aria-label="Pegar texto" className="mt-3 flex flex-col gap-2 rounded-[12px] border border-border p-3">
@@ -167,10 +167,10 @@ export function ExpedienteDatosPanel({ operationId, refresh = 0, solo, onSaved, 
       <textarea id="datos-texto" className={textareaClass} rows={5} value={texto} onChange={event => setTexto(event.target.value)} placeholder="Se reconocen CURP, RFC, folio real, clave catastral, teléfono, correo, fechas de nacimiento, escritura y superficies." />
       <span className="flex flex-wrap gap-2"><Button variant="primary" disabled={busy || !texto.trim()} onClick={reconocer}>Reconocer datos</Button><Button variant="ghost" disabled={busy} onClick={() => { setPegando(false); setTexto(""); }}>Cancelar</Button></span>
     </section>}
-    {otras !== undefined && <section aria-label="Otras operaciones" className="mt-3 flex flex-col gap-2 rounded-[12px] border border-border p-3">
-      <p className="m-0 text-sm font-semibold">Operaciones del mismo cliente o inmueble</p>
+    {otras !== undefined && <section aria-label="Otros asuntos" className="mt-3 flex flex-col gap-2 rounded-[12px] border border-border p-3">
+      <p className="m-0 text-sm font-semibold">Asuntos del mismo cliente o inmueble</p>
       {otras === null ? <p className="text-sm text-muted-foreground">Buscando…</p>
-        : !otras.length ? <p className="text-sm text-muted-foreground">No hay otra operación de este cliente ni de este inmueble.</p>
+        : !otras.length ? <p className="text-sm text-muted-foreground">No hay otro asunto de este cliente ni de este inmueble.</p>
         : <ul className="flex flex-wrap gap-1.5">{otras.map(otra => <li key={otra.id}><Button variant="secondary" disabled={busy} onClick={() => void tomarDe(otra)}>{otra.folio} <span className="text-muted-foreground">· {otra.operacion}</span></Button></li>)}</ul>}
       <p className="m-0 text-xs text-muted-foreground">Sus datos confirmados entran aquí por confirmar; nada se copia sin que lo revises.</p>
     </section>}

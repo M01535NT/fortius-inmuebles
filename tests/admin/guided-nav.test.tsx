@@ -1,6 +1,6 @@
 import * as React from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 const { tasks, leads, clients } = vi.hoisted(() => ({ tasks: [] as Array<Record<string, unknown>>, leads: [] as Array<Record<string, unknown>>, clients: [] as Array<Record<string, unknown>> }));
 vi.mock("@/lib/admin/store", async original => {
@@ -18,10 +18,10 @@ const sidenav = (role: string, pathname = "/admin") => render(<SideNav pathname=
 beforeEach(() => { tasks.length = 0; leads.length = 0; clients.length = 0; pending.value = 0; });
 afterEach(cleanup);
 
-test("el menú lateral lleva los seis módulos y Herramientas, el buscador y la cuenta; sin Administración a la vista del asesor", () => {
+test("el menú lateral lleva las ocho secciones y Herramientas, el buscador y la cuenta; sin Administración a la vista del asesor", () => {
   sidenav("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
-  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"]);
+  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Bandeja", "Asuntos", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"]);
   expect(within(nav).getByRole("link", { name: "Herramientas" }).getAttribute("href")).toBe("/admin/herramientas");
   expect(screen.getByRole("button", { name: "Buscar" })).toBeTruthy();
   const account = screen.getByRole("button", { name: /Mariana Ruiz, Asesor/ });
@@ -34,25 +34,26 @@ test("el menú lateral lleva los seis módulos y Herramientas, el buscador y la 
   expect(within(menu).getByText("Asesor")).toBeTruthy();
 });
 
-test("«+ Nuevo» abre las cinco altas, la operación primero, y avisa a la pantalla destino", () => {
+test("«+ Nuevo» abre las seis altas y «Agregar archivo» (FLX-01), la operación primero, y avisa a la pantalla destino", async () => {
   // Desde el 14/11/2026 «+ Nuevo» va en el encabezado de Hoy, no en el menú lateral.
   render(<NewMenu />);
   const heard: string[] = [];
   window.addEventListener("fortius:quick-create", event => heard.push((event as CustomEvent<string>).detail));
   const trigger = screen.getByRole("button", { name: "Nuevo" });
   expect(trigger.getAttribute("aria-expanded")).toBe("false");
-  fireEvent.click(trigger);
+  // Radix abre el menú al presionar (no al soltar) o con Enter; en la prueba se abre con Enter.
+  fireEvent.keyDown(trigger, { key: "Enter" });
   const menu = screen.getByRole("menu", { name: "Qué quieres crear" });
   expect(within(menu).getAllByRole("menuitem").map(item => [item.textContent, item.getAttribute("href")])).toEqual([
-    ["Atender a alguien", "/admin/operaciones/nueva"], ["Nueva operación", "/admin/operaciones/nueva?intencion=vender"], ["Nuevo inmueble", "/admin/propiedades/nueva"], ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1"], ["Agendar visita", "/admin/agenda?nueva=1"],
+    ["Atender a alguien", "/admin/operaciones/nueva"], ["Nuevo perfil", "/admin/personas?nuevo=1"], ["Nuevo asunto", "/admin/operaciones/nueva?intencion=vender"], ["Nuevo inmueble", "/admin/propiedades/nueva"], ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1"], ["Agendar visita", "/admin/agenda?nueva=1"], ["Agregar archivo", "/admin/bandeja"],
   ]);
   fireEvent.click(within(menu).getByRole("menuitem", { name: "Nueva tarea" }));
   expect(heard).toEqual(["tarea"]);
   expect(screen.queryByRole("menu")).toBeNull();
-  fireEvent.click(trigger);
-  fireEvent.keyDown(document, { key: "Escape" });
+  fireEvent.keyDown(trigger, { key: "Enter" });
+  fireEvent.keyDown(document.activeElement!, { key: "Escape" });
   expect(screen.queryByRole("menu")).toBeNull();
-  expect(document.activeElement).toBe(trigger);
+  await waitFor(() => expect(document.activeElement).toBe(trigger));
 });
 
 test("el administrador encuentra Administración en el menú lateral y en su cuenta, marcada dentro de esas páginas", () => {
@@ -69,11 +70,19 @@ test("el administrador encuentra Administración en el menú lateral y en su cue
 });
 
 test("la sección activa incluye sus fichas de detalle y las direcciones anteriores", () => {
-  const [hoy, operaciones, contactos, , agenda] = MAIN_NAV;
+  const [hoy, bandeja, operaciones, contactos, personas, agenda] = ["/admin", "/admin/bandeja", "/admin/operaciones", "/admin/contactos", "/admin/personas", "/admin/agenda"].map(href => MAIN_NAV.find(item => item.href === href)!);
+  // FLX-01 (RP-58): la Bandeja es la segunda sección.
+  expect(bandeja.label).toBe("Bandeja");
+  expect(isNavActive("/admin/bandeja", bandeja)).toBe(true);
+  expect(isNavActive("/admin/bandeja", hoy)).toBe(false);
   expect(isNavActive("/admin", hoy)).toBe(true);
   expect(isNavActive("/admin/operaciones", hoy)).toBe(false);
   expect(isNavActive("/admin/operaciones/nueva", operaciones)).toBe(true);
   expect(isNavActive("/admin/leads/123", contactos)).toBe(true);
+  // Personas va junto a Contactos y cada una marca solo su pantalla.
+  expect(isNavActive("/admin/personas", personas)).toBe(true);
+  expect(isNavActive("/admin/personas", contactos)).toBe(false);
+  expect(isNavActive("/admin/contactos", personas)).toBe(false);
   expect(isNavActive("/admin/tareas/9", agenda)).toBe(true);
   expect(isNavActive("/admin/agendas", agenda)).toBe(false);
   for (const path of ["/admin/herramientas", "/admin/apps/hipoteca", "/admin/notas", "/admin/reportes", "/admin/configuracion", "/admin/perfil"]) expect(isNavActive(path, MORE_NAV)).toBe(true);
@@ -104,8 +113,8 @@ test("la barra inferior del celular marca la sección y abre el menú «Más»",
   const tabs = screen.getByRole("navigation", { name: "Secciones principales" });
   expect(within(tabs).getByRole("link", { name: "Contactos" }).getAttribute("aria-current")).toBe("page");
   // SIM-17: el «+» abre el mismo menú que «+ Nuevo».
-  fireEvent.click(within(tabs).getByRole("button", { name: "Nuevo" }));
-  expect(within(tabs).getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Atender a alguien", "Nueva operación", "Nuevo inmueble", "Nueva tarea", "Agendar visita"]);
+  fireEvent.keyDown(within(tabs).getByRole("button", { name: "Nuevo" }), { key: "Enter" });
+  expect(within(tabs).getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Atender a alguien", "Nuevo perfil", "Nuevo asunto", "Nuevo inmueble", "Nueva tarea", "Agendar visita", "Agregar archivo"]);
   const more = within(tabs).getByRole("button", { name: "Menú del panel" });
   expect(more.textContent).toBe("Más");
   fireEvent.click(more);

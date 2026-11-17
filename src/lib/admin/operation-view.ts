@@ -1,3 +1,4 @@
+import { etapasDeGuia } from "@/lib/guias";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { COMPARABLES_HREF } from "@/lib/apps/catalog";
 import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
@@ -47,6 +48,8 @@ export function initialStatus(formats: ReadonlyMap<string, boolean> | undefined,
 /** Etapas del avance: las 10 del propietario, de venta o de renta (COR-04); las demás rutas usan sus propios pasos (sin «archivado»). */
 export function routeStages(op: OperationRecord, today: string) {
   const flow = flowOf(op), stage = stageOf(op);
+  // FLX-03 B (DEC-55): una guía propia dibuja sus etapas y su paso; la etapa de la base no cuenta.
+  if (flow.guia) { const labels = etapasDeGuia(flow.guia); return { labels: [...labels], current: Math.min(flow.guia.paso, labels.length - 1), phase: undefined }; }
   if (isOwnerRoute(flow.ruta)) {
     const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial), process = ownerProcess(flow.ruta);
     return { labels: process.map(p => p.label), current: process.findIndex(p => p.key === phase), phase };
@@ -108,7 +111,7 @@ export function closeSteps(op: OperationRecord): CloseStep[] {
 
 /** Etapas de la operación con su número y su fase: las 10 del propietario o los pasos de su ruta. */
 export function stageTrack(op: OperationRecord, today: string) {
-  const flow = flowOf(op), owner = isOwnerRoute(flow.ruta);
+  const flow = flowOf(op), owner = isOwnerRoute(flow.ruta) && !flow.guia;
   const { labels, current, phase } = routeStages(op, today);
   const stages: TrackStage[] = labels.map((label, i) => {
     if (!owner) return { n: i + 1, label };
@@ -232,8 +235,9 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
       const task = tasks.filter(t => t.expedienteId === op.id && isLawyerTask(t.titulo) && t.estado !== "cancelada").sort((a, b) => Number(isTaskOpen(b)) - Number(isTaskOpen(a)))[0];
       items.push({ kind: "abogado", ...(context.condition ? { condition: context.condition.text } : {}), ...(task ? { task } : {}), done: task?.estado === "completada" });
     }
-    if (phase === "captacion" && interviewed) items.push({ kind: "inicio", step: "levantamiento" });
-    if (phase === "levantamiento" && status("04") === "terminado") items.push({ kind: "inicio", step: "checklist" });
+    // FLX-02: el levantamiento se puede iniciar sin entrevista y la lista sin terminar el levantamiento (nada frena; la pantalla avisa).
+    if (phase === "captacion") items.push({ kind: "inicio", step: "levantamiento" });
+    if (phase === "levantamiento") items.push({ kind: "inicio", step: "checklist" });
   }
   for (const { key, earlier } of currentRequirements(op, today)) items.push({ kind: "requisito", key, earlier, state: reviewState(flow, key), done: reviewComplete(flow, key, today) });
   for (const m of missingItems(op, tasks, today)) {
@@ -252,12 +256,6 @@ export function nowItem(items: StageItem[]) {
   return items.find(i => i.kind === "requisito" && i.state === "observado") ?? items.find(i => !itemDone(i) && !(i.kind === "documento" && i.optional));
 }
 
-/** Qué hacemos y para qué en la etapa actual. */
-export function stageGuide(op: OperationRecord, today: string) {
-  const { phase, labels, current } = routeStages(op, today);
-  const sale = phase ? ownerProcess(flowOf(op).ruta).find(p => p.key === phase) : undefined;
-  return { title: labels[current], que: sale?.hace, para: sale?.para };
-}
 
 /** Requisitos que se trabajan ahora. Los de etapas anteriores que siguen abiertos se agregan al final. */
 export function currentRequirements(op: OperationRecord, today: string): Array<{ key: RequirementKey; earlier: boolean }> {
@@ -294,14 +292,14 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   if (phase === "levantamiento") return { label: label("documentos") };
   if (phase === "dictamen") return { label: label("verificacion") };
   if (phase === "verificacion") return { label: label("contrato") };
-  if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar la operación" : stageLabel(next, flow.ruta).replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
+  if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar el asunto" : stageLabel(next, flow.ruta).replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
   const following = process[process.findIndex(p => p.key === phase) + 1];
   return { target: next, label: following?.label ?? stageLabel(next, flow.ruta) };
 }
 
 export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "encargo" | "tarea" | "operacion" | "firma" | "cierre"; /** El documento que abre el pendiente (SIM-05: sin su número en el texto). */ formato?: "02" | "04" };
 const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
-  "Reactivar la operación antes de avanzar.": { text: "Reactivar la operación", why: "está en pausa, en regularización o descartada", place: "ajustes" },
+  "Reactivar la operación antes de avanzar.": { text: "Reactivar el asunto", why: "está en pausa, en regularización o descartado", place: "ajustes" },
   "Resolver las observaciones que bloquean esta actividad.": { text: "Resolver los problemas marcados", why: "un requisito dice «Hay un problema»", place: "requisito" },
   "Revisar la resolución y reactivar el encargo antes de avanzar.": { text: "Revisar la decisión del encargo", why: "está en pausa, rechazada, referida o cancelada", place: "encargo" },
   "La aceptación condicionada no autoriza esta actividad.": { text: "Revisar las condiciones del encargo", why: "la decisión con condiciones no permite este paso", place: "encargo" },
@@ -312,8 +310,8 @@ const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
   "El director debe revisar la firma del contrato.": { text: "Revisión de la firma por el director", why: "sin ella no se publica", place: "firma" },
   "El contrato de intermediación terminó: registra uno nuevo para seguir.": { text: "Registrar un contrato nuevo", why: "el anterior terminó", place: "firma" },
   "Registrar quién captó y quién vendió antes de archivar.": { text: "Registrar quién captó y quién vendió", why: "para el reparto de la comisión", place: "cierre" },
-  "Captura los datos del inmueble.": { text: "Vincular el inmueble", why: "se hace en los datos de la operación", place: "ajustes" },
-  "Identificar la contraparte interna o externa.": { text: "Identificar al comprador o contraparte", why: "se hace en los datos de la operación", place: "ajustes" },
+  "Captura los datos del inmueble.": { text: "Vincular el inmueble", why: "se hace en los datos del asunto", place: "ajustes" },
+  "Identificar la contraparte interna o externa.": { text: "Identificar al comprador o contraparte", why: "se hace en los datos del asunto", place: "ajustes" },
   "Resolver o descartar las tareas pendientes antes de archivar.": { text: "Cerrar las tareas pendientes", why: "antes de archivar", place: "tarea" },
   "Agendar una próxima tarea con fecha y responsable.": { text: "Agendar la próxima tarea", why: "con fecha y responsable", place: "tarea" },
 };

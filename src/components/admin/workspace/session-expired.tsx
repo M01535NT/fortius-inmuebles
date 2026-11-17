@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { Button } from "@/components/admin/kit";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/dialog";
 import { ErrorNotice, Field, inputClass } from "@/components/admin/ui";
 import { errorMessage, login, needsMfaCode, verifyMfaCode } from "@/lib/admin/store";
 
@@ -12,17 +13,9 @@ import { errorMessage, login, needsMfaCode, verifyMfaCode } from "@/lib/admin/st
   Quien tiene la verificación en dos pasos (AUT-01) escribe después el código de su app.
 */
 export function SessionExpiredDialog({ email, onLeave }: { email: string; onLeave: () => Promise<void> }) {
-  const dialog = React.useRef<HTMLDialogElement>(null);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [step, setStep] = React.useState<"password" | "code">("password");
-  React.useEffect(() => {
-    const node = dialog.current;
-    // Sin showModal (navegadores viejos o pruebas) se abre igual; Escape sigue sin cerrarla.
-    if (node && !node.open) { if (typeof node.showModal === "function") node.showModal(); else node.setAttribute("open", ""); }
-    node?.querySelector<HTMLInputElement>("#session-expired-password")?.focus();
-    return () => { if (node?.open) { if (typeof node.close === "function") node.close(); else node.removeAttribute("open"); } };
-  }, []);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
@@ -35,10 +28,11 @@ export function SessionExpiredDialog({ email, onLeave }: { email: string; onLeav
     catch (cause) { setError(errorMessage(cause)); }
     finally { setBusy(false); }
   }
-  return <dialog ref={dialog} className="admin-confirm" aria-labelledby="session-expired-title" aria-describedby="session-expired-text" onCancel={event => event.preventDefault()}>
+  // AlertDialog de Radix (DEC-52): encierra el foco, deja el fondo inerte y Escape no la cierra.
+  return <AlertDialog open><AlertDialogContent onEscapeKeyDown={event => event.preventDefault()} className="w-[min(30rem,calc(100%-2rem))]">
     <form onSubmit={submit} className="flex flex-col gap-4" aria-busy={busy}>
-      <h2 id="session-expired-title" className="m-0 text-lg font-semibold">Tu sesión venció</h2>
-      <p id="session-expired-text" className="m-0 text-sm">Entra de nuevo para seguir. Lo que capturaste sigue en pantalla; todavía no se guarda.</p>
+      <AlertDialogTitle className="m-0 text-lg font-semibold">Tu sesión venció</AlertDialogTitle>
+      <AlertDialogDescription className="m-0 text-sm">Entra de nuevo para seguir. Lo que capturaste sigue en pantalla; todavía no se guarda.</AlertDialogDescription>
       {step === "password" ? <>
         <Field label="Correo" htmlFor="session-expired-email">
           <input id="session-expired-email" type="email" value={email} readOnly autoComplete="username" className={inputClass} />
@@ -55,5 +49,5 @@ export function SessionExpiredDialog({ email, onLeave }: { email: string; onLeav
         <Button variant="primary" type="submit" disabled={busy}>{busy ? "Entrando…" : "Entrar y seguir"}</Button>
       </div>
     </form>
-  </dialog>;
+  </AlertDialogContent></AlertDialog>;
 }

@@ -93,6 +93,21 @@ async function update(id:string,stage:string,flow:Record<string,unknown>|null=nu
  const version=(await db.query<{version:number}>('select version from public.fortius_inmuebles_expedientes where id=$1',[id])).rows[0].version;
  return (await db.query<{r:Record<string,unknown>}>("select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,$5,$6) r",[id,version,stage,flow?JSON.stringify(flow):null,slug??null,slug!==undefined])).rows[0].r;
 }
+/** El último aviso que la base anotó en el historial del asunto (FLX-03, RP-100). */
+async function lastNotice(id:string){
+ return (await db.query<{descripcion:string}>("select descripcion from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso' order by created_at desc limit 1",[id])).rows[0]?.descripcion ?? '';
+}
+/**
+  FLX-03 (RP-100): lo que antes frenaba el paso ahora lo deja pasar y lo anota. La prueba comprueba
+  el aviso y regresa la etapa para seguir recorriendo el flujo como antes.
+*/
+async function passesWithNotice(id:string,stage:string,expected:RegExp,flow:Record<string,unknown>|null=null){
+ const before=(await db.query<{etapa:string}>('select etapa from public.fortius_inmuebles_expedientes where id=$1',[id])).rows[0].etapa;
+ const moved=await update(id,stage,flow);
+ expect(moved.etapa).toBe(stage);
+ expect(await lastNotice(id)).toMatch(expected);
+ if(before!==stage)await update(id,before,{...(moved.flujo as Record<string,unknown>),motivo:'Regreso de la prueba'});
+}
 /** Sube a los documentos del cliente un contrato ficticio de la operación (como superusuario de la prueba). */
 async function clientFile(id:string){
  const file=crypto.randomUUID();

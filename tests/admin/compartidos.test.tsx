@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 vi.mock("@/lib/admin/store", async original => ({ ...await original<typeof import("@/lib/admin/store")>(), uploadFile: upload }));
 import { PropertyForm } from "@/components/admin/property-form";
 import { clearAdminCache } from "@/lib/admin/store";
-import { knownAllies, sharedCommissionEstimate, sharedPublicationBlockers } from "@/lib/admin/shared-property";
+import { knownAllies, sharedCommissionEstimate, sharedPublicationBlockers, sharedPublicationWarnings } from "@/lib/admin/shared-property";
 import type { AdminProperty } from "@/lib/domain/records";
 import { propiedades } from "../fixtures/propiedades";
 
@@ -33,8 +33,11 @@ it("la comisión es una estimación sobre el precio publicado y las inmobiliaria
   expect(sharedCommissionEstimate({ ...propiedades[0] } as AdminProperty)).toBeNull();
   expect(knownAllies([shared(), shared({ slug: "otra", aliado: { inmobiliaria: "aliada de ensayo" } }), { ...propiedades[0] } as AdminProperty]))
     .toEqual([{ inmobiliaria: "Aliada de Ensayo", contacto: "Contacto de ensayo", porcentaje: 2.5 }]);
-  expect(sharedPublicationBlockers({ inmobiliaria: "Aliada de Ensayo" })).toHaveLength(3);
-  expect(sharedPublicationBlockers({ inmobiliaria: "Aliada de Ensayo", autorizacion: { path: "u/a.pdf", fecha: "2026-11-12", firmante: "Gerente" } })).toEqual([]);
+  // FLX-03: solo la inmobiliaria ligada impide publicar; la autorización que falta es aviso.
+  expect(sharedPublicationBlockers({ inmobiliaria: "" })).toHaveLength(1);
+  expect(sharedPublicationBlockers({ inmobiliaria: "Aliada de Ensayo" })).toEqual([]);
+  expect(sharedPublicationWarnings({ inmobiliaria: "Aliada de Ensayo" })).toHaveLength(3);
+  expect(sharedPublicationWarnings({ inmobiliaria: "Aliada de Ensayo", autorizacion: { path: "u/a.pdf", fecha: "2026-11-12", firmante: "Gerente" } })).toEqual([]);
 });
 
 it("desde Herramientas el alta llega como compartido y guarda la inmobiliaria con su autorización", async () => {
@@ -50,7 +53,7 @@ it("desde Herramientas el alta llega como compartido y guarda la inmobiliaria co
   fireEvent.change(screen.getByLabelText("Archivo de la autorización"), { target: { files: [new File(["x"], "carta.pdf", { type: "application/pdf" })] } });
   await screen.findByText("carta.pdf");
   expect(upload).toHaveBeenCalledWith(expect.any(File), "private");
-  fireEvent.change(screen.getByLabelText("Fecha de la autorización"), { target: { value: "2026-11-12" } });
+  fireEvent.input(document.querySelector('input[name="aliadoAutorizacionFecha"]')!, { target: { value: "2026-11-12" } });
   fireEvent.change(screen.getByLabelText("Quién la firmó o envió"), { target: { value: "Gerente de ensayo" } });
   fireEvent.click(screen.getByRole("button", { name: "Crear inmueble" }));
   await waitFor(() => expect(writes).toHaveLength(1));

@@ -16,14 +16,16 @@ import { emiteIncompleto, formatoById, validateFormato, type FormatoDefinition }
 import { VALOR_DEFAULTS } from "@/lib/formatos/valor-fields";
 import { downloadValorExcel } from "@/lib/admin/download-word";
 import { cn, humanDateTime } from "@/lib/utils";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { PasarAAsunto } from "./pasar-a-asunto";
 
 /*
   Documentos sueltos (HER-02): cualquier formato sin abrir una operación ni un prospecto.
   «Llenar con datos» abre el formato en su propia ventana, con la misma captura por secciones y el
   mismo diseño de plantilla que en el expediente; «En blanco» descarga el machote con el membrete
   para que el cliente lo revise o se llene a mano. Nada se bloquea por datos faltantes (RP-77):
-  el PDF sale marcado como incompleto, salvo el aviso de privacidad (01) y la promesa (15), que
-  conservan sus reglas. Un formato cuyo PDF siga pendiente de cotejo sale en Word.
+  el PDF sale marcado como incompleto, salvo el aviso de privacidad (01), que
+  conserva su regla (la promesa, 15, también sale marcada desde FLX-03). Un formato cuyo PDF siga pendiente de cotejo sale en Word.
   Lo lleno se guarda como trabajo de Herramientas (con versiones); el PDF no se archiva.
 */
 
@@ -57,6 +59,7 @@ export function DocumentosSinExpediente() {
   const [name, setName] = React.useState(""), [open, setOpen] = React.useState<Open | null>(null);
   const [vista, setVista] = React.useState<Vista>(() => search.get("vista") === "machotes" ? "blanco" : "llenar");
   const [busy, setBusy] = React.useState(""), [notice, setNotice] = React.useState("");
+  const [moving, setMoving] = React.useState<AppRun | null>(null);
 
   // Accesos directos (HER-01): «?formato=07» abre la opinión de valor; «&seccion=comparables», sus comparables.
   const pedido = React.useRef(false);
@@ -104,7 +107,7 @@ export function DocumentosSinExpediente() {
   const grupos = gruposDeFormatos();
   return <div className="flex flex-col gap-6">
     <Link href="/admin/herramientas" className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium underline-offset-4 hover:underline"><ArrowLeft size={16} aria-hidden="true" />Más</Link>
-    <PageHeader title="Documentos sueltos" description="Cualquier formato en blanco o lleno con los datos que dé el cliente, sin abrir una operación." />
+    <PageHeader title="Documentos sueltos" description="Cualquier formato en blanco o lleno con los datos que dé el cliente, sin abrir un asunto." />
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
     <section aria-labelledby="formatos" className="flex flex-col gap-4">
@@ -143,11 +146,12 @@ export function DocumentosSinExpediente() {
         : <Card as="ul" className="flex flex-col divide-y divide-border p-0">{runs.map(run => <li key={run.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 sm:px-5">
           <div className="min-w-0"><p className="m-0 font-semibold [overflow-wrap:anywhere]">{run.title}</p>
             <p className="m-0 text-xs text-muted-foreground">{formatoOf(run)} · Guardado · {humanDateTime(run.updatedAt)}</p></div>
-          <div className="flex gap-2">{!deleted && <Button variant="ghost" onClick={() => void openRun(run)}>Abrir</Button>}<Button variant="ghost" onClick={() => void toggle(run)}>{deleted ? "Restaurar" : "Eliminar"}</Button></div>
+          <div className="flex flex-wrap gap-2">{!deleted && <><Button variant="ghost" onClick={() => void openRun(run)}>Abrir</Button><Button variant="ghost" aria-label={`Pasar ${run.title} a un asunto`} onClick={() => setMoving(run)}>Pasar a un asunto</Button></>}<Button variant="ghost" onClick={() => void toggle(run)}>{deleted ? "Restaurar" : "Eliminar"}</Button></div>
         </li>)}</Card>}
       {next !== null && <Button variant="ghost" className="self-start" onClick={() => load(next).catch(e => setError(errorMessage(e)))}>Cargar más</Button>}
     </section>
 
+    {moving && <PasarAAsunto run={moving} onClose={() => setMoving(null)} />}
     {open && <Captura key={open.run?.id ?? open.formatoId} open={open} onSaved={() => void load().catch(() => undefined)} onClose={() => { setOpen(null); setName(""); }} />}
   </div>;
 }
@@ -181,7 +185,7 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
   const pendingBySection = sections.map(s => missing.filter(label => (sectionOf.get(label) ?? (label.startsWith("Selecciona") ? IMAGES : "")) === s).length);
   const section = sections[index], last = index === sections.length - 1;
   const adjuntos = adjuntosDe(values) as Adjunto[];
-  // RP-77: con datos faltantes el PDF sale igual, marcado; el 01 y la 15 conservan sus reglas.
+  // RP-77: con datos faltantes el PDF sale igual, marcado; el 01 conserva su regla (la 15 sale marcada desde FLX-03).
   const pdfPosible = definition.readyForEmission && (missing.length === 0 || emiteIncompleto(definition.id));
   const copia = WORD_LLENO_EXCLUIDOS.has(definition.id) ? null : copiaDe(definition.id);
   const images: ImagesSource = {
@@ -245,11 +249,14 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
 
   const sectionDefinition = { ...definition, fields: definition.fields.filter(f => (f.section ?? "Datos") === section) };
   const pdfTitle = !definition.readyForEmission ? "Este formato todavía no genera PDF; descarga el Word" : !pdfPosible ? "Este formato necesita todos sus datos para el PDF" : missing.length ? "Faltan datos: el PDF saldrá marcado como incompleto" : undefined;
-  return <div role="dialog" aria-modal="true" aria-labelledby="documento-titulo" className="fixed inset-0 z-[70] flex flex-col bg-background text-foreground">
+  // Ventana propia a pantalla completa sobre `Dialog` de Radix (DEC-52): foco atrapado, Escape guarda y cierra, el foco vuelve al botón que la abrió.
+  return <Dialog open><DialogContent hideClose aria-describedby={undefined}
+    onEscapeKeyDown={event => { event.preventDefault(); if (!busy) void close(); }} onInteractOutside={event => event.preventDefault()}
+    className="inset-0 left-0 top-0 z-[70] h-dvh max-h-none w-full translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none border-0 bg-background p-0 shadow-none">
     <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-3 sm:px-8">
       <div className="flex min-w-0 flex-col gap-0.5">
         <Eyebrow>{definition.id} · Documento suelto{run ? ` · Guardado ${humanDateTime(run.updatedAt).toLowerCase()}` : ""}</Eyebrow>
-        <h2 id="documento-titulo" className="m-0 text-lg font-bold [overflow-wrap:anywhere]">{open.title}</h2>
+        <DialogTitle className="text-lg font-bold [overflow-wrap:anywhere]">{open.title}</DialogTitle>
       </div>
       <Button variant="ghost" iconOnly aria-label="Cerrar" disabled={!!busy} onClick={() => void close()}><X size={20} aria-hidden="true" /></Button>
     </header>
@@ -296,5 +303,5 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
           : <Button variant="primary" disabled={!!busy} onClick={() => go(index + 1)}>Siguiente sección<ArrowRight size={16} aria-hidden="true" /></Button>}
       </div>
     </footer>
-  </div>;
+  </DialogContent></Dialog>;
 }

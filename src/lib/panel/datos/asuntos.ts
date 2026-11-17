@@ -372,7 +372,7 @@ export function filtrarVista(filas: readonly FilaAsunto[], f: {
     .filter((x) => (!f.conAvisos || (f.avisos.get(x.id) ?? 0) > 0) && (!f.tipos.length || f.tipos.includes(x.tipo)));
 }
 
-/** «Se logró» en un solo paso (DEC-55): cierra el asunto sin frenar. Sin el cambio del servidor publicado, este responde su motivo. */
+/** «Se logró» en un solo paso (DEC-63): cierra el asunto sin frenar. Sin el cambio del servidor publicado, este responde su motivo. */
 export function seLogro(e: Expediente): CambioOperacion {
   return { ...base(e), etapa: "cerrado", flujo: { ...flujoDe(e), estado: "activa", motivo: "" } };
 }

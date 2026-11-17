@@ -7,6 +7,7 @@ import { hipotecaHref } from "@/lib/apps/contexto";
 import { Button, ButtonLink, buttonClass, Notice, Pill, Surface } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, AsyncSelect, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { confirmDelete } from "@/components/admin/workspace/confirm";
+import { DateField } from "@/components/ui/date-field";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
 import { ContactLog } from "@/components/admin/contacts/contact-log";
@@ -45,6 +46,7 @@ function LeadDetail({ id }: { id: string }) {
   const [noteDirty, setNoteDirty] = React.useState(false);
   const [agendaOpen, setAgendaOpen] = React.useState(false);
   const [agendaDirty, setAgendaDirty] = React.useState(false);
+  const [fechaCita, setFechaCita] = React.useState("");
   const [contactDirty, setContactDirty] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState<{ lead: Lead; version: number | null } | null>(null);
   const [contactPreset, setContactPreset] = React.useState<{ key: number; kind: "whatsapp"; nota: string } | null>(null);
@@ -82,7 +84,7 @@ function LeadDetail({ id }: { id: string }) {
   const duplicates = duplicateContacts(lead, leads);
   const step = lead.clienteId ? null : nextStep(lead, "lead", tareas, eventos, today);
   // COR-18: sus ofertas por escrito, con el inmueble de cada operación, y cómo paga.
-  const offers = (lead.ofertas ?? []).map(o => { const place = propiedades.find(p => p.slug === o.propiedadSlug)?.titulo ?? "Operación del propietario";
+  const offers = (lead.ofertas ?? []).map(o => { const place = propiedades.find(p => p.slug === o.propiedadSlug)?.titulo ?? "Asunto del propietario";
     return { ...o, label: place, href: `/admin/operaciones/${encodeURIComponent(o.expedienteId)}` }; }).sort((a, b) => b.fecha.localeCompare(a.fecha));
   const credit = creditSummary(lead.perfil);
   const { upcoming, past } = personTimeline({
@@ -114,8 +116,9 @@ function LeadDetail({ id }: { id: string }) {
     event.preventDefault();
     if (!lead) return;
     const form = event.currentTarget, data = new FormData(form);
+    if (!fechaCita) { document.getElementById("ev-fecha")?.focus(); throw new Error("Elige la fecha de la cita."); }
     await upsert(db.eventos, { id: uid(), titulo: String(data.get("titulo") ?? ""), fecha: String(data.get("fecha") ?? ""), hora: String(data.get("hora") ?? "") || undefined, tipo: String(data.get("tipo") ?? "llamada") as EventoTipo, leadId: lead.id, propiedadSlug: lead.propiedadSlug }, null);
-    form.reset(); setAgendaDirty(false); setAgendaOpen(false);
+    form.reset(); setFechaCita(""); setAgendaDirty(false); setAgendaOpen(false);
   }
   // COR-10: con su registro de cliente, la condición la da la firma; si firmó con un cliente de Fortius, es contraparte.
   const condition = personStatus.ofLead(lead);
@@ -124,14 +127,14 @@ function LeadDetail({ id }: { id: string }) {
     ? { precio: lead.perfil.presupuestoMax, moneda: lead.perfil.moneda }
     : propiedad && propiedad.precio.modalidad !== "consulta" ? { precio: propiedad.precio.monto, moneda: propiedad.precio.moneda, inmueble: propiedad.slug } : {})) }] : [];
   const removeLead = async () => {
-    if (!await confirmDelete("prospecto", `${lead.nombre} sale de Contactos con su historial.`, "o")) return;
+    if (!await confirmDelete("prospecto", lead.clienteId ? `${lead.nombre} sale de Contactos junto con su ficha de cliente, su historial y sus tareas.` : `${lead.nombre} sale de Contactos con su historial y sus tareas.`, "o")) return;
     await removeById(db.leads, lead.id, db.leads.version(lead));
     router.push("/admin/contactos");
   };
   const menu: MenuItem[] = lead.clienteId ? hipoteca : [...hipoteca,
     { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: removeLead },
   ];
-  const prepare = busy ? <Button variant="primary" disabled>Abrir operación</Button> : <ButtonLink variant="primary" href={operationUrl}>Abrir operación<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
+  const prepare = busy ? <Button variant="primary" disabled>Abrir asunto</Button> : <ButtonLink variant="primary" href={operationUrl}>Abrir asunto<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
   const draft = interview.current?.estado === "borrador" ? interview.current : null;
 
   return <Surface className={s.page}>
@@ -139,7 +142,7 @@ function LeadDetail({ id }: { id: string }) {
       stage={condition && condition !== "prospecto" ? <Pill size="sm" tone={PERSON_STATUS_TONE[condition]}>{PERSON_STATUS_LABEL[condition]}</Pill> : <Pill size="sm" tone={stage === "descartado" || stage === "cerrado" ? "muted" : stage === "nuevo" ? "brand" : "info"}>{LEAD_STAGE_LABELS[stage]}</Pill>}
       sub={<span>Prospecto · llegó el {humanDay(lead.creadoEl)}</span>} />
 
-    {busy && <p role="status" className={s.muted}>Guarda o cancela los cambios pendientes antes de abrir su operación.</p>}
+    {busy && <p role="status" className={s.muted}>Guarda o cancela los cambios pendientes antes de abrir su asunto.</p>}
     {lead.clienteId && <p className={s.muted}>Ya es cliente. Esta ficha conserva su historial y su agenda como prospecto.</p>}
     {/* Si este es el que sobra, se elimina aquí mismo (titular, 14/11/2026); la fusión asistida es RP-40. */}
     {duplicates.length > 0 && <Notice title="Puede estar repetido" actions={lead.clienteId ? undefined : <AsyncButton className={buttonClass({ variant: "danger" })} onClick={removeLead}><Trash2 size={16} aria-hidden="true" />Eliminar este registro</AsyncButton>}>{lead.clienteId ? "Este ya es cliente; si sobra otro, elimínalo desde su ficha: " : "Revisa antes de crear otro registro: "}{duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/leads/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
@@ -169,14 +172,14 @@ function LeadDetail({ id }: { id: string }) {
             </AsyncForm>
             {/* La cita solo se oculta al cerrarla, para no perder lo escrito. */}
             <AsyncForm hidden={!agendaOpen} onSubmit={agendar} aria-label="Agendar con este prospecto" className={cn(s.inlineForm, !agendaOpen && "hidden")}
-              onChange={event => { const data = new FormData(event.currentTarget); setAgendaDirty(["titulo", "fecha", "hora"].some(key => String(data.get(key) ?? "").trim() !== "") || data.get("tipo") !== EVENTO_TIPOS[0]); }}>
+              onChange={event => { const data = new FormData(event.currentTarget); setAgendaDirty(!!fechaCita || ["titulo", "hora"].some(key => String(data.get(key) ?? "").trim() !== "") || data.get("tipo") !== EVENTO_TIPOS[0]); }}>
               <Field label="Título" htmlFor="ev-titulo"><input id="ev-titulo" name="titulo" required placeholder="Visita, llamada…" className={inputClass} /></Field>
-              <Field label="Fecha" htmlFor="ev-fecha"><input id="ev-fecha" name="fecha" type="date" required className={inputClass} /></Field>
+              <Field label="Fecha" htmlFor="ev-fecha"><DateField id="ev-fecha" name="fecha" required value={fechaCita} onChange={v => { setFechaCita(v); setAgendaDirty(true); }} /></Field>
               <Field label="Hora" htmlFor="ev-hora"><input id="ev-hora" name="hora" type="time" className={inputClass} /></Field>
               <Field label="Tipo" htmlFor="ev-tipo"><select id="ev-tipo" name="tipo" className={selectClass}>{EVENTO_TIPOS.map(tipo => <option key={tipo} value={tipo}>{EVENTO_TIPO_LABELS[tipo]}</option>)}</select></Field>
               <div className={s.inlineFoot}>
                 <Button type="submit">Guardar cita</Button>
-                <Button variant="ghost" onClick={event => { event.currentTarget.form?.reset(); setAgendaDirty(false); setAgendaOpen(false); }}>Cancelar</Button>
+                <Button variant="ghost" onClick={event => { event.currentTarget.form?.reset(); setFechaCita(""); setAgendaDirty(false); setAgendaOpen(false); }}>Cancelar</Button>
               </div>
             </AsyncForm>
           </Timeline>
@@ -206,7 +209,7 @@ function LeadDetail({ id }: { id: string }) {
             <div><dt>Forma de pago</dt><dd>{credit ?? "Sin registrar. Anótalo en su perfil."}</dd></div>
           </dl>
           {offers.length ? <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">{offers.map(o => <li key={o.documentoId}><Link className="font-semibold underline underline-offset-4" href={o.href}>{o.label}</Link> · oferta por escrito del {humanDay(o.fecha)}</li>)}</ul>
-            : <p className={s.muted}>Sin ofertas por escrito. Cuando haga una, se liga desde la operación del propietario.</p>}
+            : <p className={s.muted}>Sin ofertas por escrito. Cuando haga una, se liga desde el asunto del propietario.</p>}
         </PersonCard>}
 
         <PersonCard id="ficha-asignacion" title="Etapa y responsable">

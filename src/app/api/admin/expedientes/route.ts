@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const input = expedienteCreate.parse(await readJson(request));
     const { data, error } = await client.from("fortius_inmuebles_expedientes").insert({
       cliente_id: input.clienteId, asesor_id: input.asesorId, propiedad_slug: input.propiedadSlug ?? null,
-      operacion: input.operacion, unidad: input.unidad, ...(input.flujo ? {flujo: input.flujo} : {}),
+      operacion: input.operacion, unidad: input.unidad, ...(input.flujo ? {flujo: input.flujo} : {}), ...(input.etapa ? {etapa: input.etapa} : {}),
     }).select("id,cliente_id,asesor_id,propiedad_slug,folio,operacion,unidad,etapa,fecha_objetivo,checklist,flujo,version,created_at,updated_at").single();
     if (error) databaseError(error);
     return { expediente: data };

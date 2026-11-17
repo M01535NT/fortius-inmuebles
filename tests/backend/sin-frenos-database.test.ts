@@ -47,8 +47,10 @@ afterAll(async () => { await db?.close(); });
 it("la migración se puede volver a correr sin cambiar nada", async () => {
   await db.exec(await readFile(new URL("../../supabase/migrations/20261116100000_sin_frenos_de_proceso.sql", import.meta.url), "utf8"));
   const triggers = (await db.query<{ t: string }>("select tgname t from pg_trigger where tgrelid='public.fortius_inmuebles_expedientes'::regclass and not tgisinternal")).rows.map(r => r.t);
-  for (const removed of ["fortius_03_guard_rent_progress", "fortius_04_guard_initial_gate", "fortius_00b_guard_mortgage_signing", "fortius_02_interview_evidence"])
-    expect(triggers).not.toContain(removed);
+  expect(triggers).not.toContain("fortius_02_interview_evidence");
+  // FLX-03 (20261115200000) ya los convirtió en avisos que se anotan en el historial: se conservan.
+  for (const kept of ["fortius_03_guard_rent_progress", "fortius_04_guard_initial_gate", "fortius_00b_guard_mortgage_signing"])
+    expect(triggers).toContain(kept);
   expect(triggers).toContain("fortius_01_guard_guided_operation");
 });
 
@@ -82,7 +84,7 @@ it("lo protegido sigue: versión vieja, tipo de una operación avanzada, guía i
     const stale = (await version(venta)) - 1;
     await expect(db.query("select public.fortius_inmuebles_update_operation($1,$2,'cierre',null,'{}'::jsonb,null,null,false)", [venta, stale])).rejects.toMatchObject({ code: "PT409" });
     await expect(db.query("update public.fortius_inmuebles_expedientes set operacion='renta',version=version+1 where id=$1", [venta]))
-      .rejects.toMatchObject({ code: "PT409", message: "No cambies el tipo de una operación avanzada; conserva su historial" });
+      .rejects.toMatchObject({ code: "PT409", message: "Cambia el tipo del asunto desde «Ajustes»; conserva su historial" });
     await expect(move(venta, "negociacion", { version: 1, ruta: "captacion", estado: "activa", motivo: 123, requisitos: {} })).rejects.toMatchObject({ code: "PT400" });
     const reviewed = { version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: { titularidad: { estado: "revisado", soporte: "Escritura de ensayo",
       evidencia: { tipo: "externa", referencia: "Escritura ficticia v1", fecha: "2026-11-16", responsable: "Ana", resultado: "Revisada en ensayo" } } } };

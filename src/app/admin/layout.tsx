@@ -3,7 +3,6 @@ import { Archivo } from "next/font/google";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import "./panel-base.css";
-import styles from "./panel.module.css";
 import "./panel-uplift.css";
 
 // Misma Archivo que el layout raíz, pero precargada solo en las rutas del panel.
@@ -20,5 +19,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${styles.panel} ${archivo.variable} admin-root`}><AdminShell>{children}</AdminShell></div>;
+  return <div className={`${archivo.variable} admin-root`}><AdminShell>{children}</AdminShell></div>;
 }

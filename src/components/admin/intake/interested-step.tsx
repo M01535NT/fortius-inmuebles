@@ -9,6 +9,8 @@ import { planNextStep } from "@/lib/admin/next-step-task";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import { LEAD_PROFILE_OPTIONS, leadProfileSchema, type LeadProfile } from "@/lib/lead-profile";
+import { DateField } from "@/components/ui/date-field";
+import { CheckField } from "@/components/admin/operation/pickers";
 import s from "./wizard.module.css";
 import { humanDate } from "@/lib/utils";
 
@@ -81,7 +83,7 @@ export function InterestedStep({ intent, contact, origin, onBack, onSaved, onDir
     setBusy(true); setError("");
     try {
       const now = new Date().toISOString();
-      const note = { id: uid(), fecha: now, texto: `${label(intent)}. Llegó por: ${origin}. Perfil capturado en Nueva operación, sin abrir operación: Fortius representa al propietario.${contact.kind === "cliente" ? " También es cliente de Fortius en otra operación." : ""}` };
+      const note = { id: uid(), fecha: now, texto: `${label(intent)}. Llegó por: ${origin}. Perfil capturado en Nuevo asunto, sin abrir asunto: Fortius representa al propietario.${contact.kind === "cliente" ? " También es cliente de Fortius en otro asunto." : ""}` };
       let lead: Lead;
       if (contact.kind === "lead") {
         const before = contact.lead;
@@ -107,7 +109,7 @@ export function InterestedStep({ intent, contact, origin, onBack, onSaved, onDir
   return <form onSubmit={save} className="contents" aria-label="Lo que busca">
     <div className={s.body}>
       <h1 className={s.title}>¿Qué busca?</h1>
-      <p className={s.lead}>{label(intent)}. Se guarda como interesado con su próxima acción; no se abre operación, porque Fortius representa al propietario. Lo que no sepas, déjalo en blanco.</p>
+      <p className={s.lead}>{label(intent)}. Se guarda como interesado con su próxima acción; no se abre asunto, porque Fortius representa al propietario. Lo que no sepas, déjalo en blanco.</p>
       <fieldset disabled={busy} className="grid min-w-0 gap-5 sm:grid-cols-2">
         <label className="flex flex-col gap-2 text-sm font-semibold">Tipo de inmueble<select className={selectClass} value={form.tipo} onChange={e => set("tipo", e.target.value)}><option value="">Por confirmar</option>{Object.entries(TIPO_INMUEBLE_LABELS).map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select></label>
         {choice("uso", "Uso")}
@@ -120,9 +122,9 @@ export function InterestedStep({ intent, contact, origin, onBack, onSaved, onDir
         <label className="flex flex-col gap-2 text-sm font-semibold">Recámaras mínimas<input type="number" min={0} max={50} inputMode="numeric" className={inputClass} value={form.recamaras} onChange={e => set("recamaras", e.target.value)} /></label>
         <label className="flex flex-col gap-2 text-sm font-semibold">¿Para cuándo lo necesita?<input maxLength={500} className={inputClass} value={form.plazo} onChange={e => set("plazo", e.target.value)} /></label>
         <label className="flex flex-col gap-2 text-sm font-semibold sm:col-span-2">Lo que necesita y notas<textarea rows={3} maxLength={4000} className={textareaClass} value={form.requisitos} onChange={e => set("requisitos", e.target.value)} /></label>
-        <label className="flex min-h-11 items-start gap-3 text-sm sm:col-span-2"><input type="checkbox" className="mt-1" checked={form.privacidad} onChange={e => set("privacidad", e.target.checked)} /><span><strong>Ya le compartí el aviso de privacidad.</strong> <span className="text-muted-foreground">Compártele el enlace antes de guardar sus datos.</span></span></label>
+        <CheckField className="text-sm sm:col-span-2" checked={form.privacidad} onChange={on => set("privacidad", on)}><span><strong>Ya le compartí el aviso de privacidad.</strong> <span className="text-muted-foreground">Compártele el enlace antes de guardar sus datos.</span></span></CheckField>
         <label className="flex flex-col gap-2 text-sm font-semibold">Próxima acción<input required maxLength={160} className={inputClass} value={form.accion} onChange={e => set("accion", e.target.value)} /></label>
-        <label className="flex flex-col gap-2 text-sm font-semibold">Fecha de la próxima acción<input required type="date" className={inputClass} value={form.fecha} onChange={e => set("fecha", e.target.value)} /></label>
+        <span className="flex flex-col gap-2 text-sm font-semibold"><span>Fecha de la próxima acción</span><DateField aria-label="Fecha de la próxima acción" className="font-normal" required value={form.fecha} onChange={v => set("fecha", v)} /></span>
       </fieldset>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </div>
@@ -140,12 +142,12 @@ export function InterestedDone({ intent, lead }: { intent: Intent; lead: Lead })
   return <div className={s.body}>
     <span className={s.doneMark} aria-hidden="true"><Check size={28} /></span>
     <h1 ref={heading} tabIndex={-1} className={s.title}>Listo, {lead.nombre} quedó como interesado</h1>
-    <p className={s.lead}>Sin operación: Fortius representa al propietario. Está en Contactos.</p>
+    <p className={s.lead}>Sin asunto: Fortius representa al propietario. Está en Contactos.</p>
     <Card as="div" className="overflow-hidden"><dl className={s.summary} aria-label="Resumen del interesado">
       <dt>Interesado</dt><dd>{lead.nombre}</dd>
       <dt>Quiere</dt><dd>{label(intent)}</dd>
       <dt>Próxima acción</dt><dd>{lead.perfil?.proximaAccion} · {humanDate(lead.perfil?.proximoContacto)}</dd>
-      <dt>Lo que sigue</dt><dd>Sus visitas y ofertas van en la operación del propietario. Si firma, queda como contraparte.</dd>
+      <dt>Lo que sigue</dt><dd>Sus visitas y ofertas van en el asunto del propietario. Si firma, queda como contraparte.</dd>
     </dl></Card>
     <div className="flex flex-wrap items-center gap-3">
       <ButtonLink variant="primary" href={`/admin/leads/${encodeURIComponent(lead.id)}`}>Ver su ficha<ArrowRight size={16} aria-hidden="true" /></ButtonLink>

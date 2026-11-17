@@ -66,7 +66,12 @@ Crea usuarios en Supabase Auth y registra su membresía activa en `fortius_inmue
 npm run verify
 ```
 
-Ese comando ejecuta lint, tipos, pruebas de backend y panel, y build. No necesita secretos. Las pruebas de navegador se ejecutan por separado con `npm run test:admin:browser`; CI usa los escenarios con backend simulado o explícitamente no disponible.
+Ese comando ejecuta lint, tipos, pruebas de backend y panel, y build. No necesita secretos. Las pruebas de navegador se ejecutan por separado, después del build, en dos suites:
+
+- `npm run test:public:browser`: las del sitio público (lista en `tests/admin/browser/suites.ts`), con el backend de ejemplo en el 3101 y el sitio en el 3100.
+- `npm run test:admin:browser`: el resto (panel con API simulada, encabezados de producción, barras fijas y formularios públicos). Levanta `next start` en el 3102, no en el 3001 de `next dev`, con el backend público no disponible y el contacto directo apagado aunque exista `.env.local`; una variable fijada en el proceso gana a esos valores. Excluye las del sitio público.
+
+Las dos juntas cubren lo mismo que los pasos de navegador de CI.
 
 Las pruebas de herramientas de respaldo y restauración aislada se ejecutan con:
 

@@ -13,7 +13,7 @@ test('builds a complete current synthetic backup that verifies, rehearses and pl
   try {
     const root = join(parent, 'backup');
     const result = await buildSyntheticBackup(root);
-    assert.equal(result.tables, 39);
+    assert.equal(result.tables, 42);
     const manifest = await verifyBackup(root);
     assert.equal(manifest.synthetic, true);
     assert.equal(manifest.database.schemaVersion, 6);

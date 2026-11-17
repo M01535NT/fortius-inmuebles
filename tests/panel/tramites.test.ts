@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Cliente } from "@/lib/backend/contracts";
-import { alternarPendiente, anotarTramite, cerrarPaso, filaTramite, grupoDe, ordenarTramites, ponerEnEspera, yaRespondieron } from "@/lib/panel/datos/tramites";
+import { alternarPendiente, anotarTramite, cerrarPaso, faltanDelPaso, filaTramite, grupoDe, ordenarTramites, ponerEnEspera, yaRespondieron } from "@/lib/panel/datos/tramites";
 import { nuevoTramite, type Tramite } from "@/lib/tramites";
 
 const base = (extra: Partial<Tramite> = {}): Tramite => ({ ...nuevoTramite({ id: "t1", acreedor: "infonavit", titulo: "Casa de ejemplo", clienteId: "c1", asesorId: "a1" }), ...extra });
@@ -21,18 +21,19 @@ describe("Trámites (PN-07)", () => {
     const ts = [base({ id: "a" }), base({ id: "b", espera: { quien: "X", desde: "2026-11-01", volver: "2026-11-01" } })];
     expect(ordenarTramites(ts.map((t) => filaTramite(t, personas, "2026-11-16")), ts).map((f) => f.id)).toEqual(["b", "a"]);
   });
-  it("cierra el paso solo sin pendientes y no escribe historial (lo hace la base)", () => {
+  it("cierra el paso aunque falten pendientes (DEC-61) y no escribe historial (lo hace la base)", () => {
     const t = base();
-    expect(cerrarPaso(t, [])).toBeNull();
+    expect(cerrarPaso(t, [])?.pasoActual).toBe(1);
     const listo = t.pasos[0].pendientes.reduce((x, p) => alternarPendiente(x, p.id), t);
     const c = cerrarPaso(listo, []);
     expect(c?.pasoActual).toBe(1);
     expect(c?.notas).toEqual([]);
   });
-  it("el paso con documento no cierra sin él", () => {
+  it("el paso con documento se cierra también sin él (DEC-61); lo que falta se avisa", () => {
     const t = base({ pasoActual: 1 });
     const hecho = t.pasos[1].pendientes.reduce((x, p) => alternarPendiente(x, p.id), t);
-    expect(cerrarPaso(hecho, [])).toBeNull();
+    expect(cerrarPaso(hecho, [])?.pasoActual).toBe(2);
+    expect(faltanDelPaso(hecho, []).some((f) => f.startsWith("Subir:"))).toBe(true);
     expect(cerrarPaso(hecho, [{ pasoClave: "liquidado" }])?.pasoActual).toBe(2);
   });
   it("espera, respuesta y notas solo agregan notas de tipo nota", () => {

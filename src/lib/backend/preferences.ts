@@ -20,6 +20,8 @@ export const panelSchema = z.object({
   /** UX-03: los últimos registros abiertos (solo rutas del panel) y si los atajos de una tecla están encendidos. */
   recientes: z.array(z.string().regex(/^\/admin\/[a-zA-Z0-9/_%.-]{1,200}$/)).max(5).optional(),
   atajos: z.boolean().optional(),
+  /** DEC-51: Cómodo (por omisión) o Compacto, con filas más juntas y fotos más chicas. */
+  densidad: z.enum(["comodo", "compacto"]).optional(),
 }).strict();
 export type PanelPreferences = z.infer<typeof panelSchema>;
 export const preferencesSchema = z.object({

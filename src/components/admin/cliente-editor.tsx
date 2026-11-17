@@ -93,7 +93,7 @@ export function ClienteEditor({ initial, onDone, title }: { initial?: Cliente; o
         </div>
       </section>}
       <section className={s.group} aria-label="Datos para el expediente">
-        <div className={s.groupHead}><h2>Datos para el expediente</h2><p>Se escriben una vez y los formatos de todas sus operaciones los toman.</p></div>
+        <div className={s.groupHead}><h2>Datos para el expediente</h2><p>Se escriben una vez y los formatos de todos sus asuntos los toman.</p></div>
         <div className={s.grid}>
           <Field label="CURP" htmlFor="cl-curp" hint={curpAviso || "Con la CURP se deduce la fecha de nacimiento."}><input id="cl-curp" name="curp" maxLength={18} defaultValue={cliente?.curp} autoComplete="off" className={`${inputClass} uppercase`} onBlur={deducirCurp} /></Field>
           <Field label="RFC" htmlFor="cl-rfc"><input id="cl-rfc" name="rfc" maxLength={13} defaultValue={cliente?.rfc} autoComplete="off" className={`${inputClass} uppercase`} /></Field>

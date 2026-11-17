@@ -25,7 +25,7 @@ import { semillaOpinion } from "@/lib/formatos/opinion-juridica";
 */
 
 const post = (body: unknown) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-const LOAD_ERROR = "No se pudieron cargar los documentos de la operación. Vuelve a intentarlo antes de iniciar un formato.";
+const LOAD_ERROR = "No se pudieron cargar los documentos del asunto. Vuelve a intentarlo antes de iniciar un formato.";
 const byNewest = (a: Documento, b: Documento) => b.updated_at.localeCompare(a.updated_at);
 /** «04» es el levantamiento de cualquier tipo (04A–04G). */
 const matches = (formato: string, id: string) => formato === "04" ? id.startsWith("04") : id === formato;
@@ -162,6 +162,10 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     const doc = await create(formatoId, { ...seed, ...(reference ? { valorReferencia: reference } : {}) });
     if (doc) setOpen(doc);
   }
+  /** FLX-02: «Crear documento» con cualquier formato; abre el que ya hay o crea uno (los repetibles, siempre uno nuevo). */
+  function createAny(formatoId: string, repeatable: boolean) {
+    return repeatable ? createAndOpen(formatoId) : start(formatoId);
+  }
   function word(doc: Documento) { void guard(() => downloadFormatoCopia(doc, op.folio, cliente)); }
   /** El checklist de documentos se guarda como pasos de una tarea de la operación. */
   function startChecklist() {
@@ -187,7 +191,7 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     onEmitted={emision => setEmissions(old => ({ ...old, [open.id]: [emision, ...(old[open.id] ?? [])] }))}
     onClose={() => setOpen(null)} />;
 
-  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, checklistAnswers: answers, busy, error: error || (loadFailed ? LOAD_ERROR : ""), loadFailed, reload, capture, isOpen: !!open };
+  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, createAny, openDocument: setOpen, word, startChecklist, checklistFile, checklistAnswers: answers, busy, error: error || (loadFailed ? LOAD_ERROR : ""), loadFailed, reload, capture, isOpen: !!open };
 }
 
 /**

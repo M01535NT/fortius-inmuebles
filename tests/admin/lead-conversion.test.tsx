@@ -42,9 +42,9 @@ test("COR-10: la ficha no convierte a mano; con registro de cliente y sin firma 
   currentLead = { ...original, perfil: { ...original.perfil, operacion: "vender" } };
   await detail("lead");
   // «Convertir en cliente» desapareció: se es cliente al firmar el contrato (RP-90); la acción es «Abrir operación».
-  fireEvent.click(await screen.findByRole("button", { name: "Más opciones" }));
+  fireEvent.keyDown(await screen.findByRole("button", { name: "Más opciones" }), { key: "Enter" });
   expect(screen.queryByRole("menuitem", { name: /Convertir en cliente/ })).toBeNull();
-  expect(screen.getByRole("link", { name: "Abrir operación" })).toBeTruthy();
+  expect(screen.getByRole("link", { name: "Abrir asunto" })).toBeTruthy();
   cleanup();
   clearAdminCache();
   currentLead = { ...original, clienteId: "c1", convertidoEl: "2026-10-05" }; currentClient = cliente;
@@ -59,14 +59,14 @@ test("COR-10: la ficha no convierte a mano; con registro de cliente y sin firma 
 
 test("preparar operación abre la entrevista sin convertir prematuramente",async()=>{
  currentLead = { ...original, perfil: { ...original.perfil, operacion: "vender" } };
- await detail("lead");expect((await screen.findByRole("link",{name:"Abrir operación"})).getAttribute("href")).toBe("/admin/operaciones/nueva?leadId=l1&intencion=vender");expect(posts).toEqual([]);expect(db.clientes.list()).toEqual([]);
+ await detail("lead");expect((await screen.findByRole("link",{name:"Abrir asunto"})).getAttribute("href")).toBe("/admin/operaciones/nueva?leadId=l1&intencion=vender");expect(posts).toEqual([]);expect(db.clientes.list()).toEqual([]);
 });
 test("la conversión explícita conserva el lead tras fallo y permite reintentar",async()=>{
  await db.leads.load();fail=true;await expect(convertirLead(db.leads.list()[0])).rejects.toThrow("Servicio temporalmente");expect(db.clientes.list()).toEqual([]);fail=false;await convertirLead(db.leads.list()[0]);expect(db.clientes.list()[0].id).toBe("c1");
 });
 test.each(["Nueva nota","Título"])("protege %s antes de preparar la entrevista",async(label)=>{
  currentLead = { ...original, perfil: { ...original.perfil, operacion: "vender" } };
- await detail("lead");expect(await screen.findByRole("link",{name:"Abrir operación"})).toBeTruthy();if(label==="Título")fireEvent.click(screen.getByRole("button",{name:"Agendar"}));fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});expect((screen.getByRole("button",{name:"Abrir operación"}) as HTMLButtonElement).disabled).toBe(true);expect(posts).toEqual([]);
+ await detail("lead");expect(await screen.findByRole("link",{name:"Abrir asunto"})).toBeTruthy();if(label==="Título")fireEvent.click(screen.getByRole("button",{name:"Agendar"}));fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});expect((screen.getByRole("button",{name:"Abrir asunto"}) as HTMLButtonElement).disabled).toBe(true);expect(posts).toEqual([]);
 });
 
 test("la ficha del cliente muestra el perfil, asesor, historial y contacto heredados; editar conserva el origen", async () => {
@@ -111,10 +111,10 @@ test("Hoy deja de pedir seguimiento a un lead ya convertido", async () => {
 test.each(["Nueva nota", "Título"])("un prospecto convertido protege %s antes de abrir su operación", async (label) => {
   currentLead={...original,clienteId:"c1"};currentClient=cliente;
   await detail("lead");
-  expect((await screen.findByRole("link",{name:"Abrir operación"})).getAttribute("href")).toContain("clienteId=c1");
+  expect((await screen.findByRole("link",{name:"Abrir asunto"})).getAttribute("href")).toContain("clienteId=c1");
   if(label==="Título")fireEvent.click(screen.getByRole("button",{name:"Agendar"}));
   fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});
-  const button=screen.getByRole("button",{name:"Abrir operación"}) as HTMLButtonElement;
+  const button=screen.getByRole("button",{name:"Abrir asunto"}) as HTMLButtonElement;
   expect(button.disabled).toBe(true);fireEvent.click(button);
   expect(push).not.toHaveBeenCalled();expect(posts).toEqual([]);expect(writes).toEqual([]);
   expect((screen.getByLabelText(label,{exact:true}) as HTMLInputElement).value).toBe("Captura pendiente");
@@ -126,7 +126,7 @@ test("SIM-07: la ficha del prospecto muestra una sola acción principal, tres et
   const next = within(screen.getByRole("region", { name: "Siguiente paso" }));
   // COR-18: quien compra no abre operación; su acción principal es registrar el contacto.
   expect(next.getByRole("button", { name: "Registrar contacto" })).toBeTruthy();
-  expect(next.queryByRole("link", { name: "Abrir operación" })).toBeNull();
+  expect(next.queryByRole("link", { name: "Abrir asunto" })).toBeNull();
   const etapa = screen.getByLabelText("Etapa") as HTMLSelectElement;
   expect(Array.from(etapa.options).map(option => option.text)).toEqual(["Nuevo", "En seguimiento", "Descartado"]);
   expect(etapa.value).toBe("seguimiento");

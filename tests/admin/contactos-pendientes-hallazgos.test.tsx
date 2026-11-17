@@ -65,7 +65,7 @@ test("reintentar «Registrar contacto» tras un error no duplica la visita ya gu
   alGuardar = (put, n) => put.coleccion === "leads" && n === 1 ? Response.json({ error: "Servicio temporalmente no disponible" }, { status: 503 }) : null;
   render(<ContactLog lead={prospecto()} today={hoy} />);
   fireEvent.click(screen.getByRole("button", { name: "Visitó" }));
-  await screen.findByRole("option", { name: "Casa A de ensayo" });
+  await waitFor(() => expect(screen.getByRole("combobox", { name: "Inmueble que visitó" }).textContent).toContain("Casa A de ensayo"));
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
   await screen.findByRole("alert");
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
@@ -134,8 +134,11 @@ test("con corte «Fijo», una oferta dentro del periodo cuenta en «Ofertas y ci
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-11-13T20:00:00.000Z"));
   render(<PeriodReport />);
-  await screen.findByRole("option", { name: "Cartera de ensayo" });
-  fireEvent.change(screen.getByLabelText("Cartera"), { target: { value: "b1" } });
+  // LV-10 (bloque g): la cartera se elige en el `Select` de Radix.
+  const cartera = screen.getByRole("combobox", { name: "Cartera" });
+  await waitFor(() => expect((cartera as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.keyDown(cartera, { key: "Enter" });
+  fireEvent.click(await screen.findByRole("option", { name: "Cartera de ensayo" }));
   const etiqueta = await screen.findByText("Ofertas", { exact: true });
   expect(etiqueta.nextElementSibling?.textContent, "ofertas contadas en el periodo").toBe("1");
 });

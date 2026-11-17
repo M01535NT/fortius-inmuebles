@@ -1,14 +1,21 @@
 "use client";
 import * as React from "react";
 import { Button, Card } from "@/components/admin/kit";
-import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
+import { inputClass, textareaClass } from "@/components/admin/ui";
+import { DateField } from "@/components/ui/date-field";
+import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { db, useCollection } from "@/lib/admin/store";
 import { RESOLUTION_TYPES, stageLabel, WORKFLOW_STAGES, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { flowOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { saveError } from "./use-operation";
+import { CheckField } from "./pickers";
 import { useIsDirector } from "@/lib/admin/staff-scope";
 
 type Resolution = NonNullable<OperationWorkflow["resolucion"]>;
+/** Color de cada decisión en el selector: aceptar en verde, esperar en ámbar, cerrar en rojo, referir neutro. */
+const DECISION_TONE: Record<Resolution["tipo"], string> = { aceptada: "var(--success)", condicionada: "var(--success)", pausada: "var(--warning)", rechazada: "var(--alert)", referida: "var(--muted-foreground)", cancelada: "var(--alert)" };
+const EVALUANDO = "evaluacion";
+const Dot = ({ color }: { color: string }) => <span aria-hidden="true" className="mr-2.5 inline-block size-2.5 shrink-0 rounded-full" style={{ background: color }} />;
 type Save = (changes: { flujo?: OperationWorkflow; etapa?: WorkflowStage }) => Promise<unknown>;
 
 /** El encargo está tomado (aceptado, con o sin condiciones). */
@@ -56,17 +63,26 @@ export function EncargoDecisionCard({ op, today, disabled, onSave, onDirtyChange
   const lock = choiceLock || (!director && taken(draft?.tipo));
   return <Card id="decision-encargo" className="flex flex-col gap-4 p-5" aria-label="Decisión del encargo">
     <div><h2 className="m-0 text-lg">Decisión del encargo</h2><p className="mt-1 text-sm text-muted-foreground">{intro} Pausar, rechazar, referir o cancelar conserva los documentos y el historial.</p></div>
-    <label className="text-sm font-semibold">Decisión<select className={selectClass} disabled={choiceLock} value={draft?.tipo ?? ""} onChange={e => e.target.value ? change({ tipo: e.target.value as Resolution["tipo"] }) : setDraft(undefined)}><option value="">Todavía en evaluación</option>{Object.entries(RESOLUTION_TYPES).map(([value, label]) => <option key={value} value={value} disabled={!director && taken(value) && value !== flow.resolucion?.tipo}>{label}</option>)}</select></label>
+    <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Decisión</span>
+      <Select disabled={choiceLock} value={draft?.tipo ?? EVALUANDO} onValueChange={value => value !== EVALUANDO ? change({ tipo: value as Resolution["tipo"] }) : setDraft(undefined)}>
+        <SelectTrigger aria-label="Decisión" className="font-normal"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value={EVALUANDO}><Dot color="var(--edge-soft)" />Todavía en evaluación</SelectItem>
+          <SelectSeparator />
+          {(Object.entries(RESOLUTION_TYPES) as Array<[Resolution["tipo"], string]>).map(([value, label]) => <SelectItem key={value} value={value} disabled={!director && taken(value) && value !== flow.resolucion?.tipo}><Dot color={DECISION_TONE[value]} />{label}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </span>
     {!director && <p className="-mt-2 text-sm text-muted-foreground">Tomar el encargo lo decide el director; tú puedes registrar si se pausa, se rechaza o se refiere.</p>}
     {draft && <div className="grid gap-3 sm:grid-cols-2">
-      <label className="text-sm font-semibold">Fecha de la decisión<input type="date" disabled={lock} className={inputClass} value={draft.fecha} onChange={e => change({ fecha: e.target.value })} /></label>
+      <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Fecha de la decisión</span><DateField aria-label="Fecha de la decisión" required disabled={lock} className="font-normal" value={draft.fecha} onChange={fecha => change({ fecha })} /></span>
       <label className="text-sm font-semibold sm:col-span-2">Motivo y alcance<textarea disabled={lock} className={textareaClass} maxLength={1000} value={draft.motivo} onChange={e => change({ motivo: e.target.value })} /></label>
       {draft.tipo === "condicionada" && <>
         <label className="text-sm font-semibold sm:col-span-2">Condiciones pendientes<textarea disabled={lock} className={textareaClass} maxLength={1000} value={draft.condiciones ?? ""} onChange={e => change({ condiciones: e.target.value })} /></label>
-        <fieldset className="sm:col-span-2" disabled={lock}><legend className="text-sm font-semibold">Mientras se cumplen las condiciones, se permite:</legend>{WORKFLOW_STAGES.filter(st => st !== "captacion").map(st => <label key={st} className="mr-4 inline-flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={draft.permitidas?.includes(st) ?? false} onChange={e => change({ permitidas: e.target.checked ? [...(draft.permitidas ?? []), st] : (draft.permitidas ?? []).filter(v => v !== st) })} />{stageLabel(st, flow.ruta)}</label>)}</fieldset>
+        <fieldset className="sm:col-span-2" disabled={lock}><legend className="text-sm font-semibold">Mientras se cumplen las condiciones, se permite:</legend><div className="flex flex-wrap gap-x-5">{WORKFLOW_STAGES.filter(st => st !== "captacion").map(st => <CheckField key={st} disabled={lock} checked={draft.permitidas?.includes(st) ?? false} onChange={on => change({ permitidas: on ? [...(draft.permitidas ?? []), st] : (draft.permitidas ?? []).filter(v => v !== st) })}>{stageLabel(st, flow.ruta)}</CheckField>)}</div></fieldset>
       </>}
       <label className="text-sm font-semibold">Siguiente acción<input disabled={lock} maxLength={160} className={inputClass} value={draft.siguienteAccion} onChange={e => change({ siguienteAccion: e.target.value })} /></label>
-      <label className="text-sm font-semibold">Fecha de la siguiente acción<input type="date" disabled={lock} className={inputClass} value={draft.fechaSiguiente} onChange={e => change({ fechaSiguiente: e.target.value })} /></label>
+      <span className="flex flex-col gap-1.5 text-sm font-semibold"><span>Fecha de la siguiente acción</span><DateField aria-label="Fecha de la siguiente acción" required disabled={lock} className="font-normal" value={draft.fechaSiguiente} onChange={fechaSiguiente => change({ fechaSiguiente })} /></span>
     </div>}
     <div className="flex flex-wrap items-center gap-3">
       <Button disabled={!dirty || choiceLock || (!director && taken(draft?.tipo))} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar decisión"}</Button>

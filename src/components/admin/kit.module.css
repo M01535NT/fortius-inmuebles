@@ -1,13 +1,15 @@
 /*
-  Componentes del panel. Dirección clara aprobada por el titular (17/10/2026): esquinas suaves
-  (10 px controles, 12 px fotos, 16 px tarjetas, 20 px paneles, pastilla en estados), sombras
-  azul marino que suben al pasar el puntero y la acción principal en guinda con su sombra.
-  Usan los tokens de .panel; el prefijo :global(.admin-root), clase global del contenedor
-  del panel, les da precedencia sobre las reglas genéricas heredadas de panel.module.css.
+  Componentes del panel (LV-09, paleta del 14/11/2026): esquinas de 10 px en controles y 12 px
+  en tarjetas, sombras casi nulas y la acción principal rellena en borgoña. Usan los tokens de
+  panel-base.css; el prefijo :global(.admin-root), clase global del contenedor del panel, les da
+  precedencia sobre las reglas base de panel-base.css.
 */
 
 /* Botones */
 :global(.admin-root) .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem; border-radius: var(--radius-control); border: 1px solid transparent; font-size: var(--admin-text-interfaz); font-weight: 540; line-height: 1; text-decoration: none; cursor: pointer; white-space: nowrap; background: none; color: var(--foreground); }
+/* Un botón nunca rebasa su contenedor: en celular angosto su texto pasa a dos líneas (FLX-02, 320 px). */
+:global(.admin-root) .btn { max-width: 100%; }
+@media (max-width: 480px) { :global(.admin-root) .btn:not(.iconOnly) { white-space: normal; text-wrap: balance; text-align: center; line-height: 1.2; padding-block: .5rem; } }
 :global(.admin-root) .lg { min-height: 3rem; padding: 0 1.375rem; font-size: var(--admin-text-cuerpo); }
 :global(.admin-root) .primary { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: var(--shadow-cta); }
 :global(.admin-root) .primary:not(:disabled):hover { background: var(--primary-hover); border-color: var(--primary-hover); }
@@ -47,14 +49,20 @@
 :global(.admin-root) .pill[data-tone=solid] { background: var(--foreground); color: var(--card); }
 :global(.admin-root) .pill[data-tone=onDark] { background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .25); color: #fff; }
 :global(.admin-root) .pill[data-size=sm] { min-height: 1.375rem; padding: 0 .5rem; font-size: var(--admin-text-minimo); }
-:global(.admin-root) .counter { display: inline-flex; align-items: center; justify-content: center; min-width: 1.375rem; height: 1.375rem; padding: 0 .4375rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: var(--admin-text-minimo); font-weight: 600; }
 
 /* Fotos, iniciales y teclas */
 :global(.admin-root) .thumb { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; overflow: hidden; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--muted-foreground); }
 :global(.admin-root) .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-:global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: var(--secondary); color: var(--foreground); font-size: var(--admin-text-minimo); font-weight: 620; letter-spacing: .02em; overflow: hidden; }
-:global(.dark) :global(.admin-root) .avatar { background: var(--secondary); color: var(--foreground); }
-:global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: #f8f8ff; }
+:global(.admin-root) .avatar { --face-h: 212; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: hsl(var(--face-h) 58% 88%); color: hsl(var(--face-h) 60% 24%); font-size: var(--admin-text-minimo); font-weight: 650; letter-spacing: .02em; overflow: hidden; box-shadow: 0 0 0 2px var(--card); }
+:global(.dark) :global(.admin-root) .avatar { background: hsl(var(--face-h) 38% 27%); color: hsl(var(--face-h) 60% 88%); }
+:global(.admin-root) .faces { display: inline-flex; flex: none; }
+:global(.admin-root) .faces > .avatar + .avatar { margin-left: -.5rem; }
+:global(.admin-root) .rail { display: grid; gap: 3px; min-width: 0; }
+:global(.admin-root) .rail > i { height: 5px; border-radius: 3px; background: var(--track); }
+:global(.admin-root) .rail > i[data-state=done] { background: var(--foreground); }
+:global(.admin-root) .rail > i[data-state=now] { background: var(--primary); }
+:global(.admin-root) .rail > i[data-state=warn] { background: var(--warning); }
+:global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: var(--on-navy); box-shadow: none; }
 :global(.admin-root) .avatar { position: relative; }
 :global(.admin-root) .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 :global(.admin-root) .kbd { display: inline-flex; align-items: center; padding: .25rem .5rem; border-radius: 8px; background: var(--track); color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-minimo); font-weight: 600; letter-spacing: .02em; }
@@ -62,7 +70,7 @@
 /* Superficies. .surface delimita una pantalla del panel: el fondo de lienzo lo pone el marco. */
 :global(.admin-root) .surface { --field-radius: var(--radius-control); }
 :global(.admin-root) .card { background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); color: var(--foreground); }
-:global(.admin-root) .card[data-tone=navy] { background: #061f3f; border-color: transparent; color: #fff; }
+:global(.admin-root) .card[data-tone=navy] { background: var(--brand-navy); border-color: transparent; color: #fff; }
 :global(.admin-root) .card[data-tone=alert] { background: var(--alert-surface); border-color: color-mix(in srgb, var(--alert) 16%, transparent); }
 :global(.admin-root) .card[data-tone=soft] { background: color-mix(in srgb, var(--card) 55%, transparent); box-shadow: none; }
 :global(.admin-root) .panelRadius { border-radius: var(--radius-panel); }
@@ -76,6 +84,9 @@
 /* Pestañas: subrayado en una fila; lista vertical dentro de una operación. */
 :global(.admin-root) .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
 :global(.admin-root) .tabs .tab { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 .875rem; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--muted-foreground); font-size: var(--admin-text-interfaz); font-weight: 540; cursor: pointer; white-space: nowrap; text-decoration: none; border-radius: 0; }
+/* La fila se desplaza de lado (overflow-x) y recortaría el anillo de foco global, que va 3 px por fuera: aquí va por dentro. Sin redondeo propio: el anillo
+   sigue la forma de cada pestaña (recta en la fila subrayada, píldora en las del asunto). */
+:global(.admin-root) .tabs .tab:focus-visible { outline-offset: -3px; }
 :global(.admin-root) .tabs .tab[aria-selected=true], :global(.admin-root) .tabs .tab[aria-current=page] { color: var(--foreground); border-bottom-color: var(--primary); background: none; }
 :global(.admin-root) .tabsVertical { display: flex; flex-direction: column; gap: .125rem; }
 :global(.admin-root) .tabsVertical .tab { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: var(--radius-control); background: none; color: var(--foreground); font-size: var(--admin-text-interfaz); font-weight: 540; text-align: left; cursor: pointer; }
@@ -121,6 +132,7 @@
 /* Panel lateral (computadora) o inferior (celular) */
 :global(.admin-root) .scrim { position: fixed; inset: 0; z-index: 60; background: var(--scrim); border: 0; padding: 0; cursor: default; }
 :global(.admin-root) .sheet { position: fixed; z-index: 61; display: flex; flex-direction: column; background: var(--card); color: var(--foreground); box-shadow: var(--shadow-raised); top: .75rem; right: .75rem; bottom: .75rem; width: min(460px, calc(100% - 1.5rem)); border-radius: var(--radius-panel); border: 1px solid var(--card-edge); padding-top: env(safe-area-inset-top, 0px); overflow: hidden; }
+@media (min-width: 768px) { :global(.admin-root) .sheet.sheetWide { width: min(780px, calc(100% - 1.5rem)); } }
 @media (max-width: 767px) {
   :global(.admin-root) .sheet { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 92%; border: 0; border-radius: var(--radius-panel) var(--radius-panel) 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
@@ -161,14 +173,3 @@
 :global(.admin-root) .hint:hover, :global(.admin-root) .hint[aria-expanded=true] { background: var(--track); color: var(--foreground); }
 :global(.admin-root) .hintText { display: block; order: 99; flex-basis: 100%; width: fit-content; max-width: 52ch; margin-top: .375rem; padding: .5rem .75rem; border-radius: var(--radius-control); background: var(--track); color: var(--foreground); font-size: var(--admin-text-detalle); font-weight: 400; line-height: 1.45; text-align: left; }
 :global(.admin-root) .hintText[hidden] { display: none; }
-:global(.admin-root) .startHere { position: relative; display: inline-flex; }
-:global(.admin-root) .startDot { position: absolute; top: -3px; right: -3px; width: .875rem; height: .875rem; border-radius: 999px; background: var(--info); box-shadow: 0 0 0 3px var(--background); pointer-events: none; }
-:global(.admin-root) .startTip { position: absolute; top: calc(100% + .5rem); right: 0; padding: .25rem .625rem; border-radius: 999px; background: var(--info-surface); color: var(--info); font-size: var(--admin-text-pastilla); font-weight: 540; white-space: nowrap; pointer-events: none; animation: start-tip 300ms linear 5s both; }
-:global(.admin-root) .startHere[data-side] { display: flex; width: 100%; }
-:global(.admin-root) .startTip[data-side] { top: 50%; right: auto; left: calc(100% + .75rem); transform: translateY(-50%); z-index: 41; }
-:global(.admin-root) .startTip[data-above] { top: auto; bottom: calc(100% + .5rem); right: 50%; transform: translateX(50%); }
-@keyframes start-tip { to { opacity: 0; visibility: hidden; } }
-@media (prefers-reduced-motion: no-preference) {
-  :global(.admin-root) .startDot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; border: 2px solid var(--info); animation: start-here 1.2s var(--ease-out) 600ms 3 both; }
-}
-@keyframes start-here { from { transform: scale(1); opacity: .7; } to { transform: scale(2.6); opacity: 0; } }

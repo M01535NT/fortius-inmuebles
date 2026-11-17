@@ -47,6 +47,8 @@ const prepare = (id: string) => asUser(own, async () => {
   const task = { id: `next-${id}`, titulo: "Solicitar escritura", categoria: "documentacion", estado: "pendiente", prioridad: "normal", pasos: [], asesorId: "own", clienteId: "c-own", expedienteId: id, vence: "2030-12-31" };
   await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,null)", [task.id, JSON.stringify(task)]);
 });
+// FLX-03 (RP-100): salir de captación sin el arranque ya no se impide; queda el aviso en el historial.
+const notice = (id: string) => db.query<{ descripcion: string }>("select descripcion from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso'", [id]).then(r => r.rows.map(x => x.descripcion));
 const advance = (id: string) => asUser(own, () => db.query("update public.fortius_inmuebles_expedientes set etapa='documentacion',version=3 where id=$1 and version=2 returning etapa", [id]));
 
 // Sin frenos de proceso (titular, 16/11/2026; migración 20261116100000): el arranque ya no frena, el panel lo avisa.
@@ -68,4 +70,5 @@ it("con el arranque completo avanza", async () => {
   await prepare(exp3);
   await cumplirArranque(db, exp3, own);
   expect((await advance(exp3)).rows).toEqual([{ etapa: "documentacion" }]);
+  expect((await notice(exp3)).join(" ")).not.toMatch(/lista|\(02\)|\(04\)/);
 });

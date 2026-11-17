@@ -132,7 +132,7 @@ export function nuevoTramite(input: { id: string; acreedor: Acreedor; titulo: st
   };
 }
 
-/** Lo que falta para cerrar el paso actual (vacío = se puede cerrar). */
+/** Lo que falta en el paso actual (vacío = se cierra sin aviso). */
 export function faltanParaCerrar(t: Pick<Tramite, "acreedor" | "pasoActual" | "pasos">, documentos: readonly { pasoClave?: string }[]): string[] {
   const paso = t.pasos[t.pasoActual];
   if (!paso) return [];

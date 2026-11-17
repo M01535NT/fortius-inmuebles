@@ -95,7 +95,7 @@ export async function loadAllDossiers<T>(): Promise<T[]> {
   let offset: number | null = 0;
   while (offset !== null) {
     const page: { expedientes: T[]; nextOffset: number | null } = await apiRequest(`/api/admin/expedientes?limit=200&offset=${offset}`);
-    if (!Array.isArray(page.expedientes) || (page.nextOffset !== null && (!Number.isInteger(page.nextOffset) || page.nextOffset <= offset || page.nextOffset > 100000))) throw new Error("No se pudieron consultar las operaciones. Vuelve a intentarlo.");
+    if (!Array.isArray(page.expedientes) || (page.nextOffset !== null && (!Number.isInteger(page.nextOffset) || page.nextOffset <= offset || page.nextOffset > 100000))) throw new Error("No se pudieron consultar los asuntos. Vuelve a intentarlo.");
     records.push(...page.expedientes);
     offset = page.nextOffset;
   }
@@ -217,7 +217,7 @@ function collection<T extends object>(
         ...state,
         status: "error",
         error:
-          "La operación se guardó, pero no se pudo actualizar la lista. Reintenta la carga.",
+          "El asunto se guardó, pero no se pudo actualizar la lista. Reintenta la carga.",
       };
       emit();
     }

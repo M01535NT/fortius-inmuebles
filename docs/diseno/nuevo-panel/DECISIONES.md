@@ -503,7 +503,7 @@ Ajustes del ensayo: borrar un asunto sigue como en el panel viejo (lo que no cam
 - **Bandeja y Consultas (DEC-60):** son dos entradas distintas.
 - **Sin frenos (DEC-61):** ningún freno de proceso; lo que antes frenaba, ahora avisa. La seguridad (permisos, quién ve qué, datos privados) no es un freno y se conserva.
 
-Detalle en `SPEC.md`, DEC-52 a DEC-58.
+Detalle en `SPEC.md`: DEC-53, DEC-54, DEC-56 a DEC-63 (DEC-52 y DEC-55 de esa fecha se renumeraron como DEC-62 y DEC-63 al juntar las ramas).
 
 - **PN-02:** migraciones aprobadas; se publican cuando el titular revise el panel completo.
 - **Dinero:**

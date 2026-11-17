@@ -75,7 +75,7 @@ test("muestra los dos lados, pide elegir lo que cambiaron los dos y guarda sobre
   expect(within(titulo).getByText("Nota del director")).toBeTruthy();
   // El texto lo cambió solo la otra persona: llega elegido su valor, nada se sobrescribe.
   const texto = dialog.getByRole("group", { name: /Texto/ });
-  expect((within(texto).getByRole("radio", { name: /Lo que se guardó antes/ }) as HTMLInputElement).checked).toBe(true);
+  expect(within(texto).getByRole("radio", { name: /Lo que se guardó antes/ }).getAttribute("aria-checked")).toBe("true");
   fireEvent.click(dialog.getByRole("button", { name: "Guardar lo elegido" }));
   expect(await dialog.findByRole("alert")).toBeTruthy();
   expect(puts).toHaveLength(1);

@@ -14,7 +14,7 @@ test("C40: con una operación activa, el siguiente paso sale de la operación y 
   expect(nextStep(person, "cliente", [task({ titulo: "Pedir el certificado", vence: "2026-11-05", expedienteId: "op1" })], [], today, ops))
     .toEqual({ text: "Pedir el certificado", date: "2026-11-05", time: undefined });
   // Con operación y nada agendado, dice la etapa, sin fecha inventada.
-  expect(nextStep(person, "cliente", [], [], today, ops)).toEqual({ text: "Operación en dictamen jurídico" });
+  expect(nextStep(person, "cliente", [], [], today, ops)).toEqual({ text: "Asunto en dictamen jurídico" });
   // Las operaciones de otra persona no cuentan.
   expect(nextStep(person, "cliente", [], [], today, [{ id: "op2", clienteId: "c2", stage: "Levantamiento" }])?.text).toBe("Darle seguimiento");
 });

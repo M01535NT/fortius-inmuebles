@@ -9,7 +9,6 @@ import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
 import { ADMIN_NAV, isNavActive, MobileHeader, MobileMenu, MobileTabBar, SideNav } from "@/components/admin/workspace/guided-nav";
 import { PAPELERA } from "@/components/admin/papelera/textos";
-import { Tour } from "@/components/admin/workspace/tour";
 import {
   AsyncForm,
   AsyncButton,
@@ -36,6 +35,9 @@ import {
 import { SessionExpiredDialog } from "@/components/admin/workspace/session-expired";
 import { ConflictHost } from "@/components/admin/workspace/conflict-dialog";
 import { Silhouette } from "@/components/admin/workspace/silhouette";
+import { DensityApplier } from "@/components/admin/workspace/density";
+import { PanelToaster } from "@/components/ui/sonner";
+import { ConfirmHost } from "@/components/admin/workspace/confirm-host";
 
 /** AUT-01: segundo paso del acceso, con el código de la app de verificación. */
 function MfaStep({ onVerified, onCancel }: { onVerified: () => void; onCancel: () => void }) {
@@ -384,7 +386,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="admin-workspace flex min-h-[100dvh] flex-col bg-background md:flex-row [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       {!focus && <SideNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch variant="field" />} />}
-      {ready && loadedPath === pathname && <Tour pathname={pathname} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {!focus && <MobileHeader user={user} search={<WorkspaceSearch />} />}
         <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
@@ -414,6 +415,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {menu && !focus && <MobileMenu panel={mobileNav} pathname={pathname} role={session.role} user={user} onNavigate={() => setMenu(false)} onLogout={leave} />}
       {!focus && <MobileTabBar pathname={pathname} menuOpen={menu} menuButton={menuTrigger} onMenu={() => setMenu(open => !open)} />}
       <ConflictHost />
+      <DensityApplier />
+      <PanelToaster />
+      <ConfirmHost />
       {expired && <SessionExpiredDialog email={session.email} onLeave={leave} />}
     </div>
   );

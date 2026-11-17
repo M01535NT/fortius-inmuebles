@@ -24,7 +24,7 @@ export default function SistemaPage() {
         <Button>Continuar <ArrowRight size={16} aria-hidden="true" /></Button>
         <Button variant="ghost">Guardar y seguir después</Button>
         <Button variant="link">Más detalles</Button>
-        <Button variant="danger">Eliminar operación</Button>
+        <Button variant="danger">Eliminar asunto</Button>
         <Button variant="primary" disabled>Deshabilitado</Button>
       </div>
     </section>
@@ -42,9 +42,9 @@ export default function SistemaPage() {
     <section aria-labelledby="c-tabs" className="grid gap-6 md:grid-cols-[240px_minmax(0,1fr)]">
       <div><h2 id="c-tabs" className="text-xl font-bold">Pestañas y filtro</h2></div>
       <div className="flex min-w-0 flex-col gap-5">
-        <Tabs idPrefix="muestra" label="Secciones de la operación" value={tab} onChange={setTab} items={[{ id: "sigue", label: "Lo que sigue" }, { id: "docs", label: "Documentos", count: 6 }, { id: "tareas", label: "Tareas", count: 3 }, { id: "hist", label: "Historial" }, { id: "ajustes", label: "Ajustes" }]} />
+        <Tabs idPrefix="muestra" label="Secciones del asunto" value={tab} onChange={setTab} items={[{ id: "sigue", label: "Lo que sigue" }, { id: "docs", label: "Documentos", count: 6 }, { id: "tareas", label: "Tareas", count: 3 }, { id: "hist", label: "Historial" }, { id: "ajustes", label: "Ajustes" }]} />
         <TabPanel idPrefix="muestra" id={tab} className="text-sm text-muted-foreground">Contenido de la pestaña seleccionada.</TabPanel>
-        <Segmented label="Mostrar operaciones de" value={scope} onChange={setScope} options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} className="self-start" />
+        <Segmented label="Mostrar asuntos de" value={scope} onChange={setScope} options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} className="self-start" />
       </div>
     </section>
 
@@ -54,8 +54,8 @@ export default function SistemaPage() {
         <Notice title="Ya tenemos a alguien con ese teléfono" actions={<><Button>Sí, es la misma persona</Button><Button variant="ghost">No, es otra persona</Button></>}>Ramón Félix Arce · Prospecto desde marzo de 2026.</Notice>
         <Card className="flex flex-col gap-3 p-6"><Eyebrow as="h3">Próxima tarea</Eyebrow><p className="font-semibold">Llamar para agendar la opinión de valor</p><Button variant="secondary" className="self-start" onClick={() => setSheet(true)}>Abrir panel «Revisado»</Button></Card>
         <div className="grid gap-5 sm:grid-cols-2">
-          <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "listo" }} title="Nada espera por ti">Todas tus operaciones van al día.</EmptyBox>
-          <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Aún no hay operaciones en esta etapa" action={<Button>Nueva operación</Button>} />
+          <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "listo" }} title="Nada espera por ti">Todos tus asuntos van al día.</EmptyBox>
+          <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Aún no hay asuntos en esta etapa" action={<Button>Nuevo asunto</Button>} />
         </div>
       </div>
     </section>

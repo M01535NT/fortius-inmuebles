@@ -93,7 +93,7 @@ Todos pasan AA (4.5:1 o más) sobre tarjeta, fondo y su propia superficie. El be
 
 #### Estructura del panel (14/11/2026)
 
-- **Menú lateral** (reemplaza la barra superior de LV-08): buscador, «Nuevo», los seis módulos, Herramientas y, para el director, Administración; la cuenta abajo. De 768 a 1279 px se recoge a íconos; en celular sigue la barra inferior.
+- **Menú lateral** (reemplaza la barra superior de LV-08): buscador, «Nuevo», las ocho secciones (Hoy, Bandeja, Operaciones, Contactos, Personas, Inmuebles, Agenda y Trámites; RP-58), Herramientas y, para el director, Administración; la cuenta abajo. De 768 a 1279 px se recoge a íconos; en celular sigue la barra inferior.
 - **Hoy:** saludo con una frase que dice lo vencido, lo de hoy y lo de la semana; «Tu día» en una tarjeta (lo siguiente destacado y lo demás en «Vencido» y «Por atender»); a la derecha «Hoy» y «Esta semana».
 - **Una operación** (reemplaza el panel azul de LV-06): encabezado claro con quién es, la etapa actual y el riel de las diez etapas. Listas en tinta, con algo pendiente en ámbar, la actual en borgoña y lo que falta en gris. La lista de Operaciones usa el mismo riel en cada fila.
 
@@ -114,7 +114,7 @@ Un solo catálogo en `src/components/admin/icons.tsx`, el mismo en todas las pan
 - **Punto «Empieza aquí»** (`StartHere`): sobre «Nuevo». Late tres veces y la etiqueta se oculta a los cinco segundos; el punto queda hasta que la persona lo pulsa y se recuerda por usuario en ese navegador. Con «reducir movimiento» no late.
 - **Estados vacíos** (`EmptyBox` con `art`): el objeto de la pantalla (`EMPTY_ART`) sobre una placa, con insignia según el caso: «+» aún no hay nada, palomita verde todo hecho, lupa sin resultados, flecha para subir. Sin dibujos a mano ni escenas.
 
-Las medidas y colores del panel (esquinas de 10/12/20/24 px, sombras, superficies) viven en `src/app/admin/panel-base.css` bajo `.admin-root`; `panel.module.css` ya no las define. El sitio público no descarga ese archivo ni las utilidades de Tailwind que solo usa el panel, y Archivo solo se precarga en `/admin`.
+Las medidas y colores del panel (esquinas de 10/12/20/24 px, sombras, superficies) viven en `src/app/admin/panel-base.css` bajo `.admin-root` junto con las reglas base del panel; `panel.module.css` se retiró el 14/11/2026. El sitio público no descarga ese archivo ni las utilidades de Tailwind que solo usa el panel, y Archivo solo se precarga en `/admin`.
 
 ### Espacios, botones y esquinas del sitio público (titular, 13/11/2026)
 

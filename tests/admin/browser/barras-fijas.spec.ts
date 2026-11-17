@@ -55,7 +55,7 @@ for (const width of [390, 1440]) {
     await mockApi(page);
     await page.goto(`/admin/operaciones/${id}`);
     await expect(page.getByRole("region", { name: "Siguiente acción" })).toBeVisible();
-    const tabs = await page.getByRole("tablist", { name: "Secciones de la operación" }).boundingBox();
+    const tabs = await page.getByRole("tablist", { name: "Secciones del asunto" }).boundingBox();
     const confirm = await page.getByRole("heading", { name: "Antes de seguir, confirma" }).boundingBox();
     expect(tabs && confirm && tabs.y < confirm.y).toBe(true);
     expect(await overlapAtBottom(page)).toBeLessThanOrEqual(0);

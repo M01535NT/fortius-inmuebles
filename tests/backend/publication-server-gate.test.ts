@@ -64,7 +64,9 @@ test("acepta publicar con la captación en comercialización y sus revisiones co
   const client = database({ ...property, publicada: false }, [{ id: "e1", etapa: "comercializacion", flujo: completeFlow() }]);
   const response = await PUT(request(published(), 1), context);
   expect(response.status).toBe(200);
-  expect((await response.json()).record.data.publicada).toBe(true);
+  const body = await response.json();
+  expect(body.record.data.publicada).toBe(true);
+  expect(body.avisos).toBeUndefined();
   expect(client.rpc.mock.calls.filter(([name]) => name === "fortius_inmuebles_put_record")).toHaveLength(1);
 });
 

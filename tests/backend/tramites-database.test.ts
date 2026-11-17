@@ -67,16 +67,21 @@ test("cada asesor ve solo los trámites de sus clientes; reasignar o borrar es d
   await as(director, () => del("tramites", "tr-borrar", otro.version));
 });
 
-test("los pasos se cierran en orden, con sus pendientes y su documento", async () => {
+test("los pasos se cierran en orden; sin sus pendientes o su documento se cierran y queda el aviso (FLX-03)", async () => {
   let t = await as(ana, () => put("tr-2", base("tr-2"), null));
   await as(ana, async () => {
-    await expect(put("tr-2", { ...t.data, pasoActual: 1 }, t.version)).rejects.toMatchObject({ code: "PT400", message: expect.stringMatching(/pendientes/) });
-    t = await put("tr-2", { ...marcar(t.data, 0), pasoActual: 1 }, t.version);
+    // RP-100: con pendientes sin marcar el paso se cierra igual y el historial lo dice.
+    t = await put("tr-2", { ...t.data, pasoActual: 1 }, t.version);
     expect(t.data.pasos[0].cerradoEl).toBeTruthy();
     expect(t.data.pasos[0].cerradoPor).toBe(ana);
-    expect(t.data.notas.some(n => n.tipo === "evento" && /Datos del crédito/.test(n.texto))).toBe(true);
+    expect(t.data.notas.some(n => n.tipo === "evento" && /^Se cerró el paso «Datos del crédito» con pendientes sin hacer/.test(n.texto))).toBe(true);
+    expect(t.data.notas.some(n => n.tipo === "evento" && /^Se cerró el paso «Datos del crédito»/.test(n.texto))).toBe(true);
+    // De uno en uno sigue igual.
     await expect(put("tr-2", { ...marcar(t.data, 1), pasoActual: 3 }, t.version)).rejects.toMatchObject({ code: "PT400" });
-    await expect(put("tr-2", { ...marcar(t.data, 1), pasoActual: 2 }, t.version)).rejects.toMatchObject({ code: "PT400", message: expect.stringMatching(/documento/) });
+    // Sin su documento también se cierra, con su aviso; se reabre para seguir la prueba con el documento.
+    const sinDocumento = await put("tr-2", { ...marcar(t.data, 1), pasoActual: 2 }, t.version);
+    expect(sinDocumento.data.notas.some(n => n.tipo === "evento" && /sin su documento$/.test(n.texto))).toBe(true);
+    t = await put("tr-2", { ...sinDocumento.data, pasoActual: 1 }, sinDocumento.version);
   });
   await archivo("doc-saldo", "tr-2", "liquidado");
   await as(ana, async () => {
@@ -216,11 +221,14 @@ test("la hipoteca sin inscribir ya no frena la firma: se cuenta para avisar", as
   const { MORTGAGE_GATE_MESSAGE } = await import("@/lib/formatos/operation-gates");
   const frena = () => db.query<{ n: number }>("select public.fortius_inmuebles_tramites_que_frenan_firma($1) n", [exp]).then(x => Number(x.rows[0].n));
   const exp = "40000000-0000-4000-8000-0000000000e2";
-  await db.exec(`insert into public.fortius_inmuebles_expedientes(id,cliente_id,asesor_id,folio,operacion) values ('${exp}','cli-ana','ase-ana','EXP-TRAMITE-2','venta');
-    set session_replication_role=replica; update public.fortius_inmuebles_expedientes set etapa='negociacion' where id='${exp}'; set session_replication_role=origin;`);
+  await db.exec(`insert into public.fortius_inmuebles_expedientes(id,cliente_id,asesor_id,folio,operacion) values ('${exp}','cli-ana','ase-ana','EXP-TRAMITE-2','venta');`);
+  const toNegotiation = () => db.exec(`set session_replication_role=replica; update public.fortius_inmuebles_expedientes set etapa='negociacion' where id='${exp}'; set session_replication_role=origin;`);
+  await toNegotiation();
   const version = () => db.query<{ v: number }>("select version v from public.fortius_inmuebles_expedientes where id=$1", [exp]).then(x => Number(x.rows[0].v));
   const rpc = async (stage: string) => db.query("select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb)", [exp, await version(), stage]);
   const reason = (p: Promise<unknown>) => p.then(() => "ok", (e: { message?: string }) => e.message ?? "");
+  const notice = () => db.query<{ d: string }>("select descripcion d from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso' order by created_at desc, id desc limit 1", [exp]).then(x => x.rows[0]?.d ?? "");
+  const mortgage = /La cancelación de hipoteca inscrita en el Registro Público/;
   let t = await as(ana, () => put("tr-9", { ...base("tr-9"), expedienteId: exp }, null));
   await as(ana, async () => {
     expect(await frena()).toBe(1);
@@ -228,11 +236,24 @@ test("la hipoteca sin inscribir ya no frena la firma: se cuenta para avisar", as
     expect(await reason(rpc("entrega"))).toBe("ok");
     expect(await reason(db.query("update public.fortius_inmuebles_expedientes set etapa='cierre',version=version+1 where id=$1", [exp]))).toBe("ok");
   });
-  // Con la decisión del director, el freno ya no responde (quedan los demás requisitos de la etapa).
+  await toNegotiation();
+  await as(ana, async () => {
+    expect(await reason(db.query("update public.fortius_inmuebles_expedientes set etapa='cierre',version=version+1 where id=$1", [exp]))).toBe("ok");
+    expect(await notice()).toMatch(mortgage);
+  });
+  // Con la decisión del director ya no se anota la hipoteca (pueden quedar otros avisos de la etapa).
+  await toNegotiation();
   t = await as(director, () => put("tr-9", { ...t.data, firmaSinCancelacion: { motivo: "El notario cancela la hipoteca en la misma firma" } }, t.version));
-  expect(await as(ana, () => reason(rpc("cierre")))).not.toBe(MORTGAGE_GATE_MESSAGE);
-  // Una renta no se frena.
+  await as(ana, async () => {
+    expect(await reason(rpc("cierre"))).toBe("ok");
+    expect(await notice()).not.toMatch(mortgage);
+  });
+  // Una renta tampoco lo anota.
+  await toNegotiation();
   await db.exec(`set session_replication_role=replica; update public.fortius_inmuebles_expedientes set operacion='renta' where id='${exp}'; set session_replication_role=origin;`);
   t = await as(director, () => put("tr-9", { ...t.data, firmaSinCancelacion: null }, t.version));
-  expect(await as(ana, () => reason(rpc("cierre")))).not.toBe(MORTGAGE_GATE_MESSAGE);
+  await as(ana, async () => {
+    expect(await reason(rpc("cierre"))).not.toMatch(mortgage);
+    expect(await notice()).not.toMatch(mortgage);
+  });
 });

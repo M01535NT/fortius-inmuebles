@@ -40,6 +40,8 @@ begin
  select replace(pg_get_functiondef('public.fortius_inmuebles_guard_tramite()'::regprocedure),chr(13),'') into definition;
  -- Ya aplicada: no se repite.
  if position('SIN-FRENOS' in definition)>0 then return; end if;
+ -- FLX-03 (20261115200000) ya dejó de frenar el cierre del paso y lo anota como aviso: se conserva esa versión.
+ if position('Faltan pendientes de' in definition)=0 then return; end if;
  if (length(definition)-length(replace(definition,anchor,'')))/length(anchor)<>1 then
   raise exception 'Unexpected process function public.fortius_inmuebles_guard_tramite';
  end if;

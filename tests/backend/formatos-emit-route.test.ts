@@ -160,7 +160,11 @@ it("emite con datos faltantes solo si quien emite lo confirmó, lo anota en el a
   expect((await POST(request({ version: 1, incompleto: true }), { params: Promise.resolve({ id }) })).status).toBe(201);
   expect(prepareFormatoEmission).toHaveBeenCalledWith("18", expect.objectContaining({ folio: "REAL" }), undefined, { incompleto: true });
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({ snapshot: expect.objectContaining({ datosFaltantes: expect.arrayContaining(["Lugar de emisión"]) }) }));
-  for (const formato of ["01", "15"]) {
+  // La promesa (15) también sale incompleta y anotada desde FLX-03 (RP-100); el aviso de privacidad (01) no.
+  const promise = setup("15");
+  expect((await POST(request({ version: 1, incompleto: true }), { params: Promise.resolve({ id }) })).status).toBe(201);
+  expect(promise).toHaveBeenCalledWith(expect.objectContaining({ snapshot: expect.objectContaining({ datosFaltantes: expect.any(Array) }) }));
+  for (const formato of ["01"]) {
     setup(formato);
     expect((await POST(request({ version: 1 }), { params: Promise.resolve({ id }) })).status, formato).toBe(409);
     const emitted = setup(formato);

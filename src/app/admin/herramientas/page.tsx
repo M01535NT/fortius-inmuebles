@@ -9,5 +9,5 @@ import { AppsCatalog, CatalogActions } from "@/components/admin/apps/catalog";
   del menú, «Herramientas» (C56); «Más» queda solo en la barra inferior del celular.
 */
 export default function HerramientasPage() {
-  return <GuidedPage title="Herramientas" subtitle="Herramientas para trabajar sin abrir una operación." actions={<CatalogActions />}><AppsCatalog /></GuidedPage>;
+  return <GuidedPage title="Herramientas" subtitle="Herramientas para trabajar sin abrir un asunto." actions={<CatalogActions />}><AppsCatalog /></GuidedPage>;
 }

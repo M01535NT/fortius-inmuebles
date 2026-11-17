@@ -59,18 +59,18 @@ async function fits(page: Page) {
   ).toBe(true);
 }
 
-test("el menú lateral guía por seis secciones y Herramientas; «Nuevo» y la cuenta abren sus menús", async ({ page }) => {
+test("el menú lateral guía por ocho secciones y Herramientas; «Nuevo» y la cuenta abren sus menús", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
   const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  for (const name of ["Hoy", "Bandeja", "Asuntos", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
   await expect(nav.getByRole("link", { name: /^Hoy/ })).toHaveAttribute("aria-current", "page");
   for (const gone of ["Organizar módulos", "Abrir aplicaciones"]) await expect(page.getByRole("button", { name: gone, exact: true })).toHaveCount(0);
   await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
   const menu = page.getByRole("menu", { name: "Qué quieres crear" });
   await expect(menu.getByRole("menuitem", { name: "Atender a alguien" })).toHaveAttribute("href", "/admin/operaciones/nueva");
-  await expect(menu.getByRole("menuitem", { name: "Nueva operación" })).toHaveAttribute("href", "/admin/operaciones/nueva?intencion=vender");
+  await expect(menu.getByRole("menuitem", { name: "Nuevo asunto" })).toHaveAttribute("href", "/admin/operaciones/nueva?intencion=vender");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
   const cuenta = page.locator("#admin-account-menu");
@@ -92,8 +92,8 @@ test("un asesor no ve Administración y conserva las 17 herramientas", async ({ 
   await expect(page.locator("#admin-account-menu").getByText("Asesor", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   // HER-01 (12/11/2026): catálogo depurado en tres grupos; desde el 14/11 en un solo panel, cada herramienta una vez
-  // (las 9 apps más la opinión de valor, Trámites y el inmueble compartido).
-  await expect(page.locator('[data-tour="herramientas-grupos"] li')).toHaveCount(12);
+  // (las 9 apps más la opinión de valor, Trámites y el inmueble compartido). Las «Ligas útiles» del pie no cuentan.
+  await expect(page.getByRole("main").locator('section[aria-labelledby^="grupo-"] li')).toHaveCount(12);
 });
 
 test("en celular la barra inferior y el menú llevan a todas las secciones", async ({ page }) => {
@@ -102,7 +102,7 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
     await page.goto("/admin");
     await expect(page.getByRole("heading", { level: 1, name: "Hoy" })).toBeVisible();
     const tabs = page.getByRole("navigation", { name: "Secciones principales" });
-    for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+    for (const name of ["Hoy", "Asuntos", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
     await fits(page);
     // El sitio usa desplazamiento suave; se mide al llegar al final, no a mitad de la animación.
     await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
@@ -233,9 +233,9 @@ test("inventory saved view, related tasks and global search navigate with contex
   await page.goto("/admin/propiedades");
   await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
-  await page
-    .getByLabel("Publicación", { exact: true })
-    .selectOption("borrador");
+  // Selector de Radix (DEC-52): se abre y se elige la opción.
+  await page.getByLabel("Publicación", { exact: true }).click();
+  await page.getByRole("option", { name: "Pendientes de publicar" }).click();
   await page.getByLabel("Nombre de la vista").fill("Pendientes");
   await page
     .getByRole("button", { name: "Guardar vista", exact: true })
@@ -244,14 +244,16 @@ test("inventory saved view, related tasks and global search navigate with contex
   await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
   await page.getByRole("button", { name: "Pendientes", exact: true }).click();
-  await expect(page.getByLabel("Publicación", { exact: true })).toHaveValue(
-    "borrador",
+  await expect(page.getByLabel("Publicación", { exact: true })).toHaveText(
+    "Pendientes de publicar",
   );
   await page.getByRole("button", { name: "Buscar en el panel" }).click();
+  // LV-10b: la búsqueda es una paleta de cmdk; el campo es un combobox y cada resultado una opción.
   await page
-    .getByRole("searchbox", { name: "Buscar personas, inmuebles o folios" })
+    .getByRole("dialog", { name: "Buscar en el panel" })
+    .getByRole("combobox", { name: "Buscar personas, inmuebles o folios, o escribir qué quieres hacer", exact: true })
     .fill("MNT-PRUEBA");
-  await page.getByRole("dialog").getByRole("link").first().click();
+  await page.getByRole("dialog").getByRole("option", { name: /MNT-PRUEBA-001/ }).click();
   await expect(page).toHaveURL(/audit-casa\/editar/);
   await page.getByRole("link", { name: "Crear tarea relacionada" }).click();
   await expect(page).toHaveURL(/propiedadSlug=audit-casa/);
@@ -268,7 +270,8 @@ test("profile menu persists identity, photo and reading preferences", async ({ p
   });
   await page.goto("/admin");
   await page.getByRole("banner").getByRole("button",{name:/Cuenta y sesión/}).click();
-  await page.getByRole("banner").getByRole("link",{name:"Mi perfil"}).click();
+  // LV-09: la cuenta está al pie del menú lateral y su ventana se abre fuera de él.
+  await page.locator("#admin-account-menu").getByRole("link",{name:"Mi perfil",exact:true}).click();
   await page.getByLabel("Nombre visible").fill("Moisés Núñez");
   await page.getByLabel("Seleccionar fotografía").setInputFiles({
     name:"foto.png",mimeType:"image/png",
@@ -300,21 +303,28 @@ test("mobile editor reveals collapsed sections and confirms leaving through the 
   await expect(page.getByLabel("Monto",{exact:true})).toBeVisible();
   await page.getByLabel("Título",{exact:true}).fill("Casa con cambios");
   const newTask = async () => { await page.getByRole("button",{name:"Nuevo",exact:true}).click(); await page.getByRole("menu",{name:"Qué quieres crear"}).getByRole("menuitem",{name:"Nueva tarea"}).click(); };
+  // DEC-52: la confirmación es un AlertDialog de Radix (role «alertdialog»).
   await newTask();
-  await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Cancelar",exact:true}).click();
+  await page.getByRole("alertdialog",{name:"Confirmar acción"}).getByRole("button",{name:"Cancelar",exact:true}).click();
   await expect(page).toHaveURL(/audit-casa/);
   await newTask();
-  await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Confirmar",exact:true}).click();
+  await page.getByRole("alertdialog",{name:"Confirmar acción"}).getByRole("button",{name:"Confirmar",exact:true}).click();
   await expect(page).toHaveURL(/admin\/agenda\?tab=tareas/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
   await page.screenshot({path:info.outputPath("mobile-task.png"),fullPage:true});
 });
-test("Herramientas es solo el catálogo y la dirección anterior de Documentos lleva a él (C45)", async ({ page }) => {
+test("Herramientas es un lanzador y la dirección anterior de Documentos lleva a él (C45, LV-10f)", async ({ page }) => {
   await page.goto("/admin/documentos");
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
   await expect(page.getByRole("tab", { name: "Documentos" })).toHaveCount(0);
   for (const name of ["Documentos", "Calcular", "Presentar"]) await expect(page.getByRole("heading", { name, level: 2 })).toBeVisible();
-  await expect(page.getByRole("searchbox", { name: "Buscar herramienta" })).toHaveCount(0);
+  // LV-10f (14/11/2026) reemplaza el «sin buscador» de C45: filtra al escribir y Enter abre lo primero.
+  const buscador = page.getByRole("searchbox", { name: "Buscar herramienta o sección" });
+  await buscador.fill("neto");
+  await expect(page.getByRole("heading", { name: "Documentos", level: 2 })).toHaveCount(0);
+  await buscador.press("Enter");
+  await expect(page).toHaveURL(/\/admin\/apps\//);
 });
 test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días sin desbordar", async ({ page }) => {
   for (const width of [390, 1440]) {

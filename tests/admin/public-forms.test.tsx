@@ -3,7 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ContactForm } from "@/components/sections/contact-form";
-import { BuyerBrief } from "@/components/sections/buyer-brief";
 import { LeadMagnet } from "@/components/sections/lead-magnet";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
@@ -14,13 +13,11 @@ const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 // Animation hooks do not participate in submission or its native boundary.
 vi.mock("@/lib/gsap", () => ({ useGSAP: () => {}, prefersReducedMotion: () => true }));
-vi.mock("@/components/gsap/scrub", () => ({ Scrub: ({ children }: React.PropsWithChildren) => children }));
 vi.mock("@/components/gsap/split-heading", () => ({ SplitHeading: () => null }));
 vi.mock("@/components/magicui/blur-fade", () => ({ BlurFade: ({ children }: React.PropsWithChildren) => children }));
 
 const variants = [
   { name: "contacto", component: <ContactForm />, button: "Enviar consulta" },
-  { name: "comprador", component: <BuyerBrief />, button: "Enviar mi búsqueda" },
   { name: "documentos", component: <PropertyDocuments slug="fixture" codigo="TEST" documentos={[{ codigo: "F1", nombre: "Ficha", descripcion: "Documento", url: "/fixture.pdf" }]} />, button: "Ver documentos" },
   { name: "interes-propiedad", component: <PropertyInterestForm slug="fixture" codigo="TEST" titulo="Casa" />, button: "Me interesa esta propiedad" },
 ];

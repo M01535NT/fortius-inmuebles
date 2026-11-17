@@ -124,8 +124,10 @@ for (const width of [320, 390, 768, 1440]) {
     await page.getByRole("radio", { name: "Todos" }).click();
     await expect(page.getByRole("list", { name: "Inmuebles" }).getByRole("listitem")).toHaveCount(3);
     await shot("inmuebles");
-    await page.getByLabel("Opciones de Casa en Playas de Tijuana").click();
+    // LV-10f: cada inmueble se abre en su ficha rápida, con su estado a un lado.
+    await page.getByRole("button", { name: "Abrir Casa en Playas de Tijuana" }).click();
     await expect(page.getByRole("combobox", { name: "Estado de Casa en Playas de Tijuana" })).toBeVisible();
+    await page.keyboard.press("Escape");
     expect(await fits(page)).toBe(true);
 
     await page.goto("/admin/agenda");

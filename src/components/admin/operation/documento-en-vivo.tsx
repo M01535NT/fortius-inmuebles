@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Check, ChevronLeft, ChevronRight, Files, List, ListChecks, Mic, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
 import { Button, Pill } from "@/components/admin/kit";
+import { VistaPdf } from "@/components/admin/vista-pdf";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { fetchLetterhead } from "@/lib/letterhead";
@@ -264,13 +265,15 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
   const onAcceptRef = React.useRef(onAccept);
   React.useEffect(() => { onAcceptRef.current = onAccept; }, [onAccept]);
   const patchAuto = desdeExpediente.patch, patchAutoKey = JSON.stringify(patchAuto);
+  // El aviso depende de que la ventana siga abierta, no de esta corrida del efecto: guardar re-renderiza (ocupado) antes de terminar.
+  const mounted = React.useRef(true);
+  React.useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   React.useEffect(() => {
     if (!datosExp || disabled || !Object.keys(patchAuto).length) return;
-    let alive = true;
+    const alive = () => mounted.current;
     onAcceptRef.current(patchAuto)
-      .then(() => { if (alive) setAutoNotice(`Se llenaron ${Object.keys(patchAuto).length === 1 ? "1 dato" : `${Object.keys(patchAuto).length} datos`} con el expediente.`); })
-      .catch(cause => { if (alive) setError(errorMessage(cause)); });
-    return () => { alive = false; };
+      .then(() => { if (alive()) setAutoNotice(`Se llenaron ${Object.keys(patchAuto).length === 1 ? "1 dato" : `${Object.keys(patchAuto).length} datos`} con el expediente.`); })
+      .catch(cause => { if (alive()) setError(errorMessage(cause)); });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- el parche se compara por contenido
   }, [datosExp, disabled, patchAutoKey]);
   // CSR-05: lo que falta se separa entre lo propio del formato y lo que se resuelve una vez en el expediente.
@@ -335,11 +338,11 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
         <Button variant="ghost" iconOnly aria-label="Cerrar los documentos" onClick={() => { setVerDocs(false); setArchivoAbierto(null); }}><X size={18} aria-hidden="true" /></Button>
       </div>
       {archivoAbierto ? archivoAbierto.mime === "application/pdf"
-        ? <iframe title={archivoAbierto.titulo} src={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} className="min-h-0 flex-1 border-0 bg-white" />
+        ? <div className="min-h-0 flex-1 overflow-auto bg-[color:var(--muted)] p-3"><VistaPdf url={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} titulo={archivoAbierto.titulo} maxPaginas={20} /></div>
         : <div className="min-h-0 flex-1 overflow-auto bg-[color:var(--muted)] p-2"><img src={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} alt={archivoAbierto.titulo} className="mx-auto h-auto max-w-full" /></div>
         : <div className="min-h-0 flex-1 overflow-auto px-3 py-3">
           {!archivos ? <p role="status" className="px-2 text-sm text-muted-foreground">Consultando…</p>
-            : !archivos.length ? <p className="px-2 text-sm text-muted-foreground">Este expediente todavía no tiene documentos del cliente. Se suben en la operación, en «Documentos del cliente».</p>
+            : !archivos.length ? <p className="px-2 text-sm text-muted-foreground">Este expediente todavía no tiene documentos del cliente. Se suben en el asunto, en «Documentos del cliente».</p>
             : <ul className="flex flex-col gap-0.5">{archivos.map(archivo => <li key={archivo.id}><button type="button" className={s.missingItem} onClick={() => setArchivoAbierto(archivo)}><span className="flex-1 [overflow-wrap:anywhere]">{archivo.titulo}</span><span className="text-xs text-muted-foreground">{archivo.mime === "application/pdf" ? "PDF" : "Imagen"}</span></button></li>)}</ul>}
         </div>}
     </section>}

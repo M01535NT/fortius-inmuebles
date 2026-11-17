@@ -20,6 +20,7 @@ function adapt(Component: IconoirComponent, name: string) {
 }
 
 export const AlertCircle = adapt(I.WarningCircle, "WarningCircle");
+export const Inbox = adapt(I.Archive, "Archive");
 export const AlertTriangle = adapt(I.WarningTriangle, "WarningTriangle");
 export const ArrowDown = adapt(I.ArrowDown, "ArrowDown");
 export const ArrowLeft = adapt(I.ArrowLeft, "ArrowLeft");
@@ -37,9 +38,9 @@ export const CheckCircle2 = adapt(I.CheckCircle, "CheckCircle");
 export const ChevronDown = adapt(I.NavArrowDown, "NavArrowDown");
 export const ChevronLeft = adapt(I.NavArrowLeft, "NavArrowLeft");
 export const ChevronRight = adapt(I.NavArrowRight, "NavArrowRight");
+export const ChevronUp = adapt(I.NavArrowUp, "NavArrowUp");
+export const Minus = adapt(I.Minus, "Minus");
 export const Circle = adapt(I.Circle, "Circle");
-export const CircleDashed = adapt(I.Circle, "Circle");
-export const CircleDot = adapt(I.Circle, "Circle");
 export const CircleHelp = adapt(I.HelpCircle, "HelpCircle");
 export const ClipboardCheck = adapt(I.ClipboardCheck, "ClipboardCheck");
 export const ClipboardList = adapt(I.TaskList, "TaskList");

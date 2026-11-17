@@ -92,7 +92,7 @@ it("avanza cuando 02 y 04 están emitidos en su versión vigente y el checklist 
   expect(rpc).toHaveBeenCalledOnce();
 });
 
-it("el candado no aplica a compradores, inversión ni a quien sigue en captación", async () => {
+it("compradores, inversión y quien sigue en captación avanzan igual", async () => {
   for (const [expediente, etapa] of [
     [{ ...owner, flujo: { ruta: "compra" } }, "documentacion"],
     [{ ...owner, operacion: "inversion" }, "documentacion"],

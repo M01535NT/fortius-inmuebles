@@ -5,10 +5,14 @@ import type { PropertyAlly } from "@/lib/propiedad-seguimiento";
 
 export const isShared = (property: Pick<AdminProperty, "origen">) => property.origen === "compartido";
 
-/** Lo que falta para publicar un compartido; vacío si ya se puede. */
+/** Lo que impide publicar un compartido: sin la inmobiliaria ligada no se sabe de quién es. Vacío si ya se puede. */
 export function sharedPublicationBlockers(aliado: PropertyAlly | undefined): string[] {
+  return (aliado?.inmobiliaria ?? "").trim().length < 2 ? ["Liga la inmobiliaria que comparte el inmueble."] : [];
+}
+
+/** FLX-03 (RP-100): lo que falta de la autorización escrita. No impide publicar; se avisa y queda en el historial del inmueble. */
+export function sharedPublicationWarnings(aliado: PropertyAlly | undefined): string[] {
   const missing: string[] = [];
-  if ((aliado?.inmobiliaria ?? "").trim().length < 2) missing.push("Liga la inmobiliaria que comparte el inmueble.");
   if (!aliado?.autorizacion?.path) missing.push("Adjunta la autorización escrita de la inmobiliaria (carta, correo o mensaje).");
   if (!aliado?.autorizacion?.fecha) missing.push("Anota la fecha de la autorización.");
   if ((aliado?.autorizacion?.firmante ?? "").trim().length < 3) missing.push("Anota quién firmó o envió la autorización.");

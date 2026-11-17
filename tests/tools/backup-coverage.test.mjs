@@ -6,7 +6,7 @@ const historical=['staff','records','record_references','rate_limits','record_re
 const apps=['app_runs','app_run_versions','app_files','app_shares','integration_jobs','integration_artifacts','integration_pages','signature_events'];
 const v4=['expediente_archivos','expediente_datos','ia_lecturas'];
 const v5=['user_preferences'];
-const v6=['folios','asunto_miembros','asunto_personas','asunto_inmuebles','pendientes','historial','notas_internas','persona_uniones'];
+const v6=['folios','asunto_miembros','asunto_personas','asunto_inmuebles','pendientes','historial','notas_internas','persona_uniones','bandeja','movimientos','documentos'];
 const names=[...historical,...apps,"interviews",...v4,...v5,...v6];
 const backup=()=>({format:'mnt-owner-export-v1',prefix:'fortius_inmuebles',schema_version:6,tables:Object.fromEntries(names.map(n=>['fortius_inmuebles_'+n,[]]))});
 

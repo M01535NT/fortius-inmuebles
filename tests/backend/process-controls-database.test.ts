@@ -47,6 +47,7 @@ async function sign(expediente: unknown) {
 async function property(slug: unknown) {
   return (await db.query<{ data: Record<string, unknown>; version: number }>("select data,version from public.fortius_inmuebles_records where collection='propiedades' and id=$1", [slug])).rows[0];
 }
+const notices = (id: unknown) => db.query<{ descripcion: string }>("select descripcion from public.fortius_inmuebles_expediente_actividad where expediente_id=$1 and tipo='aviso' order by created_at", [id]).then(r => r.rows.map(x => x.descripcion));
 it("corrects location atomically while retaining the earlier interview and current evidence", async () => {
   const first = await start(), done = await complete(first.id);
   const correction = await start("vender", { tipo: "cliente", id: done.cliente_id }, done.expediente_id as string);
@@ -164,6 +165,7 @@ it.each(["arrendar","invertir"])("walks %s through its evidenced process and arc
  // Se archiva aunque queden tareas abiertas.
  const final=await db.query<{r:{etapa:string}}>("select public.fortius_inmuebles_update_operation($1,$2,'cerrado',null,'{}'::jsonb,null,null,false) r",[done.expediente_id,version]);
  expect(final.rows[0].r.etapa).toBe("cerrado");
+ expect((await notices(done.expediente_id)).at(-1)).toMatch(/^Pasó a «Archivo» sin: .*Resolver o descartar las tareas pendientes/);
 });
 it("keeps historical buyer and tenant operations working, but opens no new ones (COR-11)",async()=>{
  const done=await admit(await complete((await start("arrendar")).id));

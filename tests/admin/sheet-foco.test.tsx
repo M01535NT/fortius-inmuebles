@@ -1,6 +1,6 @@
 import * as React from "react";
 import { afterEach, expect, test } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Sheet } from "@/components/admin/kit";
 
 afterEach(cleanup);
@@ -35,7 +35,7 @@ test("el panel no le quita el foco al campo que se está editando cuando el padr
   expect(document.activeElement?.id).toBe("hora");
 });
 
-test("al cerrar, el foco vuelve al botón que abrió el panel", () => {
+test("al cerrar, el foco vuelve al botón que abrió el panel", async () => {
   render(<Pantalla />);
   const abrir = screen.getByRole("button", { name: "Agendar" });
   abrir.focus();
@@ -43,5 +43,6 @@ test("al cerrar, el foco vuelve al botón que abrió el panel", () => {
   fireEvent.change(screen.getByLabelText("Hora"), { target: { value: "12:00" } });
   fireEvent.keyDown(document, { key: "Escape" });
   expect(screen.queryByRole("dialog")).toBeNull();
-  expect(document.activeElement).toBe(abrir);
+  // Radix devuelve el foco en el siguiente ciclo, ya sin el panel en pantalla.
+  await waitFor(() => expect(document.activeElement).toBe(abrir));
 });

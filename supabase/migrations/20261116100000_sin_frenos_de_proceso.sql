@@ -36,6 +36,8 @@ begin
  select replace(pg_get_functiondef('public.fortius_inmuebles_guard_guided_operation()'::regprocedure),chr(13),'') into definition;
  -- Ya aplicada: no se repite.
  if position('SIN-FRENOS' in definition)>0 then return; end if;
+ -- FLX-03 (20261115200000) ya convirtió estos frenos en avisos que se anotan en el historial: se conserva esa versión.
+ if position('FLX-03' in definition)>0 and position('Avanza una etapa a la vez' in definition)=0 then return; end if;
  desde := position(inicio in definition);
  hasta := position(fin in definition);
  if desde=0 or hasta<=desde or position('Avanza una etapa a la vez' in definition)=0
@@ -48,9 +50,15 @@ $m$ from desde for hasta-desde);
  execute definition;
 end; $$;
 
-drop trigger if exists fortius_03_guard_rent_progress on public.fortius_inmuebles_expedientes;
-drop trigger if exists fortius_04_guard_initial_gate on public.fortius_inmuebles_expedientes;
-drop trigger if exists fortius_00b_guard_mortgage_signing on public.fortius_inmuebles_expedientes;
+-- Si FLX-03 (20261115200000) ya convirtió estos tres en avisos que se anotan en el historial, se conservan.
+do $$
+begin
+ if position('FLX-03' in pg_get_functiondef('public.fortius_inmuebles_guard_guided_operation()'::regprocedure))=0 then
+  drop trigger if exists fortius_03_guard_rent_progress on public.fortius_inmuebles_expedientes;
+  drop trigger if exists fortius_04_guard_initial_gate on public.fortius_inmuebles_expedientes;
+  drop trigger if exists fortius_00b_guard_mortgage_signing on public.fortius_inmuebles_expedientes;
+ end if;
+end; $$;
 drop trigger if exists fortius_02_interview_evidence on public.fortius_inmuebles_expedientes;
 
 create or replace function public.fortius_inmuebles_guard_guided_publication() returns trigger

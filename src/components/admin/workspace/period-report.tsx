@@ -4,14 +4,18 @@ import Link from "next/link";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { channelMetrics, compareCount, compareHours, dateInPeriod, periodMetrics, periodSummary, previousPeriod } from "@/lib/admin/period-report";
-import { Field, inputClass, selectClass } from "@/components/admin/ui";
-import { ButtonLink } from "@/components/admin/kit";
+import { Field } from "@/components/admin/ui";
+import { Avatar, ButtonLink } from "@/components/admin/kit";
+import { DateField } from "@/components/ui/date-field";
+import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { calculateComercial } from "@/lib/comercial/calculate";
 import type { CommercialBook } from "@/lib/comercial/types";
 import { humanDate } from "@/lib/utils";
 import s from "./reports.module.css";
 
 const shortDay = (day: string) => new Date(`${day}T12:00:00`).toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+const TEAM = "todo-el-equipo";
 const hours = (value: number | null) => value === null ? "Sin medición" : `${value.toLocaleString("es-MX", { maximumFractionDigits: 1 })} h`;
 
 /*
@@ -64,13 +68,17 @@ export function PeriodReport() {
   return <section className={s.block} aria-labelledby="report-period">
     <h2 id="report-period" className="text-xl font-semibold">Resultados del periodo</h2>
     <div className={s.filters}>
-      <Field label="Desde" htmlFor="report-from"><input id="report-from" type="date" className={inputClass} value={from} max={to || today} onChange={e => setFrom(e.target.value)} /></Field>
-      <Field label="Hasta" htmlFor="report-to"><input id="report-to" type="date" className={inputClass} value={to} min={from} max={today} onChange={e => setTo(e.target.value)} /></Field>
+      <Field label="Desde" htmlFor="report-from"><DateField id="report-from" value={from} max={to || today} onChange={setFrom} /></Field>
+      <Field label="Hasta" htmlFor="report-to"><DateField id="report-to" value={to} min={from || undefined} max={today} onChange={setTo} /></Field>
       <Field label="Asesor" htmlFor="report-advisor">
-        <select id="report-advisor" className={selectClass} value={advisor} onChange={e => setAdvisor(e.target.value)}>
-          <option value="">Todo el equipo</option>
-          {advisers.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
-        </select>
+        <Select value={advisor || TEAM} onValueChange={value => setAdvisor(value === TEAM ? "" : value)}>
+          <SelectTrigger id="report-advisor"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={TEAM}>Todo el equipo</SelectItem>
+            {advisers.length > 0 && <SelectSeparator />}
+            {advisers.map(a => <SelectItem key={a.id} value={a.id}><Avatar name={a.nombre} size={24} />{a.nombre}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </Field>
     </div>
     {!valid ? <p role="alert">Revisa las fechas: «Desde» va antes que «Hasta» y «Hasta» no puede ser después de hoy.</p> : <>
@@ -86,23 +94,21 @@ export function PeriodReport() {
       <details className={s.fold}>
         <summary>Prospectos por canal <span className={s.summaryNote}>{channels.length ? `${channels.length} ${channels.length === 1 ? "canal" : "canales"}` : "Sin prospectos"}</span></summary>
         <div className={s.foldBody}>
-          {channels.length ? <div className="overflow-x-auto">
-            <table className="w-full min-w-[26rem] text-left text-sm">
-              <caption className="sr-only">Prospectos recibidos en el periodo por canal</caption>
-              <thead className="text-muted-foreground"><tr><th scope="col" className="px-3 py-2 font-medium">Canal</th><th scope="col" className="px-3 py-2 text-right font-medium">Recibidos</th><th scope="col" className="px-3 py-2 text-right font-medium">Atendidos</th><th scope="col" className="px-3 py-2 text-right font-medium">Descartados</th></tr></thead>
-              <tbody>{channels.map(row => <tr key={row.canal} className="border-t border-border"><th scope="row" className="px-3 py-2 font-medium">{row.label}</th><td className="px-3 py-2 text-right tabular-nums">{row.recibidos}</td><td className="px-3 py-2 text-right tabular-nums">{row.atendidos}</td><td className="px-3 py-2 text-right tabular-nums">{row.descartados}</td></tr>)}</tbody>
-            </table>
-          </div> : <p className={s.note}>Sin prospectos en este periodo.</p>}
+          {channels.length ? <Table className="min-w-[26rem]">
+            <TableCaption className="sr-only">Prospectos recibidos en el periodo por canal</TableCaption>
+            <TableHeader><TableRow className="hover:bg-transparent"><TableHead scope="col">Canal</TableHead><TableHead scope="col" className="text-right">Recibidos</TableHead><TableHead scope="col" className="text-right">Atendidos</TableHead><TableHead scope="col" className="text-right">Descartados</TableHead></TableRow></TableHeader>
+            <TableBody>{channels.map(row => <TableRow key={row.canal}><TableHead scope="row" className="h-auto text-[0.9375rem] font-medium text-foreground">{row.label}</TableHead><TableCell className="text-right tabular-nums">{row.recibidos}</TableCell><TableCell className="text-right tabular-nums">{row.atendidos}</TableCell><TableCell className="text-right tabular-nums">{row.descartados}</TableCell></TableRow>)}</TableBody>
+          </Table> : <p className={s.note}>Sin prospectos en este periodo.</p>}
         </div>
       </details>
       <details className={s.fold}>
         <summary>Ofertas y cierres <span className={s.summaryNote}>Según la cartera que elijas</span></summary>
         <div className={s.foldBody}>
           <Field label="Cartera" htmlFor="report-book">
-            <select id="report-book" className={selectClass} value={bookId} onChange={e => { setBook(null); setLoading(!!e.target.value); setError(""); setBookId(e.target.value); }}>
-              <option value="">Elige una cartera</option>
-              {books.map(b => <option key={b.id} value={b.id}>{b.nombre}</option>)}
-            </select>
+            <Select value={bookId} onValueChange={value => { setBook(null); setLoading(!!value); setError(""); setBookId(value); }} disabled={!books.length}>
+              <SelectTrigger id="report-book"><SelectValue placeholder={books.length ? "Elige una cartera" : "Aún no hay carteras"} /></SelectTrigger>
+              <SelectContent>{books.map(b => <SelectItem key={b.id} value={b.id}>{b.nombre}</SelectItem>)}</SelectContent>
+            </Select>
           </Field>
           {error && <p role="status" className="text-sm">{error}</p>}
           {loading ? <p role="status">Abriendo cartera…</p> : book && <>

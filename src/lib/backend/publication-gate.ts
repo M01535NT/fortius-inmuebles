@@ -4,7 +4,7 @@ import { databaseError } from "./http";
 import { propiedadVisible } from "./repository";
 import { operationWorkflowSchema, publicationBlockers, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { sharedPublicationBlockers } from "@/lib/admin/shared-property";
+import { sharedPublicationBlockers, sharedPublicationWarnings } from "@/lib/admin/shared-property";
 import type { PropertyAlly } from "@/lib/propiedad-seguimiento";
 
 type DatabaseClient = Pick<SupabaseClient, "from">;
@@ -34,6 +34,6 @@ export async function publicationWarnings(client: Pick<SupabaseClient, "from" | 
   if (record.publicada !== true) return [];
   if ((await propiedadVisible(client, slug))?.publicada === true) return [];
   // PUB-02: un compartido no tiene captación; se avisa si falta la inmobiliaria o su autorización (la base exige al director).
-  const { faltantes } = record.origen === "compartido" ? { faltantes: sharedPublicationBlockers(record.aliado as PropertyAlly | undefined) } : await publicationReadiness(client, slug, record.operacion);
+  const { faltantes } = record.origen === "compartido" ? { faltantes: [...sharedPublicationBlockers(record.aliado as PropertyAlly | undefined), ...sharedPublicationWarnings(record.aliado as PropertyAlly | undefined)] } : await publicationReadiness(client, slug, record.operacion);
   return faltantes;
 }
