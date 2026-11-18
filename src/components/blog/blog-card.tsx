@@ -6,7 +6,7 @@ import { BlogCoverCredit } from "@/components/blog/blog-cover-credit";
 import { BLOG_CATEGORIES, formatBlogDate, postCategory, postDate, postFormat, readingMinutes } from "@/lib/blog-editorial";
 
 /*
-  Tarjeta del blog, Fortius II (etapa 5, 17/11/2026): portada con esquinas de 16 px, «Guía ·
+  Tarjeta del blog, rediseño del sitio (etapa 5, 17/11/2026): portada con esquinas rectas, «Guía ·
   tema» en una línea de apoyo, título, resumen y fecha. La destacada pone la foto grande al
   lado; la vista de lista, una foto chica.
 */

@@ -1,17 +1,17 @@
-/* Blog, Fortius II (etapa 5, 17/11/2026). Índice y tarjetas. */
+/* Blog, rediseño del sitio (etapa 5, 17/11/2026). Índice y tarjetas. */
 .bl-cuerpo { display: flex; flex-direction: column; gap: var(--s-10); padding-bottom: var(--s-seccion); }
 
 /* Búsqueda y filtros */
 .bl-formulario { display: flex; flex-direction: column; gap: var(--s-3); }
 .bl-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); padding: var(--s-3) 0; border-top: 1px solid var(--s-ink); border-bottom: 1px solid var(--s-line); }
 .bl-busqueda { flex: 999 1 320px; display: flex; align-items: center; gap: var(--s-3); min-height: 52px; color: var(--s-ink-muted); }
-.bl-busqueda input { flex: 1; min-width: 0; height: 52px; padding: 0; border: 0; background: transparent; color: var(--s-ink); font: inherit; font-size: var(--s-type-fila); letter-spacing: -0.02em; }
+.bl-busqueda input { flex: 1; min-width: 0; height: 52px; padding: 0; border: 0; background: transparent; color: var(--s-ink); font: inherit; font-size: var(--s-type-fila); }
 .bl-busqueda input::placeholder { color: color-mix(in srgb, var(--s-ink-muted) 70%, transparent); }
 .bl-lista { position: relative; flex: 1 1 180px; display: flex; align-items: center; }
-.bl-lista select { width: 100%; min-height: 48px; padding: 0 40px 0 var(--s-4); border: 1px solid var(--s-line-strong); border-radius: var(--s-r-pastilla); background: transparent; color: var(--s-ink); font: inherit; font-size: var(--s-type-interfaz); font-weight: 500; appearance: none; cursor: pointer; }
+.bl-lista select { width: 100%; min-height: 48px; padding: 0 40px 0 var(--s-4); border: 1px solid var(--s-line-strong); border-radius: var(--s-r-pastilla); background: transparent; color: var(--s-ink); font: inherit; font-size: var(--s-type-interfaz); font-weight: 600; appearance: none; cursor: pointer; }
 .bl-lista select:hover { border-color: var(--s-ink); }
 .bl-lista svg { position: absolute; right: var(--s-4); pointer-events: none; color: var(--s-ink-muted); }
-.bl-mas summary { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px; font-size: var(--s-type-interfaz); font-weight: 500; color: var(--s-ink-muted); list-style: none; cursor: pointer; }
+.bl-mas summary { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px; font-size: var(--s-type-interfaz); font-weight: 600; color: var(--s-ink-muted); list-style: none; cursor: pointer; }
 .bl-mas summary::-webkit-details-marker { display: none; }
 .bl-mas summary:hover { color: var(--s-ink); }
 .bl-mas summary svg { transition: transform 300ms ease; }
@@ -40,7 +40,7 @@
 .bl-tarjeta-enlace:hover .bl-tarjeta-foto img { transform: scale(1.03); }
 .bl-tarjeta-cuerpo { display: flex; flex-direction: column; gap: var(--s-2); }
 .bl-tarjeta-tipo, .bl-tarjeta-fecha { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
-.bl-tarjeta-titulo { margin: 0; font-size: 24px; font-weight: 500; line-height: 1.15; letter-spacing: var(--s-track-sub); }
+.bl-tarjeta-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: 24px; line-height: 1.15; letter-spacing: 0; }
 .bl-tarjeta-enlace:hover .bl-tarjeta-titulo { color: var(--s-accent); }
 .bl-tarjeta-resumen { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 3; -webkit-box-orient: vertical; color: var(--s-ink-muted); line-height: 1.5; }
 .bl-tarjeta-credito { font-size: 12px; color: var(--s-ink-muted); }
@@ -48,7 +48,7 @@
 .bl-tarjeta-destacada .bl-tarjeta-enlace { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: var(--s-7) var(--s-10); }
 .bl-tarjeta-destacada .bl-tarjeta-foto { flex: 1.6 1 520px; aspect-ratio: 16 / 10; }
 .bl-tarjeta-destacada .bl-tarjeta-cuerpo { flex: 1 1 320px; gap: var(--s-4); }
-.bl-tarjeta-destacada .bl-tarjeta-titulo { font-size: var(--s-type-bloque); line-height: 1.05; letter-spacing: var(--s-track-seccion); }
+.bl-tarjeta-destacada .bl-tarjeta-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-bloque); line-height: 1.05; letter-spacing: 0; }
 .bl-tarjeta-destacada .bl-tarjeta-resumen { font-size: var(--s-type-entrada); -webkit-line-clamp: 4; }
 
 .bl-tarjeta-lista .bl-tarjeta-enlace { flex-direction: row; align-items: center; gap: var(--s-6); padding: var(--s-5) 0; }

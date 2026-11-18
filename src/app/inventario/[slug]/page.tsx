@@ -98,7 +98,7 @@ function lugaresPorGrupo(p: Property) {
 }
 
 /*
-  Ficha del inmueble · Fortius II (17/11/2026), según el lienzo «Fortius desde
+  Ficha del inmueble · rediseño del sitio (17/11/2026), según el lienzo «Fortius desde
   cero»: banda oscura con nombre, precio, marco limpio y cifras; luego
   descripción, ficha técnica y documentos, mapa de la zona, alrededores,
   herramientas con el precio, preguntas con el asesor y propiedades parecidas.

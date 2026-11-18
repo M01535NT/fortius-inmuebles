@@ -16,7 +16,7 @@ export const metadata: Metadata = pageMetadata({
 const EN_LINEA = ["derechos", "no-discriminacion"];
 
 /*
-  Avisos, Fortius II (etapa 5, 17/11/2026): los documentos en filas con líneas, cada uno con
+  Avisos, rediseño del sitio (etapa 5, 17/11/2026): los documentos en filas con líneas, cada uno con
   «Consultar» y «Descargar PDF». Los dos que no tienen página propia se leen aquí mismo.
 */
 export default function AvisosPage() {

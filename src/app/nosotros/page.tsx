@@ -28,7 +28,7 @@ const VALORES = [
 ];
 
 /*
-  Nosotros, Fortius II (etapa 5, 17/11/2026): quién te atiende (los perfiles publicados en el
+  Nosotros, rediseño del sitio (etapa 5, 17/11/2026): quién te atiende (los perfiles publicados en el
   panel; mientras no haya, el perfil ilustrativo con sus iniciales), misión y visión con foto,
   valores en filas y el video institucional solo si el panel tiene uno.
 */

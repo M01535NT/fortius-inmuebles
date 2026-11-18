@@ -15,7 +15,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 /*
-  Términos y condiciones, Fortius II (etapa 5, 17/11/2026): el mismo texto con un índice fijo al
+  Términos y condiciones, rediseño del sitio (etapa 5, 17/11/2026): el mismo texto con un índice fijo al
   lado (arriba en el teléfono) y lectura de 720 px.
 */
 export default function TerminosPage() {

@@ -12,7 +12,7 @@ import { usePublicFeatures } from "@/components/providers/public-features-provid
 import { publicContact } from "@/lib/public-contact";
 import styles from "./fullscreen-menu.module.css";
 
-/* Columnas del menú (Fortius II, 17/11/2026): mismos destinos que antes; cambia solo el aspecto. */
+/* Columnas del menú (rediseño del sitio, 17/11/2026): mismos destinos que antes; cambia solo el aspecto. */
 const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   { title: "Vender", links: [
     { href: "/vender-propiedad", label: "Vender mi propiedad" },

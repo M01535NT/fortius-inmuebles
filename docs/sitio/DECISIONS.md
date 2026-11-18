@@ -4,12 +4,20 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 
 ## Marca (17/11/2026)
 
-- **Colores de Fortius II.** Claro: fondo `#F8F8FF`, texto `#18202A`, texto de apoyo `#556170`, acento azul `#1B3FA6`. Oscuro: fondo `#08090A`, texto `#EDEDEF`, texto de apoyo `#8A8F98`, acento ámbar `#E0A030`.
-- Un solo acento por tema: azul en claro, ámbar en oscuro. Nunca blanco ni negro puros.
-- **Letra:** Geist, en pesos 400, 500 y 600. Los títulos van en 500, muy grandes y apretados.
-- **Logo:** el de Fortius II (la O con dos cortes, azul y ámbar).
-- **Esquinas:** 16 px en fotos y cajas grandes, 8 px en tarjetas, pastilla en botones y pestañas.
-- **El cambio de marca es solo del sitio público.** PDF, formatos, membrete y paneles conservan la marca anterior.
+- **Fuente única:** el sistema de diseño de `docs/sistema-diseno/` (`GUIA.md`, `tokens.css`, `componentes.css` y `logos/`). Si algo de esta carpeta lo contradice en colores, letra, esquinas, sombras o logo, manda el sistema.
+- **Colores.** Azul real `#012367` (principal), rojo imperial `#6D0809` (acento), plata `#F8F8FF` (fondo claro y texto sobre oscuro), negro armiño `#020315` (tinta y fondo oscuro) y oro brocado `#CBBA87` (solo detalles). Texto de apoyo: `#55595F` en claro y `#AEB2B8` en oscuro. Las tarjetas y campos van en blanco `#FFFFFF` sobre el fondo plata.
+- **Claro:** azul real sobre plata. **Oscuro:** el principal pasa a plata sobre negro armiño, porque el azul no se lee sobre negro. El detalle es rojo imperial en claro y oro en oscuro.
+- **El oro es un detalle:** filetes, sellos o un ícono suelto, siempre sobre azul, rojo o negro. Nunca como texto ni sobre fondo claro.
+- **Letra:** una sola, Archivo, con su eje de ancho. Titulares, nombre de la marca y cifras destacadas en Archivo angosta (72 % de ancho) y peso 600. Texto en Archivo de ancho normal: 400 para leer y 600 para botones y etiquetas.
+- **Tamaños:** los estilos de texto del sistema son la base. La portada, el cierre, el nombre en la ficha y las cifras conservan los tamaños grandes del boceto. Los titulares angostos van sin apretar las letras.
+- **Mayúsculas espaciadas solo en botones, etiquetas de campo e insignias**, como las define el sistema. Los títulos van en Archivo angosta normal, nunca en mayúsculas.
+- **Esquinas rectas en todo:** botones, campos, tarjetas, fotos, marco de la ficha, menús, pestañas, interruptor e insignias. La profundidad la dan las sombras del sistema: pequeña para botones y campos, mediana para tarjetas, grande para menús y ventanas.
+- **Foco de teclado:** el anillo del sistema, azul en claro y oro en oscuro, a plena intensidad para que se vea sobre el fondo.
+- **Campos:** caja blanca con la sombra pequeña del sistema y etiqueta en mayúsculas espaciadas. Su borde se queda con contraste de 3 a 1 para que la caja se distinga del fondo plata.
+- **Logo:** los archivos de `docs/sistema-diseno/logos/`. Versión clara (azul con el lado derecho del emblema en rojo) sobre fondo claro; versión oscura (plata con el lado derecho en oro) sobre bandas oscuras, fotos y video. Sus colores no se cambian. El emblema solo sirve para el ícono de la pestaña.
+- **Botones:** principal en azul (plata en oscuro); acento en rojo imperial para la acción que más importa de una pantalla (hoy, «Solicitar visita» en la ficha y su barra flotante); secundario con contorno. En teléfonos angostos un botón largo puede ir en dos líneas.
+- **Insignias:** en mayúsculas espaciadas. La de acento es azul real con filete de oro.
+- **El cambio de marca es solo del sitio público.** Los paneles, los PDF, los formatos y el membrete conservan la suya.
 
 ## Diseño (17/11/2026)
 
@@ -20,13 +28,13 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Inicio:** no se centra en el método de cinco etapas ni en el expediente; esos bloques salen del inicio.
 - **Movimiento:** efectos ligados al desplazamiento y videos, hechos con GSAP. El texto siempre se lee aunque la animación no corra.
 - **Controles (17/11/2026):** las piezas del sitio son propias y se ven como Fortius. El menú, el buscador y las listas de la frase del inventario y de Contacto están hechos sobre Radix, que resuelve teclado, foco, lector de pantalla y que la lista no se salga de la pantalla. Las listas de los formularios son las del navegador, que en el teléfono abren el selector del sistema. No se usa el aspecto de shadcn/ui en el sitio.
-- Sin antetítulos sobre los títulos, sin numeraciones decorativas y sin mayúsculas espaciadas.
+- Sin antetítulos sobre los títulos y sin numeraciones decorativas. Las mayúsculas espaciadas quedan solo donde las pone el sistema de diseño (botones, etiquetas de campo e insignias).
 - De tres opciones en adelante, lista desplegable; con dos, interruptor.
 
 ## Construcción (17/11/2026)
 
 - **Rama:** `rediseno-sitio`, sacada de `main`. Se publica todo junto en un solo PR en borrador; no se mezclan páginas nuevas y viejas.
-- **Estilos separados:** los colores, la letra y las esquinas nuevas viven bajo una clase propia del sitio. No se tocan los estilos que usan los paneles.
+- **Estilos separados:** los colores, la letra y las esquinas del sitio viven bajo una clase propia del sitio. No se tocan los estilos que usan los paneles.
 - **Se conserva la lógica que ya funciona** (calculadoras, formularios, filtros en la dirección, compartir, blog, datos para buscadores) y se le cambia el aspecto.
 - **Formulario «Cuéntanos tu asunto»:** pide qué necesitas, nombre y teléfono. El nombre es obligatorio en el sistema; así no se cambia la base de datos.
 - **Día de visita:** viaja dentro del mensaje, como hoy.
@@ -38,13 +46,12 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 
 ## Cimientos (17/11/2026)
 
-- **Piel del sitio:** la clase `sitio` va en la página solo fuera de los paneles. Los colores, la letra y las esquinas nuevas viven en `src/app/sitio.css`, bajo esa clase. Las piezas nuevas están en `src/components/sitio/`.
-- **Páginas viejas mientras se rehacen:** toman los colores y la letra nuevos por medio de sus mismas variables, y el borgoña escrito a mano se cambió por el acento. Su acomodo, sus esquinas pequeñas y algunos azules marino escritos a mano siguen hasta que cada página se rehaga; en la etapa 7 se retiran sus estilos.
-- **Letra:** Geist se carga como letra variable (un solo archivo para 400, 500 y 600). Se dejó de cargar la letra anterior del sitio.
-- **Logo:** uno solo para los dos temas: la O siempre azul con su tramo ámbar; las letras toman el color del texto. Sobre foto o video van claras.
+- **Piel del sitio:** la clase `sitio` va en la página solo fuera de los paneles. Los valores del sistema de diseño se copian a `src/app/sitio.css`, bajo esa clase, y las piezas del sitio los usan por medio de sus variables. No se carga `tokens.css` tal cual: sus nombres (`--primary`, `--border`, `--surface`) chocarían con los del panel. Las piezas están en `src/components/sitio/`.
+- **Letra:** Archivo, con su eje de ancho, se sirve desde el propio sitio, no desde Google: la política de seguridad solo permite letras propias.
+- **Logo:** la versión clara en tema claro y la oscura en tema oscuro y sobre bandas, fotos y video. Sobre foto o video va siempre la oscura.
 - **Cabecera:** logo a la izquierda; a la derecha, la lupa del buscador y el botón «Menú». El buscador queda junto al botón, a un toque en cualquier página.
 - **Tema:** interruptor «Tema oscuro» dentro del menú y en el pie (dos opciones, interruptor). Guarda la elección igual que antes.
-- **Bandas oscuras:** una caja con la clase `s-banda` usa los colores oscuros en los dos temas, con ámbar como acento.
+- **Bandas oscuras:** una caja con la clase `s-banda` usa los colores oscuros del sistema en los dos temas: negro armiño, texto plata y oro como detalle.
 - **Pie:** sigue el flujo de la página, como antes, sin quedarse fijo detrás del contenido.
 
 ## Inventario (17/11/2026)
@@ -122,8 +129,8 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 
 ## Limpieza (17/11/2026)
 
-- **Imagen para compartir:** el logo de Fortius II con su leyenda, en claro sobre la banda oscura del sitio.
-- **Ícono de la pestaña:** la O de Fortius II, azul con su tramo ámbar, sobre el fondo claro de la marca. Es uno solo para el sitio y el panel. Los íconos para instalar la app del panel siguen como están.
+- **Imagen para compartir:** el logo oscuro del sistema con su lema, sobre negro armiño.
+- **Ícono de la pestaña:** el emblema del sistema en las páginas del sitio. El panel conserva su ícono y los de instalar la app.
 - **Confirmación de Vender:** se conserva su dirección; hoy nadie llega a ella porque la entrevista confirma en la misma página.
 - **Pruebas del sitio:** las del navegador viven en una sola prueba del diseño nuevo, más navegación, ficha en PDF, calculadoras e instalación. Lo que solo usaban las pruebas anteriores se retiró con ellas (17/11/2026).
 - **Estilos:** el sitio usa solo `sitio.css` y los de cada página; los estilos globales del diseño anterior ya no existen.

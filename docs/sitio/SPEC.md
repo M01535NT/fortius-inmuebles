@@ -2,7 +2,7 @@
 
 Este documento dice **qué** se construye. El orden está en `PLAN.md` y la forma de hacerlo en `DECISIONS.md`. Esta rama solo toca el sitio público; el panel no se toca.
 
-Referencia visual aprobada: el lienzo «Fortius desde cero» (https://claude.ai/artifact/17nH6Sv7yvw2SBPTdgAk9c). Si un texto de aquí contradice al lienzo, se avisa y se corrige uno de los dos.
+Referencia visual aprobada: el lienzo «Fortius desde cero» (https://claude.ai/artifact/17nH6Sv7yvw2SBPTdgAk9c). El lienzo manda en el acomodo y el contenido; los colores, la letra, las esquinas y el logo los da el sistema de diseño de `docs/sistema-diseno/`. Si un texto de aquí contradice a cualquiera de los dos, se avisa y se corrige uno.
 
 ## 1. La idea
 
@@ -10,6 +10,7 @@ Fortius es una inmobiliaria a la que llegan asuntos diversos: vender, comprar, r
 
 ## 2. Lo que vale en todas las páginas
 
+- **Marca:** la del sistema de diseño. Azul real y rojo imperial sobre fondo plata, negro armiño en oscuro y un solo oro para detalles pequeños. Una sola letra, Archivo: angosta en titulares y de ancho normal en el texto. Esquinas rectas en todo.
 - Menú de hamburguesa en cualquier dispositivo, arriba a la derecha. El logo va arriba a la izquierda.
 - Tema claro y oscuro, con su interruptor.
 - Pocas palabras, fotos y videos grandes, movimiento ligado al desplazamiento.
@@ -61,7 +62,7 @@ Vender, Comprar, Herramientas (hipoteca y gastos de cierre), Nosotros, Contacto,
 
 ## 7. Lo que no cambia
 
-- El panel y el panel provisional, con su logo y sus colores.
+- El panel y el panel provisional, con su logo, sus colores, su letra y su ícono.
 - Los PDF, formatos y membrete.
 - Los cálculos, los formularios y las reglas de publicación: solo cambia su aspecto.
 
@@ -70,3 +71,4 @@ Vender, Comprar, Herramientas (hipoteca y gastos de cierre), Nosotros, Contacto,
 - Los nombres definitivos de los asuntos de la portada.
 - Mapa con un pin por inmueble (hoy solo se conoce la zona).
 - Foto de cada asesor en la ficha.
+- El color de los errores de los formularios: el sistema de diseño no lo define. Mientras tanto se usa el rojo imperial en claro y el tono actual en oscuro.
