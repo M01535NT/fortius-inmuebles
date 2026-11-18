@@ -24,10 +24,10 @@ export const temaAGuardar = (t: Tema): string | null => (t === "auto" ? null : t
 export const CLAVE_AVISOS = "fortius-panel-avisos";
 export type ClaveAviso = "consultas" | "citas" | "vencimientos" | "asignados";
 export const AVISOS: readonly { clave: ClaveAviso; titulo: string; texto: string }[] = [
-  { clave: "consultas", titulo: "Consultas nuevas", texto: "Cuando entra una consulta del sitio o de un portal." },
+  { clave: "consultas", titulo: "Consultas nuevas", texto: "Cuando entra una solicitud del sitio." },
   { clave: "citas", titulo: "Citas próximas", texto: "Una hora antes de una visita, llamada o firma." },
   { clave: "vencimientos", titulo: "Vencimientos", texto: "Pendientes y documentos que vencen en los próximos días." },
-  { clave: "asignados", titulo: "Te asignan algo", texto: "Cuando alguien te pasa una persona, un inmueble o un asunto." },
+  { clave: "asignados", titulo: "Te asignan algo", texto: "Cuando te mencionan en una nota o te dejan una tarea." },
 ];
 export type PreferenciasAvisos = Record<ClaveAviso, boolean>;
 export const AVISOS_POR_OMISION: PreferenciasAvisos = { consultas: true, citas: true, vencimientos: true, asignados: true };

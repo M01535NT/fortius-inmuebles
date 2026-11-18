@@ -10,6 +10,8 @@ type Ctx = {
   /** Pone al día un renglón de la lista sin volver a pedirla toda (después de cambiar el asunto abierto). */
   ponerFila: (f: FilaAsunto) => void;
   equipo: Miembro[];
+  /** Todo el equipo, solo para mencionar con @ y poner nombres (el asesor también los ve). */
+  companeros: Miembro[];
   yo: string | null;
   nombreDe: (id: string | null | undefined) => string;
 };
@@ -21,6 +23,7 @@ export function ProveedorAsuntos({ children }: { children: ReactNode }) {
   const [asuntos, setAsuntos] = useState<FilaAsunto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [equipo, setEquipo] = useState<Miembro[]>([]);
+  const [companeros, setCompaneros] = useState<Miembro[]>([]);
   const [yo, setYo] = useState<string | null>(null);
 
   const recargar = useCallback(async () => {
@@ -31,7 +34,7 @@ export function ProveedorAsuntos({ children }: { children: ReactNode }) {
   useEffect(() => {
     let vivo = true;
     leerAsuntos().then((a) => { if (vivo) { setAsuntos(a); setError(null); } }, (e: unknown) => { if (vivo) setError(e instanceof Error ? e.message : "No se pudo cargar."); });
-    leerEquipo().then((r) => { if (vivo) { setEquipo(r.equipo); setYo(r.yo); } }, () => {});
+    leerEquipo().then((r) => { if (vivo) { setEquipo(r.equipo); setCompaneros(r.companeros ?? r.equipo); setYo(r.yo); } }, () => {});
     return () => { vivo = false; };
   }, []);
 
@@ -46,9 +49,10 @@ export function ProveedorAsuntos({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const nombreDe = useCallback((id: string | null | undefined) => equipo.find((m) => m.id === id)?.nombre ?? "Otra persona del equipo", [equipo]);
+  const nombreDe = useCallback((id: string | null | undefined) =>
+    (equipo.find((m) => m.id === id) ?? companeros.find((m) => m.id === id))?.nombre ?? "Otra persona del equipo", [equipo, companeros]);
 
-  const valor = useMemo(() => ({ asuntos, error, recargar, ponerFila, equipo, yo, nombreDe }), [asuntos, error, recargar, ponerFila, equipo, yo, nombreDe]);
+  const valor = useMemo(() => ({ asuntos, error, recargar, ponerFila, equipo, companeros, yo, nombreDe }), [asuntos, error, recargar, ponerFila, equipo, companeros, yo, nombreDe]);
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 

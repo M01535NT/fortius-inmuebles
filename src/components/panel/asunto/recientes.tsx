@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
 import { guardarPreferencia, usePreferencia } from "@/components/panel/almacen";
-import type { NombreIcono } from "@/components/panel/icons";
+import { useMisPreferencias } from "@/components/panel/datos/use-mis-preferencias";
+import { Icono, type NombreIcono } from "@/components/panel/icons";
 
 import { Cuadro } from "./pildora";
 
@@ -32,9 +33,33 @@ export function quitarReciente(id: string) {
   guardarPreferencia(CLAVE, JSON.stringify(previos.filter((x) => x.id !== id)));
 }
 
+/** Los asuntos e inmuebles marcados con estrella (te siguen en cualquier equipo), arriba de los recientes. */
+export function Favoritos({ contraido }: { contraido: boolean }) {
+  const { panel } = useMisPreferencias();
+  const ruta = usePathname();
+  const lista = (panel.favoritos ?? []).slice(0, 8);
+  if (!lista.length || contraido) return null;
+  return (
+    <nav aria-label="Favoritos" className="pn-recientes">
+      <p className="pn-sec">Favoritos</p>
+      {lista.map((f) => {
+        const href = f.tipo === "asunto" ? `/panel/asuntos/${f.id}` : `/panel/inmuebles?id=${f.id}`;
+        return (
+          <Link key={`${f.tipo}-${f.id}`} href={href} className="pn-link pn-reciente" aria-current={ruta === href ? "page" : undefined}>
+            <span className="pn-fav-ico" aria-hidden><Icono nombre={f.tipo === "asunto" ? "estrella" : "casa"} tamano={15} /></span>
+            <span className="pn-txt">{f.nombre}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function Recientes({ contraido }: { contraido: boolean }) {
   const [texto] = usePreferencia(CLAVE, "[]");
-  const lista = useMemo(() => leer(texto), [texto]);
+  const { panel } = useMisPreferencias();
+  const fijos = useMemo(() => new Set((panel.favoritos ?? []).map((f) => f.id)), [panel.favoritos]);
+  const lista = useMemo(() => leer(texto).filter((r) => !fijos.has(r.id)), [texto, fijos]);
   const ruta = usePathname();
   if (!lista.length || contraido) return null;
   return (

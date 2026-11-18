@@ -22,6 +22,15 @@ export const panelSchema = z.object({
   atajos: z.boolean().optional(),
   /** DEC-51: Cómodo (por omisión) o Compacto, con filas más juntas y fotos más chicas. */
   densidad: z.enum(["comodo", "compacto"]).optional(),
+  /** Panel nuevo (SPEC.md, sección 15): asuntos e inmuebles marcados con estrella; salen arriba en el menú y en el buscador. */
+  favoritos: z.array(z.object({ tipo: z.enum(["asunto", "inmueble"]), id: z.uuid(), nombre: z.string().trim().min(1).max(200) }).strict()).max(30).optional(),
+  /** Panel nuevo: filtros de una lista guardados con nombre, para volver a ellos con un toque. */
+  vistas: z.array(z.object({
+    lista: z.enum(["asuntos", "inmuebles"]), nombre: z.string().trim().min(1).max(60),
+    filtros: z.record(z.string().regex(/^[a-z_]{1,30}$/), filterValue),
+  }).strict()).max(24).optional(),
+  /** Panel nuevo: hasta cuándo ya se vio «Para ti» en Inicio; lo posterior sale como nuevo. */
+  paraTiVisto: stamp.optional(),
 }).strict();
 export type PanelPreferences = z.infer<typeof panelSchema>;
 export const preferencesSchema = z.object({

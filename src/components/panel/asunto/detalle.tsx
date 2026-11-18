@@ -10,17 +10,20 @@ import {
 } from "@/components/panel/ui/dropdown-menu";
 import {
   agregar, APARTADO, APARTADOS_DE_SIEMPRE, cambiar, cambiarAsunto, CLAVES_APARTADO, continuarAsunto, ENCARGOS, EN_QUE_VA, fechaCorta, diasHasta,
-  ICONO_ENCARGO, leerAsunto, leerHistorial, mandarAEliminados, NOMBRE_ENCARGO, NOMBRE_EN_QUE_VA, NOMBRE_QUIEN, sumarDias,
-  type Apartado, type Asunto, type CambioAsunto, type ClaveApartado, type EntradaHistorial, type FilaAsunto, type Vista,
+  ICONO_ENCARGO, leerAsunto, leerHistorial, leerNotas, mandarAEliminados, NOMBRE_ENCARGO, NOMBRE_EN_QUE_VA, NOMBRE_QUIEN, sumarDias,
+  type Apartado, type Asunto, type CambioAsunto, type ClaveApartado, type EntradaHistorial, type FilaAsunto, type PersonaDelAsunto, type Vista,
 } from "@/lib/panel/asuntos/api";
+import { usePreferencia } from "@/components/panel/almacen";
 import { guardarApartadoEnBiblioteca } from "@/lib/panel/biblioteca";
+import { BotonFavorito } from "@/components/panel/kit/favorito";
 import { useSession } from "@/lib/panel/legado/sesion";
 
 import { Cuadro, Pildora } from "./pildora";
 import { useAsuntos } from "./proveedor";
 import { anotarReciente, quitarReciente } from "./recientes";
-import { DialogoTexto, Ventana } from "./ventana";
+import { DialogoTexto, useAngosto, Ventana } from "./ventana";
 import { ContenidoApartado, iconoPropio, nombreApartado, resumenApartado } from "./apartados";
+import { NotasDelAsunto, type FiltroNotas } from "./notas";
 import { faltaCobrar } from "./honorarios";
 import { olvidarGuias } from "../biblioteca/guias";
 
@@ -62,22 +65,34 @@ export function DetalleAsunto({ id }: { id: string }) {
   const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dialogo, setDialogo] = useState<null | "nombre" | "espera" | "propio" | "cierre-se_logro" | "cierre-no_se_dio">(null);
-  const [foco, setFoco] = useState<string | null>(null);
+  // Desde el buscador, una persona llega con ?ver=personas&persona=<id> y abre su ficha.
+  const [foco, setFoco] = useState<string | null>(() => (ver === "personas" && params.get("persona") ? `persona:${params.get("persona")}` : null));
   const [siguienteNuevo, setSiguienteNuevo] = useState("");
   const [noAhora, setNoAhora] = useState<string[]>([]);
   // Las ventanas por las que se pasó antes de la que está abierta (la más reciente al final).
   const [anteriores, setAnteriores] = useState<string[]>([]);
 
+  // Las notas del asunto, en el costado de cada ventana (SPEC.md, «Las notas del asunto»).
+  const [notas, setNotas] = useState<EntradaHistorial[] | null>(null);
+  const [fijadas, setFijadas] = useState<number[]>([]);
+  const [personaAbierta, setPersonaAbierta] = useState<PersonaDelAsunto | null>(null);
+  const [filtroNotas, setFiltroNotas] = useState<FiltroNotas>("todas");
+  const [notasEnPc, guardarNotasEnPc] = usePreferencia("fortius-panel-notas", "si");
+  const [notasEnTel, setNotasEnTel] = useState(false);
+  const angosto = useAngosto();
+  const notasAbiertas = angosto ? notasEnTel : notasEnPc === "si";
+  const ponerNotas = useCallback((abiertas: boolean) => { if (angosto) setNotasEnTel(abiertas); else guardarNotasEnPc(abiertas ? "si" : "no"); }, [angosto, guardarNotasEnPc]);
+
   const cargar = useCallback(async () => {
     try {
-      const [a, h] = await Promise.all([leerAsunto(id), leerHistorial(id)]);
-      setAsunto(a); setHistorial(h); setError(null); ponerFila(fila(a));
+      const [a, h, n] = await Promise.all([leerAsunto(id), leerHistorial(id), leerNotas(id)]);
+      setAsunto(a); setHistorial(h); setNotas(n.entradas); setFijadas(n.fijadas); setError(null); ponerFila(fila(a));
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo cargar."); }
   }, [id, ponerFila]);
 
   useEffect(() => {
     let vivo = true;
-    Promise.all([leerAsunto(id), leerHistorial(id)]).then(([a, h]) => { if (vivo) { setAsunto(a); setHistorial(h); setError(null); } },
+    Promise.all([leerAsunto(id), leerHistorial(id), leerNotas(id)]).then(([a, h, n]) => { if (vivo) { setAsunto(a); setHistorial(h); setNotas(n.entradas); setFijadas(n.fijadas); setError(null); } },
       (e: unknown) => { if (vivo) setError(e instanceof Error ? e.message : "No se pudo cargar."); });
     return () => { vivo = false; };
   }, [id]);
@@ -182,6 +197,7 @@ export function DetalleAsunto({ id }: { id: string }) {
             <DropdownMenuItem onSelect={() => router.push(`/panel/informe/${a.id}`)}><Icono nombre="file" tamano={16} />Informe para el cliente</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <BotonFavorito tipo="asunto" id={a.id} nombre={a.nombre} className="as-btn as-ico" />
         <DropdownMenu>
           <DropdownMenuTrigger className="as-btn as-ico" aria-label="Más opciones"><Icono nombre="dots" tamano={18} /></DropdownMenuTrigger>
           <DropdownMenuContent className="min-w-60">
@@ -372,8 +388,22 @@ export function DetalleAsunto({ id }: { id: string }) {
             },
           },
         ] : []}
+        // En el Historial las notas ya están en la ventana: sin costado.
+        notas={abierto?.clave === "historial" ? undefined : {
+          abiertas: notasAbiertas, cuantas: (notas ?? []).length, alCambiar: ponerNotas,
+          contenido: abierto ? (
+            <NotasDelAsunto a={a} notas={notas} fijadas={fijadas} desde={abierto} nombreDeApartado={nombreApartado}
+              persona={abierto.clave === "personas" ? personaAbierta : null} filtro={filtroNotas} alFiltrar={setFiltroNotas} hacer={hacer}
+              abrirPersona={(pid) => { if (angosto) setNotasEnTel(false); irA("personas", `persona:${pid}`); }}
+              abrirApartado={(x) => { if (angosto) setNotasEnTel(false); if (x.clave === "propio") abrir(x.id); else irA(x.clave); }}
+              alCerrar={angosto ? () => setNotasEnTel(false) : undefined} />
+          ) : null,
+        }}
       >
-        {abierto ? <ContenidoApartado apartado={abierto} asunto={a} historial={historial} foco={foco} hacer={hacer} irA={irA} /> : null}
+        {abierto ? (
+          <ContenidoApartado apartado={abierto} asunto={a} historial={historial} notas={notas} foco={foco} hacer={hacer} irA={irA}
+            alAbrirPersona={setPersonaAbierta} alVerNotas={() => { setFiltroNotas("persona"); ponerNotas(true); }} />
+        ) : null}
       </Ventana>
 
       <DialogoTexto abierto={dialogo === "nombre"} titulo="Cambiar el nombre" etiqueta="Nombre del asunto" inicial={a.nombre} maximo={160}

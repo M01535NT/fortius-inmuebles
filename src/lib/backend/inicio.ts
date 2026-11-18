@@ -7,7 +7,7 @@ import { fallo } from "./fallo";
 import type { StaffUser } from "./contracts";
 import { ApiError } from "./http";
 import type {
-  CobrarInicio, Contacto, ContactoInicio, Inicio, Moneda, SolicitudInicio, TareaInicio, VenceInicio,
+  CobrarInicio, Contacto, ContactoInicio, Inicio, Moneda, ParaTiInicio, SolicitudInicio, TareaInicio, VenceInicio,
 } from "./inicio-contrato";
 
 /**
@@ -29,6 +29,7 @@ const T = {
   cobros: "fortius_inmuebles_cobros",
   documentos: "fortius_inmuebles_asunto_documentos",
   consultas: "fortius_inmuebles_consultas",
+  historial: "fortius_inmuebles_historial",
 } as const;
 
 const hoyTexto = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -46,7 +47,7 @@ const PAPELES_DE: Record<Quien, string[]> = {
 const trozos = <X,>(xs: X[], n = 200) => Array.from({ length: Math.ceil(xs.length / n) }, (_, i) => xs.slice(i * n, i * n + n));
 
 // ── Lectura ──────────────────────────────────────────────────────────────────────────────────────────
-export async function leerInicio(client: SupabaseClient): Promise<Inicio> {
+export async function leerInicio(client: SupabaseClient, yo: string): Promise<Inicio> {
   const hoy = hoyTexto(), semana = masDias(hoy, 7);
   const [sol, ta, con, ven] = await Promise.all([
     client.from(T.solicitudes).select("id,nombre,telefono,correo,mensaje,recibida_el,asignada_a,asunto_id,interesado_id,consulta_id,version,inmueble:fortius_inmuebles_inmuebles(id,nombre,folio)")
@@ -86,7 +87,31 @@ export async function leerInicio(client: SupabaseClient): Promise<Inicio> {
   const contactos: ContactoInicio[] = ((con.data ?? []) as { id: string; nombre: string; telefonos: unknown; nota: string; volver_a_llamar: string; version: number }[])
     .map((p) => ({ id: p.id, nombre: p.nombre, telefono: telefonoDe(p.telefonos), nota: p.nota ?? "", volver_a_llamar: p.volver_a_llamar, version: p.version }));
 
-  return { hoy, solicitudes: (sol.data ?? []) as unknown as SolicitudInicio[], tareas, contactos, cobrar: await porCobrar(client), vencen };
+  const [cobrar, paraTi] = await Promise.all([porCobrar(client), leerParaTi(client, yo)]);
+  return { hoy, paraTi, solicitudes: (sol.data ?? []) as unknown as SolicitudInicio[], tareas, contactos, cobrar, vencen };
+}
+
+/** «Para ti»: notas que te mencionan y tareas pendientes que alguien más te dejó, de los últimos 30 días; lo más nuevo arriba. */
+export async function leerParaTi(client: SupabaseClient, yo: string): Promise<ParaTiInicio[]> {
+  const desde = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  type Asu = { nombre: string; deleted_at: string | null } | null;
+  const [men, asi] = await Promise.all([
+    client.from(T.historial).select("id,asunto_id,resumen,actor_id,created_at,asunto:fortius_inmuebles_asuntos(nombre,deleted_at)")
+      .contains("menciones", [yo]).in("clase", ["nota", "decision", "comentario"]).gte("created_at", desde).order("id", { ascending: false }).limit(40),
+    // Cuenta cuando te la dejaron, no su último cambio: posponerla o recordarla no la vuelve «nueva».
+    client.from(T.tareas).select("id,asunto_id,titulo,fecha,hora,creado_por,created_at,asunto:fortius_inmuebles_asuntos(nombre,deleted_at)")
+      .eq("responsable_id", yo).neq("creado_por", yo).eq("estado", "pendiente").is("deleted_at", null).gte("created_at", desde)
+      .order("created_at", { ascending: false }).limit(40),
+  ]);
+  for (const r of [men, asi]) if (r.error) fallo(r.error);
+  const m = ((men.data ?? []) as unknown as { id: number; asunto_id: string | null; resumen: string; actor_id: string | null; created_at: string; asunto: Asu }[])
+    .filter((x) => !x.asunto?.deleted_at && x.actor_id !== yo)
+    // Si te mencionaron en un asunto que no llevas, ves la nota pero no se abre el asunto (no te toca verlo).
+    .map((x): ParaTiInicio => ({ clase: "mencion", id: `n${x.id}`, asunto_id: x.asunto ? x.asunto_id : null, asunto: x.asunto?.nombre ?? null, texto: x.resumen, de: x.actor_id, cuando: x.created_at, fecha: null, hora: null, ajeno: Boolean(x.asunto_id && !x.asunto) }));
+  const t = ((asi.data ?? []) as unknown as { id: string; asunto_id: string | null; titulo: string; fecha: string | null; hora: string | null; creado_por: string | null; created_at: string; asunto: Asu }[])
+    .filter((x) => !x.asunto?.deleted_at)
+    .map((x): ParaTiInicio => ({ clase: "asignada", id: `t${x.id}`, asunto_id: x.asunto_id, asunto: x.asunto?.nombre ?? null, texto: x.titulo, de: x.creado_por, cuando: x.created_at, fecha: x.fecha, hora: x.hora?.slice(0, 5) ?? null, ajeno: false }));
+  return [...m, ...t].sort((x, y) => y.cuando.localeCompare(x.cuando)).slice(0, 40);
 }
 
 async function contactosPara(client: SupabaseClient, tareas: { id: string; asunto_id: string; quien: string; quien_persona_id: string | null }[]): Promise<Map<string, Contacto>> {

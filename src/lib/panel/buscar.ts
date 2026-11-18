@@ -10,7 +10,7 @@ export type Entrada = {
   titulo: string;
   /** Otras palabras con las que se puede encontrar (folio, teléfono, sinónimos). */
   claves?: readonly string[];
-  grupo: "Ir a" | "Crear" | "Personas" | "Inmuebles" | "Consultas";
+  grupo: "Ir a" | "Crear" | "Favoritos" | "Recientes" | "Asuntos" | "Personas" | "Inmuebles" | "Consultas";
   /** Línea secundaria (tipo, folio, teléfono). */
   detalle?: string;
 };
@@ -37,7 +37,9 @@ export function filtrar(entradas: readonly Entrada[], consulta: string): Entrada
     .map((x) => x.e);
 }
 
-const ORDEN_GRUPOS: Entrada["grupo"][] = ["Personas", "Inmuebles", "Consultas", "Ir a", "Crear"];
+const ORDEN_GRUPOS: Entrada["grupo"][] = ["Favoritos", "Recientes", "Asuntos", "Personas", "Inmuebles", "Consultas", "Ir a", "Crear"];
+/** Lo que sale aunque no se haya escrito nada: los atajos, los favoritos y lo reciente. */
+const SIEMPRE: Entrada["grupo"][] = ["Ir a", "Crear", "Favoritos", "Recientes"];
 
 /**
  * Busca y deja cada grupo junto (los datos primero), con un máximo por grupo de datos.
@@ -45,7 +47,7 @@ const ORDEN_GRUPOS: Entrada["grupo"][] = ["Personas", "Inmuebles", "Consultas", 
  */
 export function filtrarAgrupado<T extends Entrada>(entradas: readonly T[], consulta: string, maxPorGrupo = 5): T[] {
   const conTexto = normalizar(consulta).length >= 2;
-  const encontradas = (filtrar(entradas, consulta) as T[]).filter((e) => conTexto || e.grupo === "Ir a" || e.grupo === "Crear");
+  const encontradas = (filtrar(entradas, consulta) as T[]).filter((e) => conTexto || SIEMPRE.includes(e.grupo));
   const cuenta = new Map<string, number>();
   const salida: T[] = [];
   for (const g of ORDEN_GRUPOS) {

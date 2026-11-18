@@ -5,7 +5,7 @@ import { z } from "zod";
 import { COLUMNAS_INICIALES } from "./apartados-contrato";
 import { cambioColumnas, datosFila, leerApartados } from "./apartados";
 import {
-  APARTADOS_DE_SIEMPRE, CLASES_PERSONA, CLASES_TAREA, CLAVES_APARTADO, ENCARGOS, EN_QUE_VA, ESTADOS_TAREA, PAPELES, QUIEN, VISTAS,
+  APARTADOS_DE_SIEMPRE, CADA_TAREA, CLASES_PERSONA, CLASES_TAREA, CLAVES_APARTADO, ENCARGOS, EN_QUE_VA, ESTADOS_TAREA, PAPELES, QUIEN, VISTAS,
   type Apartado, type Asunto, type ClaveApartado, type InmuebleDelAsunto, type Encargo, type EntradaHistorial, type Etapa, type FilaAsunto,
   type PersonaDelAsunto, type PersonaDuplicada, type Siguiente, type Tarea,
 } from "./asuntos-contrato";
@@ -134,7 +134,7 @@ export async function leerAsunto(client: SupabaseClient, id: string): Promise<As
     client.from(T.papeles).select("id,persona_id,papel,principal,nota,version,persona:fortius_inmuebles_personas(nombre,clase,fallecida,telefonos,correo,no_contactar)")
       .eq("asunto_id", id).is("retirado_el", null).order("orden").order("created_at"),
     client.from(T.etapas).select("id,nombre,orden,version").eq("asunto_id", id).is("deleted_at", null).order("orden"),
-    client.from(T.tareas).select("id,titulo,clase,quien,fecha,hora,estado,motivo,etapa_id,responsable_id,volver_a_preguntar,recordada_el,pospuesta,interesado_id,inmueble_id,documento_id,origen,orden,version")
+    client.from(T.tareas).select("id,titulo,clase,quien,fecha,hora,estado,motivo,etapa_id,responsable_id,volver_a_preguntar,recordada_el,pospuesta,interesado_id,inmueble_id,documento_id,origen,orden,version,espera_a,repetir,persona_id")
       .eq("asunto_id", id).is("deleted_at", null).order("orden").order("created_at").limit(2000),
     client.from(T.ligasInmueble).select("inmueble:fortius_inmuebles_inmuebles(id,folio,nombre,tipo,operacion,colonia,precio,moneda,estado,publicado,slug)")
       .eq("asunto_id", id).is("retirado_el", null).order("orden"),
@@ -162,13 +162,28 @@ export async function leerAsunto(client: SupabaseClient, id: string): Promise<As
   };
 }
 
-export async function leerHistorial(client: SupabaseClient, asuntoId: string, antesDe?: number): Promise<EntradaHistorial[]> {
+export async function leerHistorial(client: SupabaseClient, asuntoId: string, antesDe?: number, soloNotas = false): Promise<EntradaHistorial[]> {
   let q = client.from(T.historial).select("id,entidad,entidad_id,clase,resumen,detalle,actor_id,actor_tipo,created_at")
-    .eq("asunto_id", asuntoId).order("id", { ascending: false }).limit(100);
+    .eq("asunto_id", asuntoId).order("id", { ascending: false }).limit(soloNotas ? 500 : 100);
+  // Las notas del costado de cada ventana: solo notas y decisiones, para que los cambios no las saquen de la página.
+  if (soloNotas) q = q.in("clase", ["nota", "decision"]);
   if (antesDe) q = q.lt("id", antesDe);
   const { data, error } = await q;
   if (error) fallo(error);
   return (data ?? []) as EntradaHistorial[];
+}
+
+/**
+ * Las notas del costado y cuáles van fijadas arriba (la más reciente fijada primero). Si la base todavía no tiene
+ * las notas fijadas (se agregan al integrar), las notas se leen igual, sin ninguna fijada.
+ */
+export async function leerNotasDelAsunto(client: SupabaseClient, asuntoId: string): Promise<{ entradas: EntradaHistorial[]; fijadas: number[] }> {
+  const [entradas, f] = await Promise.all([
+    leerHistorial(client, asuntoId, undefined, true),
+    client.from(T.asuntos).select("notas_fijadas").eq("id", asuntoId).maybeSingle(),
+  ]);
+  const fijadas = f.error ? [] : ((f.data as { notas_fijadas?: unknown } | null)?.notas_fijadas ?? []);
+  return { entradas, fijadas: Array.isArray(fijadas) ? fijadas.map(Number).filter(Number.isFinite) : [] };
 }
 
 // ── Escritura del asunto ─────────────────────────────────────────────────────────────────────────────
@@ -252,6 +267,10 @@ const nuevaTarea = z.object({
   titulo: texto(300), quien: z.enum(QUIEN).default("fortius"), fecha: fecha.nullable().optional(), hora: hora.nullable().optional(),
   etapa_id: idSchema.nullable().optional(), responsable_id: idSchema.optional(), clase: z.enum(CLASES_TAREA).default("tarea"),
   documento_id: idSchema.nullable().optional(), inmueble_id: idSchema.nullable().optional(),
+  /** La persona del asunto de la que trata («Llamar a Laura»). */
+  persona_id: idSchema.nullable().optional(),
+  /** «linea»: se escribió en una línea desde el buscador. */
+  origen: z.enum(["manual", "linea"]).optional(),
 }).strict().refine((t) => !t.hora || t.fecha, "La hora necesita día.");
 const cambioTarea = z.object({
   id: idSchema, version, titulo: texto(300).optional(), quien: z.enum(QUIEN).optional(), fecha: fecha.nullable().optional(), hora: hora.nullable().optional(),
@@ -259,12 +278,30 @@ const cambioTarea = z.object({
   responsable_id: idSchema.optional(), quitar: z.literal(true).optional(),
   /** «Recordarle»: se anota que se le escribió y la siguiente vez que toca preguntar (en tres días). */
   recordar: z.literal(true).optional(),
+  /** La tarea que tiene que terminar antes; null la suelta. */
+  espera_a: idSchema.nullable().optional(),
+  /** Cada cuánto se repite; null deja de repetirse. */
+  repetir: z.enum(CADA_TAREA).nullable().optional(),
 }).strict();
 
 const nuevaEtapa = z.object({ nombre: texto(120) }).strict();
 const cambioEtapa = z.object({ id: idSchema, version, nombre: texto(120).optional(), quitar: z.literal(true).optional(), todo_hecho: z.literal(true).optional() }).strict();
 
-const nuevaNota = z.object({ clase: z.enum(["nota", "decision"]), texto: texto(2000) }).strict();
+/**
+ * Una nota del asunto (SPEC.md, «Las notas del asunto»). `desde` es el apartado donde se escribió; `personas` y
+ * `apartados` son las menciones (@ y #) y la persona abierta al escribirla. Se guardan en el detalle del historial.
+ */
+const nuevaNota = z.object({
+  clase: z.enum(["nota", "decision"]), texto: texto(2000),
+  desde: idSchema.optional(),
+  personas: z.array(idSchema).max(30).optional(),
+  apartados: z.array(idSchema).max(20).optional(),
+  /** Compañeros del equipo mencionados con @: les llega a «Para ti» en Inicio. */
+  equipo: z.array(idSchema).max(20).optional(),
+}).strict();
+
+/** Fijar una nota arriba del costado o soltarla. */
+const fijarNota = z.object({ id: z.number().int().positive(), fijar: z.boolean() }).strict();
 
 async function siguienteOrden(client: SupabaseClient, tabla: string, filtro: Record<string, string>): Promise<number> {
   let q = client.from(tabla).select("orden").is("deleted_at", null).order("orden", { ascending: false }).limit(1);
@@ -275,6 +312,77 @@ async function siguienteOrden(client: SupabaseClient, tabla: string, filtro: Rec
 }
 
 /** Actualiza una fila con su versión. Ninguna fila = alguien más la cambió. */
+type TareaParaRepetir = {
+  id: string; titulo: string; clase: string; quien: string; fecha: string | null; hora: string | null; etapa_id: string | null; responsable_id: string;
+  persona_id: string | null; inmueble_id: string | null; documento_id: string | null; estado: string; espera_a: string | null;
+  repetir: { cada?: string; que?: string; de?: string; dia?: number } | null;
+};
+const COLUMNAS_REPETIR = "id,titulo,clase,quien,fecha,hora,etapa_id,responsable_id,persona_id,inmueble_id,documento_id,estado,espera_a,repetir";
+const MESES_CADA: Partial<Record<string, number>> = { mes: 1, bimestre: 2, trimestre: 3, "año": 12 };
+const DIAS_CADA: Partial<Record<string, number>> = { semana: 7, quincena: 15 };
+const hoyEnTijuana = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+
+/**
+ * La fecha de la siguiente vez: desde la fecha de la tarea (o de hoy), sin quedar en el pasado. Por mes o por año
+ * respeta el día original (`dia`): del 31 de enero pasa al 28 de febrero y vuelve al 31 en marzo.
+ */
+export function siguienteFecha(desde: string | null, cada: string, hoy: string, diaOriginal?: number): string {
+  const d = new Date(`${desde ?? hoy}T12:00:00Z`);
+  const dia = diaOriginal && diaOriginal >= 1 && diaOriginal <= 31 ? diaOriginal : d.getUTCDate();
+  const avanzar = () => {
+    const meses = MESES_CADA[cada];
+    if (meses) {
+      d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + meses);
+      const ultimo = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+      d.setUTCDate(Math.min(dia, ultimo));
+    } else d.setUTCDate(d.getUTCDate() + (DIAS_CADA[cada] ?? 7));
+  };
+  avanzar();
+  for (let i = 0; i < 400 && d.toISOString().slice(0, 10) < hoy; i++) avanzar();
+  return d.toISOString().slice(0, 10);
+}
+
+/** Al dejar hecha una tarea que se repite, nace la siguiente (una sola vez aunque se marque dos veces). */
+async function crearSiguienteVez(client: SupabaseClient, user: StaffUser, asuntoId: string, t: TareaParaRepetir) {
+  const cada = t.repetir?.cada;
+  if (!cada || t.repetir?.que === "informe") return;
+  const ya = await client.from(T.tareas).select("id").eq("asunto_id", asuntoId).eq("repetir->>de", t.id).is("deleted_at", null).limit(1);
+  if (ya.error) fallo(ya.error);
+  if (ya.data?.length) return;
+  const orden = await siguienteOrden(client, T.tareas, { asunto_id: asuntoId });
+  const dia = t.repetir?.dia ?? (t.fecha ? Number(t.fecha.slice(8, 10)) : undefined);
+  const fila = {
+    asunto_id: asuntoId, titulo: t.titulo, clase: t.clase, quien: t.quien, fecha: siguienteFecha(t.fecha, cada, hoyEnTijuana(), dia), hora: t.fecha ? t.hora : null,
+    etapa_id: t.etapa_id, persona_id: t.persona_id, inmueble_id: t.inmueble_id, documento_id: t.documento_id,
+    repetir: { cada, de: t.id, ...(dia ? { dia } : {}) }, origen: "sistema", orden, creado_por: user.id, responsable_id: t.responsable_id,
+  };
+  let r = await client.from(T.tareas).insert(fila).select("id").single();
+  // Si quien la marcó no puede dejarla a nombre de otro, la siguiente queda a su nombre.
+  if (r.error?.code === "PT403") r = await client.from(T.tareas).insert({ ...fila, responsable_id: user.id }).select("id").single();
+  if (r.error) fallo(r.error);
+}
+
+/** Si se desmarca una tarea que se repite, la siguiente vez que nació de ella (y nadie ha tocado) se quita. */
+async function quitarSiguienteVez(client: SupabaseClient, asuntoId: string, id: string) {
+  const { error } = await client.from(T.tareas).update({ deleted_at: new Date().toISOString() })
+    .eq("asunto_id", asuntoId).eq("repetir->>de", id).eq("estado", "pendiente").eq("version", 1).is("deleted_at", null);
+  if (error) fallo(error);
+}
+
+/** Que una tarea espere a otra sin hacer un círculo (A espera a B y B a A). */
+async function validarEspera(client: SupabaseClient, asuntoId: string, id: string, esperaA: string) {
+  if (esperaA === id) throw new ApiError(400, "Una tarea no puede esperarse a sí misma.");
+  let actual: string | null = esperaA;
+  for (let i = 0; actual && i < 50; i++) {
+    const buscar: string = actual;
+    const r: { data: unknown; error: { code?: string; message: string } | null } = await client.from(T.tareas).select("id,espera_a").eq("id", buscar).eq("asunto_id", asuntoId).is("deleted_at", null).maybeSingle();
+    if (r.error) fallo(r.error);
+    if (!r.data) { if (i === 0) throw new ApiError(400, "Esa tarea no es de este asunto."); return; }
+    actual = (r.data as { espera_a: string | null }).espera_a;
+    if (actual === id) throw new ApiError(400, "Esa tarea ya espera a esta; no pueden esperarse una a la otra.");
+  }
+}
+
 async function actualizar(client: SupabaseClient, tabla: string, asuntoId: string, id: string, v: number, cambios: Record<string, unknown>) {
   if (!Object.keys(cambios).length) throw new ApiError(400, "No hay nada que cambiar.");
   const { data, error } = await client.from(tabla).update(cambios).eq("id", id).eq("asunto_id", asuntoId).eq("version", v).select("id").maybeSingle();
@@ -363,10 +471,13 @@ export async function crearEnParte(client: SupabaseClient, user: StaffUser, asun
     }
     case "tareas": {
       const e = nuevaTarea.parse(cuerpo);
+      // La persona de la tarea tiene que ser de este asunto; si no, la tarea se guarda sin ella.
+      if (e.persona_id) e.persona_id = (await delAsunto(client, asuntoId, [e.persona_id], [])).personas[0] ?? null;
       const orden = await siguienteOrden(client, T.tareas, { asunto_id: asuntoId });
       const { data, error } = await client.from(T.tareas).insert({
         asunto_id: asuntoId, titulo: e.titulo, quien: e.quien, fecha: e.fecha ?? null, hora: e.hora ?? null, etapa_id: e.etapa_id ?? null,
         clase: e.clase, documento_id: e.documento_id ?? null, inmueble_id: e.inmueble_id ?? null,
+        persona_id: e.persona_id ?? null, origen: e.origen ?? "manual",
         responsable_id: e.responsable_id ?? user.id, orden, creado_por: user.id,
       }).select("id").single();
       if (error) fallo(error);
@@ -381,13 +492,34 @@ export async function crearEnParte(client: SupabaseClient, user: StaffUser, asun
     }
     case "historial": {
       const e = nuevaNota.parse(cuerpo);
+      const validas = await delAsunto(client, asuntoId, [...new Set(e.personas ?? [])], [...new Set([...(e.apartados ?? []), ...(e.desde ? [e.desde] : [])])]);
+      const ligas = {
+        desde: e.desde && validas.apartados.includes(e.desde) ? e.desde : null,
+        personas: validas.personas, apartados: validas.apartados.filter((x) => (e.apartados ?? []).includes(x)),
+      };
+      const conLigas = Boolean(ligas.desde || ligas.personas.length || ligas.apartados.length);
       const { data, error } = await client.rpc("fortius_inmuebles_anotar_historial", {
         p_entidad: "asunto", p_entidad_id: asuntoId, p_asunto: asuntoId, p_clase: e.clase, p_resumen: e.texto,
+        ...(conLigas ? { p_detalle: { ligas } } : {}),
+        ...(e.equipo?.length ? { p_menciones: [...new Set(e.equipo)] } : {}),
       });
       if (error) fallo(error);
       return { id: data };
     }
   }
+}
+
+/** Solo las personas y los apartados que son de este asunto (lo demás se descarta sin frenar). */
+async function delAsunto(client: SupabaseClient, asuntoId: string, personas: string[], apartados: string[]) {
+  const [pe, ap] = await Promise.all([
+    personas.length ? client.from(T.papeles).select("persona_id").eq("asunto_id", asuntoId).is("retirado_el", null).in("persona_id", personas) : null,
+    apartados.length ? client.from(T.apartados).select("id").eq("asunto_id", asuntoId).is("deleted_at", null).in("id", apartados) : null,
+  ]);
+  if (pe?.error) fallo(pe.error);
+  if (ap?.error) fallo(ap.error);
+  const p = new Set(((pe?.data ?? []) as { persona_id: string }[]).map((x) => x.persona_id));
+  const a = new Set(((ap?.data ?? []) as { id: string }[]).map((x) => x.id));
+  return { personas: personas.filter((x) => p.has(x)), apartados: apartados.filter((x) => a.has(x)) };
 }
 
 async function siguientePapel(client: SupabaseClient, asuntoId: string): Promise<number> {
@@ -420,28 +552,51 @@ export async function cambiarEnParte(client: SupabaseClient, user: StaffUser, as
       return actualizar(client, T.papeles, asuntoId, id, v, { ...c, ...(quitar ? { retirado_el: new Date().toISOString() } : {}) });
     }
     case "tareas": {
-      const { id, version: v, quitar, recordar, ...c } = cambioTarea.parse(cuerpo);
+      const { id, version: v, quitar, recordar, repetir, ...c } = cambioTarea.parse(cuerpo);
       if (c.responsable_id && c.responsable_id !== user.id && user.role !== "admin") {
         const r = await client.from(T.asuntos).select("responsable_id").eq("id", asuntoId).maybeSingle();
         if (r.error) fallo(r.error);
         if ((r.data as { responsable_id?: string } | null)?.responsable_id !== user.id) throw new ApiError(403, "Solo quien lleva el asunto o el director asignan tareas a otra persona.");
       }
       const enTres = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
-      return actualizar(client, T.tareas, asuntoId, id, v, {
+      // Lo de antes hace falta para repetir: nace la siguiente al dejarla hecha y se quita si se desmarca.
+      const necesita = c.estado !== undefined || repetir !== undefined;
+      const r = necesita ? await client.from(T.tareas).select(COLUMNAS_REPETIR).eq("id", id).eq("asunto_id", asuntoId).maybeSingle() : null;
+      if (r?.error) fallo(r.error);
+      const antes = (r?.data ?? null) as TareaParaRepetir | null;
+      if (c.espera_a) await validarEspera(client, asuntoId, id, c.espera_a);
+      if (repetir !== undefined && antes?.repetir?.que === "informe") throw new ApiError(400, "Esta tarea se repite con su informe; se cambia desde el informe.");
+      await actualizar(client, T.tareas, asuntoId, id, v, {
         ...c, ...(quitar ? { deleted_at: new Date().toISOString() } : {}),
         ...(recordar ? { recordada_el: new Date().toISOString(), volver_a_preguntar: enTres } : {}),
+        ...(repetir !== undefined ? { repetir: repetir ? { ...(antes?.repetir ?? {}), cada: repetir } : null } : {}),
       });
+      if (antes && c.estado === "hecha" && antes.estado !== "hecha") await crearSiguienteVez(client, user, asuntoId, antes);
+      if (antes && c.estado && c.estado !== "hecha" && antes.estado === "hecha" && antes.repetir?.cada) await quitarSiguienteVez(client, asuntoId, id);
+      return;
     }
     case "etapas": {
       const { id, version: v, quitar, todo_hecho, ...c } = cambioEtapa.parse(cuerpo);
       if (todo_hecho) {
+        const rep = await client.from(T.tareas).select(COLUMNAS_REPETIR).eq("asunto_id", asuntoId).eq("etapa_id", id).eq("estado", "pendiente")
+          .not("repetir", "is", null).is("deleted_at", null).limit(200);
+        if (rep.error) fallo(rep.error);
         const { error } = await client.from(T.tareas).update({ estado: "hecha" }).eq("asunto_id", asuntoId).eq("etapa_id", id).eq("estado", "pendiente").is("deleted_at", null);
         if (error) fallo(error);
+        for (const t of (rep.data ?? []) as TareaParaRepetir[]) await crearSiguienteVez(client, user, asuntoId, t);
         if (!Object.keys(c).length && !quitar) return;
       }
       return actualizar(client, T.etapas, asuntoId, id, v, { ...c, ...(quitar ? { deleted_at: new Date().toISOString() } : {}) });
     }
-    case "historial":
-      throw new ApiError(405, "El historial solo se agrega: no se cambia ni se borra.");
+    case "historial": {
+      // Lo único que se cambia de una nota es si va fijada arriba; el texto no se corrige: se escribe otra.
+      const e = fijarNota.parse(cuerpo);
+      const { error } = await client.rpc("fortius_inmuebles_fijar_nota", { p_asunto: asuntoId, p_nota: e.id, p_fijar: e.fijar });
+      if (error) {
+        if (error.code === "PGRST202" || error.code === "42883") throw new ApiError(503, "Fijar notas se activa cuando se integren los cambios de la base.");
+        fallo(error);
+      }
+      return;
+    }
   }
 }
