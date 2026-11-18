@@ -44,7 +44,9 @@
 .fv-acciones > :is(p, input) { flex-basis: 100%; }
 .fv-ventana { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: #08090a; color: #ededef; }
 .fv-ventana::backdrop { background: rgba(8, 9, 10, 0.95); }
-.fv-ventana[open] { display: flex; flex-direction: column; }
+.fv-ventana[open] { display: flex; flex-direction: column; overscroll-behavior: contain; }
+/* Con la ventana de fotos abierta, la página de atrás no se desplaza (también en el iPhone). */
+html.sitio:has(.fv-ventana[open]) { overflow: hidden; }
 .fv-ventana-foto { position: relative; flex: 1 1 auto; margin: var(--s-6); }
 .fv-ventana-foto img { object-fit: contain; }
 .fv-ventana-controles { display: flex; align-items: center; justify-content: center; gap: var(--s-4); padding: 0 var(--s-4) calc(var(--s-6) + env(safe-area-inset-bottom)); }

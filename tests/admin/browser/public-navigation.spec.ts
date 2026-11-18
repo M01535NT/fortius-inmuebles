@@ -224,7 +224,7 @@ test("buyers, sellers and segment pages lead to the right next step on mobile", 
     await page.goto(`/${route}`);
     await expect(page).toHaveURL(new RegExp(`/inventario\\?segmento=${route}$`));
     // Frase del inventario (17/11/2026): el segmento es la opción elegida en «Tipo de propiedad».
-    await expect(page.getByRole("button", { name: /^Tipo de propiedad:/ })).toContainText({ residencial: "casas y departamentos", comercial: "locales, oficinas y plazas", industrial: "naves, bodegas y terrenos" }[route] ?? route);
+    await expect(page.getByRole("combobox", { name: /^Tipo de propiedad:/ })).toContainText({ residencial: "casas y departamentos", comercial: "locales, oficinas y plazas", industrial: "naves, bodegas y terrenos" }[route] ?? route);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });
@@ -246,5 +246,5 @@ test("the footer reaches every property type from an interior page", async ({ pa
   }
   await footer.getByRole("link", { name: "Comercial", exact: true }).click();
   await expect(page).toHaveURL(/\/inventario\?segmento=comercial$/);
-  await expect(page.getByRole("button", { name: /^Tipo de propiedad:/ })).toContainText("locales, oficinas y plazas");
+  await expect(page.getByRole("combobox", { name: /^Tipo de propiedad:/ })).toContainText("locales, oficinas y plazas");
 });

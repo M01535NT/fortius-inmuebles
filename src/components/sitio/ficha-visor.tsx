@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import type { ImagenPropiedad } from "@/data/propiedades";
 import { PropertyShare } from "@/components/property/property-share";
-import { Pestanas, type Opcion } from "@/components/sitio/pestanas";
+import { Pestanas, idPestana, type Opcion } from "@/components/sitio/pestanas";
 import { videoEmbedUrl } from "@/lib/video-embed";
 
 type Modo = "fotos" | "video" | "360";
@@ -92,7 +92,8 @@ export function FichaVisor({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, s
 
   return (
     <div className="fv">
-      <div ref={marcoRef} id={`fv-panel-${modo}`} role={modos.length > 1 ? "tabpanel" : undefined} className="fv-marco" onTouchStart={modo === "fotos" ? alTocar : undefined} onTouchEnd={modo === "fotos" ? alSoltar : undefined}>
+      <div ref={marcoRef} id={`fv-panel-${modo}`} role={modos.length > 1 ? "tabpanel" : undefined}
+        aria-labelledby={modos.length > 1 ? idPestana(`fv-panel-${modo}`) : undefined} className="fv-marco" onTouchStart={modo === "fotos" ? alTocar : undefined} onTouchEnd={modo === "fotos" ? alSoltar : undefined}>
         {modo === "fotos" && (
           <button ref={ampliarRef} type="button" className="fv-foto" onClick={() => dialogRef.current?.showModal()} aria-label={`Ampliar fotografía: ${actual.alt}`}>
             <Image key={actual.src} src={actual.src} alt={actual.alt} fill priority={index === 0} sizes="(max-width: 767px) 100vw, 1360px" />

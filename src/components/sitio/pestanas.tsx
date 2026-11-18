@@ -23,8 +23,11 @@ function clases(tono: "normal" | "tenue", chicas: boolean, className?: string) {
 /**
   Pestañas: cambian el panel que se ve debajo (fotos, video, 360°; herramientas de la ficha).
   Flechas izquierda y derecha, Inicio y Fin recorren las pestañas; solo la elegida entra con Tab.
-  `idPanel(valor)` liga cada pestaña con su panel (aria-controls).
+  `idPanel(valor)` liga la pestaña elegida con su panel (aria-controls); el panel toma su nombre de
+  la pestaña con `idPestana(idPanel(valor))` (aria-labelledby). Solo existe el panel de la elegida.
 */
+export const idPestana = (idPanel: string) => `${idPanel}-pestana`;
+
 export function Pestanas<T extends string>({ opciones, valor, onCambio, etiqueta, tono = "normal", chicas = false, className, idPanel }: Base<T> & { idPanel?: (valor: T) => string }) {
   const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
   const mover = (desde: number, paso: number | "inicio" | "fin") => {
@@ -48,7 +51,8 @@ export function Pestanas<T extends string>({ opciones, valor, onCambio, etiqueta
         const elegida = opcion.valor === valor;
         return (
           <button key={opcion.valor} ref={(el) => { refs.current[i] = el; }} type="button" role="tab"
-            aria-selected={elegida} aria-controls={idPanel?.(opcion.valor)} tabIndex={elegida ? 0 : -1}
+            id={idPanel ? idPestana(idPanel(opcion.valor)) : undefined}
+            aria-selected={elegida} aria-controls={elegida ? idPanel?.(opcion.valor) : undefined} tabIndex={elegida ? 0 : -1}
             onClick={() => onCambio(opcion.valor)} onKeyDown={(event) => onKeyDown(event, i)} className="s-pestana">
             {opcion.etiqueta}
           </button>

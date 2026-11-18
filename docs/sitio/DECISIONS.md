@@ -19,6 +19,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Inventario:** frase con filtros y tarjetas tradicionales con tres vistas. Se descartó el índice con vista previa grande porque no sirve con cientos de inmuebles.
 - **Inicio:** no se centra en el método de cinco etapas ni en el expediente; esos bloques salen del inicio.
 - **Movimiento:** efectos ligados al desplazamiento y videos, hechos con GSAP. El texto siempre se lee aunque la animación no corra.
+- **Controles (17/11/2026):** las piezas del sitio son propias y se ven como Fortius. El menú, el buscador y las listas de la frase del inventario y de Contacto están hechos sobre Radix, que resuelve teclado, foco, lector de pantalla y que la lista no se salga de la pantalla. Las listas de los formularios son las del navegador, que en el teléfono abren el selector del sistema. No se usa el aspecto de shadcn/ui en el sitio.
 - Sin antetítulos sobre los títulos, sin numeraciones decorativas y sin mayúsculas espaciadas.
 - De tres opciones en adelante, lista desplegable; con dos, interruptor.
 

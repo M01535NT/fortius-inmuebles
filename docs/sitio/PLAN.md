@@ -104,6 +104,10 @@ Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etap
 - [x] Pruebas del diseño anterior reemplazadas (17/11/2026, con tu acuerdo): seis pruebas de navegador fuera; las que seguían valiendo, al diseño nuevo; se agregaron el blog con sus listas y la revisión de accesibilidad en claro y oscuro. Con ellas salieron 18 piezas que ya solo usaban esas pruebas y los tres archivos de estilos globales del diseño anterior. Las pruebas de piezas sueltas pasan; las del navegador se corren al integrar.
 - [x] Ícono de la pestaña con la O de Fortius II, en el sitio y en el panel (tu decisión del 17/11/2026). Los íconos para instalar la app del panel no cambian.
 
+## Mejoras después de publicar
+
+- [x] Menú, buscador y listas de la frase hechos sobre Radix; pestañas con su panel nombrado y fondo quieto con las fotos ampliadas (17/11/2026, rama `sitio-controles-radix`, sin integrar). Lo probaste a mano el 17/11 y está bien; faltan las pruebas automáticas antes de integrar.
+
 ## Lo que te toca a ti
 
 - Confirmar los nombres de los asuntos de la portada (hoy: Vender, Comprar, Rentar, Saber cuánto vale, Poner papeles en orden y Otro asunto).
