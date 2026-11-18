@@ -6,7 +6,14 @@
 --
 -- El bloqueo en modo SHARE detiene los guardados mientras dura la migración, así
 -- ningún registro se sincroniza con una versión anterior de sus datos.
-lock table public.fortius_inmuebles_records in share mode;
-
-select public.fortius_inmuebles_sync_references(collection, id, data)
-from public.fortius_inmuebles_records;
+--
+-- Todo va en un solo bloque: quien aplica las migraciones corre cada sentencia
+-- por separado, y un LOCK TABLE suelto falla fuera de una transacción. Dentro del
+-- bloque, el bloqueo dura hasta que termina la reconstrucción.
+do $$
+begin
+  lock table public.fortius_inmuebles_records in share mode;
+  perform public.fortius_inmuebles_sync_references(collection, id, data)
+  from public.fortius_inmuebles_records;
+end
+$$;
