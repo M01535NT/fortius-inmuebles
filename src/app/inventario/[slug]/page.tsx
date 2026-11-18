@@ -98,7 +98,7 @@ function lugaresPorGrupo(p: Property) {
 }
 
 /*
-  Ficha del inmueble · Fortius II (17/11/2026), según el lienzo «Fortius desde
+  Ficha del inmueble · rediseño del sitio (17/11/2026), según el lienzo «Fortius desde
   cero»: banda oscura con nombre, precio, marco limpio y cifras; luego
   descripción, ficha técnica y documentos, mapa de la zona, alrededores,
   herramientas con el precio, preguntas con el asesor y propiedades parecidas.
@@ -155,33 +155,10 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
     <main className="fi">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(propertyLd(property)) }} />
 
-      {/* 1–3. Nombre, precio, marco y cifras sobre la banda oscura */}
+      {/* 1–3. Marco, nombre con precio y cifras sobre la banda oscura. Arriba solo «Volver»: el marco se ve completo al entrar. */}
       <section className="s-banda fi-banda" aria-labelledby="fi-titulo">
         <div className="s-contenedor">
-          <nav className="fi-ruta" aria-label="Ruta">
-            <InventoryBackLink />
-            <span aria-hidden="true">/</span>
-            <Link href={`/inventario?tipo=${property.tipo}&op=${property.operacion}`}>{TIPO_LABELS[property.tipo]} en {OPERACION_LABELS[property.operacion].toLowerCase()}</Link>
-            <span aria-hidden="true">/</span>
-            <span>{property.zona}</span>
-          </nav>
-
-          <div className="fi-cabeza">
-            <div className="fi-nombre">
-              <h1 id="fi-titulo" className="fi-titulo">{property.titulo}</h1>
-              <p className="fi-lugar">{property.zona}, {property.direccionAproximada}</p>
-            </div>
-            <div className="fi-precio">
-              <p className="fi-precio-monto">{precio}</p>
-              {porM2 && <p className="fi-precio-m2">{porM2.valor} {porM2.base}</p>}
-              <p className="fi-distintivos">
-                <Distintivo tono="acento">{OPERACION_LABELS[property.operacion]}{property.demo ? " · datos de ejemplo" : ""}</Distintivo>
-                {property.estado !== "disponible" && <Distintivo tono="aviso">{ESTADO_LABELS[property.estado]}</Distintivo>}
-                {property.colaboracion && <Distintivo>En colaboración</Distintivo>}
-                <Distintivo>{property.codigo}</Distintivo>
-              </p>
-            </div>
-          </div>
+          <p className="fi-volver"><InventoryBackLink /></p>
 
           <FichaVisor
             imagenes={property.galeria}
@@ -192,14 +169,34 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
           />
 
+          {/* Nombre, tipo con zona y precio, debajo del marco (17/11/2026). */}
+          <div className="fi-cabeza">
+            <div className="fi-nombre">
+              <h1 id="fi-titulo" className="fi-titulo">{property.titulo}</h1>
+              <p className="fi-lugar">
+                <Link href={`/inventario?tipo=${property.tipo}&op=${property.operacion}`}>{TIPO_LABELS[property.tipo]} en {OPERACION_LABELS[property.operacion].toLowerCase()}</Link>
+                <span aria-hidden="true"> · </span>{property.zona}
+              </p>
+            </div>
+            <div className="fi-precio">
+              <p className="fi-precio-monto">{precio}</p>
+              {(property.estado !== "disponible" || property.colaboracion) && <p className="fi-distintivos">
+                {property.estado !== "disponible" && <Distintivo tono="aviso">{ESTADO_LABELS[property.estado]}</Distintivo>}
+                {property.colaboracion && <Distintivo>En colaboración</Distintivo>}
+              </p>}
+            </div>
+          </div>
+
           {cifras.length > 0 && <dl className="fi-cifras" aria-label="Características principales">
             {cifras.map((c) => <div key={c.dato}><dd>{c.valor}</dd><dt>{c.dato}</dt></div>)}
           </dl>}
 
-          {(publicada || revisada) && <p className="fi-fechas">
+          <p className="fi-fechas">
+            {property.direccionAproximada && <span>{property.direccionAproximada}</span>}
+            <span>Código {property.codigo}</span>
             {publicada && <span>Publicada el {publicada}</span>}
             {revisada && <span>Disponibilidad revisada el {revisada}</span>}
-          </p>}
+          </p>
           {property.demo && <p className="fi-demo"><strong>Propiedad de demostración.</strong> Los datos y el precio son de ejemplo; esta ficha no anuncia una oferta real.</p>}
         </div>
       </section>

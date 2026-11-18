@@ -20,7 +20,7 @@ const SIGUIENTE = [
   { titulo: "Al final", texto: "Tras la visita y la revisión de papeles, te entregamos la opinión jurídica y la de valor." },
 ] as const;
 
-/* Confirmación de Vender, Fortius II (etapa 7, 17/11/2026): qué sigue y a dónde ir mientras. */
+/* Confirmación de Vender, rediseño del sitio (etapa 7, 17/11/2026): qué sigue y a dónde ir mientras. */
 export default async function GraciasPage() {
   const contact = publicContact(await getPublicSettings().catch(() => null));
   return (

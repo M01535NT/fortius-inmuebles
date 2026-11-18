@@ -1,21 +1,22 @@
-/* Cabecera del sitio, Fortius II (17/11/2026): logo a la izquierda; lupa y «Menú» a la derecha. */
+/* Cabecera del sitio, rediseño del sitio (17/11/2026): logo a la izquierda; lupa y «Menú» a la derecha. */
 .header { position: fixed; inset: 0 0 auto; z-index: 40; color: var(--s-ink); border-bottom: 1px solid transparent; transition: background-color 0.4s, border-color 0.4s, color 0.3s; }
 .solid { background: var(--s-bg); border-bottom-color: var(--s-line); }
 /* Sobre el video del inicio: tinta clara en los dos temas. */
-.onImage { color: #ededef; }
+.onImage { color: var(--f-plata); }
 .inner { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); width: 100%; max-width: var(--s-max); height: var(--s-cabecera); margin-inline: auto; padding-inline: var(--s-gutter); box-sizing: border-box; }
 .logo { display: inline-flex; align-items: center; min-height: 44px; color: inherit; }
 .logo :global(.s-logo) { height: 28px; }
 .end { display: flex; align-items: center; gap: var(--s-2); }
 
-.icon, .menu { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; border: 1px solid var(--s-line-strong); border-radius: var(--s-r-pastilla); background: transparent; color: inherit; font: inherit; font-size: var(--s-type-interfaz); font-weight: 500; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
+.icon, .menu { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; border: 1px solid var(--s-line-strong); border-radius: var(--s-r-pastilla); background: transparent; color: inherit; font: inherit; font-size: var(--s-type-etiqueta); font-weight: 600; letter-spacing: var(--s-track-boton); text-transform: uppercase; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
 .icon { width: 44px; padding: 0; border-color: transparent; }
 .menu { padding: 0 var(--s-4) 0 var(--s-5); }
 .icon:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
-.menu:hover { border-color: currentColor; }
-.onImage .menu { border-color: rgba(237, 237, 239, 0.5); }
-.onImage .menu:hover { border-color: #ededef; }
-.onImage :is(a, button):focus-visible { outline-color: #e0a030; }
+.menu { transition: border-color 240ms ease, color 240ms ease, background-color 240ms ease; }
+.menu:hover { border-color: var(--s-detalle); color: var(--s-detalle); }
+.onImage .menu { border-color: rgba(248, 248, 255, 0.5); }
+.onImage .menu:hover { border-color: var(--s-rojo); background: var(--s-rojo); color: var(--f-plata); }
+.onImage :is(a, button):focus-visible { outline-color: var(--f-oro-brocado); }
 
 @media (max-width: 639px) {
   .logo :global(.s-logo) { height: 24px; }

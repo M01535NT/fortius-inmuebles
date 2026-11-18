@@ -1,0 +1,58 @@
+/* Fortius Inmuebles · tokens del sistema de diseño. Generado desde el sistema; no editar a mano. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&display=swap");
+
+:root, [data-theme="light"] {
+  --azul-real: #012367;
+  --rojo-imperial: #6D0809;
+  --oro-brocado: #CBBA87;
+  --plata: #F8F8FF;
+  --surface: #F8F8FF;
+  --ink: #012367;
+  --ink-muted: #55595F;
+  --primary: #012367;
+  --on-primary: #F8F8FF;
+  --border: #01236729;
+  --surface-raised: #FFFFFF;
+  --detail: #6D0809;
+  --shadow-sm: 0 1px 2px rgba(1,35,103,0.08), 0 1px 1px rgba(1,35,103,0.04);
+  --shadow-md: 0 4px 12px rgba(1,35,103,0.10), 0 2px 4px rgba(1,35,103,0.06);
+  --shadow-lg: 0 16px 40px rgba(1,35,103,0.16), 0 4px 10px rgba(1,35,103,0.08);
+  --shadow-focus: 0 0 0 3px rgba(1,35,103,0.35);
+}
+
+[data-theme="dark"] {
+  --surface: #012367;
+  --ink: #F8F8FF;
+  --ink-muted: #AEB2B8;
+  --primary: #F8F8FF;
+  --on-primary: #012367;
+  --border: #F8F8FF33;
+  --surface-raised: #012367;
+  --detail: #CBBA87;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.55);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.65);
+  --shadow-focus: 0 0 0 3px rgba(203,186,135,0.6);
+}
+
+:root {
+  --space-2: 8px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-12: 48px;
+  --radius-0: 0px;
+  --font-display: "Archivo", "Arial Narrow", sans-serif;
+  --stretch-display: 72%;
+  --stretch-text: 100%;
+  --font-sans: "Archivo", Arial, sans-serif;
+}
+
+/* Estilos de texto */
+.display { font-family: var(--font-display); font-stretch: var(--stretch-display); font-size: 56px; line-height: 62px; font-weight: 600; }
+.h1 { font-family: var(--font-display); font-stretch: var(--stretch-display); font-size: 36px; line-height: 44px; font-weight: 600; }
+.h2 { font-family: var(--font-display); font-stretch: var(--stretch-display); font-size: 24px; line-height: 32px; font-weight: 600; }
+.lead { font-family: var(--font-sans); font-size: 19px; line-height: 28px; font-weight: 400; }
+.body { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 400; }
+.small { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 600; }
+.label { text-transform: uppercase; letter-spacing: .14em; }

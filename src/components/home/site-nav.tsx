@@ -12,7 +12,7 @@ import { Hamburguesa, Lupa } from "@/components/sitio/iconos";
 import styles from "./site-nav.module.css";
 
 /*
-  Cabecera del sitio, Fortius II (17/11/2026): logo a la izquierda y, arriba a la derecha, la lupa
+  Cabecera del sitio, rediseño del sitio (17/11/2026): logo a la izquierda y, arriba a la derecha, la lupa
   del buscador y el botón «Menú» de hamburguesa, en todos los tamaños. Sin enlaces sueltos.
   En el inicio y en Vender flota clara sobre el video; al bajar, o en cualquier otra página, toma
   el fondo del tema con una línea fina abajo.

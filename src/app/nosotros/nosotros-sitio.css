@@ -1,4 +1,4 @@
-/* Nosotros, Fortius II (etapa 5, 17/11/2026). */
+/* Nosotros, rediseño del sitio (etapa 5, 17/11/2026). */
 
 /* Quién te atiende */
 .no-equipo { display: flex; flex-direction: column; gap: var(--s-9); padding-bottom: var(--s-seccion); scroll-margin-top: var(--s-cabecera); }
@@ -8,29 +8,29 @@
 .no-retrato { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--s-r-grande); background: var(--s-muted); }
 .no-perfil-principal .no-retrato { flex: 1 1 360px; max-width: 520px; }
 .no-retrato img { object-fit: cover; }
-.no-iniciales { font-size: clamp(64px, 9vw, 140px); font-weight: 500; letter-spacing: -0.05em; color: var(--s-accent); }
+.no-iniciales { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: clamp(64px, 9vw, 140px); letter-spacing: 0; color: var(--s-accent); }
 .no-perfil-texto { flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-3); }
 .no-cargo { margin: 0; font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
-.no-nombre { margin: 0; font-size: var(--s-type-sub); font-weight: 500; line-height: 1.1; letter-spacing: var(--s-track-sub); }
-.no-perfil-principal .no-nombre { font-size: var(--s-type-seccion); letter-spacing: var(--s-track-seccion); }
+.no-nombre { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-sub); line-height: 1.1; letter-spacing: 0; }
+.no-perfil-principal .no-nombre { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-seccion); letter-spacing: 0; }
 .no-descripcion { max-width: 52ch; margin: 0 0 var(--s-3); color: var(--s-ink-muted); line-height: 1.6; }
 .no-perfil-principal .no-descripcion { font-size: var(--s-type-entrada); }
 .no-redes { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-5); }
-.no-redes a { display: inline-flex; align-items: center; gap: var(--s-1); min-height: 44px; font-size: var(--s-type-interfaz); font-weight: 500; color: var(--s-ink); }
+.no-redes a { display: inline-flex; align-items: center; gap: var(--s-1); min-height: 44px; font-size: var(--s-type-interfaz); font-weight: 600; color: var(--s-ink); }
 .no-redes a:hover { color: var(--s-accent); }
 
 /* Misión y visión */
 .no-proposito { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--s-6); }
 .no-tarjeta { position: relative; min-height: 520px; overflow: hidden; display: flex; align-items: flex-end; border-radius: var(--s-r-grande); background: var(--s-bg); color: var(--s-ink); }
 .no-tarjeta img { object-fit: cover; }
-.no-velo { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 9, 10, 0.05) 25%, rgba(8, 9, 10, 0.88) 100%); }
+.no-velo { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(1, 35, 103, 0.05) 25%, rgba(1, 35, 103, 0.88) 100%); }
 .no-tarjeta-texto { position: relative; display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-8); }
-.no-tarjeta-texto h2 { max-width: 18ch; margin: 0; font-size: var(--s-type-seccion); font-weight: 500; line-height: 1.02; letter-spacing: var(--s-track-seccion); }
-.no-tarjeta-texto p { margin: 0; color: rgba(237, 237, 239, 0.86); }
+.no-tarjeta-texto h2 { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); max-width: 18ch; margin: 0; font-size: var(--s-type-seccion); line-height: 1.02; letter-spacing: 0; }
+.no-tarjeta-texto p { margin: 0; color: rgba(248, 248, 255, 0.86); }
 
 /* Video */
 .no-video { display: flex; flex-direction: column; gap: var(--s-8); padding-bottom: var(--s-seccion); }
-.no-video-reproductor { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--s-r-grande); background: #08090a; }
+.no-video-reproductor { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--s-r-grande); background: var(--f-azul-real); }
 
 @media (max-width: 639px) {
   .no-tarjeta { min-height: 420px; }

@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 /*
-  Sitio público Fortius II (etapa 7, 17/11/2026). Reemplaza las pruebas del diseño anterior:
+  Sitio público (etapa 7, 17/11/2026; marca del sistema de diseño desde el 17/11/2026). Reemplaza las pruebas del diseño anterior:
   portada por asuntos, frase con filtros, Vender en dos pasos, Contacto con «Hola, quiero…»,
   páginas de error con la cabeza nueva, teléfono sin desbordes y movimiento reducido.
 */
@@ -51,7 +51,7 @@ test("la portada cambia el texto y el botón al elegir un asunto", async ({ page
 
 test("la frase del inventario filtra y deja el filtro en la dirección", async ({ page }) => {
   await page.goto("/inventario");
-  const operacion = page.getByRole("button", { name: /^Operación:/ });
+  const operacion = page.getByRole("combobox", { name: /^Operación:/ });
   await operacion.click();
   const lista = page.getByRole("listbox", { name: "Operación" });
   await expect(lista).toBeVisible();
@@ -80,10 +80,15 @@ test("Vender pide la entrevista en dos pasos y «Volver» conserva lo escrito", 
 
 test("Contacto cambia el formulario según «Hola, quiero…»", async ({ page }) => {
   await page.goto("/contacto");
-  const motivo = page.getByRole("button", { name: /^Motivo:/ });
+  const motivo = page.getByRole("combobox", { name: /^Motivo:/ });
   await expect(motivo).toContainText("vender");
-  await motivo.click();
-  await page.getByRole("listbox", { name: "Motivo" }).getByRole("option", { name: "rentar", exact: true }).click();
+  const lista = page.getByRole("listbox", { name: "Motivo" });
+  // La primera visita puede llegar antes de que la página responda: se reintenta abrir la lista.
+  await expect(async () => {
+    await motivo.click();
+    await expect(lista).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 20000 });
+  await lista.getByRole("option", { name: "rentar", exact: true }).click();
   await expect(motivo).toContainText("rentar");
   await expect(page.getByLabel("Qué rentas o buscas rentar")).toBeVisible();
   await expect(page.getByText("¿Compras o vendes? Hablemos.")).toHaveCount(0);

@@ -18,7 +18,7 @@ export const revalidate = 0;
 
 type Busqueda = Promise<Record<string, string | string[] | undefined>>;
 
-/* Inventario, Fortius II (etapa 2, 17/11/2026): la frase es el filtro. El servidor filtra con los
+/* Inventario, rediseño del sitio (etapa 2, 17/11/2026): la frase es el filtro. El servidor filtra con los
    datos de la dirección y entrega solo la primera parte; el resto llega con «Cargar más». */
 export default async function InventarioPage({ searchParams }: { searchParams: Busqueda }) {
   const busqueda = await searchParams;

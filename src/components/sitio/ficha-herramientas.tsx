@@ -7,7 +7,7 @@ import { calculateMortgage } from "@/lib/finance/mortgage";
 import { localToday } from "@/lib/finance/money";
 import type { Municipality } from "@/data/financial-rules";
 import { municipioDeZona } from "@/data/zonas";
-import { Pestanas, type Opcion } from "@/components/sitio/pestanas";
+import { Pestanas, idPestana, type Opcion } from "@/components/sitio/pestanas";
 import { FilaLinea, ListaLineas } from "@/components/sitio/lineas";
 
 type Herramienta = "mensualidad" | "contado" | "entrada" | "cierre" | "efectivo";
@@ -113,7 +113,8 @@ export function FichaHerramientas({ precio, operacion, credito, zona, mantenimie
           ? <Pestanas opciones={opciones} valor={herramienta} onCambio={setHerramienta} etiqueta="Herramientas" idPanel={panel} />
           : <h3 className="fh-titulo">{opciones[0].etiqueta}</h3>}
 
-        <div id={panel(herramienta)} role={opciones.length > 1 ? "tabpanel" : undefined} className="fh-panel">
+        <div id={panel(herramienta)} role={opciones.length > 1 ? "tabpanel" : undefined}
+          aria-labelledby={opciones.length > 1 ? idPestana(panel(herramienta)) : undefined} className="fh-panel">
           {herramienta === "mensualidad" && (
             <>
               <div className="fh-ajustes">

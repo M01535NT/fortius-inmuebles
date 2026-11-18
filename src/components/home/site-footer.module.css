@@ -1,11 +1,11 @@
-/* Pie del sitio, Fortius II (17/11/2026). */
+/* Pie del sitio, rediseño del sitio (17/11/2026). */
 .footer { background: var(--s-bg); color: var(--s-ink); font-size: var(--s-type-detalle); }
 
 /* Invitación en banda oscura (los dos temas). */
 .cta { padding-block: clamp(80px, 9vw, 128px); }
 .ctaInner { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-8) var(--s-11); }
 .ctaCopy { flex: 999 1 480px; display: flex; flex-direction: column; gap: var(--s-4); }
-.ctaTitle { margin: 0; max-width: 14ch; font-size: var(--s-type-display); font-weight: 500; line-height: 0.96; letter-spacing: var(--s-track-display); }
+.ctaTitle { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; max-width: 14ch; font-size: var(--s-type-display); line-height: 1; letter-spacing: 0; }
 .hours { margin: 0; color: var(--s-ink-muted); font-size: var(--s-type-interfaz); }
 .ctaActions { flex: 1 1 300px; display: flex; flex-wrap: wrap; gap: var(--s-3); }
 
@@ -21,11 +21,11 @@
 .contact dd { margin: 0; }
 .socials { display: flex; gap: var(--s-1); }
 .socials a { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--s-line); border-radius: var(--s-r-pastilla); color: var(--s-ink); transition: border-color 0.2s, color 0.2s; }
-.socials a:hover { border-color: var(--s-ink); color: var(--s-accent); }
-.columnTitle { margin: 0 0 var(--s-3); color: var(--s-ink-muted); font-size: var(--s-type-detalle); font-weight: 500; letter-spacing: 0; }
+.socials a:hover { border-color: var(--s-detalle); color: var(--s-detalle); }
+.columnTitle { margin: 0 0 var(--s-3); color: var(--s-ink-muted); font-size: var(--s-type-detalle); font-weight: 600; letter-spacing: 0; }
 .column ul { margin: 0; padding: 0; list-style: none; }
-.link { display: inline-flex; align-items: center; min-height: 44px; color: var(--s-ink); font-size: var(--s-type-interfaz); font-weight: 500; text-decoration: none; transition: color 0.2s; }
-.link:hover { color: var(--s-accent); }
+.link { display: inline-flex; align-items: center; min-height: 44px; color: var(--s-ink); font-size: var(--s-type-interfaz); font-weight: 600; text-decoration: none; transition: color 0.2s; }
+.link:hover { color: var(--s-detalle); }
 
 /* Franja final, como en el lienzo: una línea fina y todo en una fila. */
 .bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3) var(--s-8); padding-block: var(--s-6) var(--s-8); border-top: 1px solid var(--s-line); color: var(--s-ink-muted); }
@@ -34,8 +34,8 @@
 .legal .link { color: var(--s-ink-muted); font-size: var(--s-type-detalle); }
 .legal .link:hover { color: var(--s-ink); }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-6); color: var(--s-ink); }
-.top { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--s-ink); font: inherit; font-size: var(--s-type-interfaz); font-weight: 500; cursor: pointer; }
-.top:hover { color: var(--s-accent); }
+.top { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--s-ink); font: inherit; font-size: var(--s-type-interfaz); font-weight: 600; cursor: pointer; }
+.top:hover { color: var(--s-detalle); }
 
 @media (max-width: 1023px) {
   .main { grid-template-columns: repeat(3, minmax(0, 1fr)); }

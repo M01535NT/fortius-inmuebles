@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etapa 8 (17/11/2026): la comprobación completa pasa y el PR en borrador hacia `main` está abierto; sale cuando tú lo decidas. Falta tu visto bueno a la etapa 0.
+Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de diseño) construida en la rama `marca-sitio` (17/11/2026); falta verla en el navegador y tu acuerdo para publicarla.
 
 ## Etapas
 
@@ -19,6 +19,7 @@ Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etap
 | 6. Movimiento y teléfono | Efectos de desplazamiento, teléfono, teclado, contraste | Lo recorres en tu teléfono sin tropiezos | Mediano |
 | 7. Limpieza | Se retiran estilos viejos; ícono, imagen para compartir, pruebas nuevas | No queda rastro del diseño anterior | Mediano |
 | 8. Publicación | Comprobación completa y un PR en borrador | Lo revisas y decides cuándo sale | Chico |
+| 9. Marca nueva | Colores, letra, esquinas, sombras, logo e ícono del sistema de diseño | Todas las páginas del sitio se ven con la marca nueva y el panel sigue igual | Mediano |
 
 ## Etapa 0, paso a paso
 
@@ -104,11 +105,38 @@ Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etap
 - [x] Pruebas del diseño anterior reemplazadas (17/11/2026, con tu acuerdo): seis pruebas de navegador fuera; las que seguían valiendo, al diseño nuevo; se agregaron el blog con sus listas y la revisión de accesibilidad en claro y oscuro. Con ellas salieron 18 piezas que ya solo usaban esas pruebas y los tres archivos de estilos globales del diseño anterior. Las pruebas de piezas sueltas pasan; las del navegador se corren al integrar.
 - [x] Ícono de la pestaña con la O de Fortius II, en el sitio y en el panel (tu decisión del 17/11/2026). Los íconos para instalar la app del panel no cambian.
 
+## Mejoras después de publicar
+
+- [x] Menú, buscador y listas de la frase hechos sobre Radix; pestañas con su panel nombrado y fondo quieto con las fotos ampliadas (17/11/2026, rama `sitio-controles-radix`, sin integrar). Lo probaste a mano el 17/11 y está bien; faltan las pruebas automáticas antes de integrar.
+
+- [x] Ficha con el marco primero, completo con sus controles en la primera pantalla y siempre con Fotos, Video y 360°; nombre y precio debajo (17/11/2026, rama `sitio-controles-radix`, sin integrar).
+
+## Etapa 9, paso a paso
+
+- [x] Documentos del sitio corregidos con la marca nueva.
+- [x] Rama `marca-sitio`, sacada de `main`, solo para el sitio.
+- [x] Colores, sombras, foco y esquinas rectas en claro, oscuro y bandas oscuras.
+- [x] Letra Archivo del sistema: titulares, nombres de filas y cifras en Archivo angosta y peso 600; el texto en ancho normal.
+- [x] Azul real como tinta y fondo oscuro en todo el sitio: texto, fondo del tema oscuro, bandas sobre video, sombras e imagen para compartir (18/11/2026). Revisado en el navegador del agente: el contraste pasa en claro y oscuro.
+- [x] Acentos rojos al pasar el cursor y movimiento ligero en botones, tarjetas, filas y preguntas (18/11/2026).
+- [x] Botones, campos, insignias, pestañas, menú, interruptor y cajas con el aspecto del sistema. «Solicitar visita» de la ficha va en rojo imperial.
+- [x] Logo claro y oscuro en cabecera, menú y pie (el oscuro sobre video); emblema en el ícono de la pestaña del sitio; imagen para compartir nueva. El panel conserva su ícono.
+- [x] Calculadoras, documentos y demás piezas compartidas toman las esquinas rectas en el sitio.
+- [x] Pruebas: las que simulan las letras ya conocen la letra del sitio; prueba nueva del logo.
+- [x] Revisado en el navegador del agente, claro y oscuro, en computadora y tamaño de teléfono (17/11/2026). Las 17 páginas caben en el teléfono con controles de 44 px; el contraste del texto pasa; el panel conserva su letra y su ícono. Se corrigieron las esquinas redondeadas de las calculadoras y las etiquetas de los formularios del inicio, Contacto y documentos de la ficha.
+- [ ] Recorrerlo en tu teléfono.
+- [ ] Comprobación completa y PR en borrador, cuando tú lo digas.
+- [x] Juntada con la rama `sitio-controles-radix` en `nuevo-panel` el 17/11/2026: la ficha conserva el marco primero y toma la letra y los colores del sistema.
+
+## Inmuebles de ejemplo
+
+- [x] Ocho inmuebles de ejemplo publicados desde el panel nuevo, marcados como ejemplo: casas, departamento, local, nave, terreno y oficina; en venta y en renta; en Tijuana, Rosarito, Ensenada y Tecate; cinco con video (18/11/2026).
+- [ ] Salen en el sitio cuando llegue a `main` el arreglo de la base que deja publicar un inmueble sin recorrido 360.
+
 ## Lo que te toca a ti
 
 - Confirmar los nombres de los asuntos de la portada (hoy: Vender, Comprar, Rentar, Saber cuánto vale, Poner papeles en orden y Otro asunto).
 - Confirmar el texto de Opinión de valor: ahora dice que se entrega después de conocer el inmueble, sin decir que solo sale dentro del método.
-- Cargar en el panel al menos cuatro inmuebles de ejemplo más, marcados como ejemplo, para ver la tira «En el mercado ahora» completa (hoy solo hay uno publicado).
 - Dar la foto de cada asesor.
 - Capturar en el panel los lugares cercanos de cada inmueble.
 - Decidir si «Qué hay alrededor» necesita los grupos iglesias y hoteles: hoy el panel no los tiene.

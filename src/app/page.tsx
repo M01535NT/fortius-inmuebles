@@ -19,7 +19,7 @@ import "./inicio-sitio.css";
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 /*
-  Inicio · Fortius II (17/11/2026), según el lienzo «Fortius desde cero»: portada por asuntos,
+  Inicio · rediseño del sitio (17/11/2026), según el lienzo «Fortius desde cero»: portada por asuntos,
   quiénes somos con el video que crece, tira de propiedades, calculadora, zonas, guías y el
   cierre «Cuéntanos tu asunto». Ya no lleva el método de cinco etapas ni el expediente.
 */

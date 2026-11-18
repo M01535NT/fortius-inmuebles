@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
     "Calcula los gastos de cierre de tu compra o venta en Tijuana, Rosarito, Tecate o Ensenada: ISAI, honorarios de notaría y derechos de registro, desglosados.",
 });
 
-/* Gastos de cierre, Fortius II (etapa 5, 17/11/2026): la calculadora de siempre bajo la cabeza nueva. */
+/* Gastos de cierre, rediseño del sitio (etapa 5, 17/11/2026): la calculadora de siempre bajo la cabeza nueva. */
 export default function GastosDeCierrePage() {
   return (
     <main className="s-pagina he">

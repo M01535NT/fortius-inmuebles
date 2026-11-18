@@ -310,3 +310,32 @@ No pongo fechas porque no las puedo cumplir con honestidad: depende de cuántas 
 | 9. Equipo | Construida el 17/11 con datos simulados; espera tu aprobación |
 | 10. Funciones extra | Construida el 17/11 con datos simulados (ventanas, informes, notas y lo de todos los días); espera tu revisión |
 | 11. El cambio | Pendiente |
+
+### Fallos encontrados en la revisión del 17/11
+
+No se habían visto porque nadie había publicado un inmueble desde el panel nuevo ni entrado con una cuenta de asesor.
+
+**Corregidos en la rama `arreglo-fallos-graves`, sin integrar todavía:**
+
+- Un inmueble sin video o sin recorrido 360 no salía en el sitio.
+- La solicitud de visita de un inmueble del panel nuevo no llegaba: la persona veía «Falta un dato…».
+- Un asesor no podía crear consultas, asuntos ni personas.
+
+**Pendientes:**
+
+- Cuando llega una solicitud del sitio, la base liga a la persona aunque su ficha sea de otro asesor. Él la ve como «Sin nombre», «Abrir asunto» falla y «Guardar como contacto» escribe en esa ficha ajena.
+- Si un interesado descartado regresa por el sitio, se reabre en el panel provisional pero no aparece como solicitud en el panel nuevo.
+- El sitio deduce el municipio de la colonia y, si no lo reconoce, pone Tijuana: un inmueble en Ensenada sale con mapa, datos para Google y gastos de cierre de Tijuana.
+- La ubicación sale repetida («Playas, Playas, Tijuana») o con una coma al inicio cuando no hay colonia.
+- Cambiar la operación de un inmueble publicado (de renta «Rentado» a venta) lo quita del sitio sin avisar.
+- «Continuar en un asunto nuevo» copia los recibos, y no deben copiarse.
+- Algunas fechas se calculan con la hora del meridiano cero, no con la de Tijuana: una oferta anotada en la tarde queda con fecha del día siguiente.
+- Al cerrar un asunto no se anota quién captó ni quién vendió, y «Deshacer» deja puesto el motivo de cierre.
+- Dos guardados seguidos en la ficha del inmueble pueden chocar entre sí y se pierde lo escrito.
+- Un inmueble compartido sin el nombre de la inmobiliaria aliada sale como propio, y el PDF de la ficha no dice «En colaboración».
+- El PDF de la ficha imprime «0 recámaras» o «0 baños» cuando la ficha web los oculta.
+- La base deja cambiar a quién se asigna una tarea sin la regla de «solo quien lleva el asunto o el director».
+- Dos recibos hechos al mismo tiempo en un asunto pueden salir con el mismo número.
+- «Unir fichas» falla si la ficha que se va tenía papeles ya retirados en algún asunto.
+- El filtro de tipo del inventario acepta nombres que no son tipos y muestra la lista vacía.
+- Falta comprobar si el panel provisional deja escribir a mano un folio FORTIUS; si lo deja, podría repetirse.

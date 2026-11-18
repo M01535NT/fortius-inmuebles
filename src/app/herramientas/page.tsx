@@ -14,7 +14,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 /*
-  Herramientas, Fortius II (etapa 5, 17/11/2026): dos tarjetas grandes, cada una con una vista
+  Herramientas, rediseño del sitio (etapa 5, 17/11/2026): dos tarjetas grandes, cada una con una vista
   previa de lo que calcula. La de hipoteca va en banda oscura y la de gastos en tarjeta clara.
 */
 export default function HerramientasPage() {

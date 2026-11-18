@@ -2,7 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 
 /*
-  Piezas de las páginas interiores, Fortius II (etapa 5, 17/11/2026): la cabeza con el título
+  Piezas de las páginas interiores, rediseño del sitio (etapa 5, 17/11/2026): la cabeza con el título
   grande, el bloque «título a un lado y contenido al otro», las filas con líneas finas y el
   siguiente paso al final. Página clara; el pie pone la banda oscura de invitación.
 */

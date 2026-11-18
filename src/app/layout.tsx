@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Geist, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { connection } from "next/server";
 import { headers } from "next/headers";
 
 import "@/app/globals.css";
-// Marca Fortius II del sitio público: todo bajo html.sitio, que el panel nunca recibe (17/11/2026).
+// Marca del sitio público (docs/sistema-diseno): todo bajo html.sitio, que el panel nunca recibe (17/11/2026).
 import "@/app/sitio.css";
 import { SiteFooter } from "@/components/home/site-footer";
 import { SiteNav } from "@/components/home/site-nav";
@@ -28,11 +28,15 @@ const archivo = Archivo({
   preload: false,
 });
 
-// Sitio público (17/11/2026): Geist, letra variable (un solo archivo cubre 400, 500 y 600).
-// Su clase solo se pone en <html> fuera del panel; el panel conserva Archivo.
-const geist = Geist({
+// Sitio público (17/11/2026), sistema de diseño de docs/sistema-diseno: una sola letra, Archivo, con
+// su eje de ancho: titulares angostos (72 %, peso 600) y texto en ancho normal. Lleva variable propia
+// porque sitio.css redirige la del panel; se precarga porque aquí es la letra principal. Se sirve
+// desde el propio sitio: la política de seguridad no deja cargar letras de Google.
+// Su clase solo se pone en <html> fuera del panel; el panel conserva su configuración.
+const archivoSitio = Archivo({
   subsets: ["latin"],
-  variable: "--font-geist",
+  axes: ["wdth"],
+  variable: "--font-archivo-sitio",
   display: "swap",
 });
 
@@ -118,7 +122,7 @@ export default async function RootLayout({
       lang="es-MX"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${archivo.variable} ${plexMono.variable}${isSitio ? ` ${geist.variable} sitio` : ""}`}
+      className={`${archivo.variable} ${plexMono.variable}${isSitio ? ` ${archivoSitio.variable} sitio` : ""}`}
     >
       <head>
         {/* Browsers hide the nonce content attribute before hydration; the nonce property and CSP remain intact. */}

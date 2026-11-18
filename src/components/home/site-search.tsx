@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { createPortal } from "react-dom";
 import { ArrowRight, X } from "lucide-react";
+import { Dialog } from "radix-ui";
 
 import { usePageTransition } from "@/components/home/public-experience";
 import { TIPOS_INMUEBLE } from "@/lib/inmueble-tipos";
@@ -11,10 +11,13 @@ import { zonas } from "@/data/zonas";
 import styles from "./site-search.module.css";
 
 /*
-  Buscador público (31/10/2026; aspecto Fortius II el 17/11/2026): se abre desde la lupa de la cabecera y sugiere destinos del sitio
+  Buscador público (31/10/2026; aspecto del rediseño el 17/11/2026): se abre desde la lupa de la cabecera y sugiere destinos del sitio
   mientras se escribe, sin acentos ni mayúsculas de por medio. Es un combobox: flechas para
   recorrer, Enter para ir, Escape para cerrar. Los destinos son rutas existentes; los tipos de
   inmueble filtran el inventario (si no hay de ese tipo, el inventario muestra todo).
+  La ventana es el diálogo de Radix: mantiene el foco adentro, oculta la página de atrás al lector
+  de pantalla, bloquea el desplazamiento del fondo (también en el iPhone), cierra con Escape o con
+  un clic en el velo y devuelve el foco a la lupa.
 */
 type Destino = { label: string; group: string; href: string; keywords?: string };
 
@@ -73,7 +76,11 @@ function Resaltado({ texto, consulta }: { texto: string; consulta: string }) {
 export function SiteSearch({ onClose }: { onClose: () => void }) {
   const navigate = usePageTransition();
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const previousFocus = React.useRef<HTMLElement | null>(null);
+  // La lupa que abrió el buscador recibe el foco al cerrar (Radix solo lo devuelve a su propio Dialog.Trigger).
+  const openerRef = React.useRef<HTMLElement | null>(null);
+  React.useLayoutEffect(() => {
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  }, []);
   const [consulta, setConsulta] = React.useState("");
   const [activo, setActivo] = React.useState(0);
   const coincidencias = React.useMemo(() => sugerencias(consulta), [consulta]);
@@ -83,17 +90,6 @@ export function SiteSearch({ onClose }: { onClose: () => void }) {
     return texto ? [...coincidencias, { label: `Buscar «${texto}» en el blog`, group: "Blog", href: `/blog?q=${encodeURIComponent(texto)}` }] : coincidencias;
   }, [consulta, coincidencias]);
   const listId = React.useId();
-
-  React.useEffect(() => {
-    previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const prev = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = "hidden";
-    inputRef.current?.focus({ preventScroll: true });
-    return () => {
-      document.documentElement.style.overflow = prev;
-      previousFocus.current?.focus({ preventScroll: true });
-    };
-  }, []);
 
   const ir = (destino: Destino | undefined) => {
     if (!destino) return;
@@ -107,45 +103,40 @@ export function SiteSearch({ onClose }: { onClose: () => void }) {
     else if (event.key === "Enter") { event.preventDefault(); ir(lista[activo]); }
   };
 
-  // Escape cierra desde cualquier parte; Tab se queda entre el campo y el botón de cerrar.
-  const onDialogKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
-    if (event.key !== "Tab") return;
-    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("input, button"));
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
-  };
-
   const titulo = consulta.trim() ? (coincidencias.length ? "Sugerencias" : "Sin coincidencias en el sitio") : "Lo más buscado";
 
-  return createPortal(
-    <div className={styles.root} role="dialog" aria-modal="true" aria-label="Buscar en Fortius" onKeyDown={onDialogKey}>
-      <div className={styles.scrim} aria-hidden="true" onClick={onClose} />
-      <div className={styles.panel}>
-        <div className={styles.inner}>
-          <div className={styles.field}>
-            <input ref={inputRef} type="search" value={consulta} placeholder="¿Qué buscas?" autoComplete="off" spellCheck={false}
-              role="combobox" aria-expanded={lista.length > 0} aria-controls={listId} aria-autocomplete="list" aria-label="Buscar"
-              aria-activedescendant={lista.length ? `${listId}-${activo}` : undefined}
-              onChange={(event) => { setConsulta(event.target.value); setActivo(0); }} onKeyDown={onKeyDown} className={styles.input} />
-            <button type="button" onClick={onClose} aria-label="Cerrar buscador" className={styles.close}><X aria-hidden="true" size={22} /></button>
-          </div>
-          <p className={styles.heading} aria-live="polite">{titulo}</p>
-          <ul id={listId} role="listbox" aria-label="Sugerencias" className={styles.list}>
-            {lista.map((destino, i) => (
-              <li key={destino.href} id={`${listId}-${i}`} role="option" aria-selected={i === activo}
-                className={styles.option} onMouseEnter={() => setActivo(i)} onMouseDown={(event) => event.preventDefault()} onClick={() => ir(destino)}>
-                <span className={styles.label}><Resaltado texto={destino.label} consulta={consulta} /></span>
-                <span className={styles.group}>{destino.group}</span>
-                <ArrowRight aria-hidden="true" size={18} className={styles.arrow} />
-              </li>
-            ))}
-          </ul>
+  return (
+    <Dialog.Root open onOpenChange={(abierto) => { if (!abierto) onClose(); }}>
+      <Dialog.Portal>
+        <div className={styles.root}>
+          <Dialog.Overlay className={styles.scrim} />
+          <Dialog.Content className={styles.panel} aria-describedby={undefined}
+            onOpenAutoFocus={(event) => { event.preventDefault(); inputRef.current?.focus({ preventScroll: true }); }}
+            onCloseAutoFocus={(event) => { event.preventDefault(); if (openerRef.current?.isConnected) openerRef.current.focus({ preventScroll: true }); }}>
+            <Dialog.Title className="sr-only">Buscar en Fortius</Dialog.Title>
+            <div className={styles.inner}>
+              <div className={styles.field}>
+                <input ref={inputRef} type="search" value={consulta} placeholder="¿Qué buscas?" autoComplete="off" spellCheck={false}
+                  role="combobox" aria-expanded={lista.length > 0} aria-controls={listId} aria-autocomplete="list" aria-label="Buscar"
+                  aria-activedescendant={lista.length ? `${listId}-${activo}` : undefined}
+                  onChange={(event) => { setConsulta(event.target.value); setActivo(0); }} onKeyDown={onKeyDown} className={styles.input} />
+                <button type="button" onClick={onClose} aria-label="Cerrar buscador" className={styles.close}><X aria-hidden="true" size={22} /></button>
+              </div>
+              <p className={styles.heading} aria-live="polite">{titulo}</p>
+              <ul id={listId} role="listbox" aria-label="Sugerencias" className={styles.list}>
+                {lista.map((destino, i) => (
+                  <li key={destino.href} id={`${listId}-${i}`} role="option" aria-selected={i === activo}
+                    className={styles.option} onMouseEnter={() => setActivo(i)} onMouseDown={(event) => event.preventDefault()} onClick={() => ir(destino)}>
+                    <span className={styles.label}><Resaltado texto={destino.label} consulta={consulta} /></span>
+                    <span className={styles.group}>{destino.group}</span>
+                    <ArrowRight aria-hidden="true" size={18} className={styles.arrow} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Dialog.Content>
         </div>
-      </div>
-    </div>,
-    document.body,
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

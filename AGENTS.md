@@ -42,7 +42,7 @@ Las claves del tipo `RP-00` o `DEC-00` y las menciones a `DECISIONES.md` que apa
 
 ## Sitio público
 
-Manda el boceto aprobado del rediseño y lo escrito en `docs/sitio/` (marca Fortius II, letra Geist); `docs/sitio-publico/marca.md` ya no aplica al sitio. Sus estilos viven bajo la clase `sitio` (`src/app/sitio.css`) y sus piezas en `src/components/sitio/`; no tocan los estilos, el logo ni el tema del panel. Lo que el boceto no define se pregunta y se anota en `docs/sitio/`. Sin cejas (antetítulos sobre los títulos).
+Manda el boceto aprobado del rediseño y lo escrito en `docs/sitio/` (marca: el sistema de diseño de `docs/sistema-diseno/`, con la letra Archivo); `docs/sitio-publico/marca.md` ya no aplica al sitio. Sus estilos viven bajo la clase `sitio` (`src/app/sitio.css`) y sus piezas en `src/components/sitio/`; no tocan los estilos, el logo ni el tema del panel. Lo que el boceto no define se pregunta y se anota en `docs/sitio/`. Sin cejas (antetítulos sobre los títulos).
 
 ## Formatos y documentos
 

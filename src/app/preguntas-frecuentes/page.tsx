@@ -14,7 +14,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 /*
-  Preguntas frecuentes, Fortius II (etapa 5, 17/11/2026): un bloque por grupo con las preguntas
+  Preguntas frecuentes, rediseño del sitio (etapa 5, 17/11/2026): un bloque por grupo con las preguntas
   que se abren con un toque. Las preguntas base viven en el código y las que agrega el equipo,
   en Textos del sitio del panel.
 */

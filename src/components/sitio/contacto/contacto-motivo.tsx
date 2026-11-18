@@ -23,7 +23,7 @@ const OPCIONES = (Object.keys(MOTIVOS) as Motivo[]).map((valor) => ({ valor, eti
 const esMotivo = (valor: string): valor is Motivo => valor in MOTIVOS;
 
 /*
-  Contacto, Fortius II (17/11/2026, boceto aprobado). El título es el motivo, como la frase del
+  Contacto, rediseño del sitio (17/11/2026, boceto aprobado). El título es el motivo, como la frase del
   inventario: «Hola, quiero [vender]». Al cambiarlo cambian la guía, el tercer campo y el mensaje
   de WhatsApp; nombre, teléfono y lo escrito no se borran. Llega al panel como contacto.
 */

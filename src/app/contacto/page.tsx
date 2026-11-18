@@ -14,7 +14,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 /*
-  Contacto, Fortius II (17/11/2026, boceto «Fortius: Vender y Contacto» aprobado): página clara.
+  Contacto, rediseño del sitio (17/11/2026, boceto «Fortius: Vender y Contacto» aprobado): página clara.
   La frase con el motivo, el formulario corto y, al lado, los canales directos. Abajo, la foto
   con quién te atiende. Es la invitación de la página: el pie no repite la suya.
 */
