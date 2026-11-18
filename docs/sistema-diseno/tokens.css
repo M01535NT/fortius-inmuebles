@@ -6,28 +6,29 @@
   --rojo-imperial: #6D0809;
   --oro-brocado: #CBBA87;
   --plata: #F8F8FF;
+  --negro-armino: #020315;
   --surface: #F8F8FF;
-  --ink: #012367;
+  --ink: #020315;
   --ink-muted: #55595F;
   --primary: #012367;
   --on-primary: #F8F8FF;
-  --border: #01236729;
+  --border: #02031529;
   --surface-raised: #FFFFFF;
   --detail: #6D0809;
-  --shadow-sm: 0 1px 2px rgba(1,35,103,0.08), 0 1px 1px rgba(1,35,103,0.04);
-  --shadow-md: 0 4px 12px rgba(1,35,103,0.10), 0 2px 4px rgba(1,35,103,0.06);
-  --shadow-lg: 0 16px 40px rgba(1,35,103,0.16), 0 4px 10px rgba(1,35,103,0.08);
+  --shadow-sm: 0 1px 2px rgba(2,3,21,0.08), 0 1px 1px rgba(2,3,21,0.04);
+  --shadow-md: 0 4px 12px rgba(2,3,21,0.10), 0 2px 4px rgba(2,3,21,0.06);
+  --shadow-lg: 0 16px 40px rgba(1,35,103,0.16), 0 4px 10px rgba(2,3,21,0.08);
   --shadow-focus: 0 0 0 3px rgba(1,35,103,0.35);
 }
 
 [data-theme="dark"] {
-  --surface: #012367;
+  --surface: #020315;
   --ink: #F8F8FF;
   --ink-muted: #AEB2B8;
   --primary: #F8F8FF;
-  --on-primary: #012367;
+  --on-primary: #020315;
   --border: #F8F8FF33;
-  --surface-raised: #012367;
+  --surface-raised: #020315;
   --detail: #CBBA87;
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.55);

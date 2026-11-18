@@ -5,9 +5,9 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 ## Marca (17/11/2026)
 
 - **Fuente única:** el sistema de diseño de `docs/sistema-diseno/` (`GUIA.md`, `tokens.css`, `componentes.css` y `logos/`). Si algo de esta carpeta lo contradice en colores, letra, esquinas, sombras o logo, manda el sistema.
-- **Colores.** Azul real `#012367` (principal, tinta y fondo oscuro), rojo imperial `#6D0809` (acento), plata `#F8F8FF` (fondo claro y texto sobre azul) y oro brocado `#CBBA87` (solo detalles). Texto de apoyo: `#55595F` en claro y `#AEB2B8` en oscuro. Las tarjetas y campos van en blanco `#FFFFFF` sobre el fondo plata.
-- **Claro:** azul real sobre plata. **Oscuro:** fondo azul real y el principal en plata, porque el azul no se lee sobre azul. El detalle es rojo imperial en claro y oro en oscuro.
-- **El oro es un detalle:** filetes, sellos o un ícono suelto, siempre sobre azul o rojo. Nunca como texto ni sobre fondo claro.
+- **Colores.** Plata `#F8F8FF` y blanco `#FFFFFF` (fondo en claro), negro armiño `#020315` (tinta en claro y fondo en oscuro), azul real `#012367` (principal), rojo imperial `#6D0809` (acento) y oro brocado `#CBBA87` (logo oscuro y foco). Texto de apoyo: `#55595F` en claro y `#AEB2B8` en oscuro.
+- **Claro:** casi todo es plata y blanco, con texto negro armiño; no hay secciones negras salvo las que van sobre foto o video. **Oscuro:** casi todo es negro armiño, con texto plata. En los dos temas el azul real y el rojo imperial son detalles sutiles: botones, elegidos, filetes y subrayados. Sobre negro nunca van como texto, porque no se leen.
+- **El oro es un detalle:** el lado del emblema en el logo oscuro y el anillo de foco en oscuro. Nunca como texto ni sobre fondo claro.
 - **Letra:** una sola, Archivo, con su eje de ancho. Titulares, nombre de la marca y cifras destacadas en Archivo angosta (72 % de ancho) y peso 600. Texto en Archivo de ancho normal: 400 para leer y 600 para botones y etiquetas.
 - **Tamaños:** los estilos de texto del sistema son la base. La portada, el cierre, el nombre en la ficha y las cifras conservan los tamaños grandes del boceto. Los titulares angostos van sin apretar las letras.
 - **Mayúsculas espaciadas solo en botones, etiquetas de campo e insignias**, como las define el sistema. Los títulos van en Archivo angosta normal, nunca en mayúsculas.
@@ -16,7 +16,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Campos:** caja blanca con la sombra pequeña del sistema y etiqueta en mayúsculas espaciadas. Su borde se queda con contraste de 3 a 1 para que la caja se distinga del fondo plata.
 - **Logo:** los archivos de `docs/sistema-diseno/logos/`. Versión clara (azul con el lado derecho del emblema en rojo) sobre fondo claro; versión oscura (plata con el lado derecho en oro) sobre bandas oscuras, fotos y video. Sus colores no se cambian. El emblema solo sirve para el ícono de la pestaña.
 - **Botones:** principal en azul (plata en oscuro); acento en rojo imperial para la acción que más importa de una pantalla (hoy, «Solicitar visita» en la ficha y su barra flotante); secundario con contorno. En teléfonos angostos un botón largo puede ir en dos líneas.
-- **Acentos rojos al pasar el cursor:** los botones se encienden en rojo imperial; enlaces, contornos, filas, preguntas y nombres de tarjeta toman el detalle (rojo en claro, oro sobre azul, donde el rojo no se lee). Bajo la foto de una tarjeta crece un filete rojo, como el lado rojo del emblema.
+- **Acentos rojos al pasar el cursor:** los botones se encienden en rojo imperial. En claro, enlaces, contornos, filas, preguntas y nombres de tarjeta se vuelven rojos; en oscuro siguen en plata con un subrayado rojo y los contornos se rellenan de rojo. Bajo la foto de una tarjeta crece un filete rojo, como el lado rojo del emblema.
 - **Insignias:** en mayúsculas espaciadas. La de acento es azul real con filete de oro.
 - **El cambio de marca es solo del sitio público.** Los paneles, los PDF, los formatos y el membrete conservan la suya.
 
@@ -52,7 +52,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Logo:** la versión clara en tema claro y la oscura en tema oscuro y sobre bandas, fotos y video. Sobre foto o video va siempre la oscura.
 - **Cabecera:** logo a la izquierda; a la derecha, la lupa del buscador y el botón «Menú». El buscador queda junto al botón, a un toque en cualquier página.
 - **Tema:** interruptor «Tema oscuro» dentro del menú y en el pie (dos opciones, interruptor). Guarda la elección igual que antes.
-- **Bandas oscuras:** una caja con la clase `s-banda` usa los colores oscuros del sistema en los dos temas: azul real, texto plata y oro como detalle.
+- **Bandas:** una sección con la clase `s-banda` tiene fondo propio: blanco en claro y negro armiño con un toque de azul en oscuro. Las que llevan foto o video (`s-banda-media`: portada del inicio, «Quiénes somos», portada de Vender, equipo de Contacto, misión y visión) son oscuras en los dos temas: negro armiño y texto plata.
 - **Pie:** sigue el flujo de la página, como antes, sin quedarse fijo detrás del contenido.
 
 ## Inventario (17/11/2026)
@@ -128,7 +128,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 
 ## Limpieza (17/11/2026)
 
-- **Imagen para compartir:** el logo oscuro del sistema con su lema, sobre azul real.
+- **Imagen para compartir:** el logo oscuro del sistema con su lema, sobre negro armiño.
 - **Ícono de la pestaña:** el emblema del sistema en las páginas del sitio. El panel conserva su ícono y los de instalar la app.
 - **Confirmación de Vender:** se conserva su dirección; hoy nadie llega a ella porque la entrevista confirma en la misma página.
 - **Pruebas del sitio:** las del navegador viven en una sola prueba del diseño nuevo, más navegación, ficha en PDF, calculadoras e instalación. Lo que solo usaban las pruebas anteriores se retiró con ellas (17/11/2026).

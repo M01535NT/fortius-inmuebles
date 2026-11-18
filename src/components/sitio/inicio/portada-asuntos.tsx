@@ -48,7 +48,7 @@ export function PortadaAsuntos({ whatsapp }: { whatsapp?: string }) {
   }
 
   return (
-    <section className="s-banda pa" aria-labelledby="pa-pregunta">
+    <section className="s-banda-media pa" aria-labelledby="pa-pregunta">
       <div className="pa-fondos" aria-hidden="true">
         {ASUNTOS.map((a) => (
           <span key={a.id} className="pa-fondo" data-activo={a.id === elegido}>
