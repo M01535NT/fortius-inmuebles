@@ -36,7 +36,7 @@ El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla
 - Antes de empezar se comprobó que lo que ya existe está sano: la revisión del código no marca errores, las 2,276 pruebas automáticas pasan y el sitio se arma completo sin fallas.
 - Ese punto quedó marcado en el repositorio con el nombre `inicio-panel-por-asuntos`. Si algo sale mal durante la construcción, se puede comparar contra él o volver a él.
 
-**En una frase: el diseño está terminado y aprobado; las etapas 0 a 8 están aprobadas; la etapa 9, Equipo, y las dos primeras funciones de la etapa 10 (ventanas e informes para el cliente) están construidas y esperan tu aprobación.**
+**En una frase: el diseño está terminado y aprobado; las etapas 0 a 8 están aprobadas; las etapas 9, Equipo, y 10, Funciones extra, están construidas y esperan tu aprobación.**
 
 ## 2. Las etapas
 
@@ -143,7 +143,7 @@ Una etapa se da por buena cuando todo lo de su lista se puede hacer en el panel,
 - [ ] De un asunto terminado continúas en uno nuevo, con las mismas personas, inmueble y documentos.
 - [ ] Llevas la casa del suegro de principio a fin: hipoteca, crédito y escritura en un solo plan.
 
-*17/11: construida y revisada con datos simulados. Documentos agrupa lo que falta y lo recibido, dice quién lo entrega y cuándo vence (avisa antes), pide lo que falta con un mensaje listo para WhatsApp, sube varios archivos a la vez y acomoda cada uno por su nombre, y crea la liga para que el cliente suba los suyos desde su teléfono. Situación anota los datos de siempre y lo que falta averiguar, que se vuelve tarea con un toque. Opinión jurídica lleva el resultado, el análisis y lo que hay que resolver con quién lo hace; con un botón pasa todo al plan, y si sale «no factible» ofrece cobrar el estudio, cerrar o esperar un mes. Honorarios separa tus honorarios (monto o porcentaje del precio) de los gastos de terceros, con quién paga, vigencia, otra versión del presupuesto, el contrato firmado y los cobros con su recibo y lo que falta. Interesados lleva qué local le interesa, la visita con día y hora y la oferta con su respuesta. El Plan se abre por tarea para cambiar cómo va (hecha, no aplica o no se puede todavía, con su motivo), quién, día y hora; «Recordarle» abre WhatsApp, y se ve por etapas o en el tiempo. Los apartados propios ya se ven como lista, tabla (con columnas tuyas y totales), galería (con foto y precio por m²) o texto. El asunto propone pasar a Propuesta, a En marcha o cerrar, y nunca lo cambia solo; uno cerrado se continúa en uno nuevo. Falta: aplicar los cambios de la base (se aplican al integrar en `main`), probar la lista con datos reales y la liga del cliente en un teléfono de verdad. Hacer la opinión y el presupuesto en PDF desde el panel llega con sus plantillas en la etapa 6 Los avisos de vencimiento ya salen en Inicio. Las tareas que esperan a otra o que se repiten quedan para la etapa 10.*
+*17/11: construida y revisada con datos simulados. Documentos agrupa lo que falta y lo recibido, dice quién lo entrega y cuándo vence (avisa antes), pide lo que falta con un mensaje listo para WhatsApp, sube varios archivos a la vez y acomoda cada uno por su nombre, y crea la liga para que el cliente suba los suyos desde su teléfono. Situación anota los datos de siempre y lo que falta averiguar, que se vuelve tarea con un toque. Opinión jurídica lleva el resultado, el análisis y lo que hay que resolver con quién lo hace; con un botón pasa todo al plan, y si sale «no factible» ofrece cobrar el estudio, cerrar o esperar un mes. Honorarios separa tus honorarios (monto o porcentaje del precio) de los gastos de terceros, con quién paga, vigencia, otra versión del presupuesto, el contrato firmado y los cobros con su recibo y lo que falta. Interesados lleva qué local le interesa, la visita con día y hora y la oferta con su respuesta. El Plan se abre por tarea para cambiar cómo va (hecha, no aplica o no se puede todavía, con su motivo), quién, día y hora; «Recordarle» abre WhatsApp, y se ve por etapas o en el tiempo. Los apartados propios ya se ven como lista, tabla (con columnas tuyas y totales), galería (con foto y precio por m²) o texto. El asunto propone pasar a Propuesta, a En marcha o cerrar, y nunca lo cambia solo; uno cerrado se continúa en uno nuevo. Falta: aplicar los cambios de la base (se aplican al integrar en `main`), probar la lista con datos reales y la liga del cliente en un teléfono de verdad. Hacer la opinión y el presupuesto en PDF desde el panel llega con sus plantillas en la etapa 6. Los avisos de vencimiento ya salen en Inicio. Las tareas que esperan a otra o que se repiten entraron en la etapa 10.*
 
 **6. Documentos y Herramientas**
 
@@ -185,7 +185,9 @@ Una etapa se da por buena cuando todo lo de su lista se puede hacer en el panel,
 - [ ] Como director ves a cada asesor con lo vencido, lo de hoy y lo que falta cobrar.
 - [ ] Cambias quién lleva un asunto y queda anotado.
 
-*17/11: construida y revisada con datos simulados. Equipo, solo para el director, muestra a cada persona con sus asuntos abiertos, lo de hoy, lo de la semana y lo que falta cobrar (en pesos y dólares), y arriba lo vencido, los asuntos sin siguiente paso y las solicitudes del sitio que tiene sin atender; un aviso dice cuántas solicitudes esperan a que las pases. «Ver» abre Asuntos ya filtrado por esa persona. Cambiar quién lleva un asunto se hace desde el asunto y queda en su historial. Con cuenta de asesor, Equipo no sale en el menú y, si se escribe la dirección, dice que es solo del director; un asunto ajeno responde «no existe o no te toca verlo» y ofrece volver a tus asuntos. Lo que ve cada quien lo decide la base (asuntos, personas, inmuebles, tareas, documentos, dinero y solicitudes), no la pantalla; esas reglas ya venían en los cambios de la base de las etapas anteriores. Falta: aplicar los cambios de la base (se aplican al integrar en `main`) y probar la lista con una cuenta de asesor de verdad.*
+*17/11: construida y revisada con datos simulados. Equipo, solo para el director, muestra a cada persona con sus asuntos abiertos, lo de hoy, lo de la semana y lo que falta cobrar (en pesos y dólares), y arriba lo vencido, los asuntos sin siguiente paso y las solicitudes del sitio que tiene sin atender; un aviso dice cuántas solicitudes esperan a que las pases. «Ver» abre Asuntos ya filtrado por esa persona. Cambiar quién lleva un asunto se hace desde el asunto y queda en su historial. Con cuenta de asesor, Equipo no sale en el menú y, si se escribe la dirección, dice que es solo del director; un asunto ajeno responde «no existe o no te toca verlo» y ofrece volver a tus asuntos. Lo que ve cada quien lo decide la base (asuntos, personas, inmuebles, tareas, documentos, dinero y solicitudes), no la pantalla; esas reglas ya venían en los cambios de la base de las etapas anteriores.*
+
+*17/11, en revisión: los cambios de la base ya están aplicados. Hay una cuenta «Asesor de ejemplo» con dos de los seis asuntos de ejemplo para probar la etapa. Decidiste que, al cambiar quién lleva un asunto, sus tareas pendientes pasen a la nueva persona; ya está hecho (se aplica al integrar en `main`). Falta: que entres con la cuenta de ejemplo y compruebes lo que ve.*
 
 **10. Funciones extra**
 
@@ -210,10 +212,18 @@ Los informes para el cliente:
 - [ ] Queda en Documentos, en «Informes», con su número, y anotado en el Historial.
 - [ ] Lo pones cada mes: nace la tarea de mandarlo, aparece en Inicio y, al mandarlo, nace la del mes siguiente.
 
-Lo demás:
+Lo de todos los días (construido el 17/11):
 
-- [ ] Cada función de la lista de `SPEC.md` que haya entrado se prueba con uno de los casos reales.
-- [ ] Las que no entren quedan anotadas aquí, con su motivo.
+- [ ] En el buscador escribes «Llamar a Laura jueves 10am»: dice que es una llamada, el jueves a las 10 con Laura, y la guarda en la herencia de la Murúa. Abres el asunto y está en su Plan.
+- [ ] Lo mismo en el Plan del asunto, escrito o dictado con el micrófono.
+- [ ] Dictas una nota y la parte de «Qué pasa» de una consulta.
+- [ ] Buscas por teléfono, por folio y por nombre: salen el asunto, la persona y el inmueble; desde el mismo cuadro abres una consulta nueva.
+- [ ] Marcas con estrella el asunto de la plaza y un local: salen arriba en el menú y en el buscador, también en otro equipo.
+- [ ] En Asuntos filtras «los que lleva Jorge» y lo guardas como vista; al día siguiente la eliges y vuelve igual.
+- [ ] En una nota mencionas a alguien del equipo con @; esa persona lo ve en «Para ti» de su Inicio, con el punto de nuevo, y el número junto a «Inicio» sube. «Ya lo vi» lo apaga.
+- [ ] Das permiso de avisos en Configuración: con el panel abierto, te avisa una hora antes de una cita y cuando entra una solicitud del sitio. Apagas «Citas próximas» y deja de avisar esas.
+- [ ] En el Plan, la firma espera a «Recibir el avalúo»: se lee «espera a…» hasta que el avalúo queda hecho.
+- [ ] Pones «Pagar el predial» cada año; al dejarla hecha nace la del año siguiente, y si la desmarcas, la nueva se quita.
 
 *17/11: construidas las ventanas y los informes para el cliente; falta que los veas. El boceto no los muestra.*
 
@@ -221,7 +231,24 @@ Lo demás:
 
 *Los informes: en el asunto, «Nuevo → Informe para el cliente» abre la pantalla con la hoja a la vista y el membrete de Fortius. Eliges para quién, cambias «En qué va», enciendes o apagas cada parte, quitas renglones y dices si se repite. «Guardar informe» lo deja en Documentos, en «Informes», con su número, y lo anota en el Historial; después se descarga en PDF o se manda por WhatsApp. No hizo falta ningún cambio en la base de datos. La hoja es una propuesta: dime qué cambiarle.*
 
-*Falta: probar la lista con datos reales (no se corrieron revisiones ni pruebas; se corren antes de integrar en `main`). Las tareas que se repiten en general siguen pendientes: por ahora solo se repite la de mandar el informe. Que el cliente vea su último informe en su liga queda para después, como dice `SPEC.md`.*
+*17/11, en revisión: en «Lo lleva» y en el pie del informe salía el inicio del correo en vez del nombre; ahora sale el nombre de «Mi perfil» (se publica al integrar en `main`).*
+
+Personas y notas del asunto (decidido el 17/11):
+
+- [ ] En la herencia de la Murúa abres Personas y las ves por grupos: quien nos busca, dueños y herederos, del otro lado y quienes ayudan. «Del otro lado» dice «Nadie todavía».
+- [ ] Agregas a alguien desde «Quienes ayudan» y nace con su papel ya puesto.
+- [ ] Tocas a Laura y se abre su ficha con la lista de todos a un lado; pasas a Jorge con un toque y la flecha te regresa a los grupos.
+- [ ] Cambias su estado civil y su domicilio ahí mismo; el CURP y el RFC se ven ocultos hasta que los pides.
+- [ ] Desde cualquier ventana del asunto escribes una nota con @Laura y #Documentos; la mención abre su ficha o el apartado.
+- [ ] Filtras las notas que mencionan a Laura, y su ficha dice cuántas son.
+- [ ] Fijas la nota de que Laura vive en San Diego: queda arriba en todas las ventanas del asunto, y el Historial dice quién la fijó.
+- [ ] Ninguna nota sale en un informe para el cliente.
+
+*17/11: construido en `nuevo-panel` (se publica al integrar en `main`). La única pieza nueva de la base es la lista de notas fijadas del asunto; mientras no se integre, las notas se leen igual y la chincheta avisa que se activa al integrar. Personas abre por grupos; la ficha muestra la lista de todos a un lado (en el teléfono o en una ventana angosta, la flecha regresa a los grupos). Las notas están en un costado de cada ventana del asunto, salvo en el Historial, que ya las muestra. Falta: que lo veas y probarlo con datos (no se corrieron revisiones ni pruebas).*
+
+*17/11: construidas en `nuevo-panel` las funciones de todos los días de `SPEC.md` (sección 14, «Lo de todos los días»), sin cambios en la base de datos: favoritos, vistas y lo ya visto de «Para ti» se guardan en tus preferencias, y las tareas que esperan o se repiten usan lo que la base ya tenía. El boceto no las define; lo decidido está en `SPEC.md` y espera que lo veas. «Tiempo esperando» y la liga del cliente ya existían. Lo que no entró: avisos al teléfono o por correo con el panel cerrado (hace falta un servicio de envío; queda para después) y que el cliente vea su último informe en su liga, como dice `SPEC.md`. Falta: que lo veas y probarlo con datos reales (no se corrieron revisiones ni pruebas; se corren antes de integrar en `main`).*
+
+*17/11, revisión de la etapa (solo lectura del código): se corrigió que una mención a «Jorge Ramírez» avisara también a un «Jorge» del equipo; que buscar «Domingo Pérez» o «5 de Mayo» creara una tarea; que «el 2%» o «2 dictámenes» se leyeran como fechas; que posponer una tarea la volviera a marcar como nueva en «Para ti»; que el buscador guardara la tarea en un asunto al azar; que fijar una nota provocara «alguien más cambió esto»; que escribir solo la hora en el Plan borrara el día elegido; que «Para ti» enlazara a asuntos que no te toca ver; que el número de Inicio contara documentos de otros o una tarea dos veces; y que las tareas mensuales se fueran recorriendo del 31 al 28. El servidor ahora revisa que la persona de una tarea y las ligas de una nota sean de ese asunto. Decidiste que un asesor también pueda mencionar a todo el equipo; ya está hecho (solo ve sus nombres, no lo que llevan). Pendiente: si un colaborador deja hecha una tarea que se repite de otra persona, la siguiente queda a nombre del colaborador.*
 
 **11. El cambio**
 
@@ -281,5 +308,5 @@ No pongo fechas porque no las puedo cumplir con honestidad: depende de cuántas 
 | 7. Directorio y Biblioteca | Aprobada el 17/11 con datos simulados; falta probarla con datos reales |
 | 8. Inicio | Aprobada el 17/11 con datos simulados; falta probarla con datos reales |
 | 9. Equipo | Construida el 17/11 con datos simulados; espera tu aprobación |
-| 10. Funciones extra | Ventanas e informes para el cliente construidos el 17/11; esperan tu revisión. Lo demás, pendiente |
+| 10. Funciones extra | Construida el 17/11 con datos simulados (ventanas, informes, notas y lo de todos los días); espera tu revisión |
 | 11. El cambio | Pendiente |

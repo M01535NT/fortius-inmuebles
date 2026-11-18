@@ -7,9 +7,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { useMisPreferencias } from "@/components/panel/datos/use-mis-preferencias";
 import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
+import { useRecordatorios } from "@/components/panel/kit/recordatorios";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
@@ -20,7 +22,7 @@ import { cambiarPersonaDirectorio } from "@/lib/panel/biblioteca";
 import { empezarConsulta } from "@/lib/panel/consulta/api";
 import {
   atenderSolicitud, leerInicio, pasarSolicitud, solicitudNoProcede,
-  type ContactoInicio, type Inicio as DatosInicio, type Moneda, type SolicitudInicio, type TareaInicio,
+  type ContactoInicio, type Inicio as DatosInicio, type Moneda, type ParaTiInicio, type SolicitudInicio, type TareaInicio,
 } from "@/lib/panel/inicio";
 import { useSession } from "@/lib/panel/legado/sesion";
 
@@ -52,15 +54,23 @@ export function Inicio() {
   const [datos, setDatos] = useState<DatosInicio | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [equipo, setEquipo] = useState<Miembro[]>([]);
+  // Todo el equipo, solo para poner el nombre de quien te mencionó.
+  const [companeros, setCompaneros] = useState<Miembro[]>([]);
   const [yo, setYo] = useState<string | null>(null);
   const [de, setDe] = useState("");
   const [recordar, setRecordar] = useState<TareaInicio | null>(null);
   const [hechas, setHechas] = useState<Set<string>>(() => new Set());
+  // Hasta cuándo ya viste «Para ti» (te sigue en cualquier equipo): lo posterior sale marcado como nuevo y cuenta en el menú.
+  const prefs = useMisPreferencias();
+  const visto = prefs.cargado ? (prefs.panel.paraTiVisto ?? "") : "9999";
+  // El número junto a «Inicio» se pone al día cada vez que esta pantalla cambia algo.
+  const { revisar } = useRecordatorios();
+  const ponerVisto = (v: string) => { prefs.cambiar({ paraTiVisto: v }).then(revisar, (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo guardar.")); };
 
-  const cargar = useCallback(() => leerInicio().then((x) => { setDatos(x); setError(null); setHechas(new Set()); },
-    (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")), []);
+  const cargar = useCallback(() => leerInicio().then((x) => { setDatos(x); setError(null); setHechas(new Set()); revisar(); },
+    (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")), [revisar]);
   useEffect(() => { void cargar(); }, [cargar]);
-  useEffect(() => { leerEquipo().then((r) => { setEquipo(r.equipo); setYo(r.yo); }, () => undefined); }, []);
+  useEffect(() => { leerEquipo().then((r) => { setEquipo(r.equipo); setCompaneros(r.companeros ?? r.equipo); setYo(r.yo); }, () => undefined); }, []);
   // Cada minuto se mueve el «hace cuánto» de las solicitudes.
   const [, latir] = useState(0);
   useEffect(() => { const t = setInterval(() => latir((n) => n + 1), 60_000); return () => clearInterval(t); }, []);
@@ -109,7 +119,7 @@ export function Inicio() {
     try { const c = await empezarConsulta({ persona_id: p.id }); router.push(`/panel/consulta?id=${c.id}`); }
     catch (e) { avisar(e instanceof Error ? e.message : "No se pudo empezar la consulta."); }
   };
-  const nombreDe = (id: string | null) => (id ? equipo.find((m) => m.id === id)?.nombre ?? "Otra persona" : null);
+  const nombreDe = (id: string | null) => (id ? (equipo.find((m) => m.id === id) ?? companeros.find((m) => m.id === id))?.nombre ?? "Otra persona" : null);
   const otrosDelEquipo = equipo.filter((m) => m.id !== yo || director);
 
   return (
@@ -194,6 +204,8 @@ export function Inicio() {
               })}
             </Bloque>
           ) : null}
+
+          {datos!.paraTi.length ? <ParaTi items={datos!.paraTi} visto={visto} nombreDe={nombreDe} alVer={() => ponerVisto(new Date(datos!.paraTi[0].cuando).toISOString())} /> : null}
 
           <Bloque icono="hoy" color="blue" titulo="Para hoy" cuenta={v.hoy.length} vacio="Nada pendiente para hoy.">
             {v.hoy.map((t) => <Tarea key={t.id} t={t} alHacer={marcarHecha} />)}
@@ -286,6 +298,48 @@ export function Inicio() {
         alCerrar={() => setRecordar(null)}
         alEnviar={() => { const t = recordar; if (t) void hacer(() => cambiar(t.asunto_id, "tareas", { id: t.id, version: t.version, recordar: true }), "Se le recordó: volver a preguntar en 3 días"); }} />
     </div>
+  );
+}
+
+/** «Para ti»: lo que te mencionaron y las tareas que otra persona te dejó, lo más nuevo arriba. */
+function ParaTi({ items, visto, nombreDe, alVer }: { items: ParaTiInicio[]; visto: string; nombreDe: (id: string | null) => string | null; alVer: () => void }) {
+  const esNuevo = (x: ParaTiInicio) => !visto || Date.parse(x.cuando) > Date.parse(visto);
+  const nuevos = items.filter(esNuevo).length;
+  return (
+    <section aria-label="Para ti">
+      <h2 className="db-h2">
+        <Cuadro icono="arroba" color="blue" chico />Para ti<span className="as-m as-num">{nuevos ? `${nuevos} nuevo${nuevos === 1 ? "" : "s"}` : ""}</span>
+        <span className="as-sp" />
+        {nuevos ? <button type="button" className="as-btn as-gho in-visto" onClick={alVer}><Icono nombre="ok" tamano={16} />Ya lo vi</button> : null}
+      </h2>
+      <div className="as-card in-card">
+        {items.slice(0, 12).map((x) => {
+          const nuevo = esNuevo(x);
+          const href = x.asunto_id ? `/panel/asuntos/${x.asunto_id}${x.clase === "asignada" ? "?ver=plan" : ""}` : "/panel/asuntos";
+          const quien = nombreDe(x.de);
+          const contenido = (
+            <>
+              <Cuadro icono={x.clase === "mencion" ? "nota" : "lista"} color={x.clase === "mencion" ? "violet" : "indigo"} chico />
+              <span className="as-ren-c">
+                <b className="in-pt-t">{x.texto}</b>
+                <span>{[x.clase === "mencion" ? (quien ? `Te mencionó ${quien}` : "Te mencionaron") : (quien ? `Te la dejó ${quien}` : "Te la dejaron"),
+                  x.ajeno ? "en un asunto que no llevas" : x.asunto, haceCuanto(x.cuando)].filter(Boolean).join(" · ")}</span>
+              </span>
+              {x.clase === "asignada" && x.fecha ? <span className={`as-pill ${diasHasta(x.fecha) < 0 ? "as-pill-bad" : ""}`}>{fechaCorta(x.fecha, x.hora)}</span> : null}
+              {nuevo ? <span className="in-punto"><span className="pn-solo-lector">Nuevo</span></span> : null}
+            </>
+          );
+          // Una mención en un asunto que no te toca ver se lee aquí, pero no se abre.
+          if (x.ajeno) return <div key={x.id} className="as-ren in-pt" data-nuevo={nuevo || undefined}>{contenido}</div>;
+          return (
+            <Link key={x.id} className="as-ren in-pt" href={href} data-nuevo={nuevo || undefined}>
+              {contenido}
+              <Icono nombre="ch" tamano={16} />
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

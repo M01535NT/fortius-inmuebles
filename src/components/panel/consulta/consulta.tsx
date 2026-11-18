@@ -9,6 +9,7 @@ import { Cuadro } from "@/components/panel/asunto/pildora";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
+import { BotonDictar, sumarDictado } from "@/components/panel/kit/dictar";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
 import {
   DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger,
@@ -365,7 +366,10 @@ export function PantallaConsulta() {
               <Desplegable etiqueta="Por dónde" valor={b.canal} opciones={ops(CANALES, NOMBRE_CANAL)}
                 alElegir={(v) => cambiar((x) => ({ ...x, canal: (v || "llamada") as Canal }))} />
             </div>
-            <label className="pn-campo" htmlFor={`${id}-q`}>Qué pasa
+            <label className="pn-campo" htmlFor={`${id}-q`}>
+              <span className="as-fila">Qué pasa<span className="as-sp" />
+                <BotonDictar que="qué pasa" alDictar={(t) => cambiar((x) => ({ ...x, que_pasa: sumarDictado(x.que_pasa, t) }))} alFallar={avisar} />
+              </span>
               <textarea id={`${id}-q`} className="as-inp as-inp-borde as-area cs-que" value={b.que_pasa} maxLength={20000} placeholder="Como te lo cuenta"
                 onChange={(e) => cambiar((x) => ({ ...x, que_pasa: e.target.value }))} />
             </label>

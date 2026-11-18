@@ -2,10 +2,13 @@ import type {
   Asunto, ClaveApartado, Encargo, EnQueVa, EntradaHistorial, FilaAsunto, Miembro, Papel, PersonaDuplicada, Quien,
 } from "@/lib/backend/asuntos-contrato";
 import type { Destino, ResultadoSubida } from "@/lib/backend/apartados-contrato";
+import type { CambioFicha, FichaPersona } from "@/lib/backend/directorio-contrato";
 import type { NombreIcono } from "@/components/panel/icons";
 
 export * from "@/lib/backend/asuntos-contrato";
 export * from "@/lib/backend/apartados-contrato";
+export { CAMPOS_DATOS } from "@/lib/backend/directorio-contrato";
+export type { AsuntoDePersona, CambioFicha, CampoDato, DatosDePersona, FichaPersona } from "@/lib/backend/directorio-contrato";
 
 /** Error de una ruta del panel, con el mensaje que ya viene en lenguaje sencillo. */
 export class FalloPanel extends Error {
@@ -31,9 +34,21 @@ export async function pedir<T>(ruta: string, metodo = "GET", cuerpo?: unknown): 
 const base = "/api/admin/asuntos";
 export const leerAsuntos = () => pedir<{ asuntos: FilaAsunto[] }>(base).then((r) => r.asuntos);
 export const leerAsunto = (id: string) => pedir<{ asunto: Asunto }>(`${base}/${id}`).then((r) => r.asunto);
-export const leerEquipo = () => pedir<{ equipo: Miembro[]; yo: string }>(`${base}/equipo`);
+export const leerEquipo = () => pedir<{ equipo: Miembro[]; companeros?: Miembro[]; yo: string }>(`${base}/equipo`);
 export const leerHistorial = (id: string, antes?: number) =>
   pedir<{ entradas: EntradaHistorial[] }>(`${base}/${id}/historial${antes ? `?antes=${antes}` : ""}`).then((r) => r.entradas);
+/** Solo notas y decisiones: las del costado de cada ventana. */
+export const leerNotas = (id: string) =>
+  pedir<{ entradas: EntradaHistorial[]; fijadas: number[] }>(`${base}/${id}/historial?solo=notas`);
+/** Fija una nota arriba del costado o la suelta. */
+export const fijarNota = (asuntoId: string, notaId: number, fijar: boolean) =>
+  pedir<{ ok: true }>(`${base}/${asuntoId}/historial`, "PATCH", { id: notaId, fijar });
+export type NuevaNota = { clase: "nota" | "decision"; texto: string; desde?: string; personas?: string[]; apartados?: string[]; equipo?: string[] };
+
+/** La ficha completa de una persona (contacto, datos y otros asuntos). */
+export const leerFicha = (personaId: string) => pedir<{ ficha: FichaPersona }>(`/api/admin/personas/${personaId}`).then((r) => r.ficha);
+export const cambiarFicha = (personaId: string, cambio: CambioFicha) =>
+  pedir<{ ficha: FichaPersona }>(`/api/admin/personas/${personaId}`, "PATCH", cambio).then((r) => r.ficha);
 export const cargarEjemplos = () => pedir<{ creados: number }>(`${base}/ejemplos`, "POST", {});
 export const abrirAsunto = (nombre: string, encargos: Encargo[]) => pedir<{ asunto: { id: string; folio: string } }>(base, "POST", { nombre, encargos }).then((r) => r.asunto);
 

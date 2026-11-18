@@ -270,6 +270,117 @@ button.ren:hover{background:var(--hov)}
   .aviso{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
   .edit{margin-left:0}
 }
+/* Personas por papel, ficha de cada persona y notas del asunto a la derecha de cada ventana */
+a.btn{color:inherit;text-decoration:none}
+.win-b{flex:1;min-height:0;display:flex;position:relative}
+.win-b>.win-c{min-width:0}
+.win.riel-ab{width:min(900px,100%)}
+.win.ancha{width:min(800px,100%)}
+.win.ancha.riel-ab{width:min(1120px,calc(100% - 40px))}
+.rtog{position:relative}
+.rtog[aria-pressed="true"]{background:var(--acc-f);color:var(--acc)}
+.badge{position:absolute;top:1px;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--acc);color:var(--on-acc);font-size:10px;font-weight:650;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.av.lg{width:46px;height:46px;font-size:15px}
+.av.ido{background:var(--hov);color:var(--tx3)}
+.gp{display:flex;flex-direction:column;gap:8px}
+.gp .h2{padding:0 2px}
+.gp .h2 .btn{height:30px;padding:0 8px;color:var(--acc)}
+.pms{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.pm{display:flex;align-items:center;gap:10px;width:100%;min-height:62px;padding:10px 12px;background:var(--card);border:1px solid var(--bd);border-radius:12px;transition:border-color .12s}
+.pm:hover{border-color:var(--tx3)}
+.pm .c{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pm .c b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm .c span{font-size:12.5px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm .c small{display:flex;align-items:center;gap:5px;min-width:0;color:var(--tx2)}
+.pm>svg:last-child{color:var(--tx3)}
+.gp-vacio{padding:12px 14px;border:1.5px dashed var(--bd);border-radius:12px;color:var(--tx2);font-size:13px}
+.win-c.sinpad{padding:0;gap:0;overflow:hidden}
+.win-c.sinpad>.pf{flex:1 1 auto;min-height:0}
+.pf{display:flex}
+.pf-lista{width:236px;flex:none;display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--bd);background:var(--card)}
+.pf-lista .srch{margin:10px 10px 6px;background:var(--bg)}
+.pf-lista .pane{flex:1;padding:0 6px}
+.pl-it{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:7px 8px;border-radius:9px}
+.pl-it:hover{background:var(--hov)}
+.pl-it[aria-current="true"]{background:var(--acc-f)}
+.pl-it .c{flex:1;min-width:0;display:flex;flex-direction:column}
+.pl-it .c b{font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-it[aria-current="true"] .c b{font-weight:650}
+.pl-it .c span{font-size:12px;color:var(--tx2)}
+.pf-pie{padding:10px;border-top:1px solid var(--bd)}
+.pf-ficha{flex:1;min-width:0;display:flex;flex-direction:column}
+.pf-cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 16px 12px;background:var(--card)}
+.pf-cab .nom{flex:1;min-width:180px;display:flex;flex-direction:column;gap:3px}
+.pf-cab .nom b{font-size:17px;font-weight:650;letter-spacing:-.01em;overflow-wrap:anywhere}
+.pf-cab .acc{display:flex;align-items:center;gap:4px}
+.rel{display:flex;align-items:center;gap:6px;color:var(--tx2);font-size:13px;min-width:0}
+.rel input{flex:1;min-width:0;border:0;background:none;padding:2px 0;color:var(--tx2)}
+.rel input::placeholder{color:var(--tx3)}
+.pf-ficha>.tabs{margin:0;padding:0 12px;background:var(--card)}
+.pf-c{padding:14px 16px 40px;display:flex;flex-direction:column;gap:10px}
+.pf-c>.btn{align-self:flex-start}
+.gh>svg:nth-child(2){color:var(--tx2)}
+.pcs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 10px;padding:6px 8px 10px}
+.pc{display:flex;flex-direction:column;gap:1px;min-width:0;padding:6px 8px;border-radius:8px}
+.pc:hover{background:var(--hov)}
+.pc:focus-within{box-shadow:0 0 0 2px var(--acc)}
+.pc.an{grid-column:1/-1}
+.plb{font-size:12px;color:var(--tx2);font-weight:500}
+.pvl{display:flex;align-items:center;gap:6px;min-height:28px}
+.pvl input{flex:1;min-width:0;height:28px;border:0;background:none;outline:none;padding:0}
+.pvl input::placeholder{color:var(--tx3)}
+.pvl .oc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.03em}
+.pvl .dd{height:28px;padding:0 4px;margin-left:-4px;border-color:transparent;background:none}
+.pvl .dd.w{width:calc(100% + 4px)}
+.pvl .dd:focus-visible{outline:none}
+.ojo{width:32px;height:32px;margin:-4px -4px -4px 0;display:grid;place-items:center;border-radius:7px;color:var(--tx2);flex:none}
+.ojo:hover{background:var(--hov);color:var(--tx)}
+.menc{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border:1.5px dashed var(--bd);border-radius:12px;color:var(--tx2);font-size:13px}
+.menc .btn{margin-left:auto;color:var(--acc)}
+.riel{width:300px;flex:none;display:flex;flex-direction:column;min-height:0;background:var(--card);border-left:1px solid var(--bd)}
+.riel-h{display:flex;align-items:center;gap:8px;padding:12px 14px 8px}
+.riel-h b{font-weight:650}
+.riel-f{padding:0 14px 10px}
+.rcomp{margin:0 14px 10px;border:1px solid var(--bd);border-radius:12px;background:var(--card);position:relative}
+.rcomp:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-f)}
+.rcomp textarea{display:block;width:100%;min-height:66px;border:0;background:none;outline:none;resize:none;padding:10px 11px 4px;line-height:1.45}
+.rcomp textarea::placeholder{color:var(--tx3)}
+.rcomp .pie{display:flex;align-items:center;gap:8px;padding:4px 6px 6px 10px}
+.rsw{display:inline-flex;align-items:center;gap:8px;min-height:34px;font-size:13px;font-weight:500;color:var(--tx2)}
+.rsw[aria-checked="true"]{color:var(--c-violet)}
+.rsw[aria-checked="true"] .sw{background:var(--c-violet)}
+.rsw[aria-checked="true"] .sw::after{transform:translateX(16px)}
+.rsug{position:absolute;left:6px;right:6px;top:calc(100% + 4px);z-index:5;background:var(--card);border:1px solid var(--bd);border-radius:11px;box-shadow:var(--sombra);padding:4px;max-height:248px;overflow-y:auto}
+.rsug button{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:6px 8px;border-radius:8px;font-weight:500}
+.rsug button>span:first-of-type{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rsug button:hover,.rsug button.act{background:var(--hov)}
+.rsug button>svg{color:var(--tx2)}
+.rnotas{flex:1;padding:2px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.rn{padding:9px 11px;border-radius:10px;background:var(--bg);display:flex;flex-direction:column;gap:5px}
+.rn.dec{box-shadow:inset 3px 0 0 var(--c-violet)}
+.rn .tx{overflow-wrap:anywhere;line-height:1.5}
+.rn .meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--tx2)}
+.rn .meta .rfij{margin:-6px -6px -6px auto;width:30px;height:30px;min-height:30px;color:var(--tx3)}
+.rn .meta .rfij[aria-pressed="true"]{color:var(--acc)}
+.rn.fija{box-shadow:inset 3px 0 0 var(--acc)}
+@media (max-width:900px){.rn .meta .rfij{width:44px;height:44px;min-height:44px;margin:-12px -10px -12px auto}}
+.men{display:inline;padding:0 3px;border-radius:4px;background:var(--acc-f);color:var(--acc);font-weight:550}
+.men:hover{text-decoration:underline;text-underline-offset:2px}
+.men.ap{background:var(--hov);color:var(--tx)}
+.pill.dec{background:var(--hov);color:var(--c-violet)}
+.riel-pie{padding:9px 14px 12px;font-size:12px;color:var(--tx2);border-top:1px solid var(--bd)}
+@media (min-width:901px){.solo-tel{display:none}}
+@media (max-width:900px){
+  .win.riel-ab,.win.ancha,.win.ancha.riel-ab{width:100%}
+  .riel{position:absolute;top:0;right:0;bottom:0;width:min(340px,100%);box-shadow:var(--sombra);z-index:3}
+  .pf-lista{display:none}
+  .pms{grid-template-columns:minmax(0,1fr)}
+  .win-h .rtog,.riel .btn.ico,.pf .btn.ico{width:44px;height:44px}
+  .riel .btn,.riel .dd,.pf .btn,.pf .dd.pil,.gp .h2 .btn,.menc .btn{height:44px}
+  .rsw,.rsug button{min-height:44px}
+  .ojo{width:44px;height:44px;margin:-8px -8px -8px 0}
+  .pvl .dd{height:32px}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -308,7 +419,7 @@ const I = {
   chat: '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/>', copia: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
   ojo: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>', etiq: '<path d="M4 4h8l8 8-8 8-8-8zM8.5 8.5v0"/>',
   sello: '<path d="M9 13V9a3 3 0 1 1 6 0v4M6 13h12v4H6zM5 20h14"/>', band: '<path d="M5 21V4M5 5h12l-2 4 2 4H5"/>',
-  pin: '<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/>', rayo: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
+  pin: '<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/>', fijar: '<path d="M15 4.5l-4 4-4 1.5-1.5 1.5 7 7 1.5-1.5 1.5-4 4-4M9 15l-4.5 4.5M14.5 4l5.5 5.5"/>', rayo: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
   regla: '<path d="M3 16L16 3l5 5L8 21zM7 12l2 2M10 9l2 2M13 6l2 2"/>', llave: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/>',
   nota: '<path d="M5 4h14v11l-5 5H5zM14 20v-5h5M8 9h8M8 13h4"/>', estrella: '<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/>',
   globo: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c3 3 3 14 0 17M12 3.5c-3 3-3 14 0 17"/>', pdf: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M9.5 17v-4h1.2a1.3 1.3 0 0 1 0 2.6H9.5M14 13v4M14 13h2M14 15h1.5"/>',
@@ -355,9 +466,15 @@ const Hon = (lineas = [], estado = 'Sin enviar', contrato = 'Sin hacer', cobros 
 const Op = (v = '', analisis = '', resolver = []) => ({ v, analisis, resolver, archivo: '' });
 
 const A = [
-  { id: uid(), folio: 'EXP-000031', titulo: 'Casa en el Murúa', encargo: ['Revisar'], momento: 0, publicado: false,
-    personas: [P('Laura Méndez', 'Contacto', '+1 619 555 0142', 'hija, vive en Estados Unidos'), P('Sra. Méndez', 'Titular', '', 'falleció, sin testamento'), P('Hermano 1', 'Heredero', '', 'le da poder'), P('Hermano 2', 'Heredero', '', 'le da poder')],
-    inmuebles: [Inm('Casa en el Murúa', 'Casa', 'Venta', 'Murúa')],
+  { id: uid(), folio: 'EXP-000031', titulo: 'Casa en la Murúa', encargo: ['Revisar'], momento: 0, publicado: false,
+    personas: [
+      Object.assign(P('Laura Méndez Ríos', 'Contacto', '+1 619 555 0142', 'Hija de Rosa · recibe el poder'), { correo: 'laura.mendez@ejemplo.com', nac: 'Mexicana', ocup: 'Enfermera', civil: 'Casada', regimen: 'Separación de bienes', conyuge: 'Mark Davis', ident: 'INE', identNum: 'IDMEX 2241809931', curp: 'MERL840312MBCNSR09', rfc: 'MERL840312QK4', dom: '3480 Imperial Ave, Logan Heights', cp: '92113', ciudad: 'San Diego, California', pais: 'Estados Unidos' }),
+      Object.assign(P('Rosa Méndez', 'Titular', '', 'Madre · la casa está a su nombre'), { nac: 'Mexicana', civil: 'Viuda', dom: 'Calle Río Bravo 1120, Murúa', cp: '22455', ciudad: 'Tijuana, Baja California', pais: 'México' }),
+      Object.assign(P('Jorge Méndez Ríos', 'Heredero', '664 555 0181', 'Hijo de Rosa · da poder a Laura'), { nac: 'Mexicana', civil: 'Soltero' }),
+      P('Ana Méndez Ríos', 'Heredero', '', 'Hija de Rosa'),
+      Object.assign(P('Notaría 5 de Tijuana', 'Notaría', '664 555 0105', 'Lleva el intestamentario'), { empresa: true, correo: 'contacto@notaria5.ejemplo.com', dom: 'Blvd. Agua Caliente 4558', ciudad: 'Tijuana, Baja California', pais: 'México' })
+    ],
+    inmuebles: [Inm('Casa en la Murúa', 'Casa', 'Venta', 'Murúa')],
     sit: { quiere: 'Vender', dueno: 'Falleció el titular', ocupa: 'Invadido', escritura: 'No sabe', debe: ['No sabe'] },
     averiguar: ['Cuánto debe de predial', 'Cuánto debe de agua y luz', 'Quién la ocupa y desde cuándo', 'Estado físico'],
     docs: [Dc('Identificación de Laura', 'Laura', true), Dc('Acta de defunción', 'Laura'), Dc('Actas de nacimiento de los tres hijos', 'Laura'), Dc('Escritura o datos del registro', 'Laura'), Dc('Boleta predial', 'Laura')],
@@ -366,7 +483,13 @@ const A = [
       { etapa: 'Estudio', tareas: [T('Pedirle los documentos', 'Fortius', -1, 'hecha'), T('Consultar el adeudo de predial', 'Fortius', 0), T('Consultar el adeudo de agua', 'Fortius', 2), T('Ver la casa por fuera', 'Fortius', 4), T('Levantamiento por dentro', 'Fortius', null, 'bloq', 'La casa está invadida')] },
       { etapa: 'Opinión y propuesta', tareas: [T('Revisar el caso con el abogado', 'Abogado', 8), T('Emitir la opinión jurídica', 'Fortius', 10), T('Presupuesto de honorarios', 'Fortius', 11)] }
     ],
-    hist: [H(-1, 'Nota', 'Llamó desde Estados Unidos. Puede venir a México cuando haga falta.')] },
+    hist: [
+      Object.assign(H(-1, 'Decisión', 'La casa sigue a nombre de @Rosa Méndez y no dejó testamento: vamos por intestamentario con la @Notaría 5.'), { desde: 'situacion' }),
+      Object.assign(H(-1, 'Nota', 'Faltan los datos de @Ana Méndez para el poder; se los pide @Laura Méndez esta semana.'), { desde: 'personas' }),
+      Object.assign(H(-1, 'Nota', '@Jorge Méndez le da poder a @Laura Méndez para firmar todo.'), { desde: 'personas' }),
+      Object.assign(H(-2, 'Nota', 'Predial con adeudo: pedir el estado de cuenta antes de cotizar. Ver #Documentos.'), { desde: 'documentos' }),
+      Object.assign(H(-2, 'Nota', 'Llamó desde Estados Unidos. @Laura Méndez vive en San Diego y puede venir cuando haga falta.'), { desde: 'personas', fija: true })
+    ] },
 
   { id: uid(), folio: 'EXP-000032', titulo: 'Terreno con sentencia de prescripción', encargo: ['Comercializar'], momento: 0, publicado: false,
     personas: [P('Lic. Arturo Peña', 'Contacto', '664 555 0118', 'abogado, llevó el juicio')],
@@ -1056,9 +1179,7 @@ docRen = function (d, x) {
   return `<div class="ren"><button class="ckb" style="margin:0 -6px 0 -8px" data-a="doc" data-i="${x}" aria-label="${d.ok ? 'Marcar faltante' : 'Marcar recibido'}: ${esc(d.n)}"><span class="ck cu" ${d.ok ? 'style="background:var(--ok);border-color:var(--ok);color:var(--on-acc)"' : ''}>${d.ok ? ic('ok', 12) : ''}</span></button><span class="c"><b style="font-weight:500">${esc(d.n)}</b><span>${d.ok ? '' : '<span class="c-warn">Falta</span> · '}Lo entrega ${esc(d.de)}</span></span>${d.vence ? `<span class="pill ${v < 0 ? 'bad' : v <= 15 ? 'warn' : ''}">${v < 0 ? 'Venció' : 'Vence'} ${fecha(d.vence).toLowerCase()}</span>` : ''}${archivo(d.archivo)}<button class="btn gho ico" data-a="men" data-m="doc" data-i="${x}" aria-label="Opciones de ${esc(d.n)}">${ic('dots')}</button></div>`;
 };
 
-/* --- Personas: empresa, fallecida --- */
-WIN.personas = (a) => `<div class="card">${a.personas.map((p, i) => `<div class="ren"><span class="av">${p.empresa ? ic('edif', 15) : ini(p.n)}</span><span class="c"><b>${esc(p.n)}</b><span>${p.fallecida ? 'Sin contacto' : p.tel ? esc(p.tel) : 'Sin teléfono'}${p.nota ? ' · ' + esc(p.nota) : ''}</span></span>${p.fallecida ? '<span class="pill">Falleció</span>' : ''}${p.empresa ? '<span class="pill">Empresa</span>' : ''}${drop({ ops: PAPELES, val: p.papel, path: `a.personas.${i}.papel`, cls: 'pil', al: 'Papel' })}<button class="btn gho ico" data-a="men" data-m="persona" data-i="${i}" aria-label="Más de ${esc(p.n)}">${ic('dots')}</button></div>`).join('')}</div>
-  <div class="card pad"><div class="g2">${campo('Nombre', '<input class="inp" id="pn" data-enter="addp" autocomplete="off">')}${campo('Teléfono (con clave si es de otro país)', '<input class="inp num" id="pt" data-enter="addp" inputmode="tel" placeholder="+1 619…" autocomplete="off">')}</div><div class="fila" style="padding-top:10px">${drop({ ops: PAPELES, val: S.np || 'Contacto', path: 'S.np', ic: 'users' })}<span class="sp"></span><button class="btn pri" data-a="addp">${ic('mas', 16)}Agregar</button></div></div>`;
+/* --- Personas: empresa y fallecida (la ventana se dibuja más abajo, por papel) --- */
 A[0].personas[1].fallecida = true; A[5].personas[0].empresa = true;
 
 /* --- Situación: lo que falta averiguar se vuelve tarea --- */
@@ -1130,7 +1251,7 @@ vDir = function () {
   const q = S.q.trim().toLowerCase(), per = [...mapa.values()].filter((x) => !q || (x.p.n + ' ' + (x.p.tel || '')).toLowerCase().includes(q)).sort((x, y) => x.p.n.localeCompare(y.p.n));
   return `<div class="main"><section class="pane" id="p-main"><div class="in">
     <div class="top"><h1 class="h1">Directorio</h1><span class="m num">${per.length}</span><span class="sp"></span><label class="srch" style="margin:0;width:200px">${ic('bus', 16)}<input id="q3" data-b="S.q" data-vivo placeholder="Buscar" value="${esc(S.q)}" aria-label="Buscar personas"></label></div>
-    <div class="card">${per.map(({ p, as, contacto }) => `<div class="ren" style="flex-wrap:wrap"><span class="av">${p.empresa ? ic('edif', 15) : ini(p.n)}</span><span class="c" style="min-width:150px"><b>${esc(p.n)}</b><span>${p.fallecida ? 'Falleció' : p.tel ? esc(p.tel) : 'Sin teléfono'}${contacto ? ' · ' + esc(contacto.nota) : ''}</span></span>${contacto ? `<span class="pill warn">Sin asunto · llamarle ${fecha(contacto.volver).toLowerCase()}</span>` : ''}${as.map(({ a, papel }) => { const e = ENC[a.encargo[0]] || ['asu', 'gray']; return `<button class="chipas" data-a="ir" data-id="${a.id}" data-row="personas" title="${esc(papel)} en ${esc(a.titulo)}">${tile(e[0], e[1], 1)}<span>${esc(a.titulo)}</span></button>`; }).join('')}<button class="btn gho ico" data-a="men" data-m="dirp" data-n="${esc(p.n)}" data-t="${esc(p.tel || '')}" aria-label="Más de ${esc(p.n)}">${ic('dots')}</button></div>`).join('') || '<p class="pad m">Nadie coincide.</p>'}</div>
+    <div class="card">${per.map(({ p, as, contacto }) => `<div class="ren" style="flex-wrap:wrap"><span class="av">${p.empresa ? ic('edif', 15) : ini(p.n)}</span><span class="c" style="min-width:150px"><b>${esc(p.n)}</b><span>${p.fallecida ? 'Falleció' : p.tel ? esc(p.tel) : 'Sin teléfono'}${contacto ? ' · ' + esc(contacto.nota) : ''}</span></span>${contacto ? `<span class="pill warn">Sin asunto · llamarle ${fecha(contacto.volver).toLowerCase()}</span>` : ''}${as.map(({ a, papel }) => { const e = ENC[a.encargo[0]] || ['asu', 'gray']; return `<button class="chipas" data-a="ir" data-id="${a.id}" data-row="personas" data-pn="${esc(p.n)}" title="${esc(papel)} en ${esc(a.titulo)}">${tile(e[0], e[1], 1)}<span>${esc(a.titulo)}</span></button>`; }).join('')}<button class="btn gho ico" data-a="men" data-m="dirp" data-n="${esc(p.n)}" data-t="${esc(p.tel || '')}" aria-label="Más de ${esc(p.n)}">${ic('dots')}</button></div>`).join('') || '<p class="pad m">Nadie coincide.</p>'}</div>
   </div></section></div>`; };
 
 /* --- Inmuebles: elegir varios a la vez --- */
@@ -1282,6 +1403,161 @@ pintar = function () {
   document.getElementById('app').insertAdjacentHTML('beforeend', winHerr() + winFormato());
   if (sh && document.getElementById('p-herr')) document.getElementById('p-herr').scrollTop = sh;
   if (fid) { const el = document.getElementById(fid); if (el && document.activeElement !== el) { el.focus(); if (sel && el.setSelectionRange) { try { el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } } }
+};
+/* --- Personas por papel, ficha de cada persona y notas del asunto a la derecha (17/11) --- */
+Object.assign(I, {
+  user: '<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+  anillo: '<circle cx="12" cy="14.5" r="5.5"/><path d="M9.5 4.5L12 8l2.5-3.5"/>',
+  ident: '<rect x="3" y="5.5" width="18" height="13" rx="2"/><circle cx="8.5" cy="12" r="2.2"/><path d="M13.5 10h4.5M13.5 14h3"/>',
+  arroba: '<circle cx="12" cy="12" r="3.6"/><path d="M15.6 8.4v4.6a2.6 2.6 0 0 0 5.2 0V12a8.8 8.8 0 1 0-3.5 7"/>',
+  mic: '<path d="M9 6a3 3 0 0 1 6 0v5a3 3 0 0 1 -6 0zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>',
+  enviar: '<path d="M4.5 12L20 4.5 15.5 20l-3-6.5zM12.5 13.5L20 4.5"/>',
+  ojono: '<path d="M3 3l18 18M10.6 5.6A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.6 3.4M6.6 6.7C4 8.4 2.5 12 2.5 12S6 18.5 12 18.5c1.6 0 3-.4 4.2-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  filtro: '<path d="M4 6.5h16M7 12h10M10 17.5h4"/>'
+});
+PAPELES.splice(PAPELES.indexOf('Abogado'), 0, 'Apoderado'); PAPELES.splice(PAPELES.indexOf('Notaría') + 1, 0, 'Banco');
+const PGR = [['Quien nos busca', 'tel', 'blue', ['Contacto']], ['Dueños y herederos', 'llave', 'orange', ['Propietario', 'Titular', 'Heredero', 'Copropietario', 'Vendedor']], ['Del otro lado', 'users', 'violet', ['Comprador', 'Inquilino', 'Inversionista', 'Contraparte']], ['Quienes ayudan', 'edif', 'teal', ['Apoderado', 'Abogado', 'Notaría', 'Banco', 'Otro']]];
+const PLISTA = { civil: ['Soltera', 'Soltero', 'Casada', 'Casado', 'Divorciada', 'Divorciado', 'Viuda', 'Viudo', 'Unión libre'], regimen: ['Sociedad conyugal', 'Separación de bienes', 'No sabe'], ident: ['INE', 'Pasaporte', 'Cédula profesional', 'Otra'] };
+const PSEC = [
+  ['dp', 'Datos personales', 'user', [['n', 'Nombre completo', 0, 1], ['nac', 'Nacionalidad'], ['ocup', 'Ocupación']]],
+  ['ec', 'Estado civil', 'anillo', [['civil', 'Estado civil'], ['regimen', 'Régimen matrimonial'], ['conyuge', 'Cónyuge']]],
+  ['co', 'Contacto', 'tel', [['tel', 'Teléfono'], ['correo', 'Correo']]],
+  ['id', 'Identificación y datos fiscales', 'ident', [['ident', 'Identificación'], ['identNum', 'Número'], ['curp', 'CURP', 1], ['rfc', 'RFC', 1]]],
+  ['dm', 'Domicilio', 'casa', [['dom', 'Calle, número y colonia', 0, 1], ['cp', 'Código postal'], ['ciudad', 'Ciudad y estado'], ['pais', 'País']]]
+];
+Object.assign(S, { pv2: null, pnueva: null, pt: 'datos', pq: '', psec: {}, ver: {}, notas: innerWidth > 900, rf: 'todas', rtx: '', rdec: false, rsug: null, rcar: 0, rcaret: null });
+A[0].docs.forEach((d, i) => { d.sobre = [['Laura'], ['Rosa'], ['Laura', 'Jorge', 'Ana'], ['Rosa']][i] || []; });
+A[4].personas.push(Object.assign(P('Notaría 5 de Tijuana', 'Notaría', '664 555 0105', 'Escritura y cancelación de la hipoteca'), { empresa: true }));
+A.forEach((a) => a.hist.forEach((h) => { if (h.desde === undefined) h.desde = ''; }));
+
+const cortoP = (p) => p.n.replace(/^(Lic|Ing|Arq|Sra|Sr|Dra|Dr)\.\s+/, '').split(' ').slice(0, 2).join(' ').replace(/,$/, '');
+const sinAc = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const avP = (p, c = '') => `<span class="av ${c} ${p.fallecida ? 'ido' : ''}">${p.empresa ? ic('edif', c ? 20 : 15) : ini(p.n || '?')}</span>`;
+const apartL = (a) => a.apart.filter((k) => RENM[k]).map((k) => [k, k === 'inmueble' && a.inmuebles.length > 1 ? 'Inmuebles' : RENM[k][1], RENM[k][2]]).concat(a.propios.map((p) => ['p:' + p.id, p.n, 'lista']));
+const lblAp = (a, k) => { const x = apartL(a).find((y) => y[0] === k); return x ? x[1] : RENM[k] ? RENM[k][1] : ''; };
+/* Las menciones se vuelven enlaces: @persona abre su ficha, #apartado abre su ventana. */
+function textoN(a, t) {
+  const m = a.personas.map((p, i) => ['@' + cortoP(p), `<button class="men" data-a="rper" data-i="${i}" title="Abrir su ficha">@${esc(cortoP(p))}</button>`])
+    .concat(apartL(a).map(([k, l]) => ['#' + l, `<button class="men ap" data-a="win" data-v="${k}" title="Abrir ${esc(l)}">#${esc(l)}</button>`])).sort((x, y) => y[0].length - x[0].length);
+  const h = []; let s = String(t);
+  m.forEach(([tok, html]) => { if (s.includes(tok)) { s = s.split(tok).join('\u0001' + h.length + '\u0002'); h.push(html); } });
+  return esc(s).replace(/\u0001(\d+)\u0002/g, (x, n) => h[n]);
+}
+const ocultaV = (v) => v.slice(0, 4) + '•'.repeat(Math.max(v.length - 6, 3)) + v.slice(-2);
+function pcampo(p, ruta, [k, l, sec, ancho], idp) {
+  const v = p[k] || '', id = 'pf-' + k, cls = `pc ${ancho ? 'an' : ''}`, ver = S.ver[idp + k];
+  if (PLISTA[k]) return `<div class="${cls}"><span class="plb">${l}</span><span class="pvl">${drop({ ops: PLISTA[k], val: v, path: `${ruta}.${k}`, cls: 'w', ph: '—', al: l })}</span></div>`;
+  if (sec && v && !ver) return `<div class="${cls}"><span class="plb">${l}</span><span class="pvl"><span class="oc num">${esc(ocultaV(v))}</span><button class="ojo" data-a="pver" data-v="${esc(idp + k)}" title="Mostrar" aria-label="Mostrar ${l}">${ic('ojo', 16)}</button></span></div>`;
+  return `<div class="${cls}"><label class="plb" for="${id}">${l}</label><span class="pvl"><input id="${id}" class="${sec ? 'num' : ''}" data-b="${ruta}.${k}" value="${esc(v)}" placeholder="—" autocomplete="off"${k === 'tel' ? ' inputmode="tel"' : k === 'correo' ? ' inputmode="email"' : ''}>${sec && v ? `<button class="ojo" data-a="pver" data-v="${esc(idp + k)}" title="Ocultar" aria-label="Ocultar ${l}">${ic('ojono', 16)}</button>` : ''}</span></div>`;
+}
+function psecs(p, ruta, idp) {
+  return PSEC.filter(([s]) => !(s === 'ec' && p.empresa) && !(s === 'co' && p.fallecida)).map(([s, t, icn, fs]) => {
+    const key = idp + s, ab = !S.psec[key], cs = fs.filter(([k]) => !((k === 'regimen' || k === 'conyuge') && !/^Casad/.test(p.civil || ''))), llenos = cs.filter(([k]) => p[k]).length;
+    return `<div class="card"><button class="gh" data-a="psec" data-v="${esc(key)}" aria-expanded="${ab}">${ic('ch', 15)}${ic(icn, 16)}<span>${t}</span><span class="sp"></span>${ab ? '' : `<span class="m num">${llenos ? `${llenos} de ${cs.length}` : 'Vacío'}</span>`}</button>${ab ? `<div class="pcs">${cs.map((c) => pcampo(p, ruta, c, idp)).join('')}</div>` : ''}</div>`;
+  }).join('');
+}
+/* Entrada: las personas acomodadas por su papel en el caso. */
+function pentrada(a) {
+  return PGR.map(([t, icn, c, pap]) => {
+    const m = a.personas.map((p, i) => [p, i]).filter(([p]) => pap.includes(p.papel));
+    return `<section class="gp" aria-label="${t}"><h2 class="h2">${tile(icn, c, 1)}${t}<span class="m num">${m.length || ''}</span><span class="sp"></span><button class="btn gho" data-a="pagrega" data-v="${pap[0]}" aria-label="Agregar en «${t}»">${ic('mas', 16)}Agregar</button></h2>
+      ${m.length ? `<div class="pms">${m.map(([p, i]) => `<button class="pm" data-a="pabre" data-i="${i}">${avP(p)}<span class="c"><b>${esc(p.n)}</b><span>${esc(p.papel)} · ${p.fallecida ? 'Falleció' : p.tel ? esc(p.tel) : 'Sin teléfono'}</span>${p.nota ? `<small>${ic('liga', 12)}<span>${esc(p.nota)}</span></small>` : ''}</span>${ic('ch', 16)}</button>`).join('')}</div>` : '<div class="gp-vacio">Nadie todavía</div>'}</section>`;
+  }).join('');
+}
+/* Ficha: la lista de todas a la izquierda y la ficha de la persona a la derecha. */
+function pficha(a) {
+  const nv = S.pnueva, i = S.pv2, p = nv || a.personas[i], q = sinAc(S.pq.trim());
+  const ruta = nv ? 'S.pnueva' : `a.personas.${i}`, idp = nv ? 'nueva-' : `${a.id}-${i}-`, nom = (p.n || '').split(' ')[0];
+  const lista = a.personas.map((x, j) => [x, j]).filter(([x]) => !q || sinAc(x.n + ' ' + x.papel).includes(q)).map(([x, j]) => `<button class="pl-it" data-a="pabre" data-i="${j}" aria-current="${!nv && j === i}">${avP(x)}<span class="c"><b>${esc(x.n)}</b><span>${esc(x.papel)}</span></span></button>`).join('') || '<p class="m" style="padding:8px">Nadie coincide.</p>';
+  const docs = nv ? [] : a.docs.map((d, x) => ({ d, x })).filter(({ d }) => d.de === nom || (d.sobre || []).includes(nom));
+  const otros = nv ? [] : VIS().filter((b) => b !== a).map((b) => [b, b.personas.find((x) => x.n.toLowerCase() === p.n.toLowerCase())]).filter((x) => x[1]);
+  const llamar = p.tel ? `<a class="btn gho ico" href="tel:${esc(p.tel.replace(/[^+\d]/g, ''))}" title="Llamar" aria-label="Llamar a ${esc(p.n)}">${ic('tel')}</a>` : `<button class="btn gho ico" data-a="psintel" title="Llamar" aria-label="Llamar a ${esc(p.n)}: sin teléfono">${ic('tel')}</button>`;
+  const cab = nv ? `<div class="pf-cab"><span class="av lg ido">${ic('mas', 20)}</span><div class="nom"><b>Persona nueva</b><span class="m">Basta con el nombre; lo demás, cuando lo tengas.</span></div><div class="acc">${drop({ ops: PAPELES, val: nv.papel, path: 'S.pnueva.papel', cls: 'pil', al: 'Papel' })}</div></div>`
+    : `<div class="pf-cab">${avP(p, 'lg')}<div class="nom"><b>${esc(p.n)}</b><label class="rel">${ic('liga', 13)}<input id="pf-rel" data-b="${ruta}.nota" value="${esc(p.nota)}" placeholder="Agregar relación" aria-label="Relación con los demás" autocomplete="off"></label></div><div class="acc">${drop({ ops: PAPELES, val: p.papel, path: `${ruta}.papel`, cls: 'pil', al: 'Papel' })}${p.fallecida ? '' : llamar + `<button class="btn gho ico" data-a="pwa" data-i="${i}" title="WhatsApp" aria-label="WhatsApp a ${esc(p.n)}">${ic('chat')}</button>`}<button class="btn gho ico" data-a="men" data-m="persona" data-i="${i}" aria-label="Más de ${esc(p.n)}">${ic('dots')}</button></div></div>`;
+  const tabs = nv ? '' : `<div class="tabs" role="tablist">${[['datos', 'Datos', 'user'], ['docs', `Documentos${docs.length ? ' ' + docs.length : ''}`, 'file'], ['otros', `Otros asuntos${otros.length ? ' ' + otros.length : ''}`, 'asu']].map(([v, l, icn]) => `<button role="tab" aria-selected="${S.pt === v}" data-a="ptab" data-v="${v}">${ic(icn, 16)}${l}</button>`).join('')}</div>`;
+  const nmen = nv ? 0 : a.hist.filter((h) => h.t.includes('@' + cortoP(p))).length;
+  const cuerpo = nv ? psecs(nv, ruta, idp) + `<div class="fila"><span class="sp"></span><button class="btn" data-a="pcancela">Cancelar</button><button class="btn pri" data-a="pguarda">${ic('mas', 16)}Agregar al asunto</button></div>`
+    : S.pt === 'docs' ? `<div class="card">${docs.length ? docs.map(({ d, x }) => docRen(d, x)).join('') : '<div class="pad m">Nada todavía.</div>'}</div><button class="btn" data-a="win" data-v="documentos">${ic('file', 16)}Abrir Documentos</button>`
+    : S.pt === 'otros' ? `<div class="card">${otros.length ? otros.map(([b, x]) => { const e = ENC[b.encargo[0]] || ['asu', 'gray']; return `<button class="ren" data-a="ir" data-id="${b.id}" data-row="personas" data-pn="${esc(x.n)}">${tile(e[0], e[1])}<span class="c"><b>${esc(b.titulo)}</b><span>${esc(x.papel)} · ${b.folio}</span></span>${ic('ch', 16)}</button>`; }).join('') : '<div class="pad m">Solo en este asunto.</div>'}</div>`
+    : (p.fallecida ? `<div class="ban esp">${ic('alerta', 16)}<span>Falleció. Se conserva en el asunto, sin botones de contacto.</span></div>` : '') + psecs(p, ruta, idp)
+      + `<div class="menc">${ic('arroba', 16)}<span>${nmen ? `${nmen} ${nmen === 1 ? 'nota la menciona' : 'notas la mencionan'}` : 'Ninguna nota la menciona'}</span><button class="btn gho" data-a="pvernotas">Ver en notas</button></div>`;
+  return `<div class="pf"><div class="pf-lista"><label class="srch">${ic('bus', 16)}<input id="pq" data-b="S.pq" data-vivo placeholder="Buscar" value="${esc(S.pq)}" aria-label="Buscar persona" autocomplete="off"></label><div class="pane" id="p-pl">${lista}</div><div class="pf-pie"><button class="btn w" data-a="pagrega" data-v="Contacto">${ic('mas', 16)}Agregar persona</button></div></div>
+    <div class="pf-ficha pane" id="p-pf">${cab}${tabs}<div class="pf-c">${cuerpo}</div></div></div>`;
+}
+WIN.personas = (a) => (S.pnueva || S.pv2 != null ? pficha(a) : pentrada(a));
+const histW0 = WIN.historial;
+WIN.historial = (a) => { let h = histW0(a); a.hist.forEach((x) => { h = h.replace(`<p>${esc(x.t)}</p>`, `<p>${textoN(a, x.t)}</p>`); }); return h; };
+
+/* Riel de notas del asunto: el mismo Historial, a la derecha de cada ventana. */
+const notaR = (a, h) => { const d = h.tipo === 'Decisión', l = h.desde ? lblAp(a, h.desde) : ''; return `<div class="rn ${d ? 'dec' : ''} ${h.fija ? 'fija' : ''}"><p class="tx">${textoN(a, h.t)}</p><p class="meta">${d ? `<span class="pill dec">${ic('estrella', 12)}Decisión</span>` : ''}<span>${fecha(h.f)} · ${esc(h.quien)}${l ? ' · ' + esc(l) : ''}</span><button class="btn gho ico rfij" data-a="rfija" data-i="${a.hist.indexOf(h)}" aria-pressed="${!!h.fija}" title="${h.fija ? 'Soltar' : 'Fijar arriba'}" aria-label="${h.fija ? 'Soltar la nota' : 'Fijar la nota arriba'}">${ic('fijar', 15)}</button></p></div>`; };
+function rielN(a, k, label) {
+  const p = k === 'personas' && S.pv2 != null && !S.pnueva ? a.personas[S.pv2] : null;
+  if (S.rf === 'persona' && !p) S.rf = 'todas';
+  const ops = [['todas', 'Todas'], ['apart', 'Las de este apartado']].concat(p ? [['persona', `Las que mencionan a ${cortoP(p)}`]] : []);
+  const ns = a.hist.filter((h) => S.rf === 'todas' || (S.rf === 'persona' ? h.t.includes('@' + cortoP(p)) : h.desde === k || h.t.includes('#' + label) || (k === 'personas' && a.personas.some((x) => h.t.includes('@' + cortoP(x)))))).sort((x, y) => (y.fija ? 1 : 0) - (x.fija ? 1 : 0));
+  const sg = !S.rsug ? [] : (S.rsug.k === '@' ? a.personas.map((x) => ['@' + cortoP(x), x.papel, 'arroba']) : apartL(a).map(([, l, icn]) => ['#' + l, 'Apartado', icn])).filter(([v]) => sinAc(v.slice(1)).includes(sinAc(S.rsug.q)));
+  return `<aside class="riel" aria-label="Notas del asunto"><div class="riel-h">${ic('nota', 16)}<b>Notas del asunto</b><span class="m num">${a.hist.length}</span><span class="sp"></span><button class="btn gho ico solo-tel" data-a="riel" aria-label="Cerrar las notas">${ic('x')}</button></div>
+    <div class="riel-f">${drop({ ops, val: S.rf, path: 'S.rf', cls: 'w', ic: 'filtro', al: 'Qué notas ver' })}</div>
+    <div class="rcomp"><textarea id="rtx" data-b="S.rtx" rows="3" placeholder="Escribe una nota. @ para una persona, # para un apartado" aria-label="Nueva nota">${esc(S.rtx)}</textarea><div class="pie"><button class="rsw" role="switch" aria-checked="${S.rdec}" data-a="rdec"><span class="sw" aria-hidden="true"></span>Es una decisión</button><span class="sp"></span><button class="btn pri ico" data-a="rguarda" title="Guardar la nota" aria-label="Guardar la nota">${ic('enviar', 16)}</button></div>${sg.length ? `<div class="rsug" role="listbox" aria-label="Sugerencias">${sg.map(([v, s, icn], j) => `<button role="option" class="${j ? '' : 'act'}" data-a="rusa" data-v="${esc(v)}">${ic(icn, 15)}<span>${esc(v)}</span><span class="pill">${esc(s)}</span></button>`).join('')}</div>` : ''}</div>
+    <div class="rnotas pane" id="p-rn">${ns.map((h) => notaR(a, h)).join('') || '<p class="m">Ninguna nota con este filtro.</p>'}</div>
+    <div class="riel-pie">Nunca salen en informes ni documentos para el cliente.</div></aside>`;
+}
+ventana = function () {
+  if (!S.win) { S._w = null; return ''; }
+  const a = cur(), pr = S.win.startsWith('p:') ? a.propios.find((x) => x.id === S.win.slice(2)) : null;
+  if (!pr && !RENM[S.win]) { S.win = null; S._w = null; return ''; }
+  if (!pr && !a.apart.includes(S.win)) conApart(a, S.win);
+  if (S.pv2 != null && !a.personas[S.pv2]) S.pv2 = null;
+  const [k, l, i, c] = pr ? [S.win, pr.n, 'lista', 'gray'] : RENM[S.win], varios = k === 'inmueble' && a.inmuebles.length > 1 && S.inm !== null, q = S._w === S.win ? 'quieta' : ''; S._w = S.win;
+  const per = k === 'personas', ficha = per && (S.pnueva || S.pv2 != null), conR = k !== 'historial', ab = conR && S.notas;
+  const nom = varios || (k === 'inmueble' && a.inmuebles.length === 1) ? inmA().n : k === 'inmueble' ? 'Inmuebles' : l;
+  const atras = varios ? `<button class="btn gho ico" data-a="inm" data-i="-1" aria-label="Volver a los inmuebles">${ic('at')}</button>` : ficha ? `<button class="btn gho ico" data-a="pvolver" title="Todas las personas" aria-label="Volver a todas las personas">${ic('at')}</button>` : '';
+  const tog = conR ? `<button class="btn gho ico rtog" data-a="riel" aria-pressed="${ab}" title="Notas del asunto" aria-label="${ab ? 'Ocultar' : 'Ver'} las notas del asunto">${ic('nota')}${!ab && a.hist.length ? `<span class="badge">${a.hist.length}</span>` : ''}</button>` : '';
+  return `<div class="wvelo ${q}" data-a="wcerrar"></div><aside class="win ${q} ${ab ? 'riel-ab' : ''} ${per ? 'ancha' : ''}" role="dialog" aria-label="${esc(l)}"><div class="win-h">${atras}${tile(i, c)}<div style="min-width:0;flex:1"><b>${esc(nom)}</b><p class="m" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.titulo)}</p></div>${S.view !== 'asuntos' ? `<button class="btn" data-a="ir" data-id="${a.id}" title="Ir a su asunto">${ic('asu', 16)}Asunto</button>` : ''}${BASE.includes(k) ? '' : `<button class="btn gho ico" data-a="men" data-m="apartop" aria-label="Opciones del apartado">${ic('dots')}</button>`}${tog}<button class="btn gho ico" data-a="wcerrar" aria-label="Cerrar">${ic('x')}</button></div><div class="win-b"><div class="win-c ${ficha ? 'sinpad' : ''}" id="p-win">${pr ? propio(pr) : WIN[k](a)}</div>${ab ? rielN(a, k, pr ? pr.n : l) : ''}</div></aside>`;
+};
+const menP0 = MEN.persona, menN0 = MEN.nuevo;
+MEN.persona = (d) => menP0(d).map((it) => (!it.pel ? it : { ...it, fn() { const a = cur(), j = +d.i, p = a.personas.splice(j, 1)[0]; S.pv2 = null; avisa('Quitada del asunto', () => a.personas.splice(j, 0, p)); } }));
+MEN.nuevo = () => menN0().map((it) => (it.t !== 'Persona' ? it : { ...it, fn() { S.win = 'personas'; S.inm = cur().inmuebles.length > 1 ? null : 0; ACC.pagrega({ v: 'Contacto' }); } }));
+const accP = { win: ACC.win, ir: ACC.ir };
+Object.assign(ACC, {
+  win(d) { accP.win(d); S.pv2 = null; S.pnueva = null; S.pt = 'datos'; S.pq = ''; },
+  ir(d) { accP.ir(d); S.pnueva = null; S.pt = 'datos'; S.pq = ''; const j = d.pn ? cur().personas.findIndex((x) => x.n.toLowerCase() === d.pn.toLowerCase()) : -1; S.pv2 = j >= 0 ? j : null; },
+  pabre(d) { S.pv2 = +d.i; S.pnueva = null; S.pt = 'datos'; },
+  pvolver() { S.pv2 = null; S.pnueva = null; },
+  pagrega(d) { S.pnueva = { n: '', papel: d.v || 'Contacto', tel: '', nota: '' }; S.pv2 = null; S.foco = 'pf-n'; },
+  pcancela() { S.pnueva = null; },
+  pguarda() { const a = cur(), x = S.pnueva, p = Object.assign(P('', x.papel), x, { n: (x.n || '').trim() || 'Sin nombre' }); a.personas.push(p); S.pnueva = null; S.pv2 = a.personas.length - 1; S.pt = 'datos'; avisa('Ya está en el asunto', () => { const j = a.personas.indexOf(p); if (j >= 0) a.personas.splice(j, 1); S.pv2 = null; }); },
+  ptab(d) { S.pt = d.v; },
+  psec(d) { S.psec[d.v] = !S.psec[d.v]; },
+  pver(d) { S.ver[d.v] = !S.ver[d.v]; },
+  psintel() { S.psec[`${S.aid}-${S.pv2}-co`] = false; S.pt = 'datos'; S.foco = 'pf-tel'; avisa('Sin teléfono. Escríbelo en Contacto'); },
+  pwa(d) { const a = cur(), p = a.personas[d.i]; S.hoja = { k: 'msg', t: `Hola ${p.n.split(' ')[0]}, te escribo de Fortius por ${a.titulo.toLowerCase()}.` }; },
+  pvernotas() { S.notas = true; S.rf = 'persona'; },
+  riel() { S.notas = !S.notas; },
+  rdec() { S.rdec = !S.rdec; },
+  rusa(d) { const t = S.rtx, c = Math.min(S.rcar, t.length), antes = t.slice(0, c).replace(/[@#][^\s@#]*$/, '') + d.v + ' '; S.rtx = antes + t.slice(c); S.rcaret = antes.length; S.rcar = antes.length; S.rsug = null; },
+  rguarda() { const a = cur(), t = S.rtx.trim(); if (!t) { S.foco = 'rtx'; return; } a.hist.unshift({ f: HOY, tipo: S.rdec ? 'Decisión' : 'Nota', t, quien: 'Tú', desde: S.win || '' }); S.rtx = ''; S.rdec = false; S.rsug = null; S.foco = 'rtx'; },
+  rfija(d) { const a = cur(), h = a.hist[+d.i]; if (!h) return; if (!h.fija && a.hist.filter((x) => x.fija).length >= 10) { avisa('Ya hay 10 fijadas: suelta una para fijar otra'); return; } h.fija = !h.fija; avisa(h.fija ? 'Nota fijada arriba' : 'Nota suelta'); },
+  rper(d) { S.win = 'personas'; S.pv2 = +d.i; S.pnueva = null; S.pt = 'datos'; S.to = null; }
+});
+document.addEventListener('input', (e) => {
+  const el = e.target; if (el.id !== 'rtx') return;
+  const antes = S.rsug ? S.rsug.k + S.rsug.q : '', m = el.value.slice(0, el.selectionStart).match(/(?:^|\s)([@#])([^\s@#]*)$/);
+  S.rcar = el.selectionStart; S.rsug = m ? { k: m[1], q: m[2] } : null;
+  if ((S.rsug ? S.rsug.k + S.rsug.q : '') !== antes) pintar();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.target.id !== 'rtx') return;
+  if (e.key === 'Escape' && S.rsug) { e.stopPropagation(); S.rsug = null; pintar(); }
+  else if (e.key === 'Enter' && !e.shiftKey && S.rsug) { const b = document.querySelector('.rsug button'); if (b) { e.preventDefault(); e.stopPropagation(); hacer('rusa', b.dataset, b); } }
+  else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); hacer('rguarda', {}); }
+}, true);
+document.addEventListener('click', (e) => { if (S.rsug && !e.target.closest('.rcomp')) { S.rsug = null; if (!e.target.closest('[data-a]')) pintar(); } }, true);
+const pintar3 = pintar;
+pintar = function () {
+  const a = S.win && cur(); A.forEach((b) => b.hist.forEach((h) => { if (h.desde === undefined) h.desde = b === a ? S.win : ''; }));
+  pintar3();
+  if (S.rcaret != null) { const t = document.getElementById('rtx'); if (t) { t.focus(); t.setSelectionRange(S.rcaret, S.rcaret); } S.rcaret = null; }
 };
 pintar();
 </script>

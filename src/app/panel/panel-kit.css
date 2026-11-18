@@ -313,3 +313,21 @@ button.pn-dato { cursor: pointer; }
 .panel-root .pn-mas-fila:hover { background: var(--muted); }
 .panel-root .pn-mas-fila > svg:last-child { color: var(--ink-muted); }
 .panel-root .pn-mas-ic { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--r-md); background: var(--muted); color: var(--ink); }
+
+/* Buscador: dictar, crear una tarea en una línea y resultados del panel nuevo (SPEC.md, sección 15) */
+.pn-paleta-mic { flex: none; width: 36px; height: 36px; display: inline-grid; place-items: center; border: 0; border-radius: var(--r-md); background: transparent; color: var(--ink-muted); cursor: pointer; }
+.pn-paleta-mic:hover { background: var(--muted); color: var(--ink); }
+.pn-paleta-mic[data-dictando] { background: var(--accent-soft, var(--muted)); color: var(--accent); }
+.pn-paleta-tarea { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 0; }
+.pn-paleta-nota { font-size: 13px; color: var(--ink-muted); margin: 0; }
+.pn-paleta-donde { margin: 2px 10px 8px 50px; max-width: 360px; }
+.pn-paleta-txt { min-width: 0; display: grid; }
+.pn-paleta-txt > span { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-paleta-txt > small { font-size: 12px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 900px) { .pn-paleta-mic { width: 44px; height: 44px; } .pn-paleta-donde { margin-left: 10px; } }
+.pn-fav-ico { width: 22px; height: 22px; flex: none; display: inline-grid; place-items: center; border-radius: 6px; color: var(--warning, var(--ink-muted)); }
+/* El número de «Inicio»: lo que te toca hoy, las solicitudes que esperan y lo nuevo de «Para ti» (recordatorios). */
+.pn-cuenta-menu { margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 650; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums; line-height: 1; }
+.pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-cuenta-menu { position: absolute; top: 2px; right: 2px; min-width: 16px; height: 16px; font-size: 10px; padding: 0 4px; }
+.pn-barra-liga { position: relative; }
+.pn-barra-liga .pn-cuenta-menu { position: absolute; top: 4px; left: calc(50% + 4px); margin: 0; }

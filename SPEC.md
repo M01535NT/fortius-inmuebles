@@ -58,6 +58,7 @@ En el menú también hay un buscador, los asuntos recientes y la cuenta de quien
 En este orden, y cada bloque solo aparece si tiene algo (salvo hoy, la semana, lo que esperas de otros y lo que falta cobrar, que dicen «nada» cuando no hay):
 
 - **Por atender:** las solicitudes del sitio que no se han atendido, la más antigua arriba, con cuánto llevan esperando.
+- **Para ti:** lo que te mencionaron en una nota y las tareas que otra persona te dejó, de los últimos 30 días, lo más nuevo arriba. Lo que llegó después de la última vez que tocaste «Ya lo vi» lleva un punto y cuenta junto a «Inicio» en el menú. Cada renglón abre su asunto; si la mención es de un asunto que no llevas, la nota se lee ahí pero el asunto no se abre.
 - **Para hoy:** las tareas de Fortius con fecha de hoy o ya vencidas.
 - **Visitas:** las de hoy a siete días, con hora, quién viene y a qué inmueble.
 - **Esta semana:** las tareas de Fortius de mañana a siete días.
@@ -123,7 +124,7 @@ No abren asunto por sí solas una visita, un archivo que llega o un cambio de pr
 - **Un nombre** que se puede cambiar.
 - **Qué encargaron:** revisar, comercializar, tramitar o asesorar. Puede ser más de una cosa.
 - **En qué va:** en estudio, propuesta, en marcha, por cobrar o cerrado. Además, cualquier asunto se puede poner **en espera**, con el motivo y la fecha para retomarlo; mientras tanto no cuenta como atrasado. Lo cambia el asesor cuando quiere; no hay pasos forzosos. El sistema lo propone en el momento oportuno y el asesor acepta con un toque: al emitir la opinión jurídica (si no es «no factible»), «¿Pasar a Propuesta?»; al cargar el contrato firmado, «¿Pasar a En marcha?»; al cobrar todo, «¿Cerrar el asunto?». Nunca lo cambia solo. Si el asesor contesta «Ahora no», no se vuelve a proponer.
-- **Quién lo lleva:** un asesor responsable. El director puede cambiarlo.
+- **Quién lo lleva:** un asesor responsable. El director puede cambiarlo. Al cambiarlo, las tareas pendientes de quien lo llevaba pasan a la nueva persona; las que tenía otra persona del equipo y las ya hechas se quedan como están. Cada tarea que pasa queda en el Historial.
 - **Lo que sigue:** la próxima tarea, siempre a la vista, con marcar hecha y posponer. Si no hay, el asunto lo dice y pide escribirla.
 
 ### Los apartados
@@ -136,7 +137,7 @@ Las partes de un asunto se llaman **apartados**. Cada uno es un renglón con su 
 
 | Apartado | Qué lleva |
 | --- | --- |
-| **Personas** | Todas las personas del asunto, cada una con su papel: contacto, propietario, titular, heredero, copropietario, comprador, vendedor, inquilino, inversionista, contraparte, apoderado, abogado, notaría o banco |
+| **Personas** | Todas las personas del asunto, cada una con su papel: contacto, propietario, titular, heredero, copropietario, comprador, vendedor, inquilino, inversionista, contraparte, apoderado, abogado, notaría o banco. Se ven agrupadas por su lugar en el caso y al tocar a una se abre su ficha (sección 6) |
 | **Inmueble** | Uno o varios. Con varios (por ejemplo, cinco locales de una plaza), cada uno lleva su precio, su estado y su propio cierre |
 | **Interesados** | Solo cuando se comercializa. Cada persona interesada, con el inmueble o los inmuebles que le interesan, su visita (día y hora) y su oferta (monto y respuesta del dueño). Las visitas aparecen en Inicio el día que tocan |
 | **Situación** | Lo que se sabe del caso y la lista de lo que falta averiguar. Cada cosa por averiguar se vuelve tarea con un toque |
@@ -164,7 +165,8 @@ La vista se puede cambiar después sin perder lo capturado. Un apartado propio s
 - Cada tarea dice **quién la hace** (Fortius, el cliente, el abogado o la notaría) y para cuándo.
 - Una tarea puede llevar **hora**, además del día (una visita, una firma). Inicio las muestra ordenadas por hora.
 - Una tarea puede quedar **hecha**, **no aplica** o **no se puede todavía**, con el motivo.
-- Una tarea puede esperar a que termine otra, y puede repetirse (por ejemplo, un informe cada mes).
+- Una tarea puede **esperar a que termine otra**: se elige en la tarea y, mientras la otra siga pendiente, se lee «espera a…». Solo avisa; se puede hacer antes. Dos tareas no pueden esperarse una a la otra.
+- Una tarea puede **repetirse** cada semana, cada 15 días, cada mes, cada dos o tres meses, o cada año. Al dejarla hecha nace la siguiente con la fecha que toca (nunca en el pasado; por mes o por año, el mismo día: la del 31 cae el 28 en febrero y vuelve al 31 en marzo); si se desmarca y nadie tocó la nueva, la nueva se quita. La de mandar un informe se repite con su informe y se cambia desde él.
 - El plan se ve como lista o en una línea de tiempo.
 - Las tareas con fecha aparecen solas en Inicio.
 - **Toda tarea que le toca a otro** (el cliente, el abogado, la notaría) nace con una fecha de «volver a preguntar», tres días después de su fecha, para que no se quede dormida.
@@ -214,7 +216,14 @@ Cuando un trabajo termina y de él nace otro (una revisión que se vuelve venta,
 - Si una persona quedó capturada **dos veces**, el director **une las fichas**: elige la que se queda; sus asuntos, tareas, documentos y datos pasan a ella, y la otra va a Eliminados. Lo que ya tenía la que se queda no se reemplaza.
 - **Cliente** es quien ya firmó un contrato con Fortius. Antes de firmar es prospecto. La contraparte de un asunto no es cliente.
 - Si una persona **pidió no ser contactada**, todas las pantallas lo respetan: se apagan los botones de llamar y escribir.
-- Sus datos para contratos (nombre completo, estado civil, CURP, RFC, identificación, domicilio) se guardan en su ficha y de ahí los toman los documentos.
+- Sus datos (nombre completo, nacionalidad, ocupación, estado civil, CURP, RFC, identificación y domicilio) se guardan en su ficha y de ahí los toman los documentos que los necesiten. No todas las personas de un asunto van a un contrato: nada de eso es obligatorio.
+
+### Personas dentro de un asunto
+
+- **Al abrir Personas** se ven agrupadas por su lugar en el caso, en tarjetas, nunca en una tabla: **Quien nos busca** (contacto), **Dueños y herederos** (propietario, titular, heredero, copropietario, vendedor), **Del otro lado** (comprador, inquilino, inversionista, contraparte) y **Quienes ayudan** (apoderado, abogado, notaría, banco). Cada tarjeta dice su nombre, su papel, su teléfono y, si se anotó, su relación con las demás («Hija de Rosa, recibe el poder»).
+- Un grupo vacío dice «Nadie todavía», para que se note lo que falta. Cada grupo tiene **«Agregar»**, que agrega a alguien con ese papel ya puesto.
+- **Al tocar a una persona se abre su ficha**, sin salir de la ventana: a un lado la lista de todas las personas del asunto, para pasar de una a otra; al otro, su ficha con llamar, WhatsApp, su papel y tres pestañas: **Datos**, **Documentos** (los suyos en este asunto) y **Otros asuntos** (dónde más aparece y con qué papel).
+- En **Datos** cada dato se cambia ahí mismo; lo que falta se ve como «—» y no frena nada. La flecha ← regresa a los grupos.
 - El CURP y el RFC se muestran ocultos y no salen del panel.
 
 ## 7. Inmuebles
@@ -331,7 +340,7 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 
 - **Director:** ve todo, puede cambiar quién lleva cada asunto y tiene la sección Equipo. Ahí ve, por cada persona del equipo, sus asuntos abiertos, lo de hoy, lo de la semana, lo vencido, los asuntos sin siguiente paso, las solicitudes del sitio que tiene sin atender y lo que falta cobrar; «Ver» abre sus asuntos. Un aviso arriba dice cuántas solicitudes esperan a que las pase a alguien.
 - **Sin siguiente paso** es un asunto abierto, que no está en espera, sin ninguna tarea pendiente en su plan.
-- **Asesor:** ve solo lo suyo y lo que se le comparte. La sección Equipo no le aparece, y la dirección de un asunto ajeno le responde que no existe o no le toca verlo.
+- **Asesor:** ve solo lo suyo y lo que se le comparte. La sección Equipo no le aparece, y la dirección de un asunto ajeno le responde que no existe o no le toca verlo. Sí ve los nombres de sus compañeros, solo para mencionarlos con @ en una nota; eso no le muestra lo que lleva cada uno.
 - Esto se hace cumplir en la base de datos, no solo escondiendo botones.
 - El director entra con dos pasos (contraseña y un código).
 - Todo cambio queda registrado con quién lo hizo y cuándo.
@@ -375,7 +384,31 @@ Los apartados de un asunto y la ficha de un inmueble se abren en una ventana, si
 - **En el teléfono** toda ventana se abre a pantalla completa y esos dos botones no aparecen.
 - Los formatos por preguntas y los informes para el cliente se abren siempre a pantalla completa, porque llevan la hoja a un lado.
 
+### Las notas del asunto
+
+Las notas son **del asunto**, no de un apartado. Se escriben y se leen desde cualquier ventana del asunto, en un costado que siempre está a la mano.
+
+- **Escribir:** con **@** se menciona a una persona del asunto y con **#** a un apartado; la mención queda como enlace que abre esa ficha o ese apartado. Al escribir desde la ficha de alguien, la nota queda ligada a esa persona sin tener que mencionarla.
+- **Nota o decisión:** un interruptor marca la nota como decisión.
+- **Ver:** lo más nuevo arriba. Una lista desplegable elige ver todas, las de ese apartado o las que mencionan a la persona abierta. La ficha de cada persona dice cuántas notas la mencionan.
+- **Fijar:** cada nota tiene una chincheta que la deja arriba de todas, para tener a la vista lo que no se debe olvidar (por ejemplo, «el heredero vive en Estados Unidos y firma por poder»). Se suelta con la misma chincheta. Hasta 10 por asunto; con 10, hay que soltar una para fijar otra. Quién fijó o soltó una nota queda en el Historial.
+- Son las mismas notas del **Historial** y, como ellas, no se cambian ni se borran: lo único que cambia es si van fijadas.
+- **Nunca salen** en informes ni documentos para el cliente.
+- En el teléfono el costado se abre con un botón de la cabecera de la ventana.
+
 El boceto aprobado es la referencia de cómo se ve cada pantalla.
+
+### Lo de todos los días
+
+Lo que se usa a diario, en pocas palabras:
+
+- **Escribir en una línea:** en el buscador o en el Plan se escribe «Llamar a Laura jueves 10am» y el panel separa qué hacer, el día, la hora y con quién, y lo enseña antes de guardar. En el buscador se entiende como tarea cuando empieza con lo que hay que hacer («Llamar…», «Pedir…», «Firmar…»); un nombre o una calle («Domingo Pérez», «5 de Mayo») se busca. En el Plan la tarea queda en ese asunto. En el buscador se guarda en el asunto de esa persona; si tiene varios, o no se reconoció a nadie, se elige el asunto en una lista desplegable. Si no se entendió el día o la hora, la tarea se guarda igual, sin fecha.
+- **Dictar:** un micrófono en el buscador, en las notas, en el Plan y en «Qué pasa» de la consulta. Lo dicho se escribe en el cuadro y se puede corregir antes de guardar. Solo funciona en los navegadores que lo permiten; donde no, el micrófono no aparece.
+- **El buscador** encuentra asuntos, personas e inmuebles por nombre, folio, teléfono o correo, y desde ahí se crea: una tarea en una línea, una consulta nueva, un inmueble o una persona. Una persona con un solo asunto abre su ficha en ese asunto; con varios, el Directorio. Sin escribir nada muestra los favoritos y los recientes.
+- **Favoritos:** una estrella en el asunto y en la ficha del inmueble. Los favoritos salen arriba de los recientes en el menú y en el buscador, y te siguen en cualquier equipo. Hasta 30.
+- **Vistas guardadas:** en la lista de Asuntos, un menú guarda la búsqueda y los filtros de ese momento con un nombre, para volver a ellos con un toque; también los borra. Cada quien tiene las suyas.
+- **Comentarios y menciones:** en una nota, con **@** se menciona también a alguien del equipo (cualquiera lo puede hacer, también un asesor); la persona mencionada la ve en «Para ti» aunque no lleve ese asunto.
+- **Recordatorios:** junto a «Inicio» en el menú, un número con lo que te toca hoy o ya venció, las solicitudes del sitio que te esperan y lo nuevo de «Para ti». Con el panel abierto se revisa cada cinco minutos. Si en Configuración → Avisos das permiso a este navegador, también avisa en la pantalla: una hora antes de una cita, cuando entra una solicitud, cuando te mencionan o te dejan una tarea y, una vez al día, lo que se te pasó. Cada aviso respeta su interruptor. Con el panel cerrado no avisa todavía.
 
 ## 15. Funciones, en orden
 

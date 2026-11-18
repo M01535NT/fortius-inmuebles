@@ -1,22 +1,24 @@
 "use client";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 
 import { Icono } from "@/components/panel/icons";
+import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
+import { BotonDictar, sumarDictado } from "@/components/panel/kit/dictar";
 import { Interruptor } from "@/components/panel/kit/segmentado";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
-import { Switch } from "@/components/panel/ui/switch";
 import {
-  agregar, APARTADO, cambiar, CLASES_PERSONA, diasHasta, ESTADOS_TAREA, fechaCorta, haceCuanto, iniciales, NOMBRE_EN_QUE_VA, NOMBRE_ENCARGO, NOMBRE_INTERESADO, NOMBRE_PAPEL,
-  NOMBRE_QUIEN, PAPELES, QUIEN, sumarDias,
-  type Apartado, type Asunto, type ClasePersona, type Encargo, type EnQueVa, type EntradaHistorial, type EstadoInteresado, type EstadoTarea, type Etapa, type Papel,
-  type PersonaDuplicada, type Quien, type ResultadoPersona, type Tarea,
+  agregar, APARTADO, CADA_TAREA, cambiar, diasHasta, ESTADOS_TAREA, fechaCorta, haceCuanto, NOMBRE_EN_QUE_VA, NOMBRE_ENCARGO, NOMBRE_INTERESADO, NOMBRE_PAPEL,
+  NOMBRE_CADA, NOMBRE_QUIEN, QUIEN, sumarDias,
+  type Apartado, type Asunto, type CadaTarea, type Encargo, type EnQueVa, type EntradaHistorial, type EstadoInteresado, type EstadoTarea, type Etapa, type Papel,
+  type PersonaDelAsunto, type Quien, type Tarea,
 } from "@/lib/panel/asuntos/api";
 import { NOMBRE_TIPO } from "@/lib/backend/consultas-contrato";
 import { copiarGuia, cuantasTrae, guardarPlanEnBiblioteca } from "@/lib/panel/biblioteca";
 import { precioTexto } from "@/lib/backend/inmuebles-contrato";
+import { leerLineaTarea } from "@/lib/panel/linea-tarea";
 
 import { olvidarGuias, useGuias } from "../biblioteca/guias";
 import { InmueblesDelAsunto } from "../inmueble/del-asunto";
@@ -25,7 +27,7 @@ import { Documentos } from "./documentos";
 import { Honorarios, resumenHonorarios } from "./honorarios";
 import { Interesados, resumenInteresados } from "./interesados";
 import { OpinionJuridica, resumenOpinion } from "./opinion";
-import { Pildora } from "./pildora";
+import { Personas } from "./personas";
 import { Propio, resumenPropio } from "./propios";
 import { useAsuntos } from "./proveedor";
 import { resumenSituacion, Situacion } from "./situacion";
@@ -83,13 +85,17 @@ function ConNombres({ children }: { children: (nombreDe: (uid: string | null) =>
   return <>{children(nombreDe)}</>;
 }
 
-export function ContenidoApartado({ apartado, asunto, historial, foco, hacer, irA }: {
+export function ContenidoApartado({ apartado, asunto, historial, notas, foco, hacer, irA, alAbrirPersona, alVerNotas }: {
   apartado: Apartado; asunto: Asunto; historial: EntradaHistorial[] | null; foco: string | null; hacer: Hacer;
+  /** Las notas del asunto (para contar las que mencionan a cada persona). */
+  notas: EntradaHistorial[] | null;
+  alAbrirPersona: (p: PersonaDelAsunto | null) => void;
+  alVerNotas: () => void;
   /** Abre otro apartado del asunto (por ejemplo, de la opinión a Honorarios para cobrar el estudio). */
   irA: (clave: string, foco?: string) => void;
 }) {
   switch (apartado.clave) {
-    case "personas": return <Personas a={asunto} foco={foco === "nueva-persona"} hacer={hacer} />;
+    case "personas": return <Personas a={asunto} foco={foco} hacer={hacer} notas={notas} alAbrirPersona={alAbrirPersona} alVerNotas={alVerNotas} />;
     case "plan": return <Plan a={asunto} foco={foco === "nueva-tarea"} hacer={hacer} />;
     case "historial": return <Historial a={asunto} entradas={historial} foco={foco === "nueva-nota"} hacer={hacer} />;
     case "inmueble": return <ConNombres>{(nombreDe) => <InmueblesDelAsunto a={asunto} nombreDe={nombreDe} recargar={() => void hacer(async () => undefined)} />}</ConNombres>;
@@ -102,122 +108,27 @@ export function ContenidoApartado({ apartado, asunto, historial, foco, hacer, ir
   }
 }
 
-// ── Personas ─────────────────────────────────────────────────────────────────────────────────────────
-const NOMBRE_CLASE: Record<ClasePersona, string> = { persona: "Persona", empresa: "Empresa", institucion: "Institución" };
-
-function Personas({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
-  const id = useId();
-  const ref = useFoco<HTMLInputElement>(foco);
-  const [nombre, setNombre] = useState("");
-  const [papel, setPapel] = useState<Papel>(a.personas.length ? "propietario" : "contacto");
-  const [clase, setClase] = useState<ClasePersona>("persona");
-  const [pais, setPais] = useState("+52");
-  const [numero, setNumero] = useState("");
-  const [fallecida, setFallecida] = useState(false);
-  const [duplicada, setDuplicada] = useState<PersonaDuplicada | null>(null);
-
-  async function guardar(usar?: "misma" | "otra") {
-    const t = nombre.trim();
-    if (!t) return;
-    const cuerpo = usar === "misma" && duplicada
-      ? { papel, persona_id: duplicada.id }
-      : { papel, aunque_exista: usar === "otra", nueva: { nombre: t, clase, fallecida, ...(numero.trim() && !fallecida ? { telefono: { pais, numero } } : {}) } };
-    let r: ResultadoPersona = {};
-    await hacer(async () => { r = await agregar<ResultadoPersona>(a.id, "personas", cuerpo); }, undefined);
-    if (r.duplicada) { setDuplicada(r.duplicada); return; }
-    setDuplicada(null); setNombre(""); setNumero(""); setFallecida(false); setClase("persona");
-    ref.current?.focus();
-  }
-
-  return (
-    <>
-      {a.personas.length ? (
-        <div className="as-card">
-          {a.personas.map((p) => {
-            const digitos = p.telefono?.replace(/\D/g, "") ?? "";
-            const contacto = digitos && !p.fallecida && !p.no_contactar;
-            return (
-              <div key={p.id} className="as-ren">
-                <span className="as-av" aria-hidden>{p.clase === "persona" ? iniciales(p.nombre) : <Icono nombre="edif" tamano={15} />}</span>
-                <span className="as-ren-c">
-                  <b>{p.nombre}</b>
-                  <span>{p.fallecida ? "Sin contacto" : p.telefono ?? "Sin teléfono"}</span>
-                </span>
-                {p.fallecida ? <span className="as-pill">Falleció</span> : null}
-                {p.clase !== "persona" ? <span className="as-pill as-ocultar-tel">{NOMBRE_CLASE[p.clase]}</span> : null}
-                <Pildora etiqueta="Papel" valor={p.papel} opciones={PAPELES.map((v) => ({ valor: v, etiqueta: NOMBRE_PAPEL[v] }))}
-                  alElegir={(v) => { if (v !== p.papel) void hacer(() => cambiar(a.id, "personas", { id: p.id, version: p.version, papel: v }), `${p.nombre}: ${NOMBRE_PAPEL[v].toLowerCase()}`); }} />
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="as-btn as-gho as-ico" aria-label={`Más de ${p.nombre}`}><Icono nombre="dots" tamano={18} /></DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    {contacto ? (
-                      <>
-                        <DropdownMenuItem asChild><a href={`tel:+${digitos}`}><Icono nombre="tel" tamano={16} />Llamar</a></DropdownMenuItem>
-                        <DropdownMenuItem asChild><a href={`https://wa.me/${digitos}`} target="_blank" rel="noopener noreferrer"><Icono nombre="chat" tamano={16} />WhatsApp</a></DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    ) : null}
-                    <DropdownMenuItem peligro onSelect={() => void hacer(() => cambiar(a.id, "personas", { id: p.id, version: p.version, quitar: true }), `Se quitó a ${p.nombre}`)}>
-                      <Icono nombre="bote" tamano={16} />Quitar del asunto
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-
-      <form className="as-card as-pad as-form" onSubmit={(e) => { e.preventDefault(); void guardar(); }}>
-        <p className="as-sub">Agregar persona</p>
-        <div className="as-g2">
-          <label className="pn-campo" htmlFor={`${id}-n`}>Nombre
-            <input ref={ref} id={`${id}-n`} className="as-inp as-inp-borde" value={nombre} maxLength={160} onChange={(e) => { setNombre(e.target.value); setDuplicada(null); }} />
-          </label>
-          <Desplegable etiqueta="Papel" valor={papel} opciones={PAPELES.map((v) => ({ valor: v, etiqueta: NOMBRE_PAPEL[v] }))} alElegir={(v) => { if (v) setPapel(v); }} />
-          <Desplegable etiqueta="Es" valor={clase} opciones={CLASES_PERSONA.map((v) => ({ valor: v, etiqueta: NOMBRE_CLASE[v] }))} alElegir={(v) => { if (v) setClase(v); }} />
-          {!fallecida ? (
-            <div className="pn-campo">
-              <label htmlFor={`${id}-t`}>Teléfono</label>
-              <span className="as-tel">
-                <input aria-label="Clave del país" className="as-inp as-inp-borde as-clave" value={pais} maxLength={5} onChange={(e) => setPais(e.target.value)} />
-                <input id={`${id}-t`} className="as-inp as-inp-borde" inputMode="tel" value={numero} maxLength={30} onChange={(e) => { setNumero(e.target.value); setDuplicada(null); }} />
-              </span>
-            </div>
-          ) : null}
-        </div>
-        <label className="as-fila as-switch">
-          <Switch checked={fallecida} onCheckedChange={setFallecida} aria-label="Falleció" />
-          <span>Falleció</span>
-        </label>
-        {duplicada ? (
-          <div className="as-ban" role="status">
-            <Icono nombre="users" tamano={16} />
-            <span>Ya existe <b>{duplicada.nombre}</b> con ese teléfono o correo.</span>
-            <span className="as-sp" />
-            <button type="button" className="as-btn" onClick={() => void guardar("otra")}>Crear otra</button>
-            <button type="button" className="as-btn as-pri" onClick={() => void guardar("misma")}>Usar esa ficha</button>
-          </div>
-        ) : (
-          <button type="submit" className="as-btn as-pri" aria-disabled={!nombre.trim()}><Icono nombre="mas" tamano={16} />Agregar</button>
-        )}
-      </form>
-    </>
-  );
-}
-
 // ── Plan ─────────────────────────────────────────────────────────────────────────────────────────────
 const POSPONER = [["Mañana", 1], ["En 3 días", 3], ["En una semana", 7], ["En un mes", 30]] as const;
 const NOMBRE_ESTADO: Record<EstadoTarea, string> = { pendiente: "Por hacer", hecha: "Hecha", no_aplica: "No aplica", no_se_puede: "No se puede todavía" };
 
-/** Lo que se ve bajo el título de la tarea: quién, cuándo y, si le toca a otro, cuándo volver a preguntar. */
-function metaTarea(t: Tarea): { texto: string; atrasada: boolean } {
+const esCada = (v: string | undefined): v is CadaTarea => (CADA_TAREA as readonly string[]).includes(v ?? "");
+
+/** La tarea a la que espera, si sigue pendiente (cuando ya terminó, deja de verse). */
+const esperaPendiente = (a: Asunto, t: Tarea) => (t.espera_a ? a.tareas.find((x) => x.id === t.espera_a && x.estado === "pendiente") ?? null : null);
+
+/** Lo que se ve bajo el título de la tarea: quién, cuándo, si le toca a otro cuándo volver a preguntar, a qué espera y si se repite. */
+function metaTarea(a: Asunto, t: Tarea): { texto: string; atrasada: boolean } {
   if (t.estado === "no_aplica" || t.estado === "no_se_puede") return { texto: [NOMBRE_ESTADO[t.estado], t.motivo].filter(Boolean).join(" · "), atrasada: false };
   const n = t.fecha ? diasHasta(t.fecha) : null;
-  const partes = [NOMBRE_QUIEN[t.quien], fechaCorta(t.fecha, t.hora?.slice(0, 5))];
+  const espera = t.estado === "pendiente" ? esperaPendiente(a, t) : null;
+  const cada = t.repetir?.cada;
+  const repite = esCada(cada) ? NOMBRE_CADA[cada].toLowerCase() : "";
+  const con = t.persona_id ? a.personas.find((p) => p.persona_id === t.persona_id) : undefined;
+  const partes = [NOMBRE_QUIEN[t.quien], fechaCorta(t.fecha, t.hora?.slice(0, 5)), con ? `con ${primerNombre(con.nombre)}` : "", espera ? `espera a «${espera.titulo}»` : "", repite];
   // Volver a preguntar solo se ve cuando ya llegó el día de la tarea (o no tiene): antes sería ruido.
   if (t.estado === "pendiente" && t.quien !== "fortius" && t.volver_a_preguntar && (n === null || n <= 0)) partes.push(`volver a preguntar ${fechaCorta(t.volver_a_preguntar).toLowerCase()}`);
-  return { texto: partes.join(" · "), atrasada: t.estado === "pendiente" && n !== null && n < 0 };
+  return { texto: partes.filter(Boolean).join(" · "), atrasada: t.estado === "pendiente" && n !== null && n < 0 };
 }
 
 /** La tarea abierta: cómo va (con su motivo si no aplica o no se puede todavía), quién, día y hora. */
@@ -229,6 +140,14 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
   const poner = (c: Record<string, unknown>, aviso?: string) => hacer(() => cambiar(a.id, "tareas", { id: t.id, version: t.version, ...c }), aviso);
   const conMotivo = t.estado === "no_aplica" || t.estado === "no_se_puede";
   const para = t.quien !== "fortius" ? personaPara(a, t.quien) : null;
+  const espera = esperaPendiente(a, t);
+  const deInforme = t.repetir?.que === "informe";
+  const cadaDe = t.repetir?.cada;
+  const cada = esCada(cadaDe) ? cadaDe : null;
+  // Las otras tareas del asunto: primero las que faltan; las hechas también, por si se anota después.
+  const otras = useMemo(() => a.tareas.filter((x) => x.id !== t.id && x.espera_a !== t.id)
+    .sort((x, y) => Number(x.estado !== "pendiente") - Number(y.estado !== "pendiente"))
+    .slice(0, 80).map((x) => ({ valor: x.id, etiqueta: `${x.titulo.slice(0, 80)}${x.estado === "pendiente" ? "" : ` · ${NOMBRE_ESTADO[x.estado].toLowerCase()}`}` })), [a.tareas, t.id]);
   return (
     <div className="as-pad as-form as-borde-arriba as-edicion">
       <label className="pn-campo" htmlFor={`${id}-t`}>Qué hay que hacer
@@ -244,6 +163,17 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
           <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={t.fecha ?? ""} onChange={(e) => void poner({ fecha: e.target.value || null })} />
         </label>
         <Desplegable etiqueta="Hora" valor={t.hora?.slice(0, 5) ?? ""} vacio="Sin hora" opciones={HORAS} alElegir={(v) => void poner({ hora: v || null })} />
+        <Desplegable etiqueta="Espera a" valor={t.espera_a ?? ""} vacio="No espera a otra" opciones={otras}
+          ayuda={espera ? "Avisa, no frena: puedes hacerla antes." : undefined}
+          alElegir={(v) => { if ((v || null) !== t.espera_a) void poner({ espera_a: v || null }, v ? "Espera a otra tarea" : "Ya no espera a otra"); }} />
+        {deInforme ? (
+          <p className="as-m as-edicion-nota"><Icono nombre="ciclo" tamano={14} />{cada ? NOMBRE_CADA[cada] : "Se repite"} con su informe</p>
+        ) : (
+          <Desplegable etiqueta="Se repite" valor={cada ?? ""} vacio="No se repite"
+            opciones={CADA_TAREA.map((c) => ({ valor: c, etiqueta: NOMBRE_CADA[c] }))}
+            ayuda={cada ? "Al dejarla hecha nace la siguiente." : undefined}
+            alElegir={(v) => { if ((v || null) !== cada) void poner({ repetir: v || null }, v ? NOMBRE_CADA[v] : "Ya no se repite"); }} />
+        )}
       </div>
       {conMotivo ? (
         <label className="pn-campo" htmlFor={`${id}-m`}>{t.estado === "no_aplica" ? "Por qué no aplica" : "Por qué no se puede todavía"}
@@ -274,12 +204,12 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
 function RenglonTarea({ a, t, hacer, abierta, alAbrir }: { a: Asunto; t: Tarea; hacer: Hacer; abierta: boolean; alAbrir: (abrir: boolean) => void }) {
   const hecha = t.estado === "hecha";
   const pendiente = t.estado === "pendiente";
-  const meta = metaTarea(t);
+  const meta = metaTarea(a, t);
   return (
     <div className="as-t-env" data-abierta={abierta || undefined}>
       <div className="as-t" data-est={t.estado}>
         <button type="button" className="as-ckb" aria-label={`${hecha ? "Desmarcar" : "Marcar hecha"}: ${t.titulo}`}
-          onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: t.id, version: t.version, estado: hecha ? "pendiente" : "hecha" }), hecha ? "Pendiente otra vez" : "Tarea hecha")}>
+          onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: t.id, version: t.version, estado: hecha ? "pendiente" : "hecha" }), hecha ? "Pendiente otra vez" : t.repetir?.cada && t.repetir.que !== "informe" ? "Hecha; ya está la siguiente" : "Tarea hecha")}>
           <span className="as-ck">{hecha ? <Icono nombre="ok" tamano={12} /> : !pendiente ? <Icono nombre="x" tamano={11} /> : null}</span>
         </button>
         <button type="button" className="as-tb as-tb-boton" aria-expanded={abierta} onClick={() => alAbrir(!abierta)}>
@@ -371,7 +301,13 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
   const [quien, setQuien] = useState<Quien>("fortius");
   const [etapa, setEtapa] = useState<string>(a.etapas.at(-1)?.id ?? "");
   const [nuevaEtapa, setNuevaEtapa] = useState("");
+  const { avisar } = useAvisos();
   const planes = useGuias("que_hacer");
+  // Escribir en una línea: «Llamar a Laura jueves 10am» trae su día, su hora y a Laura sin tocar los demás campos.
+  const [hoy] = useState(() => new Date());
+  const personasLinea = useMemo(() => a.personas.map((p) => ({ id: p.persona_id, nombre: p.nombre, asuntos: [a.id] })), [a.personas, a.id]);
+  const linea = useMemo(() => leerLineaTarea(titulo, hoy, personasLinea), [titulo, hoy, personasLinea]);
+  const leido = linea.pastillas.slice(1);
   const grupos = [
     ...a.etapas.map((e) => ({ id: e.id, etapa: e as Etapa | null, tareas: a.tareas.filter((t) => t.etapa_id === e.id) })),
     { id: "", etapa: null, tareas: a.tareas.filter((t) => !t.etapa_id || !a.etapas.some((e) => e.id === t.etapa_id)) },
@@ -428,13 +364,27 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
         const t = titulo.trim();
         if (!t) return;
         setTitulo("");
-        void hacer(() => agregar(a.id, "tareas", { titulo: t, quien, fecha: fecha || null, etapa_id: etapa || null }),
+        // Lo que dice la línea (día, hora, persona) manda sobre el campo de fecha; el título queda sin el «cuándo».
+        const l = linea;
+        void hacer(() => agregar(a.id, "tareas", {
+          titulo: (l.fecha || l.hora ? l.titulo : t) || t, quien, fecha: l.dia ?? (fecha || l.fecha || null), hora: l.hora, clase: l.clase,
+          etapa_id: etapa || null, persona_id: l.persona?.id ?? null, ...(l.fecha || l.hora || l.persona ? { origen: "linea" } : {}),
+        }),
           quien === "fortius" ? "Tarea agregada" : "Tarea agregada: volver a preguntar en 3 días").then(() => ref.current?.focus());
       }}>
         <p className="as-sub">Nueva tarea</p>
         <label className="pn-campo" htmlFor={`${id}-t`}>Qué hay que hacer
-          <input ref={ref} id={`${id}-t`} className="as-inp as-inp-borde" value={titulo} maxLength={300} onChange={(e) => setTitulo(e.target.value)} />
+          <span className="as-con-dictar">
+            <input ref={ref} id={`${id}-t`} className="as-inp as-inp-borde" value={titulo} maxLength={300} onChange={(e) => setTitulo(e.target.value)}
+              placeholder="Llamar a Laura jueves 10am" aria-describedby={leido.length ? `${id}-l` : undefined} />
+            <BotonDictar que="la tarea" alDictar={(x) => setTitulo((v) => sumarDictado(v, x))} alFallar={avisar} />
+          </span>
         </label>
+        {leido.length ? (
+          <p id={`${id}-l`} className="as-leido" aria-live="polite">
+            {leido.map((p) => <span key={p.k} className="pn-chp"><i>{p.k}</i><b>{p.v}</b></span>)}
+          </p>
+        ) : null}
         <div className="as-g2">
           <Desplegable etiqueta="Quién la hace" valor={quien} opciones={QUIEN.map((v) => ({ valor: v, etiqueta: NOMBRE_QUIEN[v] }))} alElegir={(v) => { if (v) setQuien(v); }} />
           <label className="pn-campo" htmlFor={`${id}-f`}>Para cuándo
@@ -484,6 +434,10 @@ function describir(e: EntradaHistorial, a: Asunto, nombreDe: (id: string) => str
         else if (c === "resultado" && ahora) partes.push(ahora === "se_logro" ? "Se cerró: se logró" : "Se cerró: no se dio");
         else if (c === "encargos") partes.push(`Encargo: ${(Array.isArray(ahora) ? ahora : []).map((x) => NOMBRE_ENCARGO[x as Encargo] ?? "").filter(Boolean).join(", ").toLowerCase() || "ninguno"}`);
         else if (c === "situacion") partes.push("Cambió la situación");
+        else if (c === "notas_fijadas") {
+          const antes = v[c]?.antes;
+          partes.push((Array.isArray(ahora) ? ahora.length : 0) >= (Array.isArray(antes) ? antes.length : 0) ? "Fijó una nota" : "Soltó una nota");
+        }
       }
       return partes.join(" · ") || "Cambió el asunto";
     }

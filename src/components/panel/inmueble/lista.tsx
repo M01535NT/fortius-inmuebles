@@ -35,7 +35,8 @@ export function ListaInmuebles() {
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("");
   const [elegidos, setElegidos] = useState<Set<string>>(new Set());
-  const [nuevo, setNuevo] = useState(false);
+  // Desde el buscador, «Inmueble nuevo» llega con ?nuevo=1 y abre el alta.
+  const [nuevo, setNuevo] = useState(() => params.get("nuevo") === "1");
 
   const cargar = useCallback(() => leerInmuebles().then((x) => { setTodos(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")), []);
   useEffect(() => { void cargar(); }, [cargar]);
@@ -134,7 +135,7 @@ export function ListaInmuebles() {
         opciones={actual?.asunto ? [{ etiqueta: "Ir a su asunto", icono: "asu", alElegir: () => router.push(`/panel/asuntos/${actual.asunto!.id}`) }] : []}>
         {abierto ? <FichaInmueble key={abierto} id={abierto} alCambiar={() => void cargar()} /> : null}
       </Ventana>
-      <DialogoNuevo abierto={nuevo} alCerrar={() => setNuevo(false)} alCrear={async (d) => {
+      <DialogoNuevo abierto={nuevo} alCerrar={() => { setNuevo(false); if (params.get("nuevo")) router.replace("/panel/inmuebles", { scroll: false }); }} alCrear={async (d) => {
         try {
           const x = await nuevoInmueble(d);
           avisar(`Inmueble ${x.folio} creado con su asunto de captación`);

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
+import { BotonFavorito } from "@/components/panel/kit/favorito";
 import { Interruptor } from "@/components/panel/kit/segmentado";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/panel/ui/dropdown-menu";
@@ -71,12 +72,15 @@ export function FichaInmueble({ id, alCambiar, nombreDe: dado }: { id: string; a
   const fotos = i.medios.filter((m) => m.tipo === "foto");
   return (
     <div className="as-form">
-      <div className="in-tabs" role="tablist" aria-label="Partes del inmueble">
-        {PESTANAS.map((p) => (
-          <button key={p.clave} type="button" role="tab" aria-selected={pestana === p.clave} onClick={() => setPestana(p.clave)}>
-            <Icono nombre={p.icono} tamano={16} />{p.nombre}{p.clave === "fotos" && fotos.length ? ` ${fotos.length}` : ""}
-          </button>
-        ))}
+      <div className="in-tabs-fila">
+        <div className="in-tabs" role="tablist" aria-label="Partes del inmueble">
+          {PESTANAS.map((p) => (
+            <button key={p.clave} type="button" role="tab" aria-selected={pestana === p.clave} onClick={() => setPestana(p.clave)}>
+              <Icono nombre={p.icono} tamano={16} />{p.nombre}{p.clave === "fotos" && fotos.length ? ` ${fotos.length}` : ""}
+            </button>
+          ))}
+        </div>
+        <BotonFavorito tipo="inmueble" id={i.id} nombre={i.nombre} />
       </div>
       {pestana === "datos" ? <Datos i={i} guardar={guardar} nombreDe={nombreDe} /> : null}
       {pestana === "fotos" ? <Fotos i={i} guardar={guardar} recargar={cargar} /> : null}

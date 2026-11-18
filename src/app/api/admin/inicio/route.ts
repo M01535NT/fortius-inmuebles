@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 /** Lo que hay que atender hoy, la semana y lo que falta cobrar (cada quien lo suyo; el director, todo). */
 export async function GET() {
   return apiResponse(async () => {
-    const { client } = await requireStaff();
-    return { inicio: await leerInicio(client) };
+    const { user, client } = await requireStaff();
+    return { inicio: await leerInicio(client, user.id) };
   });
 }

@@ -3,8 +3,12 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
+import { useMisPreferencias, type VistaGuardada } from "@/components/panel/datos/use-mis-preferencias";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/panel/ui/dropdown-menu";
 import {
   cargarEjemplos, diasHasta, EN_QUE_VA, fechaCorta, ICONO_ENCARGO, iniciales, NOMBRE_EN_QUE_VA, type EnQueVa, type FilaAsunto,
 } from "@/lib/panel/asuntos/api";
@@ -12,6 +16,7 @@ import { useSession } from "@/lib/panel/legado/sesion";
 
 import { Cuadro, Pildora } from "./pildora";
 import { useAsuntos } from "./proveedor";
+import { DialogoTexto } from "./ventana";
 
 const sinAcentos = (t: string) => t.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
@@ -37,21 +42,40 @@ export function ListaAsuntos() {
   const ruta = usePathname();
   const { avisar } = useAvisos();
   const [q, setQ] = useState("");
-  const [que, setQue] = useState<"" | EnQueVa>("");
+  const [que, setQue] = useState<"" | EnQueVa | "favoritos">("");
   const [lleva, setLleva] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [nombrando, setNombrando] = useState(false);
+  const prefs = useMisPreferencias();
+  const favoritos = useMemo(() => new Set((prefs.panel.favoritos ?? []).filter((f) => f.tipo === "asunto").map((f) => f.id)), [prefs.panel.favoritos]);
+  // Vistas guardadas (SPEC.md, sección 15): los filtros de la lista con nombre, para volver a ellos con un toque.
+  const vistas = (prefs.panel.vistas ?? []).filter((v) => v.lista === "asuntos");
+  const filtros: Record<string, string> = Object.fromEntries(Object.entries({ q: q.trim(), que, lleva }).filter(([, v]) => v));
+  const conFiltro = Object.keys(filtros).length > 0;
+  const aplicada = vistas.find((v) => JSON.stringify(v.filtros) === JSON.stringify(filtros));
+  const usarVista = (v: VistaGuardada) => {
+    setQ(v.filtros.q ?? "");
+    const w = v.filtros.que ?? "";
+    setQue(w === "favoritos" || (EN_QUE_VA as readonly string[]).includes(w) ? (w as EnQueVa | "favoritos") : "");
+    setLleva(v.filtros.lleva ?? "");
+  };
+  const guardarVistas = (lista: VistaGuardada[], aviso: string) => {
+    const otras = (prefs.panel.vistas ?? []).filter((v) => v.lista !== "asuntos");
+    prefs.cambiar({ vistas: [...otras, ...lista].slice(0, 24) }).then(() => avisar(aviso), (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo guardar."));
+  };
 
   const base = useMemo(() => asuntos ?? [], [asuntos]);
   const lista = useMemo(() => {
     const t = sinAcentos(q.trim());
     return base
-      .filter((a) => (!que || a.en_que_va === que) && (!lleva || a.responsable_id === lleva)
+      .filter((a) => (!que || (que === "favoritos" ? favoritos.has(a.id) : a.en_que_va === que)) && (!lleva || a.responsable_id === lleva)
         && (!t || sinAcentos(`${a.nombre} ${a.busqueda} ${a.siguiente?.titulo ?? ""}`).includes(t)))
       .sort(ordenar);
-  }, [base, q, que, lleva]);
+  }, [base, q, que, lleva, favoritos]);
 
   const opcionesQue = [
     { valor: "" as const, etiqueta: `Todos · ${base.length}` },
+    ...(favoritos.size ? [{ valor: "favoritos" as const, etiqueta: `Favoritos · ${base.filter((a) => favoritos.has(a.id)).length}` }] : []),
     ...EN_QUE_VA.map((m) => ({ valor: m, etiqueta: `${NOMBRE_EN_QUE_VA[m]} · ${base.filter((a) => a.en_que_va === m).length}` })),
   ];
   const presentes = new Set(base.map((a) => a.responsable_id));
@@ -82,7 +106,34 @@ export function ListaAsuntos() {
       <div className="as-fila as-filtros">
         <Pildora etiqueta="Qué ver" valor={que} opciones={opcionesQue} alElegir={setQue} />
         {director && opcionesLleva.length > 2 ? <Pildora etiqueta="Quién lo lleva" icono="users" valor={lleva} opciones={opcionesLleva} alElegir={setLleva} /> : null}
+        {vistas.length || conFiltro ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="as-btn as-gho as-vistas" aria-label={aplicada ? `Vista: ${aplicada.nombre}` : "Vistas guardadas"}>
+              <Icono nombre="estrella" tamano={15} />{aplicada ? <span className="as-corta">{aplicada.nombre}</span> : null}<Icono nombre="down" tamano={13} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-60">
+              {vistas.length ? <DropdownMenuLabel>Mis vistas</DropdownMenuLabel> : null}
+              {vistas.map((v) => (
+                <DropdownMenuItem key={v.nombre} onSelect={() => usarVista(v)}>
+                  <Icono nombre={v === aplicada ? "ok" : "lista"} tamano={16} />{v.nombre}
+                </DropdownMenuItem>
+              ))}
+              {vistas.length ? <DropdownMenuSeparator /> : null}
+              {conFiltro && !aplicada ? <DropdownMenuItem onSelect={() => setNombrando(true)}><Icono nombre="mas" tamano={16} />Guardar esta vista</DropdownMenuItem> : null}
+              {conFiltro ? <DropdownMenuItem onSelect={() => { setQ(""); setQue(""); setLleva(""); }}><Icono nombre="x" tamano={16} />Quitar los filtros</DropdownMenuItem> : null}
+              {aplicada ? (
+                <DropdownMenuItem peligro onSelect={() => guardarVistas(vistas.filter((v) => v !== aplicada), `Se quitó la vista «${aplicada.nombre}»`)}>
+                  <Icono nombre="bote" tamano={16} />Borrar la vista «{aplicada.nombre}»
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
       </div>
+      <DialogoTexto abierto={nombrando} titulo="Guardar esta vista" etiqueta="Nombre de la vista" maximo={60}
+        ayuda="Queda en el botón de la estrella, junto a los filtros, en cualquier equipo donde entres."
+        alCerrar={() => setNombrando(false)}
+        alGuardar={(nombre) => guardarVistas([...vistas.filter((v) => v.nombre !== nombre), { lista: "asuntos", nombre, filtros }], `Vista guardada: ${nombre}`)} />
 
       {error && !asuntos ? (
         <div className="as-vacio-lista" role="alert">

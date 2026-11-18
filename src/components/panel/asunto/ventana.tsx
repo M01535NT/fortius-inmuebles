@@ -1,6 +1,6 @@
 "use client";
 import { Dialog as D } from "radix-ui";
-import { createContext, useCallback, useContext, useEffect, useId, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import { usePreferencia } from "@/components/panel/almacen";
 import { Gesto, Icono, type NombreGesto, type NombreIcono } from "@/components/panel/icons";
@@ -40,6 +40,16 @@ function useModoVentana() {
   return { modo, elegir, alternar };
 }
 
+/** Si la pantalla es de teléfono o tableta (las mismas 900 px de asunto.css). */
+const ANGOSTO = "(max-width: 900px)";
+export function useAngosto(): boolean {
+  return useSyncExternalStore(
+    (cb) => { const m = window.matchMedia(ANGOSTO); m.addEventListener("change", cb); return () => m.removeEventListener("change", cb); },
+    () => window.matchMedia(ANGOSTO).matches,
+    () => false,
+  );
+}
+
 /** Un paso atrás dentro de la misma ventana (de la ficha de un local a la lista de locales). */
 type Regreso = { volver: () => void; a: string };
 const CtxRegreso = createContext<((r: Regreso | null) => void) | null>(null);
@@ -63,11 +73,16 @@ export function useRegresoDeVentana(activo: boolean, volver: () => void, a: stri
  * anterior (`alRegresar`) y, si no hay, cierra. Un botón elige dónde se abre y otro la pasa a pantalla completa.
  * En el teléfono ocupa la pantalla. Esc o la X la cierran y el foco vuelve a donde estaba.
  */
-export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subtitulo, icono, color, opciones, children }: {
+export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subtitulo, icono, color, opciones, notas, children }: {
   abierta: boolean; alCerrar: () => void; titulo: string; subtitulo: string; icono: NombreIcono; color: string;
   /** Regresa a la ventana anterior, cuando la hay. `anterior` es su nombre, para decirlo en la flecha. */
   alRegresar?: () => void; anterior?: string;
   opciones: readonly { etiqueta: string; icono: NombreIcono; alElegir: () => void; peligro?: boolean }[];
+  /**
+   * El costado con las notas del asunto (SPEC.md, «Las notas del asunto»). Un botón de la cabecera lo abre y lo cierra;
+   * en el teléfono se abre encima de la ventana.
+   */
+  notas?: { abiertas: boolean; cuantas: number; alCambiar: (abiertas: boolean) => void; contenido: ReactNode };
   children: ReactNode;
 }) {
   const { modo, elegir, alternar } = useModoVentana();
@@ -79,7 +94,7 @@ export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subti
     <D.Root open={abierta} onOpenChange={(o) => { if (!o) alCerrar(); }}>
       <D.Portal container={contenedorPanel()}>
         <D.Overlay className="as-velo" />
-        <D.Content className="as-win" data-modo={modo} aria-describedby={undefined}>
+        <D.Content className="as-win" data-modo={modo} data-notas={notas?.abiertas || undefined} aria-describedby={undefined}>
           <div className="as-win-h">
             <button type="button" className="as-btn as-gho as-ico" onClick={regreso ? regreso.volver : alCerrar}
               aria-label={regreso?.a ? `Regresar a ${regreso.a}` : "Regresar"} title={regreso?.a ? `Regresar a ${regreso.a}` : "Regresar"}>
@@ -90,6 +105,14 @@ export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subti
               <D.Title className="as-win-b">{titulo}</D.Title>
               <p className="as-m as-corta">{subtitulo}</p>
             </div>
+            {notas ? (
+              <button type="button" className="as-btn as-gho as-ico as-con-cuenta" aria-pressed={notas.abiertas} onClick={() => notas.alCambiar(!notas.abiertas)}
+                aria-label={notas.abiertas ? "Ocultar las notas del asunto" : `Ver las notas del asunto${notas.cuantas ? ` (${notas.cuantas})` : ""}`}
+                title={notas.abiertas ? "Ocultar notas" : "Notas del asunto"}>
+                <Icono nombre="nota" tamano={18} />
+                {!notas.abiertas && notas.cuantas ? <span className="as-cuenta" aria-hidden>{notas.cuantas > 99 ? "99+" : notas.cuantas}</span> : null}
+              </button>
+            ) : null}
             {opciones.length ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="as-btn as-gho as-ico" aria-label="Opciones del apartado"><Icono nombre="dots" tamano={18} /></DropdownMenuTrigger>
@@ -118,7 +141,10 @@ export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subti
             </button>
             <D.Close className="as-btn as-gho as-ico" aria-label="Cerrar"><Icono nombre="x" tamano={18} /></D.Close>
           </div>
-          <div className="as-win-c"><CtxRegreso.Provider value={setInterno}>{children}</CtxRegreso.Provider></div>
+          <div className="as-win-cuerpo">
+            <div className="as-win-c"><CtxRegreso.Provider value={setInterno}>{children}</CtxRegreso.Provider></div>
+            {notas?.abiertas && notas.contenido ? <aside className="as-lat" aria-label="Notas del asunto">{notas.contenido}</aside> : null}
+          </div>
         </D.Content>
       </D.Portal>
     </D.Root>

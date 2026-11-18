@@ -8,12 +8,13 @@ import { BARRA_TELEFONO, CONFIGURACION, CONSULTA, seccionPorRuta, seccionesPara,
 import { errorMessage, isLoggedIn, login, logout, needsMfaCode, useSession, verifyMfaCode } from "@/lib/panel/legado/sesion";
 
 import { usePreferencia } from "./almacen";
-import { Recientes } from "./asunto/recientes";
+import { Favoritos, Recientes } from "./asunto/recientes";
 import { Gesto, Icono, Logo } from "./icons";
 import { useAtajo, useTecladoEnListas } from "./kit/atajos";
 import { AvisosProvider, useAvisos } from "./kit/avisos";
 import { ProveedorBarra } from "./kit/barra";
 import { BuscarOCrear } from "./kit/paleta";
+import { ProveedorRecordatorios, useRecordatorios } from "./kit/recordatorios";
 import { ListaReordenable } from "./kit/reordenable";
 import { TooltipProvider } from "./ui/tooltip";
 import {
@@ -75,6 +76,7 @@ function Menu({ contraido, secciones }: { contraido: boolean; secciones: Seccion
   const [guardado, guardarOrden] = usePreferencia(CLAVE_ORDEN, "[]");
   const items = useMemo(() => aplicarOrden(secciones, leerOrdenGuardado(guardado), (s) => s.slug), [guardado, secciones]);
   const activa = activaEn(ruta);
+  const { cuenta } = useRecordatorios();
   return (
     <ListaReordenable
       items={items}
@@ -85,9 +87,10 @@ function Menu({ contraido, secciones }: { contraido: boolean; secciones: Seccion
       renderItem={(s, { asa }) => (
         <div className="pn-item-fila">
           <Link href={s.ruta} className="pn-link" aria-current={activa(s) ? "page" : undefined} title={contraido ? s.nombre : undefined}
-            aria-label={contraido ? s.nombre : undefined}>
+            aria-label={s.slug === "inicio" && cuenta ? `${s.nombre}: ${cuenta} por atender` : contraido ? s.nombre : undefined}>
             <Icono nombre={s.icono} tamano={18} />
             <span className="pn-txt">{s.nombre}</span>
+            {s.slug === "inicio" && cuenta ? <span className="pn-cuenta-menu" aria-hidden>{cuenta > 99 ? "99+" : cuenta}</span> : null}
           </Link>
           <span className="pn-asa-menu">{asa}</span>
         </div>
@@ -179,14 +182,11 @@ function Armazon({ children }: { children: ReactNode }) {
   const fuera = secciones.filter((s) => !antes.includes(s) && !despues.includes(s));
   const enMas = fuera.some(activa) || ruta.startsWith(CONFIGURACION.ruta);
   const alternar = () => { guardarMini(esMini ? "pinned" : "mini"); setEncima(false); };
-  const ligaBarra = (s: Seccion) => (
-    <Link key={s.slug} href={s.ruta} aria-current={activa(s) ? "page" : undefined}>
-      <Icono nombre={s.icono} tamano={21} />{s.nombre}
-    </Link>
-  );
+  const ligaBarra = (s: Seccion) => <LigaBarra key={s.slug} s={s} actual={activa(s)} />;
 
   return (
     <ProveedorBarra abrirBuscar={abrirBuscar}>
+      <ProveedorRecordatorios>
       <div className="pn-app">
         <a href="#pn-contenido" className="pn-saltar">Saltar al contenido</a>
         <aside
@@ -216,6 +216,7 @@ function Armazon({ children }: { children: ReactNode }) {
             <nav aria-label="Secciones" className="pn-nav">
               <Menu contraido={!abierto} secciones={secciones} />
             </nav>
+            <Favoritos contraido={!abierto} />
             <Recientes contraido={!abierto} />
             <MenuCuenta iniciales={iniciales} nombre={sesion?.name ?? sesion?.email ?? "Equipo Fortius"} rol={esDirector ? "Director" : "Asesor"} />
           </div>
@@ -231,7 +232,20 @@ function Armazon({ children }: { children: ReactNode }) {
           <MenuMas secciones={fuera} activo={enMas} />
         </nav>
       </div>
+      </ProveedorRecordatorios>
     </ProveedorBarra>
+  );
+}
+
+/** Una sección de la barra del teléfono; «Inicio» lleva el número de lo que te toca. */
+function LigaBarra({ s, actual }: { s: Seccion; actual: boolean }) {
+  const { cuenta } = useRecordatorios();
+  const n = s.slug === "inicio" ? cuenta : 0;
+  return (
+    <Link href={s.ruta} aria-current={actual ? "page" : undefined} aria-label={n ? `${s.nombre}: ${n} por atender` : undefined} className="pn-barra-liga">
+      <Icono nombre={s.icono} tamano={21} />{s.nombre}
+      {n ? <span className="pn-cuenta-menu" aria-hidden>{n > 99 ? "99+" : n}</span> : null}
+    </Link>
   );
 }
 

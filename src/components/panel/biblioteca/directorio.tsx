@@ -3,8 +3,8 @@ import "../asunto/asunto.css";
 import "./biblioteca.css";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
@@ -45,6 +45,13 @@ function coincide(p: PersonaDirectorio, q: string) {
   return sinAcentos(`${p.nombre} ${p.correo ?? ""} ${p.nota}`).includes(t) || p.asuntos.some((a) => sinAcentos(`${a.nombre} ${a.folio}`).includes(t));
 }
 
+/** Desde el buscador llega con ?q=<nombre>: el Directorio abre ya filtrado. */
+function LeerBusqueda({ alLeer }: { alLeer: (q: string) => void }) {
+  const q = useSearchParams().get("q");
+  useEffect(() => { if (q) alLeer(q); }, [q, alLeer]);
+  return null;
+}
+
 /**
  * Directorio (boceto aprobado): cada persona una sola vez, con todos sus asuntos. Quien no tiene asunto es un contacto
  * con su «llamarle». Desde aquí se abre un asunto nuevo con la persona sin volver a capturarla.
@@ -78,6 +85,7 @@ export function Directorio() {
 
   return (
     <div className="db-pagina">
+      <Suspense fallback={null}><LeerBusqueda alLeer={setQ} /></Suspense>
       <div className="db-top">
         <h1>Directorio</h1>
         <span className="as-m as-num">{todas ? todas.length : ""}</span>

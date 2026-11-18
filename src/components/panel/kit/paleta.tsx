@@ -1,25 +1,22 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 
-import { useColeccion } from "@/components/panel/datos/use-coleccion";
+import { usePreferencia } from "@/components/panel/almacen";
+import { useMisPreferencias } from "@/components/panel/datos/use-mis-preferencias";
 import { useAvisos } from "@/components/panel/kit/avisos";
-import type { Property } from "@/data/propiedades";
-import type { Cliente } from "@/lib/backend/contracts";
-import type { Evento, Lead } from "@/lib/domain/records";
-import { diaLargo } from "@/lib/panel/calendario";
+import { BotonDictar, sumarDictado } from "@/components/panel/kit/dictar";
+import type { IndiceBuscar } from "@/lib/backend/buscar-panel";
+import { agregar, fechaCorta, pedir } from "@/lib/panel/asuntos/api";
 import { filtrarAgrupado, type Entrada } from "@/lib/panel/buscar";
-import { nuevaCita, seEmpalma } from "@/lib/panel/datos/agenda-acciones";
-import { entradasDeDatos } from "@/lib/panel/datos/buscar-datos";
-import { leerMiAsesor } from "@/lib/panel/datos/colecciones";
-import { rutaCita } from "@/lib/panel/datos/relacionado";
-import { datosDeLinea, leerLinea, pareceCita } from "@/lib/panel/linea-cita";
+import { leerLineaTarea } from "@/lib/panel/linea-tarea";
 import { CONFIGURACION, SECCIONES } from "@/lib/panel/secciones";
 
 import { Gesto, Icono, type NombreIcono } from "../icons";
+import { Desplegable } from "./desplegable";
 import { Hoja } from "./hoja";
 
-type Opcion = Entrada & { icono: NombreIcono; ruta: string };
+type Opcion = Entrada & { icono: NombreIcono; ruta: string; iniciales?: boolean };
 
 const IR_A: Opcion[] = [
   ...[...SECCIONES, CONFIGURACION].map((s) => ({ id: `ir-${s.slug}`, titulo: s.nombre, grupo: "Ir a" as const, icono: s.icono, ruta: s.ruta, claves: [s.resumen] })),
@@ -27,23 +24,34 @@ const IR_A: Opcion[] = [
   { id: "ir-comision", titulo: "Comisión", grupo: "Ir a" as const, icono: "precio", ruta: "/panel/herramientas/comision", claves: ["iva", "propietario", "calculadora"] },
 ];
 
-/** Lo que se puede crear desde cualquier pantalla. Hoy lleva a la sección; cada etapa lo conecta con su formulario. */
+/** Lo que se crea desde cualquier pantalla. Un asunto nace de una consulta. */
 const CREAR: Opcion[] = [
-  { id: "crear-persona", titulo: "Persona nueva", grupo: "Crear", icono: "cliente", ruta: "/panel/personas", claves: ["cliente", "propietario", "comprador", "contacto"] },
-  { id: "crear-inmueble", titulo: "Inmueble nuevo", grupo: "Crear", icono: "edificio", ruta: "/panel/inmuebles", claves: ["casa", "departamento", "terreno", "propiedad"] },
-  { id: "crear-asunto", titulo: "Asunto nuevo", grupo: "Crear", icono: "expediente", ruta: "/panel/asuntos", claves: ["negocio", "venta", "renta", "busqueda", "expediente"] },
-  { id: "crear-consulta", titulo: "Nueva consulta", grupo: "Crear", icono: "llamada", ruta: "/panel/consulta", claves: ["llamada", "visita", "whatsapp"] },
-  { id: "crear-cita", titulo: "Cita nueva", grupo: "Crear", icono: "cita", ruta: "/panel/agenda?nueva=1", claves: ["visita", "agenda", "recordatorio"] },
-  { id: "crear-movimiento", titulo: "Movimiento de dinero", grupo: "Crear", icono: "precio", ruta: "/panel/dinero", claves: ["cobro", "comision", "apartado", "gasto"] },
+  { id: "crear-consulta", titulo: "Nueva consulta", grupo: "Crear", icono: "llamada", ruta: "/panel/consulta", claves: ["llamada", "asunto", "cliente", "whatsapp", "nuevo"] },
+  { id: "crear-inmueble", titulo: "Inmueble nuevo", grupo: "Crear", icono: "edificio", ruta: "/panel/inmuebles?nuevo=1", claves: ["casa", "departamento", "terreno", "propiedad"] },
+  { id: "crear-persona", titulo: "Persona en el Directorio", grupo: "Crear", icono: "cliente", ruta: "/panel/directorio", claves: ["contacto", "cliente", "persona nueva"] },
 ];
 
-const ICONO_GRUPO: Partial<Record<Entrada["grupo"], NombreIcono>> = { Personas: "cliente", Inmuebles: "edificio", Consultas: "llamada" };
 const iniciales = (t: string) => t.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 
+/** El índice se pide al abrir y se reusa un minuto (abrir y cerrar seguido no vuelve a pedirlo). */
+let guardado: { cuando: number; indice: IndiceBuscar } | null = null;
+async function leerIndice(): Promise<IndiceBuscar> {
+  if (guardado && Date.now() - guardado.cuando < 60_000) return guardado.indice;
+  const r = await pedir<{ indice: IndiceBuscar }>("/api/admin/buscar");
+  guardado = { cuando: Date.now(), indice: r.indice };
+  return r.indice;
+}
+
+/** Los recientes del menú (los anota el asunto al abrirse). */
+type Reciente = { id: string; nombre: string };
+function leerRecientes(texto: string): Reciente[] {
+  try { const v: unknown = JSON.parse(texto); return Array.isArray(v) ? (v as Reciente[]).filter((r) => r && typeof r.id === "string") : []; } catch { return []; }
+}
+
 /**
- * Buscar o crear (Ctrl K, y el «+» del teléfono). Una sola caja (boceto «Inicio»): busca personas, inmuebles y consultas
- * por nombre, teléfono, correo o folio; o se escribe en una línea («Visita mañana 11 con Mariana en Zona Río») y Enter
- * la agenda, con tipo, día, hora, persona y lugar a la vista antes de guardar. Los datos se leen solo mientras está abierta.
+ * Buscar y actuar desde un solo cuadro (Ctrl K y el botón «Buscar»; SPEC.md, sección 15). Encuentra asuntos, personas e
+ * inmuebles por nombre, folio, teléfono o correo; sin escribir nada muestra tus favoritos y lo reciente. Si lo escrito es
+ * algo que hacer («Llamar a Laura jueves 10am»), la primera opción crea la tarea en su asunto, con lo leído a la vista.
  */
 export function BuscarOCrear({ abierta, alCerrar, textoInicial = "" }: { abierta: boolean; alCerrar: () => void; textoInicial?: string }) {
   return (
@@ -56,67 +64,118 @@ export function BuscarOCrear({ abierta, alCerrar, textoInicial = "" }: { abierta
 function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInicial: string }) {
   const router = useRouter();
   const { avisar } = useAvisos();
+  const { panel } = useMisPreferencias();
+  const [recientesTexto] = usePreferencia("fortius-panel-recientes", "[]");
   const [texto, setTexto] = useState(textoInicial);
   const [activa, setActiva] = useState(0);
   const [guardando, setGuardando] = useState(false);
-  const clientes = useColeccion<Cliente>("clientes");
-  const inmuebles = useColeccion<Property>("propiedades");
-  const leads = useColeccion<Lead>("leads");
-  const eventos = useColeccion<Evento>("eventos");
+  const [indice, setIndice] = useState<IndiceBuscar | null>(guardado?.indice ?? null);
+  const [falla, setFalla] = useState<string | null>(null);
+  const [elegido, setElegido] = useState("");
   const [hoy] = useState(() => new Date());
-  const datos = useMemo<Opcion[]>(
-    () => entradasDeDatos({ clientes: clientes.datos, inmuebles: inmuebles.datos, leads: leads.datos }).map((e) => ({ ...e, icono: ICONO_GRUPO[e.grupo] ?? "buscar" })),
-    [clientes.datos, inmuebles.datos, leads.datos],
-  );
-  const todas = useMemo(() => [...datos, ...IR_A, ...CREAR], [datos]);
-  const lista = useMemo(() => filtrarAgrupado(todas, texto), [todas, texto]);
-  // Captura en una línea: si lo escrito tiene día u hora, la primera opción es agendarlo.
-  const linea = useMemo(() => leerLinea(texto, hoy, clientes.datos), [texto, hoy, clientes.datos]);
-  const conCita = texto.trim().length >= 4 && pareceCita(linea);
-  const total = lista.length + (conCita ? 1 : 0);
-  const actual = Math.min(activa, Math.max(0, total - 1));
-  const cargandoDatos = clientes.cargando || inmuebles.cargando || leads.cargando;
-  const empalme = conCita && linea.hora !== null ? seEmpalma(nuevaCita(datosDeLinea(linea, hoy), undefined, "__borrador__"), eventos.datos) : null;
 
-  const agendar = async () => {
+  useEffect(() => {
+    let vivo = true;
+    leerIndice().then((i) => { if (vivo) setIndice(i); }, (e: unknown) => { if (vivo) setFalla(e instanceof Error ? e.message : "No se pudo buscar."); });
+    return () => { vivo = false; };
+  }, []);
+
+  const asuntoDe = useMemo(() => new Map((indice?.asuntos ?? []).map((a) => [a.id, a])), [indice]);
+  const datos = useMemo<Opcion[]>(() => {
+    if (!indice) return [];
+    const nombresEn = new Map<string, string[]>();
+    for (const p of indice.personas) for (const a of p.asuntos) nombresEn.set(a, [...(nombresEn.get(a) ?? []), p.nombre]);
+    const asuntos: Opcion[] = indice.asuntos.map((a) => ({
+      id: `a-${a.id}`, titulo: a.nombre, grupo: "Asuntos", icono: "asu", ruta: `/panel/asuntos/${a.id}`,
+      detalle: [a.folio, a.cerrado ? "Cerrado" : null].filter(Boolean).join(" · "), claves: [a.folio, ...(nombresEn.get(a.id) ?? [])],
+    }));
+    const personas: Opcion[] = indice.personas.map((p) => {
+      const suyos = p.asuntos.map((x) => asuntoDe.get(x)).filter((x): x is NonNullable<typeof x> => Boolean(x));
+      const uno = suyos.length === 1 ? suyos[0] : null;
+      return {
+        id: `p-${p.id}`, titulo: p.nombre, grupo: "Personas", icono: "cliente", iniciales: true,
+        ruta: uno ? `/panel/asuntos/${uno.id}?ver=personas&persona=${p.id}` : `/panel/directorio?q=${encodeURIComponent(p.nombre)}`,
+        detalle: [p.telefono, uno ? uno.nombre : suyos.length ? `${suyos.length} asuntos` : "Sin asunto"].filter(Boolean).join(" · "),
+        claves: [p.telefono ?? "", (p.telefono ?? "").replace(/\D/g, ""), p.correo ?? ""],
+      };
+    });
+    const inmuebles: Opcion[] = indice.inmuebles.map((i) => ({
+      id: `i-${i.id}`, titulo: i.nombre, grupo: "Inmuebles", icono: "edificio", ruta: `/panel/inmuebles?id=${i.id}`,
+      detalle: [i.folio, i.colonia].filter(Boolean).join(" · "), claves: [i.folio, i.colonia ?? ""],
+    }));
+    return [...asuntos, ...personas, ...inmuebles];
+  }, [indice, asuntoDe]);
+
+  // Sin escribir nada: favoritos y recientes primero.
+  const atajos = useMemo<Opcion[]>(() => {
+    const fav: Opcion[] = (panel.favoritos ?? []).map((f) => ({
+      id: `f-${f.id}`, titulo: f.nombre, grupo: "Favoritos" as const, icono: "estrella" as const,
+      ruta: f.tipo === "asunto" ? `/panel/asuntos/${f.id}` : `/panel/inmuebles?id=${f.id}`,
+      detalle: f.tipo === "asunto" ? asuntoDe.get(f.id)?.folio : indice?.inmuebles.find((x) => x.id === f.id)?.folio,
+    }));
+    const vistos = new Set((panel.favoritos ?? []).map((f) => f.id));
+    const rec: Opcion[] = leerRecientes(recientesTexto).filter((r) => !vistos.has(r.id))
+      .map((r) => ({ id: `r-${r.id}`, titulo: r.nombre, grupo: "Recientes" as const, icono: "reloj" as const, ruta: `/panel/asuntos/${r.id}` }));
+    return [...fav, ...rec];
+  }, [panel.favoritos, asuntoDe, indice, recientesTexto]);
+
+  const conTexto = texto.trim().length >= 2;
+  const todas = useMemo(() => [...(conTexto ? datos : atajos), ...IR_A, ...CREAR], [conTexto, datos, atajos]);
+  const lista = useMemo(() => filtrarAgrupado(todas, texto), [todas, texto]);
+
+  // Escribir en una línea: si lo escrito es algo que hacer, la primera opción crea la tarea en su asunto.
+  const linea = useMemo(() => leerLineaTarea(texto, hoy, indice?.personas ?? []), [texto, hoy, indice]);
+  const candidatos = useMemo(() => {
+    const abiertos = (indice?.asuntos ?? []).filter((a) => !a.cerrado);
+    const dePersona = linea.persona ? abiertos.filter((a) => linea.persona!.asuntos.includes(a.id)) : [];
+    return (dePersona.length ? dePersona : abiertos).slice(0, 40);
+  }, [indice, linea.persona]);
+  const conTarea = linea.parece && candidatos.length > 0;
+  // Con un solo asunto posible va ahí; con varios, se elige (nunca uno al azar).
+  const destino = candidatos.find((a) => a.id === elegido) ?? (candidatos.length === 1 ? candidatos[0] : null);
+  const total = lista.length + (conTarea ? 1 : 0);
+  const actual = Math.min(activa, Math.max(0, total - 1));
+
+  const crearTarea = async () => {
     if (guardando) return;
+    if (!destino) { avisar("Elige en qué asunto va la tarea."); return; }
     setGuardando(true);
     try {
-      const asesor = await leerMiAsesor();
-      const n = nuevaCita(datosDeLinea(linea, hoy, asesor));
-      await eventos.guardar(n.id, n);
-      alCerrar();
-      avisar(`Cita agendada: ${diaLargo(n.fecha)}${n.hora ? `, ${n.hora}` : ""}${empalme ? `. ${empalme}` : ""}`, {
-        etiqueta: "Deshacer",
-        alAccionar: () => { eventos.borrar(n.id).then(() => avisar("Se quitó la cita"), (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer.")); },
+      const enEse = linea.persona?.asuntos.includes(destino.id) ? linea.persona.id : null;
+      await agregar(destino.id, "tareas", {
+        titulo: linea.titulo, clase: linea.clase, fecha: linea.fecha, hora: linea.hora, persona_id: enEse, origen: "linea",
       });
-      router.push(rutaCita(n.id));
+      alCerrar();
+      avisar(`Tarea en ${destino.nombre}${linea.fecha ? `: ${fechaCorta(linea.fecha, linea.hora).toLowerCase()}` : ""}`, {
+        etiqueta: "Abrir", alAccionar: () => router.push(`/panel/asuntos/${destino.id}?ver=plan`),
+      });
     } catch (e) {
-      avisar(e instanceof Error ? e.message : "No se agendó. Vuelve a intentarlo.");
+      avisar(e instanceof Error ? e.message : "No se creó la tarea. Vuelve a intentarlo.");
     } finally { setGuardando(false); }
   };
   const elegir = (i: number) => {
-    if (conCita && i === 0) { void agendar(); return; }
-    const o = lista[i - (conCita ? 1 : 0)];
+    if (conTarea && i === 0) { void crearTarea(); return; }
+    const o = lista[i - (conTarea ? 1 : 0)];
     if (!o) return;
     alCerrar();
     router.push(o.ruta);
   };
-  const alTeclear = (e: KeyboardEvent) => {
+  const alTeclear = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown") { e.preventDefault(); setActiva(Math.min(total - 1, actual + 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActiva(Math.max(0, actual - 1)); }
     else if (e.key === "Enter") { e.preventDefault(); elegir(actual); }
   };
-  const idOp = (i: number) => (conCita && i === 0 ? "pn-op-agendar" : `pn-op-${lista[i - (conCita ? 1 : 0)]?.id}`);
+  const idOp = (i: number) => (conTarea && i === 0 ? "pn-op-tarea" : `pn-op-${lista[i - (conTarea ? 1 : 0)]?.id}`);
 
   return (
-    <div className="pn-paleta" onKeyDown={alTeclear}>
+    <div className="pn-paleta">
       <div className="pn-paleta-entrada">
         <Icono nombre="buscar" tamano={18} />
         <input
           value={texto}
           onChange={(e) => { setTexto(e.target.value); setActiva(0); }}
-          placeholder="Busca o escribe: Visita mañana 11 con Mariana en Zona Río"
+          onKeyDown={alTeclear}
+          placeholder="Busca o escribe: Llamar a Laura jueves 10am"
           role="combobox"
           aria-expanded="true"
           aria-controls="pn-paleta-lista"
@@ -124,37 +183,44 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
           aria-label="Buscar o crear"
           autoComplete="off"
         />
+        <BotonDictar que="la búsqueda" className="pn-paleta-mic" alDictar={(t) => { setTexto((x) => sumarDictado(x, t)); setActiva(0); }} alFallar={avisar} />
         <kbd className="pn-kbd pn-solo-escritorio" aria-hidden>Esc</kbd>
       </div>
       <ul className="pn-paleta-lista" id="pn-paleta-lista" role="listbox">
-        {conCita ? (
+        {conTarea ? (
           <li role="presentation">
             <div className="pn-paleta-grupo" role="presentation">Crear</div>
-            <button type="button" id="pn-op-agendar" role="option" aria-selected={actual === 0} className="pn-paleta-op" onClick={() => elegir(0)} onMouseMove={() => setActiva(0)}
-              aria-label={`Agendar: ${linea.pastillas.map((p) => `${p.k} ${p.v}`).join(", ")}`}>
+            <button type="button" id="pn-op-tarea" role="option" aria-selected={actual === 0} className="pn-paleta-op" onClick={() => elegir(0)} onMouseMove={() => setActiva(0)}
+              aria-label={`Crear la tarea en ${destino?.nombre ?? "su asunto"}: ${linea.pastillas.map((p) => `${p.k} ${p.v}`).join(", ")}`}>
               <span className="pn-paleta-ini pn-paleta-ini-acento" aria-hidden><Gesto nombre="mas" tamano={16} /></span>
-              <span style={{ flex: 1, minWidth: 0, display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", padding: "6px 0" }}>
+              <span className="pn-paleta-tarea">
                 {linea.pastillas.map((p) => <span key={p.k} className="pn-chp"><i>{p.k}</i><b>{p.v}</b></span>)}
-                {!linea.fecha ? <span style={{ fontSize: 13, color: "var(--ink-muted)" }}>Sin día: se agenda hoy</span> : null}
+                {!linea.fecha ? <span className="pn-paleta-nota">Sin día</span> : null}
               </span>
               <kbd className="pn-kbd pn-solo-escritorio" aria-hidden>{guardando ? "…" : "Enter"}</kbd>
             </button>
-            {empalme ? <p className="pn-warnline" style={{ margin: "2px 10px 6px" }}>{empalme} Se agenda igual.</p> : null}
+            {candidatos.length > 1 ? (
+              <div className="pn-paleta-donde">
+                <Desplegable etiqueta="En qué asunto" valor={destino?.id ?? ""} vacio="Elige el asunto" alElegir={(v) => setElegido(v)}
+                  opciones={candidatos.map((a) => ({ valor: a.id, etiqueta: a.nombre }))} />
+              </div>
+            ) : destino ? <p className="pn-paleta-nota pn-paleta-donde">En {destino.nombre}</p> : null}
           </li>
         ) : null}
-        {lista.length === 0 && !conCita ? <li className="pn-paleta-grupo" role="presentation">{cargandoDatos ? "Buscando…" : "Nada coincide. Escribe la cita en una línea para agendarla."}</li> : null}
+        {lista.length === 0 && !conTarea ? (
+          <li className="pn-paleta-grupo" role="presentation">{falla ?? (!indice && conTexto ? "Buscando…" : "Nada coincide. Para crear una tarea, escribe qué hacer y cuándo.")}</li>
+        ) : null}
         {lista.map((o, j) => {
-          const i = j + (conCita ? 1 : 0);
+          const i = j + (conTarea ? 1 : 0);
           const cabecera = j === 0 || lista[j - 1].grupo !== o.grupo;
-          const deDatos = o.grupo === "Personas" || o.grupo === "Inmuebles" || o.grupo === "Consultas";
           return (
             <li key={o.id} role="presentation">
               {cabecera ? <div className="pn-paleta-grupo" role="presentation">{o.grupo}</div> : null}
               <button type="button" id={`pn-op-${o.id}`} role="option" aria-selected={i === actual} className="pn-paleta-op" onClick={() => elegir(i)} onMouseMove={() => setActiva(i)}>
-                <span className="pn-paleta-ini" aria-hidden>{deDatos ? iniciales(o.titulo) : <Icono nombre={o.icono} tamano={16} />}</span>
-                <span style={{ minWidth: 0, display: "grid" }}>
-                  <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.titulo}</span>
-                  {o.detalle ? <span style={{ fontSize: 12, color: "var(--ink-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.detalle}</span> : null}
+                <span className="pn-paleta-ini" aria-hidden>{o.iniciales ? iniciales(o.titulo) : <Icono nombre={o.icono} tamano={16} />}</span>
+                <span className="pn-paleta-txt">
+                  <span>{o.titulo}</span>
+                  {o.detalle ? <small>{o.detalle}</small> : null}
                 </span>
               </button>
             </li>
@@ -162,13 +228,10 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
         })}
       </ul>
       <p className="pn-solo-lector" aria-live="polite">
-        {cargandoDatos || !texto.trim() ? "" : total === 0 ? "Sin resultados" : total === 1 ? "1 resultado" : `${total} resultados`}
+        {!texto.trim() ? "" : total === 0 ? "Sin resultados" : total === 1 ? "1 resultado" : `${total} resultados`}
       </p>
       <div className="pn-paleta-pie">
-        <span>O crea:</span>
-        <button type="button" className="pn-paleta-crea" onClick={() => { alCerrar(); router.push("/panel/personas"); }}>Persona</button>
-        <button type="button" className="pn-paleta-crea" onClick={() => { alCerrar(); router.push("/panel/inmuebles"); }}>Inmueble</button>
-        <span className="pn-solo-escritorio" style={{ marginLeft: "auto" }} aria-hidden><kbd className="pn-kbd">↑</kbd> <kbd className="pn-kbd">↓</kbd> moverse · <kbd className="pn-kbd">Enter</kbd> abrir</span>
+        <span className="pn-solo-escritorio" aria-hidden><kbd className="pn-kbd">↑</kbd> <kbd className="pn-kbd">↓</kbd> moverse · <kbd className="pn-kbd">Enter</kbd> abrir o crear</span>
       </div>
     </div>
   );

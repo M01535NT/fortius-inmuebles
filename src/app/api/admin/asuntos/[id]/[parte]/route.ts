@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { cambiarEnApartado, crearEnApartado, PARTES_APARTADO } from "@/lib/backend/apartados";
-import { cambiarEnParte, crearEnParte, idSchema, leerHistorial, PARTES } from "@/lib/backend/asuntos";
+import { cambiarEnParte, crearEnParte, idSchema, leerHistorial, leerNotasDelAsunto, PARTES } from "@/lib/backend/asuntos";
 import { requireStaff } from "@/lib/backend/auth";
 import { apiResponse, ApiError, assertSameOrigin, readJson } from "@/lib/backend/http";
 
@@ -22,7 +22,9 @@ export async function GET(request: Request, contexto: Contexto) {
     const { client } = await requireStaff();
     const { asuntoId, parte } = await partes(contexto);
     if (parte !== "historial") throw new ApiError(404, "No encontrado");
-    const antes = z.coerce.number().int().positive().optional().parse(new URL(request.url).searchParams.get("antes") ?? undefined);
+    const busca = new URL(request.url).searchParams;
+    const antes = z.coerce.number().int().positive().optional().parse(busca.get("antes") ?? undefined);
+    if (busca.get("solo") === "notas") return leerNotasDelAsunto(client, asuntoId);
     return { entradas: await leerHistorial(client, asuntoId, antes) };
   });
 }

@@ -18,7 +18,7 @@ export type LineaCita = {
   completa: boolean;
 };
 
-const quitarAcentos = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+export const quitarAcentos = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 const TIPOS: { re: RegExp; tipo: EventoTipo; texto?: string }[] = [
   { re: /\b(firma|firmar|notari[ao]|escritura)\b/, tipo: "firma" },
@@ -32,7 +32,7 @@ const DIAS_SEMANA = DIAS_LARGOS.map(quitarAcentos);
 const MESES_N = MESES.map(quitarAcentos);
 const MESES_C = MESES_CORTOS.map(quitarAcentos);
 
-function fechaDe(t: string, hoy: Date): { fecha: string; texto: string } | null {
+export function fechaDe(t: string, hoy: Date): { fecha: string; texto: string } | null {
   const base = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
   const mas = (n: number) => aTexto(new Date(base.getFullYear(), base.getMonth(), base.getDate() + n));
   if (/\bpasado manana\b/.test(t)) return { fecha: mas(2), texto: "pasado mañana" };
@@ -46,7 +46,8 @@ function fechaDe(t: string, hoy: Date): { fecha: string; texto: string } | null 
   }
   // «el 20», «20 de nov», «20 nov», «20/11».
   const conMes = /\b(\d{1,2})\s*(?:\/\s*(\d{1,2})|de\s+([a-z]{3,10})|\s([a-z]{3,10}))/.exec(t);
-  const elDia = /\bel\s+(\d{1,2})\b/.exec(t);
+  // «el 2%» o «el 50» de un monto no son días.
+  const elDia = /\bel\s+(\d{1,2})\b(?!\s*%|[.,]\d)/.exec(t);
   const crudo = conMes ?? elDia ?? null;
   if (!crudo) return null;
   const dia = Number(crudo[1]);
@@ -54,10 +55,11 @@ function fechaDe(t: string, hoy: Date): { fecha: string; texto: string } | null 
   if (conMes) {
     if (conMes[2]) mes = Number(conMes[2]) - 1;
     else {
-      const nombre = (conMes[3] ?? conMes[4] ?? "").slice(0, 3);
-      const i = MESES_C.indexOf(nombre);
-      if (i < 0 && !MESES_N.some((x) => x.startsWith(nombre))) return elDia ? fechaDe(`el ${elDia[1]}`, hoy) : null;
-      mes = i >= 0 ? i : MESES_N.findIndex((x) => x.startsWith(nombre));
+      // La palabra tiene que ser un mes o el principio de uno («nov», «novi», «noviembre»): «2 dictámenes» no es diciembre.
+      const palabra = conMes[3] ?? conMes[4] ?? "";
+      const i = MESES_N.findIndex((x) => x.startsWith(palabra)) >= 0 ? MESES_N.findIndex((x) => x.startsWith(palabra)) : MESES_C.indexOf(palabra);
+      if (i < 0) return elDia ? fechaDe(`el ${elDia[1]}`, hoy) : null;
+      mes = i;
     }
   }
   if (dia < 1 || dia > 31 || mes < 0 || mes > 11) return null;
@@ -66,7 +68,7 @@ function fechaDe(t: string, hoy: Date): { fecha: string; texto: string } | null 
   return { fecha: aTexto(d), texto: `${d.getDate()} ${MESES_CORTOS[d.getMonth()]}` };
 }
 
-function horaDe(t: string): number | null {
+export function horaDe(t: string): number | null {
   const ampm = /\b(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.?m\.?|p\.?m\.?)/.exec(t);
   if (ampm) {
     let h = Number(ampm[1]) % 12;

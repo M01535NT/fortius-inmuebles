@@ -34,6 +34,12 @@ export type ClasePersona = (typeof CLASES_PERSONA)[number];
 export const QUIEN = ["fortius", "cliente", "abogado", "notaria", "otro"] as const;
 export type Quien = (typeof QUIEN)[number];
 
+/** Cada cuánto se repite una tarea: al dejarla hecha nace la siguiente. */
+export const CADA_TAREA = ["semana", "quincena", "mes", "bimestre", "trimestre", "año"] as const;
+export type CadaTarea = (typeof CADA_TAREA)[number];
+export const NOMBRE_CADA: Record<CadaTarea, string> = {
+  semana: "Cada semana", quincena: "Cada 15 días", mes: "Cada mes", bimestre: "Cada dos meses", trimestre: "Cada tres meses", año: "Cada año",
+};
 export const ESTADOS_TAREA = ["pendiente", "hecha", "no_aplica", "no_se_puede"] as const;
 export type EstadoTarea = (typeof ESTADOS_TAREA)[number];
 
@@ -74,6 +80,12 @@ export type Tarea = {
   id: string; titulo: string; clase: ClaseTarea; quien: Quien; fecha: string | null; hora: string | null; estado: EstadoTarea; motivo: string | null;
   etapa_id: string | null; responsable_id: string; volver_a_preguntar: string | null; recordada_el: string | null; pospuesta: number;
   interesado_id: string | null; inmueble_id: string | null; documento_id: string | null; origen: string; orden: number; version: number;
+  /** La tarea que tiene que terminar antes (solo avisa; nunca frena). */
+  espera_a: string | null;
+  /** La persona del asunto de la que trata («Llamar a Laura»). */
+  persona_id: string | null;
+  /** Cada cuánto se repite; `que: "informe"` la maneja el informe para el cliente. */
+  repetir: { cada?: string; que?: string; de?: string; dia?: number } | null;
 };
 
 /** Lo básico del inmueble para el asunto; la ficha completa llega en la etapa 4. */
@@ -101,7 +113,12 @@ export type Asunto = FilaAsunto & {
 
 export type EntradaHistorial = {
   id: number; entidad: string; entidad_id: string; clase: "cambio" | "nota" | "decision" | "comentario" | "aviso" | "sistema";
-  resumen: string; detalle: { campos?: string[]; valores?: Record<string, { antes: unknown; ahora: unknown }> } | null;
+  resumen: string;
+  detalle: {
+    campos?: string[]; valores?: Record<string, { antes: unknown; ahora: unknown }>;
+    /** En una nota: el apartado donde se escribió y lo que menciona (ids de personas y de apartados). */
+    ligas?: { desde?: string | null; personas?: string[]; apartados?: string[] };
+  } | null;
   actor_id: string | null; actor_tipo: "usuario" | "sistema" | "publico"; created_at: string;
 };
 
