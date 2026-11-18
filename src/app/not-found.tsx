@@ -5,7 +5,7 @@ import { CabezaPagina } from "@/components/sitio/pagina";
 
 export const metadata: Metadata = { title: "Página no encontrada" };
 
-/* 404, Fortius II (etapa 7, 17/11/2026): la misma cabeza de las páginas interiores. */
+/* 404, rediseño del sitio (etapa 7, 17/11/2026): la misma cabeza de las páginas interiores. */
 export default function NotFound() {
   return (
     <main className="s-pagina">

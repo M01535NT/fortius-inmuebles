@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 /*
-  Sitio público Fortius II (etapa 7, 17/11/2026). Reemplaza las pruebas del diseño anterior:
+  Sitio público (etapa 7, 17/11/2026; marca del sistema de diseño desde el 17/11/2026). Reemplaza las pruebas del diseño anterior:
   portada por asuntos, frase con filtros, Vender en dos pasos, Contacto con «Hola, quiero…»,
   páginas de error con la cabeza nueva, teléfono sin desbordes y movimiento reducido.
 */

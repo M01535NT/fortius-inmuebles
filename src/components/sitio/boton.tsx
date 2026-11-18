@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { FlechaDerecha } from "@/components/sitio/iconos";
 
-type Variante = "relleno" | "contorno";
+type Variante = "relleno" | "rojo" | "contorno";
 type Tamano = "chico" | "normal" | "grande";
 
 type Comun = {
@@ -33,7 +33,8 @@ function clases({ variante = "relleno", tamano = "normal", sobreMedia, className
 const externo = (href: string) => /^(https?:|mailto:|tel:)/.test(href);
 
 /**
-  Botón del sitio: relleno (la acción principal, una por bloque) o contorno.
+  Botón del sitio: relleno (la acción principal, una por bloque), rojo (la acción que más importa
+  de una pantalla, como «Solicitar visita» en la ficha) o contorno.
   Con `href` es un enlace; sin él, un botón. Mide al menos 44 px de alto.
 */
 export function Boton(props: ComoEnlace | ComoBoton) {

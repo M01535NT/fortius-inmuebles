@@ -1,42 +1,35 @@
 import * as React from "react";
 
-import { logoAnillo, logoCortes, logoLeyenda, logoPalabra } from "@/components/sitio/logo-trazos";
+import { LOGO_COLORES, logoLema, logoPalabra, type Trazo } from "@/components/sitio/logo-trazos";
 
 type Props = {
-  /** Agrega la leyenda bajo «FORTIUS». La cabecera y el pie van sin ella. */
+  /** Agrega el lema REAL ESTATE & INVESTMENTS bajo la palabra. La cabecera y el pie van sin él. */
   leyenda?: boolean;
   /**
-   * Color de las letras. «auto» sigue el tema (tinta del sitio); «claro» es para fondo claro
-   * y «oscuro» para bandas, fotos y videos, en cualquier tema.
+   * Versión del logo. «auto» sigue el tema (clara en claro; oscura en oscuro y en bandas oscuras);
+   * «claro» es la versión para fondo claro y «oscuro» la de fotos, videos y fondos oscuros.
    */
   tono?: "auto" | "claro" | "oscuro";
   className?: string;
 };
 
-const TINTA = { claro: "#18202A", oscuro: "#EDEDEF" } as const;
-
-/**
-  Logo del sitio público, Fortius II (17/11/2026). La O es siempre azul con su tramo ámbar;
-  las letras toman el color del texto, así el mismo logo sirve en claro, en oscuro y sobre foto.
+/*
+  Logo del sitio público, del sistema de diseño (docs/sistema-diseno/logos, 17/11/2026).
+  Solo existen sus dos versiones: clara (azul real con el lado derecho del emblema en rojo imperial)
+  y oscura (plata con ese lado en oro). Sus colores no se cambian. En «auto», sitio.css elige la
+  versión según el tema con --s-logo-principal y --s-logo-lado.
   No reemplaza a BrandMark, que siguen usando el panel y los documentos.
 */
 export function SitioLogo({ leyenda = false, tono = "auto", className }: Props) {
-  const id = React.useId().replace(/:/g, "");
-  const tinta = tono === "auto" ? "currentColor" : TINTA[tono];
+  // En «auto» el color va por CSS (las variables cambian con el tema); en las versiones fijas, como atributo.
+  const pintar = (trazo: Trazo, i: number) => tono === "auto"
+    ? <path key={i} d={trazo.d} transform={trazo.t} style={{ fill: trazo.lado ? "var(--s-logo-lado)" : "var(--s-logo-principal)" }} />
+    : <path key={i} d={trazo.d} transform={trazo.t} fill={trazo.lado ? LOGO_COLORES[tono].lado : LOGO_COLORES[tono].principal} />;
   return (
-    <span role="img" aria-label="Fortius" className={className ? `s-logo ${className}` : "s-logo"} style={tono === "auto" ? undefined : { color: TINTA[tono] }}>
+    <span role="img" aria-label="Fortius Inmuebles" className={className ? `s-logo ${className}` : "s-logo"}>
       <svg aria-hidden="true" focusable="false" viewBox={leyenda ? "-4 -4 1275 324" : "-4 -4 1275 240"}>
-        <defs>
-          <clipPath id={`${id}h`}><path clipRule="evenodd" d={logoCortes.huecos} /></clipPath>
-          <clipPath id={`${id}a`}><path clipRule="evenodd" d={logoCortes.sinAmbar} /></clipPath>
-          <clipPath id={`${id}b`}><path d={logoCortes.ambar} /></clipPath>
-        </defs>
-        <g clipPath={`url(#${id}h)`}>
-          <path clipPath={`url(#${id}a)`} fillRule="evenodd" fill="#1B3FA6" d={logoAnillo} />
-          <path clipPath={`url(#${id}b)`} fillRule="evenodd" fill="#E0A030" d={logoAnillo} />
-        </g>
-        {logoPalabra.map((d) => <path key={d} d={d} fill={tinta} />)}
-        {leyenda ? logoLeyenda.map((glyph, i) => <path key={i} d={glyph.d} transform={glyph.transform} fill={tinta} />) : null}
+        {logoPalabra.map(pintar)}
+        {leyenda ? logoLema.map(pintar) : null}
       </svg>
     </span>
   );

@@ -74,7 +74,7 @@ export function FichaAsesor({ slug, codigo, titulo, asesor, canales }: Props) {
       </div>
 
       {!abierto
-        ? <button type="button" className="s-btn s-btn-relleno s-btn-grande fa-cta" aria-expanded={false} aria-controls="fa-formulario" onClick={() => setAbierto(true)}>Solicitar visita</button>
+        ? <button type="button" className="s-btn s-btn-rojo s-btn-grande fa-cta" aria-expanded={false} aria-controls="fa-formulario" onClick={() => setAbierto(true)}>Solicitar visita</button>
         : <div id="fa-formulario" className="fa-formulario"><PropertyInterestForm slug={slug} codigo={codigo} titulo={titulo} intent="visita" proposedDay={dia?.etiqueta} /></div>}
 
       {(canales.whatsapp || canales.phoneHref || canales.emailHref) ? (

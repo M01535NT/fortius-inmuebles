@@ -56,7 +56,7 @@ function socialProfile(value: string | undefined, domain: string) {
 }
 
 /*
-  Pie, Fortius II (17/11/2026). Fuera del inicio y de Contacto abre con una banda oscura de invitación.
+  Pie, rediseño del sitio (17/11/2026). Fuera del inicio y de Contacto abre con una banda oscura de invitación.
   Debajo, sobre el fondo del tema: logo y contacto, tres columnas con líneas finas y una franja final
   con los avisos, «Acceso al panel», el interruptor de tema y «Volver arriba».
   Solo se muestran las redes que existen.

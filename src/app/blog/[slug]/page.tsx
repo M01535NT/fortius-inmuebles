@@ -58,7 +58,7 @@ export async function generateMetadata({
 }
 
 /*
-  Artículo, Fortius II (etapa 5, 17/11/2026): volver, tipo y tema en una línea, título grande y
+  Artículo, rediseño del sitio (etapa 5, 17/11/2026): volver, tipo y tema en una línea, título grande y
   datos; la portada con esquinas de 16 px; índice y compartir a un lado; lectura de 720 px, fuente,
   siguiente paso y lecturas relacionadas.
 */

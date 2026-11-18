@@ -25,7 +25,7 @@ export const revalidate = 0;
 const PAGE_SIZE = 9;
 
 /*
-  Blog, Fortius II (etapa 5, 17/11/2026): la misma búsqueda y los mismos filtros en la dirección,
+  Blog, rediseño del sitio (etapa 5, 17/11/2026): la misma búsqueda y los mismos filtros en la dirección,
   con la piel nueva. Una barra con la búsqueda, el tema y el tipo (listas desplegables), fechas y
   orden plegados, y la vista. Debajo, el destacado, la rejilla, las páginas y, al pie, herramientas
   y guías.

@@ -11,7 +11,7 @@ import { zonas } from "@/data/zonas";
 import styles from "./site-search.module.css";
 
 /*
-  Buscador público (31/10/2026; aspecto Fortius II el 17/11/2026): se abre desde la lupa de la cabecera y sugiere destinos del sitio
+  Buscador público (31/10/2026; aspecto del rediseño el 17/11/2026): se abre desde la lupa de la cabecera y sugiere destinos del sitio
   mientras se escribe, sin acentos ni mayúsculas de por medio. Es un combobox: flechas para
   recorrer, Enter para ir, Escape para cerrar. Los destinos son rutas existentes; los tipos de
   inmueble filtran el inventario (si no hay de ese tipo, el inventario muestra todo).

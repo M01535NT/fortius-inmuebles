@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etapa 8 (17/11/2026): la comprobación completa pasa y el PR en borrador hacia `main` está abierto; sale cuando tú lo decidas. Falta tu visto bueno a la etapa 0.
+Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de diseño) construida en la rama `marca-sitio` (17/11/2026); falta verla en el navegador y tu acuerdo para publicarla.
 
 ## Etapas
 
@@ -19,6 +19,7 @@ Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etap
 | 6. Movimiento y teléfono | Efectos de desplazamiento, teléfono, teclado, contraste | Lo recorres en tu teléfono sin tropiezos | Mediano |
 | 7. Limpieza | Se retiran estilos viejos; ícono, imagen para compartir, pruebas nuevas | No queda rastro del diseño anterior | Mediano |
 | 8. Publicación | Comprobación completa y un PR en borrador | Lo revisas y decides cuándo sale | Chico |
+| 9. Marca nueva | Colores, letra, esquinas, sombras, logo e ícono del sistema de diseño | Todas las páginas del sitio se ven con la marca nueva y el panel sigue igual | Mediano |
 
 ## Etapa 0, paso a paso
 
@@ -103,6 +104,20 @@ Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etap
 - [x] Pruebas nuevas del sitio en el navegador: teléfono sin desbordes y con controles de 44 px en 17 páginas, portada por asuntos, frase del inventario, Vender en dos pasos, Contacto, páginas de error y movimiento reducido. Se corren al integrar.
 - [x] Pruebas del diseño anterior reemplazadas (17/11/2026, con tu acuerdo): seis pruebas de navegador fuera; las que seguían valiendo, al diseño nuevo; se agregaron el blog con sus listas y la revisión de accesibilidad en claro y oscuro. Con ellas salieron 18 piezas que ya solo usaban esas pruebas y los tres archivos de estilos globales del diseño anterior. Las pruebas de piezas sueltas pasan; las del navegador se corren al integrar.
 - [x] Ícono de la pestaña con la O de Fortius II, en el sitio y en el panel (tu decisión del 17/11/2026). Los íconos para instalar la app del panel no cambian.
+
+## Etapa 9, paso a paso
+
+- [x] Documentos del sitio corregidos con la marca nueva.
+- [x] Rama `marca-sitio`, sacada de `main`, solo para el sitio.
+- [x] Colores, sombras, foco y esquinas rectas en claro, oscuro y bandas oscuras.
+- [x] Letras Marcellus y Jost; titulares, nombres de filas y cifras pasan a Marcellus.
+- [x] Botones, campos, insignias, pestañas, menú, interruptor y cajas con el aspecto del sistema. «Solicitar visita» de la ficha va en rojo imperial.
+- [x] Logo claro y oscuro en cabecera, menú y pie (el oscuro sobre video); emblema en el ícono de la pestaña del sitio; imagen para compartir nueva. El panel conserva su ícono.
+- [x] Calculadoras, documentos y demás piezas compartidas toman las esquinas rectas en el sitio.
+- [x] Pruebas: las que simulan las letras ya conocen Marcellus y Jost; prueba nueva del logo.
+- [ ] Revisarlo en el navegador, claro y oscuro, en computadora y teléfono (no se ha visto todavía).
+- [ ] Comprobación completa y PR en borrador, cuando tú lo digas.
+- [ ] La rama `sitio-controles-radix`, que aún no está en `main`, toca algunos de los mismos archivos: al juntarlas hay que resolver los choques.
 
 ## Lo que te toca a ti
 

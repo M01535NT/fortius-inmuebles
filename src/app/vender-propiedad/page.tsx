@@ -42,7 +42,7 @@ function Palomita() {
 }
 
 /*
-  Vender, Fortius II (17/11/2026, boceto «Fortius: Vender y Contacto» aprobado).
+  Vender, rediseño del sitio (17/11/2026, boceto «Fortius: Vender y Contacto» aprobado).
   Portada oscura con el video de la casa y la entrevista en dos pasos (el único formulario),
   cómo vendemos en cuatro pasos con foto, qué se sabe antes de anunciar, checklist en banda
   oscura, herramientas «Antes de decidir» y el cierre propio (el pie no repite su invitación).

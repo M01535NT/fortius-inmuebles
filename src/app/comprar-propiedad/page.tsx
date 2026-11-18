@@ -49,7 +49,7 @@ const CIERRE = [
 ];
 
 /*
-  Comprar, Fortius II (etapa 5, 17/11/2026): la guía de siempre con la piel nueva. Documentos,
+  Comprar, rediseño del sitio (etapa 5, 17/11/2026): la guía de siempre con la piel nueva. Documentos,
   gastos, forma de pago y pasos al cierre, cada uno con su título a un lado y filas con líneas;
   al final, propiedades publicadas (primero las destacadas) y el siguiente paso.
 */

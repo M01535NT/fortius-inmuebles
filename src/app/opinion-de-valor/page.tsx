@@ -27,7 +27,7 @@ const INCLUYE = [
 ];
 
 /*
-  Opinión de valor, Fortius II (etapa 5, 17/11/2026): qué es, cómo se llega a ella, qué incluye
+  Opinión de valor, rediseño del sitio (etapa 5, 17/11/2026): qué es, cómo se llega a ella, qué incluye
   y qué no es. Se entrega después de conocer el inmueble; no es un avalúo.
 */
 export default function OpinionDeValorPage() {

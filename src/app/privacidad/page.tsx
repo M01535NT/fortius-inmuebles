@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
     "Responsable, tratamiento de datos, derechos y decisiones de consentimiento de Fortius Inmuebles.",
 });
 
-/* Aviso de privacidad, Fortius II (etapa 5, 17/11/2026): el mismo texto en lectura de 720 px. */
+/* Aviso de privacidad, rediseño del sitio (etapa 5, 17/11/2026): el mismo texto en lectura de 720 px. */
 export default function PrivacidadPage() {
   return (
     <main className="s-pagina">

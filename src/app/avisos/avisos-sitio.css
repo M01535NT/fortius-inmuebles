@@ -1,10 +1,10 @@
-/* Avisos, Privacidad y Términos, Fortius II (etapa 5, 17/11/2026). */
+/* Avisos, Privacidad y Términos, rediseño del sitio (etapa 5, 17/11/2026). */
 .av { padding-bottom: var(--s-seccion); }
 .av-lista { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-ink); }
 .av-fila { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-4) var(--s-8); padding: var(--s-6) 0; border-bottom: 1px solid var(--s-line); scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
 .av-texto { flex: 1 1 420px; display: flex; flex-direction: column; gap: var(--s-1); }
 .av-texto p { margin: 0; }
-.av-titulo { margin: 0; font-size: var(--s-type-fila); font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; }
+.av-titulo { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-fila); line-height: 1.25; letter-spacing: 0; }
 .av-lectura { flex-basis: 100%; }
 .av-lectura summary { display: inline-flex; align-items: center; min-height: 44px; color: var(--s-accent); font-weight: 600; cursor: pointer; }
 .av-lectura .s-prosa { padding: var(--s-4) 0 var(--s-6); }

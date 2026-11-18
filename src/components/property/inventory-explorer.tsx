@@ -27,7 +27,7 @@ import {
 } from "@/lib/inventario-busqueda";
 
 /*
-  Inventario, Fortius II (etapa 2, 17/11/2026). La frase es el filtro: «Quiero [comprar o rentar]
+  Inventario, rediseño del sitio (etapa 2, 17/11/2026). La frase es el filtro: «Quiero [comprar o rentar]
   [cualquier propiedad] en [cualquier zona] hasta [cualquier precio]». Debajo, «Más filtros» y una
   barra de resultados que se queda arriba con el conteo, el orden y la vista (cuadrícula, lista o mapa).
   El servidor entrega los inmuebles por partes; «Cargar más» pide la siguiente.

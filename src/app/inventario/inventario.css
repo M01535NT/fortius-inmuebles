@@ -1,9 +1,9 @@
-/* Inventario, Fortius II (etapa 2, 17/11/2026). Medidas del lienzo «Fortius desde cero». */
+/* Inventario, rediseño del sitio (etapa 2, 17/11/2026). Medidas del lienzo «Fortius desde cero». */
 .inv2 { padding-top: var(--s-cabecera); }
 .inv2-raiz { padding-bottom: var(--s-10); }
 
 /* La frase es el filtro */
-.inv2-frase { margin: 0; padding: var(--s-10) 0 var(--s-5); display: flex; flex-direction: column; gap: 0.16em; font-size: clamp(28px, 4vw, 60px); font-weight: 500; line-height: 1.2; letter-spacing: var(--s-track-seccion); }
+.inv2-frase { font-family: var(--s-display-font); font-weight: 400; margin: 0; padding: var(--s-10) 0 var(--s-5); display: flex; flex-direction: column; gap: 0.16em; font-size: clamp(28px, 4vw, 60px); line-height: 1.2; letter-spacing: 0; }
 .inv2-renglon { display: flex; flex-wrap: wrap; align-items: center; gap: 0.16em 0.26em; }
 .inv2-gris { color: var(--s-ink-muted); }
 
@@ -11,7 +11,7 @@
 .inv2-limpiar { min-height: 44px; padding: 0 var(--s-3); border: 0; background: transparent; color: var(--s-accent); font: inherit; font-size: var(--s-type-interfaz); font-weight: 600; cursor: pointer; }
 .inv2-limpiar:hover { text-decoration: underline; text-underline-offset: 4px; }
 
-.inv2-mas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-4) var(--s-6); margin: 0 0 var(--s-8); padding: var(--s-6); border: 1px solid var(--s-line); border-radius: var(--s-r-grande); background: var(--s-card); }
+.inv2-mas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-4) var(--s-6); margin: 0 0 var(--s-8); padding: var(--s-6); border: 1px solid var(--s-line); border-radius: var(--s-r-grande); background: var(--s-card); box-shadow: var(--s-sombra-md); }
 .inv2-mas[hidden] { display: none; }
 .inv2-nota { grid-column: 1 / -1; margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 
@@ -32,11 +32,11 @@
 .inv2-tabla-marco { overflow-x: auto; }
 .inv2-tabla { width: 100%; min-width: 560px; border-collapse: collapse; font-size: var(--s-type-interfaz); }
 .inv2-tabla :is(th, td) { padding: var(--s-4) var(--s-3); border-bottom: 1px solid var(--s-line); text-align: left; vertical-align: top; }
-.inv2-tabla thead th { border-bottom-color: var(--s-ink); font-size: var(--s-type-entrada); font-weight: 500; letter-spacing: -0.02em; }
+.inv2-tabla thead th { border-bottom-color: var(--s-ink); font-size: var(--s-type-entrada); font-weight: 600; }
 .inv2-tabla thead a { color: inherit; }
 .inv2-tabla thead a:hover { color: var(--s-accent); }
 .inv2-tabla tbody th { color: var(--s-ink-muted); font-weight: 400; }
-.inv2-tabla td { font-weight: 500; font-variant-numeric: tabular-nums; }
+.inv2-tabla td { font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* Vistas */
 .inv2-cuadricula { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--s-9) var(--s-6); padding: var(--s-8) 0 var(--s-9); }
@@ -53,10 +53,10 @@
 .inv2-mas-resultados { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); padding-bottom: var(--s-10); }
 .inv2-mas-resultados p { margin: 0; font-size: var(--s-type-detalle); }
 .inv2-invitacion { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-4); padding-top: var(--s-6); border-top: 1px solid var(--s-line); }
-.inv2-invitacion p { margin: 0; font-size: var(--s-type-entrada); font-weight: 500; letter-spacing: -0.02em; }
+.inv2-invitacion p { margin: 0; font-size: var(--s-type-entrada); font-weight: 600; }
 
 .inv2-vacio { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-5); padding: var(--s-12) 0 160px; }
-.inv2-vacio-titulo { margin: 0; font-size: clamp(24px, 2.6vw, 36px); font-weight: 500; letter-spacing: var(--s-track-sub); }
+.inv2-vacio-titulo { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: clamp(24px, 2.6vw, 36px); letter-spacing: 0; }
 .inv2-vacio .s-apoyo { margin: 0; }
 .inv2-vacio-acciones { display: flex; flex-wrap: wrap; gap: var(--s-3); }
 

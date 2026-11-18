@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
     "Estima la mensualidad de tu crédito hipotecario con enganche, plazo y tasa editables. Compara hasta tres escenarios y descarga cada tabla de pagos en PDF.",
 });
 
-/* Hipoteca, Fortius II (etapa 5, 17/11/2026): la calculadora de siempre bajo la cabeza nueva. */
+/* Hipoteca, rediseño del sitio (etapa 5, 17/11/2026): la calculadora de siempre bajo la cabeza nueva. */
 export default function HipotecaPage() {
   return (
     <main className="s-pagina he">

@@ -1,6 +1,6 @@
 # Marca del sitio público
 
-**El sitio público ya no usa esta marca.** Desde el 17/11/2026 usa la de Fortius II (letra Geist), descrita en [`docs/sitio/DECISIONS.md`](../sitio/DECISIONS.md). Lo de abajo queda como la marca anterior, que siguen usando los PDF, los formatos y el membrete. El panel sigue su propio boceto (ver `SPEC.md`).
+**El sitio público ya no usa esta marca.** Usa el sistema de diseño de [`docs/sistema-diseno/`](../sistema-diseno/GUIA.md), descrito en [`docs/sitio/DECISIONS.md`](../sitio/DECISIONS.md). Lo de abajo queda como la marca anterior, que siguen usando los PDF, los formatos y el membrete. El panel sigue su propio boceto (ver `SPEC.md`).
 
 La marca comercial del producto es **Fortius Inmuebles**. La referencia es el logotipo arquitectónico compartido por el usuario: FORTIUS, portal bicolor en lugar de la O y descriptor REAL ESTATE & INVESTMENTS. Los SVG son una reconstrucción vectorial de la imagen de referencia, sin sus márgenes vacíos.
 

@@ -50,7 +50,7 @@ export function FichaBarra({ asesor, precio, whatsapp, alternativa }: Props) {
       {whatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="s-btn s-btn-contorno s-btn-chico fb-whatsapp">WhatsApp</a>}
       {alternativa
         ? <a href={alternativa.href} className="s-btn s-btn-relleno s-btn-chico">{alternativa.texto}</a>
-        : <button type="button" className="s-btn s-btn-relleno s-btn-chico" onClick={solicitar}>Solicitar visita</button>}
+        : <button type="button" className="s-btn s-btn-rojo s-btn-chico" onClick={solicitar}>Solicitar visita</button>}
     </div>
   );
 }
