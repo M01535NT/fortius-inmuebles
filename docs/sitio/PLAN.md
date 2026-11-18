@@ -126,11 +126,15 @@ Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de di
 - [ ] Comprobación completa y PR en borrador, cuando tú lo digas.
 - [x] Juntada con la rama `sitio-controles-radix` en `nuevo-panel` el 17/11/2026: la ficha conserva el marco primero y toma la letra y los colores del sistema.
 
+## Inmuebles de ejemplo
+
+- [x] Ocho inmuebles de ejemplo publicados desde el panel nuevo, marcados como ejemplo: casas, departamento, local, nave, terreno y oficina; en venta y en renta; en Tijuana, Rosarito, Ensenada y Tecate; cinco con video (18/11/2026).
+- [ ] Salen en el sitio cuando llegue a `main` el arreglo de la base que deja publicar un inmueble sin recorrido 360.
+
 ## Lo que te toca a ti
 
 - Confirmar los nombres de los asuntos de la portada (hoy: Vender, Comprar, Rentar, Saber cuánto vale, Poner papeles en orden y Otro asunto).
 - Confirmar el texto de Opinión de valor: ahora dice que se entrega después de conocer el inmueble, sin decir que solo sale dentro del método.
-- Cargar en el panel al menos cuatro inmuebles de ejemplo más, marcados como ejemplo, para ver la tira «En el mercado ahora» completa (hoy solo hay uno publicado).
 - Dar la foto de cada asesor.
 - Capturar en el panel los lugares cercanos de cada inmueble.
 - Decidir si «Qué hay alrededor» necesita los grupos iglesias y hoteles: hoy el panel no los tiene.
