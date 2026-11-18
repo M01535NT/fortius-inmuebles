@@ -4,14 +4,14 @@
 .ve-portada { position: relative; overflow: hidden; background: var(--s-bg); color: var(--s-ink); }
 .ve-fondo { position: absolute; inset: 0; }
 .ve-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.ve-velo { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(1, 35, 103, 0.9) 0%, rgba(1, 35, 103, 0.7) 50%, rgba(1, 35, 103, 0.35) 100%); }
+.ve-velo { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2, 3, 21, 0.9) 0%, rgba(2, 3, 21, 0.7) 50%, rgba(2, 3, 21, 0.35) 100%); }
 .ve-portada-cuerpo { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 56px var(--s-11); padding-top: calc(var(--s-cabecera) + var(--s-12)); padding-bottom: 112px; }
 .ve-portada-texto { flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
 .ve-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: clamp(48px, 7.2vw, 112px); line-height: 1; letter-spacing: 0; }
 .ve-entrada { max-width: 520px; margin: 0; font-size: 20px; line-height: 1.45; color: rgba(248, 248, 255, 0.86); }
 .ve-confianza { margin: 0; font-size: var(--s-type-detalle); color: rgba(248, 248, 255, 0.7); }
 
-.ve-caja { flex: 1 1 380px; max-width: 460px; box-sizing: border-box; display: flex; flex-direction: column; gap: var(--s-6); padding: var(--s-7); border: 1px solid var(--s-line); border-radius: var(--s-r-grande); background: rgba(1, 35, 103, 0.92); scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
+.ve-caja { flex: 1 1 380px; max-width: 460px; box-sizing: border-box; display: flex; flex-direction: column; gap: var(--s-6); padding: var(--s-7); border: 1px solid var(--s-line); border-radius: var(--s-r-grande); background: rgba(2, 3, 21, 0.92); scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
 .ve-caja-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 44px; margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 .ve-volver { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--s-ink); font: inherit; font-weight: 600; cursor: pointer; }
 .ve-volver:hover { color: var(--s-accent); }

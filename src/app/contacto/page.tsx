@@ -25,7 +25,7 @@ export default function ContactoPage() {
         <ContactoMotivo />
       </section>
       <section className="s-contenedor ct2-equipo-marco" aria-labelledby="ct2-equipo">
-        <div className="s-banda ct2-equipo">
+        <div className="s-banda-media ct2-equipo">
           <Image src="/hero/interior-depa.webp" alt="" fill sizes="(max-width: 1440px) 100vw, 1440px" className="ct2-equipo-foto" />
           <span className="ct2-equipo-velo" aria-hidden="true" />
           <div className="ct2-equipo-cuerpo">

@@ -91,7 +91,7 @@ export default async function NosotrosPage() {
       </section>
 
       <section id="identidad" className="s-contenedor no-proposito" aria-label="Misión y visión">
-        <article id="mision" aria-label="Misión" className="no-tarjeta s-banda">
+        <article id="mision" aria-label="Misión" className="no-tarjeta s-banda-media">
           <Image src="/hero/etapa-01-revisamos.webp" alt="" fill sizes="(max-width: 899px) 100vw, 50vw" />
           <span className="no-velo" aria-hidden="true" />
           <div className="no-tarjeta-texto">
@@ -99,7 +99,7 @@ export default async function NosotrosPage() {
             <p>Revisamos documentos y precio antes de que firmes.</p>
           </div>
         </article>
-        <article id="vision" aria-label="Visión" className="no-tarjeta s-banda">
+        <article id="vision" aria-label="Visión" className="no-tarjeta s-banda-media">
           <Image src="/hero/ciudad-tijuana.webp" alt="" fill sizes="(max-width: 899px) 100vw, 50vw" />
           <span className="no-velo" aria-hidden="true" />
           <div className="no-tarjeta-texto">

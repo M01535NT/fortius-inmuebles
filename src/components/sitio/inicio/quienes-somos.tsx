@@ -43,7 +43,7 @@ export function QuienesSomos() {
           <Link href="/nosotros" className="s-enlace">Conocer al equipo<FlechaDerecha /></Link>
         </div>
       </div>
-      <div className="qs-video s-banda">
+      <div className="qs-video s-banda-media">
         <VideoFondo webm="/hero/asunto-nave.webm" mp4="/hero/asunto-nave.mp4" poster="/hero/asunto-nave-poster.webp" className="qs-media" />
         <span className="qs-velo" aria-hidden="true" />
         <div className="s-contenedor qs-columnas">

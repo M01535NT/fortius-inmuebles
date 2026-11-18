@@ -35,7 +35,7 @@
 }
 .fv-marco :is(iframe, video) { display: block; width: 100%; height: 100%; border: 0; object-fit: cover; }
 .fv-marco:fullscreen { border-radius: 0; aspect-ratio: auto; }
-.fv-marco:fullscreen video { object-fit: contain; background: var(--f-azul-real); }
+.fv-marco:fullscreen video { object-fit: contain; background: var(--f-negro-armino); }
 .fv-foto { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: zoom-in; }
 .fv-foto img { object-fit: cover; }
 .fv-vacio { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-3); padding: var(--s-6); color: var(--s-ink-muted); font-size: var(--s-type-interfaz); text-align: center; }
@@ -55,8 +55,8 @@
 .fv-acciones > button:not(.s-btn) { min-height: 44px; height: auto; padding: 0 var(--s-4); border: 1px solid var(--s-line-strong); border-radius: var(--s-r-pastilla); background: transparent; color: var(--s-ink); font-size: var(--s-type-detalle); font-weight: 600; }
 .fv-acciones > button:not(.s-btn):hover { border-color: var(--s-ink); background: transparent; color: var(--s-ink); }
 .fv-acciones > :is(p, input) { flex-basis: 100%; }
-.fv-ventana { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: var(--f-azul-real); color: var(--f-plata); }
-.fv-ventana::backdrop { background: rgba(1, 35, 103, 0.95); }
+.fv-ventana { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: var(--f-negro-armino); color: var(--f-plata); }
+.fv-ventana::backdrop { background: rgba(2, 3, 21, 0.95); }
 .fv-ventana[open] { display: flex; flex-direction: column; overscroll-behavior: contain; }
 /* Con la ventana de fotos abierta, la página de atrás no se desplaza (también en el iPhone). */
 html.sitio:has(.fv-ventana[open]) { overflow: hidden; }
