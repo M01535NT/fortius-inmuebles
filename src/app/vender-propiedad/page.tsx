@@ -53,7 +53,7 @@ export default async function VenderPage() {
 
   return (
     <main className="ve">
-      <section className="s-banda ve-portada" aria-labelledby="ve-titulo">
+      <section className="s-banda-media ve-portada" aria-labelledby="ve-titulo">
         <div className="ve-fondo" aria-hidden="true">
           <VideoFondo webm="/hero/asunto-casa.webm" mp4="/hero/asunto-casa.mp4" poster="/hero/asunto-casa-poster.webp" className="ve-video" />
           <span className="ve-velo" />
