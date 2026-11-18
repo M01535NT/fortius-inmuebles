@@ -111,6 +111,8 @@ Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de di
 - [x] Rama `marca-sitio`, sacada de `main`, solo para el sitio.
 - [x] Colores, sombras, foco y esquinas rectas en claro, oscuro y bandas oscuras.
 - [x] Letra Archivo del sistema: titulares, nombres de filas y cifras en Archivo angosta y peso 600; el texto en ancho normal.
+- [x] Azul real como tinta y fondo oscuro en todo el sitio: texto, fondo del tema oscuro, bandas sobre video, sombras e imagen para compartir (18/11/2026). Revisado en el navegador del agente: el contraste pasa en claro y oscuro.
+- [x] Acentos rojos al pasar el cursor y movimiento ligero en botones, tarjetas, filas y preguntas (18/11/2026).
 - [x] Botones, campos, insignias, pestañas, menú, interruptor y cajas con el aspecto del sistema. «Solicitar visita» de la ficha va en rojo imperial.
 - [x] Logo claro y oscuro en cabecera, menú y pie (el oscuro sobre video); emblema en el ícono de la pestaña del sitio; imagen para compartir nueva. El panel conserva su ícono.
 - [x] Calculadoras, documentos y demás piezas compartidas toman las esquinas rectas en el sitio.

@@ -5,9 +5,9 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 ## Marca (17/11/2026)
 
 - **Fuente única:** el sistema de diseño de `docs/sistema-diseno/` (`GUIA.md`, `tokens.css`, `componentes.css` y `logos/`). Si algo de esta carpeta lo contradice en colores, letra, esquinas, sombras o logo, manda el sistema.
-- **Colores.** Azul real `#012367` (principal), rojo imperial `#6D0809` (acento), plata `#F8F8FF` (fondo claro y texto sobre oscuro), negro armiño `#020315` (tinta y fondo oscuro) y oro brocado `#CBBA87` (solo detalles). Texto de apoyo: `#55595F` en claro y `#AEB2B8` en oscuro. Las tarjetas y campos van en blanco `#FFFFFF` sobre el fondo plata.
-- **Claro:** azul real sobre plata. **Oscuro:** el principal pasa a plata sobre negro armiño, porque el azul no se lee sobre negro. El detalle es rojo imperial en claro y oro en oscuro.
-- **El oro es un detalle:** filetes, sellos o un ícono suelto, siempre sobre azul, rojo o negro. Nunca como texto ni sobre fondo claro.
+- **Colores.** Azul real `#012367` (principal, tinta y fondo oscuro), rojo imperial `#6D0809` (acento), plata `#F8F8FF` (fondo claro y texto sobre azul) y oro brocado `#CBBA87` (solo detalles). Texto de apoyo: `#55595F` en claro y `#AEB2B8` en oscuro. Las tarjetas y campos van en blanco `#FFFFFF` sobre el fondo plata.
+- **Claro:** azul real sobre plata. **Oscuro:** fondo azul real y el principal en plata, porque el azul no se lee sobre azul. El detalle es rojo imperial en claro y oro en oscuro.
+- **El oro es un detalle:** filetes, sellos o un ícono suelto, siempre sobre azul o rojo. Nunca como texto ni sobre fondo claro.
 - **Letra:** una sola, Archivo, con su eje de ancho. Titulares, nombre de la marca y cifras destacadas en Archivo angosta (72 % de ancho) y peso 600. Texto en Archivo de ancho normal: 400 para leer y 600 para botones y etiquetas.
 - **Tamaños:** los estilos de texto del sistema son la base. La portada, el cierre, el nombre en la ficha y las cifras conservan los tamaños grandes del boceto. Los titulares angostos van sin apretar las letras.
 - **Mayúsculas espaciadas solo en botones, etiquetas de campo e insignias**, como las define el sistema. Los títulos van en Archivo angosta normal, nunca en mayúsculas.
@@ -16,6 +16,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Campos:** caja blanca con la sombra pequeña del sistema y etiqueta en mayúsculas espaciadas. Su borde se queda con contraste de 3 a 1 para que la caja se distinga del fondo plata.
 - **Logo:** los archivos de `docs/sistema-diseno/logos/`. Versión clara (azul con el lado derecho del emblema en rojo) sobre fondo claro; versión oscura (plata con el lado derecho en oro) sobre bandas oscuras, fotos y video. Sus colores no se cambian. El emblema solo sirve para el ícono de la pestaña.
 - **Botones:** principal en azul (plata en oscuro); acento en rojo imperial para la acción que más importa de una pantalla (hoy, «Solicitar visita» en la ficha y su barra flotante); secundario con contorno. En teléfonos angostos un botón largo puede ir en dos líneas.
+- **Acentos rojos al pasar el cursor:** los botones se encienden en rojo imperial; enlaces, contornos, filas, preguntas y nombres de tarjeta toman el detalle (rojo en claro, oro sobre azul, donde el rojo no se lee). Bajo la foto de una tarjeta crece un filete rojo, como el lado rojo del emblema.
 - **Insignias:** en mayúsculas espaciadas. La de acento es azul real con filete de oro.
 - **El cambio de marca es solo del sitio público.** Los paneles, los PDF, los formatos y el membrete conservan la suya.
 
@@ -27,6 +28,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Inventario:** frase con filtros y tarjetas tradicionales con tres vistas. Se descartó el índice con vista previa grande porque no sirve con cientos de inmuebles.
 - **Inicio:** no se centra en el método de cinco etapas ni en el expediente; esos bloques salen del inicio.
 - **Movimiento:** efectos ligados al desplazamiento y videos, hechos con GSAP. El texto siempre se lee aunque la animación no corra.
+- **Movimiento ligero en botones y piezas:** los botones se levantan 2 px al pasar el cursor y bajan al presionarlos; las tarjetas suben 4 px; tarjetas, filas y preguntas aparecen con un desplazamiento corto al bajar (en los navegadores que lo permiten). Con movimiento reducido no hay desplazamientos.
 - Sin antetítulos sobre los títulos y sin numeraciones decorativas. Las mayúsculas espaciadas quedan solo donde las pone el sistema de diseño (botones, etiquetas de campo e insignias).
 - De tres opciones en adelante, lista desplegable; con dos, interruptor.
 
@@ -50,7 +52,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Logo:** la versión clara en tema claro y la oscura en tema oscuro y sobre bandas, fotos y video. Sobre foto o video va siempre la oscura.
 - **Cabecera:** logo a la izquierda; a la derecha, la lupa del buscador y el botón «Menú». El buscador queda junto al botón, a un toque en cualquier página.
 - **Tema:** interruptor «Tema oscuro» dentro del menú y en el pie (dos opciones, interruptor). Guarda la elección igual que antes.
-- **Bandas oscuras:** una caja con la clase `s-banda` usa los colores oscuros del sistema en los dos temas: negro armiño, texto plata y oro como detalle.
+- **Bandas oscuras:** una caja con la clase `s-banda` usa los colores oscuros del sistema en los dos temas: azul real, texto plata y oro como detalle.
 - **Pie:** sigue el flujo de la página, como antes, sin quedarse fijo detrás del contenido.
 
 ## Inventario (17/11/2026)
@@ -126,7 +128,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 
 ## Limpieza (17/11/2026)
 
-- **Imagen para compartir:** el logo oscuro del sistema con su lema, sobre negro armiño.
+- **Imagen para compartir:** el logo oscuro del sistema con su lema, sobre azul real.
 - **Ícono de la pestaña:** el emblema del sistema en las páginas del sitio. El panel conserva su ícono y los de instalar la app.
 - **Confirmación de Vender:** se conserva su dirección; hoy nadie llega a ella porque la entrevista confirma en la misma página.
 - **Pruebas del sitio:** las del navegador viven en una sola prueba del diseño nuevo, más navegación, ficha en PDF, calculadoras e instalación. Lo que solo usaban las pruebas anteriores se retiró con ellas (17/11/2026).

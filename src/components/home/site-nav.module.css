@@ -12,9 +12,10 @@
 .icon { width: 44px; padding: 0; border-color: transparent; }
 .menu { padding: 0 var(--s-4) 0 var(--s-5); }
 .icon:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
-.menu:hover { border-color: currentColor; }
+.menu { transition: border-color 240ms ease, color 240ms ease, background-color 240ms ease; }
+.menu:hover { border-color: var(--s-detalle); color: var(--s-detalle); }
 .onImage .menu { border-color: rgba(248, 248, 255, 0.5); }
-.onImage .menu:hover { border-color: var(--f-plata); }
+.onImage .menu:hover { border-color: var(--s-rojo); background: var(--s-rojo); color: var(--f-plata); }
 .onImage :is(a, button):focus-visible { outline-color: var(--f-oro-brocado); }
 
 @media (max-width: 639px) {
