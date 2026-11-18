@@ -24,7 +24,7 @@ Sistema de diseño de la marca Fortius Inmuebles. Su carácter es imperial y sob
 ## Principios
 
 - **Plata de fondo, terciopelo de figura.** El fondo claro es `plata`; las figuras y bloques de marca son `azul-real` y `rojo-imperial`.
-- **El oro es un detalle, no un color de trabajo.** `oro-brocado` es el único oro: solo aparece en filetes, sellos o un ícono puntual, sobre azul, rojo o negro; nunca en texto corrido ni en bloques grandes.
+- **El oro es un detalle, no un color de trabajo.** `oro-brocado` es el único oro: solo aparece en filetes, sellos o un ícono puntual, sobre azul o rojo; nunca en texto corrido ni en bloques grandes.
 - **Cantos rectos, sin excepción.** Todo lleva esquinas rectas (`radius-0`): botones, campos, tarjetas, avisos, insignias, bloques y portadas. La profundidad la dan las sombras, no el redondeo.
 
 ## Logotipo
@@ -35,17 +35,16 @@ FORTIUS con el emblema hexagonal en lugar de la O y el lema REAL ESTATE & INVEST
 
 | Token | Valor | Papel |
 |---|---|---|
-| `azul-real` | #012367 | Principal |
+| `azul-real` | #012367 | Principal, tinta y fondo oscuro |
 | `rojo-imperial` | #6D0809 | Acento de poder |
 | `plata` | #F8F8FF | Fondo claro y texto sobre oscuro (ghost white) |
-| `negro-armino` | #020315 | Tinta y fondo oscuro |
-| `oro-brocado` | #CBBA87 | Único oro: detalles sobre azul, rojo o negro |
+| `oro-brocado` | #CBBA87 | Único oro: detalles sobre azul o rojo |
 
-En tema claro el principal es `azul-real` sobre `plata`; en tema oscuro el principal pasa a `plata` sobre `negro-armino`, porque el azul no se distingue sobre negro. Los tokens `surface`, `ink`, `ink-muted`, `primary`, `on-primary` y `border` ya hacen ese cambio.
+En tema claro el principal es `azul-real` sobre `plata`; en tema oscuro el fondo es `azul-real` y el principal pasa a `plata`, porque el azul no se distingue sobre azul. Los tokens `surface`, `ink`, `ink-muted`, `primary`, `on-primary` y `border` ya hacen ese cambio.
 
 ## Contraste
 
-- `azul-real` y `rojo-imperial` se leen bien sobre `plata` (13.8:1 y 11.8:1), pero no sobre `negro-armino`.
+- `azul-real` y `rojo-imperial` se leen bien sobre `plata` (13.8:1 y 11.8:1); la `plata` se lee bien sobre `azul-real`.
 - `oro-brocado` contrasta bien sobre `azul-real` (7.6:1) y `rojo-imperial` (6.5:1), pero desaparece sobre `plata` (1.8:1): en fondo claro el oro no se usa.
 
 ## Tipografía
@@ -58,7 +57,7 @@ Una sola fuente, **Archivo**, de la línea de Arial (sans serif grotesca), con e
 
 ## Sombras
 
-Las sombras separan superficies; no decoran. En claro usan la tinta `negro-armino` con muy poca opacidad (la grande lleva un leve tono azul); en oscuro, negro profundo.
+Las sombras separan superficies; no decoran. En claro usan el `azul-real` con muy poca opacidad; en oscuro, negro profundo.
 
 - `shadow-sm`: botones y campos en reposo.
 - `shadow-md`: tarjetas, y botones al pasar el cursor.

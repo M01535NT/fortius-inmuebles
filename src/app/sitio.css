@@ -14,7 +14,6 @@ html.sitio {
   --f-rojo-imperial: #6d0809;
   --f-oro-brocado: #cbba87;
   --f-plata: #f8f8ff;
-  --f-negro-armino: #020315;
 }
 
 /* 2. Tokens del tema claro: azul real sobre plata. */
@@ -22,10 +21,10 @@ html.sitio {
   --s-bg: var(--f-plata);
   --s-card: #ffffff;
   --s-raised: #ffffff;
-  --s-muted: color-mix(in srgb, var(--f-negro-armino) 5%, var(--f-plata));
-  --s-line: #02031529;
+  --s-muted: color-mix(in srgb, var(--f-azul-real) 5%, var(--f-plata));
+  --s-line: #01236729;
   --s-line-strong: #55595f;
-  --s-ink: var(--f-negro-armino);
+  --s-ink: var(--f-azul-real);
   --s-ink-muted: #55595f;
   --s-accent: var(--f-azul-real);
   --s-accent-soft: color-mix(in srgb, var(--f-azul-real) 9%, var(--f-plata));
@@ -44,12 +43,12 @@ html.sitio {
   --s-warning-soft: #f6ead0;
   --s-error: var(--f-rojo-imperial);
   --s-error-soft: color-mix(in srgb, var(--f-rojo-imperial) 9%, var(--f-plata));
-  --s-scrim: rgba(2, 3, 21, 0.45);
-  --s-on-media: rgba(2, 3, 21, 0.6);
+  --s-scrim: rgba(1, 35, 103, 0.45);
+  --s-on-media: rgba(1, 35, 103, 0.8);
   /* Sombras del sistema: separan superficies, no decoran. */
-  --s-sombra-sm: 0 1px 2px rgba(2, 3, 21, 0.08), 0 1px 1px rgba(2, 3, 21, 0.04);
-  --s-sombra-md: 0 4px 12px rgba(2, 3, 21, 0.1), 0 2px 4px rgba(2, 3, 21, 0.06);
-  --s-sombra-lg: 0 16px 40px rgba(1, 35, 103, 0.16), 0 4px 10px rgba(2, 3, 21, 0.08);
+  --s-sombra-sm: 0 1px 2px rgba(1, 35, 103, 0.08), 0 1px 1px rgba(1, 35, 103, 0.04);
+  --s-sombra-md: 0 4px 12px rgba(1, 35, 103, 0.1), 0 2px 4px rgba(1, 35, 103, 0.06);
+  --s-sombra-lg: 0 16px 40px rgba(1, 35, 103, 0.16), 0 4px 10px rgba(1, 35, 103, 0.08);
   --s-shadow-menu: var(--s-sombra-lg);
   --s-shadow-dialog: var(--s-sombra-lg);
   /* Foco: el color del anillo del sistema (azul en claro, oro en oscuro), a plena intensidad para que se vea. */
@@ -131,7 +130,7 @@ html.sitio {
   --input: var(--s-line-strong);
   --ring: var(--s-foco);
   --radius: 0px;
-  --block: var(--f-negro-armino);
+  --block: var(--f-azul-real);
   --block-foreground: var(--f-plata);
   --block-muted: #aeb2b8;
   --brand-ink: var(--s-ink);
@@ -142,29 +141,29 @@ html.sitio {
   --corner-pulsable: var(--s-r-tarjeta);
   --corner-tarjeta: var(--s-r-tarjeta);
   --pg-wine: var(--s-accent);
-  --pg-night: var(--f-negro-armino);
+  --pg-night: var(--f-azul-real);
   --ns-bg: var(--s-muted); --ns-page: var(--s-bg); --ns-card: var(--s-card); --ns-deep: var(--s-bg); --ns-form: var(--s-card);
   --ns-ink: var(--s-ink); --ns-strong: var(--s-ink); --ns-accent: var(--s-accent); --ns-fill: var(--s-accent); --ns-warn: var(--s-warning);
-  --ns-invert: var(--s-ink); --ns-invert-ink: var(--s-bg); --ns-invert-accent: var(--s-bg); --ns-invert-hover: color-mix(in srgb, var(--f-plata) 18%, var(--f-negro-armino));
+  --ns-invert: var(--s-ink); --ns-invert-ink: var(--s-bg); --ns-invert-accent: var(--s-bg); --ns-invert-hover: color-mix(in srgb, var(--f-plata) 18%, var(--f-azul-real));
 }
 
 /*
-  3. Tokens del tema oscuro: el principal pasa a plata sobre negro armiño, porque el azul no se
-  lee sobre negro. Mismo nombre, otro valor: las piezas no saben en qué tema están.
+  3. Tokens del tema oscuro: fondo azul real y el principal en plata, porque el azul no se lee
+  sobre azul. Mismo nombre, otro valor: las piezas no saben en qué tema están.
 */
 html.sitio.dark,
 html.sitio .s-banda {
-  --s-bg: var(--f-negro-armino);
-  --s-card: var(--f-negro-armino);
-  --s-raised: color-mix(in srgb, var(--f-plata) 6%, var(--f-negro-armino));
-  --s-muted: color-mix(in srgb, var(--f-plata) 7%, var(--f-negro-armino));
+  --s-bg: var(--f-azul-real);
+  --s-card: var(--f-azul-real);
+  --s-raised: color-mix(in srgb, var(--f-plata) 6%, var(--f-azul-real));
+  --s-muted: color-mix(in srgb, var(--f-plata) 7%, var(--f-azul-real));
   --s-line: #f8f8ff33;
   --s-line-strong: #aeb2b8;
   --s-ink: var(--f-plata);
   --s-ink-muted: #aeb2b8;
   --s-accent: var(--f-plata);
-  --s-accent-soft: color-mix(in srgb, var(--f-plata) 12%, var(--f-negro-armino));
-  --s-accent-ink: var(--f-negro-armino);
+  --s-accent-soft: color-mix(in srgb, var(--f-plata) 12%, var(--f-azul-real));
+  --s-accent-ink: var(--f-azul-real);
   --s-accent-hover: var(--f-plata);
   --s-accent-active: var(--f-plata);
   --s-detalle: var(--f-oro-brocado);
@@ -323,9 +322,10 @@ html.sitio .s-pestanas .s-pestana:focus-visible { outline-offset: -3px; }
 }
 /* Azul real con filete de oro: el oro es aquí un detalle sobre azul, como pide el sistema. */
 .s-distintivo-acento { background: var(--f-azul-real); color: var(--f-plata); box-shadow: inset 0 0 0 1px var(--f-oro-brocado); }
+html.sitio.dark .s-distintivo-acento, html.sitio .s-banda .s-distintivo-acento { background: var(--s-accent-soft); }
 .s-distintivo-aviso { background: var(--s-warning-soft); color: var(--s-warning); }
 .s-distintivo-error { background: var(--s-error-soft); color: var(--s-error); }
-.s-distintivo-claro { background: var(--f-plata); color: var(--f-negro-armino); }
+.s-distintivo-claro { background: var(--f-plata); color: var(--f-azul-real); }
 .s-distintivo-media { background: var(--s-on-media); color: var(--f-plata); }
 
 /* Lista con líneas finas: filas que llevan a otra parte y datos en dos columnas. */
@@ -512,4 +512,58 @@ html.sitio .s-frase-opcion:focus-visible { outline: none; }
 @media (prefers-reduced-motion: reduce) {
   .s-pregunta summary svg,
   .s-btn, .s-btn svg, .s-enlace svg, .s-pestana, .s-linea > svg, .s-tarjeta-foto img, .s-interruptor-pista, .s-interruptor-pista::after { transition: none; }
+}
+
+/*
+  9. Acentos rojos y movimiento ligero (18/11/2026).
+  El rojo imperial aparece al pasar el cursor: los botones se encienden en rojo y los enlaces,
+  contornos y nombres toman el detalle (rojo en claro, oro sobre azul, donde el rojo no se lee).
+  El movimiento es corto y tranquilo; con movimiento reducido no hay desplazamientos.
+*/
+html.sitio { --s-hover-dur: 240ms; }
+
+/* Botones: se levantan un poco y se encienden en rojo; al presionar bajan. */
+.s-btn { transition: background-color var(--s-hover-dur) ease, border-color var(--s-hover-dur) ease, color var(--s-hover-dur) ease, box-shadow var(--s-hover-dur) ease, transform var(--s-hover-dur) var(--s-ease); }
+.s-btn-relleno:hover,
+.s-btn-contorno.s-sobre-media:hover { border-color: var(--s-rojo); background: var(--s-rojo); color: var(--f-plata); box-shadow: var(--s-sombra-md); }
+.s-btn-rojo:hover { border-color: color-mix(in srgb, var(--s-rojo) 82%, #000); background: color-mix(in srgb, var(--s-rojo) 82%, #000); box-shadow: var(--s-sombra-md); }
+.s-btn-contorno:hover { border-color: var(--s-detalle); color: var(--s-detalle); background: color-mix(in srgb, var(--s-detalle) 7%, transparent); }
+.s-pestana:hover, .s-frase-boton:hover { color: var(--s-detalle); }
+
+/* Enlaces, filas y preguntas: el nombre toma el detalle. */
+.s-enlace, .s-linea-titulo, .s-pregunta summary, .s-tarjeta-titulo, .s-prosa a, .s-volver { transition: color var(--s-hover-dur) ease; }
+.s-enlace:hover, .s-volver:hover, .s-prosa a:hover { color: var(--s-detalle); }
+a.s-linea:hover .s-linea-titulo, a.s-linea:hover > svg, .s-pregunta summary:hover, .s-pregunta summary:hover svg { color: var(--s-detalle); }
+.s-tarjeta:hover .s-tarjeta-titulo { color: var(--s-detalle); }
+
+/* Tarjetas: un filete rojo crece bajo la foto, como el lado rojo del emblema. */
+.s-tarjeta-foto::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--s-rojo); transform: scaleX(0); transform-origin: left; transition: transform 500ms var(--s-ease); }
+.s-tarjeta:hover .s-tarjeta-foto::after, .s-tarjeta:focus-visible .s-tarjeta-foto::after { transform: scaleX(1); }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .s-btn:not(:disabled):not([aria-disabled="true"]):hover { transform: translateY(-2px); }
+  .s-btn:not(:disabled):active { transform: translateY(0) scale(0.98); transition-duration: 90ms; }
+  .s-tarjeta:not(.s-tarjeta-lista) { transition: transform 450ms var(--s-ease); }
+  .s-tarjeta:not(.s-tarjeta-lista):hover { transform: translateY(-4px); }
+  .s-campo-control { transition: border-color var(--s-hover-dur) ease, box-shadow var(--s-hover-dur) ease; }
+  .s-campo-control:hover { box-shadow: var(--s-sombra-md); }
+}
+
+/* Al bajar, tarjetas, filas y preguntas aparecen con un desplazamiento corto (solo navegadores que lo permiten). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    main :is(.s-tarjeta, .s-linea, .s-pregunta, .s-filas > *, .he-tarjeta, .s-datos > div) {
+      animation: s-aparece linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+@keyframes s-aparece {
+  from { opacity: 0; translate: 0 24px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-tarjeta-foto::after, .s-enlace, .s-linea-titulo, .s-pregunta summary, .s-tarjeta-titulo, .s-prosa a, .s-volver { transition: none; }
 }
