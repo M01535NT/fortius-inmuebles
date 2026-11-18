@@ -1,6 +1,6 @@
 /* Artículo del blog, rediseño del sitio (etapa 5, 17/11/2026). */
 .ar-cabeza { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-5); padding-top: var(--s-10); padding-bottom: var(--s-9); }
-.ar-titulo { font-family: var(--s-display-font); font-weight: 400; max-width: 22ch; margin: 0; font-size: clamp(38px, 5.4vw, 84px); line-height: 1; letter-spacing: 0; text-wrap: balance; }
+.ar-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); max-width: 22ch; margin: 0; font-size: clamp(38px, 5.4vw, 84px); line-height: 1; letter-spacing: 0; text-wrap: balance; }
 .ar-datos { max-width: 820px; margin: 0; font-size: var(--s-type-interfaz); line-height: 1.6; color: var(--s-ink-muted); }
 .ar-tipo { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 
@@ -39,7 +39,7 @@
 .ar-relacionada { display: flex; flex-direction: column; gap: var(--s-2); color: var(--s-ink); }
 .ar-relacionada-foto { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; margin-bottom: var(--s-2); border-radius: var(--s-r-grande); background: var(--s-muted); }
 .ar-relacionada-foto img { object-fit: cover; }
-.ar-relacionada-titulo { font-family: var(--s-display-font); font-weight: 400; font-size: 22px; line-height: 1.2; letter-spacing: 0; }
+.ar-relacionada-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: 22px; line-height: 1.2; letter-spacing: 0; }
 .ar-relacionada:hover .ar-relacionada-titulo { color: var(--s-accent); }
 
 @media (max-width: 1023px) {

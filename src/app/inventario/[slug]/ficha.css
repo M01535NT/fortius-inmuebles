@@ -8,16 +8,16 @@
 .fi-ruta a:hover { color: var(--s-ink); }
 .fi-cabeza { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-6) var(--s-9); margin-bottom: var(--s-8); }
 .fi-nombre { flex: 1 1 520px; min-width: 0; }
-.fi-titulo { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-titulo); line-height: 1; letter-spacing: 0; text-wrap: balance; }
+.fi-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-titulo); line-height: 1; letter-spacing: 0; text-wrap: balance; }
 .fi-lugar { margin: var(--s-4) 0 0; font-size: var(--s-type-entrada); color: var(--s-ink-muted); }
 .fi-precio { flex: 0 1 auto; display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-2); text-align: right; }
-.fi-precio-monto { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: clamp(28px, 3vw, 44px); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.fi-precio-monto { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: clamp(28px, 3vw, 44px); letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .fi-precio-m2 { margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 .fi-distintivos { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s-2); margin: var(--s-2) 0 0; }
 
 .fi-cifras { display: flex; flex-wrap: wrap; gap: var(--s-6) var(--s-10); margin: var(--s-9) 0 0; padding-top: var(--s-7); border-top: 1px solid var(--s-line); }
 .fi-cifras > div { display: flex; flex-direction: column-reverse; gap: var(--s-1); }
-.fi-cifras dd { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: clamp(30px, 3.2vw, 48px); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.fi-cifras dd { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: clamp(30px, 3.2vw, 48px); letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .fi-cifras dt { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 .fi-fechas { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); margin: var(--s-6) 0 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 .fi-demo { margin: var(--s-5) 0 0; padding: var(--s-3) var(--s-4); border-radius: var(--s-r-tarjeta); background: var(--s-warning-soft); color: var(--s-ink); font-size: var(--s-type-detalle); }
@@ -57,13 +57,13 @@
 .fi-aviso { margin: 0; padding: var(--s-4) var(--s-5); border-radius: var(--s-r-tarjeta); background: var(--s-warning-soft); font-size: var(--s-type-interfaz); }
 .fi-aviso a { color: var(--s-accent); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
 .fi-seccion { padding-top: var(--s-seccion); }
-.fi-h2 { font-family: var(--s-display-font); font-weight: 400; margin: 0 0 var(--s-8); font-size: var(--s-type-bloque); line-height: 1.05; letter-spacing: 0; }
-.fi-h3 { font-family: var(--s-display-font); font-weight: 400; margin: 0 0 var(--s-3); font-size: var(--s-type-entrada); letter-spacing: 0; }
+.fi-h2 { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0 0 var(--s-8); font-size: var(--s-type-bloque); line-height: 1.05; letter-spacing: 0; }
+.fi-h3 { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0 0 var(--s-3); font-size: var(--s-type-entrada); letter-spacing: 0; }
 .fi-etiqueta { margin: 0 0 var(--s-4); font-size: var(--s-type-detalle); font-weight: 600; color: var(--s-ink-muted); }
 .fi-nota { margin: var(--s-4) 0 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 
 /* Descripción */
-.fi-entrada { font-family: var(--s-display-font); font-weight: 400; max-width: 22ch; margin: 0 0 var(--s-10); font-size: clamp(28px, 3.4vw, 50px); line-height: 1.12; letter-spacing: 0; text-wrap: balance; }
+.fi-entrada { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); max-width: 22ch; margin: 0 0 var(--s-10); font-size: clamp(28px, 3.4vw, 50px); line-height: 1.12; letter-spacing: 0; text-wrap: balance; }
 .fi-desc-cuerpo { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s-9) var(--s-12); }
 .fi-texto { max-width: 62ch; margin: 0 0 var(--s-4); font-size: var(--s-type-entrada); line-height: 1.6; color: var(--s-ink-muted); }
 .fi-beneficios { display: flex; flex-direction: column; gap: var(--s-4); margin: var(--s-7) 0 0; padding: 0; list-style: none; }
@@ -83,12 +83,15 @@
 .fi-fuente { font-size: var(--s-type-etiqueta); font-weight: 400; color: var(--s-ink-muted); }
 .fi-fuente.is-confirmada { color: var(--s-accent); }
 .fi-documentos > div { border-color: var(--s-line) !important; border-radius: var(--s-r-grande) !important; background: var(--s-card) !important; }
+.fi-documentos label { font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: var(--s-track-etiqueta); text-transform: uppercase; color: var(--s-ink-muted); }
+.fi-documentos input { box-shadow: var(--s-sombra-sm); }
+.fi-documentos button[type="submit"] { font-size: var(--s-type-etiqueta); letter-spacing: var(--s-track-boton); text-transform: uppercase; box-shadow: var(--s-sombra-sm); }
 
 /* Mapa a todo lo ancho */
 .fi-mapa { position: relative; height: 540px; margin-top: var(--s-seccion); background: var(--s-muted); }
 .fi-mapa iframe { display: block; width: 100%; height: 100%; border: 0; }
 .fi-mapa-tarjeta { position: absolute; left: var(--s-gutter); bottom: var(--s-7); width: min(360px, calc(100% - 2 * var(--s-gutter))); display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-3); padding: var(--s-6); border-radius: var(--s-r-grande); background: var(--s-raised); box-shadow: var(--s-shadow-menu); }
-.fi-mapa-zona { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-sub); letter-spacing: 0; }
+.fi-mapa-zona { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-sub); letter-spacing: 0; }
 .fi-mapa-tarjeta p { margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 
 /* Qué hay alrededor */
@@ -100,7 +103,7 @@
 /* Herramientas */
 .fh { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--s-8); align-items: start; }
 .fh-caja { padding: var(--s-7); border: 1px solid var(--s-line); border-radius: var(--s-r-grande); box-shadow: var(--s-sombra-md); }
-.fh-titulo { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-entrada); }
+.fh-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-entrada); }
 .fh-panel { display: flex; flex-direction: column; gap: var(--s-7); padding-top: var(--s-7); }
 .fh-ajustes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-5) var(--s-8); }
 .fh-rango { flex: 1 1 280px; display: flex; flex-direction: column; gap: var(--s-3); font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
@@ -109,7 +112,7 @@
 .fh-plazo { display: flex; flex-direction: column; gap: var(--s-2); font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
 .fh-plazo .s-campo-control { min-width: 150px; border-radius: var(--s-r-pastilla); }
 .fh-cifra-etiqueta { margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
-.fh-cifra-valor { font-family: var(--s-display-font); font-weight: 400; margin: var(--s-1) 0 0; font-size: var(--s-type-cifra); line-height: 1; letter-spacing: 0; color: var(--s-accent); font-variant-numeric: tabular-nums; }
+.fh-cifra-valor { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: var(--s-1) 0 0; font-size: var(--s-type-cifra); line-height: 1; letter-spacing: 0; color: var(--s-accent); font-variant-numeric: tabular-nums; }
 .fh-nota { max-width: 60ch; margin: var(--s-3) 0 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 .fh-aviso { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--s-r-tarjeta); background: var(--s-warning-soft); color: var(--s-accent); font-size: var(--s-type-interfaz); }
 .fh-filas { margin: 0; border-top: 1px solid var(--s-line); }
@@ -122,7 +125,7 @@
 .fi-contacto { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr); gap: var(--s-9) var(--s-12); align-items: start; }
 .fi-preguntas { border-top: 1px solid var(--s-ink); }
 .fi-pregunta { border-bottom: 1px solid var(--s-line); }
-.fi-pregunta summary { font-family: var(--s-display-font); font-weight: 400; display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 64px; padding: var(--s-4) 0; font-size: var(--s-type-fila); letter-spacing: 0; list-style: none; cursor: pointer; }
+.fi-pregunta summary { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 64px; padding: var(--s-4) 0; font-size: var(--s-type-fila); letter-spacing: 0; list-style: none; cursor: pointer; }
 .fi-pregunta summary::-webkit-details-marker { display: none; }
 .fi-pregunta summary svg { flex: none; color: var(--s-accent); transition: transform 300ms var(--s-ease); }
 .fi-pregunta[open] summary svg { transform: rotate(45deg); }
@@ -133,7 +136,7 @@
 .fa-nombre { display: flex; flex-direction: column; gap: 2px; }
 .fa-nombre strong { font-size: var(--s-type-entrada); font-weight: 600; }
 .fa-nombre span { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
-.fa-titulo { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-sub); letter-spacing: 0; }
+.fa-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-sub); letter-spacing: 0; }
 .fa-guia { margin: 0; font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
 .fa-dias { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s-2); }
 .fa-dias button, .fa-dia-vacio { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; border: 1px solid var(--s-line); border-radius: var(--s-r-tarjeta); background: transparent; color: var(--s-ink); font: inherit; cursor: pointer; }

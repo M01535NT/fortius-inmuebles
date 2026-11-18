@@ -14,7 +14,7 @@
 .title { margin: 0 0 var(--s-3); color: var(--s-ink-muted); font-size: var(--s-type-detalle); font-weight: 600; letter-spacing: 0; line-height: 1.5; }
 .list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-line); }
 .list li { border-bottom: 1px solid var(--s-line); }
-.link { font-family: var(--s-display-font); font-weight: 400; display: flex; align-items: center; min-height: 52px; color: var(--s-ink); font-size: var(--s-type-entrada); line-height: 1.25; letter-spacing: 0; text-decoration: none; transition: color 0.2s, transform 0.3s var(--s-ease); }
+.link { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); display: flex; align-items: center; min-height: 52px; color: var(--s-ink); font-size: var(--s-type-entrada); line-height: 1.25; letter-spacing: 0; text-decoration: none; transition: color 0.2s, transform 0.3s var(--s-ease); }
 .link:hover { color: var(--s-accent); transform: translateX(4px); }
 .link[aria-current="page"] { color: var(--s-accent); }
 

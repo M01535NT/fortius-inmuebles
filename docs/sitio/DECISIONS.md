@@ -8,9 +8,9 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 - **Colores.** Azul real `#012367` (principal), rojo imperial `#6D0809` (acento), plata `#F8F8FF` (fondo claro y texto sobre oscuro), negro armiño `#020315` (tinta y fondo oscuro) y oro brocado `#CBBA87` (solo detalles). Texto de apoyo: `#55595F` en claro y `#AEB2B8` en oscuro. Las tarjetas y campos van en blanco `#FFFFFF` sobre el fondo plata.
 - **Claro:** azul real sobre plata. **Oscuro:** el principal pasa a plata sobre negro armiño, porque el azul no se lee sobre negro. El detalle es rojo imperial en claro y oro en oscuro.
 - **El oro es un detalle:** filetes, sellos o un ícono suelto, siempre sobre azul, rojo o negro. Nunca como texto ni sobre fondo claro.
-- **Letra:** titulares, nombre de la marca y cifras destacadas en Marcellus (un solo peso; la jerarquía la da el tamaño). Texto en Jost: 400 para leer y 600 para botones y etiquetas. Marcellus nunca en párrafos.
-- **Tamaños:** los estilos de texto del sistema son la base. La portada, el cierre, el nombre en la ficha y las cifras conservan los tamaños grandes del boceto. Marcellus va sin apretar las letras.
-- **Mayúsculas espaciadas solo en botones, etiquetas de campo e insignias**, como las define el sistema. Los títulos van en Marcellus normal, nunca en mayúsculas.
+- **Letra:** una sola, Archivo, con su eje de ancho. Titulares, nombre de la marca y cifras destacadas en Archivo angosta (72 % de ancho) y peso 600. Texto en Archivo de ancho normal: 400 para leer y 600 para botones y etiquetas.
+- **Tamaños:** los estilos de texto del sistema son la base. La portada, el cierre, el nombre en la ficha y las cifras conservan los tamaños grandes del boceto. Los titulares angostos van sin apretar las letras.
+- **Mayúsculas espaciadas solo en botones, etiquetas de campo e insignias**, como las define el sistema. Los títulos van en Archivo angosta normal, nunca en mayúsculas.
 - **Esquinas rectas en todo:** botones, campos, tarjetas, fotos, marco de la ficha, menús, pestañas, interruptor e insignias. La profundidad la dan las sombras del sistema: pequeña para botones y campos, mediana para tarjetas, grande para menús y ventanas.
 - **Foco de teclado:** el anillo del sistema, azul en claro y oro en oscuro, a plena intensidad para que se vea sobre el fondo.
 - **Campos:** caja blanca con la sombra pequeña del sistema y etiqueta en mayúsculas espaciadas. Su borde se queda con contraste de 3 a 1 para que la caja se distinga del fondo plata.
@@ -46,7 +46,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 ## Cimientos (17/11/2026)
 
 - **Piel del sitio:** la clase `sitio` va en la página solo fuera de los paneles. Los valores del sistema de diseño se copian a `src/app/sitio.css`, bajo esa clase, y las piezas del sitio los usan por medio de sus variables. No se carga `tokens.css` tal cual: sus nombres (`--primary`, `--border`, `--surface`) chocarían con los del panel. Las piezas están en `src/components/sitio/`.
-- **Letra:** Marcellus y Jost se sirven desde el propio sitio, no desde Google: la política de seguridad solo permite letras propias.
+- **Letra:** Archivo, con su eje de ancho, se sirve desde el propio sitio, no desde Google: la política de seguridad solo permite letras propias.
 - **Logo:** la versión clara en tema claro y la oscura en tema oscuro y sobre bandas, fotos y video. Sobre foto o video va siempre la oscura.
 - **Cabecera:** logo a la izquierda; a la derecha, la lupa del buscador y el botón «Menú». El buscador queda junto al botón, a un toque en cualquier página.
 - **Tema:** interruptor «Tema oscuro» dentro del menú y en el pie (dos opciones, interruptor). Guarda la elección igual que antes.

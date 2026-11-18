@@ -110,12 +110,13 @@ Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de di
 - [x] Documentos del sitio corregidos con la marca nueva.
 - [x] Rama `marca-sitio`, sacada de `main`, solo para el sitio.
 - [x] Colores, sombras, foco y esquinas rectas en claro, oscuro y bandas oscuras.
-- [x] Letras Marcellus y Jost; titulares, nombres de filas y cifras pasan a Marcellus.
+- [x] Letra Archivo del sistema: titulares, nombres de filas y cifras en Archivo angosta y peso 600; el texto en ancho normal.
 - [x] Botones, campos, insignias, pestañas, menú, interruptor y cajas con el aspecto del sistema. «Solicitar visita» de la ficha va en rojo imperial.
 - [x] Logo claro y oscuro en cabecera, menú y pie (el oscuro sobre video); emblema en el ícono de la pestaña del sitio; imagen para compartir nueva. El panel conserva su ícono.
 - [x] Calculadoras, documentos y demás piezas compartidas toman las esquinas rectas en el sitio.
-- [x] Pruebas: las que simulan las letras ya conocen Marcellus y Jost; prueba nueva del logo.
-- [ ] Revisarlo en el navegador, claro y oscuro, en computadora y teléfono (no se ha visto todavía).
+- [x] Pruebas: las que simulan las letras ya conocen la letra del sitio; prueba nueva del logo.
+- [x] Revisado en el navegador del agente, claro y oscuro, en computadora y tamaño de teléfono (17/11/2026). Las 17 páginas caben en el teléfono con controles de 44 px; el contraste del texto pasa; el panel conserva su letra y su ícono. Se corrigieron las esquinas redondeadas de las calculadoras y las etiquetas de los formularios del inicio, Contacto y documentos de la ficha.
+- [ ] Recorrerlo en tu teléfono.
 - [ ] Comprobación completa y PR en borrador, cuando tú lo digas.
 - [ ] La rama `sitio-controles-radix`, que aún no está en `main`, toca algunos de los mismos archivos: al juntarlas hay que resolver los choques.
 

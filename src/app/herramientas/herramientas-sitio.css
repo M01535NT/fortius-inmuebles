@@ -6,12 +6,12 @@
 .he-tarjeta:hover { border-color: var(--s-accent); transform: translateY(-2px); }
 .he-tarjeta-cabeza { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-4); }
 .he-tarjeta-cabeza svg { flex: none; color: var(--s-accent); }
-.he-tarjeta-titulo { font-family: var(--s-display-font); font-weight: 400; font-size: var(--s-type-seccion); line-height: 1.02; letter-spacing: 0; }
+.he-tarjeta-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-seccion); line-height: 1.02; letter-spacing: 0; }
 .he-tarjeta-texto { font-size: var(--s-type-entrada); color: var(--s-ink-muted); }
 .he-vista { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-5); padding-top: var(--s-7); border-top: 1px solid var(--s-line); }
 .he-vista-dato { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
-.he-vista-cifra { font-family: var(--s-display-font); font-weight: 400; font-size: var(--s-type-cifra); line-height: 1; letter-spacing: 0; color: var(--s-ink); font-variant-numeric: tabular-nums; }
-.he-vista-lista { font-family: var(--s-display-font); font-weight: 400; font-size: var(--s-type-sub); letter-spacing: 0; color: var(--s-ink); }
+.he-vista-cifra { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-cifra); line-height: 1; letter-spacing: 0; color: var(--s-ink); font-variant-numeric: tabular-nums; }
+.he-vista-lista { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-sub); letter-spacing: 0; color: var(--s-ink); }
 .he-curva { flex: none; width: 200px; height: 80px; color: var(--s-accent); }
 
 /* Páginas de cada calculadora */

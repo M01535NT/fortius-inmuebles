@@ -5,7 +5,7 @@
 .cta { padding-block: clamp(80px, 9vw, 128px); }
 .ctaInner { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-8) var(--s-11); }
 .ctaCopy { flex: 999 1 480px; display: flex; flex-direction: column; gap: var(--s-4); }
-.ctaTitle { font-family: var(--s-display-font); font-weight: 400; margin: 0; max-width: 14ch; font-size: var(--s-type-display); line-height: 1; letter-spacing: 0; }
+.ctaTitle { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; max-width: 14ch; font-size: var(--s-type-display); line-height: 1; letter-spacing: 0; }
 .hours { margin: 0; color: var(--s-ink-muted); font-size: var(--s-type-interfaz); }
 .ctaActions { flex: 1 1 300px; display: flex; flex-wrap: wrap; gap: var(--s-3); }
 

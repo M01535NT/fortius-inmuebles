@@ -1,7 +1,7 @@
 /* La liga del cliente: una sola columna, tipografía y colores del sitio público. */
 .subir { min-height: 70dvh; padding: 120px 16px 80px; display: flex; justify-content: center; background: var(--background); color: var(--foreground); }
 .subir-caja { width: min(560px, 100%); display: flex; flex-direction: column; gap: 16px; }
-.subir-caja h1 { font-family: var(--s-display-font); font-weight: 400; font-size: clamp(28px, 6vw, 40px); letter-spacing: 0; line-height: 1.1; }
+.subir-caja h1 { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: clamp(28px, 6vw, 40px); letter-spacing: 0; line-height: 1.1; }
 .subir-m { color: var(--muted-foreground); font-size: 15px; }
 .subir-lista { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--corner-tarjeta, 14px); overflow: hidden; }
 .subir-lista li { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 16px; min-height: 60px; }

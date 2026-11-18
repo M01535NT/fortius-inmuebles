@@ -55,9 +55,12 @@ html.sitio {
   /* Foco: el color del anillo del sistema (azul en claro, oro en oscuro), a plena intensidad para que se vea. */
   --s-foco: var(--f-azul-real);
 
-  /* Letras: Marcellus en titulares y cifras (un solo peso, 400); Jost en el texto (400 y 600). */
-  --s-font: var(--font-jost), "Jost", system-ui, sans-serif;
-  --s-display-font: var(--font-marcellus), "Marcellus", Georgia, serif;
+  /* Letra: una sola, Archivo, con eje de ancho. Titulares y cifras angostos (72 %) en 600;
+     texto en ancho normal, 400 para leer y 600 para botones y etiquetas. */
+  --s-font: var(--font-archivo-sitio), "Archivo", Arial, sans-serif;
+  --s-display-font: var(--font-archivo-sitio), "Archivo", "Arial Narrow", sans-serif;
+  --s-display-ancho: 72%;
+  --s-display-peso: 600;
 
   /* Escala tomada del lienzo. Los títulos crecen con la pantalla; el texto es fijo. */
   --s-type-cierre: clamp(52px, 9.4vw, 148px);   /* «Cuéntanos tu asunto.» */
@@ -75,7 +78,7 @@ html.sitio {
   --s-type-interfaz: 15px;
   --s-type-detalle: 14px;
   --s-type-etiqueta: 13px;
-  /* Marcellus no se aprieta: los titulares van con su espaciado natural. */
+  /* La letra angosta no se aprieta: los titulares van con su espaciado natural. */
   --s-track-display: 0;
   --s-track-seccion: 0;
   --s-track-sub: 0;
@@ -128,9 +131,6 @@ html.sitio {
   --input: var(--s-line-strong);
   --ring: var(--s-foco);
   --radius: 0px;
-  /* Utilidades rounded-* de Tailwind (calculadoras, documentos): rectas en el sitio. */
-  --radius-xs: 0px; --radius-sm: 0px; --radius-md: 0px; --radius-lg: 0px; --radius-xl: 0px;
-  --radius-2xl: 0px; --radius-3xl: 0px; --radius-4xl: 0px;
   --block: var(--f-negro-armino);
   --block-foreground: var(--f-plata);
   --block-muted: #aeb2b8;
@@ -215,10 +215,11 @@ html.sitio body {
   line-height: 1.6;
   font-variation-settings: normal;
 }
-/* Titulares en Marcellus: un solo peso; la jerarquía la da el tamaño. Nunca en párrafos. */
+/* Titulares en Archivo angosta (72 %, peso 600). Los párrafos van en ancho normal. */
 html.sitio :is(h1, h2, h3, h4) {
   font-family: var(--s-display-font);
-  font-weight: 400;
+  font-stretch: var(--s-display-ancho);
+  font-weight: var(--s-display-peso);
   letter-spacing: 0;
   text-wrap: balance;
 }
@@ -234,17 +235,19 @@ html.sitio :focus:not(:focus-visible) { outline: none; }
 /* 6. Utilidades de acomodo */
 .s-contenedor { width: 100%; max-width: var(--s-max); margin-inline: auto; padding-inline: var(--s-gutter); box-sizing: border-box; }
 .s-seccion { padding-block: var(--s-seccion); }
-.s-display { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-display); line-height: 1; letter-spacing: 0; }
-.s-titulo { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-titulo); line-height: 1; letter-spacing: 0; }
-.s-h2 { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-seccion); line-height: 1.02; letter-spacing: 0; }
-.s-h2-bloque { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-bloque); line-height: 1.02; letter-spacing: 0; }
-.s-h3 { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: var(--s-type-sub); line-height: 1.1; letter-spacing: 0; }
-.s-cifra { font-family: var(--s-display-font); font-weight: 400; font-size: var(--s-type-cifra); line-height: 1; letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--s-accent); }
+.s-display { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-display); line-height: 1; letter-spacing: 0; }
+.s-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-titulo); line-height: 1; letter-spacing: 0; }
+.s-h2 { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-seccion); line-height: 1.02; letter-spacing: 0; }
+.s-h2-bloque { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-bloque); line-height: 1.02; letter-spacing: 0; }
+.s-h3 { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: var(--s-type-sub); line-height: 1.1; letter-spacing: 0; }
+.s-cifra { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-cifra); line-height: 1; letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--s-accent); }
 .s-entrada { margin: 0; font-size: var(--s-type-entrada); line-height: 1.55; color: var(--s-ink-muted); }
 .s-apoyo { color: var(--s-ink-muted); }
 .s-cifras { font-variant-numeric: tabular-nums; }
 
 /* 8. Piezas compartidas que siguen fuera de src/components/sitio. */
+/* Las utilidades rounded-* de Tailwind (calculadoras, documentos) llevan el radio escrito: en el sitio, rectas. */
+html.sitio [class*="rounded"] { border-radius: 0; }
 html.sitio .cursor-guide { border-radius: var(--s-r-pastilla); box-shadow: var(--s-sombra-md); font-family: var(--s-font); letter-spacing: var(--s-track-insignia); text-transform: uppercase; }
 html.sitio .page-curtain { --lock-ink: var(--s-ink); }
 /* El pie sigue el flujo normal, como hasta ahora. */
@@ -333,9 +336,9 @@ html.sitio .s-pestanas .s-pestana:focus-visible { outline-offset: -3px; }
   min-height: 64px; padding: var(--s-4) 0; border-bottom: 1px solid var(--s-line);
   color: inherit; text-decoration: none;
 }
-.s-linea-titulo { font-family: var(--s-display-font); font-weight: 400; display: flex; flex-direction: column; min-width: 0; font-size: var(--s-type-entrada); line-height: 1.25; letter-spacing: 0; }
+.s-linea-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); display: flex; flex-direction: column; min-width: 0; font-size: var(--s-type-entrada); line-height: 1.25; letter-spacing: 0; }
 .s-lineas-grande .s-linea { padding-block: var(--s-6); }
-.s-lineas-grande .s-linea-titulo { font-family: var(--s-display-font); font-weight: 400; font-size: var(--s-type-fila); letter-spacing: 0; }
+.s-lineas-grande .s-linea-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-fila); letter-spacing: 0; }
 .s-linea-sub { font-size: var(--s-type-detalle); font-weight: 400; letter-spacing: 0; color: var(--s-ink-muted); }
 .s-linea > svg { flex: none; color: var(--s-accent); transition: transform 300ms var(--s-ease); }
 a.s-linea:hover > svg { transform: translate(3px, -3px); }
@@ -382,7 +385,7 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 .s-tarjeta-sello { right: 12px; }
 .s-tarjeta-cabeza { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-4); }
 .s-tarjeta-nombre { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.s-tarjeta-titulo { font-family: var(--s-display-font); font-weight: 400; font-size: var(--s-type-tarjeta); line-height: 1.2; letter-spacing: 0; }
+.s-tarjeta-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-tarjeta); line-height: 1.2; letter-spacing: 0; }
 .s-tarjeta-zona { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
 .s-tarjeta-precio { flex: none; font-size: 17px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .s-tarjeta-datos { padding-top: var(--s-3); border-top: 1px solid var(--s-line); font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
@@ -391,13 +394,13 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 .s-tarjeta-lista { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--s-4) 28px; padding: var(--s-5) 0; border-bottom: 1px solid var(--s-line); }
 .s-tarjeta-lista .s-tarjeta-foto { flex: none; width: 220px; height: 148px; aspect-ratio: auto; border-radius: var(--s-r-menu); }
 .s-tarjeta-lista .s-tarjeta-cuerpo { flex: 2 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.s-tarjeta-lista .s-tarjeta-titulo { font-family: var(--s-display-font); font-weight: 400; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.12; letter-spacing: 0; }
+.s-tarjeta-lista .s-tarjeta-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: clamp(22px, 2.2vw, 30px); line-height: 1.12; letter-spacing: 0; }
 .s-tarjeta-lista .s-tarjeta-lado { flex: 0 1 240px; display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-2); text-align: right; }
 .s-tarjeta-lista .s-tarjeta-precio { font-size: 22px; }
 /* Vista compacta (junto al mapa) */
 .s-tarjeta-compacta { gap: 10px; }
 .s-tarjeta-compacta .s-tarjeta-foto { border-radius: var(--s-r-menu); }
-.s-tarjeta-compacta .s-tarjeta-titulo { font-family: var(--s-display-font); font-weight: 400; font-size: var(--s-type-interfaz); line-height: 1.25; letter-spacing: 0; }
+.s-tarjeta-compacta .s-tarjeta-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-interfaz); line-height: 1.25; letter-spacing: 0; }
 .s-tarjeta-compacta .s-tarjeta-precio { font-size: var(--s-type-texto); }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .s-tarjeta:hover .s-tarjeta-foto img { transform: scale(1.04); }
@@ -442,7 +445,7 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 .s-pagina { padding-top: var(--s-cabecera); }
 .s-cabeza { display: flex; flex-direction: column; gap: var(--s-7); padding-top: var(--s-12); padding-bottom: var(--s-10); }
 .s-cabeza-fila { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-6) var(--s-11); }
-.s-cabeza-titulo { font-family: var(--s-display-font); font-weight: 400; flex: 999 1 560px; max-width: 1000px; margin: 0; font-size: clamp(44px, 6.4vw, 104px); line-height: 1; letter-spacing: 0; text-wrap: balance; }
+.s-cabeza-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); flex: 999 1 560px; max-width: 1000px; margin: 0; font-size: clamp(44px, 6.4vw, 104px); line-height: 1; letter-spacing: 0; text-wrap: balance; }
 .s-cabeza-titulo-chico { font-size: var(--s-type-titulo); }
 .s-cabeza-lado { flex: 1 1 300px; max-width: 420px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-5); }
 .s-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); }
@@ -460,7 +463,7 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 
 .s-filas { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--s-ink); }
 .s-filas > li { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s-1) var(--s-6); padding: 22px 0; border-bottom: 1px solid var(--s-line); }
-.s-filas-titulo { font-family: var(--s-display-font); font-weight: 400; flex: 1 1 240px; font-size: var(--s-type-fila); line-height: 1.25; letter-spacing: 0; }
+.s-filas-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); flex: 1 1 240px; font-size: var(--s-type-fila); line-height: 1.25; letter-spacing: 0; }
 .s-filas-texto { flex: 1 1 260px; max-width: 420px; color: var(--s-ink-muted); line-height: 1.5; }
 .s-nota { margin: 0; font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
 .s-nota a { color: var(--s-accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
@@ -470,7 +473,7 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 
 .s-preguntas { border-top: 1px solid var(--s-ink); }
 .s-pregunta { border-bottom: 1px solid var(--s-line); scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
-.s-pregunta summary { font-family: var(--s-display-font); font-weight: 400; display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 64px; padding: var(--s-4) 0; font-size: var(--s-type-fila); line-height: 1.25; letter-spacing: 0; list-style: none; cursor: pointer; }
+.s-pregunta summary { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 64px; padding: var(--s-4) 0; font-size: var(--s-type-fila); line-height: 1.25; letter-spacing: 0; list-style: none; cursor: pointer; }
 .s-pregunta summary::-webkit-details-marker { display: none; }
 .s-pregunta summary svg { flex: none; color: var(--s-accent); transition: transform 300ms var(--s-ease); }
 .s-pregunta[open] summary svg { transform: rotate(45deg); }
@@ -482,8 +485,8 @@ select.s-campo-control { appearance: none; padding-right: 44px; background-image
 .s-prosa :is(p, ul, ol, dl) { margin-bottom: 0; }
 .s-prosa > * + *, .s-prosa section > * + * { margin-top: 1em; }
 .s-prosa > section:first-child > h2:first-child { margin-top: 0; }
-.s-prosa h2 { font-family: var(--s-display-font); font-weight: 400; margin-top: 2.2em; margin-bottom: 0; font-size: var(--s-type-sub); line-height: 1.15; letter-spacing: 0; scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
-.s-prosa h3 { font-family: var(--s-display-font); font-weight: 400; margin-top: 1.8em; margin-bottom: 0; font-size: 22px; line-height: 1.25; letter-spacing: 0; scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
+.s-prosa h2 { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin-top: 2.2em; margin-bottom: 0; font-size: var(--s-type-sub); line-height: 1.15; letter-spacing: 0; scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
+.s-prosa h3 { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin-top: 1.8em; margin-bottom: 0; font-size: 22px; line-height: 1.25; letter-spacing: 0; scroll-margin-top: calc(var(--s-cabecera) + var(--s-4)); }
 .s-prosa p, .s-prosa li { color: color-mix(in srgb, var(--s-ink) 86%, transparent); }
 .s-prosa a { color: var(--s-accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; overflow-wrap: anywhere; }
 .s-prosa :is(ul, ol) { padding-left: 1.2em; }

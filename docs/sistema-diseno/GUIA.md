@@ -7,7 +7,7 @@ Esta carpeta es la fuente única del diseño del sitio público. Al construir o 
 1. Carga `tokens.css` y después `componentes.css` en todas las páginas.
 2. Usa siempre las variables (`var(--primary)`, `var(--shadow-md)`, `var(--space-4)`…), nunca colores, sombras o medidas escritos a mano.
 3. Para botones, campos, tarjetas, insignias y avisos usa las clases `f3-` de `componentes.css`.
-4. Titulares en Marcellus (`var(--font-display)`); texto en Jost (`var(--font-sans)`).
+4. Titulares en Archivo angosta: `var(--font-display)` con `font-stretch: var(--stretch-display)` (72 %) y peso 600. Texto en Archivo de ancho normal (`var(--font-sans)`). La fuente se carga con su eje de ancho (ya incluido en `tokens.css`).
 5. Todas las esquinas son rectas (`var(--radius-0)`). No usar redondeo.
 6. El oro (`--oro-brocado`) solo en detalles pequeños sobre fondos oscuros; nunca como texto ni sobre fondo claro.
 7. Tema oscuro: poner `data-theme="dark"` en `<html>` o en una sección; las variables cambian solas.
@@ -50,9 +50,11 @@ En tema claro el principal es `azul-real` sobre `plata`; en tema oscuro el princ
 
 ## Tipografía
 
-- **Titulares: Marcellus.** Serif de remates abiertos inspirada en las inscripciones romanas, con trazo limpio y sin adornos: evoca lo clásico sin verse antiguo. Tiene un solo peso (400); la jerarquía se da por tamaño, no por grosor. Se usa en titulares, el nombre de la marca y cifras destacadas; nunca en párrafos.
-- **Texto: Jost.** Sans geométrica de proporciones clásicas, heredera de Futura. Es variable (100–900): `400` para texto, `600` para etiquetas y botones. Etiquetas en mayúsculas con espaciado abierto, al estilo de una inscripción.
-- Ambas son de Google Fonts, gratuitas y con licencia de uso comercial (SIL Open Font License).
+Una sola fuente, **Archivo**, de la línea de Arial (sans serif grotesca), con eje de ancho: la misma letra va de angosta a normal.
+
+- **Titulares: Archivo angosta, peso 600.** Al 72 % de ancho (`--stretch-display`): alargada, firme y vertical. En mayúsculas con espaciado abierto recuerda una inscripción. Se usa en titulares, el nombre de la marca y cifras destacadas.
+- **Texto: Archivo, ancho normal, pesos 400 y 600.** Para que los párrafos se lean cómodos. `600` en etiquetas y botones, en mayúsculas con espaciado abierto.
+- Al cargarla de Google Fonts hay que pedir el eje de ancho (`wdth 62..125`); si no, los titulares salen en ancho normal. Es gratuita y de uso comercial (SIL Open Font License).
 
 ## Sombras
 

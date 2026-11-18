@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, IBM_Plex_Mono, Jost, Marcellus } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { connection } from "next/server";
 import { headers } from "next/headers";
 
@@ -28,20 +28,15 @@ const archivo = Archivo({
   preload: false,
 });
 
-// Sitio público (17/11/2026), sistema de diseño de docs/sistema-diseno: Marcellus para titulares
-// (un solo peso) y Jost para el texto (variable: 400 texto, 600 botones y etiquetas). Se sirven
-// desde el propio sitio; la política de seguridad no deja cargar letras de Google.
-// Sus clases solo se ponen en <html> fuera del panel; el panel conserva Archivo.
-const marcellus = Marcellus({
+// Sitio público (17/11/2026), sistema de diseño de docs/sistema-diseno: una sola letra, Archivo, con
+// su eje de ancho: titulares angostos (72 %, peso 600) y texto en ancho normal. Lleva variable propia
+// porque sitio.css redirige la del panel; se precarga porque aquí es la letra principal. Se sirve
+// desde el propio sitio: la política de seguridad no deja cargar letras de Google.
+// Su clase solo se pone en <html> fuera del panel; el panel conserva su configuración.
+const archivoSitio = Archivo({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-marcellus",
-  display: "swap",
-});
-
-const jost = Jost({
-  subsets: ["latin"],
-  variable: "--font-jost",
+  axes: ["wdth"],
+  variable: "--font-archivo-sitio",
   display: "swap",
 });
 
@@ -127,7 +122,7 @@ export default async function RootLayout({
       lang="es-MX"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${archivo.variable} ${plexMono.variable}${isSitio ? ` ${marcellus.variable} ${jost.variable} sitio` : ""}`}
+      className={`${archivo.variable} ${plexMono.variable}${isSitio ? ` ${archivoSitio.variable} sitio` : ""}`}
     >
       <head>
         {/* Browsers hide the nonce content attribute before hydration; the nonce property and CSP remain intact. */}

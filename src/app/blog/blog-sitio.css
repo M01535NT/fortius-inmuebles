@@ -40,7 +40,7 @@
 .bl-tarjeta-enlace:hover .bl-tarjeta-foto img { transform: scale(1.03); }
 .bl-tarjeta-cuerpo { display: flex; flex-direction: column; gap: var(--s-2); }
 .bl-tarjeta-tipo, .bl-tarjeta-fecha { font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
-.bl-tarjeta-titulo { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: 24px; line-height: 1.15; letter-spacing: 0; }
+.bl-tarjeta-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: 24px; line-height: 1.15; letter-spacing: 0; }
 .bl-tarjeta-enlace:hover .bl-tarjeta-titulo { color: var(--s-accent); }
 .bl-tarjeta-resumen { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 3; -webkit-box-orient: vertical; color: var(--s-ink-muted); line-height: 1.5; }
 .bl-tarjeta-credito { font-size: 12px; color: var(--s-ink-muted); }
@@ -48,7 +48,7 @@
 .bl-tarjeta-destacada .bl-tarjeta-enlace { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: var(--s-7) var(--s-10); }
 .bl-tarjeta-destacada .bl-tarjeta-foto { flex: 1.6 1 520px; aspect-ratio: 16 / 10; }
 .bl-tarjeta-destacada .bl-tarjeta-cuerpo { flex: 1 1 320px; gap: var(--s-4); }
-.bl-tarjeta-destacada .bl-tarjeta-titulo { font-family: var(--s-display-font); font-weight: 400; font-size: var(--s-type-bloque); line-height: 1.05; letter-spacing: 0; }
+.bl-tarjeta-destacada .bl-tarjeta-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: var(--s-type-bloque); line-height: 1.05; letter-spacing: 0; }
 .bl-tarjeta-destacada .bl-tarjeta-resumen { font-size: var(--s-type-entrada); -webkit-line-clamp: 4; }
 
 .bl-tarjeta-lista .bl-tarjeta-enlace { flex-direction: row; align-items: center; gap: var(--s-6); padding: var(--s-5) 0; }

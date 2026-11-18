@@ -1,6 +1,6 @@
 /* Fortius Inmuebles · componentes base. Requiere tokens.css antes. */
 .f3{font-family:var(--font-sans);color:var(--ink)}
-.f3-display{font-family:var(--font-display);font-weight:400}
+.f3-display{font-family:var(--font-display);font-stretch:var(--stretch-display);font-weight:600}
 /* Botón */
 .f3-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);font-weight:600;font-size:13px;line-height:16px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;border-radius:var(--radius-0);border:1px solid transparent;cursor:pointer;transition:box-shadow .15s}
 .f3-btn--primary{background:var(--primary);color:var(--on-primary);box-shadow:var(--shadow-sm)}
@@ -19,7 +19,7 @@
 /* Tarjeta */
 .f3-card{background:var(--surface-raised);color:var(--ink);border:1px solid var(--border);border-radius:var(--radius-0);box-shadow:var(--shadow-md);padding:24px;font-family:var(--font-sans)}
 .f3-card__rule{width:32px;height:2px;background:var(--detail);margin-bottom:16px}
-.f3-card__title{font-family:var(--font-display);font-weight:400;font-size:24px;line-height:32px;margin:0 0 8px}
+.f3-card__title{font-family:var(--font-display);font-stretch:var(--stretch-display);font-weight:600;font-size:24px;line-height:32px;margin:0 0 8px}
 .f3-card__text{font-size:16px;line-height:24px;color:var(--ink-muted);margin:0}
 /* Insignia */
 .f3-badge{display:inline-flex;align-items:center;font-family:var(--font-sans);font-weight:600;font-size:11px;line-height:14px;letter-spacing:.16em;text-transform:uppercase;padding:6px 12px;border-radius:var(--radius-0)}
@@ -30,7 +30,7 @@
 .f3-alert{display:flex;gap:16px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-0);box-shadow:var(--shadow-sm);padding:16px;font-family:var(--font-sans)}
 .f3-alert__mark{flex:none;width:8px;height:8px;margin-top:9px;background:var(--primary)}
 .f3-alert--importante .f3-alert__mark{background:var(--detail)}
-.f3-alert__title{font-family:var(--font-display);font-size:18px;line-height:26px;margin:0 0 2px}
+.f3-alert__title{font-family:var(--font-display);font-stretch:var(--stretch-display);font-weight:600;font-size:18px;line-height:26px;margin:0 0 2px}
 .f3-alert__text{font-size:15px;line-height:22px;color:var(--ink-muted);margin:0}
 /* Logo */
 .f3-logo{display:block;height:auto}

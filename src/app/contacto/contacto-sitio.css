@@ -5,7 +5,7 @@
 .ct2-principal { flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: var(--s-9); }
 
 /* La frase es el motivo */
-.ct2-frase { font-family: var(--s-display-font); font-weight: 400; margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1em 0.06em; font-size: clamp(40px, 5.4vw, 84px); line-height: 1.05; letter-spacing: 0; }
+.ct2-frase { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1em 0.06em; font-size: clamp(40px, 5.4vw, 84px); line-height: 1.05; letter-spacing: 0; }
 .ct2-guia { max-width: 560px; margin: calc(var(--s-6) * -1) 0 0; font-size: 20px; line-height: 1.45; color: var(--s-ink-muted); }
 
 /* Formulario con campos de línea */
@@ -13,6 +13,7 @@
 .ct2-campos { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 28px var(--s-7); }
 .ct2-campo { flex: 1 1 260px; display: flex; flex-direction: column; gap: var(--s-2); font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
 .ct2-campo-ancho { flex-basis: 100%; }
+.ct2-campo > span:first-child { font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: var(--s-track-etiqueta); text-transform: uppercase; }
 .ct2-campo input { height: 60px; padding: 0; border: 0; border-bottom: 1px solid var(--s-line-strong); border-radius: 0; background: transparent; color: var(--s-ink); font: inherit; font-size: clamp(19px, 1.8vw, 22px); }
 .ct2-campo input::placeholder { color: color-mix(in srgb, var(--s-ink-muted) 70%, transparent); }
 .ct2-campo input:hover { border-bottom-color: var(--s-ink); }
@@ -24,12 +25,12 @@
 .ct2-listo { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-4); padding: var(--s-7); border-radius: var(--s-r-grande); background: var(--s-accent-soft); }
 .ct2-listo:focus { outline: none; }
 .ct2-listo p { margin: 0; }
-.ct2-listo-titulo { font-family: var(--s-display-font); font-weight: 400; font-size: 30px; line-height: 1.15; letter-spacing: 0; }
+.ct2-listo-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); font-size: 30px; line-height: 1.15; letter-spacing: 0; }
 .ct2-otro { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--s-accent); font: inherit; font-weight: 600; cursor: pointer; }
 
 /* Canales directos */
 .ct2-directo { flex: 1 1 320px; max-width: 440px; display: flex; flex-direction: column; gap: var(--s-6); }
-.ct2-directo-titulo { font-family: var(--s-display-font); font-weight: 400; margin: 0; font-size: 24px; letter-spacing: 0; }
+.ct2-directo-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); margin: 0; font-size: 24px; letter-spacing: 0; }
 .ct2-horario { margin: 0; font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
 
 /* Quién te atiende */
@@ -38,7 +39,7 @@
 .ct2-equipo-foto { object-fit: cover; }
 .ct2-equipo-velo { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(2, 3, 21, 0) 30%, rgba(2, 3, 21, 0.85) 100%); }
 .ct2-equipo-cuerpo { position: relative; width: 100%; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-6); padding: var(--s-8); }
-.ct2-equipo-titulo { font-family: var(--s-display-font); font-weight: 400; max-width: 640px; margin: 0; font-size: clamp(32px, 4vw, 56px); line-height: 1.02; letter-spacing: 0; }
+.ct2-equipo-titulo { font-family: var(--s-display-font); font-stretch: var(--s-display-ancho); font-weight: var(--s-display-peso); max-width: 640px; margin: 0; font-size: clamp(32px, 4vw, 56px); line-height: 1.02; letter-spacing: 0; }
 
 @media (max-width: 639px) {
   .ct2-cuerpo { padding-top: var(--s-9); }

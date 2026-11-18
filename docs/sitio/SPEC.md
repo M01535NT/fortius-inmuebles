@@ -10,7 +10,7 @@ Fortius es una inmobiliaria a la que llegan asuntos diversos: vender, comprar, r
 
 ## 2. Lo que vale en todas las páginas
 
-- **Marca:** la del sistema de diseño. Azul real y rojo imperial sobre fondo plata, negro armiño en oscuro y un solo oro para detalles pequeños. Titulares en Marcellus y texto en Jost. Esquinas rectas en todo.
+- **Marca:** la del sistema de diseño. Azul real y rojo imperial sobre fondo plata, negro armiño en oscuro y un solo oro para detalles pequeños. Una sola letra, Archivo: angosta en titulares y de ancho normal en el texto. Esquinas rectas en todo.
 - Menú de hamburguesa en cualquier dispositivo, arriba a la derecha. El logo va arriba a la izquierda.
 - Tema claro y oscuro, con su interruptor.
 - Pocas palabras, fotos y videos grandes, movimiento ligado al desplazamiento.
