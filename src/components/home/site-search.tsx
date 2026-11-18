@@ -76,6 +76,11 @@ function Resaltado({ texto, consulta }: { texto: string; consulta: string }) {
 export function SiteSearch({ onClose }: { onClose: () => void }) {
   const navigate = usePageTransition();
   const inputRef = React.useRef<HTMLInputElement>(null);
+  // La lupa que abrió el buscador recibe el foco al cerrar (Radix solo lo devuelve a su propio Dialog.Trigger).
+  const openerRef = React.useRef<HTMLElement | null>(null);
+  React.useLayoutEffect(() => {
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  }, []);
   const [consulta, setConsulta] = React.useState("");
   const [activo, setActivo] = React.useState(0);
   const coincidencias = React.useMemo(() => sugerencias(consulta), [consulta]);
@@ -106,7 +111,8 @@ export function SiteSearch({ onClose }: { onClose: () => void }) {
         <div className={styles.root}>
           <Dialog.Overlay className={styles.scrim} />
           <Dialog.Content className={styles.panel} aria-describedby={undefined}
-            onOpenAutoFocus={(event) => { event.preventDefault(); inputRef.current?.focus({ preventScroll: true }); }}>
+            onOpenAutoFocus={(event) => { event.preventDefault(); inputRef.current?.focus({ preventScroll: true }); }}
+            onCloseAutoFocus={(event) => { event.preventDefault(); if (openerRef.current?.isConnected) openerRef.current.focus({ preventScroll: true }); }}>
             <Dialog.Title className="sr-only">Buscar en Fortius</Dialog.Title>
             <div className={styles.inner}>
               <div className={styles.field}>

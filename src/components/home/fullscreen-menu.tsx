@@ -70,6 +70,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
   const scrimRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const originRef = React.useRef("94% 4%");
+  const openerRef = React.useRef<HTMLElement | null>(null);
   const timelineRef = React.useRef<gsap.core.Timeline | null>(null);
   const pendingAnchorRef = React.useRef<string | null>(null);
   const [present, setPresent] = React.useState(open);
@@ -103,9 +104,12 @@ export function FullscreenMenu({ open, onClose }: Props) {
     return () => window.cancelAnimationFrame(frame);
   }, [present]);
 
-  // El círculo nace del botón que abrió el menú: se mide antes de que Radix mueva el foco.
+  /* El círculo nace del botón que abrió el menú: se mide antes de que Radix mueva el foco.
+     Ese botón recibe el foco al cerrar (Radix solo lo devuelve a su propio Dialog.Trigger). */
   React.useLayoutEffect(() => {
-    if (open) originRef.current = originFrom(document.activeElement);
+    if (!open) return;
+    originRef.current = originFrom(document.activeElement);
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   }, [open]);
 
   /* Opening: the panel grows as a circle from the trigger and the columns rise
@@ -122,7 +126,9 @@ export function FullscreenMenu({ open, onClose }: Props) {
     if (open) {
       const closed = `circle(0% at ${originRef.current})`;
       const full = `circle(150% at ${originRef.current})`;
-      timeline.set(root, { visibility: "visible" });
+      // Visible en el acto: un elemento oculto no recibe el foco y Radix pudo intentarlo antes.
+      gsap.set(root, { visibility: "visible" });
+      if (!panel.contains(document.activeElement)) closeRef.current?.focus({ preventScroll: true });
       if (reduce) {
         timeline.set(panel, { clipPath: "none" }).set(scrim, { opacity: 1 }).set(items, { yPercent: 0, opacity: 1 });
       } else {
@@ -152,6 +158,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
           {/* Mientras se cierra, Escape ya no hace nada: el cierre está en curso. */}
           <Dialog.Content ref={panelRef} className={styles.panel} aria-describedby={undefined}
             onOpenAutoFocus={(event) => { event.preventDefault(); closeRef.current?.focus({ preventScroll: true }); }}
+            onCloseAutoFocus={(event) => { event.preventDefault(); if (openerRef.current?.isConnected) openerRef.current.focus({ preventScroll: true }); }}
             onEscapeKeyDown={(event) => { if (!open) event.preventDefault(); }}>
             <Dialog.Title className="sr-only">Menú</Dialog.Title>
             <header className={styles.header}>

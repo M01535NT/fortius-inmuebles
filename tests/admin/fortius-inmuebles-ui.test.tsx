@@ -14,12 +14,17 @@ import type { Property } from "@/data/propiedades";
 import { aplicarFiltros, filtrosDesdeParams, paramsDesdeFiltros } from "@/lib/inventario-busqueda";
 
 vi.mock("@/lib/inventario", () => ({ getPropiedades: async () => [] }));
-vi.mock("@/lib/gsap", () => ({
-  EASE_OUT: "none",
-  prefersReducedMotion: () => true,
-  useGSAP: () => {},
-  gsap: { timeline: () => ({ set() { return this; }, to() { return this; }, from() { return this; } }) },
-}));
+vi.mock("@/lib/gsap", async () => {
+  // Same pattern as @gsap/react: the effect and its dependency list come from the caller.
+  const { useLayoutEffect: efectoDeDiseno } = await import("react");
+  return {
+    EASE_OUT: "none",
+    prefersReducedMotion: () => true,
+    // Runs the effect like the real hook, so components that close after their animation still close.
+    useGSAP: (effect: () => void | (() => void), options?: { dependencies?: unknown[] }) => efectoDeDiseno(effect, options?.dependencies ?? []),
+    gsap: { set() {}, timeline: () => ({ set() { return this; }, to() { return this; }, from() { return this; }, fromTo() { return this; }, call() { return this; }, kill() {} }) },
+  };
+});
 
 afterEach(() => {
   cleanup();
@@ -134,14 +139,16 @@ test("fullscreen menu traps Tab, closes with Escape and restores prior focus", a
   // The theme switch closes the «Hablemos» column, so the last stop may be a button.
   const last = [...screen.getByRole("dialog").querySelectorAll<HTMLElement>("a[href], button:not([disabled])")].at(-1)!;
   await waitFor(() => expect(document.activeElement).toBe(close));
+  // Like a real keyboard, each key goes to the focused element (the Radix dialog listens there).
   last.focus();
-  fireEvent.keyDown(window, { key: "Tab" });
+  fireEvent.keyDown(document.activeElement!, { key: "Tab" });
   expect(document.activeElement).toBe(close);
-  fireEvent.keyDown(window, { key: "Tab", shiftKey: true });
+  fireEvent.keyDown(document.activeElement!, { key: "Tab", shiftKey: true });
   expect(document.activeElement).toBe(last);
-  fireEvent.keyDown(window, { key: "Escape" });
+  fireEvent.keyDown(document.activeElement!, { key: "Escape" });
   expect(onClose).toHaveBeenCalledOnce();
   view.rerender(<FullscreenMenu open={false} onClose={onClose} />);
-  expect(document.activeElement).toBe(trigger);
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(document.activeElement).toBe(trigger));
   trigger.remove();
 });
