@@ -50,8 +50,8 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 
 - **Piel del sitio:** la clase `sitio` va en la página solo fuera de los paneles. Los valores del sistema de diseño se copian a `src/app/sitio.css`, bajo esa clase, y las piezas del sitio los usan por medio de sus variables. No se carga `tokens.css` tal cual: sus nombres (`--primary`, `--border`, `--surface`) chocarían con los del panel. Las piezas están en `src/components/sitio/`.
 - **Letra:** Archivo, con su eje de ancho, se sirve desde el propio sitio, no desde Google: la política de seguridad solo permite letras propias.
-- **Logo:** la versión clara en tema claro y la oscura en tema oscuro y sobre bandas, fotos y video. Sobre foto o video va siempre la oscura.
-- **Cabecera:** logo a la izquierda; a la derecha, la lupa del buscador y el botón «Menú». El buscador queda junto al botón, a un toque en cualquier página.
+- **Logo:** la versión clara en tema claro y la oscura en tema oscuro y sobre bandas, fotos y video. La cabecera es la excepción: lleva siempre la versión clara.
+- **Cabecera:** barra de 60 de alto; en claro es blanca y opaca desde que abre la página, también sobre el video. Logo a la izquierda; a la derecha, la lupa del buscador y el botón «Menú». El buscador queda junto al botón, a un toque en cualquier página.
 - **Tema:** interruptor «Tema oscuro» dentro del menú y en el pie (dos opciones, interruptor). Guarda la elección igual que antes.
 - **Bandas:** una sección con la clase `s-banda` tiene fondo propio: blanco en claro y negro armiño con un toque de azul en oscuro. Las que llevan foto o video (`s-banda-media`: portada del inicio, «Quiénes somos», portada de Vender, equipo de Contacto, misión y visión) son oscuras en los dos temas: negro armiño y texto plata.
 - **Pie:** sigue el flujo de la página, como antes, sin quedarse fijo detrás del contenido.
@@ -97,7 +97,7 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 ## Vender (17/11/2026)
 
 - **Boceto:** el lienzo «Fortius: Vender y Contacto», aprobado el 17/11/2026.
-- **Portada:** el video de la casa, el mismo del asunto Vender del inicio. La cabecera flota clara sobre él, como en el inicio.
+- **Portada:** el video de la casa, el mismo del asunto Vender del inicio. La cabecera va blanca sobre él, como en el inicio.
 - **Entrevista en dos pasos:** es el único formulario de la página. Paso 1: tipo de propiedad en lista (casa, departamento, local u oficina, nave industrial, terreno) y zona. Paso 2: nombre y teléfono. Llega al panel como contacto con el mensaje «Vender · tipo · zona». «Volver» no borra lo escrito. Si la recepción está apagada, el paso 2 ofrece WhatsApp y teléfono.
 - **Checklist:** se descarga directo, sin pedir datos.
 - **Cierre propio** «¿Empezamos con la entrevista?»; el pie no repite su invitación aquí.

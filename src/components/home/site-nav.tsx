@@ -45,7 +45,7 @@ export function SiteNav() {
       <header className={`${styles.header} ${solid ? styles.solid : styles.onImage}`}>
         <div className={styles.inner}>
           <Link href="/" aria-label="Fortius Inmuebles, inicio" className={styles.logo}>
-            <SitioLogo tono={solid ? "auto" : "oscuro"} />
+            <SitioLogo tono="claro" />
           </Link>
           <div className={styles.end}>
             <button type="button" onClick={() => setSearchOpen(true)} aria-label="Buscar en el sitio" aria-haspopup="dialog" aria-expanded={searchOpen}
