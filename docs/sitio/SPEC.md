@@ -41,8 +41,8 @@ Fortius es una inmobiliaria a la que llegan asuntos diversos: vender, comprar, r
 
 En este orden:
 
-1. Nombre, ubicación aproximada y precio.
-2. **Marco limpio:** fotos, video y recorrido 360°, sin letras, números ni botones encima. Los controles van debajo del marco.
+1. **Marco limpio:** siempre tiene tres secciones, **Fotos, Video y 360°**, en todos los inmuebles; si aún no hay video o recorrido, su sección lo dice dentro del marco. Sin letras, números ni botones encima. Es lo primero que se ve: el marco y sus controles entran completos en la pantalla al abrir la ficha, con solo «Volver al inventario» arriba. Los controles van debajo del marco.
+2. Nombre, ubicación aproximada y precio.
 3. Cifras: terreno, construcción, recámaras, baños, estacionamientos y antigüedad.
 4. Descripción y lo que ofrece.
 5. Ficha técnica y documentos PDF para descargar.

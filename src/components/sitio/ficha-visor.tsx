@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import type { ImagenPropiedad } from "@/data/propiedades";
 import { PropertyShare } from "@/components/property/property-share";
-import { Pestanas, type Opcion } from "@/components/sitio/pestanas";
+import { Pestanas, idPestana, type Opcion } from "@/components/sitio/pestanas";
 import { videoEmbedUrl } from "@/lib/video-embed";
 
 type Modo = "fotos" | "video" | "360";
@@ -19,7 +19,9 @@ type Props = {
   share?: { title: string; text: string; url: string };
 };
 
+const MODOS: readonly Modo[] = ["fotos", "video", "360"];
 const ETIQUETAS: Record<Modo, string> = { fotos: "Fotos", video: "Video", "360": "360°" };
+const VACIOS: Record<Exclude<Modo, "fotos">, string> = { video: "Este inmueble aún no tiene video.", "360": "Este inmueble aún no tiene recorrido 360°." };
 
 function Icono({ d, size = 18 }: { d: string; size?: number }) {
   return (
@@ -35,17 +37,20 @@ const PAUSA = "M9 5v14M15 5v14";
 const REPRODUCIR = "M7 4.5v15l12-7.5z";
 const DOCUMENTO = "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6";
 const CERRAR = "M6 6l12 12M18 6L6 18";
+const CAMARA = "M15 10l5-3v10l-5-3M4 6h11v12H4z";
+const ESFERA = "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9s1.3-6.5 3.8-9z";
 
 /*
   Marco de la ficha (17/11/2026): fotos, video y 360° en un marco limpio, sin
-  nada encima. Todos los controles van debajo: pestañas, flechas, miniaturas,
-  contador, pausa, pantalla completa, compartir y la ficha técnica en PDF.
+  nada encima. Siempre tiene las tres pestañas, Fotos, Video y 360°; si el
+  inmueble aún no tiene video o recorrido, su pestaña lo dice dentro del marco.
+  Todos los controles van debajo: pestañas, flechas, miniaturas, contador,
+  pausa, pantalla completa, compartir y la ficha técnica en PDF.
   La foto se amplía en una ventana que se recorre con flechas o deslizando.
 */
 export function FichaVisor({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, share }: Props) {
   const videoEmbed = videoEmbedUrl(videoUrl);
-  const modos: Modo[] = ["fotos", ...(videoUrl ? ["video" as const] : []), ...(tour360Url ? ["360" as const] : [])];
-  const opciones: Opcion<Modo>[] = modos.map((valor) => ({ valor, etiqueta: ETIQUETAS[valor] }));
+  const opciones: Opcion<Modo>[] = MODOS.map((valor) => ({ valor, etiqueta: ETIQUETAS[valor] }));
   const [modo, setModo] = React.useState<Modo>("fotos");
   const [index, setIndex] = React.useState(0);
   const [pausado, setPausado] = React.useState(true);
@@ -92,7 +97,8 @@ export function FichaVisor({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, s
 
   return (
     <div className="fv">
-      <div ref={marcoRef} id={`fv-panel-${modo}`} role={modos.length > 1 ? "tabpanel" : undefined} className="fv-marco" onTouchStart={modo === "fotos" ? alTocar : undefined} onTouchEnd={modo === "fotos" ? alSoltar : undefined}>
+      <div ref={marcoRef} id={`fv-panel-${modo}`} role="tabpanel"
+        aria-labelledby={idPestana(`fv-panel-${modo}`)} className="fv-marco" onTouchStart={modo === "fotos" ? alTocar : undefined} onTouchEnd={modo === "fotos" ? alSoltar : undefined}>
         {modo === "fotos" && (
           <button ref={ampliarRef} type="button" className="fv-foto" onClick={() => dialogRef.current?.showModal()} aria-label={`Ampliar fotografía: ${actual.alt}`}>
             <Image key={actual.src} src={actual.src} alt={actual.alt} fill priority={index === 0} sizes="(max-width: 767px) 100vw, 1360px" />
@@ -103,10 +109,13 @@ export function FichaVisor({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, s
           : <video ref={videoRef} src={videoUrl} muted loop playsInline preload="metadata" aria-label={`Video de ${titulo}`}
             onLoadStart={() => setPausado(true)} onPlay={() => setPausado(false)} onPause={() => setPausado(true)} />)}
         {modo === "360" && tour360Url && <iframe src={tour360Url} title={`Recorrido 360° de ${titulo}`} allowFullScreen />}
+        {modo !== "fotos" && !(modo === "video" ? videoUrl : tour360Url) && (
+          <p className="fv-vacio"><Icono d={modo === "video" ? CAMARA : ESFERA} size={32} />{VACIOS[modo]}</p>
+        )}
       </div>
 
       <div className="fv-controles">
-        {modos.length > 1 && <Pestanas opciones={opciones} valor={modo} onCambio={setModo} etiqueta="Qué ver" chicas idPanel={(m) => `fv-panel-${m}`} />}
+        <Pestanas opciones={opciones} valor={modo} onCambio={setModo} etiqueta="Qué ver" chicas idPanel={(m) => `fv-panel-${m}`} />
 
         {modo === "fotos" && varias && (
           <div className="fv-fotos">
@@ -130,7 +139,7 @@ export function FichaVisor({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, s
         )}
 
         <div className="fv-acciones">
-          <button type="button" className="s-btn s-btn-contorno s-btn-icono" onClick={pantallaCompleta} aria-label="Pantalla completa"><Icono d={AMPLIAR} /></button>
+          {(modo === "fotos" || (modo === "video" ? videoUrl : tour360Url)) && <button type="button" className="s-btn s-btn-contorno s-btn-icono" onClick={pantallaCompleta} aria-label="Pantalla completa"><Icono d={AMPLIAR} /></button>}
           {share && <PropertyShare {...share} />}
           {fichaUrl && <a href={fichaUrl} download className="s-btn s-btn-contorno s-btn-chico"><Icono d={DOCUMENTO} size={16} />Ficha técnica<span className="sr-only"> en PDF</span></a>}
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Select } from "radix-ui";
 
 import { Chevron } from "@/components/sitio/iconos";
 
@@ -16,84 +17,45 @@ type Props = {
   onCambio: (valor: string) => void;
 };
 
+// Radix no admite una opción con valor vacío («cualquier precio»): se traduce de ida y vuelta.
+const VACIO = "__cualquiera__";
+const aClave = (valor: string) => (valor === "" ? VACIO : valor);
+const deClave = (clave: string) => (clave === VACIO ? "" : clave);
+
 /**
   Pieza de la frase del inventario («Quiero [comprar] [casas] en [Playas]»): se ve como texto azul
-  y abre su lista debajo. Teclado: Enter, Espacio o flecha abajo abren; flechas, Inicio y Fin
-  recorren; Enter elige; Escape o Tab cierran y el foco vuelve a la pieza.
+  y abre su lista debajo. Es la lista de Radix (17/11/2026): si no cabe debajo se abre arriba y no se
+  sale de la pantalla; Enter, Espacio o flechas abren; flechas, Inicio y Fin recorren; escribir una
+  letra salta a la opción que empieza con ella; Enter elige; Escape cierra y el foco vuelve a la pieza.
 */
 export function SelectorFrase({ etiqueta, opciones, valor, textoLibre, onCambio }: Props) {
-  const [abierto, setAbierto] = React.useState(false);
-  const [activo, setActivo] = React.useState(0);
-  const raiz = React.useRef<HTMLSpanElement>(null);
-  const boton = React.useRef<HTMLButtonElement>(null);
-  const lista = React.useRef<HTMLUListElement>(null);
-  const id = React.useId();
   const indice = opciones.findIndex((o) => o.valor === valor);
   const texto = indice >= 0 ? opciones[indice]?.etiqueta : textoLibre ?? opciones[0]?.etiqueta;
 
-  const abrir = () => {
-    setActivo(Math.max(0, indice));
-    setAbierto(true);
-  };
-  const cerrar = (devolverFoco: boolean) => {
-    setAbierto(false);
-    if (devolverFoco) boton.current?.focus();
-  };
-  const elegir = (i: number) => {
-    const opcion = opciones[i];
-    if (opcion) onCambio(opcion.valor);
-    cerrar(true);
-  };
-
-  React.useEffect(() => {
-    if (!abierto) return;
-    lista.current?.focus({ preventScroll: true });
-    const fuera = (event: PointerEvent) => {
-      if (!raiz.current?.contains(event.target as Node)) setAbierto(false);
-    };
-    document.addEventListener("pointerdown", fuera);
-    return () => document.removeEventListener("pointerdown", fuera);
-  }, [abierto]);
-
-  React.useEffect(() => {
-    if (!abierto) return;
-    document.getElementById(`${id}-${activo}`)?.scrollIntoView({ block: "nearest" });
-  }, [abierto, activo, id]);
-
-  const onKeyLista = (event: React.KeyboardEvent<HTMLUListElement>) => {
-    const n = opciones.length;
-    if (event.key === "ArrowDown") { event.preventDefault(); setActivo((i) => (i + 1) % n); }
-    else if (event.key === "ArrowUp") { event.preventDefault(); setActivo((i) => (i - 1 + n) % n); }
-    else if (event.key === "Home") { event.preventDefault(); setActivo(0); }
-    else if (event.key === "End") { event.preventDefault(); setActivo(n - 1); }
-    else if (event.key === "Enter" || event.key === " ") { event.preventDefault(); elegir(activo); }
-    else if (event.key === "Escape") { event.preventDefault(); cerrar(true); }
-    else if (event.key === "Tab") { setAbierto(false); }
-  };
-
   return (
-    <span ref={raiz} className="s-frase-pieza">
-      <button ref={boton} type="button" aria-haspopup="listbox" aria-expanded={abierto} aria-controls={abierto ? `${id}-lista` : undefined}
-        aria-label={`${etiqueta}: ${texto}`}
-        onClick={() => (abierto ? cerrar(false) : abrir())}
-        onKeyDown={(event) => { if (event.key === "ArrowDown" && !abierto) { event.preventDefault(); abrir(); } }}
-        className="s-frase-boton" data-elegido={indice > 0 || (indice < 0 && Boolean(textoLibre)) ? "true" : undefined}>
-        <span>{texto}</span>
-        <Chevron className="s-frase-chevron" />
-      </button>
-      {abierto ? (
-        <ul ref={lista} id={`${id}-lista`} role="listbox" aria-label={etiqueta} tabIndex={-1}
-          aria-activedescendant={`${id}-${activo}`} onKeyDown={onKeyLista} className="s-frase-lista">
-          {opciones.map((opcion, i) => (
-            <li key={opcion.valor} id={`${id}-${i}`} role="option" aria-selected={opcion.valor === valor}
-              data-activo={i === activo ? "true" : undefined}
-              onPointerEnter={() => setActivo(i)} onClick={() => elegir(i)} className="s-frase-opcion">
-              <span>{opcion.etiqueta}</span>
-              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+    <span className="s-frase-pieza">
+      <Select.Root value={aClave(valor)} onValueChange={(clave) => onCambio(deClave(clave))}>
+        <Select.Trigger aria-label={`${etiqueta}: ${texto}`} className="s-frase-boton"
+          data-elegido={indice > 0 || (indice < 0 && Boolean(textoLibre)) ? "true" : undefined}>
+          <Select.Value>{texto}</Select.Value>
+          <Select.Icon asChild><Chevron className="s-frase-chevron" /></Select.Icon>
+        </Select.Trigger>
+        <Select.Portal>
+          <Select.Content position="popper" side="bottom" align="start" sideOffset={8} collisionPadding={16}
+            aria-label={etiqueta} className="s-frase-lista">
+            <Select.Viewport>
+              {opciones.map((opcion) => (
+                <Select.Item key={opcion.valor} value={aClave(opcion.valor)} className="s-frase-opcion">
+                  <Select.ItemText>{opcion.etiqueta}</Select.ItemText>
+                  <Select.ItemIndicator>
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+                  </Select.ItemIndicator>
+                </Select.Item>
+              ))}
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
     </span>
   );
 }

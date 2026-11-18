@@ -15,7 +15,7 @@ test("cambiar de motivo conserva el nombre y el teléfono ya escritos", () => {
   render(<PublicFeaturesProvider publicLeadsEnabled><ContactoMotivo /></PublicFeaturesProvider>);
   fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Ana Ensayo" } });
   fireEvent.change(screen.getByLabelText("Teléfono o WhatsApp"), { target: { value: "664 000 0000" } });
-  fireEvent.click(screen.getByRole("button", { name: /^Motivo:/ }));
+  fireEvent.click(screen.getByRole("combobox", { name: /^Motivo:/ }));
   fireEvent.click(screen.getByRole("option", { name: "rentar" }));
   expect(screen.getByLabelText("Qué rentas o buscas rentar")).toBeTruthy();
   expect((screen.getByLabelText("Nombre") as HTMLInputElement).value).toBe("Ana Ensayo");

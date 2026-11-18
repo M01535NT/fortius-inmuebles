@@ -51,7 +51,7 @@ test("la portada cambia el texto y el botón al elegir un asunto", async ({ page
 
 test("la frase del inventario filtra y deja el filtro en la dirección", async ({ page }) => {
   await page.goto("/inventario");
-  const operacion = page.getByRole("button", { name: /^Operación:/ });
+  const operacion = page.getByRole("combobox", { name: /^Operación:/ });
   await operacion.click();
   const lista = page.getByRole("listbox", { name: "Operación" });
   await expect(lista).toBeVisible();
@@ -80,7 +80,7 @@ test("Vender pide la entrevista en dos pasos y «Volver» conserva lo escrito", 
 
 test("Contacto cambia el formulario según «Hola, quiero…»", async ({ page }) => {
   await page.goto("/contacto");
-  const motivo = page.getByRole("button", { name: /^Motivo:/ });
+  const motivo = page.getByRole("combobox", { name: /^Motivo:/ });
   await expect(motivo).toContainText("vender");
   await motivo.click();
   await page.getByRole("listbox", { name: "Motivo" }).getByRole("option", { name: "rentar", exact: true }).click();

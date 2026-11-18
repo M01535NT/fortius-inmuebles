@@ -2,18 +2,19 @@
 .fi { padding-bottom: var(--s-10); }
 
 /* Banda oscura: nombre, precio, marco y cifras */
-.fi-banda { padding: calc(var(--s-cabecera) + var(--s-7)) 0 var(--s-10); background: var(--s-bg); color: var(--s-ink); }
-.fi-ruta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-bottom: var(--s-8); font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
-.fi-ruta a { color: inherit; min-height: 44px; display: inline-flex; align-items: center; }
-.fi-ruta a:hover { color: var(--s-ink); }
-.fi-cabeza { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-6) var(--s-9); margin-bottom: var(--s-8); }
-.fi-nombre { flex: 1 1 520px; min-width: 0; }
-.fi-titulo { margin: 0; font-size: var(--s-type-titulo); font-weight: 500; line-height: 0.98; letter-spacing: var(--s-track-display); text-wrap: balance; }
-.fi-lugar { margin: var(--s-4) 0 0; font-size: var(--s-type-entrada); color: var(--s-ink-muted); }
+.fi-banda { padding: calc(var(--s-cabecera) + var(--s-3)) 0 var(--s-10); background: var(--s-bg); color: var(--s-ink); }
+/* Arriba solo «Volver»; el nombre, el tipo con la zona y el precio van debajo del marco (17/11/2026). */
+.fi-cabeza { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-2) var(--s-8); margin-top: var(--s-8); }
+.fi-nombre { flex: 1 1 420px; min-width: 0; }
+.fi-volver { margin: 0 0 var(--s-2); line-height: 1; }
+.fi-volver a { min-height: 32px; }
+.fi-titulo { margin: 0; font-size: clamp(28px, 3vw, 44px); font-weight: 500; line-height: 1.05; letter-spacing: var(--s-track-seccion); text-wrap: balance; }
+.fi-lugar { margin: var(--s-1) 0 0; font-size: var(--s-type-interfaz); color: var(--s-ink-muted); }
+.fi-lugar a { color: inherit; text-decoration: none; }
+.fi-lugar a:hover { color: var(--s-ink); }
 .fi-precio { flex: 0 1 auto; display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-2); text-align: right; }
-.fi-precio-monto { margin: 0; font-size: clamp(28px, 3vw, 44px); font-weight: 500; letter-spacing: var(--s-track-seccion); font-variant-numeric: tabular-nums; }
-.fi-precio-m2 { margin: 0; font-size: var(--s-type-detalle); color: var(--s-ink-muted); }
-.fi-distintivos { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s-2); margin: var(--s-2) 0 0; }
+.fi-precio-monto { margin: 0; font-size: clamp(24px, 2.6vw, 38px); font-weight: 500; letter-spacing: var(--s-track-seccion); font-variant-numeric: tabular-nums; }
+.fi-distintivos { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s-2); margin: 0; }
 
 .fi-cifras { display: flex; flex-wrap: wrap; gap: var(--s-6) var(--s-10); margin: var(--s-9) 0 0; padding-top: var(--s-7); border-top: 1px solid var(--s-line); }
 .fi-cifras > div { display: flex; flex-direction: column-reverse; gap: var(--s-1); }
@@ -24,19 +25,30 @@
 
 /* Marco limpio y sus controles debajo */
 .fv-marco { position: relative; overflow: hidden; aspect-ratio: 2 / 1; border-radius: var(--s-r-grande); background: var(--s-muted); }
+/* En pantallas bajas el marco se acorta para que él y sus controles se vean completos al entrar, sin
+   perder el ancho (la foto se recorta, no se deforma). 160px = «Volver» arriba, la fila de controles
+   debajo y un respiro. */
+@media (min-width: 768px) {
+  .fi .fv { container-type: inline-size; }
+  .fi .fv-marco { aspect-ratio: auto; height: min(50cqw, max(360px, calc(100svh - var(--s-cabecera) - 160px))); }
+}
 .fv-marco :is(iframe, video) { display: block; width: 100%; height: 100%; border: 0; object-fit: cover; }
 .fv-marco:fullscreen { border-radius: 0; aspect-ratio: auto; }
 .fv-marco:fullscreen video { object-fit: contain; background: #08090a; }
 .fv-foto { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: zoom-in; }
 .fv-foto img { object-fit: cover; }
+.fv-vacio { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-3); padding: var(--s-6); color: var(--s-ink-muted); font-size: var(--s-type-interfaz); text-align: center; }
+.fv-vacio svg { color: var(--s-ink-muted); opacity: 0.7; }
 .fv-controles { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5); margin-top: var(--s-4); }
 .fv-fotos { flex: 1 1 360px; min-width: 0; display: flex; align-items: center; gap: var(--s-3); }
-.fv-miniaturas { flex: 1 1 auto; min-width: 0; display: flex; gap: var(--s-2); overflow-x: auto; padding: 4px 2px; scrollbar-width: none; }
+.fv-miniaturas { flex: 1 1 auto; min-width: 0; display: flex; gap: var(--s-2); overflow-x: auto; padding: 6px; margin: -6px 0; scrollbar-width: none; }
 .fv-miniaturas::-webkit-scrollbar { display: none; }
 .fv-miniaturas button { position: relative; flex: none; width: 76px; height: 48px; overflow: hidden; padding: 0; border: 0; border-radius: var(--s-r-tarjeta); background: var(--s-muted); opacity: 0.5; cursor: pointer; transition: opacity 200ms var(--s-ease); }
 .fv-miniaturas button img { object-fit: cover; }
 .fv-miniaturas button:hover { opacity: 0.8; }
-.fv-miniaturas button[aria-pressed="true"] { opacity: 1; outline: 2px solid var(--s-accent); outline-offset: 2px; }
+/* La elegida lleva su anillo por dentro, encima de la foto: la tira que se desliza no lo corta. */
+.fv-miniaturas button[aria-pressed="true"] { opacity: 1; }
+.fv-miniaturas button[aria-pressed="true"]::after { content: ""; position: absolute; inset: 0; border: 2px solid var(--s-accent); border-radius: inherit; box-shadow: inset 0 0 0 2px var(--s-bg); pointer-events: none; }
 .fv-contador { flex: none; font-size: var(--s-type-detalle); color: var(--s-ink-muted); font-variant-numeric: tabular-nums; }
 .fv-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-left: auto; }
 .fv-acciones > button:not(.s-btn) { min-height: 44px; height: auto; padding: 0 var(--s-4); border: 1px solid var(--s-line-strong); border-radius: var(--s-r-pastilla); background: transparent; color: var(--s-ink); font-size: var(--s-type-detalle); font-weight: 500; }
@@ -44,7 +56,9 @@
 .fv-acciones > :is(p, input) { flex-basis: 100%; }
 .fv-ventana { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: #08090a; color: #ededef; }
 .fv-ventana::backdrop { background: rgba(8, 9, 10, 0.95); }
-.fv-ventana[open] { display: flex; flex-direction: column; }
+.fv-ventana[open] { display: flex; flex-direction: column; overscroll-behavior: contain; }
+/* Con la ventana de fotos abierta, la página de atrás no se desplaza (también en el iPhone). */
+html.sitio:has(.fv-ventana[open]) { overflow: hidden; }
 .fv-ventana-foto { position: relative; flex: 1 1 auto; margin: var(--s-6); }
 .fv-ventana-foto img { object-fit: contain; }
 .fv-ventana-controles { display: flex; align-items: center; justify-content: center; gap: var(--s-4); padding: 0 var(--s-4) calc(var(--s-6) + env(safe-area-inset-bottom)); }
