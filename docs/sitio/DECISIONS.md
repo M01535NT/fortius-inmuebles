@@ -61,6 +61,8 @@ Este documento dice **cómo** se construye lo que pide `SPEC.md`. Cada decisión
 
 ## Ficha (17/11/2026)
 
+- **Tres pestañas siempre:** Fotos, Video y 360° aparecen en todos los inmuebles. Sin video o sin recorrido, la pestaña muestra dentro del marco «Este inmueble aún no tiene video» (o recorrido 360°) y se oculta el botón de pantalla completa.
+- **El marco va primero:** arriba solo «Volver al inventario». El marco y su fila de controles se ven completos al entrar, y el marco ocupa todo el ancho: en pantallas bajas se acorta y la foto se recorta sin deformarse. Debajo de sus controles van el nombre, el tipo con la zona y el precio (más «Apartada», «Vendida» o «En colaboración» cuando aplica); luego las cifras con el precio por m², y una línea con la dirección aproximada, el código y las fechas.
 - **Marco limpio:** fotos, video y 360° en un marco de proporción 2 a 1 (4 a 3 en el teléfono), sin nada encima. Debajo: pestañas, flechas, miniaturas, contador, pausa del video, pantalla completa, compartir y la ficha técnica en PDF. Tocar la foto la amplía; en la ampliación se avanza con flechas o deslizando.
 - **Video:** corre solo, sin sonido y en bucle; con movimiento reducido no arranca. Si el video es de YouTube o Vimeo, sus controles son los del reproductor, porque no se pueden quitar.
 - Sustituye al carrusel anterior de la ficha.

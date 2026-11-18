@@ -108,6 +108,8 @@ Etapas 1 a 7 construidas (17/11/2026) y subidas a la rama `rediseno-sitio`. Etap
 
 - [x] Menú, buscador y listas de la frase hechos sobre Radix; pestañas con su panel nombrado y fondo quieto con las fotos ampliadas (17/11/2026, rama `sitio-controles-radix`, sin integrar). Lo probaste a mano el 17/11 y está bien; faltan las pruebas automáticas antes de integrar.
 
+- [x] Ficha con el marco primero, completo con sus controles en la primera pantalla y siempre con Fotos, Video y 360°; nombre y precio debajo (17/11/2026, rama `sitio-controles-radix`, sin integrar).
+
 ## Lo que te toca a ti
 
 - Confirmar los nombres de los asuntos de la portada (hoy: Vender, Comprar, Rentar, Saber cuánto vale, Poner papeles en orden y Otro asunto).
