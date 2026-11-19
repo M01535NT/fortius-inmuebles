@@ -25,8 +25,8 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [x] Pantallas: terminar la Consulta y el asunto con el modelo visual, y dejarlos estables.
 - [x] Pantallas: fallos 2, 4, 6, 8, 9 y 12 de la prueba del 18/11. Los fallos 2 y 4 no se pudieron ver en captura; los confirma la revisión.
 - [x] Servidor y secciones: fallos 1, 3, 5, 10 y 11 (la fecha del cierre, el aviso de persona repetida, la pantalla de Eliminados, tu perfil en Configuración y «Invitar»).
-- [ ] Pantallas: conectar en la Consulta el aviso de persona repetida.
-- [ ] Revisión de solo lectura de todo lo anterior.
+- [x] Pantallas: conectar en la Consulta el aviso de persona repetida.
+- [x] Revisión de solo lectura de todo lo anterior. Sin fallos graves; lo encontrado ya se corrigió, salvo dos cosas que piden un cambio en la base y esperan tu palabra: que recuperar una guía o un documento suelto quede en el historial, y que cerrar una consulta como contacto compruebe que quien la cierra puede ver a esa persona.
 - [ ] Correr todas las pruebas automáticas. Tardan unos 25 minutos; se te avisa antes.
 - [ ] Corregir lo que las pruebas marquen.
 
