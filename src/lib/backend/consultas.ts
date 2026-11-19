@@ -170,10 +170,30 @@ export async function coincidenciasDeConsulta(client: SupabaseClient, id: string
 
 /**
  * «Abrir asunto»: lo que se decide se arma aquí con las reglas; la base lo crea todo junto. Con `personaId`, quien llama
- * es esa ficha del Directorio (la que avisó la consulta) y no se crea otra; con null, se crea una nueva.
+ * es esa ficha del Directorio (la que avisó la consulta) y no se crea otra. Con null o sin él, queda la ficha que la
+ * consulta ya tenía; si no tenía ninguna, se crea una nueva.
+ *
+ * Ligar la ficha y abrir son dos pasos. Si abrir falla después de ligar, la liga se deshace y el error lleva en
+ * `version` la versión vigente de la consulta, para que la pantalla siga sin recargar.
  */
 export async function abrirAsunto(client: SupabaseClient, id: string, v: number, personaId?: string | null): Promise<{ id: string; folio: string }> {
-  if (personaId !== undefined) v = await elegirFicha(client, id, v, personaId);
+  const liga = personaId ? await elegirFicha(client, id, v, personaId) : null;
+  if (!liga) return abrirConVersion(client, id, v);
+  try {
+    return await abrirConVersion(client, id, liga.version);
+  } catch (e) {
+    const deshecha = await client.from(T.consultas).update({ persona_id: liga.antes })
+      .eq("id", id).eq("version", liga.version).eq("estado", "abierta").select("version");
+    const vigente = deshecha.data?.length
+      ? (deshecha.data[0] as { version: number }).version
+      : ((await client.from(T.consultas).select("version").eq("id", id).maybeSingle()).data as { version: number } | null)?.version;
+    const status = e instanceof ApiError ? e.status : 500;
+    const mensaje = e instanceof ApiError ? e.message : "No se pudo abrir el asunto. Vuelve a intentarlo.";
+    throw new ApiError(status, mensaje, { ...(e instanceof ApiError ? e.details : {}), ...(vigente ? { version: vigente } : {}) });
+  }
+}
+
+async function abrirConVersion(client: SupabaseClient, id: string, v: number): Promise<{ id: string; folio: string }> {
   const c = await leerConsulta(client, id);
   if (c.estado === "asunto" && c.asunto_id) throw new ApiError(409, "Esta consulta ya abrió su asunto.");
   const d: DatosConsulta = c.datos ?? {};
@@ -199,17 +219,24 @@ export async function abrirAsunto(client: SupabaseClient, id: string, v: number,
   return { id: res.id, folio: res.folio };
 }
 
-/** Deja la consulta ligada a una ficha que quien atiende puede ver (o a ninguna). Devuelve la versión nueva. */
-async function elegirFicha(client: SupabaseClient, id: string, v: number, personaId: string | null): Promise<number> {
-  if (personaId) {
-    const p = await client.from("fortius_inmuebles_personas").select("id").eq("id", personaId).is("deleted_at", null).maybeSingle();
-    if (p.error) fallo(p.error);
-    if (!p.data) throw new ApiError(404, "Esa persona ya no está en el Directorio.");
-  }
+/**
+ * Deja la consulta ligada a una ficha que quien atiende puede ver. Devuelve la versión nueva y la ficha de antes (para
+ * deshacer), o null si no hay nada que ligar: la consulta ya no está abierta, cambió en otra ventana o ya tenía esa
+ * ficha. En esos casos «Abrir asunto» sigue como sin ficha elegida, y la base responde lo de siempre.
+ */
+async function elegirFicha(client: SupabaseClient, id: string, v: number, personaId: string): Promise<{ version: number; antes: string | null } | null> {
+  const actual = await client.from(T.consultas).select("version,estado,persona_id").eq("id", id).maybeSingle();
+  if (actual.error) fallo(actual.error);
+  const c = actual.data as { version: number; estado: string; persona_id: string | null } | null;
+  if (!c || c.estado !== "abierta" || c.version !== v || c.persona_id === personaId) return null;
+  const p = await client.from("fortius_inmuebles_personas").select("id").eq("id", personaId).is("deleted_at", null).maybeSingle();
+  if (p.error) fallo(p.error);
+  if (!p.data) throw new ApiError(404, "Esa persona ya no está en el Directorio.");
   const r = await client.from(T.consultas).update({ persona_id: personaId }).eq("id", id).eq("version", v).eq("estado", "abierta").select("version");
   if (r.error) fallo(r.error);
-  if (!r.data?.length) throw new ApiError(409, "La consulta cambió en otra ventana. Vuelve a cargarla.");
-  return (r.data[0] as { version: number }).version;
+  // Otra ventana guardó justo ahora: se abre sin ligar y la base responde el 409 de siempre.
+  if (!r.data?.length) return null;
+  return { version: (r.data[0] as { version: number }).version, antes: c.persona_id };
 }
 
 export async function cerrarConsulta(client: SupabaseClient, id: string, entrada: z.infer<typeof cierreSchema>): Promise<{ persona_id?: string }> {

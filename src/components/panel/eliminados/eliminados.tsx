@@ -24,13 +24,14 @@ const fecha = (iso: string) => {
 export function Eliminados() {
   const { avisar } = useAvisos();
   const [lista, setLista] = useState<Eliminado[] | null>(null);
+  const [hayMas, setHayMas] = useState<ClaseEliminado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [clase, setClase] = useState<ClaseEliminado | "">("");
   const [ocupado, setOcupado] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setError(null);
-    try { setLista(await leerEliminados()); }
+    try { const r = await leerEliminados(); setLista(r.eliminados); setHayMas(r.hayMas); }
     catch (e) { setError(e instanceof Error ? e.message : "No se pudo leer Eliminados."); }
   }, []);
   useEffect(() => { void cargar(); }, [cargar]);
@@ -53,7 +54,8 @@ export function Eliminados() {
     } finally { setOcupado(null); }
   }
 
-  const cuantos = (c: ClaseEliminado) => (lista ?? []).filter((x) => x.clase === c).length;
+  // Con «+» cuando la clase llegó al tope: hay más de las que se muestran.
+  const cuantos = (c: ClaseEliminado) => `${(lista ?? []).filter((x) => x.clase === c).length}${hayMas.includes(c) ? "+" : ""}`;
 
   return (
     <div className="pn-pagina pn-conf" style={{ display: "flex", flexDirection: "column" }}>
@@ -62,7 +64,7 @@ export function Eliminados() {
         <p className="pn-conf-intro">Lo que se mandó a Eliminados. Recuperar lo regresa a su lugar, tal como estaba.</p>
       </div>
       <Tarjeta className="pn-lista" style={{ padding: "4px 14px 12px" }}>
-        <Desplegable etiqueta="Mostrar" valor={clase} vacio={`Todo${lista ? ` · ${lista.length}` : ""}`}
+        <Desplegable etiqueta="Mostrar" valor={clase} vacio={`Todo${lista ? ` · ${lista.length}${hayMas.length ? "+" : ""}` : ""}`}
           opciones={CLASES_ELIMINADO.map((c) => ({ valor: c, etiqueta: lista ? `${NOMBRE_CLASE_ELIMINADO[c]} · ${cuantos(c)}` : NOMBRE_CLASE_ELIMINADO[c] }))}
           alElegir={setClase} />
       </Tarjeta>
@@ -73,16 +75,19 @@ export function Eliminados() {
             texto="Lo que se mande a Eliminados aparece aquí y se puede recuperar." icono="bote" />
         )
         : grupos.map((g) => (
-          <GrupoLista key={g.clase} titulo={`${NOMBRE_CLASE_ELIMINADO[g.clase]} · ${g.filas.length}`}>
+          <GrupoLista key={g.clase} titulo={`${NOMBRE_CLASE_ELIMINADO[g.clase]} · ${cuantos(g.clase)}`}>
             {g.filas.map((x) => (
               <Fila key={`${x.clase}-${x.id}`} titulo={x.nombre} subtitulo={x.detalle ?? undefined}
-                detalle={x.recuperable ? undefined : x.clase === "guia" ? "La recupera quien la hizo o el director" : "Lo recupera el director"}
+                detalle={x.aviso ?? (x.recuperable ? undefined : x.clase === "guia" ? "La recupera quien la hizo o el director" : "Lo recupera el director")}
                 lado={fecha(x.eliminado_el)}
                 acciones={x.recuperable ? (
                   <Boton variante="normal" icono="ciclo" deshabilitado={ocupado !== null} onClick={() => void recuperar(x)}
                     aria-label={`Recuperar ${x.nombre}`}>{ocupado === x.id ? "Recuperando…" : "Recuperar"}</Boton>
                 ) : undefined} />
             ))}
+            {hayMas.includes(g.clase) ? (
+              <p className="pn-conf-nota" style={{ padding: "8px 14px" }}>Se muestran los más recientes; hay más en Eliminados.</p>
+            ) : null}
           </GrupoLista>
         ))}
       <div className="pn-conf-acciones">

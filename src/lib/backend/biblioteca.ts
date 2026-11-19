@@ -155,7 +155,9 @@ export async function cambiarGuia(client: SupabaseClient, user: StaffUser, id: s
     cambios.contenido = nuevo;
   }
   if (!Object.keys(cambios).length) throw new ApiError(400, "No hay nada que cambiar.");
-  const { data, error } = await client.from(T.biblioteca).update(cambios).eq("id", id).eq("version", v).select(COLUMNAS).maybeSingle();
+  const q = client.from(T.biblioteca).update(cambios).eq("id", id).eq("version", v);
+  // Recuperar solo lo que está en Eliminados; quitar solo lo que no lo está.
+  const { data, error } = await (restaurar ? q.not("deleted_at", "is", null) : quitar ? q.is("deleted_at", null) : q).select(COLUMNAS).maybeSingle();
   if (error) fallo(error);
   if (!data) throw new ApiError(409, "No se pudo cambiar: alguien más la cambió, o la hizo otra persona y solo el director puede cambiarla.");
   return quitar ? null : conPermiso(user)(data as Omit<Guia, "editable">);

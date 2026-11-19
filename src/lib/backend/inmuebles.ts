@@ -227,8 +227,10 @@ export async function copiarInmueble(client: SupabaseClient, id: string, entrada
 }
 
 export async function eliminarInmueble(client: SupabaseClient, id: string, v: number, restaurar: boolean): Promise<void> {
-  const r = await client.from(T.inmuebles).update({ deleted_at: restaurar ? null : new Date().toISOString(), publicado: false, version: v })
-    .eq("id", id).eq("version", v).select("id").maybeSingle();
+  const q = client.from(T.inmuebles).update({ deleted_at: restaurar ? null : new Date().toISOString(), publicado: false, version: v })
+    .eq("id", id).eq("version", v);
+  // Solo se recupera lo que está en Eliminados y solo se elimina lo que no lo está.
+  const r = await (restaurar ? q.not("deleted_at", "is", null) : q.is("deleted_at", null)).select("id").maybeSingle();
   if (r.error) fallo(r.error);
   if (!r.data) throw new ApiError(409, "Alguien más cambió este inmueble. Vuelve a cargar y repite el cambio.");
 }

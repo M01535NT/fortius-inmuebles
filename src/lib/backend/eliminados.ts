@@ -5,7 +5,7 @@ import { z } from "zod";
 import { eliminarAsunto } from "./asuntos";
 import { cambiarGuia } from "./biblioteca";
 import type { StaffUser } from "./contracts";
-import { CLASES_ELIMINADO, type ClaseEliminado, type Eliminado } from "./eliminados-contrato";
+import { AVISO_ASUNTO_ELIMINADO, CLASES_ELIMINADO, type ClaseEliminado, type Eliminado, type ListaEliminados } from "./eliminados-contrato";
 import { fallo } from "./fallo";
 import { ApiError } from "./http";
 import { eliminarInmueble } from "./inmuebles";
@@ -28,49 +28,66 @@ export const recuperarSchema = z.object({
 }).strict();
 
 type Leido = { data: unknown; error: { code?: string; message?: string } | null };
-/** Una clase que la base todavía no tiene no tumba la lista: sale vacía. */
+/**
+ * Una tabla que la base todavía no tiene no tumba la lista: sale vacía. Una columna que falta (42703) sí es un error:
+ * esconderlo dejaría la lista vacía sin decir por qué.
+ */
 function filas<F>(r: Leido): F[] {
   if (r.error) {
-    if (["42P01", "PGRST205", "PGRST200", "42703"].includes(r.error.code ?? "")) return [];
+    if (["42P01", "PGRST205"].includes(r.error.code ?? "")) return [];
     fallo(r.error);
   }
   return (Array.isArray(r.data) ? r.data : []) as F[];
 }
 
-export async function listarEliminados(client: SupabaseClient, user: StaffUser): Promise<Eliminado[]> {
+export async function listarEliminados(client: SupabaseClient, user: StaffUser): Promise<ListaEliminados> {
   const director = user.role === "admin";
+  // Se pide uno más que el tope para saber si hay más de los que se muestran.
   const borrados = (tabla: string, campos: string) =>
-    client.from(tabla).select(campos).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(LIMITE);
+    client.from(tabla).select(campos).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(LIMITE + 1);
   const [as, pe, inm, gu, tr] = await Promise.all([
     borrados(T.asuntos, "id,folio,nombre,deleted_at,version"),
     borrados(T.personas, "id,nombre,deleted_at,version"),
     borrados(T.inmuebles, "id,folio,nombre,deleted_at,version"),
     borrados(T.biblioteca, "id,nombre,clase,creado_por,deleted_at,version"),
-    borrados(T.trabajos, "id,clase,tipo,resultado,deleted_at,version,asunto:fortius_inmuebles_asuntos(folio,nombre)"),
+    borrados(T.trabajos, "id,clase,tipo,nombre,resultado,asunto_id,deleted_at,version,asunto:fortius_inmuebles_asuntos(folio,nombre,deleted_at)"),
   ]);
   type Base = { id: string; deleted_at: string; version: number };
+  const hayMas: ClaseEliminado[] = [];
+  const hasta = <F>(clase: ClaseEliminado, r: Leido): F[] => {
+    const xs = filas<F>(r);
+    if (xs.length > LIMITE) hayMas.push(clase);
+    return xs.slice(0, LIMITE);
+  };
   const lista: Eliminado[] = [
-    ...filas<Base & { folio: string; nombre: string }>(as).map((a): Eliminado => ({
-      clase: "asunto", id: a.id, nombre: a.nombre, detalle: a.folio, eliminado_el: a.deleted_at, version: a.version, recuperable: director,
+    ...hasta<Base & { folio: string; nombre: string }>("asunto", as).map((a): Eliminado => ({
+      clase: "asunto", id: a.id, nombre: a.nombre, detalle: a.folio, eliminado_el: a.deleted_at, version: a.version, recuperable: director, aviso: null,
     })),
-    ...filas<Base & { nombre: string }>(pe).map((p): Eliminado => ({
-      clase: "persona", id: p.id, nombre: p.nombre, detalle: null, eliminado_el: p.deleted_at, version: p.version, recuperable: director,
+    ...hasta<Base & { nombre: string }>("persona", pe).map((p): Eliminado => ({
+      clase: "persona", id: p.id, nombre: p.nombre, detalle: null, eliminado_el: p.deleted_at, version: p.version, recuperable: director, aviso: null,
     })),
-    ...filas<Base & { folio: string | null; nombre: string }>(inm).map((i): Eliminado => ({
-      clase: "inmueble", id: i.id, nombre: i.nombre, detalle: i.folio, eliminado_el: i.deleted_at, version: i.version, recuperable: director,
+    ...hasta<Base & { folio: string | null; nombre: string }>("inmueble", inm).map((i): Eliminado => ({
+      clase: "inmueble", id: i.id, nombre: i.nombre, detalle: i.folio, eliminado_el: i.deleted_at, version: i.version, recuperable: director, aviso: null,
     })),
-    ...filas<Base & { nombre: string; clase: string; creado_por: string | null }>(gu).map((g): Eliminado => ({
+    ...hasta<Base & { nombre: string; clase: string; creado_por: string | null }>("guia", gu).map((g): Eliminado => ({
       clase: "guia", id: g.id, nombre: g.nombre, detalle: NOMBRE_GUIA[g.clase] ?? null, eliminado_el: g.deleted_at, version: g.version,
-      recuperable: director || g.creado_por === user.id,
+      recuperable: director || g.creado_por === user.id, aviso: null,
     })),
-    ...filas<Base & { clase: string; tipo: string; resultado: string | null; asunto: { folio: string; nombre: string } | null }>(tr).map((t): Eliminado => ({
-      clase: "trabajo", id: t.id,
-      nombre: t.resultado?.trim() || (t.clase === "formato" ? `Formato ${t.tipo}` : humanizar(t.tipo)),
-      detalle: t.asunto ? `${t.asunto.folio} · ${t.asunto.nombre}` : "Suelto, sin asunto",
-      eliminado_el: t.deleted_at, version: t.version, recuperable: true,
-    })),
+    ...hasta<Base & {
+      clase: string; tipo: string; nombre: string | null; resultado: string | null; asunto_id: string | null;
+      asunto: { folio: string; nombre: string; deleted_at: string | null } | null;
+    }>("trabajo", tr).map((t): Eliminado => {
+      // Si su asunto sigue en Eliminados (o quien mira ya no lo ve por eso), primero se recupera el asunto.
+      const asuntoFuera = Boolean(t.asunto_id) && (!t.asunto || Boolean(t.asunto.deleted_at));
+      return {
+        clase: "trabajo", id: t.id,
+        nombre: t.nombre?.trim() || t.resultado?.trim() || (t.clase === "formato" ? `Formato ${t.tipo}` : humanizar(t.tipo)),
+        detalle: t.asunto ? `${t.asunto.folio} · ${t.asunto.nombre}` : t.asunto_id ? "De un asunto que está en Eliminados" : "Suelto, sin asunto",
+        eliminado_el: t.deleted_at, version: t.version, recuperable: !asuntoFuera, aviso: asuntoFuera ? AVISO_ASUNTO_ELIMINADO : null,
+      };
+    }),
   ];
-  return lista.sort((a, b) => b.eliminado_el.localeCompare(a.eliminado_el));
+  return { eliminados: lista.sort((a, b) => b.eliminado_el.localeCompare(a.eliminado_el)), hayMas };
 }
 
 /** Lo regresa a su lugar tal como estaba. Con la versión que vio quien recupera: si alguien lo cambió antes, 409. */
@@ -90,6 +107,10 @@ export async function recuperar(client: SupabaseClient, user: StaffUser, e: z.in
       return;
     }
     case "trabajo": {
+      const actual = await client.from(T.trabajos).select("asunto_id,asunto:fortius_inmuebles_asuntos(deleted_at)").eq("id", e.id).maybeSingle();
+      if (actual.error) fallo(actual.error);
+      const t = actual.data as { asunto_id: string | null; asunto: { deleted_at: string | null } | null } | null;
+      if (t?.asunto_id && (!t.asunto || t.asunto.deleted_at)) throw new ApiError(409, AVISO_ASUNTO_ELIMINADO);
       const r = await client.from(T.trabajos).update({ deleted_at: null, deleted_by: null })
         .eq("id", e.id).eq("version", e.version).not("deleted_at", "is", null).select("id").maybeSingle();
       if (r.error) fallo(r.error);

@@ -20,4 +20,11 @@ export type Eliminado = {
   version: number;
   /** Si quien mira lo puede recuperar: asuntos, personas e inmuebles solo el director; una guía, quien la hizo o el director. */
   recuperable: boolean;
+  /** Por qué no se puede recuperar todavía (p. ej. su asunto sigue en Eliminados); null si nada lo impide. */
+  aviso: string | null;
 };
+
+/** Lo que responde la lista: lo eliminado y las clases que llegaron al tope (hay más que no se muestran). */
+export type ListaEliminados = { eliminados: Eliminado[]; hayMas: ClaseEliminado[] };
+
+export const AVISO_ASUNTO_ELIMINADO = "Su asunto también está en Eliminados: primero recupera el asunto.";

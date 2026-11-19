@@ -4,11 +4,14 @@ import { apiResponse, assertSameOrigin, readJson } from "@/lib/backend/http";
 
 export const runtime = "nodejs";
 
-/** Lo que se mandó a Eliminados y quien mira puede ver, lo más reciente arriba. */
+/**
+ * Lo que se mandó a Eliminados y quien mira puede ver, lo más reciente arriba: `{ eliminados, hayMas }`. `hayMas` dice
+ * qué clases llegaron al tope (se muestran las más recientes y hay más).
+ */
 export async function GET() {
   return apiResponse(async () => {
     const { user, client } = await requireStaff();
-    return { eliminados: await listarEliminados(client, user) };
+    return listarEliminados(client, user);
   });
 }
 

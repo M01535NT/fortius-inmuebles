@@ -432,18 +432,24 @@ export async function buscarCoincidencias(client: SupabaseClient, quien: { nombr
   };
   const digitos = [...new Set((quien.telefonos ?? []).map(digitosDe).filter((d) => d.length >= 6))].slice(0, 5);
   const correo = quien.correo?.trim().toLowerCase();
-  const nombre = quien.nombre?.trim().replace(/\s+/g, " ");
+  // `*` también es comodín para la base: se quita, y los demás comodines se escapan.
+  const nombre = quien.nombre?.replace(/\*/g, " ").trim().replace(/\s+/g, " ");
+  const juntar = (s: string) => s.trim().replace(/\s+/g, " ").toLocaleLowerCase("es-MX");
   const [porTel, porCorreo, porNombre] = await Promise.all([
     digitos.length ? client.from(T.personas).select(CAMPOS).overlaps("telefonos_normales", digitos).is("deleted_at", null).limit(10) : null,
     correo ? client.from(T.personas).select(CAMPOS).eq("correo", correo).is("deleted_at", null).limit(10) : null,
     // Solo un nombre de al menos dos palabras: «Juan» solo coincidiría con medio Directorio.
     nombre && nombre.includes(" ") && nombre.length >= 5
-      ? client.from(T.personas).select(CAMPOS).ilike("nombre", nombre.replace(/[\\%_]/g, (c) => `\\${c}`)).is("deleted_at", null).limit(10) : null,
+      // Entre palabra y palabra cualquier espacio («Ana  López» con dos); luego se compara con los espacios juntados.
+      ? client.from(T.personas).select(CAMPOS)
+        .ilike("nombre", nombre.replace(/[\\%_]/g, (c) => `\\${c}`).split(" ").join("%"))
+        .is("deleted_at", null).limit(50) : null,
   ]);
   for (const [r, por] of [[porTel, "telefono"], [porCorreo, "correo"], [porNombre, "nombre"]] as const) {
     if (!r) continue;
     if (r.error) fallo(r.error);
-    anotar((r.data ?? []) as Ficha[], por);
+    const fichas = (r.data ?? []) as Ficha[];
+    anotar(por === "nombre" && nombre ? fichas.filter((f) => juntar(f.nombre) === juntar(nombre)).slice(0, 10) : fichas, por);
   }
   if (!halladas.size) return [];
 
