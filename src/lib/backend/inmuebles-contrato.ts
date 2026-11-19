@@ -1,4 +1,4 @@
-import { NOMBRE_TIPO, TIPOS_INMUEBLE, type TipoInmueble } from "./consultas-contrato";
+import type { TipoInmueble } from "./consultas-contrato";
 
 /**
  * Inmuebles del panel (SPEC.md, sección 5): lo que comparten el servidor y la pantalla.
@@ -6,7 +6,7 @@ import { NOMBRE_TIPO, TIPOS_INMUEBLE, type TipoInmueble } from "./consultas-cont
  * Ningún dato es obligatorio: lo que falta se ve como «Falta» en «Qué lleva» y no impide publicar.
  */
 
-export { NOMBRE_TIPO, TIPOS_INMUEBLE, type TipoInmueble };
+export type { TipoInmueble };
 
 export const OPERACIONES = ["venta", "renta"] as const;
 export type Operacion = (typeof OPERACIONES)[number];
@@ -33,8 +33,11 @@ const n = (clave: string, nombre: string, unidad?: string): CampoFicha => ({ cla
 const t = (clave: string, nombre: string): CampoFicha => ({ clave, nombre, texto: true });
 const o = (clave: string, nombre: string, opciones: readonly string[]): CampoFicha => ({ clave, nombre, opciones });
 
-/** Los datos de cada tipo, como el boceto aprobado. */
-export const FICHA_POR_TIPO: Record<TipoInmueble, GrupoFicha[]> = {
+/**
+ * Los datos de cada tipo, como el boceto aprobado, para los siete tipos con que empieza el catálogo. Un tipo que agregue
+ * el director todavía no trae ficha técnica propia (eso llega con las fichas, etapa 12, paso 3).
+ */
+export const FICHA_POR_TIPO: Partial<Record<TipoInmueble, GrupoFicha[]>> = {
   casa: [
     { nombre: "Medidas", campos: [n("terreno", "Terreno", "m²"), n("construccion", "Construcción", "m²"), n("niveles", "Niveles")] },
     { nombre: "Espacios", campos: [n("recamaras", "Recámaras"), n("banos", "Baños"), n("estac", "Estacionamientos"), o("cisterna", "Cisterna", SN),
@@ -77,7 +80,7 @@ export const FICHA_POR_TIPO: Record<TipoInmueble, GrupoFicha[]> = {
 
 /** Todas las claves válidas de la ficha, con su campo (para validar en el servidor). */
 export function camposDe(tipo: TipoInmueble | null): CampoFicha[] {
-  return tipo ? FICHA_POR_TIPO[tipo].flatMap((g) => g.campos) : [];
+  return tipo ? (FICHA_POR_TIPO[tipo] ?? []).flatMap((g) => g.campos) : [];
 }
 
 export type Ficha = Record<string, number | string>;

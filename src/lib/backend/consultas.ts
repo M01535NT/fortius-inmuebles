@@ -3,12 +3,14 @@ import { createHash, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { PAPELES, type Encargo } from "./asuntos-contrato";
+import type { Encargo } from "./asuntos-contrato";
 import { apartadosPara } from "./asuntos";
+import { claveCatalogo, mapaCatalogos } from "./catalogos";
+import { etiquetaDe, ofrecidos } from "./catalogos-contrato";
 import { fallo } from "./fallo";
 import { FIRMAS } from "./firmas";
 import {
-  CANALES, DEBE, DE_QUIEN, OCUPA, QUIERE, SI_NO, TIPOS_INMUEBLE,
+  DEBE, DE_QUIEN, OCUPA, QUIERE, SI_NO,
   encargosSegun, inmuebleSegun, nombreDelAsunto, papelDeQuienLlama, primerPlan,
   type Carga, type Consulta, type ConsultaAbierta, type DatosConsulta,
 } from "./consultas-contrato";
@@ -27,12 +29,12 @@ const CAMPOS = "id,version,estado,quien_nombre,quien_telefonos,quien_correo,cana
 const version = z.number().int().positive().max(Number.MAX_SAFE_INTEGER - 1);
 const telefono = z.object({ pais: z.string().trim().regex(/^\+?\d{1,4}$/), numero: z.string().trim().max(30) }).strict();
 const datos = z.object({
-  que_quiere: z.enum(QUIERE).optional(), de_quien: z.enum(DE_QUIEN).optional(), tipo: z.enum(TIPOS_INMUEBLE).optional(),
+  que_quiere: z.enum(QUIERE).optional(), de_quien: z.enum(DE_QUIEN).optional(), tipo: claveCatalogo.optional(),
   colonia: z.string().trim().max(120).optional(), ocupa: z.enum(OCUPA).optional(), escritura: z.enum(SI_NO).optional(),
   debe: z.array(z.enum(DEBE)).max(DEBE.length).optional(),
 }).strict();
 const otra = z.object({
-  nombre: z.string().trim().min(1).max(160), papel: z.enum(PAPELES),
+  nombre: z.string().trim().min(1).max(160), papel: claveCatalogo,
   pais: z.string().trim().regex(/^\+?\d{1,4}$/).optional(), numero: z.string().trim().max(30).optional(), fallecida: z.boolean().optional(),
 }).strict();
 const docPedir = z.object({
@@ -42,7 +44,7 @@ const docPedir = z.object({
 
 export const nuevaConsultaSchema = z.object({
   quien_nombre: z.string().trim().max(160).optional(),
-  canal: z.enum(CANALES).optional(),
+  canal: claveCatalogo.optional(),
   persona_id: z.uuid().optional(),
 }).strict();
 
@@ -51,7 +53,7 @@ export const cambioConsultaSchema = z.object({
   quien_nombre: z.string().max(160).optional(),
   quien_telefonos: z.array(telefono).max(5).optional(),
   quien_correo: z.string().trim().max(200).nullable().optional(),
-  canal: z.enum(CANALES).optional(),
+  canal: claveCatalogo.optional(),
   que_pasa: z.string().max(20000).optional(),
   datos: datos.optional(),
   otras_personas: z.array(otra).max(30).optional(),
@@ -139,15 +141,17 @@ export async function abrirAsunto(client: SupabaseClient, id: string, v: number)
   const d: DatosConsulta = c.datos ?? {};
   const encargos: Encargo[] = encargosSegun(d);
   const hayDocumentos = c.documentos_pedir.some((x) => !x.quitado) || c.cargas.length > 0;
-  const inmueble = inmuebleSegun(c.quien_nombre, d);
+  const catalogos = await mapaCatalogos(client);
+  const nombreTipo = (t: string) => etiquetaDe(catalogos.tipo_inmueble, t);
+  const inmueble = inmuebleSegun(c.quien_nombre, d, nombreTipo);
   // Si se describió el inmueble, su apartado aparece aunque lo encargado no lo pida (una revisión también es de una casa).
   const apartados = [...new Set([...apartadosPara(encargos), ...(inmueble ? (["inmueble"] as const) : [])])];
   const r = await client.rpc("fortius_inmuebles_abrir_asunto_desde_consulta", {
     p_consulta: id, p_version: v,
-    p_nombre: nombreDelAsunto(c.quien_nombre, d),
+    p_nombre: nombreDelAsunto(c.quien_nombre, d, nombreTipo),
     p_encargos: encargos,
     p_apartados: apartados,
-    p_papel: papelDeQuienLlama(d),
+    p_papel: papelDeQuienLlama(d, (p) => ofrecidos(catalogos.papel).some((x) => x.clave === p)),
     p_inmueble: inmueble,
     p_plan: primerPlan(encargos, hayDocumentos),
   });

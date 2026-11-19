@@ -4,6 +4,7 @@ import "./biblioteca.css";
 
 import { useEffect, useId, useState } from "react";
 
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
@@ -11,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
-import { leerAsuntos, NOMBRE_QUIEN, QUIEN, type FilaAsunto, type Quien } from "@/lib/panel/asuntos/api";
+import { leerAsuntos, type FilaAsunto } from "@/lib/panel/asuntos/api";
 import {
   cambiarGuia, copiarGuia, crearGuia, cuantasTrae, type ClaseBiblioteca, type DocumentoGuia, type EtapaGuia, type Guia,
 } from "@/lib/panel/biblioteca";
@@ -141,6 +142,7 @@ export function Biblioteca() {
 
 /** Lo que trae la guía, para leerlo antes de usarla. */
 export function Contenido({ g }: { g: Pick<Guia, "contenido"> }) {
+  const cat = useCatalogos();
   const c = g.contenido;
   if (c.documentos) return <ul>{c.documentos.map((d, i) => <li key={i}><Icono nombre="file" tamano={14} />{d.nombre}</li>)}</ul>;
   if (c.etapas) return (
@@ -148,7 +150,7 @@ export function Contenido({ g }: { g: Pick<Guia, "contenido"> }) {
       {c.etapas.map((e, i) => (
         <div key={i}>
           {c.etapas!.length > 1 ? <p className="db-etapa">{e.nombre}</p> : null}
-          <ol>{e.tareas.map((t, k) => <li key={k}><Icono nombre="ok" tamano={14} />{t.titulo}<i>{[NOMBRE_QUIEN[t.quien], dia(t.dias)].filter(Boolean).join(" · ")}</i></li>)}</ol>
+          <ol>{e.tareas.map((t, k) => <li key={k}><Icono nombre="ok" tamano={14} />{t.titulo}<i>{[cat.etiqueta("quien_tarea", t.quien), dia(t.dias)].filter(Boolean).join(" · ")}</i></li>)}</ol>
         </div>
       ))}
     </>
@@ -205,6 +207,7 @@ function EditorGuia({ de, alCerrar, alGuardar }: { de: Guia | { nueva: ClaseBibl
 }
 
 function FormaGuia({ de, clase, alCerrar, alGuardar }: { de: Guia | { nueva: ClaseBiblioteca }; clase: ClaseBiblioteca; alCerrar: () => void; alGuardar: (d: Datos) => void }) {
+  const cat = useCatalogos();
   const id = useId();
   const g = "nueva" in de ? null : de;
   const [nombre, setNombre] = useState(g?.nombre ?? "");
@@ -263,7 +266,7 @@ function FormaGuia({ de, clase, alCerrar, alGuardar }: { de: Guia | { nueva: Cla
               {e.tareas.map((t, k) => (
                 <div key={k} className="db-renglon db-renglon-tarea">
                   <input className="as-inp as-inp-borde" maxLength={300} value={t.titulo} placeholder="Qué hay que hacer" aria-label={`Tarea ${k + 1} de la etapa ${i + 1}`} onChange={(x) => ponTarea(i, k, { titulo: x.target.value })} />
-                  <Desplegable etiqueta="Quién" valor={t.quien} opciones={QUIEN.map((v) => ({ valor: v, etiqueta: NOMBRE_QUIEN[v] }))} alElegir={(v) => { if (v) ponTarea(i, k, { quien: v as Quien }); }} />
+                  <Desplegable etiqueta="Quién" valor={t.quien} opciones={cat.opciones("quien_tarea", t.quien)} alElegir={(v) => { if (v) ponTarea(i, k, { quien: v }); }} />
                   <label className="pn-campo">Día
                     <input className="as-inp as-inp-borde" type="number" min={0} max={3650} inputMode="numeric" value={t.dias ?? ""} placeholder="—"
                       onChange={(x) => ponTarea(i, k, { dias: x.target.value === "" ? null : Math.max(0, Math.min(3650, Math.round(Number(x.target.value)))) })} />

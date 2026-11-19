@@ -38,11 +38,12 @@ const digitos = (tel: string | null) => tel?.replace(/\D/g, "") ?? "";
 /** A quién se le escribe según quién hace la tarea: el cliente es el primer propietario, titular o contacto con teléfono. */
 export function personaPara(a: Asunto, quien: Quien): PersonaDelAsunto | null {
   const vivas = a.personas.filter((p) => !p.fallecida && !p.no_contactar && digitos(p.telefono).length >= 8);
-  const papeles: Record<Quien, string[]> = {
+  // Un «quién» que agregue el director en Catálogos no tiene a quién escribirle todavía.
+  const papeles: Partial<Record<Quien, string[]>> = {
     cliente: ["propietario", "titular", "vendedor", "comprador", "heredero", "inquilino", "inversionista", "contacto", "copropietario"],
     abogado: ["abogado"], notaria: ["notaria"], otro: ["apoderado", "banco", "contraparte"], fortius: [],
   };
-  for (const papel of papeles[quien]) { const p = vivas.find((x) => x.papel === papel); if (p) return p; }
+  for (const papel of papeles[quien] ?? []) { const p = vivas.find((x) => x.papel === papel); if (p) return p; }
   return quien === "cliente" ? vivas[0] ?? null : null;
 }
 

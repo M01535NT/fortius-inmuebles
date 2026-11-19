@@ -3,7 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { cambioColumnas } from "./apartados";
-import { QUIEN, VISTAS, type Quien } from "./asuntos-contrato";
+import { VISTAS, type Quien } from "./asuntos-contrato";
+import { claveCatalogo } from "./catalogos";
 import { fallo } from "./fallo";
 import {
   CLASES_BIBLIOTECA, type ClaseBiblioteca, type EtapaGuia, type Guia, type ResultadoCopia,
@@ -39,7 +40,7 @@ const documentos = z.object({
 const etapas = z.object({
   etapas: z.array(z.object({
     nombre: texto(120),
-    tareas: z.array(z.object({ titulo: texto(300), quien: z.enum(QUIEN), dias: z.number().int().min(0).max(3650).nullable().optional() }).strict()).max(80),
+    tareas: z.array(z.object({ titulo: texto(300), quien: claveCatalogo, dias: z.number().int().min(0).max(3650).nullable().optional() }).strict()).max(80),
   }).strict()).min(1).max(20),
 }).strict();
 const apartado = z.object({ vista: z.enum(VISTAS), columnas: cambioColumnas }).strict();

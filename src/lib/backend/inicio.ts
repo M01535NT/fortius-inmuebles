@@ -39,8 +39,8 @@ const telefonoDe = (t: unknown): string | null => {
   const x = Array.isArray(t) ? (t[0] as Tel | undefined) : undefined;
   return x?.numero ? `${x.pais} ${x.numero}` : null;
 };
-/** A quién se le escribe según quién hace la tarea (igual que en el Plan del asunto). */
-const PAPELES_DE: Record<Quien, string[]> = {
+/** A quién se le escribe según quién hace la tarea (igual que en el Plan del asunto). Un valor nuevo no le escribe a nadie. */
+const PAPELES_DE: Partial<Record<Quien, string[]>> = {
   cliente: ["propietario", "titular", "vendedor", "comprador", "heredero", "inquilino", "inversionista", "contacto", "copropietario"],
   abogado: ["abogado"], notaria: ["notaria"], otro: ["apoderado", "banco", "contraparte"], fortius: [],
 };

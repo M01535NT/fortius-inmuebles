@@ -10,7 +10,8 @@ import { Switch } from "@/components/panel/ui/switch";
 import type { Documento } from "@/lib/formatos/documento/modelo";
 import type { Maqueta } from "@/lib/formatos/documento/pdf";
 import { fetchLetterhead } from "@/lib/letterhead";
-import { NOMBRE_PAPEL, urlArchivo } from "@/lib/panel/asuntos/api";
+import { urlArchivo } from "@/lib/panel/asuntos/api";
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import {
   CADA_INFORME, contenidoInforme, hacerInforme, informeDocumento, informeTexto, leerMaterialInforme, NOMBRE_CADA, NOMBRE_PARTE, opcionesIniciales,
   PARTES_INFORME, type InformeHecho, type MaterialInforme, type OpcionesInforme, type ParteInforme,
@@ -40,6 +41,7 @@ const cuantos = (n: number) => (n === 1 ? "1 renglón" : `${n} renglones`);
  */
 export function InformeParaElCliente({ asuntoId }: { asuntoId: string }) {
   const router = useRouter();
+  const cat = useCatalogos();
   const { avisar } = useAvisos();
   const idTexto = useId();
   const [material, setMaterial] = useState<MaterialInforme | null>(null);
@@ -143,7 +145,7 @@ export function InformeParaElCliente({ asuntoId }: { asuntoId: string }) {
         ) : (
           <>
             <ElegirVarios etiqueta="Para" vacio="Elegir a quién" valores={opciones.para} alCambiar={(para) => cambiar({ para })}
-              opciones={material.personas.map((p) => ({ valor: p.id, etiqueta: `${p.nombre} · ${NOMBRE_PAPEL[p.papel]}` }))} />
+              opciones={material.personas.map((p) => ({ valor: p.id, etiqueta: `${p.nombre} · ${cat.etiqueta("papel", p.papel)}` }))} />
 
             <label className="pn-campo dc-largo" htmlFor={idTexto}>En qué va
               <textarea id={idTexto} className="as-inp as-inp-borde as-area" rows={5} maxLength={3000} value={opciones.en_que_va}

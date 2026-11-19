@@ -10,12 +10,12 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
 import {
-  agregar, APARTADO, CADA_TAREA, cambiar, diasHasta, ESTADOS_TAREA, fechaCorta, haceCuanto, NOMBRE_EN_QUE_VA, NOMBRE_ENCARGO, NOMBRE_INTERESADO, NOMBRE_PAPEL,
-  NOMBRE_CADA, NOMBRE_QUIEN, QUIEN, sumarDias,
-  type Apartado, type Asunto, type CadaTarea, type Encargo, type EnQueVa, type EntradaHistorial, type EstadoInteresado, type EstadoTarea, type Etapa, type Papel,
+  agregar, APARTADO, CADA_TAREA, cambiar, diasHasta, fechaCorta, haceCuanto, NOMBRE_INTERESADO,
+  NOMBRE_CADA, sumarDias,
+  type Apartado, type Asunto, type CadaTarea, type EntradaHistorial, type EstadoInteresado, type EstadoTarea, type Etapa,
   type PersonaDelAsunto, type Quien, type Tarea,
 } from "@/lib/panel/asuntos/api";
-import { NOMBRE_TIPO } from "@/lib/backend/consultas-contrato";
+import { useCatalogos, type LectorCatalogos } from "@/components/panel/datos/catalogos";
 import { copiarGuia, cuantasTrae, guardarPlanEnBiblioteca } from "@/lib/panel/biblioteca";
 import { precioTexto } from "@/lib/backend/inmuebles-contrato";
 import { leerLineaTarea } from "@/lib/panel/linea-tarea";
@@ -38,7 +38,7 @@ export const nombreApartado = (x: Apartado) => (x.clave === "propio" ? x.nombre 
 export const iconoPropio = (x: Apartado) => (x.vista === "texto" ? "nota" : x.vista === "tabla" ? "regla" : x.vista === "galeria" ? "img" : "lista") as "nota" | "regla" | "img" | "lista";
 
 /** El resumen de cada renglón del asunto (boceto: «Laura Méndez y 3 más», «Etapa 1 de 2 · 6 por hacer»). */
-export function resumenApartado(x: Apartado, a: Asunto, historial: EntradaHistorial[] | null): string {
+export function resumenApartado(x: Apartado, a: Asunto, historial: EntradaHistorial[] | null, cat: LectorCatalogos): string {
   switch (x.clave) {
     case "personas": {
       const vivas = a.personas;
@@ -63,7 +63,7 @@ export function resumenApartado(x: Apartado, a: Asunto, historial: EntradaHistor
         const apartados = a.inmuebles.filter((i) => i.estado === "apartado").length;
         return [`${a.inmuebles.length} inmuebles`, cerrados ? `${cerrados} cerrado${cerrados > 1 ? "s" : ""}` : "", apartados ? `${apartados} apartado${apartados > 1 ? "s" : ""}` : ""].filter(Boolean).join(" · ");
       }
-      return [a.inmuebles[0].tipo ? NOMBRE_TIPO[a.inmuebles[0].tipo as keyof typeof NOMBRE_TIPO] : a.inmuebles[0].nombre, a.inmuebles[0].colonia,
+      return [a.inmuebles[0].tipo ? cat.etiqueta("tipo_inmueble", a.inmuebles[0].tipo) : a.inmuebles[0].nombre, a.inmuebles[0].colonia,
         precioTexto(a.inmuebles[0].precio, a.inmuebles[0].moneda, a.inmuebles[0].operacion), a.inmuebles[0].publicado ? "publicado" : ""].filter(Boolean).join(" · ");
     case "documentos": {
       if (!a.documentos.length) return "Sin documentos todavía";
@@ -72,7 +72,7 @@ export function resumenApartado(x: Apartado, a: Asunto, historial: EntradaHistor
       const vencen = a.documentos.filter((d) => d.vence_el && diasHasta(d.vence_el) <= (d.avisar_dias ?? 15)).length;
       return [faltan ? `${faltan} por pedir` : "", llegaron ? `${llegaron} recibido${llegaron > 1 ? "s" : ""}` : "", vencen ? `${vencen} por vencer` : ""].filter(Boolean).join(" · ") || "Nada pendiente";
     }
-    case "situacion": return resumenSituacion(a);
+    case "situacion": return resumenSituacion(a, cat);
     case "opinion": return resumenOpinion(a);
     case "honorarios": return resumenHonorarios(a);
     case "interesados": return resumenInteresados(a);
@@ -110,7 +110,6 @@ export function ContenidoApartado({ apartado, asunto, historial, notas, foco, ha
 
 // ── Plan ─────────────────────────────────────────────────────────────────────────────────────────────
 const POSPONER = [["Mañana", 1], ["En 3 días", 3], ["En una semana", 7], ["En un mes", 30]] as const;
-const NOMBRE_ESTADO: Record<EstadoTarea, string> = { pendiente: "Por hacer", hecha: "Hecha", no_aplica: "No aplica", no_se_puede: "No se puede todavía" };
 
 const esCada = (v: string | undefined): v is CadaTarea => (CADA_TAREA as readonly string[]).includes(v ?? "");
 
@@ -118,14 +117,14 @@ const esCada = (v: string | undefined): v is CadaTarea => (CADA_TAREA as readonl
 const esperaPendiente = (a: Asunto, t: Tarea) => (t.espera_a ? a.tareas.find((x) => x.id === t.espera_a && x.estado === "pendiente") ?? null : null);
 
 /** Lo que se ve bajo el título de la tarea: quién, cuándo, si le toca a otro cuándo volver a preguntar, a qué espera y si se repite. */
-function metaTarea(a: Asunto, t: Tarea): { texto: string; atrasada: boolean } {
-  if (t.estado === "no_aplica" || t.estado === "no_se_puede") return { texto: [NOMBRE_ESTADO[t.estado], t.motivo].filter(Boolean).join(" · "), atrasada: false };
+function metaTarea(a: Asunto, t: Tarea, cat: LectorCatalogos): { texto: string; atrasada: boolean } {
+  if (t.estado === "no_aplica" || t.estado === "no_se_puede") return { texto: [cat.etiqueta("estado_tarea", t.estado), t.motivo].filter(Boolean).join(" · "), atrasada: false };
   const n = t.fecha ? diasHasta(t.fecha) : null;
   const espera = t.estado === "pendiente" ? esperaPendiente(a, t) : null;
   const cada = t.repetir?.cada;
   const repite = esCada(cada) ? NOMBRE_CADA[cada].toLowerCase() : "";
   const con = t.persona_id ? a.personas.find((p) => p.persona_id === t.persona_id) : undefined;
-  const partes = [NOMBRE_QUIEN[t.quien], fechaCorta(t.fecha, t.hora?.slice(0, 5)), con ? `con ${primerNombre(con.nombre)}` : "", espera ? `espera a «${espera.titulo}»` : "", repite];
+  const partes = [cat.etiqueta("quien_tarea", t.quien), fechaCorta(t.fecha, t.hora?.slice(0, 5)), con ? `con ${primerNombre(con.nombre)}` : "", espera ? `espera a «${espera.titulo}»` : "", repite];
   // Volver a preguntar solo se ve cuando ya llegó el día de la tarea (o no tiene): antes sería ruido.
   if (t.estado === "pendiente" && t.quien !== "fortius" && t.volver_a_preguntar && (n === null || n <= 0)) partes.push(`volver a preguntar ${fechaCorta(t.volver_a_preguntar).toLowerCase()}`);
   return { texto: partes.filter(Boolean).join(" · "), atrasada: t.estado === "pendiente" && n !== null && n < 0 };
@@ -134,6 +133,8 @@ function metaTarea(a: Asunto, t: Tarea): { texto: string; atrasada: boolean } {
 /** La tarea abierta: cómo va (con su motivo si no aplica o no se puede todavía), quién, día y hora. */
 function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: Hacer; alCerrar: () => void }) {
   const id = useId();
+  const cat = useCatalogos();
+  const nombreEstado = (e: EstadoTarea) => cat.etiqueta("estado_tarea", e);
   const [titulo, setTitulo] = useState(t.titulo);
   const [motivo, setMotivo] = useState(t.motivo ?? "");
   const [mensaje, setMensaje] = useState(false);
@@ -147,7 +148,7 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
   // Las otras tareas del asunto: primero las que faltan; las hechas también, por si se anota después.
   const otras = useMemo(() => a.tareas.filter((x) => x.id !== t.id && x.espera_a !== t.id)
     .sort((x, y) => Number(x.estado !== "pendiente") - Number(y.estado !== "pendiente"))
-    .slice(0, 80).map((x) => ({ valor: x.id, etiqueta: `${x.titulo.slice(0, 80)}${x.estado === "pendiente" ? "" : ` · ${NOMBRE_ESTADO[x.estado].toLowerCase()}`}` })), [a.tareas, t.id]);
+    .slice(0, 80).map((x) => ({ valor: x.id, etiqueta: `${x.titulo.slice(0, 80)}${x.estado === "pendiente" ? "" : ` · ${cat.etiqueta("estado_tarea", x.estado).toLowerCase()}`}` })), [a.tareas, t.id, cat]);
   return (
     <div className="as-pad as-form as-borde-arriba as-edicion">
       <label className="pn-campo" htmlFor={`${id}-t`}>Qué hay que hacer
@@ -155,10 +156,10 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
           onBlur={() => { const v = titulo.trim(); if (v && v !== t.titulo) void poner({ titulo: v }); }} />
       </label>
       <div className="as-g2">
-        <Desplegable etiqueta="Cómo va" valor={t.estado} opciones={ESTADOS_TAREA.map((e) => ({ valor: e, etiqueta: NOMBRE_ESTADO[e] }))}
-          alElegir={(v) => { if (v && v !== t.estado) void poner({ estado: v }, NOMBRE_ESTADO[v]); }} />
-        <Desplegable etiqueta="Quién la hace" valor={t.quien} opciones={QUIEN.map((v) => ({ valor: v, etiqueta: NOMBRE_QUIEN[v] }))}
-          alElegir={(v) => { if (v && v !== t.quien) void poner({ quien: v }, `Le toca a ${NOMBRE_QUIEN[v].toLowerCase()}`); }} />
+        <Desplegable etiqueta="Cómo va" valor={t.estado} opciones={cat.opciones("estado_tarea", t.estado).map((o) => ({ valor: o.valor as EstadoTarea, etiqueta: o.etiqueta }))}
+          alElegir={(v) => { if (v && v !== t.estado) void poner({ estado: v }, nombreEstado(v)); }} />
+        <Desplegable etiqueta="Quién la hace" valor={t.quien} opciones={cat.opciones("quien_tarea", t.quien)}
+          alElegir={(v) => { if (v && v !== t.quien) void poner({ quien: v }, `Le toca a ${cat.etiqueta("quien_tarea", v).toLowerCase()}`); }} />
         <label className="pn-campo" htmlFor={`${id}-f`}>Día
           <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={t.fecha ?? ""} onChange={(e) => void poner({ fecha: e.target.value || null })} />
         </label>
@@ -204,7 +205,8 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
 function RenglonTarea({ a, t, hacer, abierta, alAbrir }: { a: Asunto; t: Tarea; hacer: Hacer; abierta: boolean; alAbrir: (abrir: boolean) => void }) {
   const hecha = t.estado === "hecha";
   const pendiente = t.estado === "pendiente";
-  const meta = metaTarea(a, t);
+  const cat = useCatalogos();
+  const meta = metaTarea(a, t, cat);
   return (
     <div className="as-t-env" data-abierta={abierta || undefined}>
       <div className="as-t" data-est={t.estado}>
@@ -292,6 +294,7 @@ function LineaDeTiempo({ a, hacer, abierta, setAbierta }: { a: Asunto; hacer: Ha
 }
 
 function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
+  const cat = useCatalogos();
   const id = useId();
   const ref = useFoco<HTMLInputElement>(foco);
   const [vista, setVista] = useState<"lista" | "tiempo">("lista");
@@ -386,7 +389,7 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
           </p>
         ) : null}
         <div className="as-g2">
-          <Desplegable etiqueta="Quién la hace" valor={quien} opciones={QUIEN.map((v) => ({ valor: v, etiqueta: NOMBRE_QUIEN[v] }))} alElegir={(v) => { if (v) setQuien(v); }} />
+          <Desplegable etiqueta="Quién la hace" valor={quien} opciones={cat.opciones("quien_tarea", quien)} alElegir={(v) => { if (v) setQuien(v); }} />
           <label className="pn-campo" htmlFor={`${id}-f`}>Para cuándo
             <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={fecha} onChange={(e) => setFecha(e.target.value)} />
           </label>
@@ -415,7 +418,7 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
 type Valores = Record<string, { antes: unknown; ahora: unknown }>;
 const texto = (v: unknown) => (typeof v === "string" ? v : "");
 
-function describir(e: EntradaHistorial, a: Asunto, nombreDe: (id: string) => string): string {
+function describir(e: EntradaHistorial, a: Asunto, nombreDe: (id: string) => string, cat: LectorCatalogos): string {
   if (e.clase !== "cambio") return e.resumen;
   const v: Valores = e.detalle?.valores ?? {};
   const campos = e.detalle?.campos ?? [];
@@ -427,12 +430,12 @@ function describir(e: EntradaHistorial, a: Asunto, nombreDe: (id: string) => str
       const partes: string[] = [];
       for (const c of campos) {
         const ahora = v[c]?.ahora;
-        if (c === "en_que_va") partes.push(`Pasó a ${(NOMBRE_EN_QUE_VA[ahora as EnQueVa] ?? "otro momento").toLowerCase()}`);
+        if (c === "en_que_va") partes.push(`Pasó a ${(texto(ahora) ? cat.etiqueta("en_que_va", texto(ahora)) : "otro momento").toLowerCase()}`);
         else if (c === "nombre") partes.push(`Nombre: ${texto(ahora)}`);
         else if (c === "responsable_id") partes.push(`Ahora lo lleva ${nombreDe(texto(ahora))}`);
         else if (c === "en_espera") partes.push(ahora ? "En espera" : "Se reanudó");
-        else if (c === "resultado" && ahora) partes.push(ahora === "se_logro" ? "Se cerró: se logró" : "Se cerró: no se dio");
-        else if (c === "encargos") partes.push(`Encargo: ${(Array.isArray(ahora) ? ahora : []).map((x) => NOMBRE_ENCARGO[x as Encargo] ?? "").filter(Boolean).join(", ").toLowerCase() || "ninguno"}`);
+        else if (c === "resultado" && ahora) partes.push(`Se cerró: ${cat.etiqueta("resultado_cierre", texto(ahora)).toLowerCase()}`);
+        else if (c === "encargos") partes.push(`Encargo: ${(Array.isArray(ahora) ? ahora : []).map((x) => (typeof x === "string" ? cat.etiqueta("encargo", x) : "")).filter(Boolean).join(", ").toLowerCase() || "ninguno"}`);
         else if (c === "situacion") partes.push("Cambió la situación");
         else if (c === "notas_fijadas") {
           const antes = v[c]?.antes;
@@ -455,7 +458,7 @@ function describir(e: EntradaHistorial, a: Asunto, nombreDe: (id: string) => str
       if (e.resumen === "Se mandó a Eliminados") return `Tarea quitada: ${n}`;
       if (campos.includes("estado")) {
         const est = v.estado?.ahora;
-        return est === "hecha" ? `Hecha: ${n}` : est === "pendiente" ? `Pendiente otra vez: ${n}` : est === "no_aplica" ? `No aplica: ${n}` : `No se puede todavía: ${n}`;
+        return est === "pendiente" ? `Pendiente otra vez: ${n}` : `${cat.etiqueta("estado_tarea", texto(est) || "no_se_puede")}: ${n}`;
       }
       if (campos.includes("fecha")) return `${n}: pasó a ${fechaCorta(texto(v.fecha?.ahora) || null).toLowerCase()}`;
       return `Cambió la tarea ${n}`;
@@ -465,9 +468,9 @@ function describir(e: EntradaHistorial, a: Asunto, nombreDe: (id: string) => str
     case "asunto_persona": {
       const p = a.personas.find((y) => y.id === e.entidad_id);
       const n = p?.nombre ?? "una persona";
-      if (creado) return `Se agregó ${n}${p ? ` como ${NOMBRE_PAPEL[p.papel].toLowerCase()}` : ""}`;
+      if (creado) return `Se agregó ${n}${p ? ` como ${cat.etiqueta("papel", p.papel).toLowerCase()}` : ""}`;
       if (campos.includes("retirado_el")) return v.retirado_el?.ahora ? `Se quitó a ${n}` : `Volvió ${n}`;
-      if (campos.includes("papel")) return `${n} ahora es ${(NOMBRE_PAPEL[v.papel?.ahora as Papel] ?? "otro papel").toLowerCase()}`;
+      if (campos.includes("papel")) return `${n} ahora es ${(texto(v.papel?.ahora) ? cat.etiqueta("papel", texto(v.papel?.ahora)) : "otro papel").toLowerCase()}`;
       return `Cambió ${n}`;
     }
     case "documento": {
@@ -510,6 +513,7 @@ function describir(e: EntradaHistorial, a: Asunto, nombreDe: (id: string) => str
 
 function Historial({ a, entradas, foco, hacer }: { a: Asunto; entradas: EntradaHistorial[] | null; foco: boolean; hacer: Hacer }) {
   const { nombreDe } = useAsuntos();
+  const cat = useCatalogos();
   const ref = useFoco<HTMLTextAreaElement>(foco);
   const [clase, setClase] = useState<"nota" | "decision">("nota");
   const [nota, setNota] = useState("");
@@ -533,7 +537,7 @@ function Historial({ a, entradas, foco, hacer }: { a: Asunto; entradas: EntradaH
             <li key={e.id} className="as-ren as-ren-alto">
               <span className={`as-hico as-hico-${e.clase}`} aria-hidden><Icono nombre={e.clase === "decision" ? "estrella" : e.clase === "nota" ? "nota" : "reloj"} tamano={14} /></span>
               <span className="as-ren-c as-ren-libre">
-                <span className="as-htxt">{e.clase === "decision" ? <b>Decisión: </b> : null}{describir(e, a, nombreDe)}</span>
+                <span className="as-htxt">{e.clase === "decision" ? <b>Decisión: </b> : null}{describir(e, a, nombreDe, cat)}</span>
                 <span>{haceCuanto(e.created_at)} · {e.actor_tipo === "usuario" && e.actor_id ? nombreDe(e.actor_id) : e.actor_tipo === "publico" ? "Desde el sitio" : "Sistema"}</span>
               </span>
             </li>

@@ -9,7 +9,8 @@ import {
   type ArchivoDelDocumento, type Cobro, type Columna, type Concepto, type Destino, type DocumentoDelAsunto, type Interesado,
   type LigaCliente, type Oferta, type Opinion, type Presupuesto, type PuntoOpinion, type PuntoSituacion, type ResultadoSubida, type ValorCelda,
 } from "./apartados-contrato";
-import { QUIEN, type Asunto, type FilaPropia } from "./asuntos-contrato";
+import type { Asunto, FilaPropia } from "./asuntos-contrato";
+import { claveCatalogo } from "./catalogos";
 import { fallo } from "./fallo";
 import { createServerClient } from "./auth";
 import { FIRMAS } from "./firmas";
@@ -204,8 +205,8 @@ const cambioPunto = z.object({ id, version, texto: texto(500).optional(), resuel
 
 const guardaOpinion = z.object({ resultado: z.enum(RESULTADOS_OPINION).nullable().optional(), analisis: z.string().max(20000).optional() }).strict();
 const cambioOpinion = guardaOpinion.extend({ id, version, pasar_al_plan: z.literal(true).optional() }).strict();
-const nuevoPuntoOpinion = z.object({ texto: texto(500), quien: z.enum(QUIEN).default("fortius") }).strict();
-const cambioPuntoOpinion = z.object({ id, version, texto: texto(500).optional(), quien: z.enum(QUIEN).optional(), a_plan: z.literal(true).optional(), quitar }).strict();
+const nuevoPuntoOpinion = z.object({ texto: texto(500), quien: claveCatalogo.default("fortius") }).strict();
+const cambioPuntoOpinion = z.object({ id, version, texto: texto(500).optional(), quien: claveCatalogo.optional(), a_plan: z.literal(true).optional(), quitar }).strict();
 
 const nuevoPresupuesto = z.object({ copiar_de: id.optional() }).strict();
 const cambioPresupuesto = z.object({
@@ -693,7 +694,7 @@ export async function hacerRecibo(client: SupabaseClient, user: StaffUser, asunt
 }
 
 // ── Continuar en un asunto nuevo ─────────────────────────────────────────────────────────────────────
-export const continuarSchema = z.object({ nombre: z.string().trim().max(160).optional(), encargos: z.array(z.enum(["revisar", "comercializar", "tramitar", "asesorar"])).max(4).optional() }).strict();
+export const continuarSchema = z.object({ nombre: z.string().trim().max(160).optional(), encargos: z.array(claveCatalogo).max(20).optional() }).strict();
 
 /** Copia personas, inmuebles y documentos con sus archivos. Los archivos se copian en el almacén para que cada asunto tenga los suyos. */
 export async function continuarAsunto(client: SupabaseClient, user: StaffUser, asuntoId: string, e: z.infer<typeof continuarSchema>,

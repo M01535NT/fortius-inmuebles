@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { useMisPreferencias, type VistaGuardada } from "@/components/panel/datos/use-mis-preferencias";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
@@ -10,7 +11,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
 import {
-  cargarEjemplos, diasHasta, EN_QUE_VA, fechaCorta, ICONO_ENCARGO, iniciales, NOMBRE_EN_QUE_VA, type EnQueVa, type FilaAsunto,
+  cargarEjemplos, diasHasta, EN_QUE_VA, fechaCorta, iconoEncargo, iniciales, type EnQueVa, type FilaAsunto,
 } from "@/lib/panel/asuntos/api";
 import { useSession } from "@/lib/panel/legado/sesion";
 
@@ -47,6 +48,7 @@ export function ListaAsuntos() {
   const [cargando, setCargando] = useState(false);
   const [nombrando, setNombrando] = useState(false);
   const prefs = useMisPreferencias();
+  const cat = useCatalogos();
   const favoritos = useMemo(() => new Set((prefs.panel.favoritos ?? []).filter((f) => f.tipo === "asunto").map((f) => f.id)), [prefs.panel.favoritos]);
   // Vistas guardadas (SPEC.md, sección 15): los filtros de la lista con nombre, para volver a ellos con un toque.
   const vistas = (prefs.panel.vistas ?? []).filter((v) => v.lista === "asuntos");
@@ -76,7 +78,7 @@ export function ListaAsuntos() {
   const opcionesQue = [
     { valor: "" as const, etiqueta: `Todos · ${base.length}` },
     ...(favoritos.size ? [{ valor: "favoritos" as const, etiqueta: `Favoritos · ${base.filter((a) => favoritos.has(a.id)).length}` }] : []),
-    ...EN_QUE_VA.map((m) => ({ valor: m, etiqueta: `${NOMBRE_EN_QUE_VA[m]} · ${base.filter((a) => a.en_que_va === m).length}` })),
+    ...cat.opciones("en_que_va").map((m) => ({ valor: m.valor as EnQueVa, etiqueta: `${m.etiqueta} · ${base.filter((a) => a.en_que_va === m.valor).length}` })),
   ];
   const presentes = new Set(base.map((a) => a.responsable_id));
   const opcionesLleva = [{ valor: "", etiqueta: "Todo el equipo" }, ...equipo.filter((m) => presentes.has(m.id)).map((m) => ({ valor: m.id, etiqueta: m.nombre }))];
@@ -159,7 +161,7 @@ export function ListaAsuntos() {
         <nav aria-label="Asuntos" className="as-items">
           {lista.map((a) => {
             const s = a.siguiente;
-            const [ic, color] = a.encargos[0] ? ICONO_ENCARGO[a.encargos[0]] : (["asu", "gray"] as const);
+            const [ic, color] = iconoEncargo(a.encargos[0]);
             const n = s?.fecha ? diasHasta(s.fecha) : null;
             const actual = ruta === `/panel/asuntos/${a.id}`;
             return (
@@ -168,10 +170,10 @@ export function ListaAsuntos() {
                 <span className="as-it-c">
                   <b>{a.nombre}</b>
                   <span className={s || a.en_que_va === "cerrado" ? "as-m as-corta" : "as-m as-corta as-warn"}>
-                    {s ? s.titulo : a.en_que_va === "cerrado" ? (a.resultado === "no_se_dio" ? "No se dio" : "Se logró") : "Sin siguiente paso"}
+                    {s ? s.titulo : a.en_que_va === "cerrado" ? (a.resultado ? cat.etiqueta("resultado_cierre", a.resultado) : cat.etiqueta("resultado_cierre", "se_logro")) : "Sin siguiente paso"}
                   </span>
                   <span className="as-fila as-pills">
-                    <span className="as-pill">{NOMBRE_EN_QUE_VA[a.en_que_va]}</span>
+                    <span className="as-pill">{cat.etiqueta("en_que_va", a.en_que_va)}</span>
                     {a.en_espera ? <span className="as-pill as-pill-warn">En espera</span> : null}
                     {s?.fecha && !a.en_espera ? <span className={`as-pill${n! < 0 ? " as-pill-bad" : n === 0 ? " as-pill-acc" : ""}`}>{fechaCorta(s.fecha)}</span> : null}
                     {a.es_ejemplo ? <span className="as-pill">Ejemplo</span> : null}

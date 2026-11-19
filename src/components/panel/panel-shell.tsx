@@ -9,6 +9,7 @@ import { errorMessage, isLoggedIn, login, logout, needsMfaCode, useSession, veri
 
 import { usePreferencia } from "./almacen";
 import { Favoritos, Recientes } from "./asunto/recientes";
+import { ProveedorCatalogos } from "./datos/catalogos";
 import { Gesto, Icono, Logo } from "./icons";
 import { useAtajo, useTecladoEnListas } from "./kit/atajos";
 import { AvisosProvider, useAvisos } from "./kit/avisos";
@@ -265,7 +266,7 @@ export function PanelShell({ children }: { children: ReactNode }) {
     <div className="panel-root" data-panel-raiz="" data-theme={tema === "light" || tema === "dark" ? tema : undefined}>
       <AvisosProvider>
         <TooltipProvider>
-          {!listo ? <div className="pn-acceso" aria-busy="true" /> : sesion ? <Armazon>{children}</Armazon> : <Acceso />}
+          {!listo ? <div className="pn-acceso" aria-busy="true" /> : sesion ? <ProveedorCatalogos><Armazon>{children}</Armazon></ProveedorCatalogos> : <Acceso />}
         </TooltipProvider>
       </AvisosProvider>
     </div>

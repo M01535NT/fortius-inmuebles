@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import "../asunto/asunto.css";
 import "./consulta.css";
 import { Cuadro } from "@/components/panel/asunto/pildora";
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
@@ -16,11 +17,11 @@ import {
 } from "@/components/panel/ui/dropdown-menu";
 import { Switch } from "@/components/panel/ui/switch";
 import {
-  FalloPanel, ICONO_ENCARGO, NOMBRE_ENCARGO, NOMBRE_PAPEL, PAPELES, haceCuanto, iniciales, sumarDias, type Papel,
+  FalloPanel, haceCuanto, iconoEncargo, iniciales, sumarDias, type Papel,
 } from "@/lib/panel/asuntos/api";
 import {
-  CANALES, DEBE, DE_QUIEN, NOMBRE_CANAL, NOMBRE_DEBE, NOMBRE_DE_QUIEN, NOMBRE_OCUPA, NOMBRE_QUIERE, NOMBRE_SI_NO, NOMBRE_TIPO,
-  OCUPA, QUIERE, SI_NO, TIPOS_INMUEBLE,
+  DEBE, DE_QUIEN, NOMBRE_DEBE, NOMBRE_DE_QUIEN, NOMBRE_OCUPA, NOMBRE_QUIERE, NOMBRE_SI_NO,
+  OCUPA, QUIERE, SI_NO,
   abrirAsuntoDe, adjuntar, cerrarComoContacto, cerrarNoProcede, empezarConsulta, encargosSegun, guardarConsulta, leerAbiertas,
   leerConsulta, mensajeParaPedir, quitarAdjunto, unirDocumentos,
   type Canal, type Carga, type ConsultaAbierta, type DatosConsulta, type Debe, type DocumentoPedir, type OtraPersona,
@@ -55,12 +56,12 @@ function guardarRespaldo(r: Respaldo | null) {
 }
 
 const ops = <T extends string>(lista: readonly T[], nombres: Record<T, string>) => lista.map((v) => ({ valor: v, etiqueta: nombres[v] }));
-const PAPELES_OTRAS = PAPELES.filter((p) => p !== "contacto");
 
 export function PantallaConsulta() {
   const router = useRouter();
   const params = useSearchParams();
   const { avisar } = useAvisos();
+  const cat = useCatalogos();
   const id = useId();
 
   const [b, setB] = useState<Borrador>(VACIO);
@@ -363,7 +364,7 @@ export function PantallaConsulta() {
                     onChange={(e) => cambiar((x) => ({ ...x, numero: e.target.value }))} />
                 </span>
               </div>
-              <Desplegable etiqueta="Por dónde" valor={b.canal} opciones={ops(CANALES, NOMBRE_CANAL)}
+              <Desplegable etiqueta="Por dónde" valor={b.canal} opciones={cat.opciones("fuente", b.canal)}
                 alElegir={(v) => cambiar((x) => ({ ...x, canal: (v || "llamada") as Canal }))} />
             </div>
             <label className="pn-campo" htmlFor={`${id}-q`}>
@@ -379,7 +380,7 @@ export function PantallaConsulta() {
             <div className="cs-g3">
               <Desplegable etiqueta="Qué quiere" valor={d.que_quiere ?? ""} vacio="Sin decir" opciones={ops(QUIERE, NOMBRE_QUIERE)} alElegir={(v) => ponDato("que_quiere", v)} />
               <Desplegable etiqueta="De quién es" valor={d.de_quien ?? ""} vacio="Sin decir" opciones={ops(DE_QUIEN, NOMBRE_DE_QUIEN)} alElegir={(v) => ponDato("de_quien", v)} />
-              <Desplegable etiqueta="Qué es" valor={d.tipo ?? ""} vacio="Sin decir" opciones={ops(TIPOS_INMUEBLE, NOMBRE_TIPO)} alElegir={(v) => ponDato("tipo", v)} />
+              <Desplegable etiqueta="Qué es" valor={d.tipo ?? ""} vacio="Sin decir" opciones={cat.opciones("tipo_inmueble", d.tipo)} alElegir={(v) => ponDato("tipo", v)} />
               <label className="pn-campo" htmlFor={`${id}-c`}>Colonia
                 <input id={`${id}-c`} className="as-inp as-inp-borde" value={d.colonia ?? ""} maxLength={120} autoComplete="off"
                   onChange={(e) => ponDato("colonia", e.target.value)} />
@@ -445,7 +446,7 @@ export function PantallaConsulta() {
           <div className="as-fila cs-para">
             <span className="as-m">Se abre para</span>
             {(encargos.length ? encargos : []).map((e) => (
-              <span key={e} className="as-pill"><Icono nombre={ICONO_ENCARGO[e][0]} tamano={12} />{NOMBRE_ENCARGO[e]}</span>
+              <span key={e} className="as-pill"><Icono nombre={iconoEncargo(e)[0]} tamano={12} />{cat.etiqueta("encargo", e)}</span>
             ))}
             {!encargos.length ? <span className="as-m">lo que se decida en el asunto</span> : null}
           </div>
@@ -515,7 +516,11 @@ function AgregarRenglon({ etiqueta, alAgregar }: { etiqueta: string; alAgregar: 
 function OtrasPersonas({ lista, alCambiar }: { lista: OtraPersona[]; alCambiar: (l: OtraPersona[]) => void }) {
   const id = useId();
   const [nombre, setNombre] = useState("");
-  const [papel, setPapel] = useState<Papel>("titular");
+  const cat = useCatalogos();
+  const [elegido, setPapel] = useState<Papel>("titular");
+  // Quien llama ya entra como contacto: aquí se ofrecen los demás papeles. Si «titular» se desactivó, el primero que quede.
+  const papeles = cat.opciones("papel").filter((o) => o.valor !== "contacto");
+  const papel = papeles.some((o) => o.valor === elegido) ? elegido : papeles[0]?.valor ?? elegido;
   const [fallecida, setFallecida] = useState(false);
   const [pais, setPais] = useState("+52");
   const [numero, setNumero] = useState("");
@@ -537,7 +542,7 @@ function OtrasPersonas({ lista, alCambiar }: { lista: OtraPersona[]; alCambiar: 
             <span className="as-av" aria-hidden>{iniciales(p.nombre)}</span>
             <span className="as-ren-c"><b>{p.nombre}</b>{p.numero ? <span>{p.pais} {p.numero}</span> : null}</span>
             {p.fallecida ? <span className="as-pill">Falleció</span> : null}
-            <span className="as-pill">{NOMBRE_PAPEL[p.papel]}</span>
+            <span className="as-pill">{cat.etiqueta("papel", p.papel)}</span>
             <button type="button" className="as-btn as-gho as-ico" aria-label={`Quitar a ${p.nombre}`} onClick={() => alCambiar(lista.filter((_, j) => j !== i))}><Icono nombre="x" tamano={15} /></button>
           </div>
         ))}
@@ -546,7 +551,7 @@ function OtrasPersonas({ lista, alCambiar }: { lista: OtraPersona[]; alCambiar: 
             <label className="pn-campo" htmlFor={`${id}-n`}>Nombre
               <input id={`${id}-n`} className="as-inp as-inp-borde" value={nombre} maxLength={160} autoComplete="off" onChange={(e) => setNombre(e.target.value)} />
             </label>
-            <Desplegable etiqueta="Papel" valor={papel} opciones={PAPELES_OTRAS.map((p) => ({ valor: p, etiqueta: NOMBRE_PAPEL[p] }))} alElegir={(v) => setPapel((v || "titular") as Papel)} />
+            <Desplegable etiqueta="Papel" valor={papel} opciones={papeles} alElegir={(v) => { if (v) setPapel(v); }} />
           </div>
           {!fallecida ? (
             <div className="pn-campo">
