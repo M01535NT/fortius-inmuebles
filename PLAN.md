@@ -14,9 +14,9 @@ El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla
 
 **Cómo se lee:** ☐ es que falta, ☑ es que ya quedó. La flecha 👉 marca la etapa en la que vamos. Cada vez que se termina una tarea, el agente la marca aquí y cambia la fecha de arriba.
 
-**Vamos en:** 👉 Etapa A.
+**Vamos en:** 👉 Etapa B.
 
-### 👉 Etapa A · Dejar listo lo que va a salir
+### Etapa A · Dejar listo lo que va a salir
 
 Todo el trabajo vive en una sola rama, así que el cambio lleva todo lo que hay en ella: el panel publicado, los catálogos y la Consulta y el asunto con su aspecto nuevo. Por eso primero se deja estable lo que quedó a medias. Lo demás del aspecto de app de Mac sale después.
 
@@ -27,12 +27,12 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [x] Servidor y secciones: fallos 1, 3, 5, 10 y 11 (la fecha del cierre, el aviso de persona repetida, la pantalla de Eliminados, tu perfil en Configuración y «Invitar»).
 - [x] Pantallas: conectar en la Consulta el aviso de persona repetida.
 - [x] Revisión de solo lectura de todo lo anterior. Sin fallos graves; lo encontrado ya se corrigió, salvo dos cosas que piden un cambio en la base y esperan tu palabra: que recuperar una guía o un documento suelto quede en el historial, y que cerrar una consulta como contacto compruebe que quien la cierra puede ver a esa persona.
-- [ ] Correr todas las pruebas automáticas. Tardan unos 25 minutos; se te avisa antes.
-- [ ] Corregir lo que las pruebas marquen.
+- [x] Correr todas las pruebas automáticas. Pasaron las 2,245; las de navegador se corren antes de publicar, en la etapa D.
+- [x] Corregir lo que las pruebas marquen. Fueron dos errores de estilo, ya corregidos.
 
 El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
 
-### Etapa B · Que lo pruebes tú
+### 👉 Etapa B · Que lo pruebes tú
 
 - [ ] Entrar como director a /panel y llevar un caso completo, de la consulta al cobro.
 - [ ] Entrar con la cuenta de asesor y comprobar que solo ve lo suyo.
