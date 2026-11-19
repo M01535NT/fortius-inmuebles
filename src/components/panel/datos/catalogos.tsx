@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import {
@@ -36,9 +36,13 @@ type Estado = {
 
 const Contexto = createContext<Estado | null>(null);
 
-function leerGuardado(): Catalogos {
+/** El texto guardado en este navegador; en el servidor no hay (así el primer pintado coincide en los dos lados). */
+function textoGuardado(): string | null {
+  try { return window.localStorage.getItem(CLAVE_GUARDADO); } catch { return null; }
+}
+const sinSuscripcion = () => () => undefined;
+function leerGuardado(t: string | null): Catalogos {
   try {
-    const t = window.localStorage.getItem(CLAVE_GUARDADO);
     const lista = t ? (JSON.parse(t) as Catalogo[]) : [];
     return Array.isArray(lista) ? (Object.fromEntries(lista.map((c) => [c.clave, c])) as Catalogos) : {};
   } catch { return {}; }
@@ -48,48 +52,55 @@ function guardar(c: Catalogos) {
 }
 
 export function ProveedorCatalogos({ children }: { children: ReactNode }) {
-  const [catalogos, setCatalogos] = useState<Catalogos>(INICIAL);
+  // Lo guardado se ve primero (sin parpadeo de nombres) y, cuando llega, manda lo vigente de la base.
+  const texto = useSyncExternalStore(sinSuscripcion, textoGuardado, () => null);
+  const guardado = useMemo(() => leerGuardado(texto), [texto]);
+  const hayGuardado = Object.keys(guardado).length > 0;
+  const respaldo = useMemo(() => (hayGuardado ? completar(guardado) : INICIAL), [guardado, hayGuardado]);
+  const [deBase, setDeBase] = useState<Catalogos | null>(null);
+  const catalogos = deBase ?? respaldo;
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sinBase, setSinBase] = useState(true);
   const conGuardado = useRef(false);
+  useEffect(() => { conGuardado.current = hayGuardado; }, [hayGuardado]);
   const reintentar = useRef<() => void>(() => undefined);
 
+  // Lo que llega de la base (o el fallo) se aplica en la respuesta, nunca de golpe al montar.
+  const aplicar = useCallback((lista: Catalogo[]) => {
+    const mapa = completar(Object.fromEntries(lista.map((c) => [c.clave, c])) as Catalogos);
+    setDeBase(mapa);
+    guardar(mapa);
+    setError(null);
+    setSinBase(false);
+    setCargando(false);
+    toast.dismiss(AVISO);
+  }, []);
+  const fallar = useCallback((e: unknown) => {
+    const motivo = e instanceof Error ? e.message : "No se pudieron leer las listas.";
+    setError(motivo);
+    setSinBase(true);
+    setCargando(false);
+    // Se ve en cualquier pantalla, no solo en Configuración: las listas siguen, pero pueden no estar al día.
+    toast(conGuardado.current
+      ? "No se pudieron leer las listas. Se usan las últimas que se vieron en este equipo."
+      : "No se pudieron leer las listas. Se usan las de inicio del panel.", {
+      id: AVISO, duration: 15000, description: motivo,
+      action: { label: "Reintentar", onClick: () => reintentar.current() },
+    });
+  }, []);
   const recargar = useCallback(async () => {
     setCargando(true);
-    try {
-      const lista = await leerCatalogos();
-      const mapa = completar(Object.fromEntries(lista.map((c) => [c.clave, c])) as Catalogos);
-      setCatalogos(mapa);
-      guardar(mapa);
-      setError(null);
-      setSinBase(false);
-      toast.dismiss(AVISO);
-    } catch (e) {
-      const motivo = e instanceof Error ? e.message : "No se pudieron leer las listas.";
-      setError(motivo);
-      setSinBase(true);
-      // Se ve en cualquier pantalla, no solo en Configuración: las listas siguen, pero pueden no estar al día.
-      toast(conGuardado.current
-        ? "No se pudieron leer las listas. Se usan las últimas que se vieron en este equipo."
-        : "No se pudieron leer las listas. Se usan las de inicio del panel.", {
-        id: AVISO, duration: 15000, description: motivo,
-        action: { label: "Reintentar", onClick: () => reintentar.current() },
-      });
-    } finally { setCargando(false); }
-  }, []);
+    try { aplicar(await leerCatalogos()); } catch (e) { fallar(e); }
+  }, [aplicar, fallar]);
   useEffect(() => { reintentar.current = () => { void recargar(); }; }, [recargar]);
 
-  useEffect(() => {
-    // Lo guardado se pone primero (sin parpadeo de nombres) y luego se trae lo vigente.
-    const guardado = leerGuardado();
-    if (Object.keys(guardado).length) { conGuardado.current = true; setCatalogos(completar(guardado)); }
-    void recargar();
-  }, [recargar]);
+  // Al entrar: cargando ya empieza en true.
+  useEffect(() => { leerCatalogos().then(aplicar, fallar); }, [aplicar, fallar]);
 
   const poner = useCallback((c: Catalogo) => {
-    setCatalogos((antes) => { const nuevo = { ...antes, [c.clave]: c }; guardar(nuevo); return nuevo; });
-  }, []);
+    setDeBase((antes) => { const nuevo = { ...(antes ?? respaldo), [c.clave]: c }; guardar(nuevo); return nuevo; });
+  }, [respaldo]);
 
   const valor = useMemo(() => ({ catalogos, cargando, error, sinBase, recargar, poner }), [catalogos, cargando, error, sinBase, recargar, poner]);
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

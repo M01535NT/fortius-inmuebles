@@ -8,7 +8,7 @@ import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
 import { Fila, GrupoLista, Tarjeta } from "@/components/panel/kit/lista";
 import {
-  CLASES_ELIMINADO, NOMBRE_CLASE_ELIMINADO, leerEliminados, recuperarEliminado, type ClaseEliminado, type Eliminado,
+  CLASES_ELIMINADO, NOMBRE_CLASE_ELIMINADO, leerEliminados, recuperarEliminado, type ClaseEliminado, type Eliminado, type ListaEliminados,
 } from "@/lib/panel/eliminados";
 
 const fecha = (iso: string) => {
@@ -29,12 +29,11 @@ export function Eliminados() {
   const [clase, setClase] = useState<ClaseEliminado | "">("");
   const [ocupado, setOcupado] = useState<string | null>(null);
 
-  const cargar = useCallback(async () => {
-    setError(null);
-    try { const r = await leerEliminados(); setLista(r.eliminados); setHayMas(r.hayMas); }
-    catch (e) { setError(e instanceof Error ? e.message : "No se pudo leer Eliminados."); }
-  }, []);
-  useEffect(() => { void cargar(); }, [cargar]);
+  // El estado cambia solo cuando llega la respuesta (nada se pone de golpe al montar).
+  const aplicar = useCallback((r: ListaEliminados) => { setLista(r.eliminados); setHayMas(r.hayMas); setError(null); }, []);
+  const fallar = useCallback((e: unknown) => setError(e instanceof Error ? e.message : "No se pudo leer Eliminados."), []);
+  const cargar = useCallback(() => leerEliminados().then(aplicar, fallar), [aplicar, fallar]);
+  useEffect(() => { leerEliminados().then(aplicar, fallar); }, [aplicar, fallar]);
 
   const grupos = useMemo(() => CLASES_ELIMINADO
     .filter((c) => !clase || c === clase)

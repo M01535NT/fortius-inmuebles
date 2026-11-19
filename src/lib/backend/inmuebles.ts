@@ -93,7 +93,11 @@ export async function leerInmueble(client: SupabaseClient, id: string): Promise<
   if (docs.error) fallo(docs.error);
   const documentos = ((docs.data ?? []) as unknown as (Omit<DocumentoDelInmueble, "archivos"> & { inmueble_id: string | null; archivos: { count: number }[] })[])
     .filter((d) => d.inmueble_id === null || d.inmueble_id === id)
-    .map(({ inmueble_id: _, archivos, ...d }) => ({ ...d, archivos: archivos?.[0]?.count ?? 0 }));
+    .map((d) => {
+      const { archivos, ...resto } = d;
+      delete (resto as { inmueble_id?: string | null }).inmueble_id;
+      return { ...resto, archivos: archivos?.[0]?.count ?? 0 };
+    });
   const medios = ((me.data ?? []) as MedioLeido[]).map(aMedio);
   const fotos = medios.filter((m) => m.tipo === "foto");
   return {

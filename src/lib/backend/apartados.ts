@@ -4,9 +4,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import {
-  COLUMNAS_INICIALES, DIAS_LIGA, ESTADOS_DOCUMENTO, ESTADOS_INTERESADO, ESTADOS_PRESUPUESTO, FORMAS_PAGO, MONEDAS, PASOS_DOCUMENTO,
+  DIAS_LIGA, ESTADOS_DOCUMENTO, ESTADOS_INTERESADO, ESTADOS_PRESUPUESTO, FORMAS_PAGO, MONEDAS, PASOS_DOCUMENTO,
   RESPUESTAS_OFERTA, RESULTADOS_OPINION, TIPOS_COLUMNA,
-  type ArchivoDelDocumento, type Cobro, type Columna, type Concepto, type Destino, type DocumentoDelAsunto, type Interesado,
+  type ArchivoDelDocumento, type Cobro, type Concepto, type Destino, type DocumentoDelAsunto, type Interesado,
   type LigaCliente, type Oferta, type Opinion, type Presupuesto, type PuntoOpinion, type PuntoSituacion, type ResultadoSubida, type ValorCelda,
 } from "./apartados-contrato";
 import type { Asunto, FilaPropia } from "./asuntos-contrato";

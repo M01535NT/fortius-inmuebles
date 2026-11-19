@@ -1,5 +1,5 @@
 import type {
-  Asunto, ClaveApartado, Encargo, EntradaHistorial, FilaAsunto, Miembro, PersonaDuplicada, Quien,
+  Asunto, ClaveApartado, Encargo, EntradaHistorial, FilaAsunto, Miembro, PersonaDuplicada,
 } from "@/lib/backend/asuntos-contrato";
 import type { Destino, ResultadoSubida } from "@/lib/backend/apartados-contrato";
 import type { CambioFicha, FichaPersona } from "@/lib/backend/directorio-contrato";
