@@ -4,7 +4,7 @@ Este documento da **la pauta**: qué sigue y cómo sabrás que quedó. Qué se c
 
 ## Dónde estamos
 
-Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de diseño) construida en la rama `marca-sitio` (17/11/2026); falta verla en el navegador y tu acuerdo para publicarla.
+Etapas 1 a 9 terminadas y publicadas en fortiusinmuebles.com; la 9, la marca del sistema de diseño, se publicó el 18/11/2026 junto con el panel nuevo.
 
 ## Etapas
 
@@ -38,7 +38,7 @@ Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de di
 - [x] Pie con sus enlaces, tema y «Acceso al panel».
 - [x] Piezas base: botones, pestañas, distintivos, listas, campos y tarjeta de propiedad.
 - [x] Todas las páginas abren con colores, letra, cabecera y pie nuevos (su acomodo sigue siendo el viejo).
-- [ ] Revisarlo en el navegador (al integrar).
+- [x] Revisado en el navegador y publicado (18/11/2026).
 
 ## Etapa 2, paso a paso
 
@@ -101,15 +101,15 @@ Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de di
 - [x] Error, «Página no encontrada», «Esta propiedad ya no está publicada» y la confirmación de Vender con el diseño nuevo (se habían quedado con el anterior).
 - [x] Retirados 15 estilos de páginas, 20 piezas del diseño anterior y 9 videos e imágenes que ya nadie usaba.
 - [x] Imagen para compartir con el logo de Fortius II.
-- [x] Pruebas nuevas del sitio en el navegador: teléfono sin desbordes y con controles de 44 px en 17 páginas, portada por asuntos, frase del inventario, Vender en dos pasos, Contacto, páginas de error y movimiento reducido. Se corren al integrar.
-- [x] Pruebas del diseño anterior reemplazadas (17/11/2026, con tu acuerdo): seis pruebas de navegador fuera; las que seguían valiendo, al diseño nuevo; se agregaron el blog con sus listas y la revisión de accesibilidad en claro y oscuro. Con ellas salieron 18 piezas que ya solo usaban esas pruebas y los tres archivos de estilos globales del diseño anterior. Las pruebas de piezas sueltas pasan; las del navegador se corren al integrar.
+- [x] Pruebas nuevas del sitio en el navegador: teléfono sin desbordes y con controles de 44 px en 17 páginas, portada por asuntos, frase del inventario, Vender en dos pasos, Contacto, páginas de error y movimiento reducido. Pasaron al publicar (18/11/2026).
+- [x] Pruebas del diseño anterior reemplazadas (17/11/2026, con tu acuerdo): seis pruebas de navegador fuera; las que seguían valiendo, al diseño nuevo; se agregaron el blog con sus listas y la revisión de accesibilidad en claro y oscuro. Con ellas salieron 18 piezas que ya solo usaban esas pruebas y los tres archivos de estilos globales del diseño anterior. Todas pasaron al publicar (18/11/2026).
 - [x] Ícono de la pestaña con la O de Fortius II, en el sitio y en el panel (tu decisión del 17/11/2026). Los íconos para instalar la app del panel no cambian.
 
 ## Mejoras después de publicar
 
-- [x] Menú, buscador y listas de la frase hechos sobre Radix; pestañas con su panel nombrado y fondo quieto con las fotos ampliadas (17/11/2026, rama `sitio-controles-radix`, sin integrar). Lo probaste a mano el 17/11 y está bien; faltan las pruebas automáticas antes de integrar.
+- [x] Menú, buscador y listas de la frase hechos sobre Radix; pestañas con su panel nombrado y fondo quieto con las fotos ampliadas (17/11/2026; publicado el 18/11).
 
-- [x] Ficha con el marco primero, completo con sus controles en la primera pantalla y siempre con Fotos, Video y 360°; nombre y precio debajo (17/11/2026, rama `sitio-controles-radix`, sin integrar).
+- [x] Ficha con el marco primero, completo con sus controles en la primera pantalla y siempre con Fotos, Video y 360°; nombre y precio debajo (17/11/2026; publicado el 18/11).
 
 ## Etapa 9, paso a paso
 
@@ -125,13 +125,13 @@ Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de di
 - [x] Pruebas: las que simulan las letras ya conocen la letra del sitio; prueba nueva del logo.
 - [x] Revisado en el navegador del agente, claro y oscuro, en computadora y tamaño de teléfono (17/11/2026). Las 17 páginas caben en el teléfono con controles de 44 px; el contraste del texto pasa; el panel conserva su letra y su ícono. Se corrigieron las esquinas redondeadas de las calculadoras y las etiquetas de los formularios del inicio, Contacto y documentos de la ficha.
 - [ ] Recorrerlo en tu teléfono.
-- [ ] Comprobación completa y PR en borrador, cuando tú lo digas.
+- [x] Comprobación completa y publicado (18/11/2026).
 - [x] Juntada con la rama `sitio-controles-radix` en `nuevo-panel` el 17/11/2026: la ficha conserva el marco primero y toma la letra y los colores del sistema.
 
 ## Inmuebles de ejemplo
 
 - [x] Ocho inmuebles de ejemplo publicados desde el panel nuevo, marcados como ejemplo: casas, departamento, local, nave, terreno y oficina; en venta y en renta; en Tijuana, Rosarito, Ensenada y Tecate; cinco con video (18/11/2026).
-- [ ] Salen en el sitio cuando llegue a `main` el arreglo de la base que deja publicar un inmueble sin recorrido 360.
+- [x] Ya salen en el sitio: el arreglo que deja publicar un inmueble sin recorrido 360 se publicó el 18/11/2026.
 
 ## Lo que te toca a ti
 
@@ -141,6 +141,3 @@ Etapas 1 a 8 terminadas y publicadas en `main`. Etapa 9 (marca del sistema de di
 - Capturar en el panel los lugares cercanos de cada inmueble.
 - Decidir si «Qué hay alrededor» necesita los grupos iglesias y hoteles: hoy el panel no los tiene.
 
-## Al integrar
-
-Los documentos del panel siguen en la raíz (`SPEC.md`, `PLAN.md`, `AGENTS.md`, `README.md`) y apuntan a esta carpeta. Al juntar con la rama del panel se conservan los dos juegos.

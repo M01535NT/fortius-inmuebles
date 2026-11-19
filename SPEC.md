@@ -2,7 +2,7 @@
 
 Este documento describe el sistema completo: qué es, qué partes tiene y qué reglas sigue. Lo decide Moisés Núñez Tonalá, el titular. Si el código hace algo distinto a lo que dice aquí, se corrige el código.
 
-**Actualizado:** 17 de noviembre de 2026.
+**Actualizado:** 18 de noviembre de 2026.
 
 **Esta es la versión vigente al día de hoy.** No es definitiva: va a cambiar conforme el sistema se use y el titular decida cosas nuevas. Cómo se cambia está en la sección 19.
 
@@ -30,6 +30,12 @@ Es exclusivo de Fortius y lleva solo su marca.
 ## 2. Las ideas que mandan
 
 1. **Sirve para cualquier caso inmobiliario.** Una venta normal, una casa en sucesión e invadida, un terreno con sentencia, una asesoría por etapas, una renta de varios locales o un puro trámite. Si un caso real no cabe, se cambia el sistema; no se fuerza el caso.
+   - **No todo asunto empieza con un inmueble, pero todo termina en uno:** el que se vende, se renta, se escritura o se adjudica al final. Por eso Fortius también lleva, con sus abogados, los juicios y trámites que desembocan en un inmueble (una sucesión, una cesión de derechos, un juicio hipotecario, una prescripción, un trámite del registro público) y guarda aquí su expediente para tener el control de los documentos.
+   - **Lo que no termina en un inmueble no se atiende:** asuntos penales, corporativos o fiscales sin relación con un inmueble.
+   - **Los asuntos penales que nacen de un inmueble sí se llevan:** un fraude al comprar un terreno, un despojo o una invasión.
+   - **Los asuntos fiscales de un inmueble también:** un predial o un valor catastral excesivo, o un impuesto de adquisición mal cobrado.
+   - **Y los familiares cuando lo que se reparte es un inmueble:** un divorcio donde hay que liquidar la sociedad conyugal y vender o adjudicar la casa.
+   - **Se derivan a otro despacho:** los trámites migratorios de quien compra (residencia, permisos). El asunto sigue su curso con una tarea para el otro despacho.
 2. **El centro es el asunto.** Todo trabajo que alguien le encarga a Fortius es un asunto. Desde el asunto se ve y se edita todo lo suyo, sin cambiar de sección.
 3. **Ninguna forma de trabajar es obligatoria.** Las metodologías (cómo captar una venta, cómo captar una renta, cómo cancelar una hipoteca) son guías guardadas en la Biblioteca. Se copian a un asunto cuando sirven y ahí se cambian con libertad.
 4. **El sistema nunca impide seguir.** Si falta un dato, un documento o un paso, lo avisa y deja guardar, avanzar, publicar o firmar. La decisión es de la persona.
@@ -116,6 +122,7 @@ Cualquier encargo de trabajo. Ejemplos:
 - Un trámite: cancelar una hipoteca, tramitar un crédito, escriturar.
 - Asesorar a alguien en un negocio, etapa por etapa.
 - Atender a un inversionista.
+- Llevar el juicio o el trámite que termina en un inmueble: una sucesión, una cesión de derechos, un juicio hipotecario, una prescripción, un fraude o un despojo de un inmueble, un trámite del registro público. Lo llevan los abogados de Fortius y el asunto guarda su expediente. Cuando el inmueble se adjudica, «Continuar en un asunto nuevo» lo pasa a venta o renta.
 
 No abren asunto por sí solas una visita, un archivo que llega o un cambio de precio.
 
@@ -345,6 +352,7 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 - **Director:** ve todo, puede cambiar quién lleva cada asunto y tiene la sección Equipo. Ahí ve, por cada persona del equipo, sus asuntos abiertos, lo de hoy, lo de la semana, lo vencido, los asuntos sin siguiente paso, las solicitudes del sitio que tiene sin atender y lo que falta cobrar; «Ver» abre sus asuntos. Un aviso arriba dice cuántas solicitudes esperan a que las pase a alguien.
 - **Sin siguiente paso** es un asunto abierto, que no está en espera, sin ninguna tarea pendiente en su plan.
 - **Asesor:** ve solo lo suyo y lo que se le comparte. La sección Equipo no le aparece, y la dirección de un asunto ajeno le responde que no existe o no le toca verlo. Sí ve los nombres de sus compañeros, solo para mencionarlos con @ en una nota; eso no le muestra lo que lleva cada uno.
+- **Abogado de Fortius:** los abogados que llevan los juicios y trámites entran al panel con su propia cuenta y llevan ahí el expediente. **Ven solo los juicios que llevan o en los que colaboran,** como un asesor ve los suyos; no ven los demás asuntos. Si ven los honorarios y los cobros de esos juicios está por decidir (sección 18).
 - Esto se hace cumplir en la base de datos, no solo escondiendo botones.
 - El director entra con dos pasos (contraseña y un código).
 - Todo cambio queda registrado con quién lo hizo y cuándo.
@@ -480,6 +488,9 @@ Lo que se usa a diario, en pocas palabras:
 - Qué ve exactamente un asesor de los asuntos e inmuebles **de otro asesor**.
 - El **contenido que sube el titular**: la plantilla del presupuesto de honorarios, las listas y los planes de la Biblioteca, y los datos que quiere por cada tipo de inmueble. Mientras tanto se usa lo del boceto como ejemplo.
 - Lo que revisa el **abogado**: los contratos de renta y de compraventa a plazos, el aviso de privacidad y el uso de la lectura de documentos con clientes reales.
+- Si los **abogados de Fortius** ven los honorarios y los cobros de los juicios que llevan, y qué más pueden hacer dentro de ellos.
+- Cómo se maneja el **dinero de las rentas** que Fortius cobra por cuenta del dueño (dónde se recibe, cómo se liquida, qué facturas e impuestos lleva): lo revisan el abogado y un contador antes de construirlo.
+- Cómo se lleva en el panel un **juicio o trámite** (número de expediente, etapa, términos), y si el encargo de un asunto necesita una opción propia para eso.
 
 ## 19. Cómo se cambia este documento
 
