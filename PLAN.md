@@ -18,11 +18,19 @@ El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla
 
 ### 👉 Etapa A · Dejar listo lo que va a salir
 
-Se cambia de lugar el panel que ya está publicado en /panel, con sus fallos corregidos. Lo que se está construyendo aparte (los catálogos y el aspecto nuevo de app de Mac) no viaja en este cambio: sale después, para no retrasarlo.
+Todo el trabajo vive en una sola rama, así que el cambio lleva todo lo que hay en ella: el panel publicado, los catálogos y la Consulta y el asunto con su aspecto nuevo. Por eso primero se deja estable lo que quedó a medias. Lo demás del aspecto de app de Mac sale después.
 
-- [ ] Corregir los 12 fallos de la prueba del 18/11 (están al final de este plan).
+Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordina y revisa.
+
+- [ ] Pantallas: terminar la Consulta y el asunto con el modelo visual, y dejarlos estables.
+- [ ] Pantallas: fallos 2, 4, 6, 8, 9 y 12 de la prueba del 18/11.
+- [ ] Servidor y secciones: fallos 1, 3, 5, 10 y 11 (la fecha del cierre, el aviso de persona repetida, la pantalla de Eliminados, tu perfil en Configuración y «Invitar»).
+- [ ] Pantallas: conectar en la Consulta el aviso de persona repetida.
+- [ ] Revisión de solo lectura de todo lo anterior.
 - [ ] Correr todas las pruebas automáticas. Tardan unos 25 minutos; se te avisa antes.
 - [ ] Corregir lo que las pruebas marquen.
+
+El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
 
 ### Etapa B · Que lo pruebes tú
 
