@@ -2,9 +2,68 @@
 
 Qué hay hoy, qué falta para terminar y en qué orden. Cómo debe funcionar el sistema está en `SPEC.md`, en esta misma carpeta.
 
-**Actualizado:** 18 de noviembre de 2026.
+**Actualizado:** 19 de noviembre de 2026.
 
 El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla del panel.
+
+---
+
+## Tablero: llevar el panel nuevo a /admin
+
+**La meta:** que el equipo entre a fortiusinmuebles.com/admin y vea el panel nuevo. Hoy el nuevo está en /panel y en /admin sigue el provisional.
+
+**Cómo se lee:** ☐ es que falta, ☑ es que ya quedó. La flecha 👉 marca la etapa en la que vamos. Cada vez que se termina una tarea, el agente la marca aquí y cambia la fecha de arriba.
+
+**Vamos en:** 👉 Etapa A.
+
+### 👉 Etapa A · Dejar listo lo que va a salir
+
+Se cambia de lugar el panel que ya está publicado en /panel, con sus fallos corregidos. Lo que se está construyendo aparte (los catálogos y el aspecto nuevo de app de Mac) no viaja en este cambio: sale después, para no retrasarlo.
+
+- [ ] Corregir los 12 fallos de la prueba del 18/11 (están al final de este plan).
+- [ ] Correr todas las pruebas automáticas. Tardan unos 25 minutos; se te avisa antes.
+- [ ] Corregir lo que las pruebas marquen.
+
+### Etapa B · Que lo pruebes tú
+
+- [ ] Entrar como director a /panel y llevar un caso completo, de la consulta al cobro.
+- [ ] Entrar con la cuenta de asesor y comprobar que solo ve lo suyo.
+- [ ] Revisar las etapas 9 (Equipo) y 10 (Funciones extra), que esperan tu visto bueno.
+- [ ] Corregir lo que encuentres.
+
+### Etapa C · Red de seguridad
+
+- [ ] Sacar una copia de respaldo de la base.
+- [ ] Probar que la copia se puede restaurar.
+- [ ] Activar la entrada en dos pasos de tu cuenta de director.
+
+### Etapa D · El cambio
+
+- [ ] /admin muestra el panel nuevo.
+- [ ] El panel provisional se muda a una dirección de reserva, por si hay que volver.
+- [ ] /panel lleva solo a /admin, para que los enlaces guardados no se rompan.
+- [ ] Pruebas automáticas otra vez.
+- [ ] Publicar, con tu permiso.
+- [ ] Comprobar en el sitio real que el sitio público sigue igual y que /admin abre el panel nuevo.
+
+### Etapa E · Primera semana de uso
+
+- [ ] El equipo trabaja una semana en /admin con el panel nuevo.
+- [ ] Corregir lo que salga en el uso diario.
+- [ ] Decides si ya no hace falta el panel provisional.
+
+### Etapa F · Retirar lo viejo
+
+- [ ] Quitar el panel provisional y su dirección de reserva.
+- [ ] Pruebas automáticas y publicar, con tu permiso.
+
+### Lo que sigue después del cambio (no lo detiene)
+
+- El panel que ajustas tú: catálogos, fichas, tipos de asunto, machotes y Bandeja (etapa 12).
+- El aspecto y el orden de app de Mac (modelo en `docs/modelo-visual/`).
+- Cargar el inventario real.
+
+**Lo que te toca a ti en este tablero:** probar en la etapa B, dar permiso para publicar en la D y decidir en la E. Lo demás lo hace el agente.
 
 **Este es el plan vigente al día de hoy.** Va a cambiar conforme avance el trabajo. Si un cambio que pidas contradice este plan o `SPEC.md`, el agente te avisa y te propone corregirlo aquí o abrir una rama aparte para ese cambio (ver la sección 19 de `SPEC.md`).
 
@@ -70,6 +129,8 @@ Una etapa se da por buena cuando todo lo de su lista se puede hacer en el panel,
 **Etapas 0 a 10.** Construidas y publicadas. Sus listas de comprobación, que son el guion para probarlas con datos reales, están en `docs/comprobacion-etapas-0-a-10.md`.
 
 **11. El cambio**
+
+*El paso a paso de esta etapa es el tablero del inicio de este plan.*
 
 - [ ] Hay una copia de respaldo reciente, y se probó restaurarla.
 - [ ] El equipo entra al panel nuevo en la dirección de siempre.

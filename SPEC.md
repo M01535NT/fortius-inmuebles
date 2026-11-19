@@ -11,9 +11,9 @@ Este documento describe el sistema completo: qué es, qué partes tiene y qué r
 | Archivo | Para qué sirve | Dónde está |
 | --- | --- | --- |
 | `PLAN.md` | Qué falta por hacer y en qué vamos | En la carpeta principal del proyecto |
-| El boceto | Cómo se ve y cómo responde el panel. Se abre en el navegador y funciona con datos de ejemplo | `docs/boceto-fortius-por-asuntos.html` |
-| El boceto de lo ajustable | Cómo funciona lo que el titular ajusta sin programar. Solo el funcionamiento: el aspecto es el del panel de hoy | `docs/boceto-panel-ajustable.html` |
-| El modelo visual | Las pantallas modelo de cómo se ordena y se ve el panel, como una app de Mac. Aprobado el 18/11/2026: toda pantalla nueva o rehecha sigue esta línea | `docs/modelo-visual/` y el lienzo https://claude.ai/artifact/RLdqpkz2PYtb1pHLXJXJuh |
+| El modelo visual | **Cómo se ve y cómo se ordena el panel.** Siete pantallas modelo, ordenadas como una app de Mac, aprobadas el 18/11/2026. Es la referencia que manda en el aspecto: toda pantalla nueva o rehecha la sigue | `docs/modelo-visual/` y el lienzo https://claude.ai/artifact/RLdqpkz2PYtb1pHLXJXJuh |
+| El boceto de lo ajustable | Cómo funciona lo que el titular ajusta sin programar. Solo el funcionamiento; el aspecto lo da el modelo visual | `docs/boceto-panel-ajustable.html` |
+| El boceto por asuntos | Qué secciones y qué apartados tiene el panel. Vale para lo que los dos anteriores no muestren; en el aspecto ya no manda | `docs/boceto-fortius-por-asuntos.html` |
 | Los casos reales | Los casos que el panel debe poder llevar de principio a fin | `docs/casos-reales.md` |
 | Las metodologías | Guías de trabajo que se copian a un asunto | `docs/metodologias/` |
 | El sitio público | Qué es el sitio nuevo, en qué orden se hizo y cómo se hace. Para el sitio público mandan esos | `docs/sitio/` |
@@ -535,6 +535,18 @@ Además de ser director o asesor, cada persona del equipo tiene las **funciones*
 
 ### Como una app de escritorio
 
+**Cómo se ve cada pantalla modelo:**
+
+| Pantalla | Qué fija |
+| --- | --- |
+| **Asuntos con inspector** | El menú con grupos (Trabajo, Favoritos, Recientes). La lista, con el renglón elegido en azul. El asunto con su nombre grande, una línea de datos, la tarjeta «Lo que sigue» y sus apartados en renglones. El apartado abierto a la derecha, sin tapar nada |
+| **Consulta** | Una hoja que baja desde arriba y atenúa lo de atrás. El nombre de quien llama es el título; los datos son renglones de «dato: valor», y lo vacío se ve más tenue. A la derecha, la lista de documentos y las otras personas. Un solo botón azul: «Abrir asunto» |
+| **Buscador y clic derecho** | Un cuadro al centro donde se busca o se escribe una tarea en una línea. El menú de clic derecho de un renglón, con las mismas acciones de sus tres puntos y el atajo de cada una |
+| **Configuración** | Sus secciones a la izquierda, con buscador, y el panel a la derecha. Cada valor se renombra en su renglón, se apaga con un interruptor y se arrastra para reordenarlo |
+| **Directorio** | La lista agrupada por letra, con el papel y el asunto de cada persona. La ficha en tarjetas de «dato: valor», con «Por confirmar» en lo leído de un documento |
+| **Asuntos como tablero** | Una columna por cada «en qué va»; arrastrar una tarjeta lo cambia. Las vistas guardadas, en el menú |
+| **Inmuebles** | La lista con miniatura, tipo y precio. La ficha con los datos propios de su tipo y, aparte, los datos para contratos |
+
 **El modelo a seguir** son las siete pantallas de `docs/modelo-visual/` (Asuntos con inspector, Consulta, Buscador y clic derecho, Configuración, Directorio, Asuntos como tablero e Inmuebles), que el titular aprobó el 18/11/2026: «esta es la dirección correcta». Lo que una pantalla nueva necesite y el modelo no muestre se resuelve con las mismas piezas y el mismo orden.
 
 El panel se ordena y se mueve como una buena app de productividad de computadora; las de Mac son la referencia. No se copia su aspecto: la identidad de Fortius se conserva. Lo que se toma es el orden, la estructura y el movimiento.
@@ -588,7 +600,7 @@ Una misma lista se ve de varias formas, y cada quien guarda las suyas.
 - **El Plan** se ve por etapas, como tablero y en el tiempo, con cada tarea como una barra y las que esperan a otra, ligadas.
 - **Una tabla propia** se ve como tabla, como tablero, como galería o en el tiempo si lleva fechas.
 
-El boceto aprobado es la referencia de cómo se ve cada pantalla.
+El modelo visual (`docs/modelo-visual/`) es la referencia de cómo se ve cada pantalla.
 
 ### Lo de todos los días
 

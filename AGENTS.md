@@ -85,6 +85,7 @@ El proyecto vive en una sola carpeta, `C:\Paginas-web\fortius-inmuebles`. Así s
 - **Commits chicos, por tema** (servidor, pantallas, documentos), con mensaje en español que diga qué cambió y si se probó.
 - **Dos escritores nunca tocan los mismos archivos.** Si hay varias sesiones, cada una tiene sus carpetas asignadas por escrito.
 - **Nada se da por hecho sin verlo:** lo de pantalla se mira en capturas; lo de servidor y base lo repasa un revisor de solo lectura antes de integrar.
+- **El tablero de `PLAN.md` se marca al avanzar.** Al terminar una tarea del tablero, el agente la marca `[x]`, mueve la flecha 👉 si cambió la etapa, cambia la fecha y se lo dice al titular en una línea. Nunca marca algo que no comprobó.
 - **`PLAN.md` es un tablero, no una bitácora:** qué falta y en qué va. Lo terminado sale del plan y queda en el historial de git.
 
 ## Git y publicación
