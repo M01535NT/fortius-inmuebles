@@ -13,6 +13,7 @@ Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregún
 | Cómo debe funcionar el sistema (manda sobre lo construido) | `SPEC.md` |
 | Qué falta y en qué etapa vamos (único plan) | `PLAN.md` |
 | Cómo se ve y cómo responde el panel (boceto aprobado) | `docs/boceto-fortius-por-asuntos.html` |
+| Cómo funciona lo que el titular ajusta sin programar (boceto de funcionamiento; el aspecto es el del panel de hoy) | `docs/boceto-panel-ajustable.html` |
 | Casos reales con los que se prueba cada etapa | `docs/casos-reales.md` |
 | Metodologías que se copian a un asunto | `docs/metodologias/` |
 | Sitio público (qué es, orden y cómo se hace; mandan para el sitio) | `docs/sitio/SPEC.md`, `docs/sitio/PLAN.md`, `docs/sitio/DECISIONS.md` |

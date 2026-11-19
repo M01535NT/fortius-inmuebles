@@ -2,7 +2,7 @@
 
 Qué hay hoy, qué falta para terminar y en qué orden. Cómo debe funcionar el sistema está en `SPEC.md`, en esta misma carpeta.
 
-**Actualizado:** 17 de noviembre de 2026.
+**Actualizado:** 18 de noviembre de 2026.
 
 El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla del panel.
 
@@ -36,7 +36,7 @@ El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla
 - Antes de empezar se comprobó que lo que ya existe está sano: la revisión del código no marca errores, las 2,276 pruebas automáticas pasan y el sitio se arma completo sin fallas.
 - Ese punto quedó marcado en el repositorio con el nombre `inicio-panel-por-asuntos`. Si algo sale mal durante la construcción, se puede comparar contra él o volver a él.
 
-**En una frase: el diseño está terminado y aprobado; las etapas 0 a 8 están aprobadas; las etapas 9, Equipo, y 10, Funciones extra, están construidas y esperan tu aprobación.**
+**En una frase: el diseño está terminado y aprobado; las etapas 0 a 8 están aprobadas; las etapas 9, Equipo, y 10, Funciones extra, están construidas y esperan tu aprobación; la etapa 12, El panel que ajustas tú, está decidida y su paso 1, Catálogos, construido y sin probar.**
 
 ## 2. Las etapas
 
@@ -56,6 +56,7 @@ Cada etapa termina con algo que puedes abrir y probar. No se pasa a la siguiente
 | **9. Equipo** | Lo que ve el director y lo que ve cada asesor | Entras con una cuenta de asesor y solo ves lo suyo | Mediana |
 | **10. Funciones extra** | Primero: regresar a la ventana anterior, elegir dónde se abre cada ventana y los informes para el cliente. Después, las funciones de uso diario de la lista de `SPEC.md` que no hayan entrado antes | Regresas de una ventana a la anterior, la abres donde prefieras y mandas un informe desde un asunto. Las demás las pruebas una por una | Mediana |
 | **11. El cambio** | El panel nuevo reemplaza al provisional y se retira lo que sobra | El equipo entra al panel nuevo en la dirección de siempre | Chica |
+| **12. El panel que ajustas tú** | Que cambiar el panel no pida programar: las listas, los datos de cada ficha, los tipos de asunto, los apartados, los machotes y los módulos se ajustan en Configuración, y vuelve la Bandeja. Además: valor estimado y aviso de actividad vulnerable, asuntos relacionados y permanentes, aviso de conflicto de interés y fuente consultable | Armas un tipo de asunto de otro giro sin pedirle nada al agente; cargas un machote y sale lleno con lo del asunto; llevas los casos 7 a 12 de principio a fin | Muy grande: once pasos |
 
 **Chica:** una o dos sesiones de trabajo. **Mediana:** varias sesiones. **Grande:** muchas sesiones, con varias revisiones tuyas en medio.
 
@@ -257,6 +258,166 @@ Personas y notas del asunto (decidido el 17/11):
 - [ ] El sitio público sigue igual.
 - [ ] Lo que sobra del panel provisional se retiró y las pruebas siguen pasando.
 
+**12. El panel que ajustas tú**
+
+La idea: primero se captura todo (la persona, el inmueble, el asunto, sus documentos) y después los entregables salen con esos mismos datos; y lo que quieras cambiar del panel lo cambias tú en Configuración, sin pedírselo al agente.
+
+Antes de construir nada se define y se aprueba cómo se ve (paso 0). Después se construye en once pasos, en este orden. Cada paso se prueba y se integra antes de seguir. Los casos 7 a 12 se agregan a `docs/casos-reales.md` cuando se construya la pieza que prueban. Si prefieres que vaya antes de la etapa 11, se cambia el orden aquí.
+
+Paso 0 · Definir cómo se ve (sin programar el panel):
+
+- [ ] Hay un boceto que se abre en el navegador y responde al clic, con: la consulta ajustándose (cambiar preguntas y opciones, poner y quitar recuadros), el editor de una ficha, Configuración con su propio menú, la pantalla de machotes, un apartado de tabla que calcula y la Bandeja.
+- [ ] Están en el boceto todos los casos del inventario de abajo («Lo que hoy está fijo»), o se dice cuáles se dejan fijos y por qué.
+- [ ] Lo apruebas tú. Lo que el boceto no muestre no se construye sin preguntarte.
+
+*18/11, revisión independiente del diseño: aceptado con pendientes. Un revisor que no participó lo comparó contra diez criterios y los doce casos y encontró 35 fallos; todos eran ciertos y se corrigieron en el boceto, en este plan y en `SPEC.md`. Tomaste las tres decisiones que faltaban: cambiar una plantilla vale para los asuntos nuevos; al inventario entra solo lo que se comercializa; y ante un conflicto de interés decides tú, sin que el asesor vea el asunto ajeno. Pendiente: mirar el boceto corregido en un teléfono y en oscuro, dibujar Inicio y la ficha completa del inmueble, y pasar a lenguaje sencillo las etapas 0 a 10 de este plan.*
+
+*18/11: viste el boceto y dijiste que ya está mejor. Vale como referencia de cómo funciona lo ajustable, no de cómo se ve: se conservan los íconos, los colores, la letra y las piezas del panel de hoy. Quedaron sin dibujar Inicio y la ficha completa del inmueble; se preguntan cuando llegue su paso.*
+
+Paso 1 · Catálogos (sin cambiar ninguna pantalla de trabajo):
+
+- [ ] En Configuración → Catálogos agregas, renombras, reordenas y desactivas un valor.
+- [ ] Agregas el papel «Acreedor», le cambias el nombre a otro y los asuntos que ya lo usaban siguen bien.
+- [ ] Las listas de las que depende el panel (en qué va un asunto, cómo va una tarea) se renombran, pero no se dejan vacías.
+- [ ] Un valor desactivado deja de ofrecerse, y los asuntos que ya lo usan lo conservan.
+- [ ] Todas las listas desplegables de hoy leen de los catálogos, con los valores de Fortius ya cargados.
+- [ ] Vacías un catálogo: la pantalla usa los valores de Fortius con que empezó y Configuración lo avisa.
+- [ ] Los catálogos que todavía no usa ninguna pantalla (tipos de asunto, subtipos, regímenes, motivos de «no procede») quedan creados y con sus valores; sus datos en la consulta y en el asunto llegan en los pasos 4 y 10.
+
+*18/11: construido y sin probar (no se corrieron revisiones, pruebas ni el navegador). Falta que lo pruebes y se integre.*
+
+- **Lo que hay.** En Configuración, solo para el director, la sección Catálogos: eliges la lista, tocas un valor para cambiarle el nombre (y, en los papeles, de qué lado es), lo acomodas arrastrando, lo apagas con su interruptor y agregas valores nuevos. Cada valor guarda su clave para siempre: cambiarle el nombre no toca los asuntos que ya lo usan. Apagar no borra. Cada cambio queda en el historial y, si dos personas guardan a la vez, la segunda ve lo último. Los asesores leen las listas pero no las cambian, y eso lo hace cumplir la base de datos.
+- **Trece listas:** tipos de asunto, subtipos sugeridos (cada uno de su tipo), encargos, en qué va un asunto, resultados de cierre, motivos de «no procede», papeles, fuentes de llegada, cómo va una tarea, quién hace una tarea (Fortius, el cliente, el abogado, la notaría, otra persona), tipos de inmueble, regímenes y funciones del equipo (abogado y valuador; asignarlas a cada persona es del paso 2). Empiezan con los valores de Fortius de hoy. Se agregaron «No procede» y «Desistió» a los resultados de cierre (hallazgo 29). Los motivos de «no procede» los propuso el agente («No es de lo que hacemos», «No hay papeles para hacerlo», «No quiso seguir», «Ya no contestó», «Otro»): confírmalos o cámbialos ahí mismo.
+- **Las pantallas** (consulta, asunto, Personas, Documentos, Plan, Situación, Inmuebles, Directorio, informe) toman sus listas y sus nombres de los catálogos, con el mismo aspecto de antes. Si una lista se queda sin ningún valor encendido, las pantallas ofrecen los valores con que empezó y Configuración lo avisa.
+- **Lo que el panel usa por su clave** se renombra, pero no se apaga: los cuatro encargos (cada uno enciende sus apartados y su primer plan), «Contacto» y «Propietario» (los pone la consulta), «Llamada» y «Sitio» (las fuentes que se ponen solas) y los dos primeros resultados de cierre. «En qué va un asunto» y «Cómo va una tarea» además no admiten valores nuevos: el panel decide con ellos qué sigue y qué está atrasado.
+- **Cada papel dice de qué lado es** (hallazgo 27, en parte): de quien nos busca, del lado del cliente, del otro lado o de apoyo. Los grupos de Personas y sus nombres salen de ahí. El vendedor queda del otro lado y el comprador del lado del cliente. Cambiarle el lado a un papel en Catálogos vale para todos los asuntos; marcar que en uno es al revés queda con el hallazgo 27.
+- **Hallazgo 26:** quien llama y dice que quiere comprar nace como «Comprador», ya no como «Contacto».
+- **Quién hace una tarea** se renombra y se le agregan valores; «Fortius» y «El cliente» no se apagan, porque el panel los usa (la tarea que no dice quién es de Fortius; con «El cliente», Inicio sabe a quién escribirle). Un valor nuevo todavía no tiene a quién escribirle por WhatsApp.
+- **Un tipo de inmueble nuevo** dice en qué categoría sale en el sitio público (casa, terreno, nave…), para que el sitio no se rompa. Mientras no tenga ficha técnica propia (paso 3), su ficha muestra solo los datos comunes.
+- **Tres cambios en la base de datos,** en archivos nuevos, que se aplican solos al integrar: el primero crea las listas con sus valores; el segundo hace que cada columna acepte solo los valores de su lista (y siempre el que ya tenía, aunque se haya apagado); el tercero quita las listas que estaban copiadas dentro de las funciones de la base.
+
+**Lo que se dejó fijo por ahora, y por qué:**
+
+- Las preguntas de la consulta y sus opciones (qué quiere, de quién es, quién lo ocupa, escritura, qué debe): cada respuesta decide qué documento se pide y con qué encargo se abre; se ajustan con su tipo de asunto en el paso 4.
+- La forma de pago, el estado civil y los documentos «comunes» que se ofrecen: están en el inventario, pero no se pidieron para este paso.
+- Los estados de un documento, de un paso, de un presupuesto, de un interesado, de una oferta y de la opinión jurídica; la operación y el estado de un inmueble; la clase de tarea y cada cuánto se repite: cada valor tiene su propia regla (qué se ve, qué se cuenta, qué sigue). Quedan para cuando su pantalla se vuelva ajustable.
+- Pesos y dólares, la clase de persona, el orden de los apartados y las vistas guardadas.
+- Lo que `SPEC.md` deja fijo para todo giro: director y asesor, las horas de cita, las opciones de posponer y los avisos de Configuración.
+
+**Lo que falta probar:** los siete puntos de arriba, con la cuenta de director y con la de un asesor (que no vea Catálogos ni pueda cambiarlas aunque lo intente); abrir un asunto desde una consulta después de apagar una fuente o un papel; unir dos fichas y continuar un asunto que usan un papel apagado; renombrar un tipo de inmueble y ver que el sitio público sigue igual; y el aspecto en teléfono, en claro y en oscuro. Siguen pendientes, de los hallazgos asignados a este paso: el 22 (el motivo de «no procede» como lista: su catálogo ya existe, la pantalla llega en el paso 4), el 27 (los papeles ya dicen su lado, pero falta marcar en cada asunto quién es el cliente) y el 43 (el Directorio todavía no muestra el papel en el renglón, ni filtra por papel, ni tiene «Nueva persona»). El 27 y el 43 piden cambiar cómo se ven el asunto y el Directorio, más allá de leer el catálogo; quedan como pendientes de este paso.
+
+Paso 2 · Empresa, equipo, folio y módulos:
+
+- [ ] Cambias el nombre, el logotipo y el membrete de la empresa, y salen así en los documentos y en los mensajes.
+- [ ] Das de alta a un asesor, entra con su cuenta, y lo das de baja pasando sus asuntos a otra persona.
+- [ ] A un asesor le asignas la función «Abogado» y a otro la de «Valuador»; un tercero se queda sin función.
+- [ ] El asesor sin función no puede emitir la opinión jurídica: ve «Pedir opinión jurídica», elige a un compañero abogado, al director o a alguien de fuera, y el asunto dice a quién espera.
+- [ ] Quien recibe el encargo lo ve en «Para ti», entra a ese asunto aunque no lo lleve, hace la opinión y a quien la pidió le llega el aviso.
+- [ ] Lo mismo con la opinión de valor y la función «Valuador». Si la hace alguien de fuera, el asesor sube el resultado y queda anotado quién la hizo.
+- [ ] El asunto nuevo nace con folio 2026-0001 y el siguiente con 2026-0002; en enero vuelve a empezar con el año nuevo.
+- [ ] Apagas Inmuebles y el sitio público: desaparecen del menú, del asunto y de Inicio, y al encenderlos vuelve todo lo capturado.
+
+Paso 3 · Fichas:
+
+- [ ] A la ficha de una persona le agregas el dato «Número de cliente» y le ocultas «Falleció»; lo ya capturado se conserva.
+- [ ] A la ficha de una nave le agregas «Carga eléctrica en kVA» y «Andenes»; a la de una casa, no.
+- [ ] La ficha muestra solo los datos que ya tienen valor, y «Agregar dato» ofrece los demás.
+- [ ] El nombre y los teléfonos de una persona no se pueden quitar.
+
+Paso 4 · Tipos de asunto:
+
+- [ ] Creas el tipo «Gestoría: trámite vehicular» con sus preguntas de consulta, sus apartados, sus datos propios, su lista de documentos y su plan, sin pedirle nada al agente.
+- [ ] En la consulta, las preguntas cambian según el tipo elegido, y cada respuesta pide el documento que tú dijiste.
+- [ ] En la consulta capturas el tipo y el subtipo; el subtipo sugiere según el tipo y acepta texto libre.
+- [ ] Cambias el tipo en el asunto y el cambio queda en el Historial.
+- [ ] Filtras la lista de Asuntos por tipo y por subtipo, y lo guardas como vista.
+- [ ] Al abrir el asunto, del encargo y el tipo salen la lista de documentos y el plan sugeridos.
+- [ ] Caso 7 · El amigo de los terrenos. Un amigo manda por WhatsApp fotos de un contrato y una carta finiquito de unos lotes: quiere saber si es legítimo antes de comprar. Nace como consulta de investigación; si el dictamen sale mal, se cierra como «no procede» sin haber creado inmueble en inventario; si sale bien, se convierte en compra.
+- [ ] Caso 9 · El extranjero que compra en la costa. Comprador extranjero, inmueble en zona restringida: el camino es fideicomiso bancario. El tipo y el régimen (fideicomiso) sugieren esa lista de documentos solos.
+
+Paso 5 · Apartados que armas tú:
+
+- [ ] Creas un apartado «Cotización» como tabla: concepto, cantidad, precio, importe que se calcula solo, IVA y total. Lo descargas en PDF con el membrete.
+- [ ] Creas un apartado de texto con títulos, negritas y listas para el análisis de una opinión.
+- [ ] Creas un apartado de formulario con tus preguntas, y sus respuestas quedan en la ficha de la persona o del inmueble.
+- [ ] Guardas esos apartados en la Biblioteca y un tipo de asunto los trae ya puestos.
+
+Paso 6 · Machotes:
+
+- [ ] En Configuración cargas un contrato en Word con sus campos, lo cambias y lo mandas a Eliminados.
+- [ ] El panel te enseña la lista de campos disponibles para copiarlos al machote.
+- [ ] Desde un asunto generas ese contrato: lo que ya está capturado entra solo, lo que falta te lo pregunta y lo contestado vuelve a la ficha.
+- [ ] Con dos copropietarios, el contrato lista a los dos.
+- [ ] La cotización en Word jala la tabla del apartado «Cotización».
+- [ ] Cargas tu hoja de Excel: sale llena con los datos del asunto y con sus fórmulas vivas; la calculas en Excel, la subes y el total queda guardado en el asunto.
+- [ ] Sacas la opinión jurídica y la opinión comercial de sus machotes, con los datos del asunto.
+
+Paso 7 · La Bandeja:
+
+- [ ] Subes juntas una escritura, una identificación y un acta: el panel dice qué es cada una, de quién es y a qué asunto va.
+- [ ] Al asignarlas quedan en los Documentos del asunto, y el nombre, el CURP, el domicilio, el folio real y la clave catastral llenan las fichas como «por confirmar».
+- [ ] Confirmas lo leído y el contrato del paso 6 sale lleno sin capturar nada a mano.
+- [ ] Lo que el panel no reconoce se queda en la Bandeja para acomodarlo a mano.
+
+Paso 8 · Valor estimado y actividad vulnerable:
+
+- [ ] Anotas el valor estimado de la operación, con su moneda, o lo dejas vacío.
+- [ ] Un asunto de Venta o de Cesión de derechos muestra en su cabecera «Actividad vulnerable: verificar identificación del cliente», y Documentos sugiere la identificación oficial y el formato de actividad vulnerable.
+- [ ] Cambias en Configuración el monto del aviso ante la autoridad y a qué tipos aplica.
+
+Paso 9 · Relacionados y permanentes:
+
+- [ ] Caso 10 · La cesión y su juicio. Una cesión de derechos litigiosos cuyo juicio hipotecario es otro asunto abierto: se enlazan como relacionados, el enlace se ve en los dos con el folio del otro, queda en el Historial de ambos y se quita cuando ya no aplica.
+- [ ] Caso 11 · La administración que nunca cierra. La plaza del caso 4, dos años después: el asunto de administración sigue abierto como permanente, sin atrasos falsos, sin contar como «sin siguiente paso» y con su revisión mensual.
+- [ ] Caso 8 · El dueño que vive en Estados Unidos. Todo por teléfono y poder notarial; nunca viene a firmar. Las tareas dependen de un tercero (el apoderado, el consulado) y el asunto pasa semanas en espera sin contar como atrasado.
+
+Paso 10 · Conflicto de interés y fuente:
+
+- [ ] Caso 12 · La contraparte que llega de cliente. La persona contra la que Fortius lleva un asunto abierto llega a pedir que la representen. La consulta avisa el conflicto antes de «Abrir asunto». El director ve de qué asunto se trata y decide: dejarlo seguir, pasarlo a otra persona, cerrarlo o registrar el conflicto. Un asesor que no lleva ese asunto ve solo «Posible conflicto de interés: el director ya fue avisado», y puede seguir.
+- [ ] El mismo aviso sale al agregar a esa persona a un asunto.
+- [ ] La fuente de la consulta queda guardada en el asunto, y la lista de Asuntos se filtra por ella.
+
+Paso 11 · El índice y las vistas:
+
+- [ ] En Asuntos eliges qué columnas ver (folio, cliente, contraparte, tipo, lo que sigue) y lo guardas como vista.
+- [ ] Ves los asuntos como tablero, con una columna por «en qué va», y en el tiempo.
+- [ ] Ves el Plan de un asunto como tablero y en el tiempo, con las tareas que esperan a otra ligadas.
+- [ ] Los documentos de una persona se ven en su ficha y los de un inmueble en la suya; el apartado Documentos los reúne todos, con lo que falta y los entregables. No hay sección de carpetas.
+
+*18/11: el boceto del paso 0 está en `docs/boceto-panel-ajustable.html`; espera tu aprobación.*
+
+*18/11: decidida y anotada en `SPEC.md`; sin construir. Hoy ninguna lista se puede cambiar sin programar: no existe dónde guardarlas ni pantalla para editarlas, y casi cada lista está fija en tres lugares a la vez (la pantalla, el servidor y la base). Hay que soltar los tres. Esta etapa trae cambios en la base de datos; se te avisa antes de escribirlos. Tampoco existen hoy el tipo y el subtipo, el valor estimado, la fuente guardada en el asunto, los relacionados, lo permanente, el aviso de conflicto ni el de actividad vulnerable.*
+
+*18/11, ampliada el mismo día: decidiste que el panel es para ti y que lo que buscas es poder ajustarlo sin el agente; por eso la etapa tiene once pasos. De lo que ya existe se aprovecha: los apartados propios (texto, tabla, lista y galería), los datos por tipo de inmueble, la captura por preguntas con la hoja a la vista y la lectura de documentos. Queda por probar, antes del paso 6, cómo sacar un PDF idéntico de un machote de Word; mientras no esté resuelto, el machote sale en Word. Se descartó abrir y editar Excel dentro del panel: saldría caro y peor que Excel; el archivo se llena, se calcula en Excel y se sube de vuelta. Usar la Bandeja con documentos de clientes reales sigue esperando el visto bueno del abogado, y el servicio que lee cobra por documento. La investigación de mercado está en `docs/investigacion/producto-vendible.md`; lo que ahí es para vender a terceros (una base por cliente, facturación, plazos legales) no entra.*
+
+**En qué paso se corrige cada hallazgo de la prueba del 18/11** (la lista está al final de este plan). Los fallos 1 a 12 se corrigen aparte, antes o junto al paso 1, porque no dependen de lo ajustable. Los de la consulta, 13 a 25, en el paso 4; el 22 y el 29, que son listas, en el paso 1. Del asunto: 26 y 27 en el paso 1 (cada papel dice de qué lado es), 28 a 31 en los pasos 8 a 10, 32 a 37 en el paso 5. De las demás secciones: 38 a 40 y 46 en el paso 11; 43 en el paso 1; 47 en el paso 2; 41, 42, 44 y 45 se corrigen aparte. En el paso 4 la plantilla ya dice qué machotes sugiere, pero se usan hasta el paso 6.
+
+**Lo que hoy está fijo y debe poder ajustarse** (inventario del 18/11, hecho usando el panel y leyendo el código). Cada cosa cae en uno de los cuatro niveles de `SPEC.md`: opciones, preguntas y datos, recuadros, o plazos y textos.
+
+| Pantalla | Opciones fijas | Preguntas y datos fijos | Recuadros fijos | Plazos y textos fijos |
+| --- | --- | --- | --- | --- |
+| **Consulta** | Por dónde (5); las de cada pregunta; los papeles | Las siete preguntas (qué quiere, de quién es, qué es, colonia, quién lo ocupa, escritura, qué debe); nombre, papel, teléfono y «Falleció» de las otras personas; no hay correo ni ciudad | Preguntas, «Para pedirle», «Otras personas del caso», «Lo que ya mandó», «Se abre para» | Qué documento pide cada respuesta; con qué encargo se abre; volver a llamar a los 14 días; el mensaje de WhatsApp para pedir documentos |
+| **Inicio** | — | — | Nueve bloques en orden fijo: Por atender, Para ti, Para hoy, Visitas, Esta semana, Lo esperas de otros, Volver a llamar, Por vencer, Por cobrar | Semana de 7 días; «Para ti» de 30 días; ámbar a la hora y rojo a las dos horas |
+| **Asunto: cabecera y cierre** | En qué va (5); encargos (4); resultados de cierre (2); posponer (1, 3, 7 o 30 días) | Motivo, «Captó» y «Vendió» al cerrar | Los nueve apartados, con su nombre, ícono, color y orden; qué apartados enciende cada encargo | Cuándo propone pasar a Propuesta, a En marcha o cerrar; espera de 14 días; el primer plan con que nace |
+| **Personas** | Papeles (14); clase de persona (3); estado civil (5) | Los datos de la ficha y sus grupos (personales, contacto, identificación y fiscales) | Los cuatro grupos (quien nos busca, dueños y herederos, del otro lado, quienes ayudan); las tres pestañas de la ficha | A quién se le escribe según quién hace la tarea |
+| **Documentos** | Estado (3); paso (3); quién entrega; los documentos «comunes» que se ofrecen | — | Los grupos (de la persona, del inmueble, del crédito, otros, informes) | Vencer en 30, 90 o 180 días; avisar 15 días antes; liga del cliente de 14 días y 60 archivos; el mensaje para pedir lo que falta |
+| **Plan** | Quién la hace (5); cómo va (4); clase de tarea (7); cada cuánto se repite (6) | Los datos de una tarea | Ver por etapas o en el tiempo | Volver a preguntar a los 3 días; horas de 8:00 a 19:00 cada media hora; el mensaje de «Recordarle» |
+| **Situación** | Las mismas listas de la consulta | Los hechos del caso | — | — |
+| **Opinión jurídica** | Resultado (3) | Resultado, análisis, qué resolver y quién | — | Las tres salidas de «no factible»; esperar un mes |
+| **Honorarios** | Estado del presupuesto (4); forma de pago (5); moneda (2); clase de concepto (2) | Los datos del concepto y del cobro | Presupuesto, contrato, cobros | Vigencia de 15 días; seguimiento a los 3; el reparto de comisión |
+| **Interesados** | Estado (5); respuesta a la oferta (4) | Visita y oferta | — | — |
+| **Informe para el cliente** | Cada cuánto (3) | — | Las seis partes de la hoja | El párrafo «En qué va» que propone |
+| **Inmuebles** | Tipo (7); operación (2); estado (5); las opciones de la ficha técnica | Los datos de la ficha técnica de cada tipo; los cuatro de «Nuevo inmueble» | Las seis pestañas de la ficha; los cuatro filtros de la lista | 5 fotos recomendadas; ficha «lista» con el 60 % de los datos; ciudad Tijuana si no se dice |
+| **Directorio** | Los filtros (4) | Lo que muestra cada renglón | Las acciones del menú de cada persona | Llamarle en una semana |
+| **Biblioteca** | Las tres clases de guía | — | — | — |
+| **Herramientas** | — | Los datos de cada calculadora | Las siete herramientas; los 44 formatos | Plazos de crédito de 10 a 25 años |
+| **Equipo** | Director y asesor | — | Los cuatro contadores por persona | — |
+| **Menú** | — | — | Las secciones del menú (hoy se reordenan, no se quitan); la barra del teléfono | — |
+| **Configuración** | Los cuatro avisos | — | — | — |
+| **Todo el panel** | Pesos y dólares | — | — | La hora de Tijuana; la clave +52; archivos de hasta 20 MB; hasta 10 notas fijadas y 30 favoritos; el nombre «Fortius» en mensajes y tareas |
+
+**Dónde se ajusta (decidido el 18/11):** cada pantalla se ajusta ahí mismo, y solo por el director. Cada recuadro (en la consulta, en una ficha, en Inicio o en un asunto) lleva su propio botón «Ajustar»; al tocarlo, ese recuadro se abre para cambiarlo ahí mismo, y «Listo» lo cierra y lo deja para todos. Al final de la pantalla está «Agregar recuadro». Nunca es un interruptor general: tiene que verse en el recuadro que se quiere cambiar. Configuración queda como el índice de todo lo ajustable, para llegar a cualquiera sin buscar la pantalla. El asesor nunca ve «Ajustar».
+
 ## 3. Cuándo se puede empezar a usar
 
 No hace falta esperar al final.
@@ -310,6 +471,7 @@ No pongo fechas porque no las puedo cumplir con honestidad: depende de cuántas 
 | 9. Equipo | Construida el 17/11 con datos simulados; espera tu aprobación |
 | 10. Funciones extra | Construida el 17/11 con datos simulados (ventanas, informes, notas y lo de todos los días); espera tu revisión |
 | 11. El cambio | Pendiente |
+| 12. El panel que ajustas tú | Decidida el 18/11; paso 1 (Catálogos) construido y sin probar |
 
 ### Fallos encontrados en la revisión del 17/11
 
@@ -318,3 +480,81 @@ Los 15 fallos de la revisión están corregidos en la rama `arreglos-pendientes`
 **Pendiente:**
 
 - El panel provisional no deja escribir a mano un folio FORTIUS en pantalla, pero el servidor lo acepta si alguien manda la petición directo y la base solo revisa que no se repita entre los inmuebles del provisional. Un código igual al folio de un inmueble del panel nuevo quedaría repetido. Hoy no hay ninguno repetido; se cierra al retirar el panel provisional o con un candado en la base.
+
+### Hallazgos de la prueba del 18/11
+
+El agente usó el panel publicado con la cuenta de director: capturó el caso 7 de principio a fin, intentó el caso 12 y recorrió todas las secciones, en computadora y en teléfono. Nada de esto está corregido todavía.
+
+**Fallos:**
+
+- [ ] 1. Un asunto cerrado hoy por la noche dice «Cerrado: no se dio · mañana». La fecha del cierre no se cuenta con la hora de Tijuana.
+- [ ] 2. En Documentos, los grupos salen como «persona», «inmueble» y «credito». Deben decir «De la persona», «Del inmueble» y «Del crédito».
+- [ ] 3. La consulta no avisa cuando la persona ya existe: con un nombre y un teléfono que ya están en el Directorio no dice nada, y al abrir el asunto crearía una ficha repetida. El aviso solo existe al agregar una persona dentro de un asunto.
+- [ ] 4. Un asunto cerrado sigue mostrando «lo que sigue» («Recibir los documentos») en su ficha y en la lista. Debe mostrar el resultado del cierre.
+- [ ] 5. No hay pantalla de Eliminados. «Mandar a Eliminados» está en asuntos, Biblioteca, Herramientas y Directorio, pero no hay dónde verlos ni recuperarlos.
+- [ ] 6. El mensaje de WhatsApp le dice al cliente «Identificación de quien llama»; debe decir «Tu identificación oficial». Solo trae «Copiar»: falta «Abrir WhatsApp» con su número.
+- [ ] 7. El cuadro «Quién llama» corta el nombre a unas 20 letras.
+- [ ] 8. El menú lateral y las pestañas de la ficha de una persona muestran barras de desplazamiento aunque todo cabe.
+- [ ] 9. Al quitar un encargo el aviso dice «Ya no dice tramitar». Debe decir «Se quitó Tramitar», con «Deshacer».
+- [ ] 10. En Configuración, el perfil del director trae un nombre que no se puede cambiar, y aparte sale el titular como persona del equipo «sin cuenta para entrar». Falta unir la cuenta con la persona.
+- [ ] 11. «Invitar» está a la vista pero todavía no envía nada. Se oculta hasta que funcione.
+- [ ] 12. Las vistas guardadas están escondidas: el botón solo aparece después de filtrar y usa la misma estrella que los favoritos. Siempre visible y con otro ícono.
+
+**Consulta:**
+
+- [ ] 13. «Qué quiere» no tiene «Revisar antes de comprar», «Tramitar», «Juicio» ni «Administrar». «Comprar» supone crédito: mete «Precalificación del crédito» y abre para «Tramitar».
+- [ ] 14. «Escritura: Sí / No / No sabe» no alcanza: falta el régimen (contrato privado, sentencia, ejidal, posesión, en sucesión, fideicomiso). Con «No» se quita la escritura de la lista y no se pide nada a cambio.
+- [ ] 15. «De quién es» no tiene «De otra persona».
+- [ ] 16. «Para pedirle» nace con identificación, escritura y predial antes de saber nada. Que empiece solo con la identificación.
+- [ ] 17. «Se abre para» es una etiqueta gris al fondo que no se puede cambiar. Lista desplegable junto a «Abrir asunto».
+- [ ] 18. «Sin asunto» parece un estado. Llamarlo «Cerrar sin asunto».
+- [ ] 19. Faltan el correo, la ciudad o municipio (hoy solo hay colonia) y el valor estimado.
+- [ ] 20. «Por dónde» no tiene Referido, Redes ni Cliente anterior, ni quién lo refirió.
+- [ ] 21. Las otras personas del caso no se pueden corregir una vez agregadas; solo quitar.
+- [ ] 22. El motivo de «No procede» es texto libre. Lista, con nota opcional.
+- [ ] 23. Las consultas sin terminar solo se ven al abrir otra. Ponerlas en Inicio.
+- [ ] 24. En «Qué debe» se puede marcar «Nada» junto con «Hipoteca». Al marcar «Nada», se desmarca lo demás.
+- [ ] 25. En el teléfono, «Abrir asunto» está arriba, antes de capturar. Abajo y fijo, y sin la barra de secciones mientras se captura.
+
+**Asunto:**
+
+- [ ] 26. Quien llama nace como «Contacto» aunque dijo que quiere comprar. Debe nacer como «Comprador». *Construido el 18/11 con los catálogos; sin probar.*
+- [ ] 27. El vendedor queda en «Dueños y herederos» aunque es la contraparte del cliente. Falta marcar quién es el cliente y agrupar por lado. *En parte el 18/11: cada papel ya dice su lado; falta marcar en cada asunto quién es el cliente.*
+- [ ] 28. Al cerrar «no se dio» una revisión pregunta «Captó» y «Vendió». Solo si se comercializó y se logró.
+- [ ] 29. Solo hay dos resultados de cierre. Faltan «No procede», «Desistió» y los que defina el titular. *Construido el 18/11 con los catálogos; sin probar.*
+- [ ] 30. Al menú del asunto le faltan: relacionar con otro asunto, permanente, compartir con un compañero, duplicar e imprimir un resumen.
+- [ ] 31. La cabecera no muestra tipo, fuente ni valor.
+- [ ] 32. Las notas ocupan un cuarto de cada ventana y su cuadro corta el texto de ayuda. Que empiecen cerradas, con su contador.
+- [ ] 33. El filtro de las notas es un interruptor de dos opciones; `SPEC.md` pide una lista de tres.
+- [ ] 34. En el Plan, «Nueva tarea» siempre está abierta con cuatro campos. Una línea que se abre al escribir.
+- [ ] 35. «Quién la hace» no deja elegir a un compañero ni a una persona concreta del asunto (el apoderado, el consulado).
+- [ ] 36. Una tarea no admite nota, archivo ni liga a un documento. «Recibir los documentos» no se marca sola cuando llegan.
+- [ ] 37. En la tarea, «Listo» se confunde con dejarla hecha. Llamarlo «Guardar».
+
+**Las demás secciones:**
+
+- [ ] 38. Asuntos: «Todos» incluye los cerrados; abrir en «Abiertos». Faltan filtros de en espera, atrasados, sin siguiente paso y por encargo.
+- [ ] 39. Asuntos: sin elegir uno, dos tercios de la pantalla quedan vacíos. Usar ese espacio para una tabla o un tablero por «en qué va».
+- [ ] 40. Asuntos: cuatro etiquetas por renglón son muchas; dejar estado y fecha. El botón «+» no dice qué hace.
+- [ ] 41. Inicio: las tareas solo se marcan. Agregar posponer y pasar a otra persona en el renglón.
+- [ ] 42. Inicio: faltan «Sin siguiente paso» y «En espera que ya toca retomar». En el teléfono sobra «Nueva consulta», que ya está en la barra.
+- [ ] 43. Directorio: no hay «Nueva persona», no se ve el papel de cada quien y no se filtra por papel.
+- [ ] 44. Inmuebles: faltan filtros por tipo, colonia, estado y asesor.
+- [ ] 45. Biblioteca: sin buscador; el número de cada guía no dice qué cuenta; no dice en cuántos asuntos se usó.
+- [ ] 46. Equipo: solo contadores. Faltan reportes: cerrados por mes, por fuente, tiempo por etapa e ingresos.
+- [ ] 47. Configuración: es una sola página larga. Le faltan Catálogos, Datos de la empresa, Plantillas de mensajes, Números del negocio y Eliminados.
+
+**Encontrado al leer el código, sin comprobar en pantalla:**
+
+- [ ] El reparto de comisión (25 % y 25 %, o 50 % si es la misma persona) que pide `SPEC.md` no está en el panel nuevo.
+
+**Sugerencias por decidir** (propuestas del agente; ninguna está aprobada):
+
+- Copiar solos los documentos de cada asunto a Google Drive: no se pidió.
+- Conflicto de interés entre asesores: si el asunto es de otro asesor, el aviso no revela el caso y dice «consulta al director».
+- Actividad vulnerable: revisar con el abogado si el monto se fija en unidades que cambian cada año y si la renta también cuenta.
+- Lo que falta como sistema de gestión: agenda, exportar a Excel, carga masiva, etiquetas, campos propios y avisos con el panel cerrado.
+
+**No se probó:** Honorarios, Opinión jurídica, Interesados, los formatos, los informes, la ficha del inmueble, el tema oscuro ni la cuenta de asesor.
+
+**Quedó en la base, de prueba:** el asunto EXP-000029 «Terreno en Lomas de Rosarito» (cerrado), sus dos personas marcadas «(ejemplo)», su terreno y una consulta cerrada como «No procede».
