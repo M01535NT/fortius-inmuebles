@@ -11,7 +11,7 @@ const VACIO = "__vacio__";
 
 /**
  * Lista desplegable del panel (regla del titular, 16/11/2026: nada de filas de botones).
- * Caja de 44 px con flecha; la lista flota con línea y sombra suave, filas de 44 px, palomita en la elegida.
+ * La misma caja que un campo (juego único, panel-kit.css): blanca, con borde, 34 px (44 en el teléfono), con flecha; la lista flota con línea y sombra suave, filas de 44 px, palomita en la elegida.
  * Teclado: Espacio o Enter abre, flechas recorren, escribir salta a la opción, Esc cierra.
  */
 export function Seleccion({ id, valor, opciones, alElegir, vacio, etiquetaAccesible, describedBy }: {
@@ -24,14 +24,11 @@ export function Seleccion({ id, valor, opciones, alElegir, vacio, etiquetaAccesi
         id={id}
         aria-label={etiquetaAccesible}
         aria-describedby={describedBy}
-        className={cn(
-          "group flex min-h-11 w-full items-center justify-between gap-2 rounded-[var(--r-md)] border border-transparent bg-[var(--fill)] px-3 text-left text-base text-[var(--ink)]",
-          "transition-[color,background-color,border-color] duration-150 hover:bg-[var(--muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]",
-          "data-[placeholder]:text-[var(--ink-muted)]",
-        )}
+        className="group pn-control pn-control-boton"
+        data-vacio={valor === "" || undefined}
       >
-        <span className="min-w-0 truncate"><S.Value placeholder={vacio ?? "Elige…"} /></span>
-        <S.Icon className="shrink-0 text-[var(--ink-muted)] transition-transform duration-150 group-data-[state=open]:rotate-180 motion-reduce:transition-none">
+        <span className="pn-control-valor"><S.Value placeholder={vacio ?? "Elige…"} /></span>
+        <S.Icon className="shrink-0 text-[var(--ink-faint)] transition-transform duration-150 group-data-[state=open]:rotate-180 motion-reduce:transition-none">
           <Gesto nombre="abajo" tamano={16} />
         </S.Icon>
       </S.Trigger>

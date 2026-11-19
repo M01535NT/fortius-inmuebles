@@ -3,6 +3,8 @@ import { useId, useMemo, useState, type ReactNode } from "react";
 
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
+import { Boton } from "@/components/panel/kit/boton";
+import { CampoFecha } from "@/components/panel/kit/campo-fecha";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { BotonDictar, sumarDictado } from "@/components/panel/kit/dictar";
 import { Interruptor } from "@/components/panel/kit/segmentado";
@@ -160,9 +162,7 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
           alElegir={(v) => { if (v && v !== t.estado) void poner({ estado: v }, nombreEstado(v)); }} />
         <Desplegable etiqueta="Quién la hace" valor={t.quien} opciones={cat.opciones("quien_tarea", t.quien)}
           alElegir={(v) => { if (v && v !== t.quien) void poner({ quien: v }, `Le toca a ${cat.etiqueta("quien_tarea", v).toLowerCase()}`); }} />
-        <label className="pn-campo" htmlFor={`${id}-f`}>Día
-          <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={t.fecha ?? ""} onChange={(e) => void poner({ fecha: e.target.value || null })} />
-        </label>
+        <CampoFecha etiqueta="Día" valor={t.fecha} vacio="Sin día" alElegir={(f) => void poner({ fecha: f })} />
         <Desplegable etiqueta="Hora" valor={t.hora?.slice(0, 5) ?? ""} vacio="Sin hora" opciones={HORAS} alElegir={(v) => void poner({ hora: v || null })} />
         <Desplegable etiqueta="Espera a" valor={t.espera_a ?? ""} vacio="No espera a otra" opciones={otras}
           ayuda={espera ? "Avisa, no frena: puedes hacerla antes." : undefined}
@@ -188,12 +188,12 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
           <Icono nombre="reloj" tamano={16} />
           <span>{t.volver_a_preguntar ? `Volver a preguntar ${fechaCorta(t.volver_a_preguntar).toLowerCase()}` : "Le toca a otro"}{t.recordada_el ? ` · se le recordó ${haceCuanto(t.recordada_el)}` : ""}</span>
           <span className="as-sp" />
-          <button type="button" className="as-btn" onClick={() => setMensaje(true)}><Icono nombre="chat" tamano={16} />Recordarle</button>
+          <Boton variante="normal" icono="chat" onClick={() => setMensaje(true)}>Recordarle</Boton>
         </div>
       ) : null}
       <div className="as-fila as-fin">
-        <button type="button" className="as-btn as-gho" onClick={() => { alCerrar(); void poner({ quitar: true }, "Tarea quitada"); }}><Icono nombre="bote" tamano={16} />Quitar</button>
-        <button type="button" className="as-btn" onClick={alCerrar}>Listo</button>
+        <Boton variante="fantasma" icono="bote" onClick={() => { alCerrar(); void poner({ quitar: true }, "Tarea quitada"); }}>Quitar</Boton>
+        <Boton variante="normal" onClick={alCerrar}>Listo</Boton>
       </div>
       <DialogoMensaje abierto={mensaje} titulo="Recordarle" para={para} alCerrar={() => setMensaje(false)}
         inicial={`Hola${para ? ` ${primerNombre(para.nombre)}` : ""}, ¿cómo va lo de «${t.titulo}»? Es para ${a.nombre}. Quedo al pendiente.`}
@@ -362,7 +362,8 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
         </>
       )}
 
-      <form className="as-card as-pad as-form" onSubmit={(e) => {
+      {/* Nueva tarea: una línea; quién, cuándo y etapa aparecen al escribir (hallazgo 34). */}
+      <form className={`as-card as-form as-nueva-tarea${titulo ? " as-pad" : ""}`} onSubmit={(e) => {
         e.preventDefault();
         const t = titulo.trim();
         if (!t) return;
@@ -375,11 +376,12 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
         }),
           quien === "fortius" ? "Tarea agregada" : "Tarea agregada: volver a preguntar en 3 días").then(() => ref.current?.focus());
       }}>
-        <p className="as-sub">Nueva tarea</p>
-        <label className="pn-campo" htmlFor={`${id}-t`}>Qué hay que hacer
+        {titulo ? <p className="as-sub">Nueva tarea</p> : null}
+        <label className={titulo ? "pn-campo" : "as-nueva-linea"} htmlFor={`${id}-t`}>
+          {titulo ? "Qué hay que hacer" : <><Icono nombre="mas" tamano={16} aria-hidden /><span className="pn-solo-lector">Nueva tarea</span></>}
           <span className="as-con-dictar">
-            <input ref={ref} id={`${id}-t`} className="as-inp as-inp-borde" value={titulo} maxLength={300} onChange={(e) => setTitulo(e.target.value)}
-              placeholder="Llamar a Laura jueves 10am" aria-describedby={leido.length ? `${id}-l` : undefined} />
+            <input ref={ref} id={`${id}-t`} className={titulo ? "as-inp as-inp-borde" : "as-inp"} value={titulo} maxLength={300} onChange={(e) => setTitulo(e.target.value)}
+              placeholder={titulo ? "Llamar a Laura jueves 10am" : "Nueva tarea: «Llamar a Laura jueves 10am»"} aria-describedby={leido.length ? `${id}-l` : undefined} />
             <BotonDictar que="la tarea" alDictar={(x) => setTitulo((v) => sumarDictado(v, x))} alFallar={avisar} />
           </span>
         </label>
@@ -388,16 +390,21 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
             {leido.map((p) => <span key={p.k} className="pn-chp"><i>{p.k}</i><b>{p.v}</b></span>)}
           </p>
         ) : null}
-        <div className="as-g2">
-          <Desplegable etiqueta="Quién la hace" valor={quien} opciones={cat.opciones("quien_tarea", quien)} alElegir={(v) => { if (v) setQuien(v); }} />
-          <label className="pn-campo" htmlFor={`${id}-f`}>Para cuándo
-            <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={fecha} onChange={(e) => setFecha(e.target.value)} />
-          </label>
-          {a.etapas.length ? (
-            <Desplegable etiqueta="Etapa" valor={etapa} vacio="Sin etapa" opciones={a.etapas.map((e) => ({ valor: e.id, etiqueta: e.nombre }))} alElegir={setEtapa} />
-          ) : null}
-        </div>
-        <button type="submit" className="as-btn as-pri" aria-disabled={!titulo.trim()}><Icono nombre="mas" tamano={16} />Agregar</button>
+        {titulo ? (
+          <>
+            <div className="as-g2">
+              <Desplegable etiqueta="Quién la hace" valor={quien} opciones={cat.opciones("quien_tarea", quien)} alElegir={(v) => { if (v) setQuien(v); }} />
+              <CampoFecha etiqueta="Para cuándo" valor={fecha || null} vacio="Sin fecha" alElegir={(f) => setFecha(f ?? "")} />
+              {a.etapas.length ? (
+                <Desplegable etiqueta="Etapa" valor={etapa} vacio="Sin etapa" opciones={a.etapas.map((e) => ({ valor: e.id, etiqueta: e.nombre }))} alElegir={setEtapa} />
+              ) : null}
+            </div>
+            <div className="as-fila as-fin">
+              <Boton variante="fantasma" onClick={() => setTitulo("")}>Cancelar</Boton>
+              <Boton type="submit" variante="primario" icono="mas" deshabilitado={!titulo.trim()}>Agregar</Boton>
+            </div>
+          </>
+        ) : null}
       </form>
 
       <form className="as-fila as-nueva-etapa" onSubmit={(e) => {
@@ -408,7 +415,7 @@ function Plan({ a, foco, hacer }: { a: Asunto; foco: boolean; hacer: Hacer }) {
         void hacer(async () => { const r = await agregar<{ id: string }>(a.id, "etapas", { nombre: n }); setEtapa(r.id); }, `Etapa nueva: ${n}`);
       }}>
         <input className="as-inp as-inp-borde" value={nuevaEtapa} maxLength={120} onChange={(e) => setNuevaEtapa(e.target.value)} placeholder="Nueva etapa" aria-label="Nombre de la etapa nueva" />
-        {nuevaEtapa.trim() ? <button type="submit" className="as-btn">Agregar etapa</button> : null}
+        {nuevaEtapa.trim() ? <Boton type="submit" variante="normal">Agregar etapa</Boton> : null}
       </form>
     </>
   );

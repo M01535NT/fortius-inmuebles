@@ -1,30 +1,35 @@
 "use client";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import "../asunto/asunto.css";
 import "./consulta.css";
+import { enlaceWhatsApp } from "@/components/panel/asunto/comun";
 import { Cuadro } from "@/components/panel/asunto/pildora";
 import { useCatalogos } from "@/components/panel/datos/catalogos";
-import { Icono } from "@/components/panel/icons";
+import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
+import { Boton, BotonEnlace } from "@/components/panel/kit/boton";
+import { Campo, CampoTelefono } from "@/components/panel/kit/campo";
+import { CampoFecha } from "@/components/panel/kit/campo-fecha";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { BotonDictar, sumarDictado } from "@/components/panel/kit/dictar";
+import { Etiqueta } from "@/components/panel/kit/etiqueta";
+import { Plegable, Propiedad } from "@/components/panel/kit/propiedad";
+import { SeleccionMultiple } from "@/components/panel/kit/seleccion-multiple";
+import { Checkbox } from "@/components/panel/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
-import {
-  DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger,
-} from "@/components/panel/ui/dropdown-menu";
-import { Switch } from "@/components/panel/ui/switch";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/panel/ui/dropdown-menu";
+import { Seleccion } from "@/components/panel/ui/select";
 import {
   FalloPanel, haceCuanto, iconoEncargo, iniciales, sumarDias, type Papel,
 } from "@/lib/panel/asuntos/api";
 import {
   DEBE, DE_QUIEN, NOMBRE_DEBE, NOMBRE_DE_QUIEN, NOMBRE_OCUPA, NOMBRE_QUIERE, NOMBRE_SI_NO,
   OCUPA, QUIERE, SI_NO,
-  abrirAsuntoDe, adjuntar, cerrarComoContacto, cerrarNoProcede, empezarConsulta, encargosSegun, guardarConsulta, leerAbiertas,
+  abrirAsuntoDe, adjuntar, cambiarDocumentoDeArchivo, cerrarComoContacto, cerrarNoProcede, empezarConsulta, encargosSegun, guardarConsulta, leerAbiertas,
   leerConsulta, mensajeParaPedir, quitarAdjunto, unirDocumentos,
-  type Canal, type Carga, type ConsultaAbierta, type DatosConsulta, type Debe, type DocumentoPedir, type OtraPersona,
+  type Canal, type Carga, type ConsultaAbierta, type DatosConsulta, type DocumentoPedir, type OtraPersona,
 } from "@/lib/panel/consulta/api";
 
 /**
@@ -62,7 +67,6 @@ export function PantallaConsulta() {
   const params = useSearchParams();
   const { avisar } = useAvisos();
   const cat = useCatalogos();
-  const id = useId();
 
   const [b, setB] = useState<Borrador>(VACIO);
   const [cargas, setCargas] = useState<Carga[]>([]);
@@ -70,7 +74,7 @@ export function PantallaConsulta() {
   const [cargando, setCargando] = useState(true);
   const [cerrada, setCerrada] = useState<string | null>(null);
   const [abiertas, setAbiertas] = useState<ConsultaAbierta[]>([]);
-  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<{ texto: string; canal: CanalMensaje } | null>(null);
   const [dialogo, setDialogo] = useState<"contacto" | "no_procede" | null>(null);
   const [abriendo, setAbriendo] = useState(false);
   const [subiendo, setSubiendo] = useState(0);
@@ -133,6 +137,9 @@ export function PantallaConsulta() {
       return nuevo;
     });
   }, []);
+  function marcarRecibido(nombre: string, si: boolean) {
+    cambiar((y) => ({ ...y, documentos_pedir: y.documentos_pedir.map((z) => (z.nombre === nombre ? { ...z, recibido: si } : z)) }));
+  }
   useEffect(() => {
     if (!listoRef.current) return;
     if (!tieneAlgo(b) && !idRef.current) return;
@@ -202,7 +209,12 @@ export function PantallaConsulta() {
   // ── Derivados ───────────────────────────────────────────────────────────────────────────────────────
   const d = b.datos;
   const encargos = useMemo(() => encargosSegun(d), [d]);
-  const porPedir = b.documentos_pedir.filter((x) => !x.quitado).length;
+  const pedidos = b.documentos_pedir.filter((x) => !x.quitado);
+  const quitados = b.documentos_pedir.filter((x) => x.quitado);
+  const faltan = pedidos.filter((x) => !recibido(x));
+  const recibidos = pedidos.length - faltan.length;
+  const nombresPedidos = new Set(pedidos.map((x) => x.nombre));
+  const sueltos = cargas.filter((c) => !docDeCarga(c) || !nombresPedidos.has(docDeCarga(c) as string));
   const otrasSinTerminar = abiertas.filter((a) => a.id !== idUrl);
 
   const ponDato = <K extends keyof DatosConsulta>(k: K, v: DatosConsulta[K] | "") =>
@@ -254,14 +266,16 @@ export function PantallaConsulta() {
     }
   }
 
-  async function subir(archivos: File[]) {
+  /** Sube archivos sueltos o, con `documento`, los liga a ese documento pedido y lo marca como recibido. */
+  async function subir(archivos: File[], documento?: string) {
     if (!archivos.length) return;
     if (!(await asegurarGuardada())) { avisar("Aún no se guarda la consulta. Revisa la conexión y vuelve a intentar."); return; }
     setSubiendo((n) => n + archivos.length);
     for (const archivo of archivos) {
       try {
-        const c = await adjuntar(idRef.current as string, archivo);
-        setCargas((x) => [...x, c]);
+        const c = await adjuntar(idRef.current as string, archivo, documento);
+        setCargas((x) => [...x, documento ? { ...c, documento } : c]);
+        if (documento) marcarRecibido(documento, true);
       } catch (e) {
         avisar(`${archivo.name}: ${e instanceof Error ? e.message : "no se pudo subir"}`);
       } finally {
@@ -274,10 +288,38 @@ export function PantallaConsulta() {
     try {
       await quitarAdjunto(idRef.current as string, c.id);
       setCargas((x) => x.filter((y) => y.id !== c.id));
+      // Si era el único archivo de su documento, el documento vuelve a faltar; «Deshacer» lo deja marcado sin archivo.
+      const doc = docDeCarga(c);
+      if (doc && !cargas.some((y) => y.id !== c.id && docDeCarga(y) === doc)) {
+        marcarRecibido(doc, false);
+        avisar(`Archivo quitado: «${doc}» vuelve a faltar`, { etiqueta: "Deshacer", alAccionar: () => marcarRecibido(doc, true) });
+      } else {
+        avisar("Archivo quitado");
+      }
     } catch (e) {
       avisar(e instanceof Error ? e.message : "No se pudo quitar");
     }
   }
+
+  /** Liga un archivo suelto a un documento pedido (o lo suelta con null). Ligarlo marca el documento como recibido. */
+  async function ligarArchivo(c: Carga, documento: string | null) {
+    try {
+      const nueva = await cambiarDocumentoDeArchivo(idRef.current as string, c.id, documento);
+      setCargas((x) => x.map((y) => (y.id === c.id ? { ...y, ...nueva, documento: documento ?? undefined } : y)));
+      if (documento) marcarRecibido(documento, true);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : "No se pudo cambiar");
+    }
+  }
+
+  // Ctrl+Enter (⌘+Enter en Mac) abre el asunto desde cualquier campo, sin soltar el teclado.
+  const abrirRef = useRef<() => void>(() => {});
+  useEffect(() => { abrirRef.current = () => { if (!cargando && !cerrada) void abrir(); }; });
+  useEffect(() => {
+    const alTeclear = (e: KeyboardEvent) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); abrirRef.current(); } };
+    window.addEventListener("keydown", alTeclear);
+    return () => window.removeEventListener("keydown", alTeclear);
+  }, []);
 
   function nuevaConsulta() {
     guardarRespaldo(null);
@@ -298,8 +340,8 @@ export function PantallaConsulta() {
           <Cuadro icono={esAsunto ? "asu" : "ok"} color={esAsunto ? "blue" : "gray"} />
           <p><b>{esAsunto ? "Esta consulta ya abrió su asunto." : cerrada === "contacto" ? "Esta consulta quedó como contacto." : "Esta consulta se cerró: no procede."}</b></p>
           <div className="as-fila">
-            {esAsunto ? <Link className="as-btn as-pri" href={`/panel/asuntos/${cerrada}`}>Ir al asunto</Link> : null}
-            <button type="button" className="as-btn" onClick={nuevaConsulta}><Icono nombre="mas" tamano={16} />Nueva consulta</button>
+            {esAsunto ? <BotonEnlace variante="primario" href={`/panel/asuntos/${cerrada}`}>Ir al asunto</BotonEnlace> : null}
+            <Boton variante="normal" icono="mas" onClick={nuevaConsulta}>Nueva consulta</Boton>
           </div>
         </div>
       </div>
@@ -310,159 +352,230 @@ export function PantallaConsulta() {
     vacia: "Se guarda sola", guardando: "Guardando…", guardada: "Guardada", sin_conexion: "Sin conexión: guardada en este equipo", error: "No se guardó",
   };
 
+  const malEstado = estado === "sin_conexion" || estado === "error";
+  const contestadas = [d.que_quiere, d.de_quien, d.tipo, d.colonia, d.ocupa, d.escritura, d.debe?.length ? "si" : undefined].filter(Boolean).length;
+  // Lo agregado a mano se borra; lo que pide la regla queda quitado (se recuerda por nombre) y se puede volver a pedir.
+  const quitarDoc = (nombre: string) => cambiar((y) => ({
+    ...y, documentos_pedir: y.documentos_pedir.flatMap((z) => (z.nombre !== nombre ? [z] : z.propio ? [] : [{ ...z, quitado: true }])),
+  }));
+  const volverAPedir = (nombre: string) => cambiar((y) => ({ ...y, documentos_pedir: y.documentos_pedir.map((z) => (z.nombre === nombre ? { ...z, quitado: false } : z)) }));
+
   return (
     <div className="cs-in">
-      <div className="cs-top">
-        <Link href="/panel" className="as-btn as-gho as-ico" aria-label="Cerrar la consulta" title="Cerrar (queda guardada)"><Icono nombre="x" tamano={18} /></Link>
-        <h1 className="as-h1 cs-h1">Consulta</h1>
-        <span className={`cs-vivo${estado === "sin_conexion" || estado === "error" ? " cs-vivo-mal" : ""}`} role="status"><i aria-hidden />{textoEstado[estado]}</span>
+      {/* Barra fija: cerrar, cómo va el guardado y la única acción azul («Abrir asunto»). Ctrl+Enter también abre. */}
+      <header className="cs-barra">
+        <BotonEnlace href="/panel" variante="fantasma" soloIcono icono="x" aria-label="Cerrar la consulta" title="Cerrar (queda guardada)" />
+        <h1 className="cs-h1">Consulta</h1>
+        <span className="cs-estado" data-mal={malEstado || undefined} role="status"><i aria-hidden /><span className="cs-estado-t">{textoEstado[estado]}</span></span>
         <span className="as-sp" />
-        <DropdownMenu>
-          <DropdownMenuTrigger className="as-btn">Sin asunto<Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onSelect={() => setDialogo("contacto")}><Icono nombre="users" tamano={16} />Guardar como contacto</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setDialogo("no_procede")}><Icono nombre="x" tamano={16} />No procede</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <button type="button" className="as-btn as-pri" onClick={() => void abrir()} aria-disabled={abriendo}>
-          <Icono nombre="ok" tamano={16} />{abriendo ? "Abriendo…" : "Abrir asunto"}
-        </button>
-      </div>
-
-      {otrasSinTerminar.length ? (
-        <div className="as-ban cs-ban" role="status">
-          <Icono nombre="reloj" tamano={16} />
-          <span>{otrasSinTerminar.length === 1 ? "Tienes otra consulta sin terminar" : `Tienes ${otrasSinTerminar.length} consultas sin terminar`}</span>
-          <span className="as-sp" />
+        {otrasSinTerminar.length ? (
           <DropdownMenu>
-            <DropdownMenuTrigger className="as-btn">Seguir con…<Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuTrigger className="pn-btn pn-btn-fantasma cs-otras" title="Consultas sin terminar">
+              <Icono nombre="reloj" tamano={16} aria-hidden /><span className="cs-ocultar-tel">Sin terminar</span><span className="cs-num">{otrasSinTerminar.length}</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Seguir con…</DropdownMenuLabel>
               {otrasSinTerminar.map((a) => (
                 <DropdownMenuItem key={a.id} onSelect={() => { guardarRespaldo(null); router.push(`/panel/consulta?id=${a.id}`); }}>
+                  <Icono nombre="tel" tamano={16} />
                   <span className="cs-sin">{a.quien_nombre.trim() || "Sin nombre"}<span className="as-m">{haceCuanto(a.updated_at)}</span></span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      ) : null}
+        ) : null}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="pn-btn pn-btn-fantasma" aria-label="Cerrar sin asunto">
+            <span className="cs-ocultar-tel">Sin asunto</span><Icono nombre="down" tamano={14} aria-hidden />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => setDialogo("contacto")}><Icono nombre="users" tamano={16} />Guardar como contacto</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setDialogo("no_procede")}><Icono nombre="x" tamano={16} />No procede</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Boton variante="primario" icono="ok" className="cs-abrir" onClick={() => void abrir()} deshabilitado={abriendo} title="Abrir asunto (Ctrl + Enter)">
+          {abriendo ? "Abriendo…" : "Abrir asunto"}
+        </Boton>
+      </header>
 
       <div className="cs-dos">
-        <div className="cs-col">
-          <div className="as-card as-pad cs-g">
-            <div className="cs-g3">
-              <label className="pn-campo" htmlFor={`${id}-n`}>Quién llama
-                <input id={`${id}-n`} className="as-inp as-inp-borde" value={b.quien_nombre} maxLength={160} autoFocus autoComplete="off"
-                  onChange={(e) => cambiar((x) => ({ ...x, quien_nombre: e.target.value }))} />
-              </label>
-              <div className="pn-campo">
-                <label htmlFor={`${id}-t`}>Teléfono</label>
-                <span className="as-tel">
-                  <input aria-label="Clave del país" className="as-inp as-inp-borde as-clave" value={b.pais} maxLength={5} inputMode="tel"
-                    onChange={(e) => cambiar((x) => ({ ...x, pais: e.target.value }))} />
-                  <input id={`${id}-t`} className="as-inp as-inp-borde" inputMode="tel" value={b.numero} maxLength={30} autoComplete="off"
-                    onChange={(e) => cambiar((x) => ({ ...x, numero: e.target.value }))} />
+        {/* La hoja: quién llama y qué pasa al frente, luego las preguntas como renglones «dato: valor». */}
+        <section className="pn-superficie cs-hoja" aria-label="Consulta">
+          {/* «Quién llama» como título de la hoja: un nombre completo cabe sin cortarse (hallazgo 7). */}
+          <textarea className="cs-quien" rows={1} value={b.quien_nombre} maxLength={160} autoFocus autoComplete="off" placeholder="Quién llama" aria-label="Quién llama"
+            onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
+            onChange={(e) => cambiar((x) => ({ ...x, quien_nombre: e.target.value.replace(/\s*\n\s*/g, " ") }))} />
+          <div className="pn-props cs-contacto">
+            <Propiedad icono="tel" etiqueta="Teléfono">
+              {(id) => (
+                <span className="pn-tel">
+                  <input className="pn-control" aria-label="Clave del país" value={b.pais} maxLength={5} inputMode="tel" autoComplete="off" onChange={(e) => cambiar((x) => ({ ...x, pais: e.target.value }))} />
+                  <input id={id} className="pn-control" inputMode="tel" value={b.numero} maxLength={30} autoComplete="off" placeholder="Número" onChange={(e) => cambiar((x) => ({ ...x, numero: e.target.value }))} />
                 </span>
-              </div>
-              <Desplegable etiqueta="Por dónde" valor={b.canal} opciones={cat.opciones("fuente", b.canal)}
-                alElegir={(v) => cambiar((x) => ({ ...x, canal: (v || "llamada") as Canal }))} />
-            </div>
-            <label className="pn-campo" htmlFor={`${id}-q`}>
-              <span className="as-fila">Qué pasa<span className="as-sp" />
-                <BotonDictar que="qué pasa" alDictar={(t) => cambiar((x) => ({ ...x, que_pasa: sumarDictado(x.que_pasa, t) }))} alFallar={avisar} />
-              </span>
-              <textarea id={`${id}-q`} className="as-inp as-inp-borde as-area cs-que" value={b.que_pasa} maxLength={20000} placeholder="Como te lo cuenta"
-                onChange={(e) => cambiar((x) => ({ ...x, que_pasa: e.target.value }))} />
-            </label>
+              )}
+            </Propiedad>
+            <Propiedad icono="globo" etiqueta="Por dónde">
+              {(id) => <Seleccion id={id} valor={b.canal} opciones={cat.opciones("fuente", b.canal)} alElegir={(v) => cambiar((x) => ({ ...x, canal: (v || "llamada") as Canal }))} />}
+            </Propiedad>
           </div>
 
-          <div className="as-card as-pad">
-            <div className="cs-g3">
-              <Desplegable etiqueta="Qué quiere" valor={d.que_quiere ?? ""} vacio="Sin decir" opciones={ops(QUIERE, NOMBRE_QUIERE)} alElegir={(v) => ponDato("que_quiere", v)} />
-              <Desplegable etiqueta="De quién es" valor={d.de_quien ?? ""} vacio="Sin decir" opciones={ops(DE_QUIEN, NOMBRE_DE_QUIEN)} alElegir={(v) => ponDato("de_quien", v)} />
-              <Desplegable etiqueta="Qué es" valor={d.tipo ?? ""} vacio="Sin decir" opciones={cat.opciones("tipo_inmueble", d.tipo)} alElegir={(v) => ponDato("tipo", v)} />
-              <label className="pn-campo" htmlFor={`${id}-c`}>Colonia
-                <input id={`${id}-c`} className="as-inp as-inp-borde" value={d.colonia ?? ""} maxLength={120} autoComplete="off"
-                  onChange={(e) => ponDato("colonia", e.target.value)} />
-              </label>
-              <Desplegable etiqueta="Quién lo ocupa" valor={d.ocupa ?? ""} vacio="Sin decir" opciones={ops(OCUPA, NOMBRE_OCUPA)} alElegir={(v) => ponDato("ocupa", v)} />
-              <Desplegable etiqueta="Escritura" valor={d.escritura ?? ""} vacio="Sin decir" opciones={ops(SI_NO, NOMBRE_SI_NO)} alElegir={(v) => ponDato("escritura", v)} />
-              <QueDebe valor={d.debe ?? []} alCambiar={(v) => ponDato("debe", v)} />
-            </div>
-          </div>
-        </div>
-
-        <div className="cs-col">
-          <section>
-            <h2 className="cs-h2">
-              <Cuadro icono="file" color="teal" chico />Para pedirle <span className="as-m">{porPedir || ""}</span>
+          <div className="cs-que-bloque">
+            <div className="pn-bloque-t">
+              <label htmlFor="cs-que">Qué pasa</label>
               <span className="as-sp" />
-              <button type="button" className="as-btn as-gho as-ico" title="Mensaje para WhatsApp" aria-label="Mensaje para WhatsApp"
-                onClick={() => setMensaje(mensajeParaPedir(b.quien_nombre, b.documentos_pedir))}><Icono nombre="chat" tamano={17} /></button>
-            </h2>
-            <div className="as-card cs-docs">
-              {b.documentos_pedir.map((x) => (
-                <div key={x.nombre} className="as-t" data-est={x.quitado ? "no_aplica" : "pendiente"}>
-                  <button type="button" className="as-ckb" aria-pressed={!x.quitado} aria-label={`${x.quitado ? "Pedir" : "No pedir"}: ${x.nombre}`}
-                    onClick={() => cambiar((y) => ({ ...y, documentos_pedir: y.documentos_pedir.map((z) => (z.nombre === x.nombre ? { ...z, quitado: !z.quitado } : z)) }))}>
-                    <span className="as-ck as-ck-cu">{x.quitado ? null : <Icono nombre="ok" tamano={12} />}</span>
-                  </button>
-                  <span className="as-tb"><span className="as-n">{x.nombre}</span></span>
-                  {x.propio ? (
-                    <button type="button" className="as-btn as-gho as-ico" aria-label={`Quitar ${x.nombre}`}
-                      onClick={() => cambiar((y) => ({ ...y, documentos_pedir: y.documentos_pedir.filter((z) => z.nombre !== x.nombre) }))}><Icono nombre="x" tamano={15} /></button>
-                  ) : null}
-                </div>
-              ))}
-              <AgregarRenglon etiqueta="Otro documento por pedir" alAgregar={(nombre) => cambiar((y) =>
-                y.documentos_pedir.some((z) => z.nombre.toLowerCase() === nombre.toLowerCase()) ? y
-                  : { ...y, documentos_pedir: [...y.documentos_pedir, { nombre, grupo: "otro", entrega_papel: "cliente", propio: true }] })} />
+              <BotonDictar que="qué pasa" alDictar={(t) => cambiar((x) => ({ ...x, que_pasa: sumarDictado(x.que_pasa, t) }))} alFallar={avisar} />
             </div>
-          </section>
+            <textarea id="cs-que" className="cs-que" value={b.que_pasa} maxLength={20000} placeholder="Como te lo cuenta…"
+              onChange={(e) => cambiar((x) => ({ ...x, que_pasa: e.target.value }))} />
+          </div>
+
+          <div className="cs-preguntas">
+            <div className="pn-bloque-t"><Icono nombre="lista" tamano={15} aria-hidden />Preguntas<span className="pn-cuenta">{contestadas} de 7</span></div>
+            <div className="pn-props">
+              <Propiedad icono="rayo" etiqueta="Qué quiere">
+                {(id) => <Seleccion id={id} valor={d.que_quiere ?? ""} vacio="Sin decir" opciones={ops(QUIERE, NOMBRE_QUIERE)} alElegir={(v) => ponDato("que_quiere", v as typeof QUIERE[number] | "")} />}
+              </Propiedad>
+              <Propiedad icono="users" etiqueta="De quién es">
+                {(id) => <Seleccion id={id} valor={d.de_quien ?? ""} vacio="Sin decir" opciones={ops(DE_QUIEN, NOMBRE_DE_QUIEN)} alElegir={(v) => ponDato("de_quien", v as typeof DE_QUIEN[number] | "")} />}
+              </Propiedad>
+              <Propiedad icono="casa" etiqueta="Qué es">
+                {(id) => <Seleccion id={id} valor={d.tipo ?? ""} vacio="Sin decir" opciones={cat.opciones("tipo_inmueble", d.tipo)} alElegir={(v) => ponDato("tipo", v)} />}
+              </Propiedad>
+              <Propiedad icono="pin" etiqueta="Colonia">
+                {(id) => <input id={id} className="pn-control" value={d.colonia ?? ""} maxLength={120} autoComplete="off" placeholder="Sin decir" onChange={(e) => ponDato("colonia", e.target.value)} />}
+              </Propiedad>
+              <Propiedad icono="llave" etiqueta="Quién lo ocupa">
+                {(id) => <Seleccion id={id} valor={d.ocupa ?? ""} vacio="Sin decir" opciones={ops(OCUPA, NOMBRE_OCUPA)} alElegir={(v) => ponDato("ocupa", v as typeof OCUPA[number] | "")} />}
+              </Propiedad>
+              <Propiedad icono="sello" etiqueta="Escritura">
+                {(id) => <Seleccion id={id} valor={d.escritura ?? ""} vacio="Sin decir" opciones={ops(SI_NO, NOMBRE_SI_NO)} alElegir={(v) => ponDato("escritura", v as typeof SI_NO[number] | "")} />}
+              </Propiedad>
+              <Propiedad icono="pago" etiqueta="Qué debe" sinEnlace>
+                {() => <SeleccionMultiple etiqueta="Qué debe" sinEtiqueta valor={d.debe ?? []} opciones={ops(DEBE, NOMBRE_DEBE)} exclusivas={["nada", "no_sabe"]} alCambiar={(v) => ponDato("debe", v)} />}
+              </Propiedad>
+            </div>
+          </div>
+
+          <p className="cs-para">
+            <Icono nombre="asu" tamano={15} aria-hidden />
+            <span>Se abre para</span>
+            {encargos.map((e) => <Etiqueta key={e} icono={iconoEncargo(e)[0]}>{cat.etiqueta("encargo", e)}</Etiqueta>)}
+            {!encargos.length ? <span>lo que se decida en el asunto</span> : null}
+          </p>
+        </section>
+
+        {/* Lo de apoyo, plegado con su resumen: se abre cuando hace falta. */}
+        <aside className="cs-lado" aria-label="Para el asunto">
+          {/* Documentos como checklist: marcado = ya lo mandó. Adjuntar en el renglón lo marca solo. */}
+          <Plegable icono="file" titulo="Documentos" llave="consulta-pedir" abiertoAlEmpezar
+            resumen={subiendo ? `Subiendo ${subiendo}…` : pedidos.length ? `${recibidos} de ${pedidos.length} recibidos` : sueltos.length ? `${sueltos.length} ${sueltos.length === 1 ? "archivo" : "archivos"}` : "Nada"}>
+            <ul className="cs-docs">
+              {pedidos.map((x) => {
+                const suyos = cargas.filter((c) => docDeCarga(c) === x.nombre);
+                return (
+                  <li key={x.nombre} className="cs-doc" data-recibido={recibido(x) || undefined}>
+                    <Checkbox checked={recibido(x)} aria-label={`Ya mandó: ${x.nombre}`} onCheckedChange={(v) => marcarRecibido(x.nombre, v === true)} />
+                    <span className="cs-doc-n">
+                      <span className="cs-doc-t">{x.nombre}</span>
+                      {suyos.map((c) => (
+                        <span key={c.id} className="cs-arch">
+                          <Icono nombre={c.mime === "application/pdf" ? "pdf" : "img"} tamano={14} aria-hidden />
+                          <span className="cs-arch-n">{c.nombre_original}</span>
+                          <button type="button" className="cs-arch-x" aria-label={`Quitar el archivo ${c.nombre_original}`} onClick={() => void quitarArchivo(c)}>
+                            <Icono nombre="x" tamano={13} aria-hidden />
+                          </button>
+                        </span>
+                      ))}
+                    </span>
+                    <label className="pn-btn pn-btn-fantasma pn-btn-icono cs-doc-acc" title={`Adjuntar ${x.nombre}`}>
+                      <Icono nombre="subir" tamano={16} aria-hidden />
+                      <input type="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp" className="sr-only" aria-label={`Adjuntar ${x.nombre}`}
+                        onChange={(e) => { const lista = [...(e.target.files ?? [])]; e.target.value = ""; void subir(lista, x.nombre); }} />
+                    </label>
+                    <Boton variante="fantasma" soloIcono icono="x" className="cs-doc-acc" aria-label={`Quitar ${x.nombre} de la lista`} onClick={() => quitarDoc(x.nombre)} />
+                  </li>
+                );
+              })}
+              {sueltos.map((c) => (
+                <li key={c.id} className="cs-doc" data-recibido>
+                  <Icono nombre={c.mime === "application/pdf" ? "pdf" : "img"} tamano={17} aria-hidden className="cs-doc-ic" />
+                  <span className="cs-doc-n"><span className="cs-doc-t">{c.nombre_original}</span></span>
+                  {faltan.length ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="pn-btn pn-btn-fantasma pn-btn-icono cs-doc-acc" aria-label={`Qué documento es ${c.nombre_original}`} title="Qué documento es">
+                        <Icono nombre="liga" tamano={16} aria-hidden />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Es…</DropdownMenuLabel>
+                        {faltan.map((x) => (
+                          <DropdownMenuItem key={x.nombre} onSelect={() => void ligarArchivo(c, x.nombre)}><Icono nombre="file" tamano={16} />{x.nombre}</DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : null}
+                  <Boton variante="fantasma" soloIcono icono="x" className="cs-doc-acc" aria-label={`Quitar el archivo ${c.nombre_original}`} onClick={() => void quitarArchivo(c)} />
+                </li>
+              ))}
+            </ul>
+            <AgregarRenglon etiqueta="Otro documento" alAgregar={(nombre) => cambiar((y) => {
+              const ya = y.documentos_pedir.find((z) => z.nombre.toLowerCase() === nombre.toLowerCase());
+              if (ya) return ya.quitado ? { ...y, documentos_pedir: y.documentos_pedir.map((z) => (z === ya ? { ...z, quitado: false } : z)) } : y;
+              return { ...y, documentos_pedir: [...y.documentos_pedir, { nombre, grupo: "otro", entrega_papel: "cliente", propio: true }] };
+            })} />
+            <label className="cs-agregar cs-otro-arch">
+              <Icono nombre="subir" tamano={15} aria-hidden />
+              <span>{subiendo ? `Subiendo ${subiendo}…` : "Otro archivo"}</span>
+              <input type="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp" className="sr-only" aria-label="Adjuntar otro archivo"
+                onChange={(e) => { const lista = [...(e.target.files ?? [])]; e.target.value = ""; void subir(lista); }} />
+            </label>
+            {quitados.length ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="cs-quitados">
+                  {quitados.length} {quitados.length === 1 ? "quitado" : "quitados"}<Icono nombre="down" tamano={14} aria-hidden />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuLabel>Volver a pedir</DropdownMenuLabel>
+                  {quitados.map((x) => (
+                    <DropdownMenuItem key={x.nombre} onSelect={() => volverAPedir(x.nombre)}><Icono nombre="ciclo" tamano={16} />{x.nombre}</DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="pn-btn cs-whats">
+                <Icono nombre="chat" tamano={16} aria-hidden />Mandar la lista<Icono nombre="down" tamano={15} aria-hidden className="cs-whats-flecha" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {(Object.keys(CANALES) as CanalMensaje[]).map((c) => (
+                  <DropdownMenuItem key={c} onSelect={() => setMensaje({ texto: mensajeParaPedir(b.quien_nombre, b.documentos_pedir, cargas), canal: c })}>
+                    <Icono nombre={CANALES[c].icono} tamano={16} />{CANALES[c].nombre}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </Plegable>
 
           <OtrasPersonas lista={b.otras_personas} alCambiar={(otras) => cambiar((x) => ({ ...x, otras_personas: otras }))} />
 
-          <section>
-            <h2 className="cs-h2"><Cuadro icono="subir" color="teal" chico />Lo que ya mandó <span className="as-m">{cargas.length || ""}</span></h2>
-            <div className="as-card">
-              {cargas.map((c) => (
-                <div key={c.id} className="as-ren">
-                  <Icono nombre={c.mime === "application/pdf" ? "pdf" : "img"} tamano={18} />
-                  <span className="as-ren-c"><b className="as-corta">{c.nombre_original}</b></span>
-                  <span className="as-pill as-pill-ok">Recibido</span>
-                  <button type="button" className="as-btn as-gho as-ico" aria-label={`Quitar ${c.nombre_original}`} onClick={() => void quitarArchivo(c)}><Icono nombre="x" tamano={15} /></button>
-                </div>
-              ))}
-              <div className="as-pad">
-                <label className="as-btn cs-subir">
-                  <Icono nombre="subir" tamano={16} />{subiendo ? `Subiendo ${subiendo}…` : "Adjuntar archivos"}
-                  <input type="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp" className="sr-only"
-                    onChange={(e) => { const lista = [...(e.target.files ?? [])]; e.target.value = ""; void subir(lista); }} />
-                </label>
-              </div>
-            </div>
-          </section>
-
-          <div className="as-fila cs-para">
-            <span className="as-m">Se abre para</span>
-            {(encargos.length ? encargos : []).map((e) => (
-              <span key={e} className="as-pill"><Icono nombre={iconoEncargo(e)[0]} tamano={12} />{cat.etiqueta("encargo", e)}</span>
-            ))}
-            {!encargos.length ? <span className="as-m">lo que se decida en el asunto</span> : null}
-          </div>
-        </div>
+        </aside>
       </div>
 
       <Dialog open={mensaje !== null} onOpenChange={(o) => { if (!o) setMensaje(null); }}>
         <DialogContent className="max-w-md">
-          <DialogTitle>Mensaje para WhatsApp</DialogTitle>
+          <DialogTitle>{mensaje ? CANALES[mensaje.canal].titulo : "Mensaje"}</DialogTitle>
           <DialogDescription>Tú lo envías; nada sale solo.</DialogDescription>
-          <textarea className="as-inp as-inp-borde as-area cs-msg" readOnly value={mensaje ?? ""} aria-label="Mensaje" />
+          <textarea className="as-inp as-inp-borde as-area cs-msg" value={mensaje?.texto ?? ""} aria-label="Mensaje"
+            onChange={(e) => setMensaje((m) => (m ? { ...m, texto: e.target.value } : m))} />
           <div className="as-fila as-fin">
-            <button type="button" className="as-btn" onClick={() => setMensaje(null)}>Cerrar</button>
-            <button type="button" className="as-btn as-pri" onClick={() => {
-              void navigator.clipboard.writeText(mensaje ?? "").then(() => avisar("Mensaje copiado"), () => avisar("No se pudo copiar; selecciónalo y cópialo"));
-            }}><Icono nombre="copia" tamano={16} />Copiar</button>
+            <Boton variante="normal" icono="copia" onClick={() => {
+              void navigator.clipboard.writeText(mensaje?.texto ?? "").then(() => avisar("Mensaje copiado"), () => avisar("No se pudo copiar; selecciónalo y cópialo"));
+            }}>Copiar</Boton>
+            {mensaje ? (
+              <a className="pn-btn pn-btn-primario" href={enlaceDeMensaje(mensaje.canal, mensaje.texto, `${b.pais}${b.numero}`)}
+                target={mensaje.canal === "whatsapp" ? "_blank" : undefined} rel="noopener noreferrer" onClick={() => setMensaje(null)}>
+                <Icono nombre={CANALES[mensaje.canal].icono} tamano={16} aria-hidden />{CANALES[mensaje.canal].abrir}
+              </a>
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>
@@ -472,33 +585,25 @@ export function PantallaConsulta() {
   );
 }
 
-/** «Qué debe»: se eligen varias. */
-function QueDebe({ valor, alCambiar }: { valor: Debe[]; alCambiar: (v: Debe[]) => void }) {
-  const texto = valor.length ? valor.map((v) => NOMBRE_DEBE[v]).join(", ") : "Sin decir";
-  return (
-    <div className="pn-campo">
-      <span id="cs-debe">Qué debe</span>
-      <DropdownMenu>
-        <DropdownMenuTrigger className="as-inp as-inp-borde cs-multi" aria-labelledby="cs-debe" aria-describedby="cs-debe-v">
-          <span id="cs-debe-v" className="as-corta">{texto}</span><Icono nombre="down" tamano={14} />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-52">
-          <DropdownMenuLabel>Qué debe (varias)</DropdownMenuLabel>
-          {DEBE.map((v) => (
-            <DropdownMenuCheckboxItem key={v} checked={valor.includes(v)} onSelect={(e) => e.preventDefault()}
-              onCheckedChange={(si) => {
-                const sin = valor.filter((x) => x !== v);
-                // «Nada» y «No sabe» no se combinan con lo demás.
-                const solo = v === "nada" || v === "no_sabe";
-                alCambiar(si ? (solo ? [v] : [...sin.filter((x) => x !== "nada" && x !== "no_sabe"), v]) : sin);
-              }}>
-              {NOMBRE_DEBE[v]}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+/*
+ * «Ya lo mandó» (SPEC.md, sección 4, renglón «Documentos»): cada documento pedido lleva `recibido` y cada archivo, el
+ * `documento` al que pertenece. Lo que no los trae (consultas ya guardadas) cuenta como no recibido y archivo suelto.
+ */
+const recibido = (x: DocumentoPedir) => x.recibido === true;
+const docDeCarga = (c: Carga) => c.documento || null;
+
+/** Por dónde se le manda la lista de lo que se pide. Se abre la app con el mensaje escrito; lo envía el asesor. */
+type CanalMensaje = "whatsapp" | "texto" | "correo";
+const CANALES: Record<CanalMensaje, { nombre: string; titulo: string; abrir: string; icono: NombreIcono }> = {
+  whatsapp: { nombre: "WhatsApp", titulo: "Mensaje para WhatsApp", abrir: "Abrir WhatsApp", icono: "chat" },
+  texto: { nombre: "Mensaje de texto", titulo: "Mensaje de texto", abrir: "Abrir mensajes", icono: "tel" },
+  correo: { nombre: "Correo", titulo: "Correo", abrir: "Abrir correo", icono: "arroba" },
+};
+function enlaceDeMensaje(canal: CanalMensaje, texto: string, telefono: string) {
+  const d = telefono.replace(/\D/g, "");
+  if (canal === "whatsapp") return enlaceWhatsApp(texto, telefono);
+  if (canal === "texto") return `sms:${d.length >= 8 ? `+${d}` : ""}?body=${encodeURIComponent(texto)}`;
+  return `mailto:?body=${encodeURIComponent(texto)}`;
 }
 
 /** Un renglón para escribir y agregar con Enter. */
@@ -506,73 +611,57 @@ function AgregarRenglon({ etiqueta, alAgregar }: { etiqueta: string; alAgregar: 
   const [t, setT] = useState("");
   return (
     <form className="cs-agregar" onSubmit={(e) => { e.preventDefault(); const v = t.trim(); if (!v) return; alAgregar(v.slice(0, 200)); setT(""); }}>
-      <Icono nombre="mas" tamano={15} />
-      <input className="as-inp cs-inp-plano" placeholder={etiqueta} aria-label={etiqueta} value={t} maxLength={200} onChange={(e) => setT(e.target.value)} />
+      <Icono nombre="mas" tamano={15} aria-hidden />
+      <input className="cs-inp-plano" placeholder={etiqueta} aria-label={etiqueta} value={t} maxLength={200} onChange={(e) => setT(e.target.value)} />
     </form>
   );
 }
 
 /** Otras personas del caso (la titular, los hermanos…), con su papel, sin salir de la consulta. */
 function OtrasPersonas({ lista, alCambiar }: { lista: OtraPersona[]; alCambiar: (l: OtraPersona[]) => void }) {
-  const id = useId();
   const [nombre, setNombre] = useState("");
   const cat = useCatalogos();
   const [elegido, setPapel] = useState<Papel>("titular");
   // Quien llama ya entra como contacto: aquí se ofrecen los demás papeles. Si «titular» se desactivó, el primero que quede.
   const papeles = cat.opciones("papel").filter((o) => o.valor !== "contacto");
   const papel = papeles.some((o) => o.valor === elegido) ? elegido : papeles[0]?.valor ?? elegido;
-  const [fallecida, setFallecida] = useState(false);
   const [pais, setPais] = useState("+52");
   const [numero, setNumero] = useState("");
   const listo = nombre.trim().length > 0;
   function agregar() {
     if (!listo) return;
     alCambiar([...lista, {
-      nombre: nombre.trim().slice(0, 160), papel, fallecida: fallecida || undefined,
-      ...(numero.trim() && !fallecida ? { pais, numero: numero.trim() } : {}),
+      nombre: nombre.trim().slice(0, 160), papel,
+      ...(numero.trim() ? { pais, numero: numero.trim() } : {}),
     }]);
-    setNombre(""); setNumero(""); setFallecida(false);
+    setNombre(""); setNumero("");
   }
+  const resumen = lista.length ? lista.map((p) => p.nombre.split(" ")[0]).join(", ") : "Nadie más";
   return (
-    <section>
-      <h2 className="cs-h2"><Cuadro icono="users" color="blue" chico />Otras personas del caso <span className="as-m">{lista.length || ""}</span></h2>
-      <div className="as-card">
-        {lista.map((p, i) => (
-          <div key={`${p.nombre}-${i}`} className="as-ren">
-            <span className="as-av" aria-hidden>{iniciales(p.nombre)}</span>
-            <span className="as-ren-c"><b>{p.nombre}</b>{p.numero ? <span>{p.pais} {p.numero}</span> : null}</span>
-            {p.fallecida ? <span className="as-pill">Falleció</span> : null}
-            <span className="as-pill">{cat.etiqueta("papel", p.papel)}</span>
-            <button type="button" className="as-btn as-gho as-ico" aria-label={`Quitar a ${p.nombre}`} onClick={() => alCambiar(lista.filter((_, j) => j !== i))}><Icono nombre="x" tamano={15} /></button>
-          </div>
-        ))}
-        <form className="as-pad as-form" onSubmit={(e) => { e.preventDefault(); agregar(); }}>
-          <div className="as-g2">
-            <label className="pn-campo" htmlFor={`${id}-n`}>Nombre
-              <input id={`${id}-n`} className="as-inp as-inp-borde" value={nombre} maxLength={160} autoComplete="off" onChange={(e) => setNombre(e.target.value)} />
-            </label>
-            <Desplegable etiqueta="Papel" valor={papel} opciones={papeles} alElegir={(v) => { if (v) setPapel(v); }} />
-          </div>
-          {!fallecida ? (
-            <div className="pn-campo">
-              <label htmlFor={`${id}-t`}>Teléfono (opcional)</label>
-              <span className="as-tel">
-                <input aria-label="Clave del país" className="as-inp as-inp-borde as-clave" value={pais} maxLength={5} onChange={(e) => setPais(e.target.value)} />
-                <input id={`${id}-t`} className="as-inp as-inp-borde" inputMode="tel" value={numero} maxLength={30} onChange={(e) => setNumero(e.target.value)} />
-              </span>
-            </div>
-          ) : null}
-          <div className="as-fila">
-            <label className="as-fila as-switch">
-              <Switch checked={fallecida} onCheckedChange={setFallecida} aria-label="Falleció" />
-              <span>Falleció</span>
-            </label>
-            <span className="as-sp" />
-            <button type="submit" className="as-btn" aria-disabled={!listo}><Icono nombre="mas" tamano={16} />Agregar</button>
-          </div>
-        </form>
-      </div>
-    </section>
+    <Plegable icono="users" titulo="Otras personas" llave="consulta-personas" resumen={resumen}>
+      {lista.length ? (
+        <ul className="cs-docs">
+          {lista.map((p, i) => (
+            <li key={`${p.nombre}-${i}`} className="cs-doc cs-persona">
+              <span className="as-av" aria-hidden>{iniciales(p.nombre)}</span>
+              <span className="cs-doc-n">{p.nombre}<span className="as-m">{[cat.etiqueta("papel", p.papel), p.fallecida ? "Falleció" : p.numero ? `${p.pais} ${p.numero}` : ""].filter(Boolean).join(" · ")}</span></span>
+              <Boton variante="fantasma" soloIcono icono="x" className="cs-doc-x" aria-label={`Quitar a ${p.nombre}`} onClick={() => alCambiar(lista.filter((_, j) => j !== i))} />
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <form className="as-form cs-persona-nueva" onSubmit={(e) => { e.preventDefault(); agregar(); }}>
+        <div className="as-g2">
+          <Campo etiqueta="Nombre" value={nombre} maxLength={160} autoComplete="off" onChange={(e) => setNombre(e.target.value)} />
+          <Desplegable etiqueta="Papel" valor={papel} opciones={papeles} alElegir={(v) => { if (v) setPapel(v); }} />
+        </div>
+        <CampoTelefono etiqueta="Teléfono (opcional)" pais={pais} numero={numero} alCambiarPais={setPais} alCambiarNumero={setNumero} />
+        {/* «Falleció» no va aquí: es un dato más de la ficha de la persona (decisión del 18/11). */}
+        <div className="as-fila as-fin">
+          <Boton type="submit" variante="normal" icono="mas" deshabilitado={!listo}>Agregar</Boton>
+        </div>
+      </form>
+    </Plegable>
   );
 }
 
@@ -594,23 +683,18 @@ function DialogoCierre({ abierto, alCerrar, alGuardar }: {
 }
 
 function FormaCierre({ como, alCerrar, alGuardar }: { como: "contacto" | "no_procede"; alCerrar: () => void; alGuardar: (como: "contacto" | "no_procede", valor: string) => void }) {
-  const id = useId();
   const [valor, setValor] = useState(como === "contacto" ? sumarDias(14) : "");
   const listo = como === "no_procede" || /^\d{4}-\d{2}-\d{2}$/.test(valor);
   return (
     <form className="as-form" onSubmit={(e) => { e.preventDefault(); if (!listo) return; alCerrar(); alGuardar(como, valor.trim()); }}>
       {como === "contacto" ? (
-        <label className="pn-campo" htmlFor={`${id}-f`}>Volver a llamarle el
-          <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={valor} onChange={(e) => setValor(e.target.value)} autoFocus />
-        </label>
+        <CampoFecha etiqueta="Volver a llamarle el" valor={valor} alElegir={(f) => setValor(f ?? "")} autoFocus />
       ) : (
-        <label className="pn-campo" htmlFor={`${id}-m`}>Motivo (opcional)
-          <input id={`${id}-m`} className="as-inp as-inp-borde" value={valor} maxLength={1000} onChange={(e) => setValor(e.target.value)} autoFocus />
-        </label>
+        <Campo etiqueta="Motivo (opcional)" value={valor} maxLength={1000} onChange={(e) => setValor(e.target.value)} autoFocus />
       )}
       <div className="as-fila as-fin">
-        <button type="button" className="as-btn" onClick={alCerrar}>Cancelar</button>
-        <button type="submit" className="as-btn as-pri" aria-disabled={!listo}>{como === "contacto" ? "Guardar" : "Cerrar consulta"}</button>
+        <Boton variante="normal" onClick={alCerrar}>Cancelar</Boton>
+        <Boton type="submit" variante="primario" deshabilitado={!listo}>{como === "contacto" ? "Guardar" : "Cerrar consulta"}</Boton>
       </div>
     </form>
   );

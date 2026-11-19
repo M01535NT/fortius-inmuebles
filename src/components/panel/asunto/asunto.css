@@ -130,7 +130,7 @@ button.as-ren:hover { background: var(--fill); }
 .as-sub-fila > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
 .as-form { display: flex; flex-direction: column; gap: 12px; }
 .as-form > .as-btn { align-self: flex-start; }
-.as-form .as-inp:not(.as-area) { height: 44px; }
+/* La altura de los campos la pone el juego único (panel-kit.css). */
 .as-g2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .as-tel { display: flex; gap: 6px; }
 .as-clave { width: 64px; flex: none; }
@@ -146,36 +146,76 @@ button.as-ren:hover { background: var(--fill); }
 .as-hico-nota { background: var(--accent-soft); color: var(--accent); }
 .as-htxt { color: var(--ink) !important; font-size: 14px !important; overflow-wrap: anywhere; }
 
-/* Ventana de un apartado */
-.as-velo { position: fixed; inset: 0; background: var(--scrim); z-index: 40; animation: as-funde 150ms; }
+/*
+ * Ventana de un apartado, con la dirección de diseño (panel-kit.css): una hoja blanca, la cabecera con el nombre al
+ * frente y los controles discretos, y dentro grupos separados por líneas finas en vez de cajas. Entra con un
+ * desplazamiento corto y sale más rápido de lo que entra; con movimiento reducido, sin animación.
+ */
+.as-velo { position: fixed; inset: 0; background: var(--scrim); z-index: 40; animation: as-funde 180ms ease-out; }
+.as-velo[data-state="closed"] { animation: as-desvanece 140ms ease-in forwards; }
 .as-win {
-  position: fixed; top: 0; right: 0; bottom: 0; width: min(580px, 100%); background: var(--bg); border-left: 1px solid var(--border);
-  box-shadow: var(--sombra-flota); z-index: 41; display: flex; flex-direction: column; animation: as-desliza 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --win-x: 20px;
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(600px, 100%); background: var(--card);
+  box-shadow: -1px 0 0 var(--border), var(--sombra-flota); z-index: 41; display: flex; flex-direction: column;
+  animation: as-desliza 220ms cubic-bezier(0.23, 1, 0.32, 1);
 }
+.as-win[data-state="closed"] { animation: as-sale 150ms ease-in forwards; }
 .as-win:focus { outline: none; }
-.as-win-h { display: flex; align-items: center; gap: 10px; padding: 12px max(14px, env(safe-area-inset-right, 0px)) 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
-.as-win-t { min-width: 0; flex: 1; }
-.as-win-b { font-size: 15px; font-weight: 650; }
-.as-win-c { flex: 1; overflow-y: auto; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 60px 16px; display: flex; flex-direction: column; gap: 14px; overscroll-behavior: contain; }
+.as-win-h {
+  display: flex; align-items: center; gap: 4px; min-height: 64px; padding: max(10px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 10px 10px;
+  border-bottom: 1px solid var(--border); background: var(--card);
+}
+.as-win-h > .as-tile { margin: 0 4px 0 6px; }
+.as-win-t { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; margin-left: 4px; }
+.as-win-b { font-size: 17px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.25; }
+.as-win-t .as-m { font-size: 12.5px; }
+.as-win-h .as-btn.as-gho { height: 34px; border-radius: var(--r-sm); color: var(--ink-muted); transition: background-color 150ms ease, color 150ms ease; }
+.as-win-h .as-btn.as-gho:hover { color: var(--ink); }
+.as-win-h .as-btn.as-ico { width: 34px; padding: 0; }
+.as-win-h .as-btn:active { transform: scale(0.97); }
+.as-win-sep { width: 1px; height: 20px; margin: 0 4px; background: var(--border); }
+.as-win-notas { gap: 6px; padding: 0 10px; font-size: 13.5px; font-weight: 550; }
+.as-win-notas[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent) !important; }
+.as-win-cuenta { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--fill); color: var(--ink); font-size: 12px; font-weight: 650; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums; }
+.as-win-notas[aria-pressed="true"] .as-win-cuenta { background: var(--card); color: var(--accent); }
+.as-win-c { flex: 1; overflow-y: auto; padding: 24px max(28px, env(safe-area-inset-right, 0px)) 64px 28px; display: flex; flex-direction: column; gap: 20px; overscroll-behavior: contain; }
 .as-win-c > * { flex-shrink: 0; }
+
+/* Dentro de la hoja, sin cajas dentro de cajas: los grupos de renglones se separan con líneas finas; lo que se está
+   capturando (un formulario) va sobre un fondo suave. */
+.as-win .as-card { background: none; border: 0; border-radius: 0; box-shadow: inset 0 1px 0 var(--border), inset 0 -1px 0 var(--border); }
+.as-win .as-card > button.as-ren, .as-win .as-card > button.as-ren:first-child, .as-win .as-card > button.as-ren:last-child { border-radius: var(--r-md); }
+.as-win .as-card.as-pad { background: var(--fill); box-shadow: none; border-radius: var(--r-lg); padding: 16px; }
+.as-win .as-card.as-gal, .as-win .as-card.as-tareas { box-shadow: none; }
+.as-win .as-sub { font-size: 13px; color: var(--ink-muted); }
+.as-win .pp-tarjeta { border-color: transparent; background: var(--fill); transition: background-color 150ms ease; }
+.as-win .pp-tarjeta:hover { border-color: transparent; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.as-win .pp-tarjeta:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.as-win .pp-hueco { padding: 4px 0 2px 28px; border: 0; }
+.as-lat { background: var(--bg); }
+
 @keyframes as-funde { from { opacity: 0; } }
-@keyframes as-desliza { from { transform: translateX(24px); opacity: 0; } }
-@keyframes as-desliza-izq { from { transform: translateX(-24px); opacity: 0; } }
+@keyframes as-desvanece { to { opacity: 0; } }
+@keyframes as-desliza { from { transform: translateX(var(--win-x)); opacity: 0; } }
+@keyframes as-sale { to { transform: translateX(calc(var(--win-x) * 0.6)); opacity: 0; } }
 @keyframes as-brota { from { transform: scale(0.97); opacity: 0; } }
+@keyframes as-encoge { to { transform: scale(0.98); opacity: 0; } }
 
 /* Dónde se abre la ventana (SPEC.md, «Las ventanas»): solo en pantallas anchas; en el teléfono siempre ocupa la pantalla. */
 .as-solo-pc { display: none; }
 @media (min-width: 901px) {
   .as-solo-pc { display: inline-flex; }
-  .as-win[data-modo="izquierda"] { right: auto; left: 0; border-left: 0; border-right: 1px solid var(--border); animation-name: as-desliza-izq; }
+  .as-win[data-modo="izquierda"] { --win-x: -20px; right: auto; left: 0; box-shadow: 1px 0 0 var(--border), var(--sombra-flota); }
   .as-win[data-modo="centro"] {
-    inset: 5vh 0; margin-inline: auto; width: min(920px, calc(100% - 64px)); border: 1px solid var(--border); border-radius: 16px;
-    overflow: hidden; animation-name: as-brota;
+    inset: 5vh 0; margin-inline: auto; width: min(920px, calc(100% - 64px)); border-radius: var(--r-lg);
+    box-shadow: 0 0 0 1px var(--border), var(--sombra-flota); overflow: hidden; animation-name: as-brota;
   }
-  .as-win[data-modo="completa"] { left: 0; width: 100%; border-left: 0; animation-name: as-funde; }
-  .as-win[data-modo="completa"] .as-win-c { padding-inline: max(16px, calc((100% - 880px) / 2)); }
+  .as-win[data-modo="centro"][data-state="closed"] { animation-name: as-encoge; }
+  .as-win[data-modo="completa"] { left: 0; width: 100%; box-shadow: none; animation-name: as-funde; }
+  .as-win[data-modo="completa"][data-state="closed"] { animation-name: as-desvanece; }
+  .as-win[data-modo="completa"] .as-win-c { padding-inline: max(28px, calc((100% - 880px) / 2)); }
 }
-@media (prefers-reduced-motion: reduce) { .as-velo, .as-win { animation: none; } .as-cargando span { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .as-velo, .as-win, .as-velo[data-state="closed"], .as-win[data-state="closed"] { animation: none; } .as-cargando span { animation: none; } }
 
 /* Teléfono y tableta: una columna a la vez */
 @media (max-width: 900px) {
@@ -191,8 +231,13 @@ button.as-ren:hover { background: var(--fill); }
   .as-ico { width: 44px; }
   .as-pills .as-pil { min-height: 32px; }
   .as-g2 { grid-template-columns: minmax(0, 1fr); }
-  .as-win { width: 100%; border-left: 0; }
-  .as-win-c { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+  .as-win { --win-x: 0px; width: 100%; box-shadow: none; animation-name: as-funde; }
+  .as-win[data-state="closed"] { animation-name: as-desvanece; }
+  .as-win-h { min-height: 60px; padding-left: 4px; gap: 0; }
+  .as-win-h .as-btn.as-gho { height: 44px; }
+  .as-win-h .as-btn.as-ico { width: 44px; }
+  .as-win-b { font-size: 16px; }
+  .as-win-c { padding: 18px 16px calc(40px + env(safe-area-inset-bottom, 0px)); gap: 16px; }
 }
 
 /* Apartados a fondo (etapa 5): documentos, opinión, honorarios, interesados, plan y apartados propios */
@@ -302,7 +347,7 @@ button.as-ren:hover { background: var(--fill); }
 .as-notas-filtro .pn-campo > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .as-notas-comp { position: relative; margin: 0 14px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); display: flex; flex-direction: column; }
 .as-notas-comp:focus-within { border-color: var(--accent); }
-.as-notas-comp textarea { border: 0; resize: none; background: transparent; padding: 10px 11px 4px; min-height: 58px; width: 100%; font: inherit; color: var(--ink); outline: none; }
+.as-notas-comp textarea { border: 0; resize: none; background: transparent; padding: 10px 11px 4px; min-height: 80px; width: 100%; font: inherit; color: var(--ink); outline: none; }
 .as-notas-comp textarea::placeholder { color: var(--ink-faint); }
 .as-notas-tags { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 10px; }
 .as-tag { display: inline-flex; align-items: center; gap: 2px; height: 26px; padding: 0 2px 0 8px; border-radius: 7px; font-size: 12px; font-weight: 550; background: var(--accent-soft); color: var(--accent); }
@@ -396,3 +441,11 @@ button.as-ren:hover { background: var(--fill); }
 .as-btn[data-favorito] svg { fill: currentColor; }
 /* La tarea que se repite con su informe: se dice, no se cambia aquí. */
 .as-edicion-nota { display: flex; align-items: center; gap: 6px; margin: 0; align-self: end; min-height: 40px; }
+
+/* Nueva tarea en una línea (hallazgo 34): se ve como «+ Nueva tarea…» y se abre al escribir. */
+.as-nueva-linea { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 6px 0 14px; color: var(--ink-faint); cursor: text; }
+.as-nueva-linea .as-con-dictar { flex: 1; }
+.as-nueva-linea .as-inp { flex: 1; height: 40px; padding: 0; border: 0; background: none; box-shadow: none; }
+.as-nueva-linea:focus-within { color: var(--accent); }
+.as-nueva-tarea:not(.as-pad):focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.panel-root .as-nueva-linea .as-inp:focus, .panel-root .as-nueva-linea .as-inp:focus-visible { border: 0; box-shadow: none; outline: none; background: none; }

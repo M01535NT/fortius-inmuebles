@@ -331,3 +331,157 @@ button.pn-dato { cursor: pointer; }
 .pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-cuenta-menu { position: absolute; top: 2px; right: 2px; min-width: 16px; height: 16px; font-size: 10px; padding: 0 4px; }
 .pn-barra-liga { position: relative; }
 .pn-barra-liga .pn-cuenta-menu { position: absolute; top: 4px; left: calc(50% + 4px); margin: 0; }
+
+/* ======================= Juego único de controles (revisión visual del 18/11) =======================
+   Campo, área de texto, lista desplegable, selección múltiple y fecha comparten LA MISMA caja, como el boceto
+   (.inp y .dd): blanca, con borde, esquinas de 9 px y 34 px de alto; 44 px y letra de 16 px en el teléfono.
+   Así un formulario se ve parejo aunque mezcle campos y listas. */
+.panel-root :is(.pn-control, .pn-campo input:where(:not([type="checkbox"], [type="radio"], [type="file"])), .pn-campo textarea, .as-inp-borde) {
+  width: 100%; min-width: 0; height: 34px; padding: 0 11px; border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--card); color: var(--ink); font: inherit; font-size: 14px; font-weight: 400; line-height: 1.4; outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.panel-root :is(.pn-campo textarea, textarea.as-inp-borde) { height: auto; min-height: 92px; padding: 8px 11px; resize: vertical; line-height: 1.5; }
+.panel-root :is(.pn-control, .pn-campo input, .pn-campo textarea, .as-inp-borde):hover { border-color: var(--border-strong); }
+.panel-root :is(.pn-control, .pn-campo input, .pn-campo textarea, .as-inp-borde):focus-visible,
+.panel-root :is(.pn-campo input, .pn-campo textarea, .as-inp-borde):focus,
+.panel-root .pn-control[data-state="open"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); outline: none; }
+.panel-root :is(.pn-campo input, .pn-campo textarea, .as-inp-borde)::placeholder { color: var(--ink-muted); opacity: 1; }
+.panel-root :is(.pn-control, .pn-campo input, .pn-campo textarea, .as-inp-borde):disabled,
+.panel-root .pn-control[aria-disabled="true"] { background: var(--muted); color: var(--ink-muted); }
+/* Lista desplegable, selección múltiple y fecha: el valor a la izquierda y la flecha (o el calendario) a la derecha. */
+.panel-root .pn-control-boton { display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer; }
+.panel-root .pn-control-boton > .pn-control-valor { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .pn-control-boton > svg { flex: none; color: var(--ink-faint); transition: transform 150ms ease; }
+.panel-root .pn-control-boton[data-state="open"] > svg.pn-control-flecha { transform: rotate(180deg); }
+.panel-root .pn-control-boton[data-vacio="true"] > .pn-control-valor,
+.panel-root .pn-control-boton[data-placeholder] > .pn-control-valor { color: var(--ink-muted); }
+/* La etiqueta de un campo con una acción a la derecha (dictar, limpiar). */
+.pn-campo-cab { display: flex; align-items: center; gap: 8px; min-height: 20px; }
+.pn-campo-cab > label, .pn-campo-cab > span:first-child { flex: 1; }
+.pn-campo-cab .pn-btn-icono { width: 28px; height: 28px; margin: -4px 0; }
+/* Teléfono: clave del país y número en la misma línea. */
+.pn-tel { display: flex; gap: 6px; }
+.panel-root .pn-tel > input { flex: 1; }
+.panel-root .pn-tel > input:first-child, .panel-root .as-tel > .as-clave { width: 64px; flex: none; }
+
+/* Botones: el normal (blanco con borde, como .btn del boceto), el fantasma y el de solo ícono. */
+.pn-btn-fantasma { border-color: transparent; background: none; }
+.pn-btn-fantasma:hover { background: var(--fill); }
+.pn-btn-icono { width: 34px; padding: 0; flex: none; }
+.pn-btn-icono.pn-btn-chico { width: 28px; height: 28px; }
+
+/* Etiqueta de estado: una sola pieza para «En marcha», «Hoy», «Recibido»… */
+.pn-etq { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 999px; background: var(--fill); color: var(--ink-muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pn-etq[data-tono="exito"] { background: var(--exito-soft); color: var(--exito); }
+.pn-etq[data-tono="aviso"] { background: var(--warning-soft); color: var(--warning); }
+.pn-etq[data-tono="error"] { background: var(--error-soft); color: var(--error); }
+.pn-etq[data-tono="acento"] { background: var(--accent-soft); color: var(--accent); }
+
+/* Calendario dentro de su ventana flotante (fecha). */
+.pn-fecha-flota { width: 312px; max-width: calc(100vw - 32px); padding: 8px; }
+.pn-fecha-flota .pn-cal { padding: 4px; }
+.pn-fecha-flota .pn-cal-dia { height: 38px; font-size: 14px; }
+.pn-fecha-pie { display: flex; justify-content: space-between; gap: 8px; padding: 6px 4px 2px; border-top: 1px solid var(--border); margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .panel-root :is(.pn-control, .pn-campo input:where(:not([type="checkbox"], [type="radio"], [type="file"])), .as-inp-borde) { height: 44px; font-size: 16px; }
+  .panel-root :is(.pn-campo textarea, textarea.as-inp-borde) { height: auto; font-size: 16px; }
+  .pn-btn-icono { width: 44px; }
+  .pn-campo-cab .pn-btn-icono { width: 44px; height: 44px; margin: -12px -8px -12px 0; }
+  .pn-fecha-flota .pn-cal-dia { height: 44px; }
+}
+
+/* Al abrir una lista o un menú la página ya no brinca: el hueco de la barra de desplazamiento queda reservado. */
+html:has(.panel-root) { scrollbar-gutter: stable; }
+html:has(.panel-root) body[data-scroll-locked] { margin-right: 0 !important; }
+
+/* Menú lateral: sin barras de desplazamiento visibles cuando todo cabe (hallazgo 8); sigue desplazándose si no cabe. */
+.pn-side-in, .pn-side .pn-arrastre { scrollbar-width: none; }
+.pn-side-in::-webkit-scrollbar, .pn-side .pn-arrastre::-webkit-scrollbar { display: none; }
+
+/* ======================= Dirección de diseño (propuesta del 18/11, por aprobar) =======================
+ * Se conserva la identidad (logo, colores de panel-ds.css, letra e íconos); cambia la composición.
+ *  1. Espacios en pasos de 4: 4 · 8 · 12 · 16 · 24 · 32 · 48. Entre bloques de una página, 32; dentro de un bloque, 12–16.
+ *  2. Letra: título de página 26/650 (−0.02em) · título de bloque 13/600 en tinta tenue · dato 14/450 · etiqueta de dato
+ *     13/450 tenue · nota 12/500. La jerarquía la hacen el tamaño, el peso y el aire, no las cajas.
+ *  3. Renglones: 36 px en computadora (44 en el teléfono). Listas de todos los días: 44 px con dos líneas.
+ *  4. Una sola hoja blanca por pantalla para el contenido principal; dentro, nada de cajas en cajas: se agrupa con aire,
+ *     un título de bloque y, si hace falta, una línea fina. Borde solo en controles sueltos y en lo que flota.
+ *  5. Fondo `--fill` para el paso del cursor y lo elegido. Los datos de un renglón «dato: valor» se ven como texto hasta
+ *     que se pasa el cursor (fondo) o se enfocan (aro azul).
+ *  6. Radios: 6 (chicos), 9 (controles), 14 (hojas y lo que flota). Sombra solo en lo que flota (--sombra-flota) y una
+ *     sombra mínima en la hoja.
+ *  7. Movimiento: color y fondo 150 ms; abrir y plegar 200 ms con curva (0.23, 1, 0.32, 1); presionar 0.97 en 120 ms.
+ *     Nada se anima al usar el teclado; con movimiento reducido, solo opacidad.
+ *  8. Una sola acción azul por pantalla: en la consulta «Abrir asunto», en el asunto «Hecha» de lo que sigue.
+ *     Lo demás va sin borde o en un menú.
+ *  9. Lo secundario se pliega con su resumen a la vista («Para pedirle · 3»), nunca se quita.
+ * 10. Barras de desplazamiento finas, del color del borde.
+ */
+.panel-root { --curva: cubic-bezier(0.23, 1, 0.32, 1); --sombra-hoja: 0 1px 2px rgb(15 18 24 / 0.04), 0 0 0 1px var(--border); }
+.panel-root * { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+
+/* La superficie: la única hoja blanca de una pantalla. */
+.pn-superficie { background: var(--card); border-radius: var(--r-lg); box-shadow: var(--sombra-hoja); }
+
+/* Título de bloque: pequeño y tenue; el aire hace el resto. */
+.pn-bloque-t { display: flex; align-items: center; gap: 8px; min-height: 28px; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.pn-bloque-t > svg { color: var(--ink-faint); flex: none; }
+.pn-bloque-t .pn-cuenta { font-weight: 500; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+/* Renglones «dato: valor» (como las propiedades de Notion o Linear). */
+.pn-props { display: flex; flex-direction: column; gap: 2px; }
+.pn-prop { display: grid; grid-template-columns: minmax(120px, 168px) minmax(0, 1fr); align-items: center; gap: 8px; min-height: 36px; }
+.pn-prop-e { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; color: var(--ink-muted); }
+.pn-prop-e > svg { color: var(--ink-faint); flex: none; }
+.pn-prop-v { min-width: 0; }
+.pn-prop-v .pn-campo { gap: 0; }
+.panel-root .pn-prop-v :is(.pn-control, .pn-campo input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) {
+  height: 32px; border-color: transparent; background: transparent; padding-inline: 8px; font-weight: 450;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.panel-root .pn-prop-v :is(.pn-control, input):hover { background: var(--fill); border-color: transparent; }
+.panel-root .pn-prop-v :is(.pn-control, input):focus-visible,
+.panel-root .pn-prop-v .pn-control[data-state="open"] { background: var(--card); border-color: var(--accent); }
+.panel-root .pn-prop-v .pn-control-boton > :last-child:not(.pn-control-valor) { opacity: 0; transition: opacity 150ms ease; }
+.panel-root .pn-prop:hover .pn-control-boton > :last-child,
+.panel-root .pn-prop-v .pn-control:focus-visible > :last-child, .panel-root .pn-prop-v .pn-control[data-state="open"] > :last-child { opacity: 1; }
+/* Lo que falta se nota de un vistazo: «Sin decir» va claramente más tenue que un dato lleno. */
+.panel-root .pn-prop-v .pn-control[data-vacio], .panel-root .pn-prop-v .pn-control[data-vacio] .pn-control-valor { color: var(--ink-faint); font-weight: 400; }
+.panel-root .pn-prop-v input.pn-control::placeholder { color: var(--ink-faint); font-weight: 400; }
+/* En pantallas táctiles no hay ratón que descubra el control: un fondo suave y la flecha siempre a la vista. */
+@media (hover: none) {
+  .panel-root .pn-prop-v :is(.pn-control, .pn-campo input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { background: color-mix(in srgb, var(--fill) 50%, transparent); }
+  .panel-root .pn-prop-v .pn-control-boton > :last-child:not(.pn-control-valor) { opacity: 0.7; }
+}
+.panel-root .pn-prop-v .pn-tel { gap: 2px; }
+.panel-root .pn-prop-v .pn-tel > input:first-child { width: 56px; }
+
+/* Bloque plegable con su resumen a la vista. */
+.pn-plegable { border-top: 1px solid var(--border); }
+.pn-plegable:first-child { border-top: 0; }
+.pn-plegable-cab {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 4px; background: none; border: 0;
+  color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; border-radius: var(--r-md);
+  transition: background-color 150ms ease;
+}
+.pn-plegable-cab:hover { background: var(--fill); }
+.pn-plegable-cab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pn-plegable-cab > .pn-plegable-res { margin-left: auto; font-size: 13px; font-weight: 450; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.pn-plegable-cab > .pn-plegable-flecha { color: var(--ink-faint); flex: none; transition: transform 200ms var(--curva); }
+.pn-plegable[data-abierto="true"] .pn-plegable-flecha { transform: rotate(180deg); }
+.pn-plegable-cuerpo { padding: 0 4px 16px; }
+.pn-plegable[data-abierto="true"] .pn-plegable-cuerpo { animation: pn-despliega 200ms var(--curva); }
+@keyframes pn-despliega { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) {
+  .pn-plegable[data-abierto="true"] .pn-plegable-cuerpo { animation: none; }
+  .pn-plegable-cab > .pn-plegable-flecha { transition: none; }
+}
+
+@media (max-width: 900px) {
+  .pn-prop { grid-template-columns: minmax(104px, 132px) minmax(0, 1fr); min-height: 44px; }
+  .panel-root .pn-prop-v :is(.pn-control, .pn-campo input:where(:not([type="checkbox"], [type="radio"], [type="file"]))) { height: 44px; }
+  .panel-root .pn-prop-v .pn-control-boton > :last-child { opacity: 1; }
+  .pn-plegable-cab { min-height: 52px; }
+}

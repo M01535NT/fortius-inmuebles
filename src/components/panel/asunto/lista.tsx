@@ -7,11 +7,13 @@ import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { useMisPreferencias, type VistaGuardada } from "@/components/panel/datos/use-mis-preferencias";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
+import { BotonEnlace } from "@/components/panel/kit/boton";
+import { Etiqueta } from "@/components/panel/kit/etiqueta";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
 import {
-  cargarEjemplos, diasHasta, EN_QUE_VA, fechaCorta, iconoEncargo, iniciales, type EnQueVa, type FilaAsunto,
+  cargarEjemplos, diasHasta, EN_QUE_VA, fechaCorta, iconoEncargo, type EnQueVa, type FilaAsunto,
 } from "@/lib/panel/asuntos/api";
 import { useSession } from "@/lib/panel/legado/sesion";
 
@@ -99,7 +101,29 @@ export function ListaAsuntos() {
       <div className="as-fila as-cab">
         <h1 className="as-h1-lista">Asuntos</h1>
         <span className="as-sp" />
-        <Link href="/panel/consulta" className="as-btn as-pri as-ico" title="Nueva consulta" aria-label="Nueva consulta"><Icono nombre="mas" tamano={16} /></Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="as-btn as-gho as-vistas" aria-label={aplicada ? `Vista: ${aplicada.nombre}` : "Vistas guardadas"} title="Vistas guardadas">
+            <Icono nombre="lista" tamano={15} />{aplicada ? <span className="as-corta">{aplicada.nombre}</span> : null}<Icono nombre="down" tamano={13} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-60">
+            {vistas.length ? <DropdownMenuLabel>Mis vistas</DropdownMenuLabel> : null}
+            {!vistas.length && !conFiltro ? <DropdownMenuLabel>Filtra la lista y guárdala aquí</DropdownMenuLabel> : null}
+            {vistas.map((v) => (
+              <DropdownMenuItem key={v.nombre} onSelect={() => usarVista(v)}>
+                <Icono nombre={v === aplicada ? "ok" : "lista"} tamano={16} />{v.nombre}
+              </DropdownMenuItem>
+            ))}
+            {vistas.length ? <DropdownMenuSeparator /> : null}
+            {conFiltro && !aplicada ? <DropdownMenuItem onSelect={() => setNombrando(true)}><Icono nombre="mas" tamano={16} />Guardar esta vista</DropdownMenuItem> : null}
+            {conFiltro ? <DropdownMenuItem onSelect={() => { setQ(""); setQue(""); setLleva(""); }}><Icono nombre="x" tamano={16} />Quitar los filtros</DropdownMenuItem> : null}
+            {aplicada ? (
+              <DropdownMenuItem peligro onSelect={() => guardarVistas(vistas.filter((v) => v !== aplicada), `Se quitó la vista «${aplicada.nombre}»`)}>
+                <Icono nombre="bote" tamano={16} />Borrar la vista «{aplicada.nombre}»
+              </DropdownMenuItem>
+            ) : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <BotonEnlace href="/panel/consulta" variante="primario" icono="mas">Nueva consulta</BotonEnlace>
       </div>
       <label className="as-buscar">
         <Icono nombre="bus" tamano={16} />
@@ -108,32 +132,9 @@ export function ListaAsuntos() {
       <div className="as-fila as-filtros">
         <Pildora etiqueta="Qué ver" valor={que} opciones={opcionesQue} alElegir={setQue} />
         {director && opcionesLleva.length > 2 ? <Pildora etiqueta="Quién lo lleva" icono="users" valor={lleva} opciones={opcionesLleva} alElegir={setLleva} /> : null}
-        {vistas.length || conFiltro ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="as-btn as-gho as-vistas" aria-label={aplicada ? `Vista: ${aplicada.nombre}` : "Vistas guardadas"}>
-              <Icono nombre="estrella" tamano={15} />{aplicada ? <span className="as-corta">{aplicada.nombre}</span> : null}<Icono nombre="down" tamano={13} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-60">
-              {vistas.length ? <DropdownMenuLabel>Mis vistas</DropdownMenuLabel> : null}
-              {vistas.map((v) => (
-                <DropdownMenuItem key={v.nombre} onSelect={() => usarVista(v)}>
-                  <Icono nombre={v === aplicada ? "ok" : "lista"} tamano={16} />{v.nombre}
-                </DropdownMenuItem>
-              ))}
-              {vistas.length ? <DropdownMenuSeparator /> : null}
-              {conFiltro && !aplicada ? <DropdownMenuItem onSelect={() => setNombrando(true)}><Icono nombre="mas" tamano={16} />Guardar esta vista</DropdownMenuItem> : null}
-              {conFiltro ? <DropdownMenuItem onSelect={() => { setQ(""); setQue(""); setLleva(""); }}><Icono nombre="x" tamano={16} />Quitar los filtros</DropdownMenuItem> : null}
-              {aplicada ? (
-                <DropdownMenuItem peligro onSelect={() => guardarVistas(vistas.filter((v) => v !== aplicada), `Se quitó la vista «${aplicada.nombre}»`)}>
-                  <Icono nombre="bote" tamano={16} />Borrar la vista «{aplicada.nombre}»
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
       </div>
       <DialogoTexto abierto={nombrando} titulo="Guardar esta vista" etiqueta="Nombre de la vista" maximo={60}
-        ayuda="Queda en el botón de la estrella, junto a los filtros, en cualquier equipo donde entres."
+        ayuda="Queda en el botón de vistas, junto a «Nueva consulta», en cualquier equipo donde entres."
         alCerrar={() => setNombrando(false)}
         alGuardar={(nombre) => guardarVistas([...vistas.filter((v) => v.nombre !== nombre), { lista: "asuntos", nombre, filtros }], `Vista guardada: ${nombre}`)} />
 
@@ -164,8 +165,11 @@ export function ListaAsuntos() {
             const [ic, color] = iconoEncargo(a.encargos[0]);
             const n = s?.fecha ? diasHasta(s.fecha) : null;
             const actual = ruta === `/panel/asuntos/${a.id}`;
+            // Hallazgo 40: en el renglón solo van «en qué va» y la fecha. Quién lo lleva y si es de ejemplo quedan en el
+            // globo y para el lector de pantalla.
+            const extra = [director ? `Lo lleva ${nombreDe(a.responsable_id)}` : null, a.es_ejemplo ? "Ejemplo" : null].filter(Boolean).join(" · ");
             return (
-              <Link key={a.id} href={`/panel/asuntos/${a.id}`} className="as-it" aria-current={actual ? "page" : undefined}>
+              <Link key={a.id} href={`/panel/asuntos/${a.id}`} className="as-it" aria-current={actual ? "page" : undefined} title={extra || undefined}>
                 <Cuadro icono={ic} color={color} />
                 <span className="as-it-c">
                   <b>{a.nombre}</b>
@@ -173,11 +177,10 @@ export function ListaAsuntos() {
                     {s ? s.titulo : a.en_que_va === "cerrado" ? (a.resultado ? cat.etiqueta("resultado_cierre", a.resultado) : cat.etiqueta("resultado_cierre", "se_logro")) : "Sin siguiente paso"}
                   </span>
                   <span className="as-fila as-pills">
-                    <span className="as-pill">{cat.etiqueta("en_que_va", a.en_que_va)}</span>
-                    {a.en_espera ? <span className="as-pill as-pill-warn">En espera</span> : null}
-                    {s?.fecha && !a.en_espera ? <span className={`as-pill${n! < 0 ? " as-pill-bad" : n === 0 ? " as-pill-acc" : ""}`}>{fechaCorta(s.fecha)}</span> : null}
-                    {a.es_ejemplo ? <span className="as-pill">Ejemplo</span> : null}
-                    {director ? <span className="as-pill" title={nombreDe(a.responsable_id)}>{iniciales(nombreDe(a.responsable_id))}</span> : null}
+                    <Etiqueta>{cat.etiqueta("en_que_va", a.en_que_va)}</Etiqueta>
+                    {a.en_espera ? <Etiqueta tono="aviso">En espera</Etiqueta> : null}
+                    {s?.fecha && !a.en_espera ? <Etiqueta tono={n! < 0 ? "error" : n === 0 ? "acento" : "normal"}>{fechaCorta(s.fecha)}</Etiqueta> : null}
+                    {extra ? <span className="sr-only">{extra}</span> : null}
                   </span>
                 </span>
               </Link>

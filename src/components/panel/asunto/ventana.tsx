@@ -1,9 +1,12 @@
 "use client";
 import { Dialog as D } from "radix-ui";
-import { createContext, useCallback, useContext, useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import { usePreferencia } from "@/components/panel/almacen";
 import { Gesto, Icono, type NombreGesto, type NombreIcono } from "@/components/panel/icons";
+import { Boton } from "@/components/panel/kit/boton";
+import { Campo } from "@/components/panel/kit/campo";
+import { CampoFecha } from "@/components/panel/kit/campo-fecha";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
 import { contenedorPanel } from "@/components/panel/ui/contenedor";
@@ -106,11 +109,12 @@ export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subti
               <p className="as-m as-corta">{subtitulo}</p>
             </div>
             {notas ? (
-              <button type="button" className="as-btn as-gho as-ico as-con-cuenta" aria-pressed={notas.abiertas} onClick={() => notas.alCambiar(!notas.abiertas)}
+              <button type="button" className="as-btn as-gho as-win-notas" aria-pressed={notas.abiertas} onClick={() => notas.alCambiar(!notas.abiertas)}
                 aria-label={notas.abiertas ? "Ocultar las notas del asunto" : `Ver las notas del asunto${notas.cuantas ? ` (${notas.cuantas})` : ""}`}
                 title={notas.abiertas ? "Ocultar notas" : "Notas del asunto"}>
-                <Icono nombre="nota" tamano={18} />
-                {!notas.abiertas && notas.cuantas ? <span className="as-cuenta" aria-hidden>{notas.cuantas > 99 ? "99+" : notas.cuantas}</span> : null}
+                <Icono nombre="nota" tamano={17} aria-hidden />
+                <span className="as-ocultar-tel">Notas</span>
+                {notas.cuantas ? <span className="as-win-cuenta" aria-hidden>{notas.cuantas > 99 ? "99+" : notas.cuantas}</span> : null}
               </button>
             ) : null}
             {opciones.length ? (
@@ -139,6 +143,7 @@ export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subti
               aria-label="Pantalla completa" title={completa ? "Salir de pantalla completa" : "Pantalla completa"}>
               <Gesto nombre={completa ? "reducir" : "ampliar"} tamano={18} />
             </button>
+            <span className="as-win-sep as-solo-pc" aria-hidden />
             <D.Close className="as-btn as-gho as-ico" aria-label="Cerrar"><Icono nombre="x" tamano={18} /></D.Close>
           </div>
           <div className="as-win-cuerpo">
@@ -176,25 +181,18 @@ export function DialogoTexto(props: PropsDialogo) {
 
 /** Se monta al abrir: así empieza siempre con lo inicial. */
 function FormaDialogo({ etiqueta, inicial = "", maximo = 500, opcional, fecha, eleccion, alCerrar, alGuardar }: PropsDialogo) {
-  const id = useId();
   const [texto, setTexto] = useState(inicial);
   const [dia, setDia] = useState(fecha?.inicial ?? "");
   const [opcion, setOpcion] = useState<string>(eleccion?.opciones[0]?.valor ?? "");
   const listo = opcional || texto.trim().length > 0;
   return (
     <form className="as-form" onSubmit={(e) => { e.preventDefault(); if (!listo) return; alCerrar(); void alGuardar(texto.trim(), fecha ? dia || null : undefined, eleccion ? opcion : undefined); }}>
-      <label className="pn-campo" htmlFor={`${id}-t`}>{etiqueta}{opcional ? " (opcional)" : ""}
-        <input id={`${id}-t`} className="as-inp as-inp-borde" value={texto} maxLength={maximo} onChange={(e) => setTexto(e.target.value)} autoFocus />
-      </label>
-      {fecha ? (
-        <label className="pn-campo" htmlFor={`${id}-f`}>{fecha.etiqueta}
-          <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={dia} onChange={(e) => setDia(e.target.value)} />
-        </label>
-      ) : null}
+      <Campo etiqueta={`${etiqueta}${opcional ? " (opcional)" : ""}`} value={texto} maxLength={maximo} onChange={(e) => setTexto(e.target.value)} autoFocus />
+      {fecha ? <CampoFecha etiqueta={fecha.etiqueta} valor={dia || null} vacio="Sin fecha" alElegir={(f) => setDia(f ?? "")} /> : null}
       {eleccion ? <Desplegable etiqueta={eleccion.etiqueta} opciones={eleccion.opciones} valor={opcion} alElegir={(v) => { if (v) setOpcion(v); }} /> : null}
       <div className="as-fila as-fin">
-        <button type="button" className="as-btn" onClick={alCerrar}>Cancelar</button>
-        <button type="submit" className="as-btn as-pri" aria-disabled={!listo}>Guardar</button>
+        <Boton variante="normal" onClick={alCerrar}>Cancelar</Boton>
+        <Boton type="submit" variante="primario" deshabilitado={!listo}>Guardar</Boton>
       </div>
     </form>
   );

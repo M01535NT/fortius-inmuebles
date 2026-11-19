@@ -10,7 +10,6 @@ import { Desplegable } from "@/components/panel/kit/desplegable";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
-import { Switch } from "@/components/panel/ui/switch";
 import {
   agregar, cambiar, cambiarFicha, CLASES_PERSONA, iniciales, leerFicha,
   type Asunto, type CambioFicha, type CampoDato, type ClasePersona, type EntradaHistorial, type FichaPersona, type Papel,
@@ -34,11 +33,13 @@ import { useRegresoDeVentana } from "./ventana";
  */
 type Grupo = { clave: string; titulo: string; icono: NombreIcono };
 const LADOS: readonly Grupo[] = [
-  { clave: "busca", titulo: "De quien nos busca", icono: "tel" },
-  { clave: "cliente", titulo: "Del lado del cliente", icono: "llave" },
+  { clave: "busca", titulo: "Quien nos busca", icono: "tel" },
+  { clave: "cliente", titulo: "Dueños y herederos", icono: "llave" },
   { clave: "otro", titulo: "Del otro lado", icono: "users" },
-  { clave: "apoyo", titulo: "De apoyo", icono: "edif" },
+  { clave: "apoyo", titulo: "Quienes ayudan", icono: "edif" },
 ];
+/** El papel con que nace quien se agrega desde cada grupo, el de siempre (si el catálogo lo sigue ofreciendo ahí). */
+const PAPEL_DEL_GRUPO: Record<string, Papel> = { busca: "contacto", cliente: "propietario", otro: "comprador", apoyo: "abogado" };
 const gruposDe = (cat: LectorCatalogos): Grupo[] => {
   const nombres = cat.catalogos.papel?.significados ?? [];
   return LADOS.map((g) => ({ ...g, titulo: nombres.find((s) => s.clave === g.clave)?.etiqueta ?? g.titulo }));
@@ -48,9 +49,12 @@ const grupoDe = (cat: LectorCatalogos, papel: Papel) => {
   const grupos = gruposDe(cat);
   return grupos.find((g) => g.clave === cat.significado("papel", papel)) ?? grupos[0];
 };
-/** El papel con que nace quien se agrega desde un grupo: el primero de ese grupo en la lista. */
-const papelDelGrupo = (cat: LectorCatalogos, grupo: string): Papel =>
-  cat.ofrecidos("papel").find((v) => v.significado === grupo)?.clave ?? "contacto";
+/** El papel con que nace quien se agrega desde un grupo: el de siempre; si ya no se ofrece en ese grupo, el primero que quede. */
+const papelDelGrupo = (cat: LectorCatalogos, grupo: string): Papel => {
+  const delGrupo = cat.ofrecidos("papel").filter((v) => v.significado === grupo);
+  const deSiempre = PAPEL_DEL_GRUPO[grupo];
+  return (delGrupo.find((v) => v.clave === deSiempre) ?? delGrupo[0])?.clave ?? deSiempre ?? "contacto";
+};
 const NOMBRE_CLASE: Record<ClasePersona, string> = { persona: "Persona", empresa: "Empresa", institucion: "Institución" };
 const ESTADOS_CIVILES = ["Soltero(a)", "Casado(a)", "Unión libre", "Divorciado(a)", "Viudo(a)"] as const;
 const ESTADO_DOC: Record<string, { texto: string; clase: string }> = {
@@ -130,7 +134,7 @@ function Grupos({ a, notas, alAbrir, alAgregar }: { a: Asunto; notas: EntradaHis
               <h3 id={`pp-${g.clave}`}>{g.titulo}</h3>
               {miembros.length ? <span className="as-m as-num">{miembros.length}</span> : null}
               <span className="as-sp" />
-              <button type="button" className="as-btn as-gho" onClick={() => alAgregar(papelDelGrupo(cat, g.clave))} aria-label={`Agregar persona: ${g.titulo.toLowerCase()}`}>
+              <button type="button" className="as-btn as-gho" onClick={() => alAgregar(papelDelGrupo(cat, g.clave))} aria-label={`Agregar a ${g.titulo.toLowerCase()}`}>
                 <Icono nombre="mas" tamano={16} />Agregar
               </button>
             </div>
@@ -360,7 +364,6 @@ function AltaPersona({ a, papel: inicial, hacer, alCancelar, alAgregar }: {
   const [pais, setPais] = useState("+52");
   const [numero, setNumero] = useState("");
   const [relacion, setRelacion] = useState("");
-  const [fallecida, setFallecida] = useState(false);
   const [duplicada, setDuplicada] = useState<PersonaDuplicada | null>(null);
   const cat = useCatalogos();
   const grupo = grupoDe(cat, papel);
@@ -371,7 +374,7 @@ function AltaPersona({ a, papel: inicial, hacer, alCancelar, alAgregar }: {
     const nota = relacion.trim() ? { nota: relacion.trim() } : {};
     const cuerpo = usar === "misma" && duplicada
       ? { papel, persona_id: duplicada.id, ...nota }
-      : { papel, aunque_exista: usar === "otra", ...nota, nueva: { nombre: t, clase, fallecida, ...(numero.trim() && !fallecida ? { telefono: { pais, numero } } : {}) } };
+      : { papel, aunque_exista: usar === "otra", ...nota, nueva: { nombre: t, clase, ...(numero.trim() ? { telefono: { pais, numero } } : {}) } };
     let r: ResultadoPersona = {};
     let ok = false;
     await hacer(async () => { r = await agregar<ResultadoPersona>(a.id, "personas", cuerpo); ok = true; }, undefined);
@@ -382,7 +385,7 @@ function AltaPersona({ a, papel: inicial, hacer, alCancelar, alAgregar }: {
 
   return (
     <form className="as-card as-pad as-form" onSubmit={(e) => { e.preventDefault(); void guardar(); }}>
-      <p className="as-sub"><Icono nombre={grupo.icono} tamano={15} />Agregar persona: {grupo.titulo.toLowerCase()}</p>
+      <p className="as-sub"><Icono nombre={grupo.icono} tamano={15} />Agregar a {grupo.titulo.toLowerCase()}</p>
       <p className="as-m">Basta con el nombre y su papel; lo demás, cuando lo tengas.</p>
       <div className="as-g2">
         <label className="pn-campo" htmlFor={`${id}-n`}>Nombre
@@ -390,25 +393,17 @@ function AltaPersona({ a, papel: inicial, hacer, alCancelar, alAgregar }: {
         </label>
         <Desplegable etiqueta="Papel" valor={papel} opciones={cat.opciones("papel", papel)} alElegir={(v) => { if (v) setPapel(v); }} />
         <Desplegable etiqueta="Es" valor={clase} opciones={CLASES_PERSONA.map((v) => ({ valor: v, etiqueta: NOMBRE_CLASE[v] }))} alElegir={(v) => { if (v) setClase(v); }} />
-        {!fallecida ? (
-          <div className="pn-campo">
-            <label htmlFor={`${id}-t`}>Teléfono</label>
-            <span className="as-tel">
-              <input aria-label="Clave del país" className="as-inp as-inp-borde as-clave" value={pais} maxLength={5} onChange={(e) => setPais(e.target.value)} />
-              <input id={`${id}-t`} className="as-inp as-inp-borde" inputMode="tel" value={numero} maxLength={30} onChange={(e) => { setNumero(e.target.value); setDuplicada(null); }} />
-            </span>
-          </div>
-        ) : null}
+        <div className="pn-campo">
+          <label htmlFor={`${id}-t`}>Teléfono</label>
+          <span className="as-tel">
+            <input aria-label="Clave del país" className="as-inp as-inp-borde as-clave" value={pais} maxLength={5} onChange={(e) => setPais(e.target.value)} />
+            <input id={`${id}-t`} className="as-inp as-inp-borde" inputMode="tel" value={numero} maxLength={30} onChange={(e) => { setNumero(e.target.value); setDuplicada(null); }} />
+          </span>
+        </div>
       </div>
       <label className="pn-campo" htmlFor={`${id}-r`}>Su relación con los demás (opcional)
         <input id={`${id}-r`} className="as-inp as-inp-borde" value={relacion} maxLength={500} onChange={(e) => setRelacion(e.target.value)} placeholder="Hija de Rosa, recibe el poder" />
       </label>
-      {clase === "persona" ? (
-        <label className="as-fila as-switch">
-          <Switch checked={fallecida} onCheckedChange={setFallecida} aria-label="Falleció" />
-          <span>Falleció</span>
-        </label>
-      ) : null}
       {duplicada ? (
         <div className="as-ban" role="status">
           <Icono nombre="users" tamano={16} />

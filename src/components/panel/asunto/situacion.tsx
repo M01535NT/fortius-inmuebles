@@ -92,7 +92,7 @@ export function Situacion({ a, hacer }: { a: Asunto; hacer: Hacer }) {
             );
           })}
           <ElegirVarios etiqueta="Qué debe" valores={Array.isArray(debe) ? debe.filter((x): x is (typeof DEBE)[number] => (DEBE as readonly string[]).includes(x)) : []}
-            opciones={op(DEBE, NOMBRE_DEBE)} alCambiar={(v) => void poner("debe", v, "Qué debe: anotado")} />
+            opciones={op(DEBE, NOMBRE_DEBE)} vacio="Sin dato" exclusivas={["nada", "no_sabe"]} alCambiar={(v) => void poner("debe", v, "Qué debe: anotado")} />
         </div>
       </div>
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useId, useRef, useState } from "react";
 
 import { Icono } from "@/components/panel/icons";
+import { CampoFecha } from "@/components/panel/kit/campo-fecha";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Interruptor } from "@/components/panel/kit/segmentado";
 import {
@@ -195,9 +196,7 @@ function Cobros({ a, hacer }: { a: Asunto; hacer: Hacer }) {
             </label>
             <Interruptor etiqueta="Moneda" opciones={MONEDA_OP} valor={moneda} alElegir={setMoneda} />
             <Desplegable etiqueta="Forma" valor={forma} opciones={FORMAS_PAGO.map((f) => ({ valor: f, etiqueta: NOMBRE_FORMA[f] }))} alElegir={(v) => { if (v) setForma(v); }} />
-            <label className="pn-campo" htmlFor={`${id}-f`}>Fecha
-              <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={fecha} onChange={(e) => setFecha(e.target.value)} />
-            </label>
+            <CampoFecha etiqueta="Fecha" valor={fecha || null} alElegir={(f) => setFecha(f ?? "")} />
             {personas.length ? (
               <Desplegable etiqueta="Quién pagó" valor={paga} vacio="Sin elegir" opciones={personas.map((p) => ({ valor: p.persona_id, etiqueta: p.nombre }))} alElegir={setPaga} />
             ) : null}
@@ -251,7 +250,6 @@ function Contrato({ a, hacer }: { a: Asunto; hacer: Hacer }) {
 
 /** Honorarios (boceto): presupuesto con honorarios y gastos de terceros por separado, quién paga, vigencia, contrato y cobros con su recibo. */
 export function Honorarios({ a, foco, hacer }: { a: Asunto; foco: string | null; hacer: Hacer }) {
-  const id = useId();
   const p = a.presupuestos[0] ?? null;
   const archivo = useRef<HTMLInputElement>(null);
   const [mensaje, setMensaje] = useState(false);
@@ -313,10 +311,7 @@ export function Honorarios({ a, foco, hacer }: { a: Asunto; foco: string | null;
               alElegir={(v) => void cambiarP({ paga_persona_id: v || null }, "Anotado")} />
           ) : null}
           {p ? (
-            <label className="pn-campo" htmlFor={`${id}-v`}>Vigente hasta
-              <input id={`${id}-v`} type="date" className="as-inp as-inp-borde" value={p.vigente_hasta ?? ""}
-                onChange={(e) => void cambiarP({ vigente_hasta: e.target.value || null }, "Vigencia anotada")} />
-            </label>
+            <CampoFecha etiqueta="Vigente hasta" valor={p.vigente_hasta ?? null} vacio="Sin fecha" alElegir={(f) => void cambiarP({ vigente_hasta: f }, "Vigencia anotada")} />
           ) : null}
         </div>
       </div>
