@@ -1,0 +1,727 @@
+<title>Panel ajustable Fortius</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+/* Boceto: menú a la izquierda y una sola área de trabajo; cada pantalla se ajusta ahí mismo con «Ajustar». */
+:root{
+  --bg:#f5f6f8;--side:#eceef2;--card:#ffffff;--border:#e2e5ea;--border-strong:#c9ced6;--fill:rgb(15 18 24 / .055);
+  --ink:#0f1218;--ink-muted:#596070;--ink-faint:#939aa8;
+  --accent:#2f6bff;--accent-soft:#e8efff;--accent-ink:#ffffff;
+  --warning:#b56a00;--warning-soft:#fff0d6;--exito:#0e9f4f;--exito-soft:#e3f6ea;--error:#d8362a;
+  --c-orange:#f27a0e;--c-teal:#0c9ca8;--c-violet:#7b5cfa;--c-indigo:#4a55e6;--c-green:#12a150;--c-gray:#7b8392;
+  --perilla:#ffffff;
+  --flecha:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23596070' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --sombra:0 14px 38px rgb(15 18 24 / .16),0 2px 6px rgb(15 18 24 / .06);
+  --fuente:"Archivo",-apple-system,"Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e0f12;--side:#131418;--card:#191a1f;--border:#292b33;--border-strong:#3a3d47;--fill:rgb(255 255 255 / .065);
+  --ink:#edeef1;--ink-muted:#a2a8b4;--ink-faint:#6d7381;
+  --accent:#5c8cff;--accent-soft:#18233f;--accent-ink:#ffffff;
+  --warning:#f5b94a;--warning-soft:#2e2208;--exito:#3dd68c;--exito-soft:#11281d;--error:#ff7b72;
+  --flecha:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a2a8b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --sombra:0 14px 38px rgb(0 0 0 / .5),0 2px 6px rgb(0 0 0 / .3);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e0f12;--side:#131418;--card:#191a1f;--border:#292b33;--border-strong:#3a3d47;--fill:rgb(255 255 255 / .065);
+  --ink:#edeef1;--ink-muted:#a2a8b4;--ink-faint:#6d7381;
+  --accent:#5c8cff;--accent-soft:#18233f;--accent-ink:#ffffff;
+  --warning:#f5b94a;--warning-soft:#2e2208;--exito:#3dd68c;--exito-soft:#11281d;--error:#ff7b72;
+  --flecha:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a2a8b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --sombra:0 14px 38px rgb(0 0 0 / .5),0 2px 6px rgb(0 0 0 / .3);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--fuente);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+:is(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:8px}
+.app{display:flex;height:100%;overflow:hidden}
+.side{flex:none;width:224px;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;padding:14px 10px;padding-left:max(10px,env(safe-area-inset-left,0px));overflow:auto}
+.marca{font-weight:700;font-size:17px;letter-spacing:.02em;padding:4px 8px 12px;overflow-wrap:break-word}
+.tira{flex:1;display:flex;flex-direction:column;gap:2px;min-height:0}
+.navs{display:flex;flex-direction:column;gap:2px}
+.abajo{margin-top:auto;border-top:1px solid var(--border);padding-top:8px}
+.svg{flex:none;display:block}
+.nav .svg{color:var(--ink-faint)} .nav[aria-current="page"] .svg{color:var(--accent)}
+.nota-corta{display:none}
+.nota-boceto{font-size:12px;color:var(--ink-faint);margin:0}
+.nav{display:flex;align-items:center;gap:10px;min-height:36px;padding:0 8px;border:0;border-radius:8px;background:none;color:var(--ink-muted);font-weight:500;cursor:pointer;text-align:left;width:100%}
+.nav:hover{background:var(--fill)}
+.nav[aria-current="page"]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--border)}
+.nav .n{margin-left:auto;font-size:12px;color:var(--ink-faint)}
+.pie{padding:10px 8px 0;font-size:12px;color:var(--ink-faint);display:flex;flex-direction:column;gap:8px}
+.pie .sw{color:var(--ink-muted);font-size:13px}
+.nota{margin:0}
+main{flex:1;min-width:0;overflow:auto;padding-block:20px 90px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.in{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-width:0}
+h1{font-size:24px;line-height:1.15;margin:0;font-weight:700;text-wrap:balance}
+h2{font-size:15px;margin:0;font-weight:600}
+.fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.sep{margin-left:auto}
+.muted{color:var(--ink-muted)} .faint{color:var(--ink-faint);font-size:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;min-width:0}
+.pad{padding:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--card);cursor:pointer;font-weight:600;max-width:100%}
+.btn:hover{border-color:var(--border-strong)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.sut{border-color:transparent;background:none;color:var(--ink-muted);font-weight:500}
+.btn.sut:hover{background:var(--fill)}
+.inp,.sel{min-height:38px;width:100%;min-width:0;max-width:100%;padding:0 10px;border:1px solid var(--border);border-radius:9px;background:var(--card)}
+.sel{appearance:none;-webkit-appearance:none;background-color:var(--fill);background-image:var(--flecha);background-repeat:no-repeat;background-position:right 10px center;background-size:16px;border-color:transparent;padding-right:32px;cursor:pointer}
+.inp,.sel{font-size:14px;color:var(--ink)}
+summary.sel{display:flex;align-items:center;list-style:none}
+summary.sel span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.btn.aj{border-color:var(--border);background:none;color:var(--ink-muted);font-weight:500;gap:6px}
+.btn.aj:hover{border-color:var(--border-strong);color:var(--ink)}
+.btn.mini{width:32px;min-height:32px;padding:0;justify-content:center;flex:none;color:var(--ink-muted);border-color:transparent;background:none}
+.btn.mini:hover{background:var(--fill)}
+.btn.mini[aria-disabled="true"]{opacity:.35;cursor:default}
+.lista.compacta>*{padding:5px 8px 5px 10px;gap:6px}
+.compacta .inp{min-height:32px}
+.compacta .btn{min-height:32px}
+.compacta .btn.sut{padding:0 8px}
+.ped-g{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"doc quita" "cond cond";gap:6px 8px;padding:10px 0;border-top:1px solid var(--border)}
+.ped-g:first-child{border-top:0;padding-top:0}
+.ped-g>.inp{grid-area:doc} .ped-g>.btn{grid-area:quita} .ped-g>.ped-c{grid-area:cond;flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap}
+.ped-c .sel{flex:1 1 220px;width:auto}
+.barra-fija{display:contents}
+textarea.inp{padding:10px;min-height:76px;resize:vertical}
+.campo{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-muted);min-width:0}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:14px;align-items:start}
+.asunto-g{display:grid;grid-template-columns:minmax(230px,300px) minmax(0,1fr);gap:14px;align-items:start}
+.preg-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px 12px;align-items:end}
+.ped-g{display:grid;align-items:center}
+.lista button.r:first-child{border-radius:13px 13px 0 0} .lista button.r:last-child{border-radius:0 0 13px 13px} .lista button.r:only-child{border-radius:13px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;background:var(--fill);font-size:12px;font-weight:600;color:var(--ink-muted);white-space:nowrap}
+.pill.ok{background:var(--exito-soft);color:var(--exito)} .pill.av{background:var(--warning-soft);color:var(--warning)} .pill.az{background:var(--accent-soft);color:var(--accent)}
+.nota-av{background:var(--warning-soft);color:var(--warning);border-radius:10px;padding:10px 12px;font-weight:500;margin:0}
+input[type="checkbox"]{width:18px;height:18px;margin:0;accent-color:var(--accent);flex:none}
+.caja{display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:28px;flex:none;cursor:pointer}
+.sw{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;flex:none}
+.sw input{appearance:none;width:38px;height:22px;border-radius:999px;background:var(--border-strong);position:relative;margin:0;cursor:pointer;flex:none}
+.sw input::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--perilla);transition:transform .15s}
+.sw input:checked{background:var(--exito)} .sw input:checked::after{transform:translateX(16px)}
+.lista>*{display:flex;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid var(--border);min-width:0}
+.lista>*:first-child{border-top:0}
+.lista button.r{width:100%;border:0;border-top:1px solid var(--border);background:none;text-align:left;cursor:pointer}
+.lista button.r:first-child{border-top:0} .lista button.r:hover{background:var(--fill)}
+.lista button.r[aria-current="true"]{background:var(--accent-soft)}
+.ic{flex:none;width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--accent-ink);font-size:12px;font-weight:700}
+.tx{flex:1;min-width:0} .tx b{display:block;font-weight:600} .tx span{display:block;color:var(--ink-muted);font-size:13px;overflow-wrap:anywhere}
+.scroll{overflow-x:auto;max-width:100%}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-size:12px;color:var(--ink-muted);font-weight:600;text-align:left;padding:9px 12px;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid var(--border);vertical-align:middle}
+tr.clic{cursor:pointer} tr.clic:hover td{background:var(--fill)}
+tr.clic:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+tr.clic:focus-visible td{background:var(--fill)}
+td.num,th.num{text-align:right}
+td:first-child{white-space:nowrap}
+.tablero{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:4px;max-width:100%}
+.col{flex:none;width:232px;background:var(--fill);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.col h2{font-size:13px;display:flex;gap:6px}
+.tj{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.tjt{border:0;background:none;padding:0;text-align:left;font-weight:600;cursor:pointer;color:inherit}
+.tjt:hover{color:var(--accent)}
+.tiempo{display:grid;grid-template-columns:minmax(120px,190px) repeat(14,minmax(22px,1fr));gap:4px 0;align-items:center;min-width:560px}
+.tiempo .dia{font-size:11px;color:var(--ink-faint);text-align:center}
+.barra{height:22px;border-radius:6px;background:var(--accent);opacity:.9}
+.barra.esp{background:var(--c-gray)}
+.ajuste{outline:2px dashed var(--accent);outline-offset:3px;border-radius:14px}
+details.menu{position:relative}
+details.menu>summary{list-style:none} details.menu>summary::-webkit-details-marker{display:none}
+details.menu>div{position:absolute;z-index:5;right:0;top:42px;min-width:210px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sombra);padding:8px;display:flex;flex-direction:column;gap:2px}
+details.menu label{display:flex;gap:8px;align-items:center;padding:7px 8px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:14px}
+details.menu label:hover{background:var(--fill)}
+.campo details.menu>div{left:0;right:auto}
+.ic .svg{color:var(--accent-ink)}
+.cfg{display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px;align-items:start}
+.cfgnav{display:flex;flex-direction:column;gap:2px}
+.cfgsel{display:none}
+.editable{min-height:150px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--card);max-width:68ch}
+.banrow{flex-wrap:wrap}
+.banrow .tx{flex:1 1 220px}
+.acc{margin-left:auto;align-items:end}
+.cotcol{flex-wrap:wrap}
+.cotcol .campo{flex:1 1 140px}
+#aviso{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;box-shadow:var(--sombra);max-width:min(92vw,460px);z-index:20;display:flex;align-items:center;gap:12px}
+#aviso[hidden]{display:none}
+#aviso .btn{flex:none;color:var(--ink)}
+@media (max-width:760px){
+  .app{flex-direction:column}
+  .side{width:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0 8px;border-right:0;border-bottom:1px solid var(--border);padding:4px 16px 2px;overflow:visible;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .tira{flex:1 1 0;min-width:0;flex-direction:row;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+  .tira::-webkit-scrollbar{display:none}
+  .navs,.abajo{display:contents}
+  .marca{flex:none;white-space:nowrap;padding:0;font-size:15px}
+  .nav{width:auto;white-space:nowrap;flex:none;gap:6px} .nav .n{display:none}
+  .pie{flex-basis:100%;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:0 12px;padding:0}
+  .nota-larga{display:none} .nota-corta{display:inline}
+  .barra-fija{display:block;position:fixed;z-index:15;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--bg);border-top:1px solid var(--border)}
+  .barra-fija .btn{width:100%;justify-content:center;min-height:48px}
+  main{padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
+  #aviso{bottom:calc(82px + env(safe-area-inset-bottom,0px))}
+  .compacta>*{padding:8px 12px}
+  .compacta .inp,.compacta .btn,.btn.mini{min-height:44px}
+  .btn.mini{width:44px}
+  h1{font-size:20px}
+  .asunto-g,.preg-g,.cfg{grid-template-columns:minmax(0,1fr)}
+  .tira{-webkit-mask-image:linear-gradient(to right,var(--ink) calc(100% - 28px),transparent);mask-image:linear-gradient(to right,var(--ink) calc(100% - 28px),transparent);padding-right:28px;scroll-padding-inline:28px}
+  .cfgnav{display:none} .cfgsel{display:flex}
+  .btn,.inp,.sel,.nav,.sw,.tjt,details.menu label,.lista button.r{min-height:44px}
+  .caja{min-width:44px;min-height:44px}
+  details.menu>div,.campo details.menu>div{position:static;margin-top:6px;min-width:0;box-shadow:none}
+  details.menu[open]{flex-basis:100%}
+  .acc{flex-basis:100%;margin-left:0}
+  .acc>.campo{flex:1 1 140px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+
+<div class="app">
+  <nav class="side" id="menu" aria-label="Secciones"></nav>
+  <main id="vista"></main>
+</div>
+<div id="aviso" role="status" hidden></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const dinero = n => "$" + n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const VA = ["En estudio", "Propuesta", "En marcha", "Por cobrar"];
+
+/* Cada pregunta, opción y documento lleva una clave fija: renombrar no rompe las reglas. */
+let sigId = 0;
+const nid = p => p + (++sigId);
+const PR = (n, clase, o = "") => ({ id: nid("q"), n, clase, o: o.split(",").map(x => x.trim()).filter(Boolean).map(x => ({ id: nid("o"), n: x })) });
+const CLASES = [["una", "Una opción"], ["varias", "Varias opciones"], ["texto", "Texto"], ["numero", "Número"], ["fecha", "Fecha"]];
+const conOpc = p => p.clase === "una" || p.clase === "varias";
+const ENCARGOS = ["Revisar", "Comercializar", "Tramitar", "Asesorar"];
+const PLANES = ["Estudio y opinión jurídica", "Captar y vender", "Trámite vehicular", "Sin plan"];
+const APARTS = ["Inmueble", "Documentos", "Opinión jurídica", "Honorarios", "Interesados"];
+function tipo(n, o = {}) {
+  const t = { n, activo: 1, sub: "", encargo: "Revisar", recuadros: ["Para pedirle"], plan: "Sin plan", mach: "Ninguno", aparts: {}, preg: [], pedir: [], ...o };
+  t.pedir = t.pedir.map(([d, c]) => {
+    const r = { id: nid("d"), n: d, q: "", o: "" };
+    if (c) { const [qn, on] = c.split("="); const q = t.preg.find(x => x.n === qn), op = q && q.o.find(x => x.n === on); if (op) { r.q = q.id; r.o = op.id; } }
+    return r;
+  });
+  return t;
+}
+const cat = (n, l) => ({ n, v: l.map(x => [x, 1]), inicio: [...l] });
+
+const S = {
+  ruta: "asuntos", vista: "tabla", id: "2026-0007", apart: "personas", persona: null, planVista: "etapas",
+  aj: null, ajCot: false, resp: {}, encargo: null, tipo: "venta", tipoCfg: "venta", cfg: "catalogos", cat: "papeles", ficha: "persona", empresa: "FORTIUS",
+  folio: "guion", anual: true, asesor: false, baja: null, colsAbierto: false, foco: null, deshacer: null, iva: 16,
+  cols: { folio: 1, asunto: 1, cliente: 1, contraparte: 1, tipo: 1, va: 1, lleva: 0, sigue: 1 },
+  modulos: { Inmuebles: 1, "Sitio público": 1, Interesados: 1, Calculadoras: 1, "Opinión jurídica": 1, Honorarios: 1 },
+  cats: {
+    papeles: cat("Papeles de las personas", ["Contacto", "Propietario", "Titular", "Heredero", "Apoderado", "Comprador", "Contraparte"]),
+    fuentes: cat("Por dónde llegó", ["Llamada", "WhatsApp", "Referido", "Sitio", "Cliente anterior"]),
+    cierre: cat("Resultados de cierre", ["Se logró", "No se dio", "No procede"]),
+    inmueble: cat("Tipos de inmueble", ["Casa", "Departamento", "Terreno", "Local", "Nave o bodega"])
+  },
+  fichas: {
+    persona: { n: "Persona", f: [["Nombre", "texto", 1, 1], ["Teléfonos", "texto", 1, 1], ["CURP", "texto", 1], ["RFC", "texto", 1], ["Estado civil", "lista", 1], ["Domicilio", "texto", 1], ["Nacionalidad", "texto", 1], ["Ocupación", "texto", 1], ["Falleció", "sí o no", 1]] },
+    casa: { n: "Inmueble: casa", f: [["Nombre", "texto", 1, 1], ["Precio", "dinero", 1, 1], ["Domicilio", "texto", 1], ["Folio real", "texto", 1], ["Clave catastral", "texto", 1], ["Recámaras", "número", 1], ["Baños", "número", 1], ["Terreno m²", "número", 1]] },
+    nave: { n: "Inmueble: nave o bodega", f: [["Nombre", "texto", 1, 1], ["Precio", "dinero", 1, 1], ["Domicilio", "texto", 1], ["Folio real", "texto", 1], ["Altura libre m", "número", 1], ["Carga eléctrica kVA", "número", 1], ["Andenes", "número", 1], ["Uso de suelo", "lista", 1]] },
+    "a-venta": { n: "Asunto: Venta de inmueble", f: [["Precio que pide", "dinero", 1], ["Comisión pactada %", "número", 1], ["Exclusiva", "sí o no", 1]] },
+    "a-gestoria": { n: "Asunto: Gestoría", f: [["Número de serie", "texto", 1], ["Oficina de tránsito", "lista", 1], ["Fecha de la cita", "fecha", 1]] }
+  },
+  tipos: {
+    venta: tipo("Venta de inmueble", {
+      encargo: "Comercializar", sub: "Con crédito sin pagar\nEn sucesión\nCon inquilino\nInvadido", plan: "Captar y vender", mach: "Oferta de compra",
+      recuadros: ["Para pedirle", "Otras personas del caso", "Lo que ya mandó"],
+      aparts: { Inmueble: 1, Documentos: 1, "Opinión jurídica": 1, Honorarios: 1, Interesados: 1, "Cotización": 1, "Análisis": 1 },
+      preg: [PR("Qué quiere", "una", "Vender, Rentar, Comprar, Regularizar"), PR("De quién es", "una", "Suyo, De un familiar, Falleció el titular, De una empresa"), PR("Qué es", "una", "Casa, Departamento, Terreno, Local"), PR("Quién lo ocupa", "una", "Vacío, El dueño, Inquilino, Invadido"), PR("Cómo está el título", "una", "Escriturado, Contrato privado, Sentencia, En sucesión"), PR("Qué debe", "varias", "Hipoteca, Predial, Servicios, Nada")],
+      pedir: [["Identificación oficial", ""], ["Boleta predial reciente", ""], ["Escritura", "Cómo está el título=Escriturado"], ["Contrato privado o lo que tenga", "Cómo está el título=Contrato privado"], ["Acta de defunción del titular", "De quién es=Falleció el titular"], ["Estado de cuenta del crédito", "Qué debe=Hipoteca"], ["Contrato de renta vigente", "Quién lo ocupa=Inquilino"]]
+    }),
+    gestoria: tipo("Gestoría: trámite vehicular", {
+      encargo: "Tramitar", sub: "Alta\nBaja\nCambio de propietario\nReposición de placas", plan: "Trámite vehicular", mach: "Contrato de servicios",
+      aparts: { Documentos: 1, Honorarios: 1, "Cotización": 1 },
+      preg: [PR("Qué trámite", "una", "Alta, Baja, Cambio de propietario, Reposición de placas"), PR("Vehículo", "una", "Auto, Camioneta, Moto, Remolque"), PR("Tiene factura", "una", "Sí, No, Refactura"), PR("Placas", "texto")],
+      pedir: [["Identificación oficial", ""], ["Comprobante de domicilio", ""], ["Factura del vehículo", "Tiene factura=Sí"], ["Carta de refacturación", "Tiene factura=Refactura"]]
+    })
+  },
+  machotes: [["Contrato de servicios", "Word", "14 campos"], ["Opinión jurídica", "Word", "22 campos; trae el apartado Análisis"], ["Cotización de honorarios", "Excel", "9 campos; lee la celda «Total»"], ["Oferta de compra", "Word", "11 campos"]],
+  eliminados: ["Carta de instrucciones (machote)"],
+  equipo: [["Moisés Núñez (ejemplo)", "Director", []], ["Nallely De la Cruz (ejemplo)", "Asesora", ["Abogado"]], ["Asesor de ejemplo", "Asesor", []]],
+  opinion: { res: "", txt: "", pedida: null },
+  plazos: [["Vigencia del presupuesto", 15], ["Volver a preguntar", 3], ["Avisar antes de que venza un documento", 15], ["Liga del cliente", 14], ["Volver a llamar a un contacto", 14]],
+  msgs: {
+    pedir: "Hola «Nombre», para avanzar con su asunto necesitamos estos documentos:\n«Documentos»\nPuede mandarlos por aquí mismo. Gracias.",
+    recordar: "Hola «Nombre», le recordamos que seguimos esperando:\n«Documentos»\nSi tiene alguna duda, aquí estamos."
+  },
+  asuntos: [
+    { f: "2026-0007", n: "Casa en la Murúa", cli: "Laura Méndez", con: "Quien ocupa la casa", tipo: "Venta", va: "En estudio", ll: "AD", sig: "Consultar el adeudo de predial", a: 1, b: 6 },
+    { f: "2026-0006", n: "Cinco locales de Plaza del Lago", cli: "Patricia Lagos", con: "—", tipo: "Renta y administración", va: "En marcha", ll: "MN", sig: "Enviar contrato del Local 5", a: 2, b: 13 },
+    { f: "2026-0005", n: "Nave industrial en El Florido", cli: "Industrias del Norte", con: "—", tipo: "Venta", va: "Propuesta", ll: "MN", sig: "Tomar fotos y video", a: 4, b: 10 },
+    { f: "2026-0004", n: "Casa del suegro, solo el trámite", cli: "Miguel Ángel", con: "Don Ernesto", tipo: "Servicios y gestiones", va: "En marcha", ll: "MN", sig: "Solicitar la carta de no adeudo", a: 1, b: 9 },
+    { f: "2026-0003", n: "Departamento con reserva de dominio", cli: "Carlos Duarte", con: "Comprador que incumplió", tipo: "Litigio", va: "En marcha", ll: "AD", sig: "Firmar la rescisión por convenio", a: 6, b: 12 },
+    { f: "2026-0002", n: "Terreno con sentencia de prescripción", cli: "Lic. Ramírez", con: "—", tipo: "Venta", va: "Por cobrar", ll: "MN", sig: "Cobrar el estudio", a: 8, b: 11 }
+  ],
+  personas: [
+    { n: "Laura Méndez", grupo: "Quien nos busca", papel: "Contacto", d: { "Teléfonos": "+1 619 555 0142", "Domicilio": "San Diego, California" } },
+    { n: "Rosa Méndez", grupo: "Dueños y herederos", papel: "Titular", d: { "Falleció": "Sí", "CURP": "•••• por confirmar" } },
+    { n: "Jorge Méndez", grupo: "Dueños y herederos", papel: "Heredero", d: {} }
+  ],
+  historial: [["18/11 · 10:42 · Moisés Núñez (ejemplo)", "Subió «Escritura 14,582.pdf»"], ["17/11 · 17:05 · Nallely De la Cruz (ejemplo)", "Cambió «En qué va» a En estudio"], ["17/11 · 16:30 · Nallely De la Cruz (ejemplo)", "Abrió el asunto desde la consulta"]],
+  propios: [["Cotización", "tabla", "3 conceptos"], ["Análisis", "texto", "Borrador de la opinión"]],
+  carpeta: {
+    "Laura Méndez": ["Identificación.pdf", "Poder de sus hermanos.pdf"],
+    "Rosa Méndez": ["Acta de defunción.pdf"],
+    "Casa en la Murúa": ["Escritura 14,582.pdf", "Boleta predial 2026.pdf"],
+    "Del asunto": ["Contrato de servicios firmado.pdf"],
+    "Entregables": ["Opinión jurídica v1.docx"]
+  },
+  cot: [["Estudio jurídico del inmueble", 1, 8500], ["Juicio sucesorio (honorarios)", 1, 45000], ["Copias certificadas", 6, 350]],
+  cotCols: [["Concepto", "texto"], ["Cantidad", "número"], ["Precio", "dinero"], ["Importe", "se calcula"]],
+  tareas: [["Recibir los documentos", "El cliente", 1, 3, ""], ["Estudiar el asunto", "El despacho", 3, 3, "Recibir los documentos"], ["Emitir la opinión jurídica", "El despacho", 6, 3, "Estudiar el asunto"], ["Presupuesto de honorarios", "El despacho", 9, 2, "Emitir la opinión jurídica"], ["Firmar el contrato", "El cliente", 11, 2, "Presupuesto de honorarios"]],
+  bandeja: [
+    { a: "escritura-14582.pdf", es: "Escritura", de: "Casa en la Murúa (inmueble)", f: "2026-0007", datos: "Folio real, clave catastral, titular, superficie y 5 datos más", e: 0 },
+    { a: "ine-laura.jpg", es: "Identificación", de: "Laura Méndez (persona)", f: "2026-0007", datos: "Nombre completo, CURP, domicilio y vigencia", e: 0 },
+    { a: "acta-matrimonio.pdf", es: "Acta de matrimonio", de: "Rosa Méndez (persona)", f: "2026-0007", datos: "Estado civil, régimen y cónyuge", e: 0 },
+    { a: "IMG_2231.jpg", es: "", de: "", f: "", datos: "", e: 0 }
+  ]
+};
+
+function aviso(t, deshacer) {
+  const a = $("#aviso");
+  S.deshacer = deshacer || null;
+  a.innerHTML = `<span>${esc(t)}</span>` + (deshacer ? `<button class="btn" id="aviso-deshacer" data-a="deshacer">Deshacer</button>` : "");
+  a.hidden = false; clearTimeout(aviso.t);
+  aviso.t = setTimeout(() => { if (a.contains(document.activeElement)) return; a.hidden = true; S.deshacer = null; }, deshacer ? 7000 : 2600);
+}
+/* Si se apagan todos los valores, las pantallas siguen con los valores con que empezó el catálogo. */
+const activos = k => { const c = S.cats[k], l = c.v.filter(v => v[1]).map(v => v[0]); return l.length ? l : c.inicio; };
+const opciones = (lista, sel) => (sel && !lista.includes(sel) ? [sel, ...lista] : lista).map(o => `<option${o === sel ? " selected" : ""}>${esc(o)}</option>`).join("");
+const sw = (c, on, txt, extra = "", id = "") => `<label class="sw"><input type="checkbox"${id ? ` id="${id}"` : ""} data-c="${c}" ${extra} ${on ? "checked" : ""}>${txt ? `<span>${esc(txt)}</span>` : ""}</label>`;
+function folio(n) { const s = String(n).padStart(4, "0"); if (S.folio === "solo" && !S.anual) return s; return "2026" + (S.folio === "diagonal" ? "/" : "-") + s; }
+const buscaQ = id => S.tipos[S.tipo].preg.find(p => p.id === id);
+const pedido = id => S.tipos[S.tipo].pedir.find(p => p.id === id);
+const etTipo = t => t.n + (t.activo ? "" : " (apagado)");
+/* Íconos de trazo (estilo lucide, trazo 1.5). */
+const IC = {
+  carpeta: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  telefono: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  bandeja: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  edificio: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/>',
+  engrane: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  personas: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  hoja: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8M16 17H8M10 9H8"/>',
+  palomitas: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8M13 12h8M13 18h8"/>',
+  balanza: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  tabla: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+  renglones: '<path d="M21 6H3M17 12H3M15 18H3"/>',
+  reloj: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  galeria: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/>',
+  lapiz: '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+  arriba: '<path d="m18 15-6-6-6 6"/>',
+  abajo: '<path d="m6 9 6 6 6-6"/>'
+};
+const ico = (n, t = 18) => `<svg class="svg" viewBox="0 0 24 24" width="${t}" height="${t}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+const CLASE_IC = { tabla: "tabla", texto: "renglones", formulario: "hoja", lista: "palomitas", galeria: "galeria" };
+const nb = t => `<p class="nota-boceto">Nota del boceto: ${t}</p>`;
+/* Botones Subir y Bajar de una lista que se reordena. */
+const orden = (l, k, i, n, nombre) => [["arriba", -1, "Subir"], ["abajo", 1, "Bajar"]].map(([ic, d, t]) => { const fuera = i + d < 0 || i + d >= n; return `<button class="btn mini" data-a="orden" data-l="${l}" data-k="${k}" data-i="${i}" data-d="${d}" aria-label="${t} ${esc(nombre)}"${fuera ? ' aria-disabled="true"' : ""}>${ico(ic, 16)}</button>`; }).join("");
+const FUNCIONES = ["Abogado", "Valuador"];
+const RESULTADOS = ["Factible", "Factible con observaciones", "No factible"];
+const resumenF = e => e[2].length ? e[2].join(", ") : "Ninguna";
+/* Quien usa el panel: el director, o con «Ver como asesor» el asesor de ejemplo. */
+const usuario = () => S.asesor ? S.equipo.find(e => e[0] === "Asesor de ejemplo") || ["Asesor de ejemplo", "Asesor", []] : S.equipo.find(e => e[1] === "Director");
+const puedeOpinar = () => { const u = usuario(); return !S.asesor || (u && u[2].includes("Abogado")); };
+
+function menu() {
+  const it = [["asuntos", "Asuntos", S.asuntos.length, "carpeta"], ["consulta", "Consulta nueva", "", "telefono"], ["bandeja", "Bandeja", S.bandeja.filter(b => !b.e).length, "bandeja"], ["inmuebles", "Inmuebles", "", "edificio"]].filter(i => i[0] !== "inmuebles" || S.modulos.Inmuebles);
+  const b = i => `<button class="nav" data-a="ir" data-r="${i[0]}" ${(S.ruta === i[0] || (S.ruta === "asunto" && i[0] === "asuntos")) ? 'aria-current="page"' : ""}>${ico(i[3])}${i[1]}${i[2] !== "" ? `<span class="n">${i[2]}</span>` : ""}</button>`;
+  $("#menu").innerHTML = `<div class="marca">${esc(S.empresa)}</div><div class="tira"><div class="navs">${it.map(b).join("")}</div>
+    ${S.asesor ? "" : `<div class="navs abajo">${b(["config", "Configuración", "", "engrane"])}</div>`}</div>
+    <div class="pie">${sw("asesor", S.asesor, "Ver como asesor", "", "ver-asesor")}<p class="nota"><span class="nota-larga">Boceto. Todos los datos son de ejemplo y nada se guarda.</span><span class="nota-corta">Boceto · datos de ejemplo</span></p></div>`;
+}
+
+/* ---------- Asuntos: el índice y sus vistas ---------- */
+function vAsuntos() {
+  const C = [["folio", "Folio", a => a.f], ["asunto", "Asunto", a => `<b>${esc(a.n)}</b>`], ["cliente", "Cliente", a => a.cli], ["contraparte", "Contraparte", a => a.con], ["tipo", "Tipo", a => a.tipo], ["va", "En qué va", a => `<span class="pill">${a.va}</span>`], ["lleva", "Lo lleva", a => a.ll], ["sigue", "Lo que sigue", a => a.sig]];
+  let cuerpo;
+  if (S.vista === "tabla") {
+    const v = C.filter(c => S.cols[c[0]]);
+    cuerpo = `<div class="card scroll"><table><thead><tr>${v.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>${S.asuntos.map(a => `<tr class="clic" data-a="abre" data-id="${a.f}" tabindex="0" aria-label="Abrir ${esc(a.n)}">${v.map(c => `<td>${c[0] === "asunto" || c[0] === "va" ? c[2](a) : esc(c[2](a))}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  } else if (S.vista === "tablero") {
+    cuerpo = `<div class="tablero">${VA.map(e => { const l = S.asuntos.filter(a => a.va === e); return `<div class="col"><h2>${e}<span class="faint">${l.length}</span></h2>${l.map(a => `<div class="tj"><button class="tjt" data-a="abre" data-id="${a.f}">${esc(a.n)}</button><span class="faint">${a.f} · ${esc(a.cli)}</span><span class="muted">${esc(a.sig)}</span><select id="mueve-${a.f}" class="sel" aria-label="Mover ${esc(a.n)}" data-c="mueve" data-id="${a.f}">${opciones(VA, a.va)}</select></div>`).join("") || `<span class="faint">Nada aquí</span>`}</div>`; }).join("")}</div>`;
+  } else {
+    cuerpo = `<div class="card pad scroll"><div class="tiempo"><span></span>${Array.from({ length: 14 }, (_, i) => `<span class="dia">${18 + i > 30 ? 18 + i - 30 : 18 + i}</span>`).join("")}${S.asuntos.map(a => `<button class="btn sut" style="justify-content:flex-start;padding:0 6px;min-width:0" data-a="abre" data-id="${a.f}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.n)}</span></button><span class="barra" style="grid-column:${a.a + 1}/${a.b + 2}" title="${esc(a.sig)}"></span>`).join("")}</div></div>`;
+  }
+  return `<div class="fila"><h1 tabindex="-1">Asuntos</h1><span class="faint">${S.asuntos.length}</span><span class="sep"></span>
+    <label class="campo" style="flex-direction:row;align-items:center;gap:8px">Ver como<select id="ver-como" class="sel" style="width:auto" data-c="vista">${[["tabla", "Tabla"], ["tablero", "Tablero"], ["tiempo", "En el tiempo"]].map(o => `<option value="${o[0]}"${S.vista === o[0] ? " selected" : ""}>${o[1]}</option>`).join("")}</select></label>
+    ${S.vista === "tabla" ? `<details class="menu" id="menu-cols"${S.colsAbierto ? " open" : ""}><summary class="btn">Columnas</summary><div>${C.map(c => `<label><input type="checkbox" id="col-${c[0]}" data-c="col" data-k="${c[0]}" ${S.cols[c[0]] ? "checked" : ""}>${c[1]}</label>`).join("")}<span class="faint" style="padding:6px 8px">También entra cualquier dato de la ficha.</span></div></details>` : ""}
+    <button class="btn pri" data-a="ir" data-r="consulta">Nueva consulta</button></div>
+    ${nb("cada quien elige sus columnas y guarda su vista.")}${cuerpo}`;
+}
+
+/* ---------- Un asunto: apartados a la izquierda, su contenido a la derecha ---------- */
+function vAsunto() {
+  const a = S.asuntos.find(x => x.f === S.id) || S.asuntos[0];
+  const fijos = [["personas", "Personas", `${S.personas.length} personas`, "var(--accent)", "personas"], ["inmueble", "Inmueble", "Casa · Murúa · sin precio", "var(--c-orange)", "edificio"], ["docs", "Documentos", `2 por pedir · ${Object.values(S.carpeta).flat().length} recibidos`, "var(--c-teal)", "hoja"], ["plan", "Plan", `${S.tareas.length} tareas`, "var(--c-indigo)", "palomitas"],
+    ["opinion", "Opinión jurídica", S.opinion.res || (S.opinion.pedida ? "Esperando" : "Sin empezar"), "var(--c-violet)", "balanza"]]
+    .filter(f => (f[0] !== "inmueble" || S.modulos.Inmuebles) && (f[0] !== "opinion" || S.modulos["Opinión jurídica"]));
+  const prop = S.propios.map((p, i) => ["p" + i, p[0], p[2], p[1] === "tabla" ? "var(--c-green)" : "var(--c-violet)", CLASE_IC[p[1]] || "hoja"]);
+  const hist = ["historial", "Historial", `${S.historial.length} movimientos`, "var(--c-gray)", "reloj"];
+  const filas = [...fijos, ...prop, hist].map(f => `<button class="r" data-a="apart" data-k="${f[0]}" aria-current="${S.apart === f[0]}"><span class="ic" style="background:${f[3]}">${ico(f[4], 16)}</span><span class="tx"><b>${esc(f[1])}</b><span>${esc(f[2])}</span></span></button>`).join("");
+  return `<div class="fila"><button class="btn sut" data-a="ir" data-r="asuntos">← Asuntos</button><span class="faint">${a.f}</span><span class="sep"></span><span class="pill">${a.va}</span></div>
+    <h1 tabindex="-1">${esc(a.n)}</h1>
+    <div class="fila"><span class="pill az">${esc(a.tipo)}</span><span class="muted">Lo que sigue: ${esc(a.sig)}</span></div>
+    <div class="asunto-g">
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div class="card lista">${filas}</div>
+        <div class="fila" style="align-items:end;flex-wrap:nowrap"><label class="campo" style="flex:1">Agregar apartado<select id="nuevo-apartado" class="sel"><option value="">Elegir una clase…</option><option value="texto">Texto, como una hoja de Word</option><option value="tabla">Tabla que calcula</option><option value="formulario">Formulario con tus preguntas</option><option value="lista">Lista para marcar</option><option value="galeria">Galería con fotos</option></select></label><button class="btn" data-a="nuevoApart">Agregar</button></div>
+      </div>
+      <div class="card pad" style="min-width:0">${apartado()}</div>
+    </div>`;
+}
+function apartado() {
+  const k = S.apart;
+  if (k === "personas") return S.persona === null ? personas() : ficha();
+  if (k === "inmueble") return `<h2>Inmueble</h2>${nb("su ficha se arma igual que la de una persona: solo lo que ya tiene valor, y «Agregar dato» con lo que definiste para una casa.")}<div class="lista card" style="margin-top:10px"><div><span class="tx"><b>Domicilio</b><span>Calle Séptima 114, Murúa</span></span></div><div><span class="tx"><b>Folio real</b><span>1289441</span></span><span class="pill av">Por confirmar</span></div></div>`;
+  if (k === "docs") return docs();
+  if (k === "plan") return plan();
+  if (k === "opinion") return opinion();
+  if (k === "historial") return `<h2>Historial</h2><p class="faint">Todo lo que pasa en el asunto queda aquí y no se borra.</p><div class="card lista">${S.historial.map(h => `<div><span class="tx"><b style="font-weight:500">${esc(h[1])}</b><span>${esc(h[0])}</span></span></div>`).join("")}</div>`;
+  const p = S.propios[+k.slice(1)];
+  if (!p) return "";
+  if (p[1] === "tabla") return cotizacion(p[0]);
+  if (p[1] === "texto") return `<h2>${esc(p[0])}</h2><p class="faint">El machote «Opinión jurídica» lo toma de aquí.</p><div class="editable" contenteditable="true" aria-label="Texto del apartado"><b>Situación del inmueble</b><br>La casa está a nombre de la titular, que falleció sin testamento. No hay juicio sucesorio abierto.<br><br><b>Qué hay que resolver</b><br>1. Abrir la sucesión. 2. Recuperar la posesión.</div>`;
+  return `<h2>${esc(p[0])}</h2>${nb(`apartado nuevo de clase «${esc(p[1])}»; aquí se definen sus columnas, preguntas o renglones.`)}`;
+}
+function personas() {
+  const g = ["Quien nos busca", "Dueños y herederos", "Del otro lado", "Quienes ayudan"];
+  return `<h2>Personas</h2>` + g.map(x => { const l = S.personas.map((p, i) => [p, i]).filter(p => p[0].grupo === x); return `<p class="faint" style="margin:14px 0 6px">${x}</p><div class="card lista">${l.map(p => `<button class="r" data-a="persona" data-i="${p[1]}"><span class="ic" style="background:var(--c-gray)">${esc(p[0].n[0])}</span><span class="tx"><b>${esc(p[0].n)}</b><span>${esc(p[0].papel)}</span></span></button>`).join("") || `<div class="muted">Nadie todavía</div>`}</div>`; }).join("");
+}
+function ficha() {
+  const p = S.personas[S.persona], campos = S.fichas.persona.f.filter(f => f[2] && f[0] !== "Nombre").map(f => f[0]);
+  const faltan = campos.filter(c => !(c in p.d));
+  return `<div class="fila"><button class="btn sut" data-a="persona" data-i="">← Personas</button></div>
+    <h2 style="font-size:18px;margin:6px 0">${esc(p.n)}</h2>
+    <label class="campo" style="max-width:240px">Papel<select id="papel-persona" class="sel" data-c="papel">${opciones(activos("papeles"), p.papel)}</select></label>
+    <p class="faint" style="margin:14px 0 6px">Solo se ve lo que ya tiene valor</p>
+    <div class="card lista">${Object.entries(p.d).map(([c, v]) => `<div><span class="tx"><b>${esc(c)}</b><span>${esc(v) || "—"}</span></span></div>`).join("") || `<div class="muted">Sin datos todavía</div>`}</div>
+    ${faltan.length ? `<div class="fila" style="align-items:end;margin-top:12px"><label class="campo" style="width:240px;max-width:100%">Agregar dato<select id="agregar-dato" class="sel"><option value="">Elegir…</option>${opciones(faltan)}</select></label><button class="btn" data-a="dato">Agregar</button></div>` : ""}
+    <p class="faint" style="margin:16px 0 6px">Sus documentos</p>
+    <div class="card lista">${(S.carpeta[p.n] || []).map(x => `<div><span class="pill">${x.split(".").pop().toUpperCase()}</span><span class="tx"><b style="font-weight:500">${esc(x)}</b></span></div>`).join("") || `<div class="muted">Ninguno todavía</div>`}</div>
+    <label class="campo" style="margin-top:14px">Notas<textarea id="nota-persona" class="inp" placeholder="Tiene un número solo para WhatsApp; sale de vacaciones del 15 al 29"></textarea></label>
+    <div style="margin-top:12px">${nb("qué datos se ofrecen aquí se decide en Configuración → Fichas.")}</div>`;
+}
+function docs() {
+  const fila = (x, de) => `<div><span class="pill">${x.split(".").pop().toUpperCase()}</span><span class="tx"><b style="font-weight:500">${esc(x)}</b><span>${esc(de)}</span></span></div>`;
+  return `<div class="fila"><h2>Documentos</h2><span class="sep"></span>
+    <div class="fila" style="align-items:end;gap:8px"><label class="campo" style="flex:1 1 180px">Generar<select id="generar" class="sel"><option value="">Elegir un machote…</option>${S.machotes.map(m => `<option>${esc(m[0])}</option>`).join("")}</select></label><button class="btn" data-a="genera">Generar</button></div></div>
+    <div style="margin-top:8px">${nb("lo de cada persona y de cada inmueble se ve también en su ficha; aquí está todo junto.")}</div>
+    <p class="faint" style="margin:12px 0 6px">Falta pedir</p>
+    <div class="card lista"><div><label class="caja"><input id="falta0" type="checkbox" aria-label="Marcar recibido: boleta predial"></label><span class="tx"><b style="font-weight:500">Boleta predial reciente</b><span>La entrega el cliente</span></span></div><div><label class="caja"><input id="falta1" type="checkbox" aria-label="Marcar recibido: actas de nacimiento"></label><span class="tx"><b style="font-weight:500">Actas de nacimiento de los herederos</b><span>Las entrega el cliente</span></span></div></div>
+    <p class="faint" style="margin:14px 0 6px">Recibido</p>
+    <div class="card lista">${Object.entries(S.carpeta).filter(e => e[0] !== "Entregables").flatMap(([de, l]) => l.map(x => fila(x, de))).join("")}</div>
+    <p class="faint" style="margin:14px 0 6px">Entregables</p>
+    <div class="card lista">${S.carpeta.Entregables.map(x => fila(x, "Hecho para el cliente")).join("")}</div>`;
+}
+function plan() {
+  const sel = `<label class="campo" style="flex-direction:row;align-items:center;gap:8px">Ver como<select id="plan-vista" class="sel" style="width:auto" data-c="planVista">${[["etapas", "Por etapas"], ["tablero", "Tablero"], ["tiempo", "En el tiempo"]].map(o => `<option value="${o[0]}"${S.planVista === o[0] ? " selected" : ""}>${o[1]}</option>`).join("")}</select></label>`;
+  let c;
+  if (S.planVista === "etapas") c = `<div class="card lista">${S.tareas.map((t, i) => `<div><label class="caja"><input id="tarea${i}" type="checkbox" aria-label="Marcar hecha: ${esc(t[0])}"></label><span class="tx"><b>${esc(t[0])}</b><span>${esc(t[1])}${t[4] ? " · espera a «" + esc(t[4]) + "»" : ""}</span></span></div>`).join("")}</div>`;
+  else if (S.planVista === "tablero") c = `<div class="tablero">${["El cliente", "El despacho"].map(q => `<div class="col"><h2>${q}</h2>${S.tareas.filter(t => t[1] === q).map(t => `<div class="tj"><b>${esc(t[0])}</b>${t[4] ? `<span class="faint">Espera a «${esc(t[4])}»</span>` : ""}</div>`).join("")}</div>`).join("")}</div>`;
+  else c = `<div class="scroll"><div class="tiempo"><span></span>${Array.from({ length: 14 }, (_, i) => `<span class="dia">${i + 1}</span>`).join("")}${S.tareas.map(t => `<span style="padding-right:8px;overflow-wrap:anywhere">${esc(t[0])}</span><span class="barra${t[4] ? " esp" : ""}" style="grid-column:${t[2] + 1}/${t[2] + t[3] + 1}" title="${t[4] ? "Espera a " + esc(t[4]) : ""}"></span>`).join("")}</div></div><p class="faint">En gris, las tareas que esperan a que termine otra.</p>`;
+  return `<div class="fila"><h2>Plan</h2><span class="sep"></span>${sel}</div><div style="margin-top:12px">${c}</div>`;
+}
+function opinion() {
+  const o = S.opinion, esp = o.pedida ? `<p class="nota-av" style="margin:10px 0 0">Esperando la opinión jurídica de ${esc(o.pedida.a)}${o.pedida.cuando ? " · para el " + esc(o.pedida.cuando.split("-").reverse().join("/")) : ""}</p>` : "";
+  if (puedeOpinar()) return `<h2>Opinión jurídica</h2>${esp}
+    <label class="campo" style="width:280px;max-width:100%;margin-top:12px">Resultado<select id="op-res" class="sel" data-c="opRes"><option value="">Sin decidir</option>${opciones(RESULTADOS, o.res)}</select></label>
+    <label class="campo" style="margin-top:12px">Análisis<textarea id="op-txt" class="inp" rows="7" data-c="opTxt" placeholder="Situación del inmueble, qué hay que resolver y cómo">${esc(o.txt)}</textarea></label>
+    <p class="faint" style="margin-top:12px">El machote «Opinión jurídica» toma de aquí el resultado y el análisis.</p>`;
+  if (o.pedida) return `<h2>Opinión jurídica</h2>${esp}`;
+  const quien = [...S.equipo.filter(e => e[1] !== "Director" && e[2].includes("Abogado")).map(e => e[0]), "El director", "Alguien de fuera"];
+  return `<h2>Opinión jurídica</h2><p class="muted">La hace alguien con la función Abogado.</p>
+    <div class="fila" style="align-items:end;margin-top:10px"><label class="campo" style="flex:1 1 200px">A quién<select id="op-quien" class="sel">${opciones(quien)}</select></label><label class="campo" style="flex:1 1 160px">Para cuándo<input id="op-cuando" class="inp" type="date"></label><button class="btn pri" data-a="pideOp">Pedir</button></div>`;
+}
+function cotizacion(n) {
+  const dir = !S.asesor, h = S.cotCols.map(c => esc(c[0]));
+  const aj = dir && S.ajCot ? `<div class="card pad ajuste" style="background:var(--bg);margin-top:12px"><p class="faint" style="margin:0 0 8px">Columnas</p>
+      <div class="card lista">${S.cotCols.map((c, i) => `<div class="cotcol"><label class="campo">Nombre<input id="cotcol${i}" class="inp" data-c="cotColN" data-i="${i}" value="${esc(c[0])}"></label><label class="campo">Clase<select id="cotclase${i}" class="sel" data-c="cotColC" data-i="${i}">${opciones(["texto", "número", "dinero", "se calcula"], c[1])}</select></label></div>`).join("")}</div>
+      <label class="campo" style="width:160px;margin-top:12px">IVA (%)<input id="cot-iva" class="inp" type="number" min="0" max="100" inputmode="decimal" data-c="iva" value="${S.iva}"></label></div>` : "";
+  return `<div class="fila"><h2>${esc(n)}</h2><span class="sep"></span>${dir ? `<button class="btn ${S.ajCot ? "pri" : "aj"}" data-a="ajustaCot">${S.ajCot ? "Listo" : ico("lapiz", 16) + "Ajustar"}</button>` : ""}<button class="btn" data-a="renglon">Agregar renglón</button></div>
+    <p class="faint">Calcula sola. El machote «Cotización» la toma tal cual.</p>${aj}
+    <div class="scroll"><table id="cot"><thead><tr><th>${h[0]}</th><th class="num">${h[1]}</th><th class="num">${h[2]}</th><th class="num">${h[3]}</th></tr></thead><tbody>
+    ${S.cot.map((r, i) => `<tr><td><input class="inp" id="cot-c${i}" aria-label="${h[0]}" data-c="cot" data-i="${i}" data-j="0" value="${esc(r[0])}" style="min-width:180px"></td><td class="num"><input class="inp" id="cot-q${i}" aria-label="${h[1]}" type="number" min="0" data-c="cot" data-i="${i}" data-j="1" value="${r[1]}" style="width:76px;text-align:right"></td><td class="num"><input class="inp" id="cot-p${i}" aria-label="${h[2]}" type="number" min="0" data-c="cot" data-i="${i}" data-j="2" value="${r[2]}" style="width:110px;text-align:right"></td><td class="num" data-imp="${i}"></td></tr>`).join("")}
+    </tbody><tfoot><tr><td colspan="3" class="num muted">Subtotal</td><td class="num" id="sub"></td></tr><tr><td colspan="3" class="num muted" id="iva-et">IVA ${S.iva} %</td><td class="num" id="iva"></td></tr><tr><td colspan="3" class="num"><b>Total</b></td><td class="num"><b id="tot"></b></td></tr></tfoot></table></div>`;
+}
+function calcula() {
+  if (!$("#cot")) return; let s = 0; const t = (+S.iva || 0) / 100;
+  S.cot.forEach((r, i) => { const v = (+r[1] || 0) * (+r[2] || 0); s += v; const c = $(`[data-imp="${i}"]`); if (c) c.textContent = dinero(v); });
+  $("#sub").textContent = dinero(s); $("#iva-et").textContent = `IVA ${S.iva} %`; $("#iva").textContent = dinero(s * t); $("#tot").textContent = dinero(s * (1 + t));
+}
+
+/* ---------- Consulta: se ajusta ahí mismo ---------- */
+function cumple(p) {
+  if (!p.q) return true;
+  const q = buscaQ(p.q);
+  if (!q || !conOpc(q) || !q.o.some(o => o.id === p.o)) return false;
+  const v = S.resp[p.q];
+  return q.clase === "varias" ? Array.isArray(v) && v.includes(p.o) : v === p.o;
+}
+const condTexto = (q, o) => `«${q.n}» ${q.clase === "varias" ? "incluye" : "es"} «${o.n}»`;
+function pedirHTML() {
+  const l = S.tipos[S.tipo].pedir.filter(cumple);
+  return l.map(p => { const q = p.q && buscaQ(p.q), o = q && q.o.find(x => x.id === p.o); return `<label style="cursor:pointer"><input id="pedir-${p.id}" type="checkbox" checked><span class="tx"><b style="font-weight:500">${esc(p.n)}</b><span class="faint">${o ? "Porque " + esc(condTexto(q, o)) : "Se pide siempre"}</span></span></label>`; }).join("") || `<div class="muted">Nada por pedir todavía</div>`;
+}
+const resumenV = p => { const v = S.resp[p.id], l = Array.isArray(v) ? p.o.filter(o => v.includes(o.id)).map(o => o.n) : []; return l.length ? l.join(", ") : "Sin decir"; };
+function campoResp(p) {
+  const v = S.resp[p.id] ?? "";
+  if (p.clase === "una") return `<label class="campo">${esc(p.n)}<select id="resp-${p.id}" class="sel" data-c="resp" data-q="${p.id}"><option value="">Sin decir</option>${p.o.map(o => `<option value="${o.id}"${v === o.id ? " selected" : ""}>${esc(o.n)}</option>`).join("")}</select></label>`;
+  if (p.clase === "varias") { const l = Array.isArray(v) ? v : [];
+    return `<div class="campo"><span id="rv-et-${p.id}">${esc(p.n)}</span><details class="menu"><summary class="sel" id="rv-${p.id}" aria-labelledby="rv-et-${p.id} rv-tx-${p.id}"><span id="rv-tx-${p.id}">${esc(resumenV(p))}</span></summary><div>${p.o.map(o => `<label><input type="checkbox" id="resp-${p.id}-${o.id}" data-c="respV" data-q="${p.id}" data-o="${o.id}"${l.includes(o.id) ? " checked" : ""}>${esc(o.n)}</label>`).join("") || `<span class="faint">Sin opciones</span>`}</div></details></div>`; }
+  const ty = { texto: "text", numero: "number", fecha: "date" }[p.clase] || "text";
+  return `<label class="campo">${esc(p.n)}<input id="resp-${p.id}" class="inp" type="${ty}"${ty === "number" ? ' inputmode="decimal"' : ""} data-c="respT" data-q="${p.id}" value="${esc(v)}"></label>`;
+}
+function vConsulta() {
+  const t = S.tipos[S.tipo], dir = !S.asesor, todos = ["Para pedirle", "Otras personas del caso", "Lo que ya mandó"], fuera = todos.filter(r => !t.recuadros.includes(r));
+  const conds = t.preg.filter(conOpc).flatMap(q => q.o.map(o => ({ v: q.id + "=" + o.id, t: "Cuando " + condTexto(q, o) })));
+  const cab = (r, k) => `<div class="fila"><h2>${r}</h2><span class="sep"></span>${dir && S.aj === k && k !== "preg" ? `<button class="btn sut" data-a="quitaRec" data-k="${k}">Quitar recuadro</button>` : ""}${dir ? `<button class="btn ${S.aj === k ? "pri" : "aj"}" data-a="ajusta" data-k="${k}">${S.aj === k ? "Listo" : ico("lapiz", 16) + "Ajustar"}</button>` : ""}</div>`;
+  const preg = dir && S.aj === "preg"
+    ? `<div style="display:flex;flex-direction:column;gap:12px;margin-top:10px">${t.preg.map(p => `<div class="card pad" style="background:var(--bg)">
+        <div class="preg-g"><label class="campo">Pregunta<input id="preg-${p.id}" class="inp" data-c="pregN" data-q="${p.id}" value="${esc(p.n)}"></label>
+        <label class="campo">Clase<select id="clase-${p.id}" class="sel" data-c="pregClase" data-q="${p.id}">${CLASES.map(c => `<option value="${c[0]}"${c[0] === p.clase ? " selected" : ""}>${c[1]}</option>`).join("")}</select></label>
+        <button class="btn sut" data-a="quitaPreg" data-q="${p.id}">Quitar pregunta</button></div>
+        ${conOpc(p) ? `<p class="faint" style="margin:12px 0 6px">Opciones</p><div class="card lista compacta">${p.o.map((o, j) => `<div><input id="opc-${o.id}" class="inp" aria-label="Nombre de la opción" data-c="opcN" data-q="${p.id}" data-o="${o.id}" value="${esc(o.n)}">${orden("opc", p.id, j, p.o.length, o.n)}<button class="btn sut" data-a="quitaOpc" data-q="${p.id}" data-o="${o.id}" aria-label="Quitar la opción ${esc(o.n)}">Quitar</button></div>`).join("") || `<div class="muted">Sin opciones todavía</div>`}</div>
+        <div style="margin-top:10px"><button class="btn" data-a="masOpc" data-q="${p.id}">Agregar opción</button></div>` : ""}</div>`).join("")}<div><button class="btn" data-a="masPreg">Agregar pregunta</button></div></div>`
+    : `<div class="g3" style="margin-top:10px">${t.preg.map(campoResp).join("") || `<span class="muted">Sin preguntas todavía</span>`}</div>`;
+  const rec = {
+    "Para pedirle": k => dir && S.aj === k
+      ? `<p class="faint" style="margin:8px 0">Cada documento se pide siempre, o solo cuando una pregunta se contesta de cierta forma.</p><div style="display:flex;flex-direction:column">${t.pedir.map(p => {
+          const v = p.q ? p.q + "=" + p.o : "", rota = !!p.q && !conds.some(c => c.v === v);
+          return `<div class="ped-g"><input id="ped-${p.id}" class="inp" aria-label="Documento" data-c="pedN" data-k="${p.id}" value="${esc(p.n)}"><label class="campo ped-c">Se pide<select id="pedc-${p.id}" class="sel" data-c="pedC" data-k="${p.id}"><option value="">Siempre</option>${rota ? `<option value="${esc(v)}" selected>Sin pregunta: revisar</option>` : ""}${conds.map(c => `<option value="${esc(c.v)}"${c.v === v ? " selected" : ""}>${esc(c.t)}</option>`).join("")}</select>${rota ? `<span class="pill av">Sin pregunta: revisar</span>` : ""}</label><button class="btn sut" data-a="quitaPed" data-k="${p.id}" aria-label="Quitar ${esc(p.n)}">Quitar</button></div>`; }).join("")}<div style="padding-top:10px;border-top:1px solid var(--border)"><button class="btn" data-a="masPed">Agregar documento</button></div></div>`
+      : `<div class="lista" id="pedir-box" style="margin-top:6px">${pedirHTML()}</div>`,
+    "Otras personas del caso": k => dir && S.aj === k
+      ? `<p class="muted" style="margin:8px 0 0">Los papeles salen del catálogo «Papeles de las personas», y los datos que se piden, de la ficha de la persona. Los dos se cambian en Configuración.</p>`
+      : `<div class="g3" style="margin-top:8px"><label class="campo">Nombre<input id="otra-nombre" class="inp"></label><label class="campo">Papel<select id="otra-papel" class="sel">${opciones(activos("papeles"))}</select></label></div>`,
+    "Lo que ya mandó": k => dir && S.aj === k
+      ? `<p class="muted" style="margin:8px 0 0">Lo que se adjunta aquí pasa por la Bandeja: el panel lo lee y llena las fichas.</p>`
+      : `<button class="btn" style="margin-top:8px" data-a="nada">Adjuntar archivos</button>`
+  };
+  const tiposVis = Object.entries(S.tipos).filter(([k, v]) => v.activo || k === S.tipo);
+  return `<div class="fila"><h1 tabindex="-1">Consulta</h1><span class="pill ok">Se guarda sola</span><span class="sep"></span><div class="barra-fija"><button class="btn pri" data-a="abreNuevo">Abrir asunto</button></div></div>
+    ${dir ? nb("el director ve un «Ajustar» en cada recuadro; lo que cambia ahí queda en la plantilla de este tipo de asunto. El asesor no lo ve.") : ""}
+    <div class="g2">
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="card pad"><div class="fila"><h2>Quién llama</h2>${dir ? `<span class="sep"></span><span class="pill">Igual en todos los tipos</span>` : ""}</div>
+          <div class="g3" style="margin-top:10px"><label class="campo">Nombre<input id="quien" class="inp"></label><label class="campo">Teléfono<input id="tel" class="inp" inputmode="tel"></label><label class="campo">Por dónde<select id="por-donde" class="sel">${opciones(activos("fuentes"))}</select></label><label class="campo">Tipo de asunto<select id="tipo-asunto" class="sel" data-c="tipo">${tiposVis.map(([k, v]) => `<option value="${k}"${k === S.tipo ? " selected" : ""}>${esc(v.n)}</option>`).join("")}</select></label><label class="campo">Qué encargan<select id="encargo" class="sel" data-c="encargo">${opciones(ENCARGOS, S.encargo || t.encargo)}</select></label></div>
+          <label class="campo" style="margin-top:12px">Qué pasa<textarea id="que-pasa" class="inp" placeholder="Como te lo cuenta"></textarea></label></div>
+        <div class="card pad ${S.aj === "preg" ? "ajuste" : ""}">${cab("Preguntas de «" + esc(t.n) + "»", "preg")}${preg}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        ${t.recuadros.map(r => `<div class="card pad ${S.aj === r ? "ajuste" : ""}">${cab(r, r)}${rec[r](r)}</div>`).join("")}
+        ${dir && fuera.length ? `<div class="fila" style="align-items:end;flex-wrap:nowrap"><label class="campo" style="flex:1">Agregar recuadro<select id="mas-recuadro" class="sel"><option value="">Elegir…</option>${opciones(fuera)}</select></label><button class="btn" data-a="masRec">Agregar</button></div>` : ""}
+      </div>
+    </div>`;
+}
+
+/* ---------- Bandeja ---------- */
+function vBandeja() {
+  const de = ["Del asunto", ...S.personas.map(p => p.n + " (persona)"), "Casa en la Murúa (inmueble)"];
+  const ctrl = (b, i) => {
+    if (b.e === 2) return `<span class="pill ok">Confirmado</span>`;
+    if (b.e === 1) return `<span class="pill av">Por confirmar</span><button class="btn" data-a="confirma" data-i="${i}">Confirmar lo leído</button>`;
+    if (b.es) return `<button class="btn" data-a="asigna" data-i="${i}">Asignar</button>`;
+    return `<label class="campo">Asignar a<select id="asigna-asunto${i}" class="sel"><option value="">Elegir un asunto…</option>${S.asuntos.map(a => `<option value="${a.f}">${a.f} ${esc(a.n)}</option>`).join("")}</select></label><label class="campo">De quién es<select id="asigna-de${i}" class="sel">${opciones(de, "Del asunto")}</select></label><button class="btn" data-a="asignaMano" data-i="${i}">Asignar</button>`;
+  };
+  return `<div class="fila"><h1 tabindex="-1">Bandeja</h1><span class="sep"></span><button class="btn pri" data-a="nada">Subir archivos</button></div>
+    <p class="muted" style="margin:0">El panel lee lo que llega, dice de quién es y, al asignarlo, llena las fichas.</p>
+    <div class="card lista">${S.bandeja.map((b, i) => `<div class="banrow"><span class="ic" style="background:var(--c-teal)">${esc(b.a.split(".").pop()[0].toUpperCase())}</span>
+      <span class="tx"><b>${b.es ? esc(b.es) : "No se reconoció"}</b><span>${esc(b.a)}${b.de ? " · " + esc(b.de) + " · asunto " + esc(b.f) : ""}</span>${b.datos ? `<span class="faint">Se leyó: ${esc(b.datos)}</span>` : ""}</span>
+      <div class="fila acc">${ctrl(b, i)}</div></div>`).join("")}</div>`;
+}
+
+/* ---------- Configuración ---------- */
+function vConfig() {
+  const M = [["catalogos", "Catálogos"], ["fichas", "Fichas"], ["tipos", "Tipos de asunto"], ["machotes", "Machotes"], ["plazos", "Plazos y mensajes"], ["modulos", "Módulos"], ["empresa", "Empresa y folio"], ["equipo", "Equipo"], ["eliminados", "Eliminados"]];
+  let c = "";
+  if (S.cfg === "catalogos") { const k = S.cat, ct = S.cats[k], vacio = ct.v.every(v => !v[1]);
+    c = `<label class="campo" style="max-width:280px">Catálogo<select id="cual-catalogo" class="sel" data-c="cat">${Object.entries(S.cats).map(([x, v]) => `<option value="${x}"${x === k ? " selected" : ""}>${v.n}</option>`).join("")}</select></label>
+      ${vacio ? `<p class="nota-av" style="margin-top:12px">Este catálogo quedó vacío: las pantallas usan los valores con que empezó.</p>` : ""}
+      <div class="card lista compacta" style="margin-top:12px">${ct.v.map((v, i) => `<div><input id="val${i}" class="inp" aria-label="Nombre del valor" data-c="valN" data-i="${i}" value="${esc(v[0])}">${orden("cat", k, i, ct.v.length, v[0])}${sw("valA", v[1], "", `data-i="${i}" aria-label="Activo: ${esc(v[0])}"`, "val-act" + i)}</div>`).join("")}</div>
+      <div class="fila" style="margin-top:12px"><button class="btn" data-a="masVal">Agregar valor</button><span class="faint">Apagar un valor no lo borra: lo que ya lo usa lo conserva.</span></div>`; }
+  if (S.cfg === "fichas") { const k = S.ficha in S.fichas ? S.ficha : "persona", fi = S.fichas[k];
+    c = `<label class="campo" style="max-width:280px">Ficha de<select id="cual-ficha" class="sel" data-c="ficha">${Object.entries(S.fichas).map(([x, v]) => `<option value="${x}"${x === k ? " selected" : ""}>${esc(v.n)}</option>`).join("")}</select></label>
+      <div class="card lista" style="margin-top:12px">${fi.f.map((f, i) => `<div><span class="tx"><b>${esc(f[0])}</b><span>${f[1]}${f[3] ? " · el panel lo necesita" : ""}</span></span>${orden("ficha", k, i, fi.f.length, f[0])}${f[3] ? `<span class="pill">Fijo</span>` : sw("campoV", f[2], "", `data-i="${i}" aria-label="Mostrar ${esc(f[0])}"`, "campo-v" + i)}</div>`).join("") || `<div class="muted">Sin datos todavía</div>`}</div>
+      <div class="g3" style="margin-top:12px;align-items:end"><label class="campo">Dato nuevo<input id="dato-nuevo" class="inp" placeholder="Número de cliente"></label><label class="campo">Clase<select id="dato-clase" class="sel">${opciones(["texto", "número", "dinero", "fecha", "sí o no", "lista", "archivo"])}</select></label><button class="btn" data-a="masCampo">Agregar dato</button></div>`; }
+  if (S.cfg === "tipos") { const k = S.tipoCfg in S.tipos ? S.tipoCfg : Object.keys(S.tipos)[0], t = S.tipos[k], fa = S.fichas["a-" + k];
+    const aps = [...APARTS, ...S.propios.map(p => p[0])];
+    c = `<div class="fila" style="align-items:end"><label class="campo" style="flex:1 1 220px;max-width:320px">Tipo de asunto<select id="cual-tipo" class="sel" data-c="tipoCfg">${Object.entries(S.tipos).map(([x, v]) => `<option value="${x}"${x === k ? " selected" : ""}>${esc(etTipo(v))}</option>`).join("")}</select></label><button class="btn" data-a="masTipo">Agregar tipo</button></div>
+      <div class="card lista" style="margin-top:12px">
+        <div style="flex-wrap:wrap;align-items:end"><label class="campo" style="flex:1 1 200px">Nombre<input id="tipo-nombre" class="inp" data-c="tipoN" data-k="${k}" value="${esc(t.n)}"></label>${sw("tipoA", t.activo, "Activo", `data-k="${k}"`, "tipo-activo")}</div>
+        <div><label class="campo" style="flex:1">Subtipos sugeridos, uno por renglón<textarea id="tipo-subtipos" class="inp" rows="5" style="min-height:118px" data-c="tipoSub" data-k="${k}">${esc(t.sub)}</textarea></label></div>
+      </div>
+      <p class="faint" style="margin:16px 0 6px">Su plantilla</p>
+      <div class="card lista">
+        <div style="flex-wrap:wrap"><span class="tx"><b>Consulta</b><span>${t.preg.length} preguntas · ${t.recuadros.length} recuadros</span></span><button class="btn aj" data-a="ajustaTipo" data-k="${k}">${ico("lapiz", 16)}Ajustar</button></div>
+        <div><label class="campo" style="flex:1">Qué encargan, ya elegido<select id="tipo-encargo" class="sel" data-c="tipoEnc" data-k="${k}">${opciones(ENCARGOS, t.encargo)}</select></label></div>
+        <div style="flex-direction:column;align-items:stretch;gap:8px"><span class="tx"><b>Apartados que trae</b></span><div class="card lista compacta">${aps.map((a, j) => `<div><span class="tx"><b style="font-weight:500">${esc(a)}</b></span>${sw("tipoAp", t.aparts[a], "", `data-k="${k}" data-n="${esc(a)}" aria-label="${esc(a)}"`, "tipo-ap" + j)}</div>`).join("")}</div></div>
+        <div style="flex-wrap:wrap"><span class="tx"><b>Datos propios del asunto</b><span>${fa ? fa.f.length : 0} datos en su ficha</span></span><button class="btn" data-a="fichaTipo" data-k="${k}">Ver su ficha</button></div>
+        <div><label class="campo" style="flex:1">Plan que sugiere<select id="tipo-plan" class="sel" data-c="tipoPlan" data-k="${k}">${opciones(PLANES, t.plan)}</select></label></div>
+        <div><label class="campo" style="flex:1">Machotes que sugiere<select id="tipo-mach" class="sel" data-c="tipoMach" data-k="${k}">${opciones(["Ninguno", ...S.machotes.map(m => m[0])], t.mach)}</select></label></div>
+      </div>
+      <div style="margin-top:12px">${nb("cambiar de giro es crear aquí sus tipos de asunto.")}</div>`; }
+  if (S.cfg === "machotes") {
+    const campos = [...["Cliente", "Propietario"].flatMap(q => S.fichas.persona.f.filter(f => f[2]).slice(0, 5).map(f => q + " · " + f[0])), ...S.fichas.casa.f.filter(f => f[2]).map(f => "Inmueble · " + f[0]), "Asunto · Folio", "Empresa · Nombre", "Fecha de hoy", "Tabla · Cotización"];
+    c = `<div class="g2"><div><div class="card lista">${S.machotes.map((m, i) => `<div><span class="pill">${m[1]}</span><span class="tx"><b>${esc(m[0])}</b><span>${esc(m[2])}</span></span><button class="btn sut" data-a="quitaMach" data-i="${i}">Quitar</button></div>`).join("")}</div><div class="fila" style="margin-top:12px"><button class="btn pri" data-a="masMach">Cargar machote</button></div></div>
+      <div class="card pad"><h2>Campos disponibles</h2><p class="faint">Copia uno y pégalo en tu Word o Excel donde va ese dato.</p><div class="card lista">${campos.map((x, i) => `<div><span class="tx"><b style="font-weight:500">${esc(x)}</b></span><button class="btn sut" id="copia${i}" data-a="copia" data-t="${esc(x)}" aria-label="Copiar ${esc(x)}">Copiar</button></div>`).join("")}</div></div></div>`; }
+  if (S.cfg === "plazos") c = `<div class="card lista">${S.plazos.map((p, i) => `<div><label class="tx" for="plazo${i}"><b style="font-weight:500">${esc(p[0])}</b></label><input id="plazo${i}" class="inp" type="number" min="0" inputmode="numeric" data-c="plazo" data-i="${i}" value="${p[1]}" style="width:84px;flex:none;text-align:right"><span class="muted">días</span></div>`).join("")}</div>
+      <div class="g2" style="margin-top:14px"><label class="campo">Pedir documentos<textarea id="msg-pedir" class="inp" rows="5" data-c="msg" data-k="pedir">${esc(S.msgs.pedir)}</textarea></label><label class="campo">Recordarle<textarea id="msg-recordar" class="inp" rows="5" data-c="msg" data-k="recordar">${esc(S.msgs.recordar)}</textarea></label></div>
+      <p class="faint">Pueden llevar el nombre de la persona y la lista de documentos: escribe «Nombre» y «Documentos» donde quieras que vayan.</p>`;
+  if (S.cfg === "modulos") c = `<div class="card lista">${Object.keys(S.modulos).map((m, i) => `<div><span class="tx"><b>${m}</b><span>${m === "Inmuebles" ? "Su sección del menú y el apartado Inmueble" : "Se apaga sin borrar lo capturado"}</span></span>${sw("modulo", S.modulos[m], "", `data-k="${m}" aria-label="${m}"`, "mod" + i)}</div>`).join("")}</div><div style="margin-top:12px">${nb("prueba apagar Inmuebles: desaparece del menú y del asunto.")}</div>`;
+  if (S.cfg === "empresa") c = `<div class="g3"><label class="campo">Nombre de la empresa<input id="empresa" class="inp" data-c="empresa" value="${esc(S.empresa)}"></label><label class="campo">Formato del folio<select id="folio" class="sel" data-c="folio"><option value="guion"${S.folio === "guion" ? " selected" : ""}>2026-0001</option><option value="diagonal"${S.folio === "diagonal" ? " selected" : ""}>2026/0001</option><option value="solo"${S.folio === "solo" ? " selected" : ""}${S.anual ? " disabled" : ""}>0001, sin año</option></select></label></div>
+      <div class="fila" style="margin-top:12px">${sw("anual", S.anual, "Vuelve a empezar cada año", "", "anual")}<span class="muted">El siguiente asunto será <b>${folio(8)}</b></span></div>
+      ${S.anual ? `<p class="faint" style="margin:0">Si vuelve a empezar cada año, el folio siempre lleva el año.</p>` : ""}`;
+  if (S.cfg === "equipo") c = `<div class="card lista">${S.equipo.map((e, i) => `<div style="flex-wrap:wrap"><span class="ic" style="background:var(--c-gray)">${esc(e[0][0])}</span><span class="tx"><b>${esc(e[0])}</b><span>${e[1]}</span></span>${e[1] === "Director" ? `<span class="muted">Funciones: todas</span>`
+      : `<div class="campo"><span id="fun-et${i}">Funciones</span><details class="menu"><summary class="sel" id="fun${i}" style="min-width:150px" aria-labelledby="fun-et${i} fun-tx${i}"><span id="fun-tx${i}">${esc(resumenF(e))}</span></summary><div>${FUNCIONES.map(f => `<label><input type="checkbox" id="fun${i}-${f.toLowerCase()}" data-c="funcion" data-i="${i}" data-n="${f}"${e[2].includes(f) ? " checked" : ""}>${f}</label>`).join("")}</div></details></div>`}${e[1] === "Director" ? "" : S.baja === i
+      ? `<div class="fila" style="flex-basis:100%;align-items:end"><label class="campo" style="flex:1 1 200px">Sus asuntos pasan a<select id="baja-a" class="sel">${opciones(S.equipo.filter((_, j) => j !== i).map(x => x[0]))}</select></label><button class="btn pri" data-a="bajaOk" data-i="${i}">Confirmar la baja</button><button class="btn sut" data-a="bajaNo">Cancelar</button></div>`
+      : `<button class="btn sut" style="align-self:flex-end" data-a="baja" data-i="${i}">Dar de baja</button>`}</div>`).join("")}</div><div class="fila" style="margin-top:12px"><button class="btn" data-a="alta">Agregar persona</button><span class="faint">Dar de baja no borra lo que hizo: sus asuntos pasan a otra persona.</span></div>`;
+  if (S.cfg === "eliminados") c = `<div class="card lista">${S.eliminados.map((e, i) => `<div><span class="tx"><b>${esc(e)}</b></span><button class="btn" data-a="recupera" data-i="${i}">Recuperar</button></div>`).join("") || `<div class="muted">Nada eliminado</div>`}</div>`;
+  return `<h1 tabindex="-1">Configuración</h1>${nb("todo lo que se ajusta, en un solo lugar; solo lo ve el director.")}
+    <div class="cfg"><div class="cfgnav">${M.map(m => `<button class="nav" data-a="cfg" data-k="${m[0]}" ${S.cfg === m[0] ? 'aria-current="page"' : ""}>${m[1]}</button>`).join("")}</div>
+    <label class="campo cfgsel">Parte<select id="cfg-parte" class="sel" data-c="cfgParte">${M.map(m => `<option value="${m[0]}"${S.cfg === m[0] ? " selected" : ""}>${m[1]}</option>`).join("")}</select></label>
+    <div style="min-width:0">${c}</div></div>`;
+}
+
+function pinta() {
+  if (S.asesor && S.ruta === "config") S.ruta = "asuntos";
+  menu();
+  const v = { asuntos: vAsuntos, asunto: vAsunto, consulta: vConsulta, bandeja: vBandeja, config: vConfig, inmuebles: () => `<h1 tabindex="-1">Inmuebles</h1>${nb("aquí van el inventario y lo que sale en el sitio. Es un módulo: se apaga en Configuración → Módulos.")}` }[S.ruta];
+  $("#vista").innerHTML = `<div class="in">${v()}</div>`; calcula();
+}
+/* Tras redibujar, el foco vuelve al mismo control: por su id o por sus atributos data-. */
+const ATR = ["a", "c", "l", "k", "i", "d", "j", "r", "id", "q", "o", "n"];
+function clave(el) {
+  if (!el || !el.tagName || el === document.body) return null;
+  if (el.id) return "#" + CSS.escape(el.id);
+  let s = el.tagName.toLowerCase(), hay = false;
+  for (const k of ATR) if (el.dataset[k] !== undefined) { s += `[data-${k}="${CSS.escape(el.dataset[k])}"]`; hay = true; }
+  return hay ? s : null;
+}
+function repinta(el, antes = S.ruta) {
+  const enMenu = !!(el && el.closest && el.closest("#menu"));
+  let k = S.foco || clave(el); S.foco = null;
+  pinta();
+  const cambio = S.ruta !== antes; if (cambio && !enMenu) k = null;
+  let n = null; try { n = k && document.querySelector(k); } catch (_) { n = null; }
+  (n || $("#vista h1")).focus({ preventScroll: true });
+  /* El foco no mueve la vista: al cambiar de pantalla se empieza arriba; si no, solo se acerca lo justo. */
+  if (cambio) $("#vista").scrollTop = 0;
+  else if (n) n.scrollIntoView({ block: "nearest", inline: "nearest" });
+  if (n && n.closest(".tira")) n.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
+const A = {
+  ir: d => { S.ruta = d.r; S.persona = null; },
+  abre: d => { S.id = d.id; S.ruta = "asunto"; S.apart = "personas"; S.persona = null; },
+  apart: d => { S.apart = d.k; S.persona = null; },
+  persona: d => { S.persona = d.i === "" ? null : +d.i; },
+  renglon: () => { S.cot.push(["Concepto nuevo", 1, 0]); S.foco = "#cot-c" + (S.cot.length - 1); },
+  quitaRec: d => { const t = S.tipos[S.tipo], i = t.recuadros.indexOf(d.k); if (i < 0) return false; t.recuadros.splice(i, 1); S.aj = null; S.foco = "#mas-recuadro";
+    aviso("Se quitó «" + d.k + "» de este tipo de asunto", () => { if (!t.recuadros.includes(d.k)) t.recuadros.splice(Math.min(i, t.recuadros.length), 0, d.k); }); },
+  ajusta: d => { S.aj = S.aj === d.k ? null : d.k; if (!S.aj) aviso("Guardado en la plantilla de este tipo de asunto"); },
+  ajustaCot: () => { S.ajCot = !S.ajCot; if (!S.ajCot) aviso("Guardado"); },
+  cfg: d => { S.cfg = d.k; },
+  orden: d => {
+    const l = d.l === "cat" ? S.cats[d.k].v : d.l === "ficha" ? S.fichas[d.k].f : (buscaQ(d.k) || { o: [] }).o;
+    const i = +d.i, j = i + (+d.d); if (j < 0 || j >= l.length) return false;
+    [l[i], l[j]] = [l[j], l[i]];
+    const otro = d.d === "1" ? "-1" : "1", a = `[data-a="orden"][data-l="${d.l}"][data-k="${CSS.escape(d.k)}"]`;
+    S.foco = (j + (+d.d) < 0 || j + (+d.d) >= l.length) ? `${a}[data-i="${j}"][data-d="${otro}"]` : `${a}[data-i="${j}"][data-d="${d.d}"]`;
+  },
+  quitaOpc: d => { const p = buscaQ(d.q); if (!p) return false; p.o = p.o.filter(o => o.id !== d.o); S.foco = `[data-a="masOpc"][data-q="${d.q}"]`; },
+  masOpc: d => { const p = buscaQ(d.q); if (!p) return false; const o = { id: nid("o"), n: "Opción nueva" }; p.o.push(o); S.foco = "#opc-" + o.id; },
+  quitaPed: d => { const t = S.tipos[S.tipo]; t.pedir = t.pedir.filter(p => p.id !== d.k); S.foco = '[data-a="masPed"]'; },
+  masPed: () => { const p = { id: nid("d"), n: "Documento nuevo", q: "", o: "" }; S.tipos[S.tipo].pedir.push(p); S.foco = "#ped-" + p.id; },
+  quitaPreg: d => { const t = S.tipos[S.tipo], i = t.preg.findIndex(p => p.id === d.q); if (i < 0) return false; const [p] = t.preg.splice(i, 1); S.foco = '[data-a="masPreg"]';
+    aviso("Se quitó la pregunta «" + p.n + "»", () => { if (!t.preg.includes(p)) t.preg.splice(Math.min(i, t.preg.length), 0, p); }); },
+  masPreg: () => { const p = PR("Pregunta nueva", "una", "Sí, No"); S.tipos[S.tipo].preg.push(p); S.foco = "#preg-" + p.id; },
+  deshacer: () => { const f = S.deshacer; S.deshacer = null; if (f) { f(); aviso("Se deshizo"); } else $("#aviso").hidden = true; },
+  abreNuevo: () => { const f = folio(S.asuntos.length + 2); S.asuntos.unshift({ f, n: "Asunto nuevo (ejemplo)", cli: "Quien llamó", con: "—", tipo: S.tipos[S.tipo].n, va: "En estudio", ll: "MN", sig: "Recibir los documentos", a: 1, b: 4 }); S.id = f; S.ruta = "asunto"; S.apart = "personas"; aviso("Asunto " + f + " abierto"); },
+  asigna: d => { const b = S.bandeja[+d.i]; b.e = 1; (S.carpeta[b.de.split(" (")[0]] ||= []).push(b.a); S.foco = `[data-a="confirma"][data-i="${d.i}"]`; aviso("Asignado. Lo leído queda por confirmar"); },
+  asignaMano: d => { const i = +d.i, f = $("#asigna-asunto" + i).value, de = $("#asigna-de" + i).value; if (!f) { aviso("Elige el asunto"); return false; }
+    const b = S.bandeja[i]; b.e = 1; b.es = "Archivo"; b.de = de; b.f = f; (S.carpeta[de.split(" (")[0]] ||= []).push(b.a); S.foco = `[data-a="confirma"][data-i="${i}"]`; aviso("Asignado. Lo leído queda por confirmar"); },
+  confirma: d => { S.bandeja[+d.i].e = 2; aviso("Confirmado"); },
+  masVal: () => { S.cats[S.cat].v.push(["Valor nuevo", 1]); S.foco = "#val" + (S.cats[S.cat].v.length - 1); },
+  masCampo: () => { const n = $("#dato-nuevo").value.trim(); if (!n) { aviso("Escribe el nombre del dato"); return false; } S.fichas[S.ficha].f.push([n, $("#dato-clase").value, 1]); aviso("«" + n + "» ya se ofrece en la ficha"); },
+  dato: () => { const v = $("#agregar-dato").value; if (!v) { aviso("Elige un dato"); return false; } S.personas[S.persona].d[v] = ""; },
+  genera: () => { const v = $("#generar").value; if (!v) { aviso("Elige un machote"); return false; } S.carpeta.Entregables.push(v + ".docx"); aviso("«" + v + "» salió lleno con los datos del asunto; faltaron 2 y te los preguntó"); },
+  nuevoApart: () => { const v = $("#nuevo-apartado").value; if (!v) { aviso("Elige una clase"); return false; }
+    S.propios.push([{ texto: "Notas", tabla: "Tabla nueva", formulario: "Formulario nuevo", lista: "Lista nueva", galeria: "Galería nueva" }[v], v, "Recién agregado"]); S.apart = "p" + (S.propios.length - 1); },
+  masRec: () => { const v = $("#mas-recuadro").value; if (!v) { aviso("Elige un recuadro"); return false; } S.tipos[S.tipo].recuadros.push(v); S.foco = `[data-a="ajusta"][data-k="${v}"]`; },
+  ajustaTipo: d => { S.tipo = d.k; S.aj = "preg"; S.ruta = "consulta"; },
+  fichaTipo: d => { const k = "a-" + d.k; if (!S.fichas[k]) S.fichas[k] = { n: "Asunto: " + S.tipos[d.k].n, f: [] }; S.cfg = "fichas"; S.ficha = k; S.foco = "#cual-ficha"; },
+  masTipo: () => { const k = nid("t"); S.tipos[k] = tipo("Tipo nuevo"); S.tipoCfg = k; S.foco = "#tipo-nombre"; },
+  quitaMach: d => { S.eliminados.push(S.machotes.splice(+d.i, 1)[0][0] + " (machote)"); aviso("Se mandó a Eliminados"); },
+  masMach: () => { S.machotes.push(["Machote nuevo (ejemplo)", "Word", "Sin campos todavía"]); },
+  baja: d => { S.baja = +d.i; S.foco = "#baja-a"; },
+  bajaNo: () => { S.foco = `[data-a="baja"][data-i="${S.baja}"]`; S.baja = null; },
+  bajaOk: d => { const a = $("#baja-a").value, e = S.equipo.splice(+d.i, 1)[0]; S.baja = null; S.foco = '[data-a="alta"]'; aviso(e[0] + " dado de baja; sus asuntos pasan a " + a); },
+  alta: () => { S.equipo.push(["Persona nueva (ejemplo)", "Asesor", []]); },
+  pideOp: () => { const a = $("#op-quien").value, c = $("#op-cuando").value; S.opinion.pedida = { a, cuando: c }; S.foco = '[data-a="apart"][data-k="opinion"]'; aviso("Se pidió la opinión jurídica a " + a); },
+  recupera: d => { aviso("Recuperado: " + S.eliminados.splice(+d.i, 1)[0]); },
+  copia: d => { (navigator.clipboard ? navigator.clipboard.writeText("«" + d.t + "»") : Promise.reject()).then(() => aviso("Copiado: " + d.t), () => aviso("Selecciona y copia: " + d.t)); return false; },
+  nada: () => { aviso("En el boceto no se suben archivos"); return false; }
+};
+const C = {
+  vista: e => { S.vista = e.value; }, planVista: e => { S.planVista = e.value; },
+  tipo: e => { S.tipo = e.value; S.aj = null; },
+  encargo: e => { S.encargo = e.value; return false; },
+  resp: e => { S.resp[e.dataset.q] = e.value; const b = $("#pedir-box"); if (b) b.innerHTML = pedirHTML(); return false; },
+  respV: e => { const q = e.dataset.q, l = new Set(Array.isArray(S.resp[q]) ? S.resp[q] : []); if (e.checked) l.add(e.dataset.o); else l.delete(e.dataset.o); S.resp[q] = [...l];
+    const s = $("#rv-tx-" + q), p = buscaQ(q); if (s && p) s.textContent = resumenV(p); const b = $("#pedir-box"); if (b) b.innerHTML = pedirHTML(); return false; },
+  respT: e => { S.resp[e.dataset.q] = e.value; return false; },
+  pregN: e => { const p = buscaQ(e.dataset.q); if (p) p.n = e.value.trim() || "Pregunta sin nombre"; return false; },
+  pregClase: e => { const p = buscaQ(e.dataset.q); if (p) p.clase = e.value; },
+  opcN: e => { const p = buscaQ(e.dataset.q), o = p && p.o.find(x => x.id === e.dataset.o); if (o) o.n = e.value.trim() || "Opción sin nombre"; return false; },
+  pedN: e => { const p = pedido(e.dataset.k); if (p) p.n = e.value; return false; },
+  pedC: e => { const p = pedido(e.dataset.k); if (!p) return false; const [q = "", o = ""] = e.value ? e.value.split("=") : []; p.q = q; p.o = o; },
+  cat: e => { S.cat = e.value; }, ficha: e => { S.ficha = e.value; },
+  col: e => { S.cols[e.dataset.k] = e.checked ? 1 : 0; S.colsAbierto = true; },
+  mueve: e => { S.asuntos.find(a => a.f === e.dataset.id).va = e.value; },
+  papel: e => { S.personas[S.persona].papel = e.value; },
+  valN: e => { S.cats[S.cat].v[+e.dataset.i][0] = e.value; return false; },
+  valA: e => { S.cats[S.cat].v[+e.dataset.i][1] = e.checked ? 1 : 0; },
+  campoV: e => { S.fichas[S.ficha].f[+e.dataset.i][2] = e.checked ? 1 : 0; },
+  modulo: e => { S.modulos[e.dataset.k] = e.checked ? 1 : 0; },
+  empresa: e => { S.empresa = e.value || "Tu empresa"; menu(); return false; },
+  folio: e => { S.folio = e.value; },
+  anual: e => { S.anual = e.checked; if (S.anual && S.folio === "solo") S.folio = "guion"; },
+  asesor: e => { S.asesor = e.checked; S.aj = null; S.ajCot = false; },
+  cfgParte: e => { S.cfg = e.value; },
+  tipoCfg: e => { S.tipoCfg = e.value; },
+  tipoN: e => { const t = S.tipos[e.dataset.k]; t.n = e.value.trim() || "Tipo sin nombre"; const o = $("#cual-tipo") && $("#cual-tipo").selectedOptions[0]; if (o) o.textContent = etTipo(t); return false; },
+  tipoA: e => { S.tipos[e.dataset.k].activo = e.checked ? 1 : 0; },
+  tipoSub: e => { S.tipos[e.dataset.k].sub = e.value; return false; },
+  tipoEnc: e => { S.tipos[e.dataset.k].encargo = e.value; return false; },
+  tipoPlan: e => { S.tipos[e.dataset.k].plan = e.value; return false; },
+  tipoMach: e => { S.tipos[e.dataset.k].mach = e.value; return false; },
+  tipoAp: e => { S.tipos[e.dataset.k].aparts[e.dataset.n] = e.checked ? 1 : 0; return false; },
+  cotColN: e => { S.cotCols[+e.dataset.i][0] = e.value.trim() || "Columna"; return false; },
+  cotColC: e => { S.cotCols[+e.dataset.i][1] = e.value; return false; },
+  iva: () => false,
+  funcion: e => { const p = S.equipo[+e.dataset.i], s = new Set(p[2]); if (e.checked) s.add(e.dataset.n); else s.delete(e.dataset.n); p[2] = FUNCIONES.filter(f => s.has(f)); const t = $("#fun-tx" + e.dataset.i); if (t) t.textContent = resumenF(p); return false; },
+  opRes: e => { S.opinion.res = e.value; },
+  opTxt: e => { S.opinion.txt = e.value; return false; },
+  plazo: e => { S.plazos[+e.dataset.i][1] = +e.value || 0; return false; },
+  msg: e => { S.msgs[e.dataset.k] = e.value; return false; }
+};
+document.addEventListener("click", e => { const t = e.target.closest("[data-a]"); if (!t || !A[t.dataset.a]) return; const r0 = S.ruta; if (A[t.dataset.a](t.dataset, t) !== false) repinta(t, r0); });
+document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-a][tabindex]:not(button)")) { e.preventDefault(); e.target.click(); } });
+document.addEventListener("change", e => { const t = e.target.closest("[data-c]"); if (!t || t.dataset.c === "cot" || !C[t.dataset.c]) return; const r0 = S.ruta; if (C[t.dataset.c](t) !== false) repinta(t, r0); });
+document.addEventListener("input", e => { const t = e.target; if (!t.dataset) return;
+  if (t.dataset.c === "cot") { S.cot[+t.dataset.i][+t.dataset.j] = t.dataset.j === "0" ? t.value : +t.value; calcula(); }
+  else if (t.dataset.c === "iva") { S.iva = Math.max(0, +t.value || 0); calcula(); }
+  else if (t.dataset.c === "empresa") C.empresa(t); });
+document.addEventListener("toggle", e => { if (e.target.id === "menu-cols") S.colsAbierto = e.target.open; }, true);
+$("#aviso").addEventListener("focusout", () => { const a = $("#aviso"); clearTimeout(aviso.t); aviso.t = setTimeout(() => { if (!a.contains(document.activeElement)) { a.hidden = true; S.deshacer = null; } }, 2600); });
+pinta();
+</script>
