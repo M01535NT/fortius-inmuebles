@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Consulta como hoja</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0}
+a{color:#2560f0}a:hover{color:#1f54d6}
+.app{font-family:"Archivo",-apple-system,"Segoe UI",sans-serif;font-size:13px;line-height:1.4;color:#0f1218;background:#aeb3bd;min-height:900px;display:flex;justify-content:center;align-items:flex-start;padding:0 16px 40px}
+.app *{box-sizing:border-box}
+.app button,.app input,.app textarea{font:inherit;color:inherit}
+.hoja{width:100%;max-width:860px;background:#fff;border-radius:0 0 14px 14px;box-shadow:0 24px 60px rgba(15,18,24,.35);display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 18px;border-bottom:1px solid #e2e5ea;flex-wrap:wrap}
+.pri{border:0;background:#2560f0;color:#fff;border-radius:8px;min-height:32px;padding:0 14px;font-weight:600;cursor:pointer}
+.sec{border:1px solid #d5dae2;background:#fff;border-radius:8px;min-height:32px;padding:0 12px;font-weight:500;cursor:pointer}
+.kbd{font-size:11px;color:#596070;background:#eceef2;border-radius:5px;padding:1px 6px}
+.cuerpo{display:flex;flex-wrap:wrap}
+.izq{flex:999 1 420px;min-width:0;padding:22px 24px;display:flex;flex-direction:column;gap:18px}
+.der{flex:1 1 260px;min-width:0;background:#f7f8fa;border-left:1px solid #e2e5ea;padding:18px;display:flex;flex-direction:column;gap:14px}
+.tit{border:0;outline:0;font-size:24px;font-weight:700;width:100%;padding:0}
+.dato{display:flex;align-items:center;min-height:32px;border-bottom:1px solid #eef0f3}
+.dato label{flex:0 0 150px;color:#596070}
+.dato button{flex:1;border:0;background:none;text-align:left;min-height:32px;padding:0;cursor:pointer;display:flex;justify-content:space-between}
+.vacio{color:#7a8394}
+.blq{font-size:11px;font-weight:600;color:#596070;display:flex;justify-content:space-between;align-items:center}
+.doc{display:flex;align-items:flex-start;gap:8px;padding:6px 0}
+.cb{width:15px;height:15px;border:1.5px solid #9aa3b2;border-radius:4px;flex:none;margin-top:2px}
+.cb.si{background:#2560f0;border-color:#2560f0}
+</style>
+</helmet>
+<div class="app">
+  <div class="hoja" role="dialog" aria-label="Consulta nueva">
+    <div class="bar"><b style="font-size:15px">Consulta</b><span style="color:#596070">Se guarda sola</span><span style="margin-left:auto"></span>
+      <button class="sec">Cerrar sin asunto ▾</button><button class="pri">Abrir asunto <span style="opacity:.8;font-weight:500">⌘↩</span></button></div>
+    <div class="cuerpo">
+      <div class="izq">
+        <div><label for="quien" style="font-size:11px;font-weight:600;color:#596070">Quién llama</label>
+          <input id="quien" class="tit" value="María Guadalupe Hernández (ejemplo)"></div>
+        <div>
+          <div class="dato"><label>Teléfono</label><button>+52 664 123 4567</button></div>
+          <div class="dato"><label>Por dónde</label><button>Llamada<span class="vacio">▾</span></button></div>
+          <div class="dato"><label>Tipo de asunto</label><button>Venta de inmueble<span class="vacio">▾</span></button></div>
+          <div class="dato"><label>Qué encargan</label><button>Revisar<span class="vacio">▾</span></button></div>
+        </div>
+        <div><label for="pasa" style="font-size:11px;font-weight:600;color:#596070">Qué pasa</label>
+          <textarea id="pasa" style="width:100%;border:0;outline:0;resize:none;min-height:70px;font-size:15px;line-height:1.5;padding:4px 0">Su mamá falleció y quieren vender la casa de la colonia Murúa. Son cuatro hermanos; uno vive en Estados Unidos.</textarea></div>
+        <div>
+          <div class="blq"><span>Preguntas · 3 de 6</span><span class="kbd">Tab</span></div>
+          <div class="dato"><label>Qué quiere</label><button>Vender<span class="vacio">▾</span></button></div>
+          <div class="dato"><label>De quién es</label><button>Falleció el titular<span class="vacio">▾</span></button></div>
+          <div class="dato"><label>Qué es</label><button>Casa<span class="vacio">▾</span></button></div>
+          <div class="dato"><label>Quién lo ocupa</label><button class="vacio">Sin decir<span>▾</span></button></div>
+          <div class="dato"><label>Cómo está el título</label><button class="vacio">Sin decir<span>▾</span></button></div>
+          <div class="dato"><label>Qué debe</label><button class="vacio">Sin decir<span>▾</span></button></div>
+        </div>
+      </div>
+      <div class="der">
+        <div><div class="blq"><span>Documentos · 1 de 4</span><span>Mandar la lista ▾</span></div>
+          <div class="doc"><span class="cb si"></span><div>Identificación oficial<div style="color:#596070;font-size:12px">ine-maria.jpg</div></div></div>
+          <div class="doc"><span class="cb"></span><div>Boleta predial reciente<div style="color:#596070;font-size:12px">Se pide siempre</div></div></div>
+          <div class="doc"><span class="cb"></span><div>Acta de defunción del titular<div style="color:#596070;font-size:12px">Porque falleció el titular</div></div></div>
+          <div class="doc"><span class="cb"></span><div>Actas de nacimiento de los herederos<div style="color:#596070;font-size:12px">Porque falleció el titular</div></div></div>
+          <div style="color:#596070;padding-top:4px">+ Otro documento o archivo</div></div>
+        <div><div class="blq"><span>Otras personas · 1</span><span>Agregar</span></div>
+          <div style="padding:6px 0">Rosa Hernández (ejemplo)<div style="color:#596070;font-size:12px">Titular</div></div></div>
+        <div style="margin-top:auto;color:#596070;font-size:12px">Suelta aquí un archivo para adjuntarlo.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { crearAsunto, crearEnParte, fallo, idSchema } from "./asuntos";
+import { claveCatalogo } from "./catalogos";
 import type { StaffUser } from "./contracts";
 import { FIRMAS as FIRMAS_DOCUMENTO } from "./consultas";
 import { BUCKET_EXPEDIENTES } from "./expediente-archivos";
@@ -11,7 +12,7 @@ import { limpiarNombre } from "./apartados";
 import { sinMetadatos } from "./files";
 import { ApiError } from "./http";
 import {
-  camposDe, ESTADOS_INMUEBLE, estadosPara, MONEDAS, OPERACIONES, TIPOS_INMUEBLE,
+  camposDe, ESTADOS_INMUEBLE, estadosPara, MONEDAS, OPERACIONES,
   type AsuntoDelInmueble, type CambioPrecio, type DocumentoDelInmueble, type EstadoInmueble, type FilaInmueble, type Inmueble, type Medio,
   type Operacion, type TipoInmueble,
 } from "./inmuebles-contrato";
@@ -113,7 +114,7 @@ const https = z.string().trim().max(1000).regex(/^https:\/\/[^\s]+$/, "Pega un e
 export const cambioInmuebleSchema = z.object({
   version: z.number().int().positive(),
   nombre: z.string().trim().min(1).max(160).optional(),
-  tipo: z.enum(TIPOS_INMUEBLE).nullable().optional(),
+  tipo: claveCatalogo.nullable().optional(),
   operacion: z.enum(OPERACIONES).nullable().optional(),
   estado: z.enum(ESTADOS_INMUEBLE).optional(),
   precio: z.number().min(0).max(1e12).nullable().optional(),
@@ -191,7 +192,7 @@ export async function publicarVarios(client: SupabaseClient, entrada: z.infer<ty
 
 export const nuevoInmuebleSchema = z.object({
   nombre: z.string().trim().min(1).max(160),
-  tipo: z.enum(TIPOS_INMUEBLE).optional(),
+  tipo: claveCatalogo.optional(),
   operacion: z.enum(OPERACIONES).optional(),
   colonia: z.string().trim().max(120).optional(),
   asunto_id: idSchema.optional(),

@@ -8,7 +8,8 @@
   --bg: #f5f6f8; --side: #eceef2; --card: #ffffff; --raised: #ffffff; --muted: #eceef2; --border: #e2e5ea; --border-strong: #c9ced6;
   --fill: rgb(15 18 24 / 0.055); --glass: #eceef2;
   --ink: #0f1218; --ink-muted: #596070; --ink-faint: #939aa8;
-  --accent: #2f6bff; --accent-soft: #e8efff; --accent-ink: #ffffff; --accent-hover: #2560f0; --accent-active: #1f54d6;
+  --accent: #2560f0; --accent-soft: #e8efff; --accent-ink: #ffffff; --accent-hover: #1f54d6; --accent-active: #1a49bd;
+  --side-on: #dfe3ea; --linea-suave: #eef0f3;
   --warning: #b56a00; --warning-soft: #fff0d6; --error: #d8362a; --error-soft: #fdeae8; --exito: #0e9f4f; --exito-soft: #e3f6ea; --scrim: rgb(10 12 16 / 0.32);
   --c-blue: #2f6bff; --c-orange: #f27a0e; --c-red: #e5484d; --c-teal: #0c9ca8; --c-violet: #7b5cfa; --c-green: #12a150; --c-indigo: #4a55e6; --c-gray: #7b8392;
   --papel: #ffffff; --tinta-papel: #16181d;
@@ -21,7 +22,7 @@
     --bg: #0e0f12; --side: #131418; --card: #191a1f; --raised: #202127; --muted: #202127; --border: #292b33; --border-strong: #3a3d47;
     --fill: rgb(255 255 255 / 0.065); --glass: #131418;
     --ink: #edeef1; --ink-muted: #a2a8b4; --ink-faint: #6d7381;
-    --accent: #5c8cff; --accent-soft: #18233f; --accent-ink: #ffffff; --accent-hover: #7aa2ff; --accent-active: #4a7af0;
+    --accent: #5c8cff; --accent-soft: #18233f; --accent-ink: #ffffff; --accent-hover: #7aa2ff; --accent-active: #4a7af0; --side-on: #262830; --linea-suave: #1f2026;
     --warning: #f5b94a; --warning-soft: #2e2208; --error: #ff7b72; --error-soft: #33161a; --exito: #3dd68c; --exito-soft: #11281d; --scrim: rgb(0 0 0 / 0.55);
     --c-blue: #3d74ff; --c-orange: #f27a0e; --c-red: #e5484d; --c-teal: #0c9ca8; --c-violet: #7b5cfa; --c-green: #12a150; --c-indigo: #5560f0; --c-gray: #6b7382;
     --sombra-flota: 0 14px 38px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
@@ -32,7 +33,7 @@
   --bg: #0e0f12; --side: #131418; --card: #191a1f; --raised: #202127; --muted: #202127; --border: #292b33; --border-strong: #3a3d47;
   --fill: rgb(255 255 255 / 0.065); --glass: #131418;
   --ink: #edeef1; --ink-muted: #a2a8b4; --ink-faint: #6d7381;
-  --accent: #5c8cff; --accent-soft: #18233f; --accent-ink: #ffffff; --accent-hover: #7aa2ff; --accent-active: #4a7af0;
+  --accent: #5c8cff; --accent-soft: #18233f; --accent-ink: #ffffff; --accent-hover: #7aa2ff; --accent-active: #4a7af0; --side-on: #262830; --linea-suave: #1f2026;
   --warning: #f5b94a; --warning-soft: #2e2208; --error: #ff7b72; --error-soft: #33161a; --exito: #3dd68c; --exito-soft: #11281d; --scrim: rgb(0 0 0 / 0.55);
   --c-blue: #3d74ff; --c-orange: #f27a0e; --c-red: #e5484d; --c-teal: #0c9ca8; --c-violet: #7b5cfa; --c-green: #12a150; --c-indigo: #5560f0; --c-gray: #6b7382;
   --sombra-flota: 0 14px 38px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
@@ -88,8 +89,8 @@
 .pn-iconbtn:hover { background: var(--fill); color: var(--ink); }
 /* Buscar: cuadro blanco con borde, como en el boceto. */
 .pn-busca {
-  display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 10px; margin: 0 0 6px;
-  border: 1px solid var(--border); border-radius: var(--r-md); background: var(--card); color: var(--ink-faint); font-size: 14px; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 30px; padding: 0 8px; margin: 0 0 2px;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--card); color: var(--ink-muted); font-size: 13px; cursor: pointer; text-align: left;
 }
 .pn-busca:hover { border-color: var(--border-strong); }
 .pn-busca span { flex: 1; white-space: nowrap; }
@@ -100,15 +101,22 @@
 .pn-item-fila .pn-link { flex: 1; min-width: 0; }
 .pn-asa-menu { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); opacity: 0; transition: opacity 120ms; }
 .pn-item-fila:hover .pn-asa-menu, .pn-item-fila:focus-within .pn-asa-menu { opacity: 1; }
-/* Renglón del menú: ícono gris y nombre; el actual va en tarjeta blanca con su borde. */
+/* Renglón del menú (modelo visual): 30 px, ícono y nombre; el actual con fondo gris y en negritas, como la barra lateral de una app de Mac. */
 .pn-link {
-  position: relative; display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 8px; border-radius: 8px;
-  color: var(--ink-muted); font-size: 14px; font-weight: 500; white-space: nowrap;
+  position: relative; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: 7px;
+  color: var(--ink); font-size: 13px; font-weight: 450; white-space: nowrap;
 }
+.pn-link > svg { color: var(--ink-muted); }
 .pn-link:hover { background: var(--fill); }
-.pn-link[aria-current="page"] { background: var(--card); color: var(--ink); box-shadow: 0 0 0 1px var(--border); }
-.pn-nav-n { margin-left: auto; font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
-.pn-sec { font-size: 12px; color: var(--ink-faint); font-weight: 550; padding: 14px 8px 4px; }
+.pn-link[aria-current="page"] { background: var(--side-on); font-weight: 600; }
+.pn-link[aria-current="page"] > svg { color: var(--accent); }
+.pn-nav-n { margin-left: auto; font-size: 12px; font-weight: 450; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+/* Título de grupo del menú: Trabajo, Favoritos, Recientes y los filtros de la sección. Se pliega con un clic. */
+.pn-sec { display: flex; align-items: center; gap: 4px; width: 100%; margin: 0; padding: 14px 8px 4px; border: 0; background: none; font-size: 11px; font-weight: 600; color: var(--ink-muted); text-align: left; cursor: default; }
+button.pn-sec { cursor: pointer; }
+.pn-sec > svg { opacity: 0; transition: opacity 120ms, transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+.pn-sec:hover > svg, .pn-sec:focus-visible > svg { opacity: 1; }
+.pn-sec[aria-expanded="false"] > svg { transform: rotate(-90deg); opacity: 1; }
 /* Recientes: los últimos asuntos abiertos, con el cuadrito de su encargo. */
 .pn-recientes { display: flex; flex-direction: column; gap: 2px; min-height: 0; }
 .pn-reciente .pn-txt { overflow: hidden; text-overflow: ellipsis; }

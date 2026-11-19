@@ -2,13 +2,14 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/panel/ui/dropdown-menu";
 import {
-  leerInmuebles, NOMBRE_OPERACION, NOMBRE_TIPO, nuevoInmueble, OPERACIONES, precioTexto, publicarVarios, TIPOS_INMUEBLE,
+  leerInmuebles, NOMBRE_OPERACION, nuevoInmueble, OPERACIONES, precioTexto, publicarVarios,
   type FilaInmueble, type Operacion, type TipoInmueble,
 } from "@/lib/panel/inmuebles/api";
 
@@ -28,6 +29,7 @@ const pasa = (i: FilaInmueble, f: Filtro) => f === "" || (f === "pub" ? i.public
  */
 export function ListaInmuebles() {
   const { avisar } = useAvisos();
+  const cat = useCatalogos();
   const router = useRouter();
   const params = useSearchParams();
   const abierto = params.get("id");
@@ -114,7 +116,7 @@ export function ListaInmuebles() {
                   {i.portada ? <img className="in-mini" src={i.portada} alt="" loading="lazy" /> : <span className="in-hueco"><Cuadro icono="edif" color="orange" /></span>}
                   <span className="as-ren-c">
                     <b>{i.nombre}</b>
-                    <span>{[i.tipo ? NOMBRE_TIPO[i.tipo] : null, i.colonia, precioTexto(i.precio, i.moneda, i.operacion)].filter(Boolean).join(" · ")}</span>
+                    <span>{[i.tipo ? cat.etiqueta("tipo_inmueble", i.tipo) : null, i.colonia, precioTexto(i.precio, i.moneda, i.operacion)].filter(Boolean).join(" · ")}</span>
                   </span>
                   <span className="in-medios" aria-label={[i.fotos ? `${i.fotos} fotos` : "", i.video ? "video" : "", i.recorrido ? "recorrido 360" : ""].filter(Boolean).join(", ") || undefined}>
                     {i.fotos ? <Icono nombre="img" tamano={15} /> : null}{i.video ? <Icono nombre="video" tamano={15} /> : null}{i.recorrido ? <Icono nombre="r360" tamano={15} /> : null}
@@ -162,6 +164,7 @@ function DialogoNuevo({ abierto, alCerrar, alCrear }: { abierto: boolean; alCerr
 function FormaNuevo({ alCerrar, alCrear }: { alCerrar: () => void; alCrear: (d: { nombre: string; tipo?: TipoInmueble; operacion?: Operacion; propietario?: string }) => void }) {
   const id = useId();
   const [nombre, setNombre] = useState("");
+  const cat = useCatalogos();
   const [tipo, setTipo] = useState<TipoInmueble | "">("");
   const [operacion, setOperacion] = useState<Operacion | "">("");
   const [dueno, setDueno] = useState("");
@@ -176,7 +179,7 @@ function FormaNuevo({ alCerrar, alCrear }: { alCerrar: () => void; alCrear: (d: 
       <label className="pn-campo" htmlFor={`${id}-n`}>Nombre
         <input id={`${id}-n`} className="as-inp as-inp-borde" maxLength={160} placeholder="Casa en Playas, Nave en El Florido…" value={nombre} autoFocus onChange={(e) => setNombre(e.target.value)} />
       </label>
-      <Desplegable etiqueta="Tipo" valor={tipo} vacio="Elegir" opciones={TIPOS_INMUEBLE.map((t) => ({ valor: t, etiqueta: NOMBRE_TIPO[t] }))} alElegir={setTipo} />
+      <Desplegable etiqueta="Tipo" valor={tipo} vacio="Elegir" opciones={cat.opciones("tipo_inmueble")} alElegir={setTipo} />
       <Desplegable etiqueta="Operación" valor={operacion} vacio="Elegir" opciones={OPERACIONES.map((o) => ({ valor: o, etiqueta: NOMBRE_OPERACION[o] }))} alElegir={setOperacion} />
       <label className="pn-campo" htmlFor={`${id}-d`}>Propietario (opcional)
         <input id={`${id}-d`} className="as-inp as-inp-borde" maxLength={160} placeholder="Nombre del dueño" value={dueno} onChange={(e) => setDueno(e.target.value)} />

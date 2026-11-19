@@ -2,8 +2,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Icono } from "@/components/panel/icons";
+import { SeleccionMultiple } from "@/components/panel/kit/seleccion-multiple";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/panel/ui/dropdown-menu";
 import type { Asunto, Moneda, PersonaDelAsunto, Quien } from "@/lib/panel/asuntos/api";
 
 /** Corre un cambio y vuelve a leer el asunto; avisa lo que pasó (con «Deshacer» si se puede). */
@@ -38,11 +38,12 @@ const digitos = (tel: string | null) => tel?.replace(/\D/g, "") ?? "";
 /** A quién se le escribe según quién hace la tarea: el cliente es el primer propietario, titular o contacto con teléfono. */
 export function personaPara(a: Asunto, quien: Quien): PersonaDelAsunto | null {
   const vivas = a.personas.filter((p) => !p.fallecida && !p.no_contactar && digitos(p.telefono).length >= 8);
-  const papeles: Record<Quien, string[]> = {
+  // Un «quién» que agregue el director en Catálogos no tiene a quién escribirle todavía.
+  const papeles: Partial<Record<Quien, string[]>> = {
     cliente: ["propietario", "titular", "vendedor", "comprador", "heredero", "inquilino", "inversionista", "contacto", "copropietario"],
     abogado: ["abogado"], notaria: ["notaria"], otro: ["apoderado", "banco", "contraparte"], fortius: [],
   };
-  for (const papel of papeles[quien]) { const p = vivas.find((x) => x.papel === papel); if (p) return p; }
+  for (const papel of papeles[quien] ?? []) { const p = vivas.find((x) => x.papel === papel); if (p) return p; }
   return quien === "cliente" ? vivas[0] ?? null : null;
 }
 
@@ -101,28 +102,9 @@ export function BotonSubir({ etiqueta, varios = true, soloFotos, alElegir, clase
   );
 }
 
-/** Varias opciones a la vez (por ejemplo «Qué debe»): un campo que abre una lista con casillas. */
-export function ElegirVarios<T extends string>({ etiqueta, valores, opciones, alCambiar, vacio = "Elegir" }: {
-  etiqueta: string; valores: readonly T[]; opciones: readonly { valor: T; etiqueta: string }[]; alCambiar: (v: T[]) => void; vacio?: string;
+/** Varias opciones a la vez: la pieza única del kit (`SeleccionMultiple`), con los nombres de antes. */
+export function ElegirVarios<T extends string>({ etiqueta, valores, opciones, alCambiar, vacio = "Elegir", exclusivas }: {
+  etiqueta: string; valores: readonly T[]; opciones: readonly { valor: T; etiqueta: string }[]; alCambiar: (v: T[]) => void; vacio?: string; exclusivas?: readonly T[];
 }) {
-  const id = useId();
-  const texto = opciones.filter((o) => valores.includes(o.valor)).map((o) => o.etiqueta).join(", ");
-  return (
-    <div className="pn-campo">
-      <span id={id}>{etiqueta}</span>
-      <DropdownMenu>
-        <DropdownMenuTrigger className="as-inp as-inp-borde as-elegir" aria-labelledby={id}>
-          <span className={texto ? "" : "as-m"}>{texto || vacio}</span><Icono nombre="down" tamano={14} />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-56">
-          {opciones.map((o) => (
-            <DropdownMenuCheckboxItem key={o.valor} checked={valores.includes(o.valor)} onSelect={(e) => e.preventDefault()}
-              onCheckedChange={(c) => alCambiar(c ? [...valores, o.valor] : valores.filter((x) => x !== o.valor))}>
-              {o.etiqueta}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+  return <SeleccionMultiple etiqueta={etiqueta} valor={valores} opciones={opciones} alCambiar={alCambiar} vacio={vacio} exclusivas={exclusivas} />;
 }

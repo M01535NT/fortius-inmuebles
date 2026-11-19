@@ -12,6 +12,8 @@ Este documento describe el sistema completo: qué es, qué partes tiene y qué r
 | --- | --- | --- |
 | `PLAN.md` | Qué falta por hacer y en qué vamos | En la carpeta principal del proyecto |
 | El boceto | Cómo se ve y cómo responde el panel. Se abre en el navegador y funciona con datos de ejemplo | `docs/boceto-fortius-por-asuntos.html` |
+| El boceto de lo ajustable | Cómo funciona lo que el titular ajusta sin programar. Solo el funcionamiento: el aspecto es el del panel de hoy | `docs/boceto-panel-ajustable.html` |
+| El modelo visual | Las pantallas modelo de cómo se ordena y se ve el panel, como una app de Mac. Aprobado el 18/11/2026: toda pantalla nueva o rehecha sigue esta línea | `docs/modelo-visual/` y el lienzo https://claude.ai/artifact/RLdqpkz2PYtb1pHLXJXJuh |
 | Los casos reales | Los casos que el panel debe poder llevar de principio a fin | `docs/casos-reales.md` |
 | Las metodologías | Guías de trabajo que se copian a un asunto | `docs/metodologias/` |
 | El sitio público | Qué es el sitio nuevo, en qué orden se hizo y cómo se hace. Para el sitio público mandan esos | `docs/sitio/` |
@@ -25,7 +27,7 @@ Un solo producto con dos caras:
 - **El sitio público** de Fortius Inmuebles (fortiusinmuebles.com), donde la gente ve inmuebles y pide informes.
 - **El panel**, donde Fortius lleva todo su trabajo: quién llamó, qué asunto se abrió, qué documentos hay, qué sigue, qué se cobró y qué se publica en el sitio.
 
-Es exclusivo de Fortius y lleva solo su marca.
+Hoy lo usa solo Fortius y lleva su marca. Se construye de modo que nada propio de Fortius quede escrito dentro del programa: sus listas y sus números viven en Configuración (sección 3, «Configuración y catálogos»). Así el mismo esqueleto (consulta, asunto, plan y cierre) puede servir después a otro negocio sin volver a programarlo.
 
 ## 2. Las ideas que mandan
 
@@ -41,7 +43,8 @@ Es exclusivo de Fortius y lleva solo su marca.
 4. **El sistema nunca impide seguir.** Si falta un dato, un documento o un paso, lo avisa y deja guardar, avanzar, publicar o firmar. La decisión es de la persona.
 5. **Pocas palabras, muchas funciones.** En pantalla hay pocos elementos; lo demás está a un toque, agrupado en menús y listas desplegables.
 6. **El sistema propone y la persona decide.** Nada se envía, se publica ni se da por bueno solo.
-7. **Cada dato se captura una vez** y se reutiliza en todos lados.
+7. **Cada dato se captura una vez** y se reutiliza en todos lados. Primero se captura lo de la persona, el inmueble y el asunto; después, los documentos que se entregan salen con esos mismos datos.
+8. **El titular lo ajusta sin programar.** Las listas, los datos de cada ficha, los apartados, los tipos de asunto y los machotes se cambian desde Configuración. Pasar de inmobiliaria a despacho legal, a consultoría o a gestoría no pide reprogramar.
 
 ## 3. Las secciones del panel
 
@@ -53,6 +56,7 @@ En la computadora hay un menú a la izquierda; en el teléfono, una barra abajo.
 | **Asuntos** | Todos los trabajos abiertos y cerrados |
 | **Inmuebles** | El inventario, y todo lo que sale en el sitio público |
 | **Directorio** | Todas las personas, con el asunto del que viene cada una. Incluye los contactos que todavía no tienen asunto |
+| **Bandeja** | Donde se suben los archivos que llegan. El panel los lee y propone de quién son y a qué asunto van |
 | **Biblioteca** | Las metodologías: listas de qué pedir y planes de qué hacer |
 | **Herramientas** | Opinión de valor, cálculos y contratos que se pueden hacer en cualquier momento |
 | **Equipo** | Solo para el director: cómo va cada asesor |
@@ -75,18 +79,92 @@ En este orden, y cada bloque solo aparece si tiene algo (salvo hoy, la semana, l
 
 Cada asesor ve lo que lleva; el director ve todo el equipo y puede elegir a una persona. Marcar una tarea desde Inicio la deja hecha en su asunto, con su historial.
 
+### Configuración y catálogos
+
+Configuración se abre desde la cuenta de quien entró. Además del perfil, la apariencia y los avisos de cada quien, ahí el director ajusta el panel a su trabajo sin programar: las listas, los datos de cada ficha, los tipos de asunto, los machotes (sección 8), la empresa, el equipo y los módulos. Todo lo que sigue lo cambia solo el director.
+
+**Catálogos** (las listas):
+
+- **Un catálogo** es una lista con su nombre y sus valores en orden. Todas las listas desplegables del panel leen de ahí: ninguna pantalla trae sus opciones escritas por dentro.
+- **Catálogos con que empieza,** llenos con los valores que Fortius usa hoy: tipos de asunto, subtipos sugeridos por cada tipo, encargos (revisar, comercializar, tramitar, asesorar), quién hace una tarea, funciones del equipo (abogado, valuador), papeles de las personas, resultados de cierre, motivos de «no procede», fuentes de llegada, regímenes del inmueble (escriturado, ejidal, posesión, en sucesión, fideicomiso) y tipos de inmueble.
+- **En Catálogos** se agregan, se renombran, se reordenan y se desactivan valores. Desactivar no borra: los asuntos que ya usan ese valor lo conservan; solo deja de ofrecerse.
+- **Si un catálogo queda vacío,** la pantalla usa los valores de Fortius con que empezó y Configuración lo avisa.
+- **Los números del negocio** que el titular ajusta también viven en Configuración, nunca dentro del programa. El primero es el monto a partir del cual una operación se avisa a la autoridad (sección 5, «Actividad vulnerable»).
+- **Cada valor conserva su lugar aunque se le cambie el nombre,** y el panel sabe qué significa: un resultado de cierre es logrado o no; un papel es del lado del cliente, del otro lado o de apoyo. Las listas de las que depende el funcionamiento (en qué va un asunto, cómo va una tarea) se pueden renombrar, no vaciar.
+
+**Fichas** (los datos de cada cosa):
+
+- Qué datos lleva una persona, un inmueble de cada tipo y un asunto de cada tipo se define aquí: se agrega un dato (texto, número, dinero, fecha, sí o no, lista o archivo), se le pone nombre, se ordena, se agrupa y se oculta.
+- Los datos con que el panel trabaja (el nombre y los teléfonos de una persona, el nombre de un asunto, el precio de un inmueble) no se quitan; los demás, sí. Quitar un dato lo oculta: lo ya capturado se conserva.
+- Todo dato de una ficha se puede usar en un machote y lo puede llenar la Bandeja.
+- **Un dato de sí o no puede llevar un efecto.** «Falleció» y «No contactar» apagan los botones de llamar y de escribir. Son datos como cualquier otro: si un giro no los usa, se ocultan y su efecto deja de aplicar.
+- **Cuando llegan dos valores distintos para el mismo dato** (la ficha dice una cosa y un documento, la consulta o un archivo de Excel dicen otra), nunca se reemplaza solo: se ven los dos y una persona elige.
+
+**Tipos de asunto:**
+
+- Cada tipo de asunto tiene su **plantilla**, que arma el director: con qué bloques se arma la consulta y qué pregunta, qué documento pide cada respuesta, qué apartados trae el asunto, qué datos propios lleva y qué plan y qué machotes sugiere.
+- La plantilla la cambia solo el director, con el botón «Ajustar» de cada recuadro. El asesor trabaja con ella y nunca ve «Ajustar». El director puede ver cualquier pantalla tal como la ve un asesor.
+- **Cambiar una plantilla vale para los asuntos nuevos.** Los que ya están abiertos conservan la suya; cada uno se puede poner al día con un toque, sin perder nada de lo capturado.
+- Los tipos de asunto se agregan, se renombran y se apagan. La plantilla es del tipo; el subtipo solo es una etiqueta con sugerencias.
+- **Las preguntas** pueden ser de una opción, de varias opciones, de texto, de número o de fecha. Una pregunta puede tomar sus opciones de un catálogo (el tipo de inmueble, el régimen) y guardar su respuesta en un dato de la ficha, para no llevar dos listas de lo mismo ni capturar dos veces.
+- **Renombrar no rompe nada:** una pregunta, una opción o un dato conservan su lugar aunque cambien de nombre. Si se quita algo que una regla o un machote usa, el panel lo avisa en vez de callarlo.
+- **La lista de documentos se junta de todas partes sin repetir:** lo que pide la plantilla por cada respuesta, la guía de la Biblioteca del tipo, el régimen del inmueble y la actividad vulnerable. Cada documento dice por qué se pide.
+- **El encargo se elige en la consulta:** la plantilla lo trae puesto y se cambia ahí mismo.
+
+**Dónde se ajusta.** Lo que depende del tipo de asunto (la consulta, los apartados, los datos propios) se ajusta en la plantilla de ese tipo. Lo que es igual para todo el panel (Inicio, el menú, la ficha de una persona, los catálogos) se ajusta una vez y vale para todos.
+- Cambiar de giro es crear sus tipos de asunto, ajustar listas y fichas, y apagar los módulos que no se usen. Lo que Fortius usa hoy es el primer juego, ya cargado.
+
+**Empresa, equipo y folio:**
+
+- El nombre, el logotipo, el membrete y los datos de la empresa, que usan los documentos y los mensajes.
+- El alta y la baja de las personas del equipo, y las funciones de cada una (sección 12). Dar de baja a alguien no borra lo que hizo; sus asuntos se pasan a otra persona.
+- El formato del folio de los asuntos. Si vuelve a empezar cada año, el folio siempre lleva el año. Los folios ya dados no cambian.
+
+**Plazos y mensajes:**
+
+- Los días que el panel da por buenos se cambian aquí: la vigencia del presupuesto, a los cuántos días se vuelve a preguntar, con cuánta anticipación avisa un vencimiento, cuánto dura la liga del cliente, cuándo volver a llamar a un contacto y los tiempos de espera de una solicitud. Los números que este documento menciona son los de Fortius hoy.
+- Los mensajes que el panel arma (pedir documentos, recordarle a alguien, el saludo) se cambian aquí; pueden llevar el nombre de la persona y la lista de lo que se pide.
+- El reparto de la comisión entre quien captó y quien vendió.
+
+**Módulos:** las partes que no todo giro usa se encienden y se apagan: Inmuebles, el sitio público, Interesados, las calculadoras de Herramientas, la Opinión jurídica y Honorarios. Apagar un módulo quita su sección, sus apartados y sus bloques de Inicio; lo capturado se conserva.
+
+**Lo que se ajusta, en cuatro niveles.** Todo lo que se ve en una pantalla cae en uno de estos, y los cuatro se cambian sin programar:
+
+| Nivel | Qué es | Ejemplo |
+| --- | --- | --- |
+| **Las opciones** | Los valores de una lista | Agregar la fuente «Referido» o el papel «Acreedor» |
+| **Las preguntas y los datos** | Qué se pregunta en una pantalla y qué lleva una ficha | Quitar «Quién lo ocupa» de la consulta; agregar «Folio real» al inmueble |
+| **Los recuadros** | Qué recuadros tiene una pantalla y en qué orden | Quitar «Para pedirle» de la consulta; cambiar el orden de Inicio |
+| **Los plazos y los textos** | Los días que el panel da por buenos y los mensajes que arma | Que el presupuesto venza a los 30 días; cambiar el mensaje de WhatsApp con que se piden documentos |
+
+**Lo que no se ajusta** es el esqueleto: la consulta abre un asunto; todo asunto tiene Personas, Plan e Historial; el folio no se repite; todo cambio queda registrado, y cada quien ve lo que le toca.
+
+**Lo que se queda fijo** (igual para todo giro): las tres pestañas de la ficha de una persona; las partes de la hoja del informe para el cliente, que solo se encienden y se apagan; los dos niveles del equipo, director y asesor (las funciones de cada persona sí se ajustan); los avisos de Configuración; las horas que se ofrecen para una cita; las opciones de posponer; el tamaño máximo de un archivo, y cuántas notas se fijan y cuántos favoritos se guardan.
+
+**Lo que sí pide programar:** una clase de apartado que no exista (un mapa, un calendario); una calculadora nueva; lo que conecta con el sitio público; contar plazos en días hábiles, y una sección propia para otra clase de cosa, como Inmuebles. Mientras tanto, un vehículo o un predio se llevan con los datos propios del asunto o con una tabla.
+
 ## 4. Cómo empieza todo: la consulta
 
 Casi todo empieza con una llamada o un mensaje: «tengo este problema, ayúdame». La consulta se llena **mientras se habla**, como un médico en su consulta.
 
-- **Quién llama**, su teléfono y por dónde llegó.
+- **Quién llama**, su teléfono y por dónde llegó. Las opciones de «por dónde» salen del catálogo de fuentes (WhatsApp, referido, llamada, redes, cliente anterior, sitio).
 - **Qué pasa**, en un cuadro libre, tal como lo cuenta.
-- **Los datos de siempre**, cada uno en su lista desplegable: qué quiere, de quién es el inmueble, qué tipo de inmueble es, en qué colonia está, quién lo ocupa, si tiene escritura y qué debe.
-- **Qué pedirle:** la lista de documentos se arma sola con lo que se va marcando. Se quita lo que no aplique y sale como mensaje para WhatsApp, que envía el asesor.
+- **El tipo y el subtipo** del asunto (sección 5). Se pueden cambiar después.
+- **Las preguntas del tipo de asunto**, cada una en su lista desplegable. Las define el titular en Configuración; las de Fortius hoy son: qué quiere, de quién es el inmueble, qué tipo de inmueble es, en qué colonia está, quién lo ocupa, si tiene escritura y qué debe.
+- **Documentos:** una sola lista para marcar. Se arma sola con lo que se va contestando; cada renglón es un documento que se pide, y se marca cuando la persona ya lo mandó. En el mismo renglón se puede adjuntar el archivo, y al adjuntarlo queda marcado. Lo que no aplique se quita con su «×». Al final se agrega otro documento, o un archivo que mandó y no estaba en la lista. «Mandar la lista» arma el mensaje solo con lo que falta, para WhatsApp, mensaje de texto o correo; lo envía el asesor.
 - **Otras personas del caso:** en la misma consulta se anota a quien haga falta (la titular, los hermanos, el comprador) con su nombre y su papel, sin salir.
-- **Lo que ya mandó:** si la persona ya envió documentos, se adjuntan ahí mismo y quedan marcados como recibidos.
 
-Nada es obligatorio y se guarda sola mientras se escribe. Al terminar, el botón «Abrir asunto» deja creados y ligados la persona, el inmueble, la lista de documentos y un primer plan.
+**La consulta se arma con bloques.** En la plantilla de cada tipo de asunto, el director crea bloques, los renombra, los ordena y los elimina. Si mañana hace falta otra sección, se crea un bloque nuevo; no se programa.
+
+- **Clases de bloque,** las mismas de los apartados propios: formulario (preguntas con sus opciones), texto (un comentario libre, como «Qué pasa»), lista (los documentos, que se marcan al recibirlos), personas (otras personas del caso) y archivos.
+- **Bloques con que empieza:** los datos de quien llama, «Qué pasa», las preguntas, «Documentos» y «Otras personas del caso».
+- **Lo único que no se quita** es aquello de lo que depende «Abrir asunto»: quién llama y el tipo de asunto. Se pueden renombrar.
+- Eliminar un bloque lo oculta en las consultas nuevas; lo ya capturado se conserva.
+
+- **Las preguntas:** de cada una se cambian el nombre y sus opciones, una por una; se agregan y se quitan preguntas.
+- **Documentos:** cada documento dice por qué se pide («se pide siempre» o «porque tal pregunta se contestó así»). Esas reglas las pone el titular en el mismo recuadro: el documento y cuándo se pide.
+
+Nada es obligatorio y se guarda sola mientras se escribe. Al terminar, el botón «Abrir asunto» deja creados y ligados la persona, el inmueble, la lista de documentos (lo marcado entra como recibido, con su archivo si lo tiene) y un primer plan.
 
 Las solicitudes que llegan por el sitio público caen en Inicio, en «Por atender», con el tiempo que llevan esperando. Abrir una lleva a la misma consulta, ya llena con lo que la persona escribió.
 
@@ -100,7 +178,7 @@ Las solicitudes que llegan por el sitio público caen en Inicio, en «Por atende
 - **Quien llama** queda como «Contacto», o como «Propietario» si el inmueble es suyo. Se cambia después en Personas.
 - **El inmueble:** si se dijo qué es o dónde está, el asunto trae su apartado Inmueble, aunque solo se haya encargado una revisión.
 - **El nombre del asunto** sale de lo capturado («Casa en la Murúa»); se cambia cuando se quiera.
-- **El primer plan** es un ejemplo para que el asunto no nazca sin un siguiente paso: recibir los documentos, estudiar el asunto, emitir la opinión (si es una revisión) y el presupuesto. Cuando exista la Biblioteca, se elige de ahí.
+- **El primer plan** es un ejemplo para que el asunto no nazca sin un siguiente paso: recibir los documentos, estudiar el asunto, emitir la opinión (si es una revisión) y el presupuesto. La plantilla del tipo de asunto dice qué plan de la Biblioteca se usa.
 - **Si se corta la llamada o la conexión,** lo capturado queda en el equipo y se manda al volver. Una consulta a medias se retoma desde la misma pantalla.
 
 ### Cuando una consulta no se vuelve asunto
@@ -108,7 +186,16 @@ Las solicitudes que llegan por el sitio público caen en Inicio, en «Por atende
 No se pierde. Al cerrarla hay dos salidas:
 
 - **Guardar como contacto:** la persona queda en el Directorio, sin asunto, con una fecha para volver a llamarle. Ese día aparece en Inicio.
-- **No procede:** se cierra con el motivo.
+- **No procede:** se cierra con su motivo, del catálogo de motivos de «no procede».
+
+### Aviso de conflicto de interés
+
+- Al capturar a una persona en una consulta, o al agregarla a un asunto, el sistema busca, además de si ya existe, si aparece como contraparte, titular o parte contraria en un asunto abierto de cualquier persona del equipo. Busca por nombre, teléfono y correo.
+- Si aparece, la consulta lo dice antes de «Abrir asunto».
+- **Lo que ve cada quien.** El director, y quien lleva el otro asunto, ven de cuál se trata: «Esta persona es la contraparte del asunto 2026-0031». Un asesor que no lleva ese asunto ve solo «Posible conflicto de interés: el director ya fue avisado», sin folio ni nombre.
+- **Decide el director.** Le llega a «Para ti» con el detalle, y elige: dejarlo seguir, pasarlo a otra persona, cerrarlo o dejar registrado el conflicto en los dos asuntos.
+- **Mientras tanto** el asesor sigue: puede abrir el asunto o guardar la consulta como contacto, sin asunto.
+- No impide nada: avisa, como todo en este sistema.
 
 ## 5. El asunto
 
@@ -128,9 +215,12 @@ No abren asunto por sí solas una visita, un archivo que llega o un cambio de pr
 
 ### Lo que tiene todo asunto
 
-- **Un folio** que pone el sistema (ejemplo: EXP-000031). No se repite ni se reutiliza.
+- **Un folio** que pone el sistema: el año y un consecutivo que vuelve a empezar cada año (2026-0001, 2026-0002…). No se repite ni se reutiliza. Su formato se ajusta en Configuración.
 - **Un nombre** que se puede cambiar.
 - **Qué encargaron:** revisar, comercializar, tramitar o asesorar. Puede ser más de una cosa.
+- **De qué tipo es,** en dos pisos. El **tipo** es la categoría amplia: Venta, Cesión de derechos, Litigio, Renta y administración, Rehabilitación y proyectos, Investigación y consulta, Servicios y gestiones u Otro. El **subtipo** es texto libre, con sugerencias según el tipo (Litigiosos, Adjudicatarios, Rescisión de contrato, Desahucio, Cancelación de hipoteca). El encargo dice qué encargaron; el tipo, la naturaleza del caso. Los dos conviven: de su combinación salen la lista de documentos y el plan que la Biblioteca sugiere al abrir el asunto. Se capturan en la consulta, se cambian cuando haga falta y el cambio queda en el Historial.
+- **Por dónde llegó:** la fuente que se anotó en la consulta se guarda también en el asunto.
+- **Valor estimado de la operación:** opcional, con su moneda.
 - **En qué va:** en estudio, propuesta, en marcha, por cobrar o cerrado. Además, cualquier asunto se puede poner **en espera**, con el motivo y la fecha para retomarlo; mientras tanto no cuenta como atrasado. Lo cambia el asesor cuando quiere; no hay pasos forzosos. El sistema lo propone en el momento oportuno y el asesor acepta con un toque: al emitir la opinión jurídica (si no es «no factible»), «¿Pasar a Propuesta?»; al cargar el contrato firmado, «¿Pasar a En marcha?»; al cobrar todo, «¿Cerrar el asunto?». Nunca lo cambia solo. Si el asesor contesta «Ahora no», no se vuelve a proponer.
 - **Quién lo lleva:** un asesor responsable. El director puede cambiarlo. Al cambiarlo, las tareas pendientes de quien lo llevaba pasan a la nueva persona; las que tenía otra persona del equipo y las ya hechas se quedan como están. Cada tarea que pasa queda en el Historial.
 - **Lo que sigue:** la próxima tarea, siempre a la vista, con marcar hecha y posponer. Si no hay, el asunto lo dice y pide escribirla.
@@ -160,11 +250,14 @@ Las partes de un asunto se llaman **apartados**. Cada uno es un renglón con su 
 El asesor puede crear un apartado con el nombre que quiera y elegir **cómo se ve**, según para qué lo va a usar:
 
 - **Lista:** renglones que se marcan. Ejemplo: visitas por hacer.
-- **Tabla:** una pequeña base de datos con las columnas que él defina. Ejemplo: ofertas recibidas o gastos.
+- **Tabla:** renglones y columnas que él define, como una hoja de cálculo sencilla. Una columna puede calcularse sola (cantidad por precio, el IVA) y la tabla suma sus totales. Ejemplo: una cotización, ofertas recibidas o gastos. No lleva fórmulas libres: para un cálculo complejo se usa un machote en Excel (sección 8).
 - **Galería:** tarjetas con foto y datos. Ejemplo: comparables, con su foto, precio y superficie.
-- **Texto:** notas largas.
+- **Texto:** un escrito con formato (títulos, negritas, listas), como una hoja de Word. Ejemplo: el análisis de una opinión.
+- **Formulario:** preguntas que él define y que se contestan en el asunto. Cada respuesta puede guardarse en la ficha de la persona, del inmueble o del asunto.
 
-La vista se puede cambiar después sin perder lo capturado. Un apartado propio se puede guardar en la Biblioteca para usarlo en otros asuntos.
+La vista se puede cambiar después sin perder lo capturado. Un apartado propio se puede guardar en la Biblioteca para usarlo en otros asuntos, y un tipo de asunto puede traerlo ya puesto. Una tabla o un texto se descargan en PDF con el membrete.
+
+En un apartado se trabaja y se captura; lo que se entrega sale de un machote (sección 8).
 
 ### El Plan
 
@@ -207,15 +300,36 @@ Cuando el cliente pide saber cómo va su asunto, el informe se hace desde el mis
 
 ### Cerrar un asunto
 
-Un asunto se cierra como **se logró** o **no se dio**, con el motivo. Al cerrar se anota quién captó y quién vendió (se puede dejar sin anotar). «Deshacer» justo después de cerrar lo deja como estaba, sin motivo. Un asunto cerrado se puede reabrir.
+Un asunto se cierra con uno de los resultados del catálogo (hoy, **se logró** o **no se dio**) y su motivo. Si el asunto se comercializó y se logró, al cerrar se anota quién captó y quién vendió (se puede dejar sin anotar); en los demás no se pregunta. «Deshacer» justo después de cerrar lo deja como estaba, sin motivo. Un asunto cerrado se puede reabrir.
 
 Cuando un trabajo termina y de él nace otro (una revisión que se vuelve venta, una asesoría que termina en vender), el botón **«Continuar en un asunto nuevo»** copia las personas, el inmueble y los documentos (con sus archivos), y deja anotado en los dos de dónde viene cada uno. Los recibos no se copian: se quedan con su cobro.
+
+### Asuntos relacionados
+
+Dos asuntos abiertos que corren en paralelo se pueden enlazar como **relacionados**: la cesión y su juicio hipotecario; la venta y la sucesión del mismo inmueble. Es distinto de «Continuar en un asunto nuevo», donde uno nace del otro.
+
+- El enlace se ve en los dos asuntos, con el folio del otro.
+- Se quita cuando ya no aplica.
+- Ponerlo y quitarlo queda en el Historial de ambos.
+
+### Asuntos permanentes
+
+Un interruptor en el asunto lo marca como **permanente**: la administración de rentas que nunca se cierra, el cliente con iguala.
+
+- No aparece como atrasado ni cuenta como «sin siguiente paso».
+- En su lugar nace sola una tarea de revisión mensual en su Plan.
+- Se cierra cuando el titular quiera, como cualquier asunto.
+
+### Actividad vulnerable
+
+- Si el tipo del asunto es Venta o Cesión de derechos, su cabecera muestra el aviso «Actividad vulnerable: verificar identificación del cliente», y Documentos sugiere la identificación oficial y el formato de actividad vulnerable.
+- A qué tipos aplica se ajusta en Configuración.
+- El monto a partir del cual se avisa a la autoridad es un número que el titular ajusta en Configuración.
 
 ## 6. Personas
 
 - Cada persona se captura **una sola vez**. Si llega un teléfono o un correo que ya existe, el sistema avisa y ofrece usar la misma ficha.
 - Una persona puede ser **una empresa o una institución** (una sociedad dueña de una nave, una notaría, un banco), con su representante y los datos de ambos.
-- Una persona puede marcarse como **fallecida**: se conserva para los documentos, sin teléfono ni botones de contacto.
 - Los teléfonos aceptan **clave de otro país**, para quien vive fuera de México.
 - Una persona puede tener **papeles distintos** en asuntos distintos.
 - Una persona puede estar en el Directorio **sin asunto**, como contacto, con una fecha para volver a llamarle.
@@ -224,11 +338,12 @@ Cuando un trabajo termina y de él nace otro (una revisión que se vuelve venta,
 - Si una persona quedó capturada **dos veces**, el director **une las fichas**: elige la que se queda; sus asuntos, tareas, documentos y datos pasan a ella, y la otra va a Eliminados. Lo que ya tenía la que se queda no se reemplaza.
 - **Cliente** es quien ya firmó un contrato con Fortius. Antes de firmar es prospecto. La contraparte de un asunto no es cliente.
 - Si una persona **pidió no ser contactada**, todas las pantallas lo respetan: se apagan los botones de llamar y escribir.
-- Sus datos (nombre completo, nacionalidad, ocupación, estado civil, CURP, RFC, identificación y domicilio) se guardan en su ficha y de ahí los toman los documentos que los necesiten. No todas las personas de un asunto van a un contrato: nada de eso es obligatorio.
+- Qué datos lleva la ficha de una persona se define en Configuración. Los de Fortius hoy: nombre completo, nacionalidad, ocupación, estado civil, CURP, RFC, identificación, domicilio y si falleció. Se guardan en su ficha y de ahí los toman los documentos que los necesiten. No todas las personas de un asunto van a un contrato: nada de eso es obligatorio.
 
 ### Personas dentro de un asunto
 
 - **Al abrir Personas** se ven agrupadas por su lugar en el caso, en tarjetas, nunca en una tabla: **Quien nos busca** (contacto), **Dueños y herederos** (propietario, titular, heredero, copropietario, vendedor), **Del otro lado** (comprador, inquilino, inversionista, contraparte) y **Quienes ayudan** (apoderado, abogado, notaría, banco). Cada tarjeta dice su nombre, su papel, su teléfono y, si se anotó, su relación con las demás («Hija de Rosa, recibe el poder»).
+- En qué grupo cae cada papel, y cómo se llama cada grupo, sale del catálogo de papeles: cada papel dice si es de quien nos busca, del lado del cliente, del otro lado o de apoyo. Los nombres de arriba son los de Fortius hoy.
 - Un grupo vacío dice «Nadie todavía», para que se note lo que falta. Cada grupo tiene **«Agregar»**, que agrega a alguien con ese papel ya puesto.
 - **Al tocar a una persona se abre su ficha**, sin salir de la ventana: a un lado la lista de todas las personas del asunto, para pasar de una a otra; al otro, su ficha con llamar, WhatsApp, su papel y tres pestañas: **Datos**, **Documentos** (los suyos en este asunto) y **Otros asuntos** (dónde más aparece y con qué papel).
 - En **Datos** cada dato se cambia ahí mismo; lo que falta se ve como «—» y no frena nada. La flecha ← regresa a los grupos.
@@ -240,7 +355,9 @@ Inmuebles es también el panel de lo que sale en el sitio público: aquí se car
 
 - Cada inmueble lleva un **folio** que pone el sistema (ejemplo: FORTIUS-000011).
 - **Un inmueble siempre pertenece a un asunto.** Al agregar uno desde Inmuebles se piden nombre, tipo, operación y, si se sabe, el propietario; con eso se abre solo su asunto de captación. Desde un asunto, se agrega ahí mismo.
-- **Tipos:** casa, departamento, terreno, local, oficina, nave o bodega, y plaza o conjunto.
+- **Al inventario entra solo lo que se comercializa.** El inmueble de un asunto que solo pide revisar, tramitar o asesorar vive en ese asunto, con su ficha completa, y no aparece en Inmuebles. Pasa al inventario cuando se encarga venderlo o rentarlo, sin volver a capturar nada.
+- **Tipos:** casa, departamento, terreno, local, oficina, nave o bodega, y plaza o conjunto. Salen del catálogo de tipos de inmueble.
+- **Régimen:** escriturado, ejidal, posesión, en sucesión o fideicomiso, del catálogo de regímenes. Junto con el tipo del asunto, sugiere la lista de documentos: un inmueble en fideicomiso trae la suya.
 - Un inmueble puede **pertenecer a un conjunto**: los locales de una plaza se ligan a su plaza, que dice cuántos tiene en total y cuántos están libres. En el asunto, «Agregar otro igual» suma un local más de la misma plaza, con su propio folio, precio y estado, y «Publicar todos» los publica de una vez.
 - **El precio dice su moneda** (pesos o dólares) y guarda su **historial**: cada cambio, con quién lo hizo, cuándo y por qué.
 - Se pueden **elegir varios inmuebles a la vez** para publicarlos, compartirlos o cambiarles el estado.
@@ -249,7 +366,7 @@ Inmuebles es también el panel de lo que sale en el sitio público: aquí se car
 
 | Pestaña | Qué lleva |
 | --- | --- |
-| **Ficha técnica** | Nombre, tipo, venta o renta y precio; después los datos propios de su tipo. Una nave pide altura libre, carga eléctrica, andenes y uso de suelo; una casa pide recámaras, baños y estacionamientos |
+| **Ficha técnica** | Nombre, tipo, venta o renta y precio; después los datos propios de su tipo. Una nave pide altura libre, carga eléctrica, andenes y uso de suelo; una casa pide recámaras, baños y estacionamientos. Qué datos lleva cada tipo se define en Configuración |
 | **Fotos** | Se suben varias a la vez y se elige la portada; se ordenan y se quitan. Al subirlas se les quita la ubicación y los datos de la cámara |
 | **Video y 360** | Video y recorrido 360, subidos (hasta 20 MB cada archivo) o por enlace. En el sitio sale el recorrido por enlace |
 | **Planos y permisos** | Escritura, licencias, dictámenes y planos. Son los mismos documentos del asunto |
@@ -301,6 +418,30 @@ Fortius tiene sus propios formatos (avisos, entrevistas, contratos, recibos). Si
 - Al cargar un contrato firmado, el asunto propone pasar a En marcha.
 - Los documentos hechos en el panel tienen un lápiz en Documentos para seguir llenándolos.
 
+### El asunto es la carpeta
+
+La base del trabajo es documental, y el asunto ya es la carpeta: no hay una sección de carpetas aparte. Los documentos de una persona están en su ficha; los de un inmueble, en la suya; y el apartado Documentos los reúne todos, con lo que falta pedir y con los entregables (opiniones, cotizaciones, contratos e informes).
+
+### Machotes
+
+Un machote es una plantilla propia que el titular carga en Configuración; ahí mismo se agregan, se cambian y se mandan a Eliminados.
+
+- **En Word,** para contratos, cartas, opiniones y ofertas. Donde va un dato se escribe su campo; el panel enseña la lista de campos disponibles (los de la persona según su papel, los del inmueble, los del asunto, los de la empresa y la fecha) para copiarlos.
+- **En Excel,** para cotizaciones y cálculos. El panel llena las celdas marcadas y las fórmulas del archivo siguen vivas; se descarga, se calcula en Excel y se vuelve a subir. Al subirlo, el panel lee las celdas marcadas como resultado (el total, el valor) y las guarda en el asunto.
+- **Se capturan igual que un formato:** desde el asunto, «Nuevo» → «Contrato o formato». Lo que el asunto ya tiene entra solo; lo que falta se pregunta, y lo contestado vuelve a la ficha.
+- Si un dato corresponde a varias personas (dos copropietarios), el machote las lista a todas o se elige a quién.
+- Un machote puede traer lo de un apartado: la cotización en Word jala su tabla; la opinión, su texto.
+- Lo generado queda en los Documentos del asunto, con sus versiones.
+- Los formatos que el panel ya trae siguen como están; un machote puede reemplazar a cualquiera.
+
+### La Bandeja
+
+- Ahí se suben los archivos que llegan (una escritura, una identificación, un acta), uno o muchos, sin acomodarlos a mano.
+- El panel lee cada uno y propone qué documento es, de qué persona o de qué inmueble, y a qué asunto va.
+- Al asignarlo queda en los Documentos de ese asunto, en su renglón, y lo leído (nombre, CURP, domicilio, folio real, clave catastral) llena las fichas, marcado «por confirmar» hasta que una persona lo revise.
+- Lo que el panel no reconoce se queda en la Bandeja para acomodarlo a mano.
+- Lo que no viene en ningún documento (un teléfono solo para WhatsApp, unas vacaciones) va en las notas.
+
 ## 9. Herramientas
 
 Trabajo que se puede hacer en cualquier momento, con asunto o sin él.
@@ -343,18 +484,29 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 - Toda cantidad dice su moneda. **Pesos y dólares no se mezclan** ni se convierten solos.
 - Cada cobro dice cuánto, cómo se pagó y cuándo. Al registrarlo, el sistema ofrece **«Hacer recibo»**, ya lleno con el monto, la persona y el asunto, en el formato de recibo de Fortius; queda en Documentos como borrador. Los recibos de un asunto se numeran solos, seguidos y sin repetirse, aunque dos se hagan al mismo tiempo.
 - **El presupuesto tiene vigencia** (15 días si no se dice otra). Al enviarlo se crea sola la tarea de darle seguimiento a los tres días, y al vencer aparece en Inicio. Se puede hacer otra versión, que copia los conceptos de la anterior.
-- Mientras no esté la plantilla del presupuesto del titular, el presupuesto y la opinión jurídica en PDF se cargan hechos por fuera; hacerlos desde el panel llega con su plantilla.
+- El presupuesto y la opinión jurídica salen de su machote (sección 8). Mientras el titular no lo cargue, se suben hechos por fuera.
 - **Reparto de comisión:** 25 % para quien captó y 25 % para quien vendió; si es la misma persona, 50 %.
 - Si Fortius recibe un apartado, queda anotado con su comprobante hasta que se entregue.
 
 ## 12. Quién ve qué
 
 - **Director:** ve todo, puede cambiar quién lleva cada asunto y tiene la sección Equipo. Ahí ve, por cada persona del equipo, sus asuntos abiertos, lo de hoy, lo de la semana, lo vencido, los asuntos sin siguiente paso, las solicitudes del sitio que tiene sin atender y lo que falta cobrar; «Ver» abre sus asuntos. Un aviso arriba dice cuántas solicitudes esperan a que las pase a alguien.
-- **Sin siguiente paso** es un asunto abierto, que no está en espera, sin ninguna tarea pendiente en su plan.
+- **Sin siguiente paso** es un asunto abierto, que no está en espera ni es permanente, sin ninguna tarea pendiente en su plan.
 - **Asesor:** ve solo lo suyo y lo que se le comparte. La sección Equipo no le aparece, y la dirección de un asunto ajeno le responde que no existe o no le toca verlo. Sí ve los nombres de sus compañeros, solo para mencionarlos con @ en una nota; eso no le muestra lo que lleva cada uno.
 - **Abogado de Fortius:** los abogados que llevan los juicios y trámites entran al panel con su propia cuenta y llevan ahí el expediente. **Ven solo los juicios que llevan o en los que colaboran,** como un asesor ve los suyos; no ven los demás asuntos. Si ven los honorarios y los cobros de esos juicios está por decidir (sección 18).
 - Esto se hace cumplir en la base de datos, no solo escondiendo botones.
 - El director entra con dos pasos (contraseña y un código).
+
+### Funciones del equipo
+
+Además de ser director o asesor, cada persona del equipo tiene las **funciones** que el director le asigna: abogado, valuador y las que se agreguen a su catálogo. Una persona puede tener varias o ninguna. El director las tiene todas.
+
+- **Todo asesor** hace consultas, captura, lleva sus asuntos y trabaja el inventario, tenga o no una función.
+- **Algunos trabajos piden una función.** La opinión jurídica y los contratos piden la de abogado; la opinión de valor, la de valuador. Qué trabajo pide qué función se ajusta en Configuración.
+- **Quien no tiene la función, lo pide.** En lugar de hacer el trabajo ve «Pedir opinión jurídica» (o el trabajo que sea): elige a quién y para cuándo. Puede ser un compañero con esa función, el director o alguien de fuera, como el abogado de la empresa. Nace una tarea para esa persona, el asunto dice a quién se espera y aparece en «Lo esperas de otros».
+- **Quien recibe el encargo** lo ve en «Para ti», entra a ese asunto aunque no lo lleve, hace el trabajo y lo entrega. A quien lo pidió le llega el aviso.
+- **Si lo hace alguien de fuera,** que no entra al panel, el asesor sube el resultado y queda anotado quién lo hizo.
+- El plan de comercialización seguirá esta misma regla cuando se defina.
 - Todo cambio queda registrado con quién lo hizo y cuándo.
 
 ## 13. Comunicación
@@ -365,9 +517,14 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 
 ## 14. Cómo se ve y cómo se usa
 
+- **Lo ajustable no cambia el aspecto.** El boceto del panel ajustable (`docs/boceto-panel-ajustable.html`) dice cómo funciona lo que se ajusta, no cómo se ve. Se construye con los íconos, los colores y la letra que el panel ya tiene: su identidad no cambia.
+- **Las mismas piezas en todo el panel.** Un botón, una lista desplegable, un interruptor, un campo, una ventana o un menú se ven y responden igual en cualquier pantalla.
+- **La composición sí se puede replantear.** Lo que se conserva es la identidad: el logotipo, los colores, la letra y los íconos. Cómo se acomoda cada pantalla (qué va primero, cuánto aire lleva, cuántos recuadros y bordes, cómo se llega a cada cosa) se replantea para que el panel se sienta más moderno, más limpio y de paga. Un cambio de composición se enseña en una o dos pantallas y lo aprueba el titular antes de extenderlo a las demás.
 - **Aspecto:** una app moderna. Fondo gris muy claro, tarjetas blancas, un solo azul para las acciones. El verde, el ámbar y el rojo solo indican el estado de algo. Tiene tema claro y oscuro.
 - **Íconos en todo:** menú, apartados, botones y menús.
-- **Listas desplegables,** nunca un botón por cada opción. Con dos opciones se permite un interruptor.
+- **Solo lo necesario a la vista:** una ficha muestra los datos que ya tienen valor y «Agregar dato»; un asunto, los apartados de su tipo. Lo demás está a un toque.
+- **Listas desplegables,** nunca un botón por cada opción. Con dos opciones se permite un interruptor. Sus opciones salen de los catálogos de Configuración.
+- **La excepción es cambiar de vista.** Para elegir entre tres o cuatro formas de ver lo mismo (tabla, tablero, en el tiempo) se usa una fila de botones juntos, como en las apps de Mac. Vale solo para vistas, nunca para elegir un dato.
 - **Varias acciones en un solo botón** que abre su lista.
 - **Deshacer** en lugar de preguntar «¿estás seguro?». Solo se pide confirmar lo que no tiene vuelta atrás.
 - **Lenguaje sencillo,** sin palabras técnicas y sin mencionar a la inteligencia artificial. Lo que se leyó de un documento dice «por confirmar».
@@ -375,6 +532,21 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 - **Funciona igual en computadora y en teléfono.**
 - **Accesible:** se puede usar con teclado, los botones son grandes en el teléfono y el estado de algo se entiende sin depender solo del color.
 - Los datos de ejemplo siempre dicen que son de ejemplo.
+
+### Como una app de escritorio
+
+**El modelo a seguir** son las siete pantallas de `docs/modelo-visual/` (Asuntos con inspector, Consulta, Buscador y clic derecho, Configuración, Directorio, Asuntos como tablero e Inmuebles), que el titular aprobó el 18/11/2026: «esta es la dirección correcta». Lo que una pantalla nueva necesite y el modelo no muestre se resuelve con las mismas piezas y el mismo orden.
+
+El panel se ordena y se mueve como una buena app de productividad de computadora; las de Mac son la referencia. No se copia su aspecto: la identidad de Fortius se conserva. Lo que se toma es el orden, la estructura y el movimiento.
+
+- **Tres columnas, siempre las mismas:** a la izquierda el menú; en medio la lista; a la derecha lo elegido. Asuntos, Directorio, Inmuebles y Biblioteca se recorren igual.
+- **Una barra arriba de cada pantalla,** con su título, su buscador y sus acciones, siempre en el mismo lugar.
+- **La ventana de la derecha es el inspector:** ahí se ve y se cambia lo elegido sin perder la lista. Al centro es una hoja que pide atención; la pantalla completa es para concentrarse.
+- **Todo se puede hacer con el teclado,** y cada menú enseña su atajo. Las flechas recorren una lista, Enter abre, Esc cierra y la barra espaciadora da un vistazo sin abrir.
+- **El clic derecho** sobre cualquier renglón abre el mismo menú de sus tres puntos.
+- **Arrastrar** sirve para reordenar y para soltar archivos sobre un asunto o sobre la Bandeja.
+- **Deshacer** lo último se hace con el atajo de siempre.
+- **El movimiento explica:** lo que se abre sale de donde se tocó y lo que se cierra regresa ahí. Es corto y nunca estorba. Con movimiento reducido, nada se mueve.
 
 ### Las ventanas
 
@@ -408,6 +580,14 @@ Las notas son **del asunto**, no de un apartado. Se escriben y se leen desde cua
 - **Nunca salen** en informes ni documentos para el cliente.
 - En el teléfono el costado se abre con un botón de la cabecera de la ventana.
 
+### Las vistas
+
+Una misma lista se ve de varias formas, y cada quien guarda las suyas.
+
+- **Asuntos es el índice de todo:** una tabla con las columnas que se elijan (folio, asunto, cliente, contraparte, tipo, en qué va, quién lo lleva, lo que sigue o cualquier dato de la ficha). También se ve como **tablero**, con una columna por cada «en qué va», y **en el tiempo**.
+- **El Plan** se ve por etapas, como tablero y en el tiempo, con cada tarea como una barra y las que esperan a otra, ligadas.
+- **Una tabla propia** se ve como tabla, como tablero, como galería o en el tiempo si lleva fechas.
+
 El boceto aprobado es la referencia de cómo se ve cada pantalla.
 
 ### Lo de todos los días
@@ -419,6 +599,7 @@ Lo que se usa a diario, en pocas palabras:
 - **El buscador** encuentra asuntos, personas e inmuebles por nombre, folio, teléfono o correo, y desde ahí se crea: una tarea en una línea, una consulta nueva, un inmueble o una persona. Una persona con un solo asunto abre su ficha en ese asunto; con varios, el Directorio. Sin escribir nada muestra los favoritos y los recientes.
 - **Favoritos:** una estrella en el asunto y en la ficha del inmueble. Los favoritos salen arriba de los recientes en el menú y en el buscador, y te siguen en cualquier equipo. Hasta 30.
 - **Vistas guardadas:** en la lista de Asuntos, un menú guarda la búsqueda y los filtros de ese momento con un nombre, para volver a ellos con un toque; también los borra. Cada quien tiene las suyas.
+- **Filtros de Asuntos:** la lista se filtra por en qué va, por quién lo lleva, por tipo, por subtipo y por fuente, para saber qué clase de trabajo hay y qué canal lo trae. La fuente es un dato de consulta y de reporte: Inicio no cambia por ella.
 - **Comentarios y menciones:** en una nota, con **@** se menciona también a alguien del equipo (cualquiera lo puede hacer, también un asesor); la persona mencionada la ve en «Para ti» aunque no lleve ese asunto.
 - **Recordatorios:** junto a «Inicio» en el menú, un número con lo que te toca hoy o ya venció, las solicitudes del sitio que te esperan y lo nuevo de «Para ti». Con el panel abierto se revisa cada cinco minutos. Si en Configuración → Avisos das permiso a este navegador, también avisa en la pantalla: una hora antes de una cita, cuando entra una solicitud, cuando te mencionan o te dejan una tarea y, una vez al día, lo que se te pasó. Cada aviso respeta su interruptor. Con el panel cerrado no avisa todavía.
 
@@ -441,7 +622,6 @@ Lo que se usa a diario, en pocas palabras:
 
 **Después:**
 
-- Leer documentos y sacar sus datos.
 - Resumen del asunto en tres líneas.
 - Redactar el mensaje para el cliente con los datos del asunto.
 - Que el cliente vea el avance de su asunto en esa misma liga: ahí aparece el último informe que se le mandó.
@@ -455,7 +635,6 @@ Lo que se usa a diario, en pocas palabras:
 - Hacerle preguntas al sistema sobre sus propios datos.
 - Chat del equipo.
 - Presupuesto que el cliente acepta en línea.
-- Agregar datos nuevos a personas o inmuebles sin programar.
 
 **Solo con el visto bueno del abogado:**
 
@@ -484,10 +663,9 @@ Lo que se usa a diario, en pocas palabras:
 ## 18. Lo que falta decidir
 
 - Si hace falta una **agenda** propia para las citas con hora, o basta con Inicio y el Plan.
-- Dónde caen los **archivos que llegan sueltos**, sin saber de qué asunto son.
 - Qué ve exactamente un asesor de los asuntos e inmuebles **de otro asesor**.
-- El **contenido que sube el titular**: la plantilla del presupuesto de honorarios, las listas y los planes de la Biblioteca, y los datos que quiere por cada tipo de inmueble. Mientras tanto se usa lo del boceto como ejemplo.
-- Lo que revisa el **abogado**: los contratos de renta y de compraventa a plazos, el aviso de privacidad y el uso de la lectura de documentos con clientes reales.
+- El **contenido que sube el titular**: sus machotes, y las listas y los planes de la Biblioteca. Mientras tanto se usa lo de ejemplo.
+- Lo que revisa el **abogado**: los contratos de renta y de compraventa a plazos, el aviso de privacidad, el uso de la lectura de documentos con clientes reales y las reglas de actividad vulnerable (a qué operaciones aplica y el monto del aviso).
 - Si los **abogados de Fortius** ven los honorarios y los cobros de los juicios que llevan, y qué más pueden hacer dentro de ellos.
 - Cómo se maneja el **dinero de las rentas** que Fortius cobra por cuenta del dueño (dónde se recibe, cómo se liquida, qué facturas e impuestos lleva): lo revisan el abogado y un contador antes de construirlo.
 - Cómo se lleva en el panel un **juicio o trámite** (número de expediente, etapa, términos), y si el encargo de un asunto necesita una opción propia para eso.

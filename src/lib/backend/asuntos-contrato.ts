@@ -7,11 +7,18 @@ import type {
 } from "./apartados-contrato";
 
 
+/**
+ * Las listas viven en los catálogos de la base (Configuración → Catálogos; `catalogos-contrato.ts`). Aquí solo quedan
+ * las claves que el programa usa por su nombre: las de las listas fijas (en qué va, cómo va una tarea), que no admiten
+ * valores nuevos, y el tipo de las demás, que es texto porque el director agrega valores.
+ */
 export const EN_QUE_VA = ["estudio", "propuesta", "en_marcha", "por_cobrar", "cerrado"] as const;
 export type EnQueVa = (typeof EN_QUE_VA)[number];
 
-export const ENCARGOS = ["revisar", "comercializar", "tramitar", "asesorar"] as const;
-export type Encargo = (typeof ENCARGOS)[number];
+/** Clave del catálogo «encargo». El panel usa por su nombre revisar, comercializar, tramitar y asesorar. */
+export type Encargo = string;
+/** Clave del catálogo «resultado_cierre». Lo que cuenta es su significado: logrado o no. */
+export type Resultado = string;
 
 /** Apartados con nombre fijo. «propio» es el que crea el asesor con su nombre y su vista. */
 export const CLAVES_APARTADO = ["personas", "inmueble", "interesados", "situacion", "documentos", "opinion", "honorarios", "plan", "historial"] as const;
@@ -22,17 +29,14 @@ export const APARTADOS_DE_SIEMPRE: readonly ClaveApartado[] = ["personas", "plan
 export const VISTAS = ["lista", "tabla", "galeria", "texto"] as const;
 export type Vista = (typeof VISTAS)[number];
 
-export const PAPELES = [
-  "contacto", "propietario", "titular", "heredero", "copropietario", "comprador", "vendedor",
-  "inquilino", "inversionista", "contraparte", "apoderado", "abogado", "notaria", "banco",
-] as const;
-export type Papel = (typeof PAPELES)[number];
+/** Clave del catálogo «papel». El panel usa por su nombre «contacto» y «propietario» (quien llama). */
+export type Papel = string;
 
 export const CLASES_PERSONA = ["persona", "empresa", "institucion"] as const;
 export type ClasePersona = (typeof CLASES_PERSONA)[number];
 
-export const QUIEN = ["fortius", "cliente", "abogado", "notaria", "otro"] as const;
-export type Quien = (typeof QUIEN)[number];
+/** Clave del catálogo «Quién hace una tarea». El panel usa por su nombre «fortius» (si no se dice) y «cliente». */
+export type Quien = string;
 
 /** Cada cuánto se repite una tarea: al dejarla hecha nace la siguiente. */
 export const CADA_TAREA = ["semana", "quincena", "mes", "bimestre", "trimestre", "año"] as const;
@@ -40,6 +44,7 @@ export type CadaTarea = (typeof CADA_TAREA)[number];
 export const NOMBRE_CADA: Record<CadaTarea, string> = {
   semana: "Cada semana", quincena: "Cada 15 días", mes: "Cada mes", bimestre: "Cada dos meses", trimestre: "Cada tres meses", año: "Cada año",
 };
+/** Claves de la lista fija «Cómo va una tarea» (catálogo «estado_tarea»): sus nombres se ajustan en Configuración. */
 export const ESTADOS_TAREA = ["pendiente", "hecha", "no_aplica", "no_se_puede"] as const;
 export type EstadoTarea = (typeof ESTADOS_TAREA)[number];
 
@@ -47,7 +52,7 @@ export type Siguiente = { tarea_id: string; titulo: string; quien: Quien; fecha:
 
 export type FilaAsunto = {
   id: string; folio: string; nombre: string; encargos: Encargo[]; en_que_va: EnQueVa;
-  en_espera: boolean; espera_hasta: string | null; resultado: "se_logro" | "no_se_dio" | null;
+  en_espera: boolean; espera_hasta: string | null; resultado: Resultado | null;
   responsable_id: string; es_ejemplo: boolean; version: number; updated_at: string;
   siguiente: Siguiente | null;
   /** Nombres de las personas del asunto y lo demás que sirve para buscar. */

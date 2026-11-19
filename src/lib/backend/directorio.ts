@@ -68,6 +68,7 @@ export async function cambiarPersona(client: SupabaseClient, id: string, e: z.in
 /** La ficha `origen` se une a `destino`: todo pasa a la que se queda y la otra va a Eliminados. */
 export async function unirPersonas(client: SupabaseClient, user: StaffUser, origen: string, destino: string): Promise<void> {
   if (user.role !== "admin") throw new ApiError(403, "Solo el director une fichas.");
-  const { error } = await client.rpc("fortius_inmuebles_unir_personas", { p_origen: origen, p_destino: destino });
+  // Los papeles de la ficha que se va pasan tal cual, aunque alguno ya no se ofrezca.
+  const { error } = await client.rpc("fortius_inmuebles_unir_personas_conservando", { p_origen: origen, p_destino: destino });
   if (error) fallo(error);
 }

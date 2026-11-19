@@ -36,9 +36,14 @@ export const cerrarComoContacto = (id: string, version: number, volver: string) 
   pedir<{ persona_id: string }>(`${base}/${id}/cerrar`, "POST", { como: "contacto", version, volver });
 export const cerrarNoProcede = (id: string, version: number, motivo: string) =>
   pedir<object>(`${base}/${id}/cerrar`, "POST", { como: "no_procede", version, motivo: motivo || undefined });
-export function adjuntar(id: string, archivo: File) {
+/** `documento`: el nombre exacto del documento pedido al que pertenece el archivo; sin él, es un archivo suelto. */
+export function adjuntar(id: string, archivo: File, documento?: string) {
   const f = new FormData();
   f.append("archivo", archivo);
+  if (documento) f.append("documento", documento);
   return pedir<{ carga: Carga }>(`${base}/${id}/archivos`, "POST", f).then((r) => r.carga);
 }
-export const quitarAdjunto = (id: string, carga: string) => pedir<object>(`${base}/${id}/archivos?carga=${carga}`, "DELETE");
+/** Cambia a qué documento pedido va un archivo ya cargado; null lo deja suelto. */
+export const cambiarDocumentoDeArchivo = (id: string, carga: string, documento: string | null) =>
+  pedir<{ carga: Carga }>(`${base}/${id}/archivos?carga=${carga}`, "PATCH", { documento }).then((r) => r.carga);
+export const quitarAdjunto =(id: string, carga: string) => pedir<object>(`${base}/${id}/archivos?carga=${carga}`, "DELETE");

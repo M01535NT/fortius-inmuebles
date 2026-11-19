@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import type { ClaseTarea, Quien } from "./asuntos-contrato";
+import { mapaCatalogos } from "./catalogos";
+import type { Catalogos } from "./catalogos-contrato";
 import { fallo } from "./fallo";
 import type { StaffUser } from "./contracts";
 import { ApiError } from "./http";
@@ -39,10 +41,17 @@ const telefonoDe = (t: unknown): string | null => {
   const x = Array.isArray(t) ? (t[0] as Tel | undefined) : undefined;
   return x?.numero ? `${x.pais} ${x.numero}` : null;
 };
-/** A quién se le escribe según quién hace la tarea (igual que en el Plan del asunto). */
-const PAPELES_DE: Record<Quien, string[]> = {
-  cliente: ["propietario", "titular", "vendedor", "comprador", "heredero", "inquilino", "inversionista", "contacto", "copropietario"],
+/**
+ * A quién se le escribe según quién hace la tarea (igual que en el Plan del asunto). «El cliente» son los papeles del
+ * lado del cliente en Catálogos (primero la persona principal) y luego quien nos busca; si no hay, la primera persona
+ * del asunto. Un valor nuevo de «Quién hace una tarea» no le escribe a nadie.
+ */
+const PAPELES_DE: Partial<Record<Quien, string[]>> = {
   abogado: ["abogado"], notaria: ["notaria"], otro: ["apoderado", "banco", "contraparte"], fortius: [],
+};
+const papelesDelCliente = (c: Catalogos): string[] => {
+  const papeles = c.papel?.valores ?? [];
+  return ["cliente", "busca"].flatMap((lado) => papeles.filter((v) => v.significado === lado).map((v) => v.clave));
 };
 const trozos = <X,>(xs: X[], n = 200) => Array.from({ length: Math.ceil(xs.length / n) }, (_, i) => xs.slice(i * n, i * n + n));
 
@@ -126,10 +135,16 @@ async function contactosPara(client: SupabaseClient, tareas: { id: string; asunt
     papeles.push(...((r.data ?? []) as unknown as Papel[]));
   }
   const vivo = (p: Papel) => p.persona && !p.persona.fallecida && !p.persona.no_contactar && telefonoDe(p.persona.telefonos);
+  const delCliente = tareas.some((t) => t.quien === "cliente") ? papelesDelCliente(await mapaCatalogos(client)) : [];
   for (const t of tareas) {
     const del = papeles.filter((p) => p.asunto_id === t.asunto_id && vivo(p));
     const fija = t.quien_persona_id ? del.find((p) => p.persona!.id === t.quien_persona_id) : undefined;
-    const p = fija ?? PAPELES_DE[t.quien as Quien]?.map((x) => del.find((y) => y.papel === x)).find(Boolean) ?? (t.quien === "cliente" ? del[0] : undefined);
+    const cliente = () => {
+      const suyos = del.filter((y) => delCliente.includes(y.papel));
+      return suyos.find((y) => y.principal)
+        ?? delCliente.map((x) => suyos.find((y) => y.papel === x)).find(Boolean) ?? del[0];
+    };
+    const p = fija ?? (t.quien === "cliente" ? cliente() : PAPELES_DE[t.quien as Quien]?.map((x) => del.find((y) => y.papel === x)).find(Boolean));
     if (p?.persona) salida.set(t.id, { nombre: p.persona.nombre, telefono: telefonoDe(p.persona.telefonos) });
   }
   return salida;

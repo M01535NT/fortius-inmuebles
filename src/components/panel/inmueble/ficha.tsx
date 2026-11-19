@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
@@ -10,8 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/panel/ui/dropdown-menu";
 import { Switch } from "@/components/panel/ui/switch";
 import {
-  agregarDocumento, cambiarMedio, estadosPara, FICHA_POR_TIPO, guardarInmueble, leerInmueble, NOMBRE_ESTADO, NOMBRE_OPERACION, NOMBRE_TIPO,
-  OPERACIONES, ponerEnlace, precioTexto, queLleva, subirMedio, TIPOS_INMUEBLE,
+  agregarDocumento, cambiarMedio, estadosPara, FICHA_POR_TIPO, guardarInmueble, leerInmueble, NOMBRE_ESTADO, NOMBRE_OPERACION,
+  OPERACIONES, ponerEnlace, precioTexto, queLleva, subirMedio,
   type CambioInmueble, type CampoFicha, type EstadoInmueble, type Inmueble, type Medio, type Moneda, type Operacion, type TipoInmueble,
 } from "@/lib/panel/inmuebles/api";
 import { leerEquipo, type Miembro } from "@/lib/panel/asuntos/api";
@@ -157,8 +158,10 @@ function Grupo({ titulo, abierto: inicial, cuenta, children }: { titulo: string;
 
 // ── Ficha técnica ────────────────────────────────────────────────────────────────────────────────────
 function Datos({ i, guardar, nombreDe }: { i: Inmueble; guardar: Guardar; nombreDe?: (uid: string | null) => string }) {
+  const cat = useCatalogos();
   const [precio, setPrecio] = useState(false);
-  const grupos = i.tipo ? FICHA_POR_TIPO[i.tipo] : [];
+  // Un tipo agregado en Configuración todavía no tiene ficha técnica propia: se ven solo los datos comunes.
+  const grupos = i.tipo ? FICHA_POR_TIPO[i.tipo] ?? [] : [];
   const valorDe = (c: CampoFicha) => i.ficha[c.clave];
   // Se arma sobre la ficha más reciente al momento de mandar: dos campos seguidos no se pisan.
   const poner = (c: CampoFicha, v: string) => void guardar((x) => {
@@ -172,7 +175,7 @@ function Datos({ i, guardar, nombreDe }: { i: Inmueble; guardar: Guardar; nombre
       <div className="as-card as-pad">
         <div className="as-g2">
           <Campo etiqueta="Nombre" valor={i.nombre} alGuardar={(v) => { if (v) void guardar({ nombre: v }); }} />
-          <Desplegable etiqueta="Tipo" valor={i.tipo ?? ""} vacio="Elegir" opciones={TIPOS_INMUEBLE.map((t) => ({ valor: t, etiqueta: NOMBRE_TIPO[t] }))}
+          <Desplegable etiqueta="Tipo" valor={i.tipo ?? ""} vacio="Elegir" opciones={cat.opciones("tipo_inmueble", i.tipo)}
             alElegir={(v) => void guardar({ tipo: (v || null) as TipoInmueble | null })} />
           <Desplegable etiqueta="Operación" valor={i.operacion ?? ""} vacio={i.operacion ? undefined : "Elegir"} opciones={OPERACIONES.map((o) => ({ valor: o, etiqueta: NOMBRE_OPERACION[o] }))}
             alElegir={(v) => {

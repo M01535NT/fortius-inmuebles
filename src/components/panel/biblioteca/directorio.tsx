@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
-import { fechaCorta, ICONO_ENCARGO, iniciales, NOMBRE_PAPEL, sumarDias, type Papel } from "@/lib/panel/asuntos/api";
+import { fechaCorta, iconoEncargo, iniciales, sumarDias } from "@/lib/panel/asuntos/api";
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { cambiarPersonaDirectorio, leerDirectorio, unirFichas, type PersonaDirectorio } from "@/lib/panel/biblioteca";
 import { empezarConsulta } from "@/lib/panel/consulta/api";
 import { useSession } from "@/lib/panel/legado/sesion";
@@ -28,7 +29,6 @@ const hoy = () => sumarDias(0);
 const sinAcentos = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const digitos = (p: PersonaDirectorio) => p.telefonos.map((t) => `${t.pais}${t.numero}`.replace(/\D/g, ""));
 const telefono = (p: PersonaDirectorio) => (p.telefonos[0] ? `${p.telefonos[0].pais} ${p.telefonos[0].numero}` : "");
-const papel = (x: string) => NOMBRE_PAPEL[x as Papel] ?? x;
 
 function pasa(p: PersonaDirectorio, f: Filtro) {
   if (f === "con") return p.asuntos.length > 0;
@@ -58,6 +58,8 @@ function LeerBusqueda({ alLeer }: { alLeer: (q: string) => void }) {
  */
 export function Directorio() {
   const { avisar } = useAvisos();
+  const cat = useCatalogos();
+  const papel = (x: string) => cat.etiqueta("papel", x);
   const router = useRouter();
   const director = useSession()?.role === "admin";
   const [todas, setTodas] = useState<PersonaDirectorio[] | null>(null);
@@ -131,7 +133,7 @@ export function Directorio() {
                     </span>
                   ) : null}
                   {p.asuntos.map((a) => {
-                    const [icono, color] = a.encargos[0] ? ICONO_ENCARGO[a.encargos[0]] : (["asu", "gray"] as const);
+                    const [icono, color] = iconoEncargo(a.encargos[0]);
                     return (
                       <Link key={a.id} className="db-chip" href={`/panel/asuntos/${a.id}?ver=personas`} data-cerrado={a.cerrado || undefined}
                         title={`${a.papeles.map(papel).join(", ")} en ${a.nombre}${a.cerrado ? " (cerrado)" : ""}`}>

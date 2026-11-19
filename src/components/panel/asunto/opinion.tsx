@@ -1,13 +1,14 @@
 "use client";
 import { useRef, useState } from "react";
 
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { Icono } from "@/components/panel/icons";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
 import {
-  agregar, cambiar, cambiarAsunto, fechaCorta, NOMBRE_QUIEN, NOMBRE_RESULTADO, QUIEN, RESULTADOS_OPINION, subir, sumarDias, urlArchivo,
+  agregar, cambiar, cambiarAsunto, fechaCorta, NOMBRE_RESULTADO, RESULTADOS_OPINION, subir, sumarDias, urlArchivo,
   type Asunto, type Quien, type ResultadoOpinion,
 } from "@/lib/panel/asuntos/api";
 
@@ -24,6 +25,7 @@ export function resumenOpinion(a: Asunto): string {
 
 /** Opinión jurídica (boceto): resultado, análisis, qué hay que resolver y quién, el documento y las salidas si no es factible. */
 export function OpinionJuridica({ a, hacer, irA }: { a: Asunto; hacer: Hacer; irA: (clave: string, foco?: string) => void }) {
+  const cat = useCatalogos();
   const o = a.opinion;
   const [analisis, setAnalisis] = useState(o?.analisis ?? "");
   const [nuevo, setNuevo] = useState("");
@@ -75,7 +77,7 @@ export function OpinionJuridica({ a, hacer, irA }: { a: Asunto; hacer: Hacer; ir
         {o?.puntos.map((p) => (
           <div key={p.id} className="as-ren">
             <span className="as-ren-c"><b>{p.texto}</b>{p.tarea_id ? <span>Ya está en el plan</span> : null}</span>
-            <Pildora etiqueta="Quién lo hace" icono="users" valor={p.quien} opciones={QUIEN.map((q) => ({ valor: q, etiqueta: NOMBRE_QUIEN[q] }))}
+            <Pildora etiqueta="Quién lo hace" icono="users" valor={p.quien} opciones={cat.opciones("quien_tarea", p.quien)}
               alElegir={(v) => { if (v !== p.quien) void hacer(() => cambiar(a.id, "opinion_puntos", { id: p.id, version: p.version, quien: v })); }} />
             <button type="button" className="as-btn as-gho as-ico" aria-label={`Quitar: ${p.texto}`}
               onClick={() => void hacer(() => cambiar(a.id, "opinion_puntos", { id: p.id, version: p.version, quitar: true }), "Quitado")}>
@@ -92,7 +94,7 @@ export function OpinionJuridica({ a, hacer, irA }: { a: Asunto; hacer: Hacer; ir
         }}>
           <input className="as-inp as-inp-borde as-crece" value={nuevo} maxLength={500} onChange={(e) => setNuevo(e.target.value)}
             placeholder="Juicio, regularización, pago de adeudos…" aria-label="Qué hay que resolver" />
-          <Pildora etiqueta="Quién lo hace" icono="users" valor={quien} opciones={QUIEN.map((q) => ({ valor: q, etiqueta: NOMBRE_QUIEN[q] }))} alElegir={setQuien} />
+          <Pildora etiqueta="Quién lo hace" icono="users" valor={quien} opciones={cat.opciones("quien_tarea", quien)} alElegir={setQuien} />
         </form>
       </div>
       {o && sinPasar ? (

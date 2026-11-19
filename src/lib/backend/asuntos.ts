@@ -5,10 +5,11 @@ import { z } from "zod";
 import { COLUMNAS_INICIALES } from "./apartados-contrato";
 import { cambioColumnas, datosFila, leerApartados } from "./apartados";
 import {
-  APARTADOS_DE_SIEMPRE, CADA_TAREA, CLASES_PERSONA, CLASES_TAREA, CLAVES_APARTADO, ENCARGOS, EN_QUE_VA, ESTADOS_TAREA, PAPELES, QUIEN, VISTAS,
+  APARTADOS_DE_SIEMPRE, CADA_TAREA, CLASES_PERSONA, CLASES_TAREA, CLAVES_APARTADO, EN_QUE_VA, ESTADOS_TAREA, VISTAS,
   type Apartado, type Asunto, type ClaveApartado, type InmuebleDelAsunto, type Encargo, type EntradaHistorial, type Etapa, type FilaAsunto,
   type PersonaDelAsunto, type PersonaDuplicada, type Siguiente, type Tarea,
 } from "./asuntos-contrato";
+import { claveCatalogo } from "./catalogos";
 import type { StaffUser } from "./contracts";
 import { fallo } from "./fallo";
 import { ApiError } from "./http";
@@ -42,8 +43,11 @@ const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const hora = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 export const idSchema = z.uuid();
 
-/** Lo que se enciende según lo encargado (SPEC.md, sección 5: «aparecen según lo que encargaron»). Se ajusta aquí, sin migración. */
-export const APARTADOS_POR_ENCARGO: Record<Encargo, readonly ClaveApartado[]> = {
+/**
+ * Lo que se enciende según lo encargado (SPEC.md, sección 5: «aparecen según lo que encargaron»). Son los cuatro encargos
+ * de sistema del catálogo; un encargo que agregue el director no enciende apartados (eso llega con los tipos de asunto).
+ */
+export const APARTADOS_POR_ENCARGO: Partial<Record<Encargo, readonly ClaveApartado[]>> = {
   revisar: ["situacion", "documentos", "opinion"],
   comercializar: ["inmueble", "interesados", "documentos"],
   tramitar: ["inmueble", "documentos"],
@@ -53,14 +57,14 @@ const ORDEN_APARTADO: Record<ClaveApartado, number> = {
   personas: 10, inmueble: 20, interesados: 30, situacion: 40, documentos: 50, opinion: 60, honorarios: 70, plan: 80, historial: 90,
 };
 export function apartadosPara(encargos: readonly Encargo[]): ClaveApartado[] {
-  const claves = new Set<ClaveApartado>(encargos.flatMap((e) => APARTADOS_POR_ENCARGO[e]));
+  const claves = new Set<ClaveApartado>(encargos.flatMap((e) => APARTADOS_POR_ENCARGO[e] ?? []));
   claves.add("honorarios"); // Va en todos salvo que se quite.
   return [...claves].filter((c) => !APARTADOS_DE_SIEMPRE.includes(c));
 }
 
 export const nuevoAsuntoSchema = z.object({
   nombre: texto(160),
-  encargos: z.array(z.enum(ENCARGOS)).max(4).default([]),
+  encargos: z.array(claveCatalogo).max(20).default([]),
   responsable_id: idSchema.optional(),
   es_ejemplo: z.boolean().optional(),
 }).strict();
@@ -68,12 +72,12 @@ export const nuevoAsuntoSchema = z.object({
 export const cambioAsuntoSchema = z.object({
   version,
   nombre: texto(160).optional(),
-  encargos: z.array(z.enum(ENCARGOS)).max(4).optional(),
+  encargos: z.array(claveCatalogo).max(20).optional(),
   en_que_va: z.enum(EN_QUE_VA).optional(),
   en_espera: z.boolean().optional(),
   espera_motivo: z.string().trim().max(500).nullable().optional(),
   espera_hasta: fecha.nullable().optional(),
-  resultado: z.enum(["se_logro", "no_se_dio"]).nullable().optional(),
+  resultado: claveCatalogo.nullable().optional(),
   motivo_cierre: z.string().trim().max(1000).nullable().optional(),
   responsable_id: idSchema.optional(),
   capto_id: idSchema.nullable().optional(),
@@ -251,7 +255,7 @@ const cambioFila = z.object({
 
 const telefono = z.object({ pais: z.string().trim().regex(/^\+?\d{1,4}$/).default("+52"), numero: z.string().trim().min(4).max(30) }).strict();
 const nuevaPersona = z.object({
-  papel: z.enum(PAPELES),
+  papel: claveCatalogo,
   persona_id: idSchema.optional(),
   nueva: z.object({
     nombre: texto(160), clase: z.enum(CLASES_PERSONA).default("persona"), fallecida: z.boolean().default(false),
@@ -261,10 +265,10 @@ const nuevaPersona = z.object({
   aunque_exista: z.boolean().optional(),
   nota: z.string().trim().max(500).optional(),
 }).strict().refine((x) => Boolean(x.persona_id) !== Boolean(x.nueva), "Elige una persona o escribe una nueva.");
-const cambioPersona = z.object({ id: idSchema, version, papel: z.enum(PAPELES).optional(), principal: z.boolean().optional(), nota: z.string().trim().max(500).optional(), quitar: z.literal(true).optional() }).strict();
+const cambioPersona = z.object({ id: idSchema, version, papel: claveCatalogo.optional(), principal: z.boolean().optional(), nota: z.string().trim().max(500).optional(), quitar: z.literal(true).optional() }).strict();
 
 const nuevaTarea = z.object({
-  titulo: texto(300), quien: z.enum(QUIEN).default("fortius"), fecha: fecha.nullable().optional(), hora: hora.nullable().optional(),
+  titulo: texto(300), quien: claveCatalogo.default("fortius"), fecha: fecha.nullable().optional(), hora: hora.nullable().optional(),
   etapa_id: idSchema.nullable().optional(), responsable_id: idSchema.optional(), clase: z.enum(CLASES_TAREA).default("tarea"),
   documento_id: idSchema.nullable().optional(), inmueble_id: idSchema.nullable().optional(),
   /** La persona del asunto de la que trata («Llamar a Laura»). */
@@ -273,7 +277,7 @@ const nuevaTarea = z.object({
   origen: z.enum(["manual", "linea"]).optional(),
 }).strict().refine((t) => !t.hora || t.fecha, "La hora necesita día.");
 const cambioTarea = z.object({
-  id: idSchema, version, titulo: texto(300).optional(), quien: z.enum(QUIEN).optional(), fecha: fecha.nullable().optional(), hora: hora.nullable().optional(),
+  id: idSchema, version, titulo: texto(300).optional(), quien: claveCatalogo.optional(), fecha: fecha.nullable().optional(), hora: hora.nullable().optional(),
   estado: z.enum(ESTADOS_TAREA).optional(), motivo: z.string().trim().max(1000).nullable().optional(), etapa_id: idSchema.nullable().optional(),
   responsable_id: idSchema.optional(), quitar: z.literal(true).optional(),
   /** «Recordarle»: se anota que se le escribió y la siguiente vez que toca preguntar (en tres días). */

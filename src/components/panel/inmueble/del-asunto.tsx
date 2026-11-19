@@ -1,12 +1,13 @@
 "use client";
 import { useCallback, useState } from "react";
 
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import type { Asunto } from "@/lib/panel/asuntos/api";
 import {
-  copiarInmueble, estadosPara, guardarInmueble, leerInmueble, NOMBRE_ESTADO, NOMBRE_TIPO, nuevoInmueble, precioTexto, publicarVarios,
-  type EstadoInmueble, type TipoInmueble,
+  copiarInmueble, estadosPara, guardarInmueble, leerInmueble, NOMBRE_ESTADO, nuevoInmueble, precioTexto, publicarVarios,
+  type EstadoInmueble,
 } from "@/lib/panel/inmuebles/api";
 
 import { Pildora } from "../asunto/pildora";
@@ -19,6 +20,7 @@ import { FichaInmueble } from "./ficha";
  */
 export function InmueblesDelAsunto({ a, recargar, nombreDe }: { a: Asunto; recargar: () => void; nombreDe?: (uid: string | null) => string }) {
   const { avisar } = useAvisos();
+  const cat = useCatalogos();
   const [abierto, setAbierto] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const solo = a.inmuebles.length === 1 ? a.inmuebles[0].id : null;
@@ -67,7 +69,7 @@ export function InmueblesDelAsunto({ a, recargar, nombreDe }: { a: Asunto; recar
           <div key={i.id} className="as-ren">
             <button type="button" className="as-ren-c in-abrir-c" onClick={() => setAbierto(i.id)}>
               <b>{i.nombre}</b>
-              <span>{[i.tipo ? NOMBRE_TIPO[i.tipo as TipoInmueble] : null, precioTexto(i.precio, i.moneda, i.operacion), i.publicado ? "publicado" : null].filter(Boolean).join(" · ")}</span>
+              <span>{[i.tipo ? cat.etiqueta("tipo_inmueble", i.tipo) : null, precioTexto(i.precio, i.moneda, i.operacion), i.publicado ? "publicado" : null].filter(Boolean).join(" · ")}</span>
             </button>
             <Pildora etiqueta={`Estado de ${i.nombre}`} valor={i.estado as EstadoInmueble}
               opciones={estadosPara(i.operacion).map((e) => ({ valor: e, etiqueta: NOMBRE_ESTADO[e] }))}

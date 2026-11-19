@@ -9,13 +9,16 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
 import {
-  agregar, APARTADO, APARTADOS_DE_SIEMPRE, cambiar, cambiarAsunto, CLAVES_APARTADO, continuarAsunto, ENCARGOS, EN_QUE_VA, fechaCorta, diasHasta,
-  ICONO_ENCARGO, leerAsunto, leerHistorial, leerNotas, mandarAEliminados, NOMBRE_ENCARGO, NOMBRE_EN_QUE_VA, NOMBRE_QUIEN, sumarDias,
-  type Apartado, type Asunto, type CambioAsunto, type ClaveApartado, type EntradaHistorial, type FilaAsunto, type PersonaDelAsunto, type Vista,
+  agregar, APARTADO, APARTADOS_DE_SIEMPRE, cambiar, cambiarAsunto, CLAVES_APARTADO, continuarAsunto, fechaCorta, diasHasta,
+  iconoEncargo, leerAsunto, leerHistorial, leerNotas, mandarAEliminados, sumarDias,
+  type Apartado, type Asunto, type CambioAsunto, type ClaveApartado, type EnQueVa, type EntradaHistorial, type FilaAsunto, type PersonaDelAsunto, type Vista,
 } from "@/lib/panel/asuntos/api";
 import { usePreferencia } from "@/components/panel/almacen";
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { guardarApartadoEnBiblioteca } from "@/lib/panel/biblioteca";
 import { BotonFavorito } from "@/components/panel/kit/favorito";
+import { Boton } from "@/components/panel/kit/boton";
+import { Etiqueta } from "@/components/panel/kit/etiqueta";
 import { useSession } from "@/lib/panel/legado/sesion";
 
 import { Cuadro, Pildora } from "./pildora";
@@ -53,6 +56,9 @@ const fila = (a: Asunto): FilaAsunto => ({
 
 const POSPONER = [["Mañana", 1], ["En 3 días", 3], ["En una semana", 7], ["En un mes", 30]] as const;
 
+/** Si la lista de asuntos se ve junto al asunto abierto («si» o «no»). La lee también el marco de Asuntos. */
+export const LISTA_JUNTO = "fortius-panel-lista-junto";
+
 /** El asunto abierto (boceto): folio, en qué va, Nuevo, ⋯, nombre, encargos, quién lo lleva, lo que sigue y los apartados. */
 export function DetalleAsunto({ id }: { id: string }) {
   const { ponerFila, recargar, equipo, companeros, nombreDe } = useAsuntos();
@@ -65,7 +71,9 @@ export function DetalleAsunto({ id }: { id: string }) {
   const [asunto, setAsunto] = useState<Asunto | null>(null);
   const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [dialogo, setDialogo] = useState<null | "nombre" | "espera" | "propio" | "cierre-se_logro" | "cierre-no_se_dio">(null);
+  // «cierre:<resultado>»: el diálogo de cerrar con ese resultado del catálogo.
+  const [dialogo, setDialogo] = useState<null | "nombre" | "espera" | "propio" | `cierre:${string}`>(null);
+  const cat = useCatalogos();
   // Desde el buscador, una persona llega con ?ver=personas&persona=<id> y abre su ficha.
   const [foco, setFoco] = useState<string | null>(() => (ver === "personas" && params.get("persona") ? `persona:${params.get("persona")}` : null));
   const [siguienteNuevo, setSiguienteNuevo] = useState("");
@@ -78,8 +86,10 @@ export function DetalleAsunto({ id }: { id: string }) {
   const [fijadas, setFijadas] = useState<number[]>([]);
   const [personaAbierta, setPersonaAbierta] = useState<PersonaDelAsunto | null>(null);
   const [filtroNotas, setFiltroNotas] = useState<FiltroNotas>("todas");
-  const [notasEnPc, guardarNotasEnPc] = usePreferencia("fortius-panel-notas", "si");
+  const [notasEnPc, guardarNotasEnPc] = usePreferencia("fortius-panel-notas", "no"); // Empiezan cerradas, con su contador en el botón (hallazgo 32).
   const [notasEnTel, setNotasEnTel] = useState(false);
+  // La lista de asuntos se ve junto al asunto abierto (boceto aprobado); un botón la oculta y el panel lo recuerda.
+  const [listaVisible, ponerLista] = usePreferencia(LISTA_JUNTO, "si");
   const angosto = useAngosto();
   const notasAbiertas = angosto ? notasEnTel : notasEnPc === "si";
   const ponerNotas = useCallback((abiertas: boolean) => { if (angosto) setNotasEnTel(abiertas); else guardarNotasEnPc(abiertas ? "si" : "no"); }, [angosto, guardarNotasEnPc]);
@@ -102,7 +112,7 @@ export function DetalleAsunto({ id }: { id: string }) {
   const nombreReciente = asunto?.nombre, encargoReciente = asunto?.encargos[0];
   useEffect(() => {
     if (!nombreReciente) return;
-    const [icono, color] = encargoReciente ? ICONO_ENCARGO[encargoReciente] : (["asu", "gray"] as const);
+    const [icono, color] = iconoEncargo(encargoReciente);
     anotarReciente({ id, nombre: nombreReciente, icono, color });
   }, [id, nombreReciente, encargoReciente]);
 
@@ -162,6 +172,14 @@ export function DetalleAsunto({ id }: { id: string }) {
   const abierto: Apartado | undefined = apartadoDe(ver ?? undefined);
   const anterior = apartadoDe(anteriores[anteriores.length - 1]);
   const cerrado = a.en_que_va === "cerrado";
+  const enQueVa = (v: string) => cat.etiqueta("en_que_va", v).toLowerCase();
+  const encargo = (e: string) => cat.etiqueta("encargo", e);
+  const resultado = (r: string) => cat.etiqueta("resultado_cierre", r);
+  const logrado = (r: string | null) => cat.significado("resultado_cierre", r) !== "no_logrado";
+  // Lo que se ofrece en el menú más lo que el asunto ya tiene (desactivar no lo quita del asunto).
+  const encargos = cat.opciones("encargo", a.encargos).map((o) => o.valor);
+  const cierreElegido = dialogo?.startsWith("cierre:") ? dialogo.slice(7) : null;
+  const primerLogrado = cat.ofrecidos("resultado_cierre").find((r) => r.significado === "logrado")?.clave ?? "se_logro";
   const propuesta = (() => { const p = propuestaDe(a); return p && !noAhora.includes(p.clave) && !yaDijoQueNo(a.id, p.clave) ? p : null; })();
   const continuar = () => void (async () => {
     try {
@@ -172,18 +190,71 @@ export function DetalleAsunto({ id }: { id: string }) {
     } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo terminar."); }
   })();
 
+  // En computadora, la cabecera del caso (nombre, sus datos en una línea y «Lo que sigue» con Hecha y Posponer) y los
+  // apartados como renglones limpios; en el teléfono, su versión compacta. En los dos, cada apartado abre su ventana.
+  const enPagina = !angosto;
+  const claveDe = (x: Apartado) => (x.clave === "propio" ? x.id : x.clave);
+  const cuadroDe = (x: Apartado) => {
+    const fijo = x.clave !== "propio" ? APARTADO[x.clave] : null;
+    return { icono: fijo?.icono ?? iconoPropio(x), color: fijo?.color ?? "gray" };
+  };
+  const opcionesDe = (x: Apartado | undefined) => (x && !APARTADOS_DE_SIEMPRE.includes(x.clave as ClaveApartado) ? [
+    ...(x.clave === "propio" ? (["lista", "tabla", "galeria", "texto"] as const).filter((v) => v !== (x.vista ?? "lista")).map((v) => ({
+      etiqueta: `Ver como ${NOMBRE_VISTA[v].toLowerCase()}`, icono: "ojo" as const, peligro: false,
+      alElegir: () => void hacer(() => cambiar(a.id, "apartados", { id: x.id, version: x.version, vista: v }), `Ahora se ve como ${NOMBRE_VISTA[v].toLowerCase()}`),
+    })) : []),
+    ...(x.clave === "propio" ? [{
+      etiqueta: "Guardar en la Biblioteca", icono: "lib" as const, peligro: false,
+      alElegir: () => void guardarApartadoEnBiblioteca(a.id, x.id).then(() => { olvidarGuias(); avisar("Guardado en la Biblioteca"); }, (e: unknown) => avisar(e instanceof Error ? e.message : "No se guardó.")),
+    }] : []),
+    {
+      etiqueta: "Quitar del asunto", icono: "bote" as const, peligro: true,
+      alElegir: () => {
+        abrir(null);
+        void hacer(() => cambiar(a.id, "apartados", { id: x.id, version: x.version, visible: false }), "Apartado quitado. Lo que tenía se conserva",
+          () => leerAsunto(a.id).then((y) => { const z = y.apartados.find((w) => w.id === x.id); return z ? cambiar(a.id, "apartados", { id: z.id, version: z.version, visible: true }) : undefined; }));
+      },
+    },
+  ] : []);
+  const notasDe = (x: Apartado) => (
+    <NotasDelAsunto a={a} notas={notas} fijadas={fijadas} desde={x} nombreDeApartado={nombreApartado}
+      persona={x.clave === "personas" ? personaAbierta : null} filtro={filtroNotas} alFiltrar={setFiltroNotas} hacer={hacer}
+      abrirPersona={(pid) => { if (angosto) setNotasEnTel(false); irA("personas", `persona:${pid}`); }}
+      abrirApartado={(y) => { if (angosto) setNotasEnTel(false); if (y.clave === "propio") abrir(y.id); else irA(y.clave); }}
+      alCerrar={() => ponerNotas(false)} />
+  );
+  const agregarApartado = (
+    <DropdownMenu>
+      <DropdownMenuTrigger className={enPagina ? "cp-ap cp-ap-mas" : "as-ren as-sola"}><Icono nombre="mas" tamano={16} />Agregar apartado</DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-60">
+        {faltan.map((c: ClaveApartado) => (
+          <DropdownMenuItem key={c} onSelect={() => void hacer(() => agregar(a.id, "apartados", { clave: c }), `Se agregó ${APARTADO[c].nombre}`)}>
+            <Icono nombre={APARTADO[c].icono} tamano={16} />{APARTADO[c].nombre}
+          </DropdownMenuItem>
+        ))}
+        {faltan.length ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuItem onSelect={() => setDialogo("propio")}><Icono nombre="mas" tamano={16} />Apartado propio…</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
-    <div className="as-in">
-      <div className="as-top">
-        <Link href="/panel/asuntos" className="as-btn as-gho as-atras"><Icono nombre="at" tamano={16} />Asuntos</Link>
+    <div className={enPagina ? "cp" : "as-in"}>
+      <div className={enPagina ? "cp-barra" : "as-top"}>
+        {enPagina ? (
+          <Boton variante="fantasma" soloIcono icono="lista" aria-label={listaVisible === "si" ? "Ocultar la lista de asuntos" : "Mostrar la lista de asuntos"}
+            aria-pressed={listaVisible === "si"} onClick={() => ponerLista(listaVisible === "si" ? "no" : "si")} />
+        ) : null}
+        <Link href="/panel/asuntos" className={enPagina ? "cp-miga" : "as-btn as-gho as-atras"}>{enPagina ? null : <Icono nombre="at" tamano={16} />}Asuntos</Link>
+        {enPagina ? <span className="cp-miga-sep" aria-hidden>/</span> : null}
         <span className="as-m as-num">{a.folio}</span>
-        {a.es_ejemplo ? <span className="as-pill">Ejemplo</span> : null}
+        {a.es_ejemplo ? <Etiqueta>Ejemplo</Etiqueta> : null}
         <span className="as-sp" />
         <Pildora etiqueta="En qué va" valor={a.en_que_va} antes={<span className="as-punto" />}
-          opciones={EN_QUE_VA.map((m) => ({ valor: m, etiqueta: NOMBRE_EN_QUE_VA[m] }))}
-          alElegir={(v) => { if (v !== a.en_que_va) void cambio({ en_que_va: v }, `Pasó a ${NOMBRE_EN_QUE_VA[v].toLowerCase()}`, { en_que_va: a.en_que_va }); }} />
+          opciones={cat.opciones("en_que_va", a.en_que_va).map((o) => ({ valor: o.valor as EnQueVa, etiqueta: o.etiqueta }))}
+          alElegir={(v) => { if (v !== a.en_que_va) void cambio({ en_que_va: v }, `Pasó a ${enQueVa(v)}`, { en_que_va: a.en_que_va }); }} />
         <DropdownMenu>
-          <DropdownMenuTrigger className="as-btn as-pri"><Icono nombre="mas" tamano={16} /><span className="as-ocultar-tel">Nuevo</span><Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
+          <DropdownMenuTrigger className={enPagina ? "pn-btn" : "as-btn as-pri"}><Icono nombre="mas" tamano={16} /><span className="as-ocultar-tel">Nuevo</span><Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onSelect={() => abrir("plan", "nueva-tarea")}><Icono nombre="lista" tamano={16} />Tarea</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => abrir("historial", "nueva-nota")}><Icono nombre="nota" tamano={16} />Nota o decisión</DropdownMenuItem>
@@ -198,9 +269,9 @@ export function DetalleAsunto({ id }: { id: string }) {
             <DropdownMenuItem onSelect={() => router.push(`/panel/informe/${a.id}`)}><Icono nombre="file" tamano={16} />Informe para el cliente</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <BotonFavorito tipo="asunto" id={a.id} nombre={a.nombre} className="as-btn as-ico" />
+        <BotonFavorito tipo="asunto" id={a.id} nombre={a.nombre} className={enPagina ? "pn-btn pn-btn-fantasma pn-btn-icono" : "as-btn as-ico"} />
         <DropdownMenu>
-          <DropdownMenuTrigger className="as-btn as-ico" aria-label="Más opciones"><Icono nombre="dots" tamano={18} /></DropdownMenuTrigger>
+          <DropdownMenuTrigger className={enPagina ? "pn-btn pn-btn-fantasma pn-btn-icono" : "as-btn as-ico"} aria-label="Más opciones"><Icono nombre="dots" tamano={18} /></DropdownMenuTrigger>
           <DropdownMenuContent className="min-w-60">
             <DropdownMenuItem onSelect={() => setDialogo("nombre")}><Icono nombre="lapiz" tamano={16} />Cambiar el nombre</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => { void navigator.clipboard?.writeText(location.href.split("?")[0]).then(() => avisar("Enlace copiado"), () => avisar("No se pudo copiar")); }}>
@@ -211,15 +282,15 @@ export function DetalleAsunto({ id }: { id: string }) {
               : <DropdownMenuItem onSelect={() => setDialogo("espera")}><Icono nombre="reloj" tamano={16} />Poner en espera</DropdownMenuItem>}
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Qué encargaron</DropdownMenuLabel>
-            {ENCARGOS.map((e) => {
+            {encargos.map((e) => {
               const tiene = a.encargos.includes(e);
               return (
                 <DropdownMenuItem key={e} onSelect={(ev) => {
                   ev.preventDefault();
                   const nuevos = tiene ? a.encargos.filter((x) => x !== e) : [...a.encargos, e];
-                  void cambio({ encargos: nuevos }, tiene ? `Ya no dice ${NOMBRE_ENCARGO[e].toLowerCase()}` : `Ahora también ${NOMBRE_ENCARGO[e].toLowerCase()}`);
+                  void cambio({ encargos: nuevos }, tiene ? `Ya no dice ${encargo(e).toLowerCase()}` : `Ahora también ${encargo(e).toLowerCase()}`);
                 }}>
-                  <Icono nombre={ICONO_ENCARGO[e][0]} tamano={16} />{NOMBRE_ENCARGO[e]}
+                  <Icono nombre={iconoEncargo(e)[0]} tamano={16} />{encargo(e)}
                   {tiene ? <span className="ml-auto"><Icono nombre="ok" tamano={15} /></span> : null}
                 </DropdownMenuItem>
               );
@@ -231,8 +302,11 @@ export function DetalleAsunto({ id }: { id: string }) {
               </DropdownMenuItem>
             ) : (
               <>
-                <DropdownMenuItem onSelect={() => setDialogo("cierre-se_logro")}><Icono nombre="ok" tamano={16} />Cerrar: se logró</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setDialogo("cierre-no_se_dio")}><Icono nombre="x" tamano={16} />Cerrar: no se dio</DropdownMenuItem>
+                {cat.opciones("resultado_cierre").map((r) => (
+                  <DropdownMenuItem key={r.valor} onSelect={() => setDialogo(`cierre:${r.valor}`)}>
+                    <Icono nombre={logrado(r.valor) ? "ok" : "x"} tamano={16} />Cerrar: {r.etiqueta.toLowerCase()}
+                  </DropdownMenuItem>
+                ))}
               </>
             )}
             <DropdownMenuItem onSelect={continuar}><Icono nombre="ch" tamano={16} />Continuar en un asunto nuevo</DropdownMenuItem>
@@ -255,11 +329,11 @@ export function DetalleAsunto({ id }: { id: string }) {
         </DropdownMenu>
       </div>
 
-      <div className="as-titulo">
-        <h1 className="as-h1">{a.nombre}</h1>
-        <div className="as-fila as-pills">
-          {a.encargos.map((e) => <span key={e} className="as-pill"><Icono nombre={ICONO_ENCARGO[e][0]} tamano={12} />{NOMBRE_ENCARGO[e]}</span>)}
-          {cerrado && a.resultado ? <span className={`as-pill ${a.resultado === "se_logro" ? "as-pill-ok" : "as-pill-bad"}`}>{a.resultado === "se_logro" ? "Se logró" : "No se dio"}</span> : null}
+      <div className={enPagina ? "cp-cab" : "as-titulo"}>
+        <h1 className={enPagina ? "cp-h1" : "as-h1"}>{a.nombre}</h1>
+        <div className={enPagina ? "cp-meta" : "as-fila as-pills"}>
+          {a.encargos.map((e) => <span key={e} className="as-pill"><Icono nombre={iconoEncargo(e)[0]} tamano={12} />{encargo(e)}</span>)}
+          {cerrado && a.resultado ? <span className={`as-pill ${logrado(a.resultado) ? "as-pill-ok" : "as-pill-bad"}`}>{resultado(a.resultado)}</span> : null}
           {a.en_espera ? <span className="as-pill as-pill-warn"><Icono nombre="reloj" tamano={12} />En espera{a.espera_hasta ? ` hasta ${fechaCorta(a.espera_hasta).toLowerCase()}` : ""}</span> : null}
           {director && equipo.length > 1 ? (
             <Pildora etiqueta="Quién lo lleva" icono="users" valor={a.responsable_id}
@@ -276,8 +350,8 @@ export function DetalleAsunto({ id }: { id: string }) {
 
       {cerrado ? (
         <div className="as-ban" role="status">
-          <Icono nombre={a.resultado === "no_se_dio" ? "x" : "ok"} tamano={16} />
-          <span>Cerrado{a.resultado ? `: ${a.resultado === "se_logro" ? "se logró" : "no se dio"}` : ""}{a.cerrado_el ? ` · ${fechaCorta(a.cerrado_el.slice(0, 10)).toLowerCase()}` : ""}</span>
+          <Icono nombre={logrado(a.resultado) ? "ok" : "x"} tamano={16} />
+          <span>Cerrado{a.resultado ? `: ${resultado(a.resultado).toLowerCase()}` : ""}{a.cerrado_el ? ` · ${fechaCorta(a.cerrado_el.slice(0, 10)).toLowerCase()}` : ""}</span>
           <span className="as-sp" />
           <button type="button" className="as-btn" onClick={continuar}>Continuar<Icono nombre="ch" tamano={16} /></button>
           <button type="button" className="as-btn" onClick={() => void cambio({ en_que_va: "en_marcha" }, "Se reabrió", { en_que_va: "cerrado", resultado: a.resultado, motivo_cierre: a.motivo_cierre })}>Reabrir</button>
@@ -296,26 +370,34 @@ export function DetalleAsunto({ id }: { id: string }) {
           <span className="as-sp" />
           <button type="button" className="as-btn as-gho" onClick={() => { decirQueNo(a.id, propuesta.clave); setNoAhora([...noAhora, propuesta.clave]); }}>Ahora no</button>
           <button type="button" className="as-btn as-pri" onClick={() => {
-            if (propuesta.clave === "cerrar") { setDialogo("cierre-se_logro"); return; }
+            if (propuesta.clave === "cerrar") { setDialogo(`cierre:${primerLogrado}`); return; }
             const v = propuesta.clave === "en_marcha" ? "en_marcha" : "propuesta";
-            void cambio({ en_que_va: v }, `Pasó a ${NOMBRE_EN_QUE_VA[v].toLowerCase()}`, { en_que_va: a.en_que_va });
+            void cambio({ en_que_va: v }, `Pasó a ${enQueVa(v)}`, { en_que_va: a.en_que_va });
           }}>{propuesta.si}</button>
         </div>
       ) : null}
 
       {s && tareaSig ? (
-        <div className="as-sigue">
-          <button type="button" className="as-ckb" aria-label={`Marcar hecha: ${s.titulo}`}
-            onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: tareaSig.id, version: tareaSig.version, estado: "hecha" }), "Tarea hecha",
-              () => leerAsunto(a.id).then((x) => { const t = x.tareas.find((y) => y.id === tareaSig.id); return t ? cambiar(a.id, "tareas", { id: t.id, version: t.version, estado: "pendiente" }) : undefined; }))}>
-            <span className="as-ck" />
-          </button>
+        <div className={enPagina ? "cp-sigue" : "as-sigue"}>
+          {enPagina ? <span className="cp-sigue-e"><Icono nombre="rayo" tamano={14} aria-hidden />Lo que sigue</span> : (
+            <button type="button" className="as-ckb" aria-label={`Marcar hecha: ${s.titulo}`}
+              onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: tareaSig.id, version: tareaSig.version, estado: "hecha" }), "Tarea hecha",
+                () => leerAsunto(a.id).then((x) => { const t = x.tareas.find((y) => y.id === tareaSig.id); return t ? cambiar(a.id, "tareas", { id: t.id, version: t.version, estado: "pendiente" }) : undefined; }))}>
+              <span className="as-ck" />
+            </button>
+          )}
           <div className="as-sigue-c">
             <p className="as-q">{s.titulo}</p>
-            <p className="as-m">{NOMBRE_QUIEN[s.quien]} · <span className={s.fecha && diasHasta(s.fecha) < 0 ? "as-bad" : ""}>{fechaCorta(s.fecha, s.hora)}</span></p>
+            <p className="as-m">{cat.etiqueta("quien_tarea", s.quien)} · <span className={s.fecha && diasHasta(s.fecha) < 0 ? "as-bad" : ""}>{fechaCorta(s.fecha, s.hora)}</span></p>
           </div>
+          {enPagina ? (
+            <Boton variante="primario" icono="ok" aria-label={`Marcar hecha: ${s.titulo}`} onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: tareaSig.id, version: tareaSig.version, estado: "hecha" }), "Tarea hecha",
+              () => leerAsunto(a.id).then((x) => { const t = x.tareas.find((y) => y.id === tareaSig.id); return t ? cambiar(a.id, "tareas", { id: t.id, version: t.version, estado: "pendiente" }) : undefined; }))}>Hecha</Boton>
+          ) : null}
           <DropdownMenu>
-            <DropdownMenuTrigger className="as-btn as-gho as-ico" title="Posponer" aria-label="Posponer"><Icono nombre="reloj" tamano={18} /></DropdownMenuTrigger>
+            <DropdownMenuTrigger className={enPagina ? "pn-btn pn-btn-fantasma" : "as-btn as-gho as-ico"} title="Posponer" aria-label="Posponer">
+              <Icono nombre="reloj" tamano={enPagina ? 16 : 18} />{enPagina ? <span>Posponer</span> : null}
+            </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>Posponer</DropdownMenuLabel>
               {POSPONER.map(([t, n]) => (
@@ -327,7 +409,7 @@ export function DetalleAsunto({ id }: { id: string }) {
           </DropdownMenu>
         </div>
       ) : cerrado ? null : (
-        <form className="as-sigue as-sigue-falta" onSubmit={(e) => {
+        <form className={enPagina ? "cp-sigue cp-sigue-falta" : "as-sigue as-sigue-falta"} onSubmit={(e) => {
           e.preventDefault();
           const t = siguienteNuevo.trim();
           if (!t) return;
@@ -340,85 +422,56 @@ export function DetalleAsunto({ id }: { id: string }) {
         </form>
       )}
 
-      <div className="as-card">
+      {/* Los apartados, como renglones con su resumen; cada uno se abre en su ventana (SPEC.md, secciones 5 y 14). */}
+      <nav className={enPagina ? "cp-aps" : "as-card"} aria-label="Apartados">
         {visibles.map((x) => {
-          const fijo = x.clave !== "propio" ? APARTADO[x.clave] : null;
+          const { icono, color } = cuadroDe(x);
           return (
-            <button key={x.id} type="button" className="as-ren" onClick={() => abrir(x.clave === "propio" ? x.id : x.clave)}>
-              <Cuadro icono={fijo?.icono ?? iconoPropio(x)} color={fijo?.color ?? "gray"} />
-              <span className="as-ren-c"><b>{nombreApartado(x)}</b><span>{resumenApartado(x, a, historial)}</span></span>
-              <Icono nombre="ch" tamano={16} />
+            <button key={x.id} type="button" className={enPagina ? "cp-ap" : "as-ren"} onClick={() => abrir(claveDe(x))}
+              aria-current={abierto?.id === x.id ? "true" : undefined}>
+              <Cuadro icono={icono} color={color} />
+              <span className={enPagina ? "cp-ap-c" : "as-ren-c"}><b>{nombreApartado(x)}</b><span>{resumenApartado(x, a, historial, cat)}</span></span>
+              <Icono nombre="ch" tamano={16} aria-hidden />
             </button>
           );
         })}
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger className="as-ren as-sola"><Icono nombre="mas" tamano={16} />Agregar apartado</DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="min-w-60">
-          {faltan.map((c: ClaveApartado) => (
-            <DropdownMenuItem key={c} onSelect={() => void hacer(() => agregar(a.id, "apartados", { clave: c }), `Se agregó ${APARTADO[c].nombre}`)}>
-              <Icono nombre={APARTADO[c].icono} tamano={16} />{APARTADO[c].nombre}
-            </DropdownMenuItem>
-          ))}
-          {faltan.length ? <DropdownMenuSeparator /> : null}
-          <DropdownMenuItem onSelect={() => setDialogo("propio")}><Icono nombre="mas" tamano={16} />Apartado propio…</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        {enPagina ? agregarApartado : null}
+      </nav>
+      {enPagina ? null : agregarApartado}
 
-      <Ventana
-        abierta={Boolean(abierto)}
-        alCerrar={() => abrir(null)}
-        alRegresar={anterior ? () => abrir(anterior.clave === "propio" ? anterior.id : anterior.clave, undefined, true) : undefined}
-        anterior={anterior ? nombreApartado(anterior) : undefined}
-        titulo={abierto ? nombreApartado(abierto) : ""}
-        subtitulo={a.nombre}
-        icono={abierto ? (abierto.clave !== "propio" ? APARTADO[abierto.clave].icono : iconoPropio(abierto)) : "lista"}
-        color={abierto && abierto.clave !== "propio" ? APARTADO[abierto.clave].color : "gray"}
-        opciones={abierto && !APARTADOS_DE_SIEMPRE.includes(abierto.clave as ClaveApartado) ? [
-          ...(abierto.clave === "propio" ? (["lista", "tabla", "galeria", "texto"] as const).filter((v) => v !== (abierto.vista ?? "lista")).map((v) => ({
-            etiqueta: `Ver como ${NOMBRE_VISTA[v].toLowerCase()}`, icono: "ojo" as const,
-            alElegir: () => void hacer(() => cambiar(a.id, "apartados", { id: abierto.id, version: abierto.version, vista: v }), `Ahora se ve como ${NOMBRE_VISTA[v].toLowerCase()}`),
-          })) : []),
-          ...(abierto.clave === "propio" ? [{
-            etiqueta: "Guardar en la Biblioteca", icono: "lib" as const,
-            alElegir: () => void guardarApartadoEnBiblioteca(a.id, abierto.id).then(() => { olvidarGuias(); avisar("Guardado en la Biblioteca"); }, (e: unknown) => avisar(e instanceof Error ? e.message : "No se guardó.")),
-          }] : []),
-          {
-            etiqueta: "Quitar del asunto", icono: "bote" as const, peligro: true,
-            alElegir: () => {
-              abrir(null);
-              void hacer(() => cambiar(a.id, "apartados", { id: abierto.id, version: abierto.version, visible: false }), "Apartado quitado. Lo que tenía se conserva",
-                () => leerAsunto(a.id).then((x) => { const y = x.apartados.find((z) => z.id === abierto.id); return y ? cambiar(a.id, "apartados", { id: y.id, version: y.version, visible: true }) : undefined; }));
-            },
-          },
-        ] : []}
-        // En el Historial las notas ya están en la ventana: sin costado.
-        notas={abierto?.clave === "historial" ? undefined : {
-          abiertas: notasAbiertas, cuantas: (notas ?? []).length, alCambiar: ponerNotas,
-          contenido: abierto ? (
-            <NotasDelAsunto a={a} notas={notas} fijadas={fijadas} desde={abierto} nombreDeApartado={nombreApartado}
-              persona={abierto.clave === "personas" ? personaAbierta : null} filtro={filtroNotas} alFiltrar={setFiltroNotas} hacer={hacer}
-              abrirPersona={(pid) => { if (angosto) setNotasEnTel(false); irA("personas", `persona:${pid}`); }}
-              abrirApartado={(x) => { if (angosto) setNotasEnTel(false); if (x.clave === "propio") abrir(x.id); else irA(x.clave); }}
-              alCerrar={angosto ? () => setNotasEnTel(false) : undefined} />
-          ) : null,
-        }}
-      >
-        {abierto ? (
-          <ContenidoApartado apartado={abierto} asunto={a} historial={historial} notas={notas} foco={foco} hacer={hacer} irA={irA}
-            alAbrirPersona={setPersonaAbierta} alVerNotas={() => { setFiltroNotas("persona"); ponerNotas(true); }} />
-        ) : null}
-      </Ventana>
+      <>
+          <Ventana
+            abierta={Boolean(abierto)}
+            alCerrar={() => abrir(null)}
+            alRegresar={anterior ? () => abrir(claveDe(anterior), undefined, true) : undefined}
+            anterior={anterior ? nombreApartado(anterior) : undefined}
+            titulo={abierto ? nombreApartado(abierto) : ""}
+            subtitulo={a.nombre}
+            icono={abierto ? cuadroDe(abierto).icono : "lista"}
+            color={abierto ? cuadroDe(abierto).color : "gray"}
+            opciones={opcionesDe(abierto)}
+            // En el Historial las notas ya están en la ventana: sin costado.
+            notas={abierto?.clave === "historial" ? undefined : {
+              abiertas: notasAbiertas, cuantas: (notas ?? []).length, alCambiar: ponerNotas,
+              contenido: abierto ? notasDe(abierto) : null,
+            }}
+          >
+            {abierto ? (
+              <ContenidoApartado apartado={abierto} asunto={a} historial={historial} notas={notas} foco={foco} hacer={hacer} irA={irA}
+                alAbrirPersona={setPersonaAbierta} alVerNotas={() => { setFiltroNotas("persona"); ponerNotas(true); }} />
+            ) : null}
+          </Ventana>
+      </>
 
       <DialogoTexto abierto={dialogo === "nombre"} titulo="Cambiar el nombre" etiqueta="Nombre del asunto" inicial={a.nombre} maximo={160}
         alCerrar={() => setDialogo(null)} alGuardar={(t) => cambio({ nombre: t }, "Nombre cambiado", { nombre: a.nombre })} />
       <DialogoTexto abierto={dialogo === "espera"} titulo="Poner en espera" etiqueta="Por qué" opcional fecha={{ etiqueta: "Retomar el", inicial: sumarDias(14) }}
         ayuda="Mientras espera no cuenta como atrasado." alCerrar={() => setDialogo(null)}
         alGuardar={(t, f) => cambio({ en_espera: true, espera_motivo: t || null, espera_hasta: f ?? null }, "En espera", { en_espera: false })} />
-      <DialogoCierre abierto={dialogo === "cierre-se_logro" || dialogo === "cierre-no_se_dio"} titulo={dialogo === "cierre-no_se_dio" ? "Cerrar: no se dio" : "Cerrar: se logró"}
+      <DialogoCierre abierto={cierreElegido !== null} titulo={`Cerrar: ${resultado(cierreElegido ?? primerLogrado).toLowerCase()}`}
         equipo={companeros.length ? companeros : equipo} capto={a.capto_id} vendio={a.vendio_id} alCerrar={() => setDialogo(null)}
         alGuardar={(d) => cambio(
-          { en_que_va: "cerrado", resultado: dialogo === "cierre-no_se_dio" ? "no_se_dio" : "se_logro", motivo_cierre: d.motivo, capto_id: d.capto_id, vendio_id: d.vendio_id },
+          { en_que_va: "cerrado", resultado: cierreElegido ?? primerLogrado, motivo_cierre: d.motivo, capto_id: d.capto_id, vendio_id: d.vendio_id },
           "Asunto cerrado",
           // Deshacer deja el asunto como estaba: sin motivo de cierre y con quien captó y vendió de antes.
           { en_que_va: a.en_que_va, motivo_cierre: null, capto_id: a.capto_id, vendio_id: a.vendio_id },

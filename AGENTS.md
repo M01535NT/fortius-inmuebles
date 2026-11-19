@@ -13,6 +13,8 @@ Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregún
 | Cómo debe funcionar el sistema (manda sobre lo construido) | `SPEC.md` |
 | Qué falta y en qué etapa vamos (único plan) | `PLAN.md` |
 | Cómo se ve y cómo responde el panel (boceto aprobado) | `docs/boceto-fortius-por-asuntos.html` |
+| Cómo funciona lo que el titular ajusta sin programar (boceto de funcionamiento; el aspecto es el del panel de hoy) | `docs/boceto-panel-ajustable.html` |
+| Modelo visual del panel, aprobado el 18/11/2026: orden y aspecto de app de Mac. Toda pantalla nueva o rehecha lo sigue | `docs/modelo-visual/` |
 | Casos reales con los que se prueba cada etapa | `docs/casos-reales.md` |
 | Metodologías que se copian a un asunto | `docs/metodologias/` |
 | Sitio público (qué es, orden y cómo se hace; mandan para el sitio) | `docs/sitio/SPEC.md`, `docs/sitio/PLAN.md`, `docs/sitio/DECISIONS.md` |
@@ -34,9 +36,9 @@ Las claves del tipo `RP-00` o `DEC-00` y las menciones a `DECISIONES.md` que apa
 
 - **Código** en `src/app/panel/`, `src/components/panel/` y `src/lib/panel/`, con estilos bajo `.panel-root`. Nada nuevo en `/admin` (el panel provisional) salvo seguridad o caída del sitio, avisando.
 - **Aislamiento:** el panel solo usa el provisional a través de `src/lib/panel/legado/`; el lint lo hace cumplir y no se desactiva. El backend (`src/lib/backend`, `src/app/api`, `supabase/migrations`) es compartido.
-- **Diseño:** manda el boceto aprobado. App moderna, pocas palabras en pantalla, opciones agrupadas en listas desplegables y menús, íconos en todo, claro y oscuro. Minimalista es agrupar, no quitar funciones. Los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx` se ajustan al boceto. Lo que el boceto no define se pregunta y se anota en `SPEC.md`; no se inventa.
+- **Diseño, en este orden de mando:** (1) `SPEC.md`; (2) `docs/modelo-visual/` para el orden y el aspecto de cada pantalla; (3) `docs/boceto-panel-ajustable.html` para cómo funciona lo que se ajusta; (4) `docs/boceto-fortius-por-asuntos.html` para lo que los dos anteriores no muestren. Si dos se contradicen, gana el de número menor y se avisa. App moderna, pocas palabras en pantalla, opciones agrupadas en listas desplegables y menús, íconos en todo, claro y oscuro. Minimalista es agrupar, no quitar funciones. Los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx` se ajustan al boceto. Lo que el boceto no define se pregunta y se anota en `SPEC.md`; no se inventa.
 - **Cualquier caso cabe:** ninguna metodología es regla del panel ni su centro. Una metodología es una guía para un trabajo específico (captar una venta, captar una renta, cancelar una hipoteca); hay muchas, viven en la Biblioteca y nunca se generalizan a todo el panel. Si un caso real no cabe, dilo con claridad y propón cambiar el diseño; no acomodes el caso a la fuerza.
-- **Comportamiento:** el sistema nunca impide seguir por falta de un dato o un paso; avisa y deja continuar. De 3 opciones en adelante, lista desplegable; con 2, interruptor; nunca un botón por opción. La visibilidad (director ve todo, asesor lo suyo) se hace cumplir en la base con RLS.
+- **Comportamiento:** el sistema nunca impide seguir por falta de un dato o un paso; avisa y deja continuar. De 3 opciones en adelante, lista desplegable; con 2, interruptor; nunca un botón por opción. Excepción (18/11/2026): para cambiar entre 3 o 4 vistas de lo mismo se usa una fila de botones juntos, como en macOS; solo para vistas, nunca para elegir un dato. La visibilidad (director ve todo, asesor lo suyo) se hace cumplir en la base con RLS.
 - **Pantalla:** lenguaje sencillo, sin rastros de IA («Por confirmar», no «propuesto»). Teclado, foco visible, botones de al menos 44 px en el teléfono y movimiento reducido.
 - **Revisión:** al cerrar una etapa, un revisor de solo lectura repasa la lógica y prueba los casos de `docs/casos-reales.md`; lo que encuentre se corrige o se anota en `PLAN.md`.
 
@@ -71,9 +73,23 @@ Los formatos siguen la plantilla del titular: solo sus campos, sin agregar opcio
 - Si el titular pide revisar algo antes, se revisa eso y nada más. No se borran ni debilitan pruebas existentes.
 - Servidor local: `npm run dev -- --hostname 127.0.0.1 --port 3001`, ruta `/panel`. No detengas procesos ajenos.
 
+## Método de trabajo (19/11/2026)
+
+El proyecto vive en una sola carpeta, `C:\Paginas-web\fortius-inmuebles`. Así se trabaja en él:
+
+- **Tres niveles de rama.** `main` es lo publicado. `nuevo-panel` es donde se junta el trabajo del panel antes de publicarse. Cada tarea va en su rama corta, que sale de `nuevo-panel` y vuelve a ella.
+- **Una tarea, una rama, un fin.** Una rama se abre para una cosa, se integra y se borra. No se dejan ramas ni copias de trabajo vivas «por si acaso».
+- **Las copias de trabajo van dentro del proyecto,** en `.claude/worktrees/`. Nunca se crean carpetas hermanas en `C:\Paginas-web`. Al integrar una rama, su copia de trabajo se retira en el mismo momento.
+- **Un solo `SPEC.md` y un solo `PLAN.md` vivos.** Solo se editan en una rama a la vez. Antes de editarlos, el agente revisa con `git status` y `git worktree list` que nadie más los tenga cambiados sin guardar; si los hay, primero se juntan.
+- **Antes de empezar,** el agente dice en una línea en qué rama y carpeta está y qué hay sin guardar. **Al cerrar,** deja el árbol limpio o dice qué quedó sin guardar y por qué.
+- **Commits chicos, por tema** (servidor, pantallas, documentos), con mensaje en español que diga qué cambió y si se probó.
+- **Dos escritores nunca tocan los mismos archivos.** Si hay varias sesiones, cada una tiene sus carpetas asignadas por escrito.
+- **Nada se da por hecho sin verlo:** lo de pantalla se mira en capturas; lo de servidor y base lo repasa un revisor de solo lectura antes de integrar.
+- **`PLAN.md` es un tablero, no una bitácora:** qué falta y en qué va. Lo terminado sale del plan y queda en el historial de git.
+
 ## Git y publicación
 
-- Rama de trabajo del panel: `nuevo-panel`. Commit solo cuando el titular lo pida o lo haya autorizado; nunca push, PR ni merge sin pedirlo.
+- Rama donde se junta el panel: `nuevo-panel`. Commit solo cuando el titular lo pida o lo haya autorizado; nunca push, PR ni merge sin pedirlo.
 - Nada va a `main` sin su acuerdo: un solo PR en borrador (`gh pr create --draft`), que se marca listo cuando él quiera verificar y publicar. Sin integración automática.
 - Sin `reset --hard`, force-push ni limpiezas destructivas. Respeta los cambios de otras sesiones.
 - Al cerrar, di qué cambió, qué se comprobó y qué no.

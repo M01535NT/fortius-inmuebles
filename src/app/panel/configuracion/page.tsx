@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 
+import { SeccionCatalogos } from "@/components/panel/configuracion/catalogos";
 import { SeccionPerfil } from "@/components/panel/configuracion/perfil";
 import { SeccionApariencia, SeccionAvisos } from "@/components/panel/configuracion/preferencias";
 import { SeccionEquipo } from "@/components/panel/configuracion/equipo";
@@ -11,7 +12,10 @@ import type { Asesor } from "@/lib/domain/records";
 import { leerMiAsesor } from "@/lib/panel/datos/colecciones";
 import { logout, useSession } from "@/lib/panel/legado/sesion";
 
-/** Configuración (PN-09), como el boceto: Tu perfil, Apariencia, Avisos, Equipo · N con «Invitar» y «Cerrar sesión». Una columna. */
+/**
+ * Configuración, como el boceto: Tu perfil, Apariencia, Avisos, Equipo · N con «Invitar», Catálogos (solo el director)
+ * y «Cerrar sesión». Una columna.
+ */
 export default function Configuracion() {
   const sesion = useSession();
   const { avisar } = useAvisos();
@@ -41,6 +45,7 @@ export default function Configuracion() {
       <SeccionApariencia />
       <SeccionAvisos />
       <SeccionEquipo esDirector={esDirector} asesores={equipo.datos} cargando={equipo.cargando} error={equipo.error} alReintentar={equipo.reintentar} miId={miId ?? null} />
+      {esDirector ? <SeccionCatalogos /> : null}
       <button type="button" className="pn-conf-salir" title={sesion?.email ? `Entraste como ${sesion.email}` : undefined}
         onClick={() => { logout().catch(() => avisar("No se pudo cerrar la sesión en el servidor. Vuelve a intentarlo.")); }}>Cerrar sesión</button>
     </div>
