@@ -27,10 +27,12 @@ import {
 import {
   DEBE, DE_QUIEN, NOMBRE_DEBE, NOMBRE_DE_QUIEN, NOMBRE_OCUPA, NOMBRE_QUIERE, NOMBRE_SI_NO,
   OCUPA, QUIERE, SI_NO,
-  abrirAsuntoDe, adjuntar, cambiarDocumentoDeArchivo, cerrarComoContacto, cerrarNoProcede, empezarConsulta, encargosSegun, guardarConsulta, leerAbiertas,
-  leerConsulta, mensajeParaPedir, quitarAdjunto, unirDocumentos,
-  type Canal, type Carga, type ConsultaAbierta, type DatosConsulta, type DocumentoPedir, type OtraPersona,
+  abrirAsuntoDe, adjuntar, cambiarDocumentoDeArchivo, cerrarComoContacto, cerrarNoProcede, coincidenciasDe, empezarConsulta, encargosSegun, guardarConsulta,
+  leerAbiertas, leerConsulta, mensajeParaPedir, quitarAdjunto, unirDocumentos,
+  type Canal, type Carga, type Coincidencia, type Consulta, type ConsultaAbierta, type DatosConsulta, type DocumentoPedir, type OtraPersona,
 } from "@/lib/panel/consulta/api";
+
+import { FichaParecida, eleccionVigente, guardarEleccion, leerEleccion, type Eleccion } from "./ficha-parecida";
 
 /**
  * La consulta (SPEC.md, sección 4; boceto «Consulta en vivo»): se llena mientras se habla, se guarda sola y,
@@ -51,6 +53,17 @@ const VACIO: Borrador = {
 };
 const tieneAlgo = (b: Borrador) =>
   Boolean(b.quien_nombre.trim() || b.numero.trim() || b.que_pasa.trim() || Object.keys(b.datos).length || b.otras_personas.length);
+/** Lo que está guardado en el servidor, como borrador de la pantalla. */
+function borradorDe(c: Consulta): Borrador {
+  const tel = c.quien_telefonos[0];
+  return {
+    quien_nombre: c.quien_nombre, pais: tel?.pais ?? "+52", numero: tel?.numero ?? "", canal: c.canal, que_pasa: c.que_pasa,
+    datos: c.datos ?? {}, otras_personas: c.otras_personas ?? [], documentos_pedir: unirDocumentos(c.datos ?? {}, c.documentos_pedir ?? []),
+  };
+}
+/** Con qué se buscan fichas parecidas: si cambia lo guardado de quien llama, se vuelve a buscar. */
+const claveQuien = (b: Borrador) =>
+  b.quien_nombre.trim() || b.numero.trim() ? `${b.quien_nombre.trim().toLowerCase()}|${b.pais.trim()}${b.numero.replace(/\D/g, "")}` : "";
 
 type Respaldo = { id: string | null; version: number | null; borrador: Borrador };
 function leerRespaldo(): Respaldo | null {
@@ -78,6 +91,12 @@ export function PantallaConsulta() {
   const [dialogo, setDialogo] = useState<"contacto" | "no_procede" | null>(null);
   const [abriendo, setAbriendo] = useState(false);
   const [subiendo, setSubiendo] = useState(0);
+  // Persona repetida: lo último guardado de quien llama, las fichas que se le parecen y lo que se eligió.
+  const [claveGuardada, setClaveGuardada] = useState("");
+  const [parecidas, setParecidas] = useState<Coincidencia[]>([]);
+  const [eleccion, setEleccion] = useState<Eleccion | null>(null);
+  /** La ficha del Directorio con que empezó la consulta (se abrió desde una persona); null si no tiene. */
+  const [fichaInicial, setFichaInicial] = useState<string | null>(null);
 
   const bRef = useRef(b);
   const idRef = useRef<string | null>(null);
@@ -88,6 +107,8 @@ export function PantallaConsulta() {
   const listoRef = useRef(false);
   const falloRef = useRef(false);
   const guardarRef = useRef<() => Promise<void>>(async () => {});
+  /** Al poner en pantalla lo que se acaba de leer del servidor, no se vuelve a mandar. */
+  const sinGuardarRef = useRef(false);
 
   // ── Guardar ─────────────────────────────────────────────────────────────────────────────────────────
   const guardar = useCallback(async (): Promise<void> => {
@@ -113,6 +134,7 @@ export function PantallaConsulta() {
         versionRef.current = r.version;
         guardarRespaldo({ id: idRef.current, version: r.version, borrador: bRef.current });
         falloRef.current = false;
+        setClaveGuardada(claveQuien(actual));
         setEstado(sucioRef.current ? "guardando" : "guardada");
       } catch (e) {
         sucioRef.current = true;
@@ -142,6 +164,7 @@ export function PantallaConsulta() {
   }
   useEffect(() => {
     if (!listoRef.current) return;
+    if (sinGuardarRef.current) { sinGuardarRef.current = false; return; }
     if (!tieneAlgo(b) && !idRef.current) return;
     sucioRef.current = true;
     guardarRespaldo({ id: idRef.current, version: versionRef.current, borrador: b });
@@ -171,17 +194,16 @@ export function PantallaConsulta() {
           if (!vivo) return;
           idRef.current = c.id;
           versionRef.current = c.version;
-          const tel = c.quien_telefonos[0];
-          const delServidor: Borrador = {
-            quien_nombre: c.quien_nombre, pais: tel?.pais ?? "+52", numero: tel?.numero ?? "", canal: c.canal, que_pasa: c.que_pasa,
-            datos: c.datos ?? {}, otras_personas: c.otras_personas ?? [], documentos_pedir: unirDocumentos(c.datos ?? {}, c.documentos_pedir ?? []),
-          };
+          setFichaInicial(c.persona_id);
+          const delServidor = borradorDe(c);
           // Si en este equipo quedó algo sin mandar de esta misma consulta, gana lo de aquí.
           const local = respaldo?.id === c.id && respaldo.version === c.version ? respaldo.borrador : null;
           const usar = local ?? delServidor;
           bRef.current = usar;
           setB(usar);
           setCargas(c.cargas);
+          setClaveGuardada(claveQuien(delServidor));
+          setEleccion(leerEleccion(c.id));
           if (c.estado !== "abierta") setCerrada(c.estado === "asunto" && c.asunto_id ? c.asunto_id : c.estado);
           setEstado("guardada");
           if (local && JSON.stringify(local) !== JSON.stringify(delServidor)) sucioRef.current = true;
@@ -206,7 +228,18 @@ export function PantallaConsulta() {
     return () => { vivo = false; };
   }, [idUrl, avisar, guardar]);
 
+  // Las fichas parecidas se buscan con lo GUARDADO (no en cada tecla): al guardarse otro nombre o teléfono.
+  useEffect(() => {
+    const id = idRef.current;
+    if (!id || !claveGuardada) return;
+    let vivo = true;
+    coincidenciasDe(id).then((l) => { if (vivo) setParecidas(l); }).catch(() => { /* sin aviso: no impide seguir */ });
+    return () => { vivo = false; };
+  }, [claveGuardada]);
+
   // ── Derivados ───────────────────────────────────────────────────────────────────────────────────────
+  const fichas = claveGuardada ? parecidas : [];
+  const elegir = (e: Eleccion | null) => { setEleccion(e); guardarEleccion(idRef.current, e); };
   const d = b.datos;
   const encargos = useMemo(() => encargosSegun(d), [d]);
   const pedidos = b.documentos_pedir.filter((x) => !x.quitado);
@@ -233,17 +266,44 @@ export function PantallaConsulta() {
     return Boolean(idRef.current) && !sucioRef.current;
   }
 
+  /** Trae lo vigente del servidor tras un fallo al abrir. Si hay algo sin mandar, no lo pisa: eso sale con su guardado. */
+  async function releer(): Promise<boolean> {
+    const id = idRef.current;
+    if (!id || sucioRef.current || vueloRef.current) return false;
+    try {
+      const c = await leerConsulta(id);
+      if (idRef.current !== id || sucioRef.current) return false;
+      versionRef.current = c.version;
+      setFichaInicial(c.persona_id);
+      const usar = borradorDe(c);
+      if (JSON.stringify(usar) !== JSON.stringify(bRef.current)) { sinGuardarRef.current = true; bRef.current = usar; setB(usar); }
+      setCargas(c.cargas);
+      setClaveGuardada(claveQuien(usar));
+      guardarRespaldo({ id, version: c.version, borrador: usar });
+      if (c.estado !== "abierta") { setCerrada(c.estado === "asunto" && c.asunto_id ? c.asunto_id : c.estado); return false; }
+      return true;
+    } catch { return false; /* sigue como estaba; el siguiente intento vuelve a leer */ }
+  }
+
   async function abrir() {
     if (abriendo) return;
     setAbriendo(true);
     try {
       if (!(await asegurarGuardada())) { avisar("Aún no se guarda la consulta. Revisa la conexión y vuelve a intentar."); return; }
-      const a = await abrirAsuntoDe(idRef.current as string, versionRef.current ?? 1);
+      // Si se eligió en el aviso de persona repetida, va esa ficha. «Es otra persona» manda null (ficha nueva) solo si la
+      // consulta no empezó desde una ficha; si empezó desde una, no manda nada y se conserva esa, sin duplicarla.
+      const vigente = eleccionVigente(eleccion, fichas);
+      const personaId = !vigente ? undefined : vigente.ficha ?? (fichaInicial ? undefined : null);
+      const a = await abrirAsuntoDe(idRef.current as string, versionRef.current ?? 1, personaId);
+      guardarEleccion(idRef.current, null);
       guardarRespaldo(null);
       avisar("Asunto abierto con su persona, su inmueble y su lista");
       router.push(`/panel/asuntos/${a.id}`);
     } catch (e) {
-      avisar(e instanceof Error ? e.message : "No se pudo abrir el asunto");
+      // Se vuelve a leer la consulta (su versión vigente) para que el siguiente intento no choque otra vez.
+      const alDia = await releer();
+      if (alDia && e instanceof FalloPanel && e.estado === 409) avisar("La consulta cambió en otra ventana. Ya está al día: revísala y vuelve a abrir el asunto.");
+      else avisar(e instanceof Error ? e.message : "No se pudo abrir el asunto");
     } finally {
       setAbriendo(false);
     }
@@ -323,9 +383,10 @@ export function PantallaConsulta() {
 
   function nuevaConsulta() {
     guardarRespaldo(null);
-    idRef.current = null; versionRef.current = null; sucioRef.current = false;
+    idRef.current = null; versionRef.current = null; sucioRef.current = false; setFichaInicial(null);
     bRef.current = VACIO;
     setB(VACIO); setCargas([]); setCerrada(null); setEstado("vacia");
+    setClaveGuardada(""); setParecidas([]); setEleccion(null);
     router.replace("/panel/consulta", { scroll: false });
   }
 
@@ -418,6 +479,7 @@ export function PantallaConsulta() {
               {(id) => <Seleccion id={id} valor={b.canal} opciones={cat.opciones("fuente", b.canal)} alElegir={(v) => cambiar((x) => ({ ...x, canal: (v || "llamada") as Canal }))} />}
             </Propiedad>
           </div>
+          <FichaParecida fichas={fichas} eleccion={eleccion} alElegir={elegir} conFicha={Boolean(fichaInicial)} />
 
           <div className="cs-que-bloque">
             <div className="pn-bloque-t">

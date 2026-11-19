@@ -85,6 +85,41 @@ label.cs-doc-acc { cursor: pointer; display: inline-grid; place-items: center; }
 
 .panel-root textarea.cs-msg { min-height: 180px; }
 
+/* Aviso de persona repetida: dentro de la hoja, junto a los datos de quien llama, en tono de aviso y sin velo.
+   La elección es una lista desplegable; elegida, queda en una línea con «Cambiar». */
+.cs-par {
+  display: flex; flex-direction: column; gap: 8px; margin-top: -6px; padding: 12px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border)); border-radius: 12px;
+  background: color-mix(in srgb, var(--warning-soft) 55%, var(--card));
+  animation: cs-par-entra 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes cs-par-entra { from { opacity: 0; transform: translateY(-4px); } }
+.cs-par-t { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 650; color: var(--ink); }
+.cs-par-t > svg { color: var(--warning); flex: none; }
+.cs-par-l { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.cs-par-it { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
+.cs-par-it + .cs-par-it { border-top: 1px solid color-mix(in srgb, var(--warning) 16%, var(--border)); }
+.cs-par-it .as-av { width: 30px; height: 30px; font-size: 11px; flex: none; }
+.cs-par-c { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink-muted); }
+.cs-par-n { min-width: 0; overflow-wrap: anywhere; }
+.cs-par-n b { color: var(--ink); font-size: 14px; font-weight: 600; }
+.cs-par-f { margin-left: 8px; font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+.cs-par-c small { font-size: 12.5px; }
+.cs-par-as { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; color: var(--ink); }
+.cs-par-as li { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cs-par-as .as-num { margin-right: 6px; font-size: 12.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.cs-par-va { color: var(--ink-muted); }
+.cs-par-elige {
+  display: grid; grid-template-columns: minmax(120px, 168px) minmax(0, 1fr); align-items: center; gap: 8px;
+  padding-top: 8px; border-top: 1px solid color-mix(in srgb, var(--warning) 16%, var(--border)); font-size: 13px; color: var(--ink-muted);
+}
+.cs-par-elige .pn-control { background: var(--card); }
+.cs-par-hecho { flex-direction: row; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; background: none; border-color: var(--border); font-size: 13px; color: var(--ink-muted); animation: none; }
+.cs-par-hecho > svg { color: var(--ink-faint); flex: none; }
+.cs-par-dice { flex: 1; min-width: 0; }
+.cs-par-dice b { color: var(--ink); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .cs-par { animation: none; } }
+
 /* Modelo visual («Consulta»): en computadora, la consulta es una sola hoja que baja pegada al borde de arriba. Lleva su
    barra de 52 px con una línea abajo y, dentro, dos columnas: lo que se captura sobre blanco y, a la derecha, lo de apoyo
    (Documentos y Otras personas) sobre gris, separado por una línea. «Qué pasa» se escribe sin caja, como en una hoja. */
@@ -129,4 +164,7 @@ label.cs-doc-acc { cursor: pointer; display: inline-grid; place-items: center; }
   .cs-hoja { padding: 22px 16px 20px; gap: 20px; border-radius: var(--r-lg); }
   .cs-quien { font-size: 24px; }
   .cs-lado { padding: 0 4px; }
+  .cs-par-elige { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .cs-par-elige .pn-control, .cs-par-cambiar { min-height: 44px; }
+  .cs-par-as li { white-space: normal; }
 }
