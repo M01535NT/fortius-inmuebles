@@ -547,7 +547,7 @@ export function PantallaConsulta() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {(Object.keys(CANALES) as CanalMensaje[]).map((c) => (
-                  <DropdownMenuItem key={c} onSelect={() => setMensaje({ texto: mensajeParaPedir(b.quien_nombre, b.documentos_pedir, cargas), canal: c })}>
+                  <DropdownMenuItem key={c} onSelect={() => setMensaje({ texto: mensajeAlCliente(mensajeParaPedir(b.quien_nombre, b.documentos_pedir, cargas)), canal: c })}>
                     <Icono nombre={CANALES[c].icono} tamano={16} />{CANALES[c].nombre}
                   </DropdownMenuItem>
                 ))}
@@ -599,6 +599,9 @@ const CANALES: Record<CanalMensaje, { nombre: string; titulo: string; abrir: str
   texto: { nombre: "Mensaje de texto", titulo: "Mensaje de texto", abrir: "Abrir mensajes", icono: "tel" },
   correo: { nombre: "Correo", titulo: "Correo", abrir: "Abrir correo", icono: "arroba" },
 };
+/** Fallo 6: al cliente se le habla de tú; el nombre interno del documento no sale en el mensaje. */
+const mensajeAlCliente = (texto: string) => texto.replace(/Identificación de quien llama/g, "Tu identificación oficial");
+
 function enlaceDeMensaje(canal: CanalMensaje, texto: string, telefono: string) {
   const d = telefono.replace(/\D/g, "");
   if (canal === "whatsapp") return enlaceWhatsApp(texto, telefono);

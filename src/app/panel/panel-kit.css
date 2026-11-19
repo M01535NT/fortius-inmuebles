@@ -485,3 +485,26 @@ html:has(.panel-root) body[data-scroll-locked] { margin-right: 0 !important; }
   .panel-root .pn-prop-v .pn-control-boton > :last-child { opacity: 1; }
   .pn-plegable-cab { min-height: 52px; }
 }
+
+/* ---------- Botones de vista (modelo visual: «.seg») ----------
+ * Fila de botones juntos para cambiar entre 3 o 4 vistas de lo mismo, como en las apps de Mac. Fondo gris, la elegida
+ * en blanco con una sombra mínima. 26 px en computadora y 44 px en el teléfono. */
+.panel-root .pn-vistas { display: inline-flex; align-self: flex-start; max-width: 100%; gap: 2px; padding: 2px; border-radius: 8px; background: var(--side); }
+.panel-root .pn-vistas > button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 26px; padding: 0 10px; border: 0; border-radius: 6px;
+  background: none; color: var(--ink-muted); font: inherit; font-size: 12.5px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+.panel-root .pn-vistas > button > span:not(.pn-vistas-n) { overflow: hidden; text-overflow: ellipsis; }
+.panel-root .pn-vistas > button:hover { color: var(--ink); }
+.panel-root .pn-vistas > button[aria-selected="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgb(15 18 24 / 0.14); }
+.panel-root .pn-vistas > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-radius: 6px; }
+.panel-root .pn-vistas-n { color: var(--ink-faint); font-weight: 500; font-variant-numeric: tabular-nums; }
+@media (max-width: 900px) {
+  .panel-root .pn-vistas { display: flex; align-self: stretch; }
+  .panel-root .pn-vistas > button { flex: 1 1 0; min-height: 44px; font-size: 14px; }
+}
+
+/* Fallo 8: las pestañas que quedan se desplazan de lado sin enseñar barras. */
+.panel-root :is(.fx-tabs, [role="tablist"]) { overflow-y: hidden; scrollbar-width: none; }
+.panel-root :is(.fx-tabs, [role="tablist"])::-webkit-scrollbar { display: none; }

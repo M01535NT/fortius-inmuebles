@@ -93,11 +93,17 @@ export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subti
   const regreso: Regreso | null = interno ?? (alRegresar ? { volver: alRegresar, a: anterior ?? "" } : null);
   const actual = MODOS.find((m) => m.valor === modo) ?? MODOS[0];
   const completa = modo === "completa";
+  // A la derecha, en computadora, es el inspector (modelo visual): va junto a lo demás sin taparlo ni atenuarlo, así
+  // que no es modal y un clic fuera no lo cierra. Esc, la X o la flecha sí.
+  const angosto = useAngosto();
+  const inspector = modo === "derecha" && !angosto;
+  const noCerrarFuera = inspector ? (e: Event) => e.preventDefault() : undefined;
   return (
-    <D.Root open={abierta} onOpenChange={(o) => { if (!o) alCerrar(); }}>
+    <D.Root open={abierta} modal={!inspector} onOpenChange={(o) => { if (!o) alCerrar(); }}>
       <D.Portal container={contenedorPanel()}>
-        <D.Overlay className="as-velo" />
-        <D.Content className="as-win" data-modo={modo} data-notas={notas?.abiertas || undefined} aria-describedby={undefined}>
+        {inspector ? null : <D.Overlay className="as-velo" />}
+        <D.Content className="as-win" data-modo={modo} data-inspector={inspector || undefined} data-notas={notas?.abiertas || undefined} aria-describedby={undefined}
+          onInteractOutside={noCerrarFuera} onPointerDownOutside={noCerrarFuera}>
           <div className="as-win-h">
             <button type="button" className="as-btn as-gho as-ico" onClick={regreso ? regreso.volver : alCerrar}
               aria-label={regreso?.a ? `Regresar a ${regreso.a}` : "Regresar"} title={regreso?.a ? `Regresar a ${regreso.a}` : "Regresar"}>

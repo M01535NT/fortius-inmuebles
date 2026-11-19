@@ -7,12 +7,23 @@
   .as-dos[data-det="true"][data-lista="no"] > .as-lista { display: none; }
 }
 
-.cp { max-width: 920px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 24px; }
+.cp { max-width: 920px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 22px; container: caso / inline-size; }
 
-/* Barra fija: lista, miga, en qué va, nuevo, favorito y más. */
+/* Barra de 52 px (modelo visual): blanca, con su línea abajo; lista, folio, en qué va, nuevo, favorito y más. Cuando el
+   inspector angosta el asunto, la miga y el texto de «Nuevo» se esconden y quedan sus íconos. */
 .cp-barra {
-  position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 6px; min-height: 60px; margin: 0 -8px -12px; padding: 10px 8px;
-  background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px);
+  position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; min-height: 52px; margin: 0 -32px -6px; padding: 0 20px 0 14px;
+  background: var(--card); border-bottom: 1px solid var(--border);
+}
+.cp-barra > * { flex-shrink: 0; }
+.cp-barra .as-num { white-space: nowrap; }
+@container caso (max-width: 620px) {
+  .cp-barra .cp-miga, .cp-barra .cp-miga-sep, .cp-barra .as-ocultar-tel { display: none; }
+  .cp-barra { gap: 2px; padding: 0 10px 0 8px; }
+  .cp-barra :is(.as-pil, .pn-btn) > svg:last-child:not(:first-child) { display: none; }
+  .cp-barra .pn-btn:not(.pn-btn-icono) { padding: 0 9px; }
+  /* «Lo que sigue»: el texto arriba y los dos botones juntos abajo. */
+  .cp-sigue .as-sigue-c { flex-basis: 100%; }
 }
 .cp-miga { display: inline-flex; align-items: center; height: 30px; padding: 0 6px; border-radius: var(--r-sm); font-size: 13px; color: var(--ink-muted); text-decoration: none; transition: background-color 150ms ease, color 150ms ease; }
 .cp-miga:hover { background: var(--fill); color: var(--ink); }
@@ -22,7 +33,7 @@
 
 /* Cabecera: el nombre manda; sus datos en una línea. */
 .cp-cab { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
-.cp-h1 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -0.025em; line-height: 1.15; text-wrap: balance; overflow-wrap: anywhere; }
+.cp-h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; text-wrap: balance; overflow-wrap: anywhere; }
 .cp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: 13px; color: var(--ink-muted); }
 .cp-meta .as-pill { height: auto; padding: 0; background: none; color: var(--ink-muted); font-size: 13px; font-weight: 500; gap: 6px; }
 .cp-meta .as-pill svg { color: var(--ink-faint); }
@@ -34,34 +45,35 @@
 .cp .as-ban { border-radius: var(--r-lg); padding: 12px 14px 12px 16px; }
 
 /* Lo que sigue: lo más importante del asunto, con la única acción azul. */
+/* Modelo visual: el texto ocupa lo que haya y los botones se van abajo cuando el asunto se angosta. */
 .cp-sigue {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "e e e" "c b p"; align-items: center; gap: 4px 8px;
-  padding: 16px 16px 16px 22px; border-radius: var(--r-lg); background: var(--card); box-shadow: var(--sombra-hoja);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px;
+  padding: 14px 16px; border-radius: 12px; background: var(--card); border: 1px solid var(--border);
 }
-.cp-sigue-e { grid-area: e; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--accent); }
-.cp-sigue .as-sigue-c { grid-area: c; min-width: 0; }
-.cp-sigue .as-q { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; }
+.cp-sigue-e { flex: 1 0 100%; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--accent); }
+.cp-sigue .as-sigue-c { flex: 1 1 200px; min-width: 0; }
+.cp-sigue .as-q { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
 .cp-sigue .as-m { margin-top: 2px; }
-.cp-sigue > .pn-btn-primario { grid-area: b; }
 .cp-sigue-falta { display: flex; align-items: center; gap: 10px; background: var(--warning-soft); box-shadow: none; padding: 10px 10px 10px 18px; }
 .cp-sigue-falta .as-inp { flex: 1; height: 40px; border: 0; background: none; font-size: 15px; }
 .cp-sigue-falta .as-inp:focus { box-shadow: none; outline: none; }
 
 /* Los apartados: una sola hoja blanca con renglones limpios (nombre y resumen); cada uno abre su ventana. */
-.cp-aps { display: flex; flex-direction: column; padding: 6px; border-radius: var(--r-lg); background: var(--card); box-shadow: var(--sombra-hoja); }
+/* Modelo visual: una tarjeta con borde fino; los renglones van a todo lo ancho, separados por una línea suave. */
+.cp-aps { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
 .cp-ap {
-  display: flex; align-items: center; gap: 14px; width: 100%; min-height: 60px; padding: 8px 12px 8px 10px; border: 0; border-radius: var(--r-md);
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 14px; border: 0; border-radius: 0;
   background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: background-color 150ms ease;
 }
-.cp-ap + .cp-ap { box-shadow: inset 0 1px 0 var(--border); }
-.cp-ap:hover, .cp-ap:hover + .cp-ap { box-shadow: none; }
-.cp-ap:hover, .cp-ap[aria-current] { background: var(--fill); }
+.cp-ap + .cp-ap { box-shadow: inset 0 1px 0 var(--linea-suave); }
+.cp-ap:hover { background: var(--fill); }
+.cp-ap[aria-current] { background: var(--accent-soft); }
 .cp-ap:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .cp-ap:active { transform: scale(0.995); }
 .cp-ap > svg:last-child { color: var(--ink-faint); flex: none; transition: transform 150ms ease, color 150ms ease; }
 .cp-ap:hover > svg:last-child { color: var(--ink-muted); transform: translateX(2px); }
 .cp-ap-c { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.cp-ap-c b { font-size: 14.5px; font-weight: 600; }
+.cp-ap-c b { font-size: 14px; font-weight: 600; }
 .cp-ap-c span { font-size: 13px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cp-ap-mas { min-height: 48px; padding-left: 16px; gap: 18px; color: var(--ink-muted); font-size: 14px; }
 .cp-ap-mas > svg:last-child { color: inherit; }

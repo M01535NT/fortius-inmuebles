@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 
-import { EditarDato, FilaDato, GrupoDatos, Pestanas, copiarTexto } from "@/components/panel/fichas/piezas";
+import { EditarDato, FilaDato, GrupoDatos, copiarTexto } from "@/components/panel/fichas/piezas";
+import { BotonesDeVista } from "@/components/panel/kit/segmentado";
 import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { useCatalogos, type LectorCatalogos } from "@/components/panel/datos/catalogos";
 import { useAvisos } from "@/components/panel/kit/avisos";
@@ -280,8 +281,8 @@ function FichaEnAsunto({ a, p, hacer, cuantas, alVerNotas }: { a: Asunto; p: Per
         </div>
       </header>
 
-      <Pestanas etiqueta="Qué ver de la persona" valor={pestana} alElegir={setPestana}
-        opciones={[{ valor: "datos", etiqueta: "Datos" }, { valor: "docs", etiqueta: `Documentos${docs.length ? ` (${docs.length})` : ""}` }, { valor: "otros", etiqueta: "Otros asuntos" }]} />
+      <BotonesDeVista etiqueta="Qué ver de la persona" valor={pestana} alElegir={setPestana}
+        opciones={[{ valor: "datos", etiqueta: "Datos", icono: "users" }, { valor: "docs", etiqueta: "Documentos", icono: "file", cuenta: docs.length }, { valor: "otros", etiqueta: "Otros asuntos", icono: "asu" }]} />
 
       {error ? <p className="as-ban" role="alert"><Icono nombre="alerta" tamano={16} />{error}</p> : !ficha ? <div className="as-cargando" aria-busy="true"><span /><span /></div> : pestana === "datos" ? (
         <div className="pp-hoja">

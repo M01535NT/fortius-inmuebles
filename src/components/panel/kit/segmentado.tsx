@@ -1,6 +1,7 @@
 "use client";
-import { useId } from "react";
+import { useId, useRef } from "react";
 
+import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { Seleccion } from "@/components/panel/ui/select";
 import { Switch } from "@/components/panel/ui/switch";
 
@@ -26,6 +27,40 @@ export function Segmentado<V extends string | number>({
       <label htmlFor={id} className={sinEtiqueta ? "pn-solo-lector" : undefined}>{etiqueta}</label>
       <Seleccion id={id} valor={String(valor)} opciones={opciones.map((o) => ({ valor: String(o.valor), etiqueta: texto(o) }))}
         alElegir={(v) => { const o = opciones.find((x) => String(x.valor) === v); if (o) alElegir(o.valor); }} />
+    </div>
+  );
+}
+
+/**
+ * Cambiar de vista de lo mismo (SPEC.md, «La excepción es cambiar de vista»; modelo visual): de 3 a 4 vistas, una fila
+ * de botones juntos, como en las apps de Mac. Solo para vistas, nunca para elegir un dato; con 5 o más, lista desplegable.
+ * Las flechas pasan de una vista a otra; cada botón dice su nombre al pasar el cursor; 44 px en el teléfono.
+ */
+export function BotonesDeVista<V extends string>({ opciones, valor, alElegir, etiqueta }: {
+  opciones: readonly { valor: V; etiqueta: string; icono?: NombreIcono; cuenta?: number }[]; valor: V; alElegir: (v: V) => void; etiqueta: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  if (opciones.length > 4) {
+    return <Segmentado etiqueta={etiqueta} sinEtiqueta valor={valor} alElegir={alElegir} opciones={opciones.map((o) => ({ valor: o.valor, etiqueta: o.etiqueta, cuenta: o.cuenta }))} />;
+  }
+  const tecla = (e: React.KeyboardEvent) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const i = opciones.findIndex((o) => o.valor === valor);
+    const sig = opciones[(i + (e.key === "ArrowRight" ? 1 : opciones.length - 1)) % opciones.length];
+    alElegir(sig.valor);
+    requestAnimationFrame(() => ref.current?.querySelector<HTMLElement>("[aria-selected=true]")?.focus());
+  };
+  return (
+    <div ref={ref} className="pn-vistas" role="tablist" aria-label={etiqueta} onKeyDown={tecla}>
+      {opciones.map((o) => (
+        <button key={o.valor} type="button" role="tab" aria-selected={o.valor === valor} tabIndex={o.valor === valor ? 0 : -1}
+          title={o.etiqueta} onClick={() => alElegir(o.valor)}>
+          {o.icono ? <Icono nombre={o.icono} tamano={14} aria-hidden /> : null}
+          <span>{o.etiqueta}</span>
+          {o.cuenta ? <span className="pn-vistas-n">{o.cuenta}</span> : null}
+        </button>
+      ))}
     </div>
   );
 }

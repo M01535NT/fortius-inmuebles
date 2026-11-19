@@ -288,7 +288,8 @@ export function DetalleAsunto({ id }: { id: string }) {
                 <DropdownMenuItem key={e} onSelect={(ev) => {
                   ev.preventDefault();
                   const nuevos = tiene ? a.encargos.filter((x) => x !== e) : [...a.encargos, e];
-                  void cambio({ encargos: nuevos }, tiene ? `Ya no dice ${encargo(e).toLowerCase()}` : `Ahora también ${encargo(e).toLowerCase()}`);
+                  // Fallo 9: quitar o agregar un encargo se deshace desde el aviso.
+                  void cambio({ encargos: nuevos }, tiene ? `Se quitó ${encargo(e)}` : `Se agregó ${encargo(e)}`, { encargos: a.encargos });
                 }}>
                   <Icono nombre={iconoEncargo(e)[0]} tamano={16} />{encargo(e)}
                   {tiene ? <span className="ml-auto"><Icono nombre="ok" tamano={15} /></span> : null}
@@ -377,7 +378,8 @@ export function DetalleAsunto({ id }: { id: string }) {
         </div>
       ) : null}
 
-      {s && tareaSig ? (
+      {/* Fallo 4: un asunto cerrado enseña el resultado del cierre (arriba), no lo que seguía. */}
+      {!cerrado && s && tareaSig ? (
         <div className={enPagina ? "cp-sigue" : "as-sigue"}>
           {enPagina ? <span className="cp-sigue-e"><Icono nombre="rayo" tamano={14} aria-hidden />Lo que sigue</span> : (
             <button type="button" className="as-ckb" aria-label={`Marcar hecha: ${s.titulo}`}

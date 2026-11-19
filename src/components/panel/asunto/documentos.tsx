@@ -24,6 +24,9 @@ const COMUNES = ["Identificación oficial", "CURP", "Acta de nacimiento", "Acta 
   "Boleta predial", "Recibo de agua", "Certificado de libertad de gravamen", "Constancia de situación fiscal", "Poder notarial", "Avalúo"];
 
 /** Quién lo entrega: una persona del asunto o un papel. */
+/** Los grupos se guardan con su clave; en pantalla se leen como frase. Los que escribe el asesor salen tal cual. */
+const NOMBRE_GRUPO: Record<string, string> = { persona: "De la persona", inmueble: "Del inmueble", credito: "Del crédito", otro: "Otros", Otros: "Otros" };
+
 function quienEntrega(a: Asunto, d: DocumentoDelAsunto, cat: LectorCatalogos): string {
   const p = d.entrega_persona_id ? a.personas.find((x) => x.persona_id === d.entrega_persona_id) : null;
   if (p) return primerNombre(p.nombre);
@@ -220,7 +223,7 @@ export function Documentos({ a, hacer }: { a: Asunto; hacer: Hacer }) {
 
       {grupos.length ? grupos.map((g) => (
         <div key={g}>
-          <p className="as-sub">{g}</p>
+          <p className="as-sub">{NOMBRE_GRUPO[g] ?? g}</p>
           <div className="as-card">
             {a.documentos.filter((d) => (d.grupo || "Otros") === g).map((d) => (
               <Renglon key={d.id} a={a} d={d} hacer={hacer} pedir={(texto) => setMensaje({ titulo: `Pedir ${d.nombre}`, texto })} />
