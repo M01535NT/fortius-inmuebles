@@ -47,9 +47,18 @@ Cada etapa termina con algo que puedes abrir y probar. No se pasa a la siguiente
 
 | Etapa | Qué se construye | Cómo sabrás que está lista | Tamaño |
 | --- | --- | --- | --- |
-| **Etapas 0 a 10.** Construidas y publicadas. Sus listas de comprobación, que son el guion para probarlas con datos reales, están en `docs/comprobacion-etapas-0-a-10.md`.
-
-**11. El cambio** | El panel nuevo reemplaza al provisional y se retira lo que sobra | El equipo entra al panel nuevo en la dirección de siempre | Chica |
+| **0. Preparación** | Se revisa lo que ya hay para ver qué se aprovecha, y se prepara la base de datos para el sistema nuevo | Recibes una lista corta: qué se reutiliza, qué se rehace y qué cambia en la base | Chica |
+| **1. La base visual** | Colores, letra, íconos, menú lateral y barra del teléfono | Abres el panel y se ve como el boceto, aunque todavía vacío | Chica |
+| **2. Asuntos** | La lista de asuntos y el asunto con sus apartados, que se agregan y se quitan | Abres un asunto, entras a sus apartados y lo que cambias se queda guardado | Grande |
+| **3. La consulta** | La captura durante la llamada, que abre el asunto | Capturas una llamada de prueba y el asunto nace con su persona, su inmueble y su lista de documentos | Mediana |
+| **4. Inmuebles** | La lista y la ficha completa: ficha técnica, fotos, video, 360, planos, ubicación y publicar | Cargas un inmueble con sus fotos y aparece en el sitio público | Grande |
+| **5. Los apartados a fondo** | Plan, Documentos, Opinión jurídica, Honorarios, Interesados y los apartados propios (lista, tabla, galería, texto) | Llevas un caso completo: pides documentos, emites la opinión, presupuestas y cobras | Grande |
+| **6. Documentos y Herramientas** | Los formatos que se llenan por preguntas, y la sección Herramientas | Haces un contrato desde un asunto y ya trae los datos de la persona y del inmueble | Grande |
+| **7. Directorio y Biblioteca** | Las personas con su asunto; las listas y planes que se copian | Buscas a una persona y llegas a su asunto; copias un plan de la Biblioteca a un asunto | Mediana |
+| **8. Inicio** | Lo que hay que atender, lo de hoy, la semana y lo que falta cobrar | Entras en la mañana y ves qué te toca | Chica |
+| **9. Equipo** | Lo que ve el director y lo que ve cada asesor | Entras con una cuenta de asesor y solo ves lo suyo | Mediana |
+| **10. Funciones extra** | Primero: regresar a la ventana anterior, elegir dónde se abre cada ventana y los informes para el cliente. Después, las funciones de uso diario de la lista de `SPEC.md` que no hayan entrado antes | Regresas de una ventana a la anterior, la abres donde prefieras y mandas un informe desde un asunto. Las demás las pruebas una por una | Mediana |
+| **11. El cambio** | El panel nuevo reemplaza al provisional y se retira lo que sobra | El equipo entra al panel nuevo en la dirección de siempre | Chica |
 | **12. El panel que ajustas tú** | Que cambiar el panel no pida programar: las listas, los datos de cada ficha, los tipos de asunto, los apartados, los machotes y los módulos se ajustan en Configuración, y vuelve la Bandeja. Además: valor estimado y aviso de actividad vulnerable, asuntos relacionados y permanentes, aviso de conflicto de interés y fuente consultable | Armas un tipo de asunto de otro giro sin pedirle nada al agente; cargas un machote y sale lleno con lo del asunto; llevas los casos 7 a 12 de principio a fin | Muy grande: once pasos |
 
 **Chica:** una o dos sesiones de trabajo. **Mediana:** varias sesiones. **Grande:** muchas sesiones, con varias revisiones tuyas en medio.
