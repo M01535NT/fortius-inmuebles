@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, expect, test } from "vitest";
 import { FichaVisor } from "@/components/sitio/ficha-visor";
 import { TarjetaPropiedad } from "@/components/sitio/tarjeta-propiedad";
-import { municipioDeZona } from "@/data/zonas";
+import { claveMunicipio, municipioDeInmueble, municipioDeZona, unirUbicacion } from "@/data/zonas";
 import { aplicarFiltros, filtrosDesdeParams, paramsDesdeFiltros } from "@/lib/inventario-busqueda";
 import type { Property } from "@/data/propiedades";
 
@@ -47,8 +47,33 @@ test("el mapa de un inmueble en Ensenada no lo busca en Tijuana", () => {
   expect(municipioDeZona("Ensenada")).toBe("Ensenada");
 });
 
+/* El municipio guardado manda sobre la colonia; si nada lo dice, no se supone Tijuana. */
+test("el municipio del inmueble viene del dato guardado y nunca se inventa", () => {
+  expect(municipioDeInmueble({ zona: "Chapultepec", municipio: "Ensenada" })).toBe("Ensenada");
+  expect(municipioDeInmueble({ zona: "Chapultepec", direccionAproximada: "Chapultepec, Ensenada" })).toBe("Ensenada");
+  expect(municipioDeInmueble({ zona: "Colonia de ensayo", direccionAproximada: "Colonia de ensayo" })).toBeUndefined();
+  expect(claveMunicipio("Ensenada")).toBe("ensenada");
+  expect(claveMunicipio("Mexicali")).toBeUndefined();
+  expect(claveMunicipio(undefined)).toBeUndefined();
+});
+
+test("la ubicación se une sin vacíos ni repetidos", () => {
+  expect(unirUbicacion("Playas", "Playas, Tijuana")).toBe("Playas, Tijuana");
+  expect(unirUbicacion("", ", Tijuana")).toBe("Tijuana");
+  expect(unirUbicacion("Zona Río", "ZONA RIO", "Tijuana")).toBe("Zona Río, Tijuana");
+});
+
+test("un tipo desconocido en ?tipo= se ignora y se muestra todo", () => {
+  for (const tipo of ["mansion", "constructor", "toString"]) {
+    const filtros = filtrosDesdeParams(new URLSearchParams(`tipo=${tipo}`));
+    expect(filtros.tipo).toBe("todos");
+    expect(aplicarFiltros([venta, renta], filtros)).toHaveLength(2);
+  }
+  expect(filtrosDesdeParams(new URLSearchParams("tipo=casa")).tipo).toBe("casa");
+});
+
 // BUG-C49: «1 baños» en la tarjeta del inventario.
 test("la tarjeta dice «1 baño» en singular", () => {
   render(<TarjetaPropiedad property={{ ...venta, ficha: { banos: 1 } }} />);
-  expect(screen.queryByText(/1 baños/)).toBeNull();
+  expect(screen.queryByText(/\b1 baños\b/)).toBeNull();
 });

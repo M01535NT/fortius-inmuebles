@@ -28,6 +28,16 @@ test("PDF uses real images, Spanish metadata, and paginates long public descript
   expect(bytes.length).toBeGreaterThan(10000);
 });
 
+test("un compartido dice «En colaboración» y la ubicación no se repite", async () => {
+  const property = { ...propiedades[0], colaboracion: true as const, zona: "Playas", direccionAproximada: "Playas, Tijuana", ficha: { banos: 0 } };
+  const bytes = await createPropertyPdf(property, { settings: null, siteUrl: "https://example.com", loadImage: async () => null });
+  const text = financialPdfPages(await PDFDocument.load(bytes)).join(" ").replace(/\s+/g, " ");
+  expect(text).toContain("En colaboración");
+  expect(text).toContain("Playas, Tijuana");
+  expect(text).not.toContain("Playas, Playas");
+  expect(text).not.toMatch(/0 baños/);
+});
+
 test("unavailable photographs still produce a valid PDF", async () => {
   const bytes = await createPropertyPdf({ ...propiedades[0], precio: { modalidad: "consulta" } }, { settings: null, siteUrl: "https://example.com", loadImage: async () => null });
   expect((await PDFDocument.load(bytes)).getPageCount()).toBeGreaterThan(0);
@@ -53,7 +63,8 @@ test("editorial sheets omit empty fields and filler without losing public facts"
   const text = financialPdfPages(pdf).join(" ").replace(/\s+/g, " ");
   for (const paragraph of property.descripcion) expect(text).toContain(paragraph);
   expect(text).toContain("96.5 m²");
-  expect(text).toContain("0 recámaras");
+  // Igual que la ficha web: 0 recámaras no se imprime.
+  expect(text).not.toMatch(/0 recámaras/);
   expect(text).toContain("1.5 baños");
   expect(text).toMatch(/\/\s*mes/);
   expect(text).toContain("Apartada");

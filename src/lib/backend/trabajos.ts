@@ -208,7 +208,7 @@ async function inicialDelFormato(client: SupabaseClient, user: StaffUser, tipo: 
 }
 
 /** El renglón en Documentos del asunto de lo que se hizo aquí. */
-async function documentoDelTrabajo(client: SupabaseClient, user: StaffUser, asuntoId: string, t: Pick<Trabajo, "id" | "clase" | "tipo" | "nombre" | "resultado" | "inmueble_id">): Promise<string> {
+async function documentoDelTrabajo(client: SupabaseClient, user: StaffUser, asuntoId: string, t: Pick<Trabajo, "id" | "clase" | "tipo" | "nombre" | "resultado" | "inmueble_id">): Promise<{ id: string; recibo_numero: number | null }> {
   const o = await client.from(T.documentos).select("orden").eq("asunto_id", asuntoId).order("orden", { ascending: false }).limit(1);
   if (o.error) fallo(o.error);
   const orden = Number((o.data?.[0] as { orden?: number } | undefined)?.orden ?? 0) + 10;
@@ -217,9 +217,23 @@ async function documentoDelTrabajo(client: SupabaseClient, user: StaffUser, asun
     asunto_id: asuntoId, nombre: t.nombre, grupo: contrato ? "Contratos" : t.clase === "herramienta" ? "Cuentas" : "Hechos en Fortius",
     estado: "recibido", origen: t.clase, paso: "borrador", entrega_papel: "fortius", es_contrato: contrato, es_recibo: t.clase === "formato" && t.tipo === "18",
     inmueble_id: t.inmueble_id, nota: t.resultado ?? "", trabajo_id: t.id, orden, creado_por: user.id,
-  }).select("id").single();
+  }).select("id,recibo_numero").single();
   if (r.error) fallo(r.error);
-  return (r.data as { id: string }).id;
+  return r.data as { id: string; recibo_numero: number | null };
+}
+
+/**
+ * El número del recibo lo reserva la base al crear su renglón en Documentos (uno por asunto, sin repetirse aunque
+ * se hagan dos a la vez). Si el recibo traía el número provisional del sistema (o ninguno), queda el reservado.
+ */
+function conNumeroDeRecibo(datos: Record<string, unknown>, folio: string, n: number | null): Record<string, unknown> | null {
+  if (!n) return null;
+  const numero = `${folio}-R${String(n).padStart(2, "0")}`;
+  const actual = datos.numeroRecibo;
+  if (actual === numero) return null;
+  // Un número escrito a mano (que no tiene la forma «FOLIO-R01» del sistema) se respeta.
+  if (actual !== undefined && actual !== "" && !(typeof actual === "string" && /^[A-Z]+-\d+-R\d+$/.test(actual))) return null;
+  return { ...datos, numeroRecibo: numero };
 }
 
 export async function crearTrabajo(client: SupabaseClient, user: StaffUser, e: z.infer<typeof crearTrabajoSchema>): Promise<{ id: string }> {
@@ -244,7 +258,8 @@ export async function crearTrabajo(client: SupabaseClient, user: StaffUser, e: z
   const t = r.data as unknown as Trabajo;
   if (asunto) {
     const doc = await documentoDelTrabajo(client, user, asunto.id, t);
-    const u = await client.from(T.trabajos).update({ documento_id: doc }).eq("id", t.id).eq("version", t.version).select("id").maybeSingle();
+    const datosRecibo = t.clase === "formato" && t.tipo === "18" ? conNumeroDeRecibo(t.datos, asunto.folio, doc.recibo_numero) : null;
+    const u = await client.from(T.trabajos).update({ documento_id: doc.id, ...(datosRecibo ? { datos: datosRecibo } : {}) }).eq("id", t.id).eq("version", t.version).select("id").maybeSingle();
     if (u.error) fallo(u.error);
   }
   return { id: t.id };
@@ -380,7 +395,8 @@ export async function cambiarTrabajo(client: SupabaseClient, user: StaffUser, tr
   let nuevo = u.data as unknown as Trabajo;
   if (pasaA) {
     const doc = await documentoDelTrabajo(client, user, pasaA.id, nuevo);
-    const r = await client.from(T.trabajos).update({ documento_id: doc }).eq("id", nuevo.id).eq("version", nuevo.version).select(COLUMNAS).maybeSingle();
+    const datosRecibo = nuevo.clase === "formato" && nuevo.tipo === "18" ? conNumeroDeRecibo(nuevo.datos, pasaA.folio, doc.recibo_numero) : null;
+    const r = await client.from(T.trabajos).update({ documento_id: doc.id, ...(datosRecibo ? { datos: datosRecibo } : {}) }).eq("id", nuevo.id).eq("version", nuevo.version).select(COLUMNAS).maybeSingle();
     if (r.error) fallo(r.error);
     nuevo = r.data as unknown as Trabajo;
     // Un formato que se pasa deja su PDF en los Documentos del asunto.

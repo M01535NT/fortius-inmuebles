@@ -5,6 +5,7 @@ import { PDFDocument, rgb, PDFName, PDFString, pushGraphicsState, popGraphicsSta
 import { ESTADO_LABELS, FUENTE_SUPERFICIE_LABELS, OPERACION_LABELS, TIPO_LABELS, formatPrecio, type Property } from "@/data/propiedades";
 import type { Asesor, SiteSettings } from "@/lib/domain/records";
 import { publicContact } from "@/lib/public-contact";
+import { municipioDeInmueble, unirUbicacion } from "@/data/zonas";
 import { letterheadBounds } from "./letterhead";
 import { loadLetterhead } from "./letterhead-server";
 import { drawFortiusLetterhead, embedFortiusLetterhead } from "./pdf-letterhead";
@@ -102,10 +103,13 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   pdf.setSubject(`Información pública del inmueble ${p.codigo}`);
   pdf.catalog.set(PDFName.of("Lang"), PDFString.of("es-MX"));
   header();
-  text(`${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()} · ${ESTADO_LABELS[p.estado]}`, 10, regular, muted, 7);
+  // Un compartido dice «En colaboración», como la ficha web, aunque falte el nombre del aliado.
+  text(`${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()} · ${ESTADO_LABELS[p.estado]}${p.colaboracion ? " · En colaboración" : ""}`, 10, regular, muted, 7);
   const titleSize = wrap(p.titulo, 30, bold).length > 2 ? 25 : 30;
   text(p.titulo, titleSize, bold, ink, 7);
-  text([p.zona, p.direccionAproximada].filter(Boolean).join(" · "), 10, regular, muted, 9);
+  // Zona, dirección y municipio sin vacíos ni repetidos («Playas, Playas, Tijuana» sale «Playas, Tijuana»).
+  const ubicacion = unirUbicacion(p.zona, p.direccionAproximada, municipioDeInmueble(p));
+  if (ubicacion) text(ubicacion, 10, regular, muted, 9);
   text(formatPrecio(p.precio), 21, bold, burgundy, 12);
   if (p.demo) text("Demostración · Datos y precio de ejemplo, sin oferta real.", 9, bold, burgundy, 8);
 
@@ -161,9 +165,10 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   for (const [label, value, source] of [["Construcción", p.ficha.construccionM2, p.informacionPublica?.fuenteConstruccion], ["Terreno", p.ficha.terrenoM2, p.informacionPublica?.fuenteTerreno]] as const) {
     if (value != null) specs.push(row(`${value} m²`, bold, 20), row(`${label} · ${source ? FUENTE_SUPERFICIE_LABELS[source] : "fuente por confirmar"}`, regular, 9, muted, 7));
   }
-  if (p.ficha.recamaras != null) specs.push(row(`${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}`));
-  if (p.ficha.banos != null) specs.push(row(`${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}`));
-  if (p.ficha.estacionamientos != null) specs.push(row(`${p.ficha.estacionamientos} ${p.ficha.estacionamientos === 1 ? "estacionamiento" : "estacionamientos"}`));
+  // Misma regla que la ficha web: 0 recámaras, baños o estacionamientos no se imprime.
+  if (p.ficha.recamaras) specs.push(row(`${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}`));
+  if (p.ficha.banos) specs.push(row(`${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}`));
+  if (p.ficha.estacionamientos) specs.push(row(`${p.ficha.estacionamientos} ${p.ficha.estacionamientos === 1 ? "estacionamiento" : "estacionamientos"}`));
   if (p.ficha.antiguedad?.trim()) specs.push(row(`Antigüedad: ${p.ficha.antiguedad}`, regular, 9, muted));
   const specLines = expand(specs, rightWidth);
   const description = p.descripcion.filter(value => value.trim());

@@ -85,7 +85,8 @@ Nada es obligatorio y se guarda sola mientras se escribe. Al terminar, el botón
 Las solicitudes que llegan por el sitio público caen en Inicio, en «Por atender», con el tiempo que llevan esperando. Abrir una lleva a la misma consulta, ya llena con lo que la persona escribió.
 
 - **Quién atiende una solicitud del sitio:** le llega al director, que la asigna a un asesor con «Pasar a…». Si es por un inmueble publicado, queda de una vez a cargo de quien lleva el asunto de ese inmueble (o el inmueble, si no tiene asunto abierto). Cada asesor ve solo las que le tocan. El tiempo de espera se pone en ámbar pasada una hora y en rojo pasadas dos.
-- **Si la solicitud es por un inmueble publicado,** queda además anotada en el apartado Interesados del asunto de ese inmueble. Si su teléfono o su correo ya están en el Directorio, se usa esa misma ficha; si no, se crea.
+- **Si la solicitud es por un inmueble publicado,** queda además anotada en el apartado Interesados del asunto de ese inmueble. Si su teléfono o su correo ya están en el Directorio en una ficha que quien la atiende puede ver, se usa esa misma ficha; si no, se crea una nueva a su cargo. Nadie escribe en la ficha de otro asesor por una solicitud.
+- **Si alguien que se había descartado regresa por el sitio,** llega otra vez como solicitud nueva en «Por atender».
 - **Atender** abre la consulta con su nombre, teléfono, correo y mensaje, por el canal «Sitio». «No procede» la quita de Inicio. Lo que llegó del sitio no se cambia.
 
 ### Cómo nace el asunto
@@ -199,7 +200,7 @@ Cuando el cliente pide saber cómo va su asunto, el informe se hace desde el mis
 
 ### Cerrar un asunto
 
-Un asunto se cierra como **se logró** o **no se dio**, con el motivo. Al cerrar se anota quién captó y quién vendió. Un asunto cerrado se puede reabrir.
+Un asunto se cierra como **se logró** o **no se dio**, con el motivo. Al cerrar se anota quién captó y quién vendió (se puede dejar sin anotar). «Deshacer» justo después de cerrar lo deja como estaba, sin motivo. Un asunto cerrado se puede reabrir.
 
 Cuando un trabajo termina y de él nace otro (una revisión que se vuelve venta, una asesoría que termina en vender), el botón **«Continuar en un asunto nuevo»** copia las personas, el inmueble y los documentos (con sus archivos), y deja anotado en los dos de dónde viene cada uno. Los recibos no se copian: se quedan con su cobro.
 
@@ -256,6 +257,9 @@ Inmuebles es también el panel de lo que sale en el sitio público: aquí se car
 - Al publicar, el sistema avisa lo que falta (fotos, descripción, contrato) y deja publicar de todos modos. Un inmueble sin fotos queda publicado pero no aparece en el sitio hasta tener una; uno «retirado» tampoco aparece.
 - El enlace del inmueble en el sitio usa su folio y nace al publicarlo por primera vez.
 - Un inmueble de otra inmobiliaria se marca como compartido y el sitio no muestra datos de su dueño.
+- Un inmueble compartido sale en el sitio y en su PDF como «En colaboración», aunque no se haya anotado el nombre de la inmobiliaria aliada.
+- El sitio usa el municipio guardado del inmueble para el mapa, los datos para buscadores y los gastos de cierre. Si no se sabe el municipio, no se supone Tijuana: los gastos de cierre quedan por calcular.
+- Si se cambia la operación de un inmueble publicado y su estado ya no corresponde (por ejemplo, «Rentado» al pasar a venta), queda «Libre» y sigue en el sitio; el aviso lo dice y deja deshacer.
 
 ## 8. Documentos y formatos
 
@@ -330,7 +334,7 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 - Cuando el asunto tiene varios clientes, el presupuesto dice **quién paga**.
 - Cuando el asunto tiene varios inmuebles, cada contrato y cada cobro dice **de cuál inmueble** es.
 - Toda cantidad dice su moneda. **Pesos y dólares no se mezclan** ni se convierten solos.
-- Cada cobro dice cuánto, cómo se pagó y cuándo. Al registrarlo, el sistema ofrece **«Hacer recibo»**, ya lleno con el monto, la persona y el asunto, en el formato de recibo de Fortius; queda en Documentos como borrador.
+- Cada cobro dice cuánto, cómo se pagó y cuándo. Al registrarlo, el sistema ofrece **«Hacer recibo»**, ya lleno con el monto, la persona y el asunto, en el formato de recibo de Fortius; queda en Documentos como borrador. Los recibos de un asunto se numeran solos, seguidos y sin repetirse, aunque dos se hagan al mismo tiempo.
 - **El presupuesto tiene vigencia** (15 días si no se dice otra). Al enviarlo se crea sola la tarea de darle seguimiento a los tres días, y al vencer aparece en Inicio. Se puede hacer otra versión, que copia los conceptos de la anterior.
 - Mientras no esté la plantilla del presupuesto del titular, el presupuesto y la opinión jurídica en PDF se cargan hechos por fuera; hacerlos desde el panel llega con su plantilla.
 - **Reparto de comisión:** 25 % para quien captó y 25 % para quien vendió; si es la misma persona, 50 %.
@@ -359,7 +363,7 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 - **Varias acciones en un solo botón** que abre su lista.
 - **Deshacer** en lugar de preguntar «¿estás seguro?». Solo se pide confirmar lo que no tiene vuelta atrás.
 - **Lenguaje sencillo,** sin palabras técnicas y sin mencionar a la inteligencia artificial. Lo que se leyó de un documento dice «por confirmar».
-- **Fechas como se dicen:** «hoy», «mañana», «jue 19 nov».
+- **Fechas como se dicen:** «hoy», «mañana», «jue 19 nov». Todas las fechas se cuentan con la hora de Tijuana: lo anotado en la noche queda con la fecha de ese día.
 - **Funciona igual en computadora y en teléfono.**
 - **Accesible:** se puede usar con teclado, los botones son grandes en el teléfono y el estado de algo se entiende sin depender solo del color.
 - Los datos de ejemplo siempre dicen que son de ejemplo.
