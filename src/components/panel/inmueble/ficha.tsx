@@ -15,6 +15,8 @@ import {
   type CambioInmueble, type CampoFicha, type EstadoInmueble, type Inmueble, type Medio, type Moneda, type Operacion, type TipoInmueble,
 } from "@/lib/panel/inmuebles/api";
 import { leerEquipo, type Miembro } from "@/lib/panel/asuntos/api";
+import { guardadosEnOrden } from "@/lib/panel/en-orden";
+import { cambioDeOperacion } from "@/lib/panel/inmuebles/operacion";
 
 import { Cuadro } from "../asunto/pildora";
 import "../asunto/asunto.css";
@@ -44,26 +46,34 @@ export function FichaInmueble({ id, alCambiar, nombreDe: dado }: { id: string; a
   const [i, setI] = useState<Inmueble | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pestana, setPestana] = useState<Pestana>("datos");
-  const actual = useRef<Inmueble | null>(null);
-  useEffect(() => { actual.current = i; }, [i]);
+  // La ficha más reciente (la que devolvió el último guardado), fuera del ciclo de pintado: el siguiente guardado sale con su versión.
+  const [enOrden] = useState(() => {
+    let actual: Inmueble | null = null;
+    const poner = (x: Inmueble) => { actual = x; setI(x); };
+    return { poner, guardar: guardadosEnOrden<Inmueble>(() => actual, poner) };
+  });
 
-  const cargar = useCallback(() => leerInmueble(id).then((x) => { setI(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")), [id]);
+  const cargar = useCallback(() => leerInmueble(id).then((x) => { enOrden.poner(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")), [id, enOrden]);
   useEffect(() => { void cargar(); }, [cargar]);
 
-  /** Guarda un cambio con la versión que se vio; si otro guardó antes, recarga y avisa. */
-  const guardar = useCallback(async (cambio: CambioInmueble, aviso?: string) => {
-    const x = actual.current;
-    if (!x) return;
-    try {
-      const nuevo = await guardarInmueble(x.id, x.version, cambio);
-      setI(nuevo);
-      if (aviso) avisar(aviso);
+  /**
+   * Guarda un cambio. Los guardados van en fila: cada uno espera al anterior y sale con la versión que este devolvió.
+   * El cambio puede prepararse sobre la ficha más reciente (la ficha técnica se arma así para no pisar el campo anterior).
+   * Si otra persona guardó antes (409), se avisa, se recarga y lo que esperaba detrás no se manda.
+   */
+  const guardar = useCallback((cambio: Cambio, aviso?: string, deshacer?: Cambio) => {
+    const uno = async (c: Cambio, av?: string, des?: Cambio): Promise<void> => {
+      const listo = await enOrden.guardar(
+        (x) => (typeof c === "function" ? c(x) : c),
+        (x, cuerpo) => guardarInmueble(x.id, x.version, cuerpo),
+        async (e) => { avisar(e instanceof Error ? e.message : "No se guardó."); await cargar(); },
+      );
+      if (!listo) return;
+      if (av) avisar(av, des ? { etiqueta: "Deshacer", alAccionar: () => void uno(des) } : undefined);
       alCambiar?.();
-    } catch (e) {
-      avisar(e instanceof Error ? e.message : "No se guardó.");
-      void cargar();
-    }
-  }, [avisar, alCambiar, cargar]);
+    };
+    return uno(cambio, aviso, deshacer);
+  }, [avisar, alCambiar, cargar, enOrden]);
 
   if (error) return <div className="as-vacio"><Icono nombre="alerta" tamano={24} /><b>{error}</b><button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button></div>;
   if (!i) return <div className="as-cargando" aria-label="Cargando"><span /><span /><span /></div>;
@@ -92,7 +102,8 @@ export function FichaInmueble({ id, alCambiar, nombreDe: dado }: { id: string; a
   );
 }
 
-type Guardar = (cambio: CambioInmueble, aviso?: string) => Promise<void>;
+type Cambio = CambioInmueble | ((actual: Inmueble) => CambioInmueble);
+type Guardar = (cambio: Cambio, aviso?: string, deshacer?: Cambio) => Promise<void>;
 
 // ── Piezas de captura ────────────────────────────────────────────────────────────────────────────────
 /** Un campo de texto que guarda al salir (o con Enter), solo si cambió. */
@@ -149,12 +160,13 @@ function Datos({ i, guardar, nombreDe }: { i: Inmueble; guardar: Guardar; nombre
   const [precio, setPrecio] = useState(false);
   const grupos = i.tipo ? FICHA_POR_TIPO[i.tipo] : [];
   const valorDe = (c: CampoFicha) => i.ficha[c.clave];
-  const poner = (c: CampoFicha, v: string) => {
-    const ficha = { ...i.ficha };
+  // Se arma sobre la ficha más reciente al momento de mandar: dos campos seguidos no se pisan.
+  const poner = (c: CampoFicha, v: string) => void guardar((x) => {
+    const ficha = { ...x.ficha };
     if (v === "") delete ficha[c.clave];
     else ficha[c.clave] = c.opciones || c.texto ? v : Number(v.replace(/,/g, ""));
-    void guardar({ ficha });
-  };
+    return { ficha };
+  });
   return (
     <>
       <div className="as-card as-pad">
@@ -163,7 +175,13 @@ function Datos({ i, guardar, nombreDe }: { i: Inmueble; guardar: Guardar; nombre
           <Desplegable etiqueta="Tipo" valor={i.tipo ?? ""} vacio="Elegir" opciones={TIPOS_INMUEBLE.map((t) => ({ valor: t, etiqueta: NOMBRE_TIPO[t] }))}
             alElegir={(v) => void guardar({ tipo: (v || null) as TipoInmueble | null })} />
           <Desplegable etiqueta="Operación" valor={i.operacion ?? ""} vacio={i.operacion ? undefined : "Elegir"} opciones={OPERACIONES.map((o) => ({ valor: o, etiqueta: NOMBRE_OPERACION[o] }))}
-            alElegir={(v) => void guardar({ operacion: (v || null) as Operacion | null })} />
+            alElegir={(v) => {
+              const op = (v || null) as Operacion | null;
+              if (op === i.operacion) return;
+              // Si el estado no corresponde a la nueva operación, pasa a Libre para que no desaparezca del sitio; se avisa y se puede deshacer.
+              const { cambio, aviso, antes } = cambioDeOperacion(i, op);
+              void guardar(cambio, aviso, antes);
+            }} />
           <Desplegable etiqueta="Estado" valor={i.estado} opciones={estadosPara(i.operacion).map((e) => ({ valor: e, etiqueta: NOMBRE_ESTADO[e] }))}
             alElegir={(v) => { if (v) void guardar({ estado: v as EstadoInmueble }, `Estado: ${NOMBRE_ESTADO[v as EstadoInmueble].toLowerCase()}`); }} />
         </div>

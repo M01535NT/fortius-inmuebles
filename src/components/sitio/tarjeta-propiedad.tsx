@@ -80,7 +80,7 @@ export function TarjetaPropiedad({ property, vista = "cuadricula", prioridad = f
       <span className="s-tarjeta-cabeza">
         <span className="s-tarjeta-nombre">
           <span className="s-tarjeta-titulo">{property.titulo}</span>
-          <span className="s-tarjeta-zona">{property.zona} · {tipo}</span>
+          <span className="s-tarjeta-zona">{[property.zona.trim(), tipo].filter(Boolean).join(" · ")}</span>
         </span>
         <span className="s-tarjeta-precio">{precio}</span>
       </span>

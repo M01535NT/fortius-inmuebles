@@ -11,8 +11,9 @@ import { limpiarNombre } from "./apartados";
 import { sinMetadatos } from "./files";
 import { ApiError } from "./http";
 import {
-  camposDe, ESTADOS_INMUEBLE, MONEDAS, OPERACIONES, TIPOS_INMUEBLE,
-  type AsuntoDelInmueble, type CambioPrecio, type DocumentoDelInmueble, type FilaInmueble, type Inmueble, type Medio, type TipoInmueble,
+  camposDe, ESTADOS_INMUEBLE, estadosPara, MONEDAS, OPERACIONES, TIPOS_INMUEBLE,
+  type AsuntoDelInmueble, type CambioPrecio, type DocumentoDelInmueble, type EstadoInmueble, type FilaInmueble, type Inmueble, type Medio,
+  type Operacion, type TipoInmueble,
 } from "./inmuebles-contrato";
 
 /**
@@ -152,10 +153,18 @@ function limpiarFicha(tipo: TipoInmueble | null, ficha: Record<string, number | 
 export async function cambiarInmueble(client: SupabaseClient, id: string, entrada: z.infer<typeof cambioInmuebleSchema>): Promise<void> {
   const { version: v, ...cambios } = entrada;
   if (!Object.keys(cambios).length) throw new ApiError(400, "No hay nada que cambiar.");
-  if (cambios.ficha) {
-    const actual = await client.from(T.inmuebles).select("tipo").eq("id", id).maybeSingle();
+  const tocaEstado = cambios.operacion !== undefined || cambios.estado !== undefined;
+  if (cambios.ficha || tocaEstado) {
+    const actual = await client.from(T.inmuebles).select("tipo,operacion,estado").eq("id", id).maybeSingle();
     if (actual.error) fallo(actual.error);
-    cambios.ficha = limpiarFicha((cambios.tipo ?? actual.data?.tipo ?? null) as TipoInmueble | null, cambios.ficha);
+    const fila = actual.data as { tipo: TipoInmueble | null; operacion: Operacion | null; estado: EstadoInmueble } | null;
+    if (cambios.ficha) cambios.ficha = limpiarFicha((cambios.tipo ?? fila?.tipo ?? null) as TipoInmueble | null, cambios.ficha);
+    // Un estado que no corresponde a la operación (un «Rentado» en venta) sacaría al inmueble del sitio: pasa a Libre.
+    if (tocaEstado && fila) {
+      const operacion = cambios.operacion !== undefined ? cambios.operacion : fila.operacion;
+      const estado = cambios.estado ?? fila.estado;
+      if (!estadosPara(operacion).includes(estado)) cambios.estado = "libre";
+    }
   }
   if (cambios.conjunto_id === id) throw new ApiError(400, "Un inmueble no puede ser su propio conjunto.");
   const { data, error } = await client.from(T.inmuebles).update(cambios).eq("id", id).eq("version", v).is("deleted_at", null).select("id").maybeSingle();

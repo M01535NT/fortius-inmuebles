@@ -1,6 +1,6 @@
 import { OPERACION_LABELS, TIPO_LABELS, type Property } from "@/data/propiedades";
 import { siteConfig } from "@/data/site";
-import { municipioDeZona } from "@/data/zonas";
+import { municipioDeInmueble } from "@/data/zonas";
 import type { Post, SiteSettings } from "@/lib/domain/records";
 import { SITE_NAME } from "@/lib/seo/page-metadata";
 
@@ -102,6 +102,7 @@ function availability(estado: Property["estado"]) {
 export function propertyLd(p: Property): JsonLd[] {
   const url = absolute(`/inventario/${p.slug}`);
   const tipoEnOperacion = `${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()}`;
+  const municipio = municipioDeInmueble(p);
   const listing: JsonLd = {
     "@type": "RealEstateListing",
     name: p.titulo,
@@ -109,9 +110,9 @@ export function propertyLd(p: Property): JsonLd[] {
     url,
     image: p.galeria.map((g) => absolute(g.src)),
     datePosted: p.publicadaEl,
-    // Google pide la ciudad; la zona capturada es la colonia o el municipio.
-    address: { "@type": "PostalAddress", addressLocality: municipioDeZona(p.zona), addressRegion: "Baja California", addressCountry: "MX" },
-    containedInPlace: { "@type": "Place", name: p.zona },
+    // Google pide la ciudad: el municipio guardado del inmueble; si no se sabe, se omite (no se supone Tijuana).
+    address: { "@type": "PostalAddress", ...(municipio ? { addressLocality: municipio } : {}), addressRegion: "Baja California", addressCountry: "MX" },
+    ...(p.zona.trim() ? { containedInPlace: { "@type": "Place", name: p.zona.trim() } } : {}),
     provider: { "@id": ORG_ID },
     ...(p.precio.modalidad === "publico" && !p.demo
       ? { offers: { "@type": "Offer", url, price: p.precio.monto, priceCurrency: p.precio.moneda, availability: availability(p.estado), seller: { "@id": ORG_ID } } }

@@ -20,6 +20,11 @@ describe("inmueble compartido", () => {
     expect(JSON.stringify(projected)).not.toMatch(/Contacto de ensayo|Gerente de ensayo|autorizacion/);
   });
 
+  it("el municipio del panel nuevo llega al sitio", () => {
+    const [projected] = projectPublic("propiedades", [{ ...shared, colaboracion: true, municipio: "Tijuana" }]);
+    expect(projected).toMatchObject({ colaboracion: true, municipio: "Tijuana" });
+  });
+
   it("el asesor de otro inmueble ve solo con qué inmobiliaria (COR-23)", () => {
     const seen = projectTeamProperty(shared);
     expect(seen).toMatchObject({ origen: "compartido", aliado: { inmobiliaria: aliado.inmobiliaria } });

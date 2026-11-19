@@ -221,10 +221,18 @@ export async function cambiarSolicitud(client: SupabaseClient, user: StaffUser, 
   const s = r.data as unknown as { nombre: string; telefono: string; correo: string | null; mensaje: string; persona_id: string | null; consulta_id: string | null; inmueble: { nombre: string } | null } | null;
   if (!s) throw new ApiError(404, "Esa solicitud ya no está.");
   if (s.consulta_id) return { consulta_id: s.consulta_id };
+  // La ficha ligada solo pasa a la consulta si quien atiende la puede ver (una solicitud que el director pasó a otro
+  // asesor puede traer la ficha del primero); si no, la consulta lleva lo que escribió la persona y nace su propia ficha.
+  let personaId = s.persona_id;
+  if (personaId) {
+    const p = await client.from(T.personas).select("id").eq("id", personaId).is("deleted_at", null).maybeSingle();
+    if (p.error) fallo(p.error);
+    if (!p.data) personaId = null;
+  }
   const d = s.telefono.replace(/\D/g, "");
   const telefonos = d.length >= 6 ? [d.length > 10 ? { pais: `+${d.slice(0, d.length - 10)}`, numero: d.slice(-10) } : { pais: "+52", numero: d }] : [];
   const c = await client.from(T.consultas).insert({
-    quien_nombre: s.nombre.slice(0, 160), quien_telefonos: telefonos, quien_correo: s.correo, canal: "sitio", persona_id: s.persona_id,
+    quien_nombre: s.nombre.slice(0, 160), quien_telefonos: telefonos, quien_correo: s.correo, canal: "sitio", persona_id: personaId,
     que_pasa: [s.mensaje, s.inmueble ? `(Preguntó por ${s.inmueble.nombre}.)` : ""].filter(Boolean).join(" ").slice(0, 4000),
     solicitud_id: id, responsable_id: user.id, creado_por: user.id,
   }).select("id").single();

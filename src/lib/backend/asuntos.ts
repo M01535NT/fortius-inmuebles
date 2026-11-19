@@ -558,7 +558,7 @@ export async function cambiarEnParte(client: SupabaseClient, user: StaffUser, as
         if (r.error) fallo(r.error);
         if ((r.data as { responsable_id?: string } | null)?.responsable_id !== user.id) throw new ApiError(403, "Solo quien lleva el asunto o el director asignan tareas a otra persona.");
       }
-      const enTres = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
+      const enTres = (() => { const d = new Date(`${hoyEnTijuana()}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + 3); return d.toISOString().slice(0, 10); })();
       // Lo de antes hace falta para repetir: nace la siguiente al dejarla hecha y se quita si se desmarca.
       const necesita = c.estado !== undefined || repetir !== undefined;
       const r = necesita ? await client.from(T.tareas).select(COLUMNAS_REPETIR).eq("id", id).eq("asunto_id", asuntoId).maybeSingle() : null;

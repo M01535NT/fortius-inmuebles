@@ -24,7 +24,7 @@ import {
   type CategoriaPunto,
   type Property,
 } from "@/data/propiedades";
-import { municipioDeZona } from "@/data/zonas";
+import { claveMunicipio, municipioDeInmueble, unirUbicacion } from "@/data/zonas";
 import { getConjunto, getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
 import { siteConfig } from "@/data/site";
 import { propertyLd, serializeLd } from "@/lib/seo/json-ld";
@@ -134,9 +134,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
   const costos = property.costos ?? {};
   const [entrada, ...parrafos] = property.descripcion;
   const alrededor = lugaresPorGrupo(property);
-  const municipio = municipioDeZona(property.zona);
-  const lugarMapa = property.zona.trim().toLowerCase() === municipio.toLowerCase() ? municipio : `${property.zona}, ${municipio}`;
-  const consultaMapa = encodeURIComponent(`${lugarMapa}, Baja California, México`);
+  // El municipio guardado manda; si no se sabe, el mapa busca solo la zona (nunca se supone Tijuana).
+  const municipio = municipioDeInmueble(property);
+  const zona = property.zona.trim();
+  const lugarMapa = unirUbicacion(zona, municipio);
+  const consultaMapa = encodeURIComponent(unirUbicacion(lugarMapa, "Baja California", "México"));
+  const direccion = unirUbicacion(property.direccionAproximada);
   const datosRenta = [
     ...(porM2 ? [{ dato: `Precio ${porM2.base}`, valor: porM2.valor }] : []),
     ...(costos.predialAnual != null ? [{ dato: "Predial anual", valor: money(costos.predialAnual, property) }] : []),
@@ -175,7 +178,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               <h1 id="fi-titulo" className="fi-titulo">{property.titulo}</h1>
               <p className="fi-lugar">
                 <Link href={`/inventario?tipo=${property.tipo}&op=${property.operacion}`}>{TIPO_LABELS[property.tipo]} en {OPERACION_LABELS[property.operacion].toLowerCase()}</Link>
-                <span aria-hidden="true"> · </span>{property.zona}
+                {zona && <><span aria-hidden="true"> · </span>{zona}</>}
               </p>
             </div>
             <div className="fi-precio">
@@ -192,7 +195,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </dl>}
 
           <p className="fi-fechas">
-            {property.direccionAproximada && <span>{property.direccionAproximada}</span>}
+            {direccion && <span>{direccion}</span>}
             <span>Código {property.codigo}</span>
             {publicada && <span>Publicada el {publicada}</span>}
             {revisada && <span>Disponibilidad revisada el {revisada}</span>}
@@ -251,15 +254,15 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         </section>}
       </div>
 
-      {/* 6. Mapa de la zona, a todo lo ancho */}
-      <section className="fi-mapa" aria-labelledby="fi-zona">
-        <iframe src={`https://www.google.com/maps?q=${consultaMapa}&z=14&output=embed`} title={`Mapa de ${property.zona}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+      {/* 6. Mapa de la zona, a todo lo ancho (sin zona ni municipio no hay qué mostrar) */}
+      {lugarMapa && <section className="fi-mapa" aria-labelledby="fi-zona">
+        <iframe src={`https://www.google.com/maps?q=${consultaMapa}&z=14&output=embed`} title={`Mapa de ${lugarMapa}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
         <div className="fi-mapa-tarjeta">
-          <h2 id="fi-zona" className="fi-mapa-zona">{property.zona}</h2>
+          <h2 id="fi-zona" className="fi-mapa-zona">{zona || lugarMapa}</h2>
           <p>Zona aproximada. La ubicación exacta se comparte al agendar la visita.</p>
           <a href={`https://www.google.com/maps/search/?api=1&query=${consultaMapa}`} target="_blank" rel="noopener noreferrer" className="s-btn s-btn-contorno s-btn-chico">Abrir en Maps</a>
         </div>
-      </section>
+      </section>}
 
       <div className="s-contenedor">
         {/* 7. Qué hay alrededor */}
@@ -280,7 +283,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         {conHerramientas && property.precio.modalidad === "publico" && <section className="fi-seccion" aria-labelledby="fi-numeros">
           <h2 id="fi-numeros" className="fi-h2">{property.operacion === "renta" ? "Lo que pagas para entrar" : "Haz tus números"}</h2>
           <FichaHerramientas precio={property.precio.monto} operacion={property.operacion} credito={property.creditoDisponible}
-            zona={property.zona} mantenimientoMensual={costos.mantenimientoMensual} />
+            municipio={claveMunicipio(municipio)} mantenimientoMensual={costos.mantenimientoMensual} />
         </section>}
 
         {/* 9–10. Preguntas y asesor */}

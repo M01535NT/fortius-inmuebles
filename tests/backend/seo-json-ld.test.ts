@@ -129,7 +129,8 @@ describe("metadatos por página", () => {
 
 test("el municipio sale de la zona capturada", () => {
   expect(municipioDeZona("Playas de Tijuana")).toBe("Tijuana");
-  expect(municipioDeZona("Zona Río")).toBe("Tijuana");
+  // Una colonia que no nombra municipio ya no se supone de Tijuana.
+  expect(municipioDeZona("Zona Río")).toBeUndefined();
   expect(municipioDeZona("Rosarito")).toBe("Playas de Rosarito");
   expect(municipioDeZona("Ensenada centro")).toBe("Ensenada");
   expect(municipioDeZona("TECATE")).toBe("Tecate");
@@ -137,6 +138,13 @@ test("el municipio sale de la zona capturada", () => {
 
 describe("fichas de inmueble", () => {
   const publicado: Property = { ...propiedades[0], demo: false, estado: "disponible", precio: { modalidad: "publico", monto: 3_500_000, moneda: "MXN" } };
+
+  test("la ciudad para Google es el municipio guardado; si no se sabe, se omite", () => {
+    const [ensenada] = propertyLd({ ...publicado, zona: "Chapultepec", municipio: "Ensenada" });
+    expect(ensenada.address).toMatchObject({ addressLocality: "Ensenada" });
+    const [sinMunicipio] = propertyLd({ ...publicado, zona: "Colonia de ensayo", direccionAproximada: "Colonia de ensayo" });
+    expect(sinMunicipio.address).not.toHaveProperty("addressLocality");
+  });
 
   test("un inmueble real con precio publicado anuncia su oferta", () => {
     const [listing] = propertyLd(publicado);

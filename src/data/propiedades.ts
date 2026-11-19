@@ -104,6 +104,8 @@ export type Property = {
   operacion: Operacion;
   precio: PrecioPropiedad;
   zona: string;
+  /* Municipio guardado del inmueble (Tijuana, Ensenada…). Si falta, el sitio no lo supone. */
+  municipio?: string;
   direccionAproximada: string; // referencia, nunca dirección exacta
   descripcion: string[]; // párrafos
   ficha: FichaTecnica;
@@ -130,7 +132,7 @@ export type Property = {
   publicadaEl: string; // ISO
   demo: boolean; // marca explícita de dato de ejemplo
   publicada?: boolean; // solo se publica por decisión explícita
-  /* PUB-02: inmueble compartido por otra inmobiliaria; el sitio dice «Inmueble en colaboración», sin su nombre (DEC-40). */
+  /* Inmueble compartido por otra inmobiliaria: el sitio y el PDF dicen «En colaboración», sin su nombre, aunque no se haya capturado. */
   colaboracion?: true;
 };
 

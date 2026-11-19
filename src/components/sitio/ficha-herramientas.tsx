@@ -6,7 +6,6 @@ import { calculateClosingBudget } from "@/lib/finance/closing";
 import { calculateMortgage } from "@/lib/finance/mortgage";
 import { localToday } from "@/lib/finance/money";
 import type { Municipality } from "@/data/financial-rules";
-import { municipioDeZona } from "@/data/zonas";
 import { Pestanas, idPestana, type Opcion } from "@/components/sitio/pestanas";
 import { FilaLinea, ListaLineas } from "@/components/sitio/lineas";
 
@@ -16,20 +15,14 @@ type Props = {
   precio: number;
   operacion: "venta" | "renta";
   credito: boolean;
-  zona: string;
+  /* Municipio del inmueble para el impuesto de adquisición; sin él, los gastos quedan «Por calcular». */
+  municipio?: Municipality;
   mantenimientoMensual?: number;
 };
 
 /* Tasa de referencia: la misma con la que abre la calculadora de hipoteca. */
 const TASA = 10.5;
 const PLAZOS = [10, 15, 20] as const;
-
-const MUNICIPIOS: Record<string, Municipality> = {
-  Tijuana: "tijuana",
-  "Playas de Rosarito": "rosarito",
-  Tecate: "tecate",
-  Ensenada: "ensenada",
-};
 
 const pesos = (n: number) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n);
 
@@ -62,9 +55,8 @@ function Filas({ filas }: { filas: { dato: string; valor: string; tenue?: boolea
   Venta solo de contado: la primera pestaña es «Compra de contado» con su aviso.
   Renta: lo que se paga para entrar. Notaría y avalúo quedan «por cotizar».
 */
-export function FichaHerramientas({ precio, operacion, credito, zona, mantenimientoMensual }: Props) {
+export function FichaHerramientas({ precio, operacion, credito, municipio, mantenimientoMensual }: Props) {
   const hoy = React.useMemo(() => localToday(), []);
-  const municipio = MUNICIPIOS[municipioDeZona(zona)] ?? "tijuana";
   const opciones: Opcion<Herramienta>[] = operacion === "renta"
     ? [{ valor: "entrada", etiqueta: "Para entrar" }]
     : credito
@@ -90,7 +82,8 @@ export function FichaHerramientas({ precio, operacion, credito, zona, mantenimie
   }, [conCredito, precio, enganche, plazo, hoy]);
 
   const cierre = React.useMemo(() => {
-    if (operacion !== "venta") return null;
+    // Sin municipio conocido no se calcula con las tablas de otro (antes caía en Tijuana).
+    if (operacion !== "venta" || !municipio) return null;
     try {
       return calculateClosingBudget({
         profile: "buyer", municipality: municipio, date: hoy, price: precio, taxBase: precio, baseIsAssumed: true,
@@ -146,7 +139,7 @@ export function FichaHerramientas({ precio, operacion, credito, zona, mantenimie
             <>
               <Filas filas={filasCierre} />
               <Cifra etiqueta="Gastos que ya se pueden calcular" valor={cierre ? pesos(cierre.knownExpenses) : "Por calcular"}
-                nota="Tarifas de 2026, con el precio como base del impuesto. La notaría da la cifra final." />
+                nota={municipio ? "Tarifas de 2026, con el precio como base del impuesto. La notaría da la cifra final." : "Dependen del municipio del inmueble. Te los confirmamos con la notaría."} />
             </>
           )}
 
