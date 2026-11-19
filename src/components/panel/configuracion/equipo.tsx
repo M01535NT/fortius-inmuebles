@@ -22,9 +22,15 @@ import { InvitarEquipo } from "./invitar";
 import { FotoAsesor, SeccionConfig } from "./partes";
 
 /**
+ * «Invitar» todavía no envía nada: queda escondido hasta que mande la invitación de verdad. La hoja de Invitar sigue
+ * construida; para volver a mostrar el botón basta cambiar esto a `true`.
+ */
+const INVITAR_LISTO = false;
+
+/**
  * Equipo (solo el director): fichas de asesor con la cuenta que usa cada quien para entrar.
- * Ligar una cuenta a su ficha usa la ruta que ya existe. Invitar se prepara sin enviar nada; quitar acceso y cambiar
- * el papel no tienen ruta todavía (PN-10). El orden de la lista es solo presentación: se recuerda en este navegador.
+ * Ligar una cuenta a su ficha usa la ruta que ya existe. Quitar acceso y cambiar el papel no tienen ruta todavía.
+ * El orden de la lista es solo presentación: se recuerda en este navegador.
  */
 export function SeccionEquipo({ esDirector, asesores, cargando, error, alReintentar, miId }: {
   esDirector: boolean; asesores: Asesor[]; cargando: boolean; error: string | null; alReintentar: () => void; miId: string | null;
@@ -91,7 +97,7 @@ export function SeccionEquipo({ esDirector, asesores, cargando, error, alReinten
 
   return (
     <SeccionConfig id="conf-equipo" titulo={esDirector && !cargando && !error ? `Equipo · ${activos}` : "Equipo"}
-      accion={esDirector ? <button type="button" className="pn-conf-cab-btn" aria-disabled={!cuentas || undefined} onClick={() => { if (cuentas) setInvitando(true); }}>Invitar</button> : undefined}>
+      accion={esDirector && INVITAR_LISTO ? <button type="button" className="pn-conf-cab-btn" aria-disabled={!cuentas || undefined} onClick={() => { if (cuentas) setInvitando(true); }}>Invitar</button> : undefined}>
       {!esDirector ? <SinPermiso texto="El equipo lo administra el director." />
         : cargando ? <Cargando lineas={3} etiqueta="Cargando el equipo" />
         : error ? <EstadoError texto={error} alReintentar={alReintentar} />
@@ -130,7 +136,7 @@ export function SeccionEquipo({ esDirector, asesores, cargando, error, alReinten
           <Boton variante="texto" onClick={() => setIntento((n) => n + 1)}>Reintentar</Boton>
         </div>
       ) : null}
-      {esDirector ? (
+      {esDirector && INVITAR_LISTO ? (
         <InvitarEquipo abierta={invitando} alCerrar={() => setInvitando(false)} cuentas={cuentas} fichas={paraInvitar} nombreFicha={(id) => nombreFicha.get(id)} preparadas={preparadas}
           alPreparar={(i) => setPreparadas((xs) => [...xs, i])}
           alQuitar={(correo) => setPreparadas((xs) => xs.filter((x) => x.correo !== correo))}

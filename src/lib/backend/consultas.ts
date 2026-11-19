@@ -3,8 +3,8 @@ import { createHash, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import type { Encargo } from "./asuntos-contrato";
-import { apartadosPara } from "./asuntos";
+import type { Coincidencia, Encargo } from "./asuntos-contrato";
+import { apartadosPara, buscarCoincidencias } from "./asuntos";
 import { claveCatalogo, mapaCatalogos } from "./catalogos";
 import { etiquetaDe, ofrecidos } from "./catalogos-contrato";
 import { fallo } from "./fallo";
@@ -155,8 +155,25 @@ export async function cambiarConsulta(client: SupabaseClient, id: string, entrad
   return { version: (r.data[0] as { version: number }).version };
 }
 
-/** «Abrir asunto»: lo que se decide se arma aquí con las reglas; la base lo crea todo junto. */
-export async function abrirAsunto(client: SupabaseClient, id: string, v: number): Promise<{ id: string; folio: string }> {
+/**
+ * Las fichas del Directorio que se parecen a quien llama (nombre completo, teléfonos y correo de la consulta), con los
+ * asuntos en que están. Solo lo que quien atiende puede ver. Los datos se leen de la consulta, no van en la dirección.
+ */
+export async function coincidenciasDeConsulta(client: SupabaseClient, id: string): Promise<Coincidencia[]> {
+  const r = await client.from(T.consultas).select("quien_nombre,quien_telefonos,quien_correo,persona_id").eq("id", id).maybeSingle();
+  if (r.error) fallo(r.error);
+  if (!r.data) throw new ApiError(404, "No se encontró la consulta");
+  const c = r.data as { quien_nombre: string; quien_telefonos: { pais: string; numero: string }[] | null; quien_correo: string | null; persona_id: string | null };
+  // La ficha que ya se eligió no se avisa como repetida.
+  return buscarCoincidencias(client, { nombre: c.quien_nombre, telefonos: c.quien_telefonos ?? [], correo: c.quien_correo }, c.persona_id);
+}
+
+/**
+ * «Abrir asunto»: lo que se decide se arma aquí con las reglas; la base lo crea todo junto. Con `personaId`, quien llama
+ * es esa ficha del Directorio (la que avisó la consulta) y no se crea otra; con null, se crea una nueva.
+ */
+export async function abrirAsunto(client: SupabaseClient, id: string, v: number, personaId?: string | null): Promise<{ id: string; folio: string }> {
+  if (personaId !== undefined) v = await elegirFicha(client, id, v, personaId);
   const c = await leerConsulta(client, id);
   if (c.estado === "asunto" && c.asunto_id) throw new ApiError(409, "Esta consulta ya abrió su asunto.");
   const d: DatosConsulta = c.datos ?? {};
@@ -180,6 +197,19 @@ export async function abrirAsunto(client: SupabaseClient, id: string, v: number)
   if (r.error) fallo(r.error);
   const res = r.data as { id: string; folio: string };
   return { id: res.id, folio: res.folio };
+}
+
+/** Deja la consulta ligada a una ficha que quien atiende puede ver (o a ninguna). Devuelve la versión nueva. */
+async function elegirFicha(client: SupabaseClient, id: string, v: number, personaId: string | null): Promise<number> {
+  if (personaId) {
+    const p = await client.from("fortius_inmuebles_personas").select("id").eq("id", personaId).is("deleted_at", null).maybeSingle();
+    if (p.error) fallo(p.error);
+    if (!p.data) throw new ApiError(404, "Esa persona ya no está en el Directorio.");
+  }
+  const r = await client.from(T.consultas).update({ persona_id: personaId }).eq("id", id).eq("version", v).eq("estado", "abierta").select("version");
+  if (r.error) fallo(r.error);
+  if (!r.data?.length) throw new ApiError(409, "La consulta cambió en otra ventana. Vuelve a cargarla.");
+  return (r.data[0] as { version: number }).version;
 }
 
 export async function cerrarConsulta(client: SupabaseClient, id: string, entrada: z.infer<typeof cierreSchema>): Promise<{ persona_id?: string }> {

@@ -131,3 +131,15 @@ export type Miembro = { id: string; nombre: string; director: boolean };
 
 /** Respuesta de «agregar persona» cuando el teléfono o el correo ya existen: la pantalla ofrece usar la misma ficha. */
 export type PersonaDuplicada = { id: string; nombre: string };
+
+/**
+ * Una ficha del Directorio que se parece a quien llama: por qué coincide y en qué asuntos está (solo los que quien
+ * busca puede ver). La pantalla avisa y deja elegir esa ficha o seguir con una nueva.
+ */
+export type Coincidencia = {
+  id: string; nombre: string;
+  /** Qué coincidió, en este orden de peso: el teléfono, el correo, el nombre completo. */
+  por: ("telefono" | "correo" | "nombre")[];
+  telefono: string | null; correo: string | null; fallecida: boolean;
+  asuntos: { id: string; folio: string; nombre: string; papel: string; en_que_va: string }[];
+};

@@ -42,6 +42,29 @@ export async function ligarCuenta(userId: string, asesorId: string): Promise<voi
   }
 }
 
+/** La ficha del equipo de quien entró (también la del director) y, si el director no tiene, las fichas libres. */
+export type MiFicha = { asesorId: string | null; libres: { id: string; nombre: string }[] };
+
+export async function leerMiFicha(senal?: AbortSignal): Promise<MiFicha> {
+  const r = await fetch("/api/admin/mi-ficha", { credentials: "same-origin", cache: "no-store", signal: senal });
+  if (!r.ok) throw new Error("No se pudo leer tu ficha del equipo.");
+  const c = (await r.json().catch(() => ({}))) as Partial<MiFicha>;
+  return { asesorId: typeof c.asesorId === "string" ? c.asesorId : null, libres: Array.isArray(c.libres) ? c.libres : [] };
+}
+
+/** El director dice cuál ficha del equipo es la suya. */
+export async function elegirMiFicha(asesorId: string): Promise<void> {
+  let r: Response;
+  try {
+    r = await fetch("/api/admin/mi-ficha", {
+      method: "PUT", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ asesorId }),
+    });
+  } catch {
+    throw new Error("Sin conexión: no se guardó. Vuelve a intentarlo.");
+  }
+  if (!r.ok) throw new Error(((await r.json().catch(() => ({}))) as { error?: string }).error || "No se guardó. Vuelve a intentarlo.");
+}
+
 /** «Director» o «Asesor», y si la cuenta está desactivada. */
 export const rolDe = (c: Pick<Cuenta, "role" | "active">): string => `${c.role === "admin" ? "Director" : "Asesor"}${c.active ? "" : " · sin acceso"}`;
 

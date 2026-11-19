@@ -1,4 +1,7 @@
+import type { Coincidencia } from "@/lib/backend/asuntos-contrato";
 import type { Carga, Consulta, ConsultaAbierta } from "@/lib/backend/consultas-contrato";
+
+export type { Coincidencia } from "@/lib/backend/asuntos-contrato";
 import { FalloPanel } from "@/lib/panel/asuntos/api";
 
 export * from "@/lib/backend/consultas-contrato";
@@ -30,8 +33,16 @@ export const empezarConsulta = (cuerpo: { quien_nombre?: string; persona_id?: st
 export const leerConsulta = (id: string) => pedir<{ consulta: Consulta }>(`${base}/${id}`).then((r) => r.consulta);
 export const guardarConsulta = (id: string, version: number, cambio: CambioConsulta) =>
   pedir<{ version: number }>(`${base}/${id}`, "PATCH", { version, ...cambio });
-export const abrirAsuntoDe = (id: string, version: number) =>
-  pedir<{ asunto: { id: string; folio: string } }>(`${base}/${id}/abrir`, "POST", { version }).then((r) => r.asunto);
+/**
+ * `personaId`: la ficha del Directorio que es quien llama (elegida en el aviso de persona repetida), para no crear otra;
+ * null, una ficha nueva; sin él, como esté la consulta.
+ */
+export const abrirAsuntoDe = (id: string, version: number, personaId?: string | null) =>
+  pedir<{ asunto: { id: string; folio: string } }>(`${base}/${id}/abrir`, "POST", personaId === undefined ? { version } : { version, persona_id: personaId })
+    .then((r) => r.asunto);
+/** Las fichas del Directorio que se parecen a quien llama (con lo último guardado de la consulta) y sus asuntos. */
+export const coincidenciasDe = (id: string) =>
+  pedir<{ coincidencias: Coincidencia[] }>(`${base}/${id}/coincidencias`).then((r) => r.coincidencias);
 export const cerrarComoContacto = (id: string, version: number, volver: string) =>
   pedir<{ persona_id: string }>(`${base}/${id}/cerrar`, "POST", { como: "contacto", version, volver });
 export const cerrarNoProcede = (id: string, version: number, motivo: string) =>

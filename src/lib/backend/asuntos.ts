@@ -6,7 +6,7 @@ import { COLUMNAS_INICIALES } from "./apartados-contrato";
 import { cambioColumnas, datosFila, leerApartados } from "./apartados";
 import {
   APARTADOS_DE_SIEMPRE, CADA_TAREA, CLASES_PERSONA, CLASES_TAREA, CLAVES_APARTADO, EN_QUE_VA, ESTADOS_TAREA, VISTAS,
-  type Apartado, type Asunto, type ClaveApartado, type InmuebleDelAsunto, type Encargo, type EntradaHistorial, type Etapa, type FilaAsunto,
+  type Apartado, type Asunto, type ClaveApartado, type Coincidencia, type InmuebleDelAsunto, type Encargo, type EntradaHistorial, type Etapa, type FilaAsunto,
   type PersonaDelAsunto, type PersonaDuplicada, type Siguiente, type Tarea,
 } from "./asuntos-contrato";
 import { claveCatalogo } from "./catalogos";
@@ -90,6 +90,22 @@ const COLUMNAS_FILA = "id,folio,nombre,encargos,en_que_va,en_espera,espera_hasta
 const COLUMNAS_ASUNTO = `${COLUMNAS_FILA},espera_motivo,motivo_cierre,cerrado_el,capto_id,vendio_id,viene_de,situacion,created_at`;
 
 type FilaBase = Omit<FilaAsunto, "siguiente" | "busqueda">;
+
+/**
+ * Un momento guardado (UTC) escrito con la hora de Tijuana y su desfase: «2026-11-18T21:40:00-08:00». Sigue siendo una
+ * fecha ISO válida, y sus primeros diez caracteres son el día en Tijuana (un cierre de noche no sale «mañana»).
+ */
+export function enHoraDeTijuana(momento: string | null): string | null {
+  if (!momento) return momento;
+  const d = new Date(momento);
+  if (Number.isNaN(d.getTime())) return momento;
+  const partes = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hourCycle: "h23", timeZoneName: "longOffset",
+  }).formatToParts(d).map((p) => [p.type, p.value]));
+  const desfase = /([+-]\d{2}:\d{2})/.exec(partes.timeZoneName ?? "")?.[1] ?? "+00:00";
+  return `${partes.year}-${partes.month}-${partes.day}T${partes.hour}:${partes.minute}:${partes.second}${desfase}`;
+}
 type PapelConNombre = { asunto_id: string; persona: { nombre: string } | null };
 
 async function siguientesDe(client: SupabaseClient, ids: string[]): Promise<Map<string, Siguiente>> {
@@ -160,7 +176,8 @@ export async function leerAsunto(client: SupabaseClient, id: string): Promise<As
   const base = a.data as Omit<Asunto, "siguiente" | "busqueda" | "apartados" | "personas" | "etapas" | "tareas" | "inmuebles" | "datos_consulta" | keyof typeof extra>;
   const siguientes = await siguientesDe(client, [id]);
   return {
-    ...base, siguiente: siguientes.get(id) ?? null, busqueda: [base.folio, ...personas.map((p) => p.nombre)].join(" "),
+    ...base, cerrado_el: enHoraDeTijuana(base.cerrado_el),
+    siguiente: siguientes.get(id) ?? null, busqueda: [base.folio, ...personas.map((p) => p.nombre)].join(" "),
     ...extra, apartados: ((ap.data ?? []) as Apartado[]).map((x) => ({ ...x, columnas: Array.isArray(x.columnas) ? x.columnas : [] })),
     personas, etapas: (et.data ?? []) as Etapa[], tareas, inmuebles, datos_consulta: (con.data as { datos: Record<string, unknown> } | null)?.datos ?? null,
   };
@@ -394,8 +411,63 @@ async function actualizar(client: SupabaseClient, tabla: string, asuntoId: strin
   if (!data) throw new ApiError(409, "Alguien más cambió esto. Vuelve a cargar y repite el cambio.");
 }
 
+/** El teléfono como lo guarda la base para buscarlo: lada del país y número, solo dígitos. */
+const digitosDe = (tel: { pais: string; numero: string }) => `${tel.pais.replace(/\D/g, "") || "52"}${tel.numero.replace(/\D/g, "")}`;
+
+/**
+ * Las fichas que se parecen a una persona, con la misma regla que «Agregar persona» (teléfono, luego correo) y además el
+ * nombre completo igual. Con la sesión de quien busca: solo salen las fichas y los asuntos que puede ver (RLS).
+ */
+export async function buscarCoincidencias(client: SupabaseClient, quien: { nombre?: string | null; telefonos?: { pais: string; numero: string }[]; correo?: string | null }, sin?: string | null): Promise<Coincidencia[]> {
+  type Ficha = { id: string; nombre: string; telefonos: { pais: string; numero: string }[] | null; correo: string | null; fallecida: boolean };
+  const CAMPOS = "id,nombre,telefonos,correo,fallecida";
+  const halladas = new Map<string, { ficha: Ficha; por: Set<Coincidencia["por"][number]> }>();
+  const anotar = (fichas: Ficha[], por: Coincidencia["por"][number]) => {
+    for (const f of fichas) {
+      if (f.id === sin) continue;
+      const h = halladas.get(f.id) ?? { ficha: f, por: new Set() };
+      h.por.add(por);
+      halladas.set(f.id, h);
+    }
+  };
+  const digitos = [...new Set((quien.telefonos ?? []).map(digitosDe).filter((d) => d.length >= 6))].slice(0, 5);
+  const correo = quien.correo?.trim().toLowerCase();
+  const nombre = quien.nombre?.trim().replace(/\s+/g, " ");
+  const [porTel, porCorreo, porNombre] = await Promise.all([
+    digitos.length ? client.from(T.personas).select(CAMPOS).overlaps("telefonos_normales", digitos).is("deleted_at", null).limit(10) : null,
+    correo ? client.from(T.personas).select(CAMPOS).eq("correo", correo).is("deleted_at", null).limit(10) : null,
+    // Solo un nombre de al menos dos palabras: «Juan» solo coincidiría con medio Directorio.
+    nombre && nombre.includes(" ") && nombre.length >= 5
+      ? client.from(T.personas).select(CAMPOS).ilike("nombre", nombre.replace(/[\\%_]/g, (c) => `\\${c}`)).is("deleted_at", null).limit(10) : null,
+  ]);
+  for (const [r, por] of [[porTel, "telefono"], [porCorreo, "correo"], [porNombre, "nombre"]] as const) {
+    if (!r) continue;
+    if (r.error) fallo(r.error);
+    anotar((r.data ?? []) as Ficha[], por);
+  }
+  if (!halladas.size) return [];
+
+  type PapelAsunto = { persona_id: string; papel: string; asunto: { id: string; folio: string; nombre: string; en_que_va: string; deleted_at: string | null } | null };
+  const ids = [...halladas.keys()];
+  const pa = await client.from(T.papeles).select("persona_id,papel,asunto:fortius_inmuebles_asuntos(id,folio,nombre,en_que_va,deleted_at)")
+    .in("persona_id", ids).is("retirado_el", null).limit(500);
+  if (pa.error) fallo(pa.error);
+  const papeles = ((pa.data ?? []) as unknown as PapelAsunto[]).filter((p) => p.asunto && !p.asunto.deleted_at);
+
+  const PESO = { telefono: 0, correo: 1, nombre: 2 } as const;
+  return [...halladas.values()].map(({ ficha, por }): Coincidencia => {
+    const tel = ficha.telefonos?.[0];
+    return {
+      id: ficha.id, nombre: ficha.nombre, por: [...por].sort((a, b) => PESO[a] - PESO[b]),
+      telefono: tel ? `${tel.pais} ${tel.numero}` : null, correo: ficha.correo, fallecida: ficha.fallecida,
+      asuntos: papeles.filter((p) => p.persona_id === ficha.id)
+        .map((p) => ({ id: p.asunto!.id, folio: p.asunto!.folio, nombre: p.asunto!.nombre, papel: p.papel, en_que_va: p.asunto!.en_que_va })),
+    };
+  }).sort((a, b) => PESO[a.por[0]] - PESO[b.por[0]] || b.por.length - a.por.length).slice(0, 10);
+}
+
 async function buscarDuplicada(client: SupabaseClient, tel: { pais: string; numero: string } | undefined, correo: string | undefined): Promise<PersonaDuplicada | null> {
-  const digitos = tel ? `${tel.pais.replace(/\D/g, "") || "52"}${tel.numero.replace(/\D/g, "")}` : "";
+  const digitos = tel ? digitosDe(tel) : "";
   if (digitos.length >= 6) {
     const r = await client.from(T.personas).select("id,nombre").contains("telefonos_normales", [digitos]).is("deleted_at", null).limit(1);
     if (r.error) fallo(r.error);
