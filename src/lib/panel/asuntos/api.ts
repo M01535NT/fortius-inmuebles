@@ -53,7 +53,7 @@ export const cargarEjemplos = () => pedir<{ creados: number }>(`${base}/ejemplos
 export const abrirAsunto = (nombre: string, encargos: Encargo[]) => pedir<{ asunto: { id: string; folio: string } }>(base, "POST", { nombre, encargos }).then((r) => r.asunto);
 
 export type CambioAsunto = Partial<Pick<Asunto,
-  "nombre" | "encargos" | "en_que_va" | "en_espera" | "espera_motivo" | "espera_hasta" | "resultado" | "motivo_cierre" | "responsable_id" | "situacion">>;
+  "nombre" | "encargos" | "en_que_va" | "en_espera" | "espera_motivo" | "espera_hasta" | "resultado" | "motivo_cierre" | "capto_id" | "vendio_id" | "responsable_id" | "situacion">>;
 export const cambiarAsunto = (a: Pick<Asunto, "id" | "version">, cambio: CambioAsunto) =>
   pedir<{ asunto: Asunto }>(`${base}/${a.id}`, "PATCH", { version: a.version, ...cambio }).then((r) => r.asunto);
 export const mandarAEliminados = (a: Pick<Asunto, "id" | "version">, restaurar = false) =>

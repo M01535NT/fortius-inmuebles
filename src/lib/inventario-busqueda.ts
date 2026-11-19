@@ -3,7 +3,8 @@
   (primera parte de resultados y la ruta que entrega «Cargar más») y la página (leer y escribir
   los filtros en la dirección). Así ambos filtran y ordenan exactamente igual.
 */
-import { TIPO_LABELS, type Operacion, type Property, type TipoPropiedad } from "@/data/propiedades";
+import { type Operacion, type Property, type TipoPropiedad } from "@/data/propiedades";
+import { tipoInmueble } from "@/lib/inmueble-tipos";
 import { segmentoInmueble, tiposDeSegmento, type SegmentoInmueble } from "@/lib/inmueble-segmentos";
 
 export type Orden = "recientes" | "precio-asc" | "precio-desc" | "superficie";
@@ -53,7 +54,10 @@ export function filtrosDesdeParams(p: Lector): Filtros {
   const max = /^\d{1,12}$/.test(p.get("max") ?? "") ? (p.get("max") as string) : "";
   const ordenValido = ORDENES.includes(orden as Orden) ? (orden as Orden) : "recientes";
   const usaPrecio = Boolean(min || max || ordenValido === "precio-asc" || ordenValido === "precio-desc");
-  const tipoValido = tipo && tipo in TIPO_LABELS && (!segmento || (tiposDeSegmento(segmento) as readonly string[]).includes(tipo)) ? (tipo as TipoPropiedad) : "todos";
+  // Solo un tipo de la lista: antes «in» aceptaba nombres heredados («toString», «constructor») y la
+  // lista salía vacía. Un tipo desconocido se ignora y se muestra todo, como con la zona.
+  const tipoLeido = tipoInmueble(tipo);
+  const tipoValido: TipoPropiedad | "todos" = tipoLeido && (!segmento || (tiposDeSegmento(segmento) as readonly string[]).includes(tipoLeido)) ? tipoLeido : "todos";
   return {
     operacion: op === "venta" || op === "renta" ? op : "todas",
     segmento: segmento ?? "todos",

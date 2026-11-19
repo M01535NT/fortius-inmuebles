@@ -95,7 +95,9 @@ const CASOS: Caso[] = [
 ];
 
 const dia = (dias: number) => {
-  const d = new Date(Date.now() - 8 * 3600_000); // hora de Tijuana, aproximada
+  // El día de hoy en Tijuana (con su horario de verano), a mediodía para que sumar días no cruce de fecha.
+  const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const d = new Date(`${hoy}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + dias);
   return d.toISOString().slice(0, 10);
 };

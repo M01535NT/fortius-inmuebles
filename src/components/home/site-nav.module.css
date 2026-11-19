@@ -5,7 +5,7 @@
 .onImage { color: var(--f-plata); }
 .inner { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); width: 100%; max-width: var(--s-max); height: var(--s-cabecera); margin-inline: auto; padding-inline: var(--s-gutter); box-sizing: border-box; }
 .logo { display: inline-flex; align-items: center; min-height: 44px; color: inherit; }
-.logo :global(.s-logo) { height: 28px; }
+.logo :global(.s-logo) { height: 24px; }
 .end { display: flex; align-items: center; gap: var(--s-2); }
 
 .icon, .menu { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; border: 1px solid var(--s-line-strong); border-radius: var(--s-r-pastilla); background: transparent; color: inherit; font: inherit; font-size: var(--s-type-etiqueta); font-weight: 600; letter-spacing: var(--s-track-boton); text-transform: uppercase; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
@@ -17,9 +17,14 @@
 .onImage .menu { border-color: rgba(248, 248, 255, 0.5); }
 .onImage .menu:hover { border-color: var(--s-rojo); background: var(--s-rojo); color: var(--f-plata); }
 .onImage :is(a, button):focus-visible { outline-color: var(--f-oro-brocado); }
+/* En claro la barra es blanca y opaca desde que abre la página, también sobre el video: así el logo
+   azul con rojo resalta. La película oscura del video sigue debajo, sin cambios. */
+:global(html.sitio:not(.dark)) :is(.solid, .onImage) { background: #ffffff; border-bottom-color: var(--s-line); color: var(--s-ink); }
+:global(html.sitio:not(.dark)) .onImage .menu { border-color: var(--s-line-strong); }
+:global(html.sitio:not(.dark)) .onImage :is(a, button):focus-visible { outline-color: var(--s-foco); }
 
 @media (max-width: 639px) {
-  .logo :global(.s-logo) { height: 24px; }
+  .logo :global(.s-logo) { height: 22px; }
   .end { gap: var(--s-1); }
 }
 @media (prefers-reduced-motion: reduce) {

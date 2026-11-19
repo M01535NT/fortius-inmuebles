@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import { formatPrecio, OPERACION_LABELS, TIPO_LABELS, type Property } from "@/data/propiedades";
 import { productionOrigin, siteConfig } from "@/data/site";
+import { unirUbicacion } from "@/data/zonas";
 
 export function propertyShare(p: Property) {
   const configured = new URL(siteConfig.url);
   const origin = ["localhost", "127.0.0.1", "[::1]"].includes(configured.hostname) ? productionOrigin : configured.origin;
   const url = new URL(`/inventario/${encodeURIComponent(p.slug)}`, origin).href;
   const title = `${p.titulo} · ${OPERACION_LABELS[p.operacion]} | Fortius Inmuebles`;
-  const details = [p.ficha.recamaras != null ? `${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}` : "", p.ficha.banos != null ? `${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}` : "", p.ficha.construccionM2 != null ? `${p.ficha.construccionM2} m² de construcción` : ""].filter(Boolean);
-  const text = `${p.demo ? "Propiedad de demostración. " : ""}${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()} · ${p.zona} · ${formatPrecio(p.precio)}${details.length ? ` · ${details.join(" · ")}` : ""}.`;
+  // Misma regla que la ficha: 0 recámaras o baños no se anuncian.
+  const details = [p.ficha.recamaras ? `${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}` : "", p.ficha.banos ? `${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}` : "", p.ficha.construccionM2 != null ? `${p.ficha.construccionM2} m² de construcción` : ""].filter(Boolean);
+  const zona = unirUbicacion(p.zona);
+  const text = `${p.demo ? "Propiedad de demostración. " : ""}${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()}${zona ? ` · ${zona}` : ""} · ${formatPrecio(p.precio)}${details.length ? ` · ${details.join(" · ")}` : ""}.`;
   return { title, text, url, image: `${url}/imagen-social` };
 }
 

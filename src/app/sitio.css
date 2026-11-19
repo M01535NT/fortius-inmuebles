@@ -101,7 +101,7 @@ html.sitio {
   --s-seccion: clamp(80px, 8vw, 128px);
   --s-gutter: clamp(20px, 4.4vw, 64px);
   --s-max: 1440px;
-  --s-cabecera: 72px;
+  --s-cabecera: 60px;
 
   /* Esquinas: rectas en todo, sin excepción (radius-0 del sistema). */
   --s-r-grande: 0px;

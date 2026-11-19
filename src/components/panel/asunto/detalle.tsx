@@ -22,6 +22,7 @@ import { Cuadro, Pildora } from "./pildora";
 import { useAsuntos } from "./proveedor";
 import { anotarReciente, quitarReciente } from "./recientes";
 import { DialogoTexto, useAngosto, Ventana } from "./ventana";
+import { DialogoCierre } from "./cierre";
 import { ContenidoApartado, iconoPropio, nombreApartado, resumenApartado } from "./apartados";
 import { NotasDelAsunto, type FiltroNotas } from "./notas";
 import { faltaCobrar } from "./honorarios";
@@ -54,7 +55,7 @@ const POSPONER = [["Mañana", 1], ["En 3 días", 3], ["En una semana", 7], ["En 
 
 /** El asunto abierto (boceto): folio, en qué va, Nuevo, ⋯, nombre, encargos, quién lo lleva, lo que sigue y los apartados. */
 export function DetalleAsunto({ id }: { id: string }) {
-  const { ponerFila, recargar, equipo, nombreDe } = useAsuntos();
+  const { ponerFila, recargar, equipo, companeros, nombreDe } = useAsuntos();
   const director = useSession()?.role === "admin";
   const { avisar } = useAvisos();
   const router = useRouter();
@@ -268,6 +269,9 @@ export function DetalleAsunto({ id }: { id: string }) {
         </div>
         {a.en_espera && a.espera_motivo ? <p className="as-m">{a.espera_motivo}</p> : null}
         {cerrado && a.motivo_cierre ? <p className="as-m">{a.motivo_cierre}</p> : null}
+        {cerrado && (a.capto_id || a.vendio_id) ? (
+          <p className="as-m">{[a.capto_id ? `Captó ${nombreDe(a.capto_id)}` : "", a.vendio_id ? `Vendió ${nombreDe(a.vendio_id)}` : ""].filter(Boolean).join(" · ")}</p>
+        ) : null}
       </div>
 
       {cerrado ? (
@@ -411,9 +415,14 @@ export function DetalleAsunto({ id }: { id: string }) {
       <DialogoTexto abierto={dialogo === "espera"} titulo="Poner en espera" etiqueta="Por qué" opcional fecha={{ etiqueta: "Retomar el", inicial: sumarDias(14) }}
         ayuda="Mientras espera no cuenta como atrasado." alCerrar={() => setDialogo(null)}
         alGuardar={(t, f) => cambio({ en_espera: true, espera_motivo: t || null, espera_hasta: f ?? null }, "En espera", { en_espera: false })} />
-      <DialogoTexto abierto={dialogo === "cierre-se_logro" || dialogo === "cierre-no_se_dio"} titulo={dialogo === "cierre-no_se_dio" ? "Cerrar: no se dio" : "Cerrar: se logró"}
-        etiqueta="Motivo" opcional alCerrar={() => setDialogo(null)}
-        alGuardar={(t) => cambio({ en_que_va: "cerrado", resultado: dialogo === "cierre-no_se_dio" ? "no_se_dio" : "se_logro", motivo_cierre: t || null }, "Asunto cerrado", { en_que_va: a.en_que_va })} />
+      <DialogoCierre abierto={dialogo === "cierre-se_logro" || dialogo === "cierre-no_se_dio"} titulo={dialogo === "cierre-no_se_dio" ? "Cerrar: no se dio" : "Cerrar: se logró"}
+        equipo={companeros.length ? companeros : equipo} capto={a.capto_id} vendio={a.vendio_id} alCerrar={() => setDialogo(null)}
+        alGuardar={(d) => cambio(
+          { en_que_va: "cerrado", resultado: dialogo === "cierre-no_se_dio" ? "no_se_dio" : "se_logro", motivo_cierre: d.motivo, capto_id: d.capto_id, vendio_id: d.vendio_id },
+          "Asunto cerrado",
+          // Deshacer deja el asunto como estaba: sin motivo de cierre y con quien captó y vendió de antes.
+          { en_que_va: a.en_que_va, motivo_cierre: null, capto_id: a.capto_id, vendio_id: a.vendio_id },
+        )} />
       <DialogoTexto abierto={dialogo === "propio"} titulo="Apartado propio" etiqueta="Nombre" maximo={80}
         eleccion={{ etiqueta: "Cómo se ve", opciones: (["lista", "tabla", "galeria", "texto"] as const).map((v) => ({ valor: v, etiqueta: NOMBRE_VISTA[v] })) }}
         ayuda="Renglones que se marcan, una tabla con columnas, tarjetas con foto o notas largas. La vista se cambia después sin perder nada."

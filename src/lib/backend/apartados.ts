@@ -654,35 +654,41 @@ export async function hacerRecibo(client: SupabaseClient, user: StaffUser, asunt
   const asunto = a.data as { folio: string; nombre: string };
   const cobro = c.data as Cobro & { recibo_documento_id: string | null };
   if (cobro.recibo_documento_id) return { documento_id: cobro.recibo_documento_id };
-  const [persona, inmueble, concepto, previos] = await Promise.all([
+  const [persona, inmueble, concepto] = await Promise.all([
     cobro.paga_persona_id ? client.from(T.personas).select("nombre").eq("id", cobro.paga_persona_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
     cobro.inmueble_id ? client.from("fortius_inmuebles_inmuebles").select("nombre,colonia,ciudad").eq("id", cobro.inmueble_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
     cobro.concepto_id ? client.from(T.conceptos).select("concepto").eq("id", cobro.concepto_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
-    client.from(T.documentos).select("id", { count: "exact", head: true }).eq("asunto_id", asuntoId).eq("es_recibo", true),
   ]);
   for (const r of [persona, inmueble, concepto]) if (r.error) fallo(r.error);
-  const n = (previos.count ?? 0) + 1;
-  const numero = `${asunto.folio}-R${String(n).padStart(2, "0")}`;
-  const inm = inmueble.data as { nombre: string; colonia: string | null; ciudad: string | null } | null;
-  const { importePromesaLetra } = await import("@/lib/formatos/promesa");
-  let letra = "";
-  try { letra = importePromesaLetra(Number(cobro.monto), cobro.moneda); } catch { /* fuera de rango: queda en blanco */ }
-  const datos: Record<string, unknown> = {
-    numeroRecibo: numero, fechaPago: cobro.fecha, pagador: (persona.data as { nombre?: string } | null)?.nombre ?? "",
-    importeRecibido: Number(cobro.monto), moneda: cobro.moneda, importeLetra: letra,
-    concepto: (concepto.data as { concepto?: string } | null)?.concepto ?? "honorarios",
-    inmueble: inm ? [inm.nombre, inm.colonia, inm.ciudad].filter(Boolean).join(", ") : "", folio: asunto.folio,
-    medioPago: { transferencia: "Transferencia", efectivo: "Efectivo", cheque: "Cheque", tarjeta: "Tarjeta", otro: "Otro" }[cobro.forma],
-  };
-  const { createFormatoPdf } = await import("@/lib/formatos/pdf");
-  const bytes = await createFormatoPdf("18", datos, [], { incompleto: true });
+  // El número lo reserva la base al crear el renglón (consecutivo por asunto, sin repetirse aunque se hagan dos a la vez);
+  // también le pone el nombre «Recibo FOLIO-R01».
   const orden = await siguienteOrden(client, T.documentos, { asunto_id: asuntoId });
-  const doc = await insertar(client, T.documentos, {
-    asunto_id: asuntoId, nombre: `Recibo ${numero}`, grupo: "Honorarios", estado: "recibido", origen: "formato", paso: "borrador",
+  const doc = await insertar<{ id: string; recibo_numero: number; version: number }>(client, T.documentos, {
+    asunto_id: asuntoId, nombre: "Recibo", grupo: "Honorarios", estado: "recibido", origen: "formato", paso: "borrador",
     es_recibo: true, inmueble_id: cobro.inmueble_id, orden, creado_por: user.id,
-  });
-  await guardarArchivo(createServerClient(undefined, true), asuntoId, doc.id, { bytes, mime: "application/pdf", ext: "pdf", nombre: `Recibo-${numero}.pdf` }, user.id);
-  await actualizar(client, T.cobros, asuntoId, cobro.id, cobro.version, { recibo_documento_id: doc.id });
+  }, "id,recibo_numero,version");
+  const numero = `${asunto.folio}-R${String(doc.recibo_numero).padStart(2, "0")}`;
+  try {
+    const inm = inmueble.data as { nombre: string; colonia: string | null; ciudad: string | null } | null;
+    const { importePromesaLetra } = await import("@/lib/formatos/promesa");
+    let letra = "";
+    try { letra = importePromesaLetra(Number(cobro.monto), cobro.moneda); } catch { /* fuera de rango: queda en blanco */ }
+    const datos: Record<string, unknown> = {
+      numeroRecibo: numero, fechaPago: cobro.fecha, pagador: (persona.data as { nombre?: string } | null)?.nombre ?? "",
+      importeRecibido: Number(cobro.monto), moneda: cobro.moneda, importeLetra: letra,
+      concepto: (concepto.data as { concepto?: string } | null)?.concepto ?? "honorarios",
+      inmueble: inm ? [inm.nombre, inm.colonia, inm.ciudad].filter(Boolean).join(", ") : "", folio: asunto.folio,
+      medioPago: { transferencia: "Transferencia", efectivo: "Efectivo", cheque: "Cheque", tarjeta: "Tarjeta", otro: "Otro" }[cobro.forma],
+    };
+    const { createFormatoPdf } = await import("@/lib/formatos/pdf");
+    const bytes = await createFormatoPdf("18", datos, [], { incompleto: true });
+    await guardarArchivo(createServerClient(undefined, true), asuntoId, doc.id, { bytes, mime: "application/pdf", ext: "pdf", nombre: `Recibo-${numero}.pdf` }, user.id);
+    await actualizar(client, T.cobros, asuntoId, cobro.id, cobro.version, { recibo_documento_id: doc.id });
+  } catch (e) {
+    // Si no se terminó (o el cobro ya tenía su recibo hecho en otra ventana), el renglón va a Eliminados: recuperable.
+    await client.from(T.documentos).update({ deleted_at: ahora() }).eq("id", doc.id).eq("asunto_id", asuntoId);
+    throw e;
+  }
   return { documento_id: doc.id };
 }
 
