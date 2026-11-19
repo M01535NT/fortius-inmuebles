@@ -58,6 +58,9 @@ create table public.fortius_inmuebles_catalogo_valores (
   unique (catalogo, clave)
 );
 create index on public.fortius_inmuebles_catalogo_valores (catalogo, orden);
+-- Dos valores con el mismo nombre en una lista no caben, aunque dos personas los agreguen a la vez (el panel responde 409).
+create unique index fortius_inmuebles_catalogo_valores_nombre_unico
+  on public.fortius_inmuebles_catalogo_valores (catalogo, lower(etiqueta));
 alter table public.fortius_inmuebles_catalogo_valores enable row level security;
 revoke all on public.fortius_inmuebles_catalogo_valores from anon, authenticated;
 grant select on public.fortius_inmuebles_catalogo_valores to authenticated;
@@ -177,11 +180,24 @@ revoke all on function public.fortius_inmuebles_catalogo_significado(text, text)
 grant execute on function public.fortius_inmuebles_catalogo_significado(text, text) to authenticated, service_role;
 
 -- Reordenar una lista: los valores en el orden dado; los que no vengan quedan después, como estaban. Solo el director.
-create function public.fortius_inmuebles_ordenar_catalogo(p_catalogo text, p_ids uuid[]) returns void
+-- Con las versiones que vio quien reordena (en el mismo orden que p_ids): si alguno cambió mientras, 409 y nada se mueve.
+create function public.fortius_inmuebles_ordenar_catalogo(p_catalogo text, p_ids uuid[], p_versiones bigint[] default null) returns void
 language plpgsql security invoker set search_path = '' as $$
 begin
   if not public.fortius_inmuebles_is_admin() then
     raise sqlstate 'PT403' using message = 'Solo el director cambia las listas';
+  end if;
+  -- La lista entera queda apartada mientras se reordena: dos reordenamientos a la vez no se mezclan.
+  perform 1 from public.fortius_inmuebles_catalogo_valores where catalogo = p_catalogo order by id for update;
+  if p_versiones is not null then
+    if cardinality(p_versiones) <> cardinality(p_ids) then
+      raise sqlstate '22023' using message = 'Faltan las versiones del orden';
+    end if;
+    if exists (select 1 from unnest(p_ids, p_versiones) u(id, ver)
+                 join public.fortius_inmuebles_catalogo_valores v on v.id = u.id
+                where v.catalogo = p_catalogo and v.version <> u.ver) then
+      raise sqlstate 'PT409' using message = 'Alguien más cambió esta lista; vuelve a cargar';
+    end if;
   end if;
   update public.fortius_inmuebles_catalogo_valores v
      set orden = n.nuevo
@@ -189,8 +205,8 @@ begin
             from public.fortius_inmuebles_catalogo_valores x where x.catalogo = p_catalogo) n
    where v.id = n.id and v.orden <> n.nuevo;
 end; $$;
-revoke all on function public.fortius_inmuebles_ordenar_catalogo(text, uuid[]) from public, anon;
-grant execute on function public.fortius_inmuebles_ordenar_catalogo(text, uuid[]) to authenticated, service_role;
+revoke all on function public.fortius_inmuebles_ordenar_catalogo(text, uuid[], bigint[]) from public, anon;
+grant execute on function public.fortius_inmuebles_ordenar_catalogo(text, uuid[], bigint[]) to authenticated, service_role;
 
 -- ── Las listas con que empieza (los valores que Fortius usa hoy) ─────────────────────────────────────
 insert into public.fortius_inmuebles_catalogos (clave, nombre, ayuda, orden, fijo, significado_nombre, significados, padre, en_pantalla) values
@@ -202,7 +218,7 @@ insert into public.fortius_inmuebles_catalogos (clave, nombre, ayuda, orden, fij
      '[{"clave":"logrado","etiqueta":"Se logró"},{"clave":"no_logrado","etiqueta":"No se logró"}]', null, true),
   ('motivo_no_procede', 'Motivos de «no procede»', 'Por qué una consulta no se volvió asunto.', 60, false, null, '[]', null, false),
   ('papel', 'Papeles de las personas', 'El papel de cada persona en un asunto. Su lado es el grupo en que sale en Personas.', 70, false, 'De qué lado',
-     '[{"clave":"busca","etiqueta":"De quien nos busca"},{"clave":"cliente","etiqueta":"Del lado del cliente"},{"clave":"otro","etiqueta":"Del otro lado"},{"clave":"apoyo","etiqueta":"De apoyo"}]', null, true),
+     '[{"clave":"busca","etiqueta":"Quien nos busca"},{"clave":"cliente","etiqueta":"Dueños y herederos"},{"clave":"otro","etiqueta":"Del otro lado"},{"clave":"apoyo","etiqueta":"Quienes ayudan"}]', null, true),
   ('fuente', 'Fuentes de llegada', 'Por dónde llegó la consulta.', 80, false, null, '[]', null, true),
   ('estado_tarea', 'Cómo va una tarea', 'El panel depende de esta lista: se renombra, no se le quitan ni agregan valores.', 90, true, null, '[]', null, true),
   ('quien_tarea', 'Quién hace una tarea', 'De quién depende una tarea del plan.', 95, false, null, '[]', null, true),
@@ -250,17 +266,17 @@ select catalogo, clave, etiqueta, orden, significado, padre, de_sistema, true, e
     ('motivo_no_procede', 'no_quiso', 'No quiso seguir', 30, null, null, false),
     ('motivo_no_procede', 'sin_respuesta', 'Ya no contestó', 40, null, null, false),
     ('motivo_no_procede', 'otro', 'Otro', 50, null, null, false),
-    -- Papeles, con su lado. «Contacto», «Propietario» y «Comprador» los pone la consulta a quien llama. El vendedor
-    -- es del otro lado: cuando Fortius lleva la compra, quien vende es la contraparte del cliente.
+    -- Papeles, con su lado: el grupo en que salen hoy en Personas. El director cambia el lado de un papel en Catálogos.
+    -- «Contacto», «Propietario» y «Comprador» los pone la consulta a quien llama.
     ('papel', 'contacto', 'Contacto', 10, 'busca', null, true),
     ('papel', 'propietario', 'Propietario', 20, 'cliente', null, true),
     ('papel', 'titular', 'Titular', 30, 'cliente', null, false),
     ('papel', 'heredero', 'Heredero', 40, 'cliente', null, false),
     ('papel', 'copropietario', 'Copropietario', 50, 'cliente', null, false),
-    ('papel', 'comprador', 'Comprador', 60, 'cliente', null, false),
-    ('papel', 'inversionista', 'Inversionista', 70, 'cliente', null, false),
-    ('papel', 'vendedor', 'Vendedor', 80, 'otro', null, false),
-    ('papel', 'inquilino', 'Inquilino', 90, 'otro', null, false),
+    ('papel', 'comprador', 'Comprador', 60, 'otro', null, false),
+    ('papel', 'vendedor', 'Vendedor', 70, 'cliente', null, false),
+    ('papel', 'inquilino', 'Inquilino', 80, 'otro', null, false),
+    ('papel', 'inversionista', 'Inversionista', 90, 'otro', null, false),
     ('papel', 'contraparte', 'Contraparte', 100, 'otro', null, false),
     ('papel', 'apoderado', 'Apoderado', 110, 'apoyo', null, false),
     ('papel', 'abogado', 'Abogado', 120, 'apoyo', null, false),

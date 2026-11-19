@@ -4,7 +4,8 @@ import { z } from "zod";
 
 import { cambioColumnas } from "./apartados";
 import { VISTAS, type Quien } from "./asuntos-contrato";
-import { claveCatalogo } from "./catalogos";
+import { claveCatalogo, mapaCatalogos } from "./catalogos";
+import { etiquetaDe, ofrecidos } from "./catalogos-contrato";
 import { fallo } from "./fallo";
 import {
   CLASES_BIBLIOTECA, type ClaseBiblioteca, type EtapaGuia, type Guia, type ResultadoCopia,
@@ -27,8 +28,6 @@ const T = {
 } as const;
 
 const COLUMNAS = "id,clase,nombre,descripcion,contenido,revisado_abogado,es_ejemplo,version,creado_por,updated_at";
-const hoy = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-const masDias = (dias: number) => { const d = new Date(`${hoy()}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + dias); return d.toISOString().slice(0, 10); };
 const entreDias = (de: string, a: string) => Math.round((Date.parse(`${a}T12:00:00Z`) - Date.parse(`${de}T12:00:00Z`)) / 86_400_000);
 
 // ── Validación ───────────────────────────────────────────────────────────────────────────────────────
@@ -66,6 +65,24 @@ function contenidoValido(clase: ClaseBiblioteca, contenido: unknown) {
   return r.data as Record<string, unknown>;
 }
 
+const quienesDe = (contenido: unknown): string[] => {
+  const r = etapas.safeParse(contenido);
+  return r.success ? r.data.etapas.flatMap((e) => e.tareas.map((t) => t.quien)) : [];
+};
+
+/**
+ * Quién hace cada tarea de una guía tiene que ofrecerse en «Quién hace una tarea»; lo que la guía ya tenía se conserva
+ * aunque se haya desactivado (desactivar no borra).
+ */
+async function revisarQuien(client: SupabaseClient, contenido: Record<string, unknown>, previo?: unknown) {
+  const quienes = quienesDe(contenido);
+  if (!quienes.length) return;
+  const catalogo = (await mapaCatalogos(client)).quien_tarea;
+  const valen = new Set([...ofrecidos(catalogo).map((v) => v.clave), ...quienesDe(previo)]);
+  const malo = quienes.find((q) => !valen.has(q));
+  if (malo) throw new ApiError(400, `«${etiquetaDe(catalogo, malo)}» ya no se ofrece en «Quién hace una tarea». Elige otro.`);
+}
+
 const conPermiso = (user: StaffUser) => (g: Omit<Guia, "editable">): Guia => ({ ...g, editable: user.role === "admin" || g.creado_por === user.id });
 
 // ── Lectura ──────────────────────────────────────────────────────────────────────────────────────────
@@ -90,7 +107,12 @@ async function insertar(client: SupabaseClient, user: StaffUser, clase: ClaseBib
 }
 
 export async function crearGuia(client: SupabaseClient, user: StaffUser, e: z.infer<typeof nuevaGuiaSchema>): Promise<Guia> {
-  if ("clase" in e) return insertar(client, user, e.clase, e.nombre, contenidoValido(e.clase, e.contenido), e.descripcion ?? "");
+  if ("clase" in e) {
+    const contenido = contenidoValido(e.clase, e.contenido);
+    if (e.clase === "que_hacer") await revisarQuien(client, contenido);
+    return insertar(client, user, e.clase, e.nombre, contenido, e.descripcion ?? "");
+  }
+  // Guardar el plan de un asunto copia lo que el asunto tiene, también lo que ya no se ofrece.
   if ("plan" in e) return insertar(client, user, "que_hacer", e.nombre, contenidoValido("que_hacer", await planDelAsunto(client, e.desde_asunto, e.nombre)));
   const r = await client.from(T.apartados).select("nombre,vista,columnas").eq("id", e.apartado_id).eq("asunto_id", e.desde_asunto).eq("clave", "propio").is("deleted_at", null).maybeSingle();
   if (r.error) fallo(r.error);
@@ -124,10 +146,13 @@ export async function cambiarGuia(client: SupabaseClient, user: StaffUser, id: s
   if (quitar) Object.assign(cambios, { deleted_at: new Date().toISOString(), deleted_by: user.id });
   if (restaurar) Object.assign(cambios, { deleted_at: null, deleted_by: null });
   if (contenido) {
-    const r = await client.from(T.biblioteca).select("clase").eq("id", id).maybeSingle();
+    const r = await client.from(T.biblioteca).select("clase,contenido").eq("id", id).maybeSingle();
     if (r.error) fallo(r.error);
     if (!r.data) throw new ApiError(404, "Esa guía ya no está en la Biblioteca.");
-    cambios.contenido = contenidoValido((r.data as { clase: ClaseBiblioteca }).clase, contenido);
+    const actual = r.data as { clase: ClaseBiblioteca; contenido: unknown };
+    const nuevo = contenidoValido(actual.clase, contenido);
+    if (actual.clase === "que_hacer") await revisarQuien(client, nuevo, actual.contenido);
+    cambios.contenido = nuevo;
   }
   if (!Object.keys(cambios).length) throw new ApiError(400, "No hay nada que cambiar.");
   const { data, error } = await client.from(T.biblioteca).update(cambios).eq("id", id).eq("version", v).select(COLUMNAS).maybeSingle();
@@ -165,28 +190,11 @@ export async function copiarAlAsunto(client: SupabaseClient, user: StaffUser, id
     }
     agregados = nuevos.length;
   } else if (g.clase === "que_hacer") {
-    const c = etapas.parse(g.contenido);
-    let ordenEtapa = await siguienteOrden(client, T.etapas, { asunto_id: asuntoId });
-    let ordenTarea = await siguienteOrden(client, T.tareas, { asunto_id: asuntoId });
-    for (const e of c.etapas) {
-      const r = await client.from(T.etapas).insert({
-        asunto_id: asuntoId, nombre: e.nombre, orden: ordenEtapa, biblioteca_id: g.id, biblioteca_version: g.version, creado_por: user.id,
-      }).select("id").single();
-      if (r.error) fallo(r.error);
-      ordenEtapa += 10;
-      if (!e.tareas.length) continue;
-      const etapaId = (r.data as { id: string }).id;
-      const { error } = await client.from(T.tareas).insert(e.tareas.map((t) => {
-        const fila = {
-          asunto_id: asuntoId, etapa_id: etapaId, titulo: t.titulo, quien: t.quien, fecha: t.dias === null || t.dias === undefined ? null : masDias(t.dias),
-          responsable_id: user.id, orden: ordenTarea, creado_por: user.id,
-        };
-        ordenTarea += 10;
-        return fila;
-      }));
-      if (error) fallo(error);
-      agregados += e.tareas.length;
-    }
+    // La base copia etapas, tareas y la nota del historial todo junto (si algo falla, no queda nada a medias) y conserva
+    // quién hace cada tarea tal como lo dice la guía, aunque ese valor ya no se ofrezca.
+    const r = await client.rpc("fortius_inmuebles_copiar_plan_de_guia", { p_guia: g.id, p_asunto: asuntoId });
+    if (r.error) fallo(r.error);
+    return { agregados: Number(r.data ?? 0), repetidos: 0, nombre: g.nombre };
   } else {
     const c = apartado.parse(g.contenido);
     const orden = 75 + (await siguienteOrden(client, T.apartados, { asunto_id: asuntoId, clave: "propio" })) / 1000;

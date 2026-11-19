@@ -699,7 +699,8 @@ export const continuarSchema = z.object({ nombre: z.string().trim().max(160).opt
 /** Copia personas, inmuebles y documentos con sus archivos. Los archivos se copian en el almacén para que cada asunto tenga los suyos. */
 export async function continuarAsunto(client: SupabaseClient, user: StaffUser, asuntoId: string, e: z.infer<typeof continuarSchema>,
   apartadosPara: (encargos: string[]) => string[]): Promise<{ id: string; folio: string }> {
-  const r = await client.rpc("fortius_inmuebles_continuar_asunto", { p_asunto: asuntoId, p_nombre: e.nombre ?? null, p_encargos: e.encargos ?? null });
+  // Conserva los papeles y encargos del asunto original aunque ya no se ofrezcan; un encargo nuevo sí tiene que ofrecerse.
+  const r = await client.rpc("fortius_inmuebles_continuar_asunto_conservando", { p_asunto: asuntoId, p_nombre: e.nombre ?? null, p_encargos: e.encargos ?? null });
   if (r.error) fallo(r.error);
   const nuevo = r.data as { id: string; folio: string; documentos: Record<string, string> };
   // Los apartados del asunto de antes que estaban a la vista, más los que pide lo encargado.

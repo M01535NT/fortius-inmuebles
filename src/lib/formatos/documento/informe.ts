@@ -37,7 +37,8 @@ export type MaterialInforme = {
   /** El párrafo de «En qué va» que el sistema propone. */
   propuesta: string;
   hecho: (Renglon & { fecha: string | null })[];
-  sigue: (Renglon & { fecha: string | null; hora: string | null; quien: Quien })[];
+  /** `quien_nombre`: cómo se llama hoy en «Quién hace una tarea» (al cliente se le dice «Usted»). */
+  sigue: (Renglon & { fecha: string | null; hora: string | null; quien: Quien; quien_nombre?: string })[];
   /** Documentos por entregar, con quién los entrega (persona o papel) para mostrar solo los del destinatario. */
   faltan: (Renglon & { persona_id: string | null; papel: string | null })[];
   /** Tareas pendientes que le tocan al cliente. */
@@ -49,9 +50,9 @@ export type MaterialInforme = {
   cada: CadaInforme | null;
 };
 
-const QUIEN: Partial<Record<Quien, string>> = { fortius: "Fortius", cliente: "Usted", abogado: "El abogado", notaria: "La notaría", otro: "Otra persona" };
-/** Un «quién» que el director agregó en Catálogos sale con su clave escrita en bonito («Perito» de «perito»). */
-const quienDe = (q: Quien) => QUIEN[q] ?? (q ? q.charAt(0).toUpperCase() + q.slice(1).replace(/_/g, " ") : "");
+/** El nombre lo pone el servidor desde el catálogo; si no llegó, la clave escrita en bonito («Perito» de «perito»). */
+const quienDe = (x: { quien: Quien; quien_nombre?: string }) =>
+  x.quien === "cliente" ? "Usted" : x.quien_nombre || (x.quien ? x.quien.charAt(0).toUpperCase() + x.quien.slice(1).replace(/_/g, " ") : "");
 const cuando = (f: string | null, hora?: string | null) => (f ? `${fecha(f)}${hora ? `, ${hora}` : ""}` : "Por definir");
 
 /** Las opciones con las que abre la pantalla: al primer cliente, con todo menos el dinero. */
@@ -100,7 +101,7 @@ export function informeDocumento(m: MaterialInforme, o: OpcionesInforme): Docume
   if (c.hecho.length) blocks.push(seccion(NOMBRE_PARTE.hecho),
     { kind: "table", widths: [7400, ANCHO - 7400], header: ["Qué se hizo", "Cuándo"], rows: c.hecho.map((x) => [x.texto, x.fecha ? fecha(x.fecha) : ""]) });
   if (c.sigue.length) blocks.push(seccion(NOMBRE_PARTE.sigue),
-    { kind: "table", widths: [5200, 2300, ANCHO - 7500], header: ["Qué sigue", "Quién", "Cuándo"], rows: c.sigue.map((x) => [x.texto, quienDe(x.quien), cuando(x.fecha, x.hora)]) });
+    { kind: "table", widths: [5200, 2300, ANCHO - 7500], header: ["Qué sigue", "Quién", "Cuándo"], rows: c.sigue.map((x) => [x.texto, quienDe(x), cuando(x.fecha, x.hora)]) });
   if (c.falta.length) blocks.push(seccion(NOMBRE_PARTE.falta),
     { kind: "table", widths: [ANCHO], header: ["Para seguir avanzando le pedimos"], rows: c.falta.map((x) => [x.texto]) });
   if (c.actividad.length) blocks.push(seccion(NOMBRE_PARTE.actividad),
@@ -121,7 +122,7 @@ export function informeTexto(m: MaterialInforme, o: OpcionesInforme): string {
   const c = contenidoInforme(m, o);
   const partes: string[] = [`*Informe de avance · ${m.asunto}*\n${fecha(m.hoy)} · ${m.folio}`, `*En qué va*\n${c.en_que_va}`];
   if (c.hecho.length) partes.push(`*${NOMBRE_PARTE.hecho}*\n${c.hecho.map((x) => `• ${x.texto}${x.fecha ? ` (${fecha(x.fecha)})` : ""}`).join("\n")}`);
-  if (c.sigue.length) partes.push(`*${NOMBRE_PARTE.sigue}*\n${c.sigue.map((x) => `• ${x.texto} · ${quienDe(x.quien)} · ${cuando(x.fecha, x.hora)}`).join("\n")}`);
+  if (c.sigue.length) partes.push(`*${NOMBRE_PARTE.sigue}*\n${c.sigue.map((x) => `• ${x.texto} · ${quienDe(x)} · ${cuando(x.fecha, x.hora)}`).join("\n")}`);
   if (c.falta.length) partes.push(`*${NOMBRE_PARTE.falta}*\n${c.falta.map((x) => `• ${x.texto}`).join("\n")}`);
   if (c.actividad.length) partes.push(`*${NOMBRE_PARTE.actividad}*\n${c.actividad.map((x) =>
     `• ${x.texto} (${x.estado.toLowerCase()}): ${x.preguntaron} preguntaron, ${x.visitas} visitas${x.ofertas.length ? `, ofertas: ${x.ofertas.join("; ")}` : ", sin ofertas"}`).join("\n")}`);

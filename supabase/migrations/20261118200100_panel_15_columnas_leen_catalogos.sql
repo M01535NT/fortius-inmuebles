@@ -3,7 +3,13 @@
 --  · El valor tiene que existir en su catálogo (activo o no). Eso cuida la base como antes lo hacía la lista.
 --  · Lo que la persona escribe desde el panel tiene que ser un valor que se ofrece (activo, o de los iniciales si la
 --    lista se quedó vacía). Si la fila ya lo tenía, se conserva aunque se haya desactivado: desactivar no borra.
---  · Lo que copia la propia base de un asunto a otro (continuar un asunto, unir fichas) conserva lo que ya tenía.
+--  · «La persona» es cualquier escritura hecha con la sesión de alguien del equipo: directa desde el panel o dentro de
+--    una función de la base que el equipo llama (crear un inmueble, continuar un asunto, abrir desde la consulta). Lo
+--    que escribe sin sesión (el sitio, las tareas programadas, el servidor con su llave) solo tiene que existir.
+--  · Una copia conserva lo que traía el original aunque se haya desactivado: la siguiente vez de una tarea que se
+--    repite, un punto de la opinión que pasa al plan, continuar un asunto, unir fichas, copiar una guía, lo que ya venía
+--    en la consulta al abrir el asunto, y los casos de ejemplo. Las funciones que copian lo avisan con una marca que
+--    dura solo esa operación; las demás copias se reconocen por su original.
 -- Columnas: asuntos (encargos, en qué va, resultado), inmuebles ligados (resultado), personas del asunto (papel),
 -- tareas (cómo va y quién la hace), puntos de la opinión jurídica (quién lo hace), inmuebles (tipo) y consultas (por dónde llegó, el tipo de inmueble y el papel de las otras personas).
 -- Los datos de prueba que ya hay usan solo valores de la lista: nada que corregir.
@@ -15,7 +21,41 @@ select pg_advisory_xact_lock(781023);
 -- ── La revisión ──────────────────────────────────────────────────────────────────────────────────────
 -- Uso: before insert or update ... execute function fortius_inmuebles_valida_catalogos('papel', 'papel', ...)
 -- (pares catálogo, columna; la columna puede ser texto o una lista de texto).
--- Es «security invoker» a propósito: así sabe si escribe la persona (rol authenticated) o una función de la base.
+-- Quién escribe lo dice la sesión (auth.uid()), no el rol: así cuenta también lo que pasa por una función de la base.
+
+-- ¿Esta fila es una copia que conserva lo del original? (ver arriba). Solo responde sí o no.
+create function public.fortius_inmuebles_catalogo_conserva(p_tabla text, p_fila jsonb, p_col text, p_valor text) returns boolean
+language plpgsql stable security definer set search_path = '' as $$
+declare
+  asunto uuid;
+  de text;
+begin
+  -- Marca de las funciones que copian (continuar un asunto, unir fichas, copiar una guía, abrir desde la consulta).
+  if coalesce(current_setting('fortius_inmuebles.conserva_catalogos', true), '') = 'on' then return true; end if;
+  -- Los casos de ejemplo conservan lo que trae el ejemplo.
+  if coalesce(p_fila ->> 'es_ejemplo', '') = 'true' then return true; end if;
+  if coalesce(p_fila ->> 'asunto_id', '') ~ '^[0-9a-f-]{36}$' then
+    asunto := (p_fila ->> 'asunto_id')::uuid;
+    if exists (select 1 from public.fortius_inmuebles_asuntos a where a.id = asunto and a.es_ejemplo) then return true; end if;
+  end if;
+  if p_tabla = 'fortius_inmuebles_tareas' then
+    -- La siguiente vez de una tarea que se repite: lo que tenía la anterior.
+    de := p_fila -> 'repetir' ->> 'de';
+    if coalesce(de, '') ~ '^[0-9a-f-]{36}$' and exists (
+         select 1 from public.fortius_inmuebles_tareas t where t.id = de::uuid and to_jsonb(t) -> p_col = to_jsonb(p_valor)) then
+      return true;
+    end if;
+    -- Un punto de la opinión jurídica que pasa al plan: quién lo hace, como en el punto.
+    if p_col = 'quien' and p_fila ->> 'origen' = 'opinion' and asunto is not null and exists (
+         select 1 from public.fortius_inmuebles_opinion_puntos o
+          where o.asunto_id = asunto and o.quien = p_valor and o.tarea_id is null and o.deleted_at is null) then
+      return true;
+    end if;
+  end if;
+  return false;
+end; $$;
+revoke all on function public.fortius_inmuebles_catalogo_conserva(text, jsonb, text, text) from public, anon, authenticated, service_role;
+
 create function public.fortius_inmuebles_valida_catalogos() returns trigger
 language plpgsql security invoker set search_path = '' as $$
 declare
@@ -27,7 +67,7 @@ declare
   nuevo jsonb;
   viejo jsonb;
   v text;
-  de_persona boolean := current_user = 'authenticated';
+  de_persona boolean := (select auth.uid()) is not null;
 begin
   while i + 1 < tg_nargs loop
     cat := tg_argv[i];
@@ -43,7 +83,8 @@ begin
       if not public.fortius_inmuebles_catalogo_existe(cat, v) then
         raise sqlstate '22023' using message = format('«%s» no es una opción de %s', v, public.fortius_inmuebles_catalogo_nombre(cat));
       end if;
-      if de_persona and not public.fortius_inmuebles_catalogo_acepta(cat, v) then
+      if de_persona and not public.fortius_inmuebles_catalogo_acepta(cat, v)
+         and not public.fortius_inmuebles_catalogo_conserva(tg_table_name, fila_n, col, v) then
         raise sqlstate '22023' using message = format('«%s» ya no se ofrece en %s', public.fortius_inmuebles_catalogo_etiqueta(cat, v),
                                                       public.fortius_inmuebles_catalogo_nombre(cat));
       end if;
@@ -68,35 +109,35 @@ revoke all on function public.fortius_inmuebles_catalogo_nombre(text) from publi
 grant execute on function public.fortius_inmuebles_catalogo_nombre(text) to authenticated, service_role;
 
 -- ── Fuera los candados con la lista escrita; entra la revisión contra el catálogo ────────────────────
-alter table public.fortius_inmuebles_asuntos drop constraint fortius_inmuebles_asuntos_encargos_check;
-alter table public.fortius_inmuebles_asuntos drop constraint fortius_inmuebles_asuntos_en_que_va_check;
-alter table public.fortius_inmuebles_asuntos drop constraint fortius_inmuebles_asuntos_resultado_check;
+alter table public.fortius_inmuebles_asuntos drop constraint if exists fortius_inmuebles_asuntos_encargos_check;
+alter table public.fortius_inmuebles_asuntos drop constraint if exists fortius_inmuebles_asuntos_en_que_va_check;
+alter table public.fortius_inmuebles_asuntos drop constraint if exists fortius_inmuebles_asuntos_resultado_check;
 create trigger fortius_zy_catalogos before insert or update on public.fortius_inmuebles_asuntos
   for each row execute function public.fortius_inmuebles_valida_catalogos(
     'encargo', 'encargos', 'en_que_va', 'en_que_va', 'resultado_cierre', 'resultado');
 
-alter table public.fortius_inmuebles_asunto_inmuebles drop constraint fortius_inmuebles_asunto_inmuebles_resultado_check;
+alter table public.fortius_inmuebles_asunto_inmuebles drop constraint if exists fortius_inmuebles_asunto_inmuebles_resultado_check;
 create trigger fortius_zy_catalogos before insert or update on public.fortius_inmuebles_asunto_inmuebles
   for each row execute function public.fortius_inmuebles_valida_catalogos('resultado_cierre', 'resultado');
 
-alter table public.fortius_inmuebles_asunto_personas drop constraint fortius_inmuebles_asunto_personas_papel_check;
+alter table public.fortius_inmuebles_asunto_personas drop constraint if exists fortius_inmuebles_asunto_personas_papel_check;
 create trigger fortius_zy_catalogos before insert or update on public.fortius_inmuebles_asunto_personas
   for each row execute function public.fortius_inmuebles_valida_catalogos('papel', 'papel');
 
-alter table public.fortius_inmuebles_tareas drop constraint fortius_inmuebles_tareas_estado_check;
-alter table public.fortius_inmuebles_tareas drop constraint fortius_inmuebles_tareas_quien_check;
+alter table public.fortius_inmuebles_tareas drop constraint if exists fortius_inmuebles_tareas_estado_check;
+alter table public.fortius_inmuebles_tareas drop constraint if exists fortius_inmuebles_tareas_quien_check;
 create trigger fortius_zy_catalogos before insert or update on public.fortius_inmuebles_tareas
   for each row execute function public.fortius_inmuebles_valida_catalogos('estado_tarea', 'estado', 'quien_tarea', 'quien');
 
-alter table public.fortius_inmuebles_opinion_puntos drop constraint fortius_inmuebles_opinion_puntos_quien_check;
+alter table public.fortius_inmuebles_opinion_puntos drop constraint if exists fortius_inmuebles_opinion_puntos_quien_check;
 create trigger fortius_zy_catalogos before insert or update on public.fortius_inmuebles_opinion_puntos
   for each row execute function public.fortius_inmuebles_valida_catalogos('quien_tarea', 'quien');
 
-alter table public.fortius_inmuebles_inmuebles drop constraint fortius_inmuebles_inmuebles_tipo_check;
+alter table public.fortius_inmuebles_inmuebles drop constraint if exists fortius_inmuebles_inmuebles_tipo_check;
 create trigger fortius_zy_catalogos before insert or update on public.fortius_inmuebles_inmuebles
   for each row execute function public.fortius_inmuebles_valida_catalogos('tipo_inmueble', 'tipo');
 
-alter table public.fortius_inmuebles_consultas drop constraint fortius_inmuebles_consultas_canal_check;
+alter table public.fortius_inmuebles_consultas drop constraint if exists fortius_inmuebles_consultas_canal_check;
 create trigger fortius_zy_catalogos before insert or update on public.fortius_inmuebles_consultas
   for each row execute function public.fortius_inmuebles_valida_catalogos('fuente', 'canal');
 
@@ -104,7 +145,8 @@ create trigger fortius_zy_catalogos before insert or update on public.fortius_in
 create function public.fortius_inmuebles_valida_consulta_catalogos() returns trigger
 language plpgsql security invoker set search_path = '' as $$
 declare
-  de_persona boolean := current_user = 'authenticated';
+  de_persona boolean := (select auth.uid()) is not null;
+  fila jsonb := to_jsonb(new);
   t text := nullif(new.datos ->> 'tipo', '');
   x jsonb;
   p text;
@@ -113,7 +155,8 @@ begin
     if not public.fortius_inmuebles_catalogo_existe('tipo_inmueble', t) then
       raise sqlstate '22023' using message = format('«%s» no es una opción de %s', t, public.fortius_inmuebles_catalogo_nombre('tipo_inmueble'));
     end if;
-    if de_persona and not public.fortius_inmuebles_catalogo_acepta('tipo_inmueble', t) then
+    if de_persona and not public.fortius_inmuebles_catalogo_acepta('tipo_inmueble', t)
+       and not public.fortius_inmuebles_catalogo_conserva(tg_table_name, fila, 'datos', t) then
       raise sqlstate '22023' using message = format('«%s» ya no se ofrece en %s', public.fortius_inmuebles_catalogo_etiqueta('tipo_inmueble', t),
                                                     public.fortius_inmuebles_catalogo_nombre('tipo_inmueble'));
     end if;
@@ -126,7 +169,8 @@ begin
     if not public.fortius_inmuebles_catalogo_existe('papel', p) then
       raise sqlstate '22023' using message = format('«%s» no es una opción de %s', p, public.fortius_inmuebles_catalogo_nombre('papel'));
     end if;
-    if de_persona and not public.fortius_inmuebles_catalogo_acepta('papel', p) then
+    if de_persona and not public.fortius_inmuebles_catalogo_acepta('papel', p)
+       and not public.fortius_inmuebles_catalogo_conserva(tg_table_name, fila, 'otras_personas', p) then
       raise sqlstate '22023' using message = format('«%s» ya no se ofrece en %s', public.fortius_inmuebles_catalogo_etiqueta('papel', p),
                                                     public.fortius_inmuebles_catalogo_nombre('papel'));
     end if;

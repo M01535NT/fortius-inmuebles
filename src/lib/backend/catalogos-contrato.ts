@@ -1,7 +1,8 @@
 /**
  * Los catálogos (SPEC.md, sección 3, «Configuración y catálogos»): lo que comparten la pantalla y el servidor.
- * Las listas y sus valores viven en la base (supabase/migrations/20261118200000_panel_14_catalogos.sql); aquí no se
- * escribe ningún valor. Solo están los nombres de los catálogos y las reglas para leerlos.
+ * Las listas y sus valores viven en la base (supabase/migrations/20261118200000_panel_14_catalogos.sql); aquí solo
+ * están los nombres de los catálogos y las reglas para leerlos. Los valores de inicio, por si la base no responde,
+ * están en catalogos-iniciales.ts.
  */
 
 /** Los catálogos que existen. Cada uno se carga en la base con los valores que Fortius usa hoy. */

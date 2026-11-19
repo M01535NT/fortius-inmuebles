@@ -31,8 +31,10 @@ export type DatosConsulta = {
 };
 
 export type OtraPersona = { nombre: string; papel: Papel; pais?: string; numero?: string; fallecida?: boolean };
-export type DocumentoPedir = { nombre: string; grupo?: "persona" | "inmueble" | "credito" | "otro"; entrega_papel?: string; quitado?: boolean; propio?: boolean };
-export type Carga = { id: string; nombre_original: string; mime: string; byte_length: number; created_at: string };
+/** Un documento de la lista de la consulta. `recibido`: ya lo mandó (se marca, o tiene un archivo ligado). */
+export type DocumentoPedir = { nombre: string; grupo?: "persona" | "inmueble" | "credito" | "otro"; entrega_papel?: string; quitado?: boolean; propio?: boolean; recibido?: boolean };
+/** Un archivo cargado en la consulta. `documento`: el nombre exacto del documento de la lista al que pertenece; sin él, es un archivo suelto. */
+export type Carga = { id: string; nombre_original: string; mime: string; byte_length: number; created_at: string; documento?: string };
 
 export const ESTADOS_CONSULTA = ["abierta", "asunto", "contacto", "no_procede"] as const;
 export type EstadoConsulta = (typeof ESTADOS_CONSULTA)[number];
@@ -76,11 +78,15 @@ export function documentosSegun(d: DatosConsulta): DocumentoPedir[] {
 
 /**
  * La lista que se guarda: la que sale de las reglas, con lo que se quitó marcado, más lo que se agregó a mano.
- * Lo quitado se recuerda por nombre: si la regla vuelve a pedir algo que se quitó, sigue quitado.
+ * Lo quitado y lo recibido se recuerdan por nombre: si la regla vuelve a pedir algo que se quitó, sigue quitado; si ya
+ * llegó, sigue recibido.
  */
 export function unirDocumentos(datos: DatosConsulta, antes: readonly DocumentoPedir[]): DocumentoPedir[] {
   const quitados = new Set(antes.filter((x) => x.quitado).map((x) => x.nombre));
-  const regla = documentosSegun(datos).map((x) => (quitados.has(x.nombre) ? { ...x, quitado: true } : x));
+  const recibidos = new Set(antes.filter((x) => x.recibido).map((x) => x.nombre));
+  const regla = documentosSegun(datos).map((x) => ({
+    ...x, ...(quitados.has(x.nombre) ? { quitado: true } : {}), ...(recibidos.has(x.nombre) ? { recibido: true } : {}),
+  }));
   const nombres = new Set(regla.map((x) => x.nombre));
   return [...regla, ...antes.filter((x) => x.propio && !nombres.has(x.nombre))];
 }
@@ -143,9 +149,13 @@ export function primerPlan(encargos: readonly Encargo[], hayDocumentos: boolean)
   return [{ nombre: "Primeros pasos", tareas }];
 }
 
-/** El mensaje para WhatsApp con lo que falta pedirle. El sistema no lo envía: lo envía el asesor. */
-export function mensajeParaPedir(quien: string, docs: readonly DocumentoPedir[]): string {
+/**
+ * El mensaje para WhatsApp con lo que falta pedirle: sin lo quitado ni lo recibido (marcado, o con un archivo ligado
+ * entre `cargas`). El sistema no lo envía: lo envía el asesor.
+ */
+export function mensajeParaPedir(quien: string, docs: readonly DocumentoPedir[], cargas: readonly Pick<Carga, "documento">[] = []): string {
   const n = primerNombre(quien);
-  const lista = docs.filter((x) => !x.quitado).map((x) => `• ${x.nombre}`).join("\n");
+  const conArchivo = new Set(cargas.map((c) => c.documento).filter(Boolean));
+  const lista = docs.filter((x) => !x.quitado && !x.recibido && !conArchivo.has(x.nombre)).map((x) => `• ${x.nombre}`).join("\n");
   return `Hola${n ? ` ${n}` : ""}, para empezar a revisar tu asunto necesito:\n\n${lista}\n\nMe lo puedes mandar por aquí, en foto o PDF. Gracias.`;
 }

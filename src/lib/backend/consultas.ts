@@ -25,6 +25,8 @@ import { ApiError } from "./http";
 
 const T = { consultas: "fortius_inmuebles_consultas", cargas: "fortius_inmuebles_cargas_por_acomodar" } as const;
 const CAMPOS = "id,version,estado,quien_nombre,quien_telefonos,quien_correo,canal,persona_id,que_pasa,datos,otras_personas,documentos_pedir,asunto_id,motivo,es_ejemplo,created_at,updated_at";
+const CAMPOS_CARGA_ANTES = "id,nombre_original,mime,byte_length,created_at";
+const CAMPOS_CARGA = `${CAMPOS_CARGA_ANTES},documento`;
 
 const version = z.number().int().positive().max(Number.MAX_SAFE_INTEGER - 1);
 const telefono = z.object({ pais: z.string().trim().regex(/^\+?\d{1,4}$/), numero: z.string().trim().max(30) }).strict();
@@ -40,7 +42,11 @@ const otra = z.object({
 const docPedir = z.object({
   nombre: z.string().trim().min(1).max(200), grupo: z.enum(["persona", "inmueble", "credito", "otro"]).optional(),
   entrega_papel: z.string().trim().max(40).optional(), quitado: z.boolean().optional(), propio: z.boolean().optional(),
+  recibido: z.boolean().optional(),
 }).strict();
+/** El documento de la lista al que pertenece un archivo (su nombre exacto); vacío o null: archivo suelto. */
+export const documentoDeCarga = z.string().trim().max(200).nullable().optional().transform((x) => x || null);
+export const cambioCargaSchema = z.object({ documento: documentoDeCarga }).strict();
 
 export const nuevaConsultaSchema = z.object({
   quien_nombre: z.string().trim().max(160).optional(),
@@ -102,15 +108,30 @@ export async function crearConsulta(client: SupabaseClient, user: StaffUser, ent
   return r.data as { id: string; version: number };
 }
 
+type FilaCarga = Omit<Carga, "documento"> & { documento?: string | null };
+const aCarga = ({ documento, ...resto }: FilaCarga): Carga => (documento ? { ...resto, documento } : resto);
+
+/** Lee los archivos de la consulta; si la base todavía no tiene a qué documento pertenecen, todos salen sueltos. */
+async function leerCargas(client: SupabaseClient, id: string): Promise<Carga[]> {
+  const pedir = (campos: string) => client.from(T.cargas).select(campos).eq("consulta_id", id).neq("estado", "descartado").order("created_at");
+  let r = await pedir(CAMPOS_CARGA);
+  if (r.error?.code === "42703") r = await pedir(CAMPOS_CARGA_ANTES);
+  if (r.error) fallo(r.error);
+  return ((r.data ?? []) as unknown as FilaCarga[]).map(aCarga);
+}
+
 export async function leerConsulta(client: SupabaseClient, id: string): Promise<Consulta> {
   const [c, cargas] = await Promise.all([
     client.from(T.consultas).select(CAMPOS).eq("id", id).maybeSingle(),
-    client.from(T.cargas).select("id,nombre_original,mime,byte_length,created_at").eq("consulta_id", id).neq("estado", "descartado").order("created_at"),
+    leerCargas(client, id),
   ]);
   if (c.error) fallo(c.error);
-  if (cargas.error) fallo(cargas.error);
   if (!c.data) throw new ApiError(404, "No se encontró la consulta");
-  return { ...(c.data as FilaConsulta), cargas: (cargas.data ?? []) as Carga[] };
+  const fila = c.data as FilaConsulta;
+  // Un documento con un archivo ligado está recibido, aunque no se haya marcado.
+  const conArchivo = new Set(cargas.map((x) => x.documento).filter(Boolean));
+  const documentos_pedir = (fila.documentos_pedir ?? []).map((x) => (conArchivo.has(x.nombre) && !x.recibido ? { ...x, recibido: true } : x));
+  return { ...fila, documentos_pedir, cargas };
 }
 
 /** Se guarda sola mientras se escribe. Responde la versión nueva para el siguiente guardado. */
@@ -140,7 +161,8 @@ export async function abrirAsunto(client: SupabaseClient, id: string, v: number)
   if (c.estado === "asunto" && c.asunto_id) throw new ApiError(409, "Esta consulta ya abrió su asunto.");
   const d: DatosConsulta = c.datos ?? {};
   const encargos: Encargo[] = encargosSegun(d);
-  const hayDocumentos = c.documentos_pedir.some((x) => !x.quitado) || c.cargas.length > 0;
+  // «Recibir los documentos» solo si queda alguno por recibir (leerConsulta ya marca recibido lo que tiene archivo).
+  const hayDocumentos = c.documentos_pedir.some((x) => !x.quitado && !x.recibido);
   const catalogos = await mapaCatalogos(client);
   const nombreTipo = (t: string) => etiquetaDe(catalogos.tipo_inmueble, t);
   const inmueble = inmuebleSegun(c.quien_nombre, d, nombreTipo);
@@ -179,8 +201,11 @@ export async function cerrarConsulta(client: SupabaseClient, id: string, entrada
 export const TAMANO_MAXIMO = 20 * 1024 * 1024;
 export { FIRMAS } from "./firmas";
 
-/** Sube un archivo de la consulta al bucket privado y lo deja esperando su renglón (se acomoda al abrir el asunto). */
-export async function subirArchivo(client: SupabaseClient, privileged: SupabaseClient, user: StaffUser, consultaId: string, file: File): Promise<Carga> {
+/**
+ * Sube un archivo de la consulta al bucket privado y lo deja esperando su renglón (se acomoda al abrir el asunto).
+ * `documento`: el documento de la lista al que pertenece (su nombre exacto); sin él, es un archivo suelto.
+ */
+export async function subirArchivo(client: SupabaseClient, privileged: SupabaseClient, user: StaffUser, consultaId: string, file: File, documento: string | null = null): Promise<Carga> {
   const c = await client.from(T.consultas).select("id,estado").eq("id", consultaId).maybeSingle();
   if (c.error) fallo(c.error);
   if (!c.data) throw new ApiError(404, "No se encontró la consulta");
@@ -196,12 +221,23 @@ export async function subirArchivo(client: SupabaseClient, privileged: SupabaseC
   const r = await privileged.from(T.cargas).insert({
     usuario_id: user.id, consulta_id: consultaId, path, nombre_original: nombre, mime: tipo.mime,
     byte_length: bytes.byteLength, sha256: createHash("sha256").update(bytes).digest("hex"),
-  }).select("id,nombre_original,mime,byte_length,created_at").single();
+    ...(documento ? { documento } : {}),
+  }).select(documento ? CAMPOS_CARGA : CAMPOS_CARGA_ANTES).single();
   if (r.error) {
     await privileged.storage.from(BUCKET_EXPEDIENTES).remove([path]);
     fallo(r.error);
   }
-  return r.data as Carga;
+  return aCarga(r.data as unknown as FilaCarga);
+}
+
+/** Cambia a qué documento de la lista pertenece un archivo ya cargado (null: queda suelto). */
+export async function cambiarArchivo(client: SupabaseClient, consultaId: string, cargaId: string, documento: string | null): Promise<Carga> {
+  const r = await client.from(T.cargas).update({ documento, updated_at: new Date().toISOString() })
+    .eq("id", cargaId).eq("consulta_id", consultaId).eq("estado", "por_acomodar").select(CAMPOS_CARGA);
+  if (r.error) fallo(r.error);
+  const fila = (r.data ?? [])[0] as unknown as FilaCarga | undefined;
+  if (!fila) throw new ApiError(404, "Ese archivo ya no está en la consulta");
+  return aCarga(fila);
 }
 
 /** Quitar un archivo adjunto: se marca descartado (recuperable); el archivo se queda en el bucket privado. */

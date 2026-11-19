@@ -3,8 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { CATALOGOS, CLAVE_VALOR, claveDesde, type Catalogo, type Catalogos, type ValorCatalogo } from "./catalogos-contrato";
+import { MAPA_INICIAL } from "./catalogos-iniciales";
 import type { StaffUser } from "./contracts";
-import { fallo } from "./fallo";
+import { fallo, type Fallo } from "./fallo";
 import { ApiError } from "./http";
 
 /**
@@ -29,7 +30,11 @@ export const cambioValorSchema = z.union([
     id: z.uuid(), version, etiqueta: etiqueta.optional(), activo: z.boolean().optional(),
     significado: significado.nullable().optional(), padre: claveCatalogo.nullable().optional(),
   }).strict(),
-  z.object({ catalogo: z.enum(CATALOGOS), orden: z.array(z.uuid()).min(1).max(500) }).strict(),
+  /** El orden nuevo, con la versión que vio quien ordena de cada valor: si alguien cambió la lista antes, 409. */
+  z.object({
+    catalogo: z.enum(CATALOGOS),
+    orden: z.union([z.array(z.uuid()).min(1).max(500), z.array(z.object({ id: z.uuid(), version }).strict()).min(1).max(500)]),
+  }).strict(),
 ]);
 
 type FilaValor = ValorCatalogo & { catalogo: string };
@@ -52,9 +57,29 @@ export async function leerCatalogos(client: SupabaseClient): Promise<Catalogo[]>
     .map((x) => ({ ...x, valores: valores.filter((y) => y.catalogo === x.clave).map(aValor) }));
 }
 
-/** Los catálogos como mapa, para las reglas del servidor que arman textos («Casa en la Murúa»). */
+/**
+ * Los catálogos como mapa, para las reglas del servidor que arman textos («Casa en la Murúa») o eligen un papel. Si la
+ * base no los da (todavía no existen, o falló la lectura), los valores con que empezó el panel: nada se frena por eso.
+ * Lo que sí se guarda lo vuelve a revisar la base.
+ */
 export async function mapaCatalogos(client: SupabaseClient): Promise<Catalogos> {
-  return Object.fromEntries((await leerCatalogos(client)).map((c) => [c.clave, c])) as Catalogos;
+  try {
+    const lista = await leerCatalogos(client);
+    if (!lista.length) return MAPA_INICIAL;
+    const mapa = Object.fromEntries(lista.map((c) => [c.clave, c])) as Catalogos;
+    for (const clave of CATALOGOS) if (!mapa[clave]) mapa[clave] = MAPA_INICIAL[clave];
+    return mapa;
+  } catch (e) {
+    if (e instanceof ApiError && (e.status === 401 || e.status === 403)) throw e;
+    console.error("[catalogos] se usan los valores de inicio", e instanceof Error ? e.message : e);
+    return MAPA_INICIAL;
+  }
+}
+
+/** Dos personas agregaron o renombraron con el mismo nombre a la vez: la base lo detiene con su índice único. */
+function falloEscritura(error: Fallo): never {
+  if (error.code === "23505") throw new ApiError(409, "Ya hay un valor con ese nombre en la lista. Vuelve a abrirla para verlo.");
+  fallo(error);
 }
 
 function soloDirector(user: StaffUser) {
@@ -69,14 +94,18 @@ export async function agregarValor(client: SupabaseClient, user: StaffUser, entr
   const r = await client.from(T.valores)
     .insert({ catalogo: entrada.catalogo, clave, etiqueta: entrada.etiqueta, significado: entrada.significado ?? null, padre: entrada.padre ?? null })
     .select(CAMPOS_VALOR).single();
-  if (r.error) fallo(r.error);
+  if (r.error) falloEscritura(r.error);
   return aValor(r.data as FilaValor);
 }
 
 export async function cambiarValor(client: SupabaseClient, user: StaffUser, entrada: z.infer<typeof cambioValorSchema>): Promise<ValorCatalogo | null> {
   soloDirector(user);
   if ("orden" in entrada) {
-    const r = await client.rpc("fortius_inmuebles_ordenar_catalogo", { p_catalogo: entrada.catalogo, p_ids: entrada.orden });
+    const conVersion = entrada.orden.flatMap((x) => (typeof x === "string" ? [] : [x]));
+    const ids = entrada.orden.map((x) => (typeof x === "string" ? x : x.id));
+    const r = await client.rpc("fortius_inmuebles_ordenar_catalogo", {
+      p_catalogo: entrada.catalogo, p_ids: ids, p_versiones: conVersion.length === ids.length ? conVersion.map((x) => x.version) : null,
+    });
     if (r.error) fallo(r.error);
     return null;
   }
@@ -84,7 +113,7 @@ export async function cambiarValor(client: SupabaseClient, user: StaffUser, entr
   if (!Object.keys(cambios).length) throw new ApiError(400, "No hay nada que cambiar.");
   // La versión que vio quien guarda: si otra persona guardó antes, la base responde 409.
   const r = await client.from(T.valores).update({ ...cambios, version: v }).eq("id", id).select(CAMPOS_VALOR);
-  if (r.error) fallo(r.error);
+  if (r.error) falloEscritura(r.error);
   const fila = (r.data ?? [])[0] as FilaValor | undefined;
   if (!fila) throw new ApiError(404, "Ese valor ya no está.");
   return aValor(fila);

@@ -16,7 +16,7 @@ import { fallo, idSchema, leerAsunto } from "./asuntos";
 import type { Asunto } from "./asuntos-contrato";
 import { leerEquipo } from "./asuntos-equipo";
 import { mapaCatalogos } from "./catalogos";
-import { significadoDe } from "./catalogos-contrato";
+import { etiquetaDe, significadoDe } from "./catalogos-contrato";
 import { createServerClient } from "./auth";
 import type { StaffUser } from "./contracts";
 import { ApiError } from "./http";
@@ -116,7 +116,7 @@ export async function materialInforme(client: SupabaseClient, user: StaffUser, a
 
   const sigue: MaterialInforme["sigue"] = propias.filter((t) => t.estado === "pendiente")
     .sort((x, y) => (x.fecha ?? "9999").localeCompare(y.fecha ?? "9999") || x.orden - y.orden).slice(0, 8)
-    .map((t) => ({ id: t.id, texto: t.titulo, fecha: t.fecha, hora: t.hora, quien: t.quien }));
+    .map((t) => ({ id: t.id, texto: t.titulo, fecha: t.fecha, hora: t.hora, quien: t.quien, quien_nombre: etiquetaDe(catalogos.quien_tarea, t.quien) }));
 
   const comercializa = a.encargos.includes("comercializar") || a.interesados.length > 0;
   const vivos = a.interesados.filter((i) => i.estado !== "descartado");
