@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Buscador y clic derecho</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0}
+a{color:#2560f0}a:hover{color:#1f54d6}
+.app{font-family:"Archivo",-apple-system,"Segoe UI",sans-serif;font-size:13px;line-height:1.4;color:#0f1218;background:#aeb3bd;min-height:900px;display:flex;flex-wrap:wrap;gap:40px;justify-content:center;align-items:flex-start;padding:96px 16px 40px}
+.app *{box-sizing:border-box}
+.app button,.app input{font:inherit;color:inherit}
+.flota{background:#fff;border-radius:14px;box-shadow:0 24px 60px rgba(15,18,24,.35);overflow:hidden}
+.kbd{font-size:11px;color:#596070;background:#eceef2;border-radius:5px;padding:1px 6px;margin-left:auto}
+.g{font-size:11px;font-weight:600;color:#596070;padding:10px 16px 4px}
+.r{display:flex;align-items:center;gap:10px;min-height:38px;padding:0 16px;border:0;background:none;width:100%;text-align:left;cursor:pointer}
+.r.on{background:#2560f0;color:#fff}
+.r.on .kbd{background:rgba(255,255,255,.22);color:#fff}
+.r small{color:#596070}
+.r.on small{color:#e8efff}
+.m{display:flex;align-items:center;min-height:30px;padding:0 12px;border:0;background:none;width:100%;text-align:left;border-radius:6px;cursor:pointer}
+.m.on{background:#2560f0;color:#fff}
+.m.on .kbd{background:rgba(255,255,255,.22);color:#fff}
+.sep{height:1px;background:#e2e5ea;margin:5px 8px}
+</style>
+</helmet>
+<div class="app">
+  <div class="flota" role="dialog" aria-label="Buscador" style="flex:1 1 420px;max-width:640px">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 16px;min-height:56px;border-bottom:1px solid #e2e5ea">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#596070" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <label for="q" style="position:absolute;left:-9999px">Buscar o escribir una tarea</label>
+      <input id="q" value="Llamar a Laura jueves 10am" style="flex:1;border:0;outline:0;font-size:18px"><span class="kbd">Esc</span></div>
+    <div class="g">Crear</div>
+    <button class="r on"><span style="flex:1"><b style="font-weight:600">Tarea: Llamar a Laura</b><br><small>Jueves 19 nov · 10:00 · en Casa en la Murúa</small></span><span class="kbd">↩</span></button>
+    <div class="g">Personas</div>
+    <button class="r"><span style="flex:1">Laura Méndez (ejemplo)<br><small>Contacto · Casa en la Murúa</small></span></button>
+    <div class="g">Acciones</div>
+    <button class="r">Nueva consulta<span class="kbd">⌘N</span></button>
+    <button class="r">Ir a la Bandeja<span class="kbd">⌘B</span></button>
+    <button class="r">Configuración<span class="kbd">⌘,</span></button>
+    <button class="r">Deshacer lo último<span class="kbd">⌘Z</span></button>
+    <div style="padding:10px 16px;border-top:1px solid #eef0f3;color:#596070;font-size:12px">↑ ↓ moverse · ↩ abrir o crear · espacio, un vistazo</div>
+  </div>
+
+  <div class="flota" role="menu" aria-label="Menú de un asunto con clic derecho" style="flex:0 1 280px;padding:6px;border-radius:10px">
+    <div class="g" style="padding:6px 12px 4px">Casa en la Murúa</div>
+    <button class="m on" role="menuitem">Abrir<span class="kbd">↩</span></button>
+    <button class="m" role="menuitem">Dar un vistazo<span class="kbd">espacio</span></button>
+    <button class="m" role="menuitem">Marcar lo que sigue como hecho<span class="kbd">⌘D</span></button>
+    <div class="sep"></div>
+    <button class="m" role="menuitem">En qué va<span class="kbd">›</span></button>
+    <button class="m" role="menuitem">Pasar a otra persona<span class="kbd">›</span></button>
+    <button class="m" role="menuitem">Poner en espera</button>
+    <button class="m" role="menuitem">Agregar a favoritos<span class="kbd">⌘F</span></button>
+    <div class="sep"></div>
+    <button class="m" role="menuitem">Copiar enlace<span class="kbd">⌘L</span></button>
+    <button class="m" role="menuitem">Cerrar el asunto<span class="kbd">›</span></button>
+    <div class="sep"></div>
+    <button class="m" role="menuitem" style="color:#b3261e">Mandar a Eliminados<span class="kbd">⌫</span></button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -14,6 +14,7 @@ Sé breve y preciso. El titular no es técnico: decide tú lo técnico y pregún
 | Qué falta y en qué etapa vamos (único plan) | `PLAN.md` |
 | Cómo se ve y cómo responde el panel (boceto aprobado) | `docs/boceto-fortius-por-asuntos.html` |
 | Cómo funciona lo que el titular ajusta sin programar (boceto de funcionamiento; el aspecto es el del panel de hoy) | `docs/boceto-panel-ajustable.html` |
+| Modelo visual del panel, aprobado el 18/11/2026: orden y aspecto de app de Mac. Toda pantalla nueva o rehecha lo sigue | `docs/modelo-visual/` |
 | Casos reales con los que se prueba cada etapa | `docs/casos-reales.md` |
 | Metodologías que se copian a un asunto | `docs/metodologias/` |
 | Sitio público (qué es, orden y cómo se hace; mandan para el sitio) | `docs/sitio/SPEC.md`, `docs/sitio/PLAN.md`, `docs/sitio/DECISIONS.md` |
@@ -37,7 +38,7 @@ Las claves del tipo `RP-00` o `DEC-00` y las menciones a `DECISIONES.md` que apa
 - **Aislamiento:** el panel solo usa el provisional a través de `src/lib/panel/legado/`; el lint lo hace cumplir y no se desactiva. El backend (`src/lib/backend`, `src/app/api`, `supabase/migrations`) es compartido.
 - **Diseño:** manda el boceto aprobado. App moderna, pocas palabras en pantalla, opciones agrupadas en listas desplegables y menús, íconos en todo, claro y oscuro. Minimalista es agrupar, no quitar funciones. Los tokens de `src/app/panel/panel-ds.css` y los íconos de `src/components/panel/icons.tsx` se ajustan al boceto. Lo que el boceto no define se pregunta y se anota en `SPEC.md`; no se inventa.
 - **Cualquier caso cabe:** ninguna metodología es regla del panel ni su centro. Una metodología es una guía para un trabajo específico (captar una venta, captar una renta, cancelar una hipoteca); hay muchas, viven en la Biblioteca y nunca se generalizan a todo el panel. Si un caso real no cabe, dilo con claridad y propón cambiar el diseño; no acomodes el caso a la fuerza.
-- **Comportamiento:** el sistema nunca impide seguir por falta de un dato o un paso; avisa y deja continuar. De 3 opciones en adelante, lista desplegable; con 2, interruptor; nunca un botón por opción. La visibilidad (director ve todo, asesor lo suyo) se hace cumplir en la base con RLS.
+- **Comportamiento:** el sistema nunca impide seguir por falta de un dato o un paso; avisa y deja continuar. De 3 opciones en adelante, lista desplegable; con 2, interruptor; nunca un botón por opción. Excepción (18/11/2026): para cambiar entre 3 o 4 vistas de lo mismo se usa una fila de botones juntos, como en macOS; solo para vistas, nunca para elegir un dato. La visibilidad (director ve todo, asesor lo suyo) se hace cumplir en la base con RLS.
 - **Pantalla:** lenguaje sencillo, sin rastros de IA («Por confirmar», no «propuesto»). Teclado, foco visible, botones de al menos 44 px en el teléfono y movimiento reducido.
 - **Revisión:** al cerrar una etapa, un revisor de solo lectura repasa la lógica y prueba los casos de `docs/casos-reales.md`; lo que encuentre se corrige o se anota en `PLAN.md`.
 

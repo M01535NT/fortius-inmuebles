@@ -290,11 +290,15 @@ Paso 1 · Catálogos (sin cambiar ninguna pantalla de trabajo):
 - **Trece listas:** tipos de asunto, subtipos sugeridos (cada uno de su tipo), encargos, en qué va un asunto, resultados de cierre, motivos de «no procede», papeles, fuentes de llegada, cómo va una tarea, quién hace una tarea (Fortius, el cliente, el abogado, la notaría, otra persona), tipos de inmueble, regímenes y funciones del equipo (abogado y valuador; asignarlas a cada persona es del paso 2). Empiezan con los valores de Fortius de hoy. Se agregaron «No procede» y «Desistió» a los resultados de cierre (hallazgo 29). Los motivos de «no procede» los propuso el agente («No es de lo que hacemos», «No hay papeles para hacerlo», «No quiso seguir», «Ya no contestó», «Otro»): confírmalos o cámbialos ahí mismo.
 - **Las pantallas** (consulta, asunto, Personas, Documentos, Plan, Situación, Inmuebles, Directorio, informe) toman sus listas y sus nombres de los catálogos, con el mismo aspecto de antes. Si una lista se queda sin ningún valor encendido, las pantallas ofrecen los valores con que empezó y Configuración lo avisa.
 - **Lo que el panel usa por su clave** se renombra, pero no se apaga: los cuatro encargos (cada uno enciende sus apartados y su primer plan), «Contacto» y «Propietario» (los pone la consulta), «Llamada» y «Sitio» (las fuentes que se ponen solas) y los dos primeros resultados de cierre. «En qué va un asunto» y «Cómo va una tarea» además no admiten valores nuevos: el panel decide con ellos qué sigue y qué está atrasado.
-- **Cada papel dice de qué lado es** (hallazgo 27, en parte): de quien nos busca, del lado del cliente, del otro lado o de apoyo. Los grupos de Personas y sus nombres salen de ahí. El vendedor queda del otro lado y el comprador del lado del cliente. Cambiarle el lado a un papel en Catálogos vale para todos los asuntos; marcar que en uno es al revés queda con el hallazgo 27.
-- **Hallazgo 26:** quien llama y dice que quiere comprar nace como «Comprador», ya no como «Contacto».
+- **Cada papel dice de qué lado es** (hallazgo 27, en parte): quien nos busca, dueños y herederos, del otro lado o quienes ayudan, los mismos cuatro grupos de Personas de hoy, con sus nombres y cada papel donde estaba (propietario, titular, heredero, copropietario y vendedor con los dueños; comprador, inquilino, inversionista y contraparte del otro lado; apoderado, abogado, notaría y banco con quienes ayudan). Cambiarle el lado a un papel en Catálogos vale para todos los asuntos; marcar que en uno es al revés queda con el hallazgo 27. Con el lado, Inicio sabe quién es «el cliente» para escribirle.
+- **Hallazgo 26:** quien llama y dice que quiere comprar nace como «Comprador», ya no como «Contacto». Decidido: al abrir el asunto, quien llama puede quedar con cualquier papel que se ofrezca; hoy la consulta elige entre Propietario, Comprador y Contacto. La nota del historial al nacer el asunto dice lo mismo que antes.
+- **Si la base no da las listas,** el panel sigue con los valores con que empezó (o con los últimos que vio ese equipo) y lo avisa abajo en cualquier pantalla, con «Reintentar». Abrir un asunto desde la consulta y hacer el informe tampoco se frenan por eso.
+- **Apagar no borra, también en las copias:** la siguiente vez de una tarea que se repite, copiar una guía de la Biblioteca, pasar un punto de la opinión al plan, unir dos fichas, continuar un asunto y cargar los casos de ejemplo conservan lo que traía el original aunque ya no se ofrezca. Copiar una guía ahora se hace todo junto: si algo falla, no queda a medias. Al guardar una guía, quién hace cada tarea tiene que ofrecerse (o ya estar en la guía).
+- **Solo se guarda lo que se ofrece** vale también para lo que la base hace por encargo de una persona (crear un inmueble, abrir un asunto con sus encargos y su inmueble, continuar un asunto con encargos nuevos). Lo que llega sin persona (el sitio, los avisos automáticos) solo tiene que existir en la lista.
+- **Si dos personas agregan el mismo nombre a la vez,** la segunda ve que ya existe; reordenar una lista revisa que nadie la haya cambiado antes.
 - **Quién hace una tarea** se renombra y se le agregan valores; «Fortius» y «El cliente» no se apagan, porque el panel los usa (la tarea que no dice quién es de Fortius; con «El cliente», Inicio sabe a quién escribirle). Un valor nuevo todavía no tiene a quién escribirle por WhatsApp.
 - **Un tipo de inmueble nuevo** dice en qué categoría sale en el sitio público (casa, terreno, nave…), para que el sitio no se rompa. Mientras no tenga ficha técnica propia (paso 3), su ficha muestra solo los datos comunes.
-- **Tres cambios en la base de datos,** en archivos nuevos, que se aplican solos al integrar: el primero crea las listas con sus valores; el segundo hace que cada columna acepte solo los valores de su lista (y siempre el que ya tenía, aunque se haya apagado); el tercero quita las listas que estaban copiadas dentro de las funciones de la base.
+- **Tres cambios en la base de datos,** en archivos nuevos, que se aplican solos al integrar: el primero crea las listas con sus valores; el segundo hace que cada columna acepte solo los valores de su lista (y siempre el que ya tenía, aunque se haya apagado); el tercero quita las listas que estaban copiadas dentro de las funciones de la base y agrega las copias que conservan (unir fichas, continuar un asunto, copiar una guía).
 
 **Lo que se dejó fijo por ahora, y por qué:**
 
@@ -305,6 +309,15 @@ Paso 1 · Catálogos (sin cambiar ninguna pantalla de trabajo):
 - Lo que `SPEC.md` deja fijo para todo giro: director y asesor, las horas de cita, las opciones de posponer y los avisos de Configuración.
 
 **Lo que falta probar:** los siete puntos de arriba, con la cuenta de director y con la de un asesor (que no vea Catálogos ni pueda cambiarlas aunque lo intente); abrir un asunto desde una consulta después de apagar una fuente o un papel; unir dos fichas y continuar un asunto que usan un papel apagado; renombrar un tipo de inmueble y ver que el sitio público sigue igual; y el aspecto en teléfono, en claro y en oscuro. Siguen pendientes, de los hallazgos asignados a este paso: el 22 (el motivo de «no procede» como lista: su catálogo ya existe, la pantalla llega en el paso 4), el 27 (los papeles ya dicen su lado, pero falta marcar en cada asunto quién es el cliente) y el 43 (el Directorio todavía no muestra el papel en el renglón, ni filtra por papel, ni tiene «Nueva persona»). El 27 y el 43 piden cambiar cómo se ven el asunto y el Directorio, más allá de leer el catálogo; quedan como pendientes de este paso.
+
+**Pendiente de este paso en las pantallas** (se hace cuando se liberen; hoy otra sesión está cambiando esas pantallas):
+
+- Personas: mientras llegan las listas, los grupos dicen «De quien nos busca», «Del lado del cliente», «De apoyo» y el botón «Agregar persona: …»; deben volver a decir lo de antes («Quien nos busca», «Dueños y herederos», «Del otro lado», «Quienes ayudan» y «Agregar»). Ya con las listas cargadas salen bien.
+- Personas: «Agregar» en cada grupo debe crear el mismo papel que antes (Comprador del otro lado, Abogado en quienes ayudan); hoy toma el primero del grupo (en quienes ayudan, Apoderado).
+- El asunto (lo común y Documentos) todavía tiene escritas a mano las listas de papeles y de quién hace una tarea; deben leerlas del catálogo.
+- Configuración → Catálogos: al reordenar debe mandar la versión de cada valor (la base ya la revisa), y mientras la lista sea la de inicio, porque la base no respondió, no debe dejar cambiarla.
+- Cambiar el nombre de un lado (un grupo de Personas) desde Catálogos: falta la pantalla y lo que la guarda.
+- Los hallazgos 22, 27 y 43, como se dice arriba.
 
 Paso 2 · Empresa, equipo, folio y módulos:
 
@@ -328,6 +341,8 @@ Paso 4 · Tipos de asunto:
 
 - [ ] Creas el tipo «Gestoría: trámite vehicular» con sus preguntas de consulta, sus apartados, sus datos propios, su lista de documentos y su plan, sin pedirle nada al agente.
 - [ ] En la consulta, las preguntas cambian según el tipo elegido, y cada respuesta pide el documento que tú dijiste.
+- [ ] Armas la consulta de un tipo con bloques: creas un bloque de formulario nuevo, renombras «Qué pasa», cambias el orden y eliminas «Otras personas del caso». «Deshacer» lo regresa, y lo ya capturado en consultas anteriores se conserva.
+- [ ] «Quién llama» y el tipo de asunto se renombran, pero no se pueden quitar.
 - [ ] En la consulta capturas el tipo y el subtipo; el subtipo sugiere según el tipo y acepta texto libre.
 - [ ] Cambias el tipo en el asunto y el cambio queda en el Historial.
 - [ ] Filtras la lista de Asuntos por tipo y por subtipo, y lo guardas como vista.
@@ -558,3 +573,61 @@ El agente usó el panel publicado con la cuenta de director: capturó el caso 7 
 **No se probó:** Honorarios, Opinión jurídica, Interesados, los formatos, los informes, la ficha del inmueble, el tema oscuro ni la cuenta de asesor.
 
 **Quedó en la base, de prueba:** el asunto EXP-000029 «Terreno en Lomas de Rosarito» (cerrado), sus dos personas marcadas «(ejemplo)», su terreno y una consulta cerrada como «No procede».
+
+### Revisión visual del 18/11
+
+El agente revisó el panel a la vista (computadora, teléfono, oscuro, y como director y como asesor) con datos de ejemplo simulados, y unificó los controles. No cambió colores, letra, íconos, textos ni lo que hace cada control. Nada de esto está guardado en git todavía.
+
+**Las piezas únicas** (todas se ven igual: caja blanca con borde, 34 px en computadora y 44 px en el teléfono):
+
+- Botón (normal, principal, sin borde y de solo ícono).
+- Campo de texto, área de texto y teléfono (clave del país y número en una línea).
+- Lista desplegable, y lista de varias opciones («Puedes elegir varias»).
+- Campo de fecha con calendario propio (dice la fecha con letra; sustituye al calendario del navegador).
+- Etiqueta de estado («En marcha», «Hoy», «En espera»…).
+- Interruptor y casilla.
+
+**Dónde ya se usan:** la consulta completa; el asunto y sus ventanas (Plan, Situación, Honorarios, Interesados y la ventanita para escribir un nombre o un motivo); la lista de Asuntos. Inicio ya toma el nuevo aspecto de la lista desplegable.
+
+**Corregido:**
+
+- 7: «Quién llama» ocupa todo el ancho y ya no corta el nombre.
+- 8: el menú lateral ya no muestra barra de desplazamiento.
+- 12: el botón de vistas guardadas siempre está a la vista, junto a «Nueva consulta», con su propio ícono.
+- 32: las notas del asunto empiezan cerradas, con su contador, y su cuadro ya no corta la ayuda.
+- 34: «Nueva tarea» es una sola línea y se abre al escribir.
+- 40: cada asunto de la lista lleva solo «en qué va» y la fecha; quién lo lleva y si es de ejemplo quedan en el globo al pasar el ratón. El botón «+» ahora dice «Nueva consulta».
+- «Qué debe» se ve como las demás listas; «Nada» y «No sabe» quitan las otras opciones.
+- Las fechas de la consulta, el Plan, Honorarios, Interesados y la ventanita se eligen con el calendario del panel.
+- La pantalla ya no brinca al abrir una lista desplegable.
+- El interruptor apagado se distingue en el tema oscuro.
+
+**En la consulta, después de la revisión (lo pediste en vivo):**
+
+- «Documentos» es un solo bloque, como lista para palomear. Junta lo que se pide y lo que ya mandó:
+  - Marcar un documento quiere decir que ya lo mandó; si se le adjunta su archivo, queda marcado solo.
+  - Un archivo suelto se puede ligar después al documento que es.
+  - Si se quita el único archivo de un documento, ese documento vuelve a faltar, y «Deshacer» lo deja marcado.
+  - «×» quita lo que no aplica; lo quitado se puede volver a pedir.
+  - Al abrir el asunto, lo marcado entra a Documentos como recibido, con su archivo si lo tiene.
+- «Mandar la lista» se manda por WhatsApp, mensaje de texto o correo, y solo pide lo que falta. Abre la aplicación con el mensaje escrito; lo envías tú.
+- Al agregar otra persona, en la consulta y en el asunto, ya no se pregunta si falleció; eso se marca en su ficha.
+- Probado con datos simulados: marcar, adjuntar, ligar un archivo suelto, quitar y deshacer; todo sigue igual al volver a cargar la página y llega igual al asunto. Falta probarlo con la base real, porque los cambios de la base se aplican al integrar en main.
+- «Sin decir» se ve claramente más tenue que un dato lleno. En el teléfono, «Abrir asunto» va fijo abajo, a todo lo ancho, encima de la barra de secciones; y los renglones de datos llevan un fondo suave para que se note que se pueden tocar.
+
+**El asunto, con sus ventanas (elegiste las ventanas):**
+
+- Cada apartado se abre en su ventana, como dice la especificación: flecha para regresar, botón para elegir dónde se abre (derecha, izquierda, centro o pantalla completa), botón de pantalla completa, y el panel recuerda la elección. En el teléfono, a pantalla completa.
+- La lista de asuntos se ve junto al asunto abierto; un botón la oculta y el panel recuerda lo que cada quien elige.
+- Del rediseño se queda: el nombre del asunto al frente, con sus datos en una línea; «Lo que sigue» con «Hecha» y «Posponer»; los apartados como renglones limpios con su resumen; y el botón «Notas» con su número.
+- Las ventanas son una hoja blanca: el nombre al frente, los controles discretos, los grupos separados por líneas finas en vez de cajas, y entran y salen con un movimiento corto.
+- Personas: los grupos vuelven a decir «Quien nos busca», «Dueños y herederos», «Del otro lado» y «Quienes ayudan», también mientras cargan las listas; y «Agregar» en cada grupo crea el papel de siempre (Abogado en quienes ayudan, Comprador del otro lado).
+- Probado con datos simulados en computadora, oscuro y teléfono: las cuatro posiciones, que recuerda la elección, ocultar y mostrar la lista, y los grupos de Personas.
+
+**Pendiente:**
+
+- 39: usar el espacio vacío de Asuntos (tabla o tablero por «en qué va»). Pide otra composición; falta que el titular la apruebe.
+- 8, segunda parte: las pestañas de la ficha de una persona no se pudieron ver con datos (la ficha no cargó con los datos simulados).
+- Pasar al juego único las demás secciones (Inmuebles, Directorio, Biblioteca, Herramientas, Equipo, Configuración) y los botones y etiquetas antiguos que quedan dentro de los apartados y en Inicio.
+- El asunto en el teléfono conserva su versión compacta; falta llevarle la misma cabecera («Lo que sigue» con Hecha y Posponer).
+- Probarlo con la base real y correr las comprobaciones antes de integrar en main.

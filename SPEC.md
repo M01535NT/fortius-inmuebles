@@ -13,6 +13,7 @@ Este documento describe el sistema completo: qué es, qué partes tiene y qué r
 | `PLAN.md` | Qué falta por hacer y en qué vamos | En la carpeta principal del proyecto |
 | El boceto | Cómo se ve y cómo responde el panel. Se abre en el navegador y funciona con datos de ejemplo | `docs/boceto-fortius-por-asuntos.html` |
 | El boceto de lo ajustable | Cómo funciona lo que el titular ajusta sin programar. Solo el funcionamiento: el aspecto es el del panel de hoy | `docs/boceto-panel-ajustable.html` |
+| El modelo visual | Las pantallas modelo de cómo se ordena y se ve el panel, como una app de Mac. Aprobado el 18/11/2026: toda pantalla nueva o rehecha sigue esta línea | `docs/modelo-visual/` y el lienzo https://claude.ai/artifact/RLdqpkz2PYtb1pHLXJXJuh |
 | Los casos reales | Los casos que el panel debe poder llevar de principio a fin | `docs/casos-reales.md` |
 | Las metodologías | Guías de trabajo que se copian a un asunto | `docs/metodologias/` |
 | El sitio público | Qué es el sitio nuevo, en qué orden se hizo y cómo se hace. Para el sitio público mandan esos | `docs/sitio/` |
@@ -95,7 +96,7 @@ Configuración se abre desde la cuenta de quien entró. Además del perfil, la a
 
 **Tipos de asunto:**
 
-- Cada tipo de asunto tiene su **plantilla**, que arma el director: qué pregunta la consulta, qué documento pide cada respuesta, qué apartados trae el asunto, qué datos propios lleva y qué plan y qué machotes sugiere.
+- Cada tipo de asunto tiene su **plantilla**, que arma el director: con qué bloques se arma la consulta y qué pregunta, qué documento pide cada respuesta, qué apartados trae el asunto, qué datos propios lleva y qué plan y qué machotes sugiere.
 - La plantilla la cambia solo el director, con el botón «Ajustar» de cada recuadro. El asesor trabaja con ella y nunca ve «Ajustar». El director puede ver cualquier pantalla tal como la ve un asesor.
 - **Cambiar una plantilla vale para los asuntos nuevos.** Los que ya están abiertos conservan la suya; cada uno se puede poner al día con un toque, sin perder nada de lo capturado.
 - Los tipos de asunto se agregan, se renombran y se apagan. La plantilla es del tipo; el subtipo solo es una etiqueta con sugerencias.
@@ -144,16 +145,20 @@ Casi todo empieza con una llamada o un mensaje: «tengo este problema, ayúdame�
 - **Qué pasa**, en un cuadro libre, tal como lo cuenta.
 - **El tipo y el subtipo** del asunto (sección 5). Se pueden cambiar después.
 - **Las preguntas del tipo de asunto**, cada una en su lista desplegable. Las define el titular en Configuración; las de Fortius hoy son: qué quiere, de quién es el inmueble, qué tipo de inmueble es, en qué colonia está, quién lo ocupa, si tiene escritura y qué debe.
-- **Qué pedirle:** la lista de documentos se arma sola con lo que se va marcando. Se quita lo que no aplique y sale como mensaje para WhatsApp, que envía el asesor.
+- **Documentos:** una sola lista para marcar. Se arma sola con lo que se va contestando; cada renglón es un documento que se pide, y se marca cuando la persona ya lo mandó. En el mismo renglón se puede adjuntar el archivo, y al adjuntarlo queda marcado. Lo que no aplique se quita con su «×». Al final se agrega otro documento, o un archivo que mandó y no estaba en la lista. «Mandar la lista» arma el mensaje solo con lo que falta, para WhatsApp, mensaje de texto o correo; lo envía el asesor.
 - **Otras personas del caso:** en la misma consulta se anota a quien haga falta (la titular, los hermanos, el comprador) con su nombre y su papel, sin salir.
-- **Lo que ya mandó:** si la persona ya envió documentos, se adjuntan ahí mismo y quedan marcados como recibidos.
 
-**Cada recuadro de la consulta se pone o se quita** según el tipo de asunto: las preguntas, «Qué pedirle», «Otras personas del caso» y «Lo que ya mandó». Lo único fijo es quién llama, su teléfono, por dónde llegó y qué pasa.
+**La consulta se arma con bloques.** En la plantilla de cada tipo de asunto, el director crea bloques, los renombra, los ordena y los elimina. Si mañana hace falta otra sección, se crea un bloque nuevo; no se programa.
+
+- **Clases de bloque,** las mismas de los apartados propios: formulario (preguntas con sus opciones), texto (un comentario libre, como «Qué pasa»), lista (los documentos, que se marcan al recibirlos), personas (otras personas del caso) y archivos.
+- **Bloques con que empieza:** los datos de quien llama, «Qué pasa», las preguntas, «Documentos» y «Otras personas del caso».
+- **Lo único que no se quita** es aquello de lo que depende «Abrir asunto»: quién llama y el tipo de asunto. Se pueden renombrar.
+- Eliminar un bloque lo oculta en las consultas nuevas; lo ya capturado se conserva.
 
 - **Las preguntas:** de cada una se cambian el nombre y sus opciones, una por una; se agregan y se quitan preguntas.
-- **Qué pedirle:** cada documento dice por qué se pide («se pide siempre» o «porque tal pregunta se contestó así»). Esas reglas las pone el titular en el mismo recuadro: el documento y cuándo se pide.
+- **Documentos:** cada documento dice por qué se pide («se pide siempre» o «porque tal pregunta se contestó así»). Esas reglas las pone el titular en el mismo recuadro: el documento y cuándo se pide.
 
-Nada es obligatorio y se guarda sola mientras se escribe. Al terminar, el botón «Abrir asunto» deja creados y ligados la persona, el inmueble, la lista de documentos y un primer plan.
+Nada es obligatorio y se guarda sola mientras se escribe. Al terminar, el botón «Abrir asunto» deja creados y ligados la persona, el inmueble, la lista de documentos (lo marcado entra como recibido, con su archivo si lo tiene) y un primer plan.
 
 Las solicitudes que llegan por el sitio público caen en Inicio, en «Por atender», con el tiempo que llevan esperando. Abrir una lleva a la misma consulta, ya llena con lo que la persona escribió.
 
@@ -505,11 +510,13 @@ Además de ser director o asesor, cada persona del equipo tiene las **funciones*
 ## 14. Cómo se ve y cómo se usa
 
 - **Lo ajustable no cambia el aspecto.** El boceto del panel ajustable (`docs/boceto-panel-ajustable.html`) dice cómo funciona lo que se ajusta, no cómo se ve. Se construye con los íconos, los colores y la letra que el panel ya tiene: su identidad no cambia.
-- **Las mismas piezas en todo el panel.** Un botón, una lista desplegable, un interruptor, un campo, una ventana o un menú se ven y responden igual en cualquier pantalla. Las mejoras de aspecto van por ahí: unificar piezas y corregir lo que se ve mal, sin cambiar la identidad.
+- **Las mismas piezas en todo el panel.** Un botón, una lista desplegable, un interruptor, un campo, una ventana o un menú se ven y responden igual en cualquier pantalla.
+- **La composición sí se puede replantear.** Lo que se conserva es la identidad: el logotipo, los colores, la letra y los íconos. Cómo se acomoda cada pantalla (qué va primero, cuánto aire lleva, cuántos recuadros y bordes, cómo se llega a cada cosa) se replantea para que el panel se sienta más moderno, más limpio y de paga. Un cambio de composición se enseña en una o dos pantallas y lo aprueba el titular antes de extenderlo a las demás.
 - **Aspecto:** una app moderna. Fondo gris muy claro, tarjetas blancas, un solo azul para las acciones. El verde, el ámbar y el rojo solo indican el estado de algo. Tiene tema claro y oscuro.
 - **Íconos en todo:** menú, apartados, botones y menús.
 - **Solo lo necesario a la vista:** una ficha muestra los datos que ya tienen valor y «Agregar dato»; un asunto, los apartados de su tipo. Lo demás está a un toque.
 - **Listas desplegables,** nunca un botón por cada opción. Con dos opciones se permite un interruptor. Sus opciones salen de los catálogos de Configuración.
+- **La excepción es cambiar de vista.** Para elegir entre tres o cuatro formas de ver lo mismo (tabla, tablero, en el tiempo) se usa una fila de botones juntos, como en las apps de Mac. Vale solo para vistas, nunca para elegir un dato.
 - **Varias acciones en un solo botón** que abre su lista.
 - **Deshacer** en lugar de preguntar «¿estás seguro?». Solo se pide confirmar lo que no tiene vuelta atrás.
 - **Lenguaje sencillo,** sin palabras técnicas y sin mencionar a la inteligencia artificial. Lo que se leyó de un documento dice «por confirmar».
@@ -517,6 +524,21 @@ Además de ser director o asesor, cada persona del equipo tiene las **funciones*
 - **Funciona igual en computadora y en teléfono.**
 - **Accesible:** se puede usar con teclado, los botones son grandes en el teléfono y el estado de algo se entiende sin depender solo del color.
 - Los datos de ejemplo siempre dicen que son de ejemplo.
+
+### Como una app de escritorio
+
+**El modelo a seguir** son las siete pantallas de `docs/modelo-visual/` (Asuntos con inspector, Consulta, Buscador y clic derecho, Configuración, Directorio, Asuntos como tablero e Inmuebles), que el titular aprobó el 18/11/2026: «esta es la dirección correcta». Lo que una pantalla nueva necesite y el modelo no muestre se resuelve con las mismas piezas y el mismo orden.
+
+El panel se ordena y se mueve como una buena app de productividad de computadora; las de Mac son la referencia. No se copia su aspecto: la identidad de Fortius se conserva. Lo que se toma es el orden, la estructura y el movimiento.
+
+- **Tres columnas, siempre las mismas:** a la izquierda el menú; en medio la lista; a la derecha lo elegido. Asuntos, Directorio, Inmuebles y Biblioteca se recorren igual.
+- **Una barra arriba de cada pantalla,** con su título, su buscador y sus acciones, siempre en el mismo lugar.
+- **La ventana de la derecha es el inspector:** ahí se ve y se cambia lo elegido sin perder la lista. Al centro es una hoja que pide atención; la pantalla completa es para concentrarse.
+- **Todo se puede hacer con el teclado,** y cada menú enseña su atajo. Las flechas recorren una lista, Enter abre, Esc cierra y la barra espaciadora da un vistazo sin abrir.
+- **El clic derecho** sobre cualquier renglón abre el mismo menú de sus tres puntos.
+- **Arrastrar** sirve para reordenar y para soltar archivos sobre un asunto o sobre la Bandeja.
+- **Deshacer** lo último se hace con el atajo de siempre.
+- **El movimiento explica:** lo que se abre sale de donde se tocó y lo que se cierra regresa ahí. Es corto y nunca estorba. Con movimiento reducido, nada se mueve.
 
 ### Las ventanas
 
