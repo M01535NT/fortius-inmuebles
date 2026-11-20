@@ -3,8 +3,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import type { Encargo, EnQueVa } from "./asuntos-contrato";
+import { leerCompaneros } from "./asuntos-equipo";
 import type { StaffUser } from "./contracts";
-import { CAMPOS_DATOS, type AsuntoDePersona, type CampoDato, type DatosDePersona, type FichaPersona } from "./directorio-contrato";
+import {
+  avisoSchema, canalSchema, columnaArchivada, columnasDeInteres, COLUMNAS_PERSONA, COLUMNAS_PERSONA_ANTES, faltaColumna, faltaTabla, interesDe,
+  interesSchema, loQueSigue, nuevoContactoSchema, type FilaPersona,
+} from "./directorio";
+import {
+  CAMPOS_DATOS, type AsuntoDePersona, type CampoDato, type ContactoPersona, type DatosDePersona, type FichaPersona,
+} from "./directorio-contrato";
 import { fallo } from "./fallo";
 import { ApiError } from "./http";
 
@@ -18,7 +25,12 @@ const T = {
   personas: "fortius_inmuebles_personas",
   datos: "fortius_inmuebles_persona_datos_legales",
   papeles: "fortius_inmuebles_asunto_personas",
+  contactos: "fortius_inmuebles_persona_contactos",
+  uniones: "fortius_inmuebles_persona_uniones",
 } as const;
+const CONTACTOS_EN_FICHA = 50;
+/** Nombres del equipo por id, para decir quién hizo cada contacto. */
+export type NombresEquipo = ReadonlyMap<string, string>;
 
 const version = z.number().int().positive().max(Number.MAX_SAFE_INTEGER - 1);
 const libre = (max: number) => z.string().trim().max(max).transform((v) => v || null).nullable();
@@ -36,6 +48,11 @@ export const cambioFichaSchema = z.object({
       .transform((v) => v.toLowerCase() || null).nullable().optional(),
     telefono: z.object({ pais: z.string().trim().max(5), numero: z.string().trim().max(30) }).strict().nullable().optional(),
     fallecida: z.boolean().optional(),
+    lo_que_sigue: loQueSigue.optional(),
+    canal: canalSchema.optional(),
+    aviso_privacidad: avisoSchema.optional(),
+    interes: interesSchema.optional(),
+    archivada: z.boolean().optional(),
   }).strict().optional(),
   datos: z.object({
     version: version.nullable(),
@@ -45,7 +62,8 @@ export const cambioFichaSchema = z.object({
   }).strict().optional(),
 }).strict();
 
-type FilaPersona = Omit<FichaPersona, "datos" | "asuntos">;
+type FilaFicha = FilaPersona & { aviso_privacidad_el: string | null };
+type FilaContacto = Omit<ContactoPersona, "quien_nombre">;
 type FilaDatos = Record<Exclude<CampoDato, "domicilio">, string | null> & { domicilio: { texto?: unknown } | null; version: number };
 type FilaPapel = {
   papel: string;
@@ -56,15 +74,40 @@ const SIN_DATOS = { ...Object.fromEntries(CAMPOS_DATOS.map((k) => [k, null])), v
 const CONFLICTO = "Alguien más cambió esta ficha. Vuelve a cargar y repite el cambio.";
 const NO_EXISTE = "Esa persona no existe o no te toca verla.";
 
-export async function leerFicha(client: SupabaseClient, id: string): Promise<FichaPersona> {
-  const [p, d, a] = await Promise.all([
-    client.from(T.personas).select("id,clase,nombre,fallecida,telefonos,correo,no_contactar,version").eq("id", id).is("deleted_at", null).maybeSingle(),
+/** Los nombres del equipo para el historial de contacto. Si no se pueden leer, la ficha sale igual, sin nombres. */
+export async function nombresDelEquipo(user: StaffUser): Promise<NombresEquipo> {
+  try { return new Map((await leerCompaneros(user)).map((m) => [m.id, m.nombre])); }
+  catch { return new Map(); }
+}
+
+export const conNombre =(nombres: NombresEquipo) => (c: FilaContacto): ContactoPersona => ({ ...c, quien_nombre: nombres.get(c.quien_id) ?? null });
+
+export async function leerFicha(client: SupabaseClient, id: string, nombres: NombresEquipo = new Map()): Promise<FichaPersona> {
+  // Los contactos de las fichas que se unieron a esta también son suyos (no se mueven: solo se agregan).
+  const u = await client.from(T.uniones).select("origen_id").eq("destino_id", id).limit(200);
+  if (u.error) fallo(u.error);
+  const fichas = [id, ...((u.data ?? []) as { origen_id: string }[]).map((x) => x.origen_id)];
+  const pedirPersona = (columnas: string) => client.from(T.personas).select(columnas).eq("id", id).is("deleted_at", null).maybeSingle();
+  const [pAhora, d, a, cAhora] = await Promise.all([
+    pedirPersona(`${COLUMNAS_PERSONA},aviso_privacidad_el`),
     client.from(T.datos).select(`${CAMPOS_DATOS.join(",")},version`).eq("persona_id", id).maybeSingle(),
     client.from(T.papeles).select("papel,asunto:fortius_inmuebles_asuntos(id,folio,nombre,encargos,en_que_va,deleted_at)").eq("persona_id", id).is("retirado_el", null).limit(500),
+    client.from(T.contactos).select("id,cuando,medio,resultado,nota,quien_id").in("persona_id", fichas).order("cuando", { ascending: false }).limit(CONTACTOS_EN_FICHA),
   ]);
-  for (const r of [p, d, a]) if (r.error) fallo(r.error);
+  // Mientras la base no tenga lo del Directorio (ver COLUMNAS_PERSONA_ANTES): se lee como antes y sin contactos anotados.
+  const p = faltaColumna(pAhora.error) ? await pedirPersona(COLUMNAS_PERSONA_ANTES) : pAhora;
+  const c = faltaTabla(cAhora.error) ? { data: [] as FilaContacto[], error: null } : cAhora;
+  for (const r of [p, d, a, c]) if (r.error) fallo(r.error);
   if (!p.data) throw new ApiError(404, NO_EXISTE);
-  const fila = p.data as unknown as FilaPersona;
+  const f = p.data as unknown as FilaFicha;
+  const fila = {
+    id: f.id, clase: f.clase, nombre: f.nombre, fallecida: f.fallecida,
+    telefonos: Array.isArray(f.telefonos) ? (f.telefonos as FichaPersona["telefonos"]) : [],
+    correo: f.correo, no_contactar: f.no_contactar, version: f.version, volver_a_llamar: f.volver_a_llamar,
+    lo_que_sigue: f.lo_que_sigue ?? "", archivada_el: f.archivada_el ?? null, responsable_id: f.responsable_id, canal: f.canal ?? null,
+    aviso_privacidad: f.aviso_privacidad ?? "pendiente", aviso_privacidad_el: f.aviso_privacidad_el ?? null, interes: interesDe(f),
+    contactos: ((c.data ?? []) as FilaContacto[]).map(conNombre(nombres)),
+  };
   const leidos = d.data as unknown as FilaDatos | null;
   const datos: DatosDePersona = leidos
     ? { ...leidos, domicilio: typeof leidos.domicilio?.texto === "string" ? leidos.domicilio.texto : null }
@@ -78,17 +121,21 @@ export async function leerFicha(client: SupabaseClient, id: string): Promise<Fic
     asuntos.push({ id: s.id, folio: s.folio, nombre: s.nombre, encargos: s.encargos ?? [], en_que_va: s.en_que_va, cerrado: s.en_que_va === "cerrado", papeles: [x.papel] });
   }
   return {
-    ...fila, telefonos: Array.isArray(fila.telefonos) ? fila.telefonos : [], datos,
+    ...fila, datos,
     asuntos: asuntos.sort((m, n) => Number(m.cerrado) - Number(n.cerrado)),
   };
 }
 
 /** Cambia lo que venga (contacto o datos) y devuelve la ficha ya guardada. */
-export async function cambiarFicha(client: SupabaseClient, user: StaffUser, id: string, e: z.infer<typeof cambioFichaSchema>): Promise<FichaPersona> {
+export async function cambiarFicha(
+  client: SupabaseClient, user: StaffUser, id: string, e: z.infer<typeof cambioFichaSchema>, nombres: NombresEquipo = new Map(), ahora = new Date(),
+): Promise<FichaPersona> {
   if (!e.persona && !e.datos) throw new ApiError(400, "No hay nada que cambiar.");
   if (e.persona) {
-    const { version: v, telefono, ...resto } = e.persona;
-    const cambios: Record<string, unknown> = { ...resto };
+    const { version: v, telefono, interes, archivada, ...resto } = e.persona;
+    const cambios: Record<string, unknown> = {
+      ...resto, ...(interes ? columnasDeInteres(interes) : {}), ...(archivada === undefined ? {} : columnaArchivada(archivada, ahora)),
+    };
     if (telefono !== undefined) {
       // Se cambia el primer teléfono; los demás que tenga se conservan.
       const actual = await client.from(T.personas).select("telefonos").eq("id", id).is("deleted_at", null).maybeSingle();
@@ -119,5 +166,26 @@ export async function cambiarFicha(client: SupabaseClient, user: StaffUser, id: 
       if (!r.data) throw new ApiError(409, CONFLICTO);
     }
   }
-  return leerFicha(client, id);
+  return leerFicha(client, id, nombres);
+}
+
+/**
+ * Anota una llamada o un mensaje con su resultado («¿cómo te fue?») y, en el mismo paso, cambia «volver a llamar» y «lo
+ * que sigue» si vienen. Lo hace la base de una sola vez, con la versión que vio quien anota: si alguien cambió la ficha
+ * antes, 409 y no queda nada a medias. El historial de contacto solo se agrega.
+ */
+export async function anotarContacto(
+  client: Pick<SupabaseClient, "rpc">, id: string, e: z.infer<typeof nuevoContactoSchema>, nombres: NombresEquipo = new Map(),
+): Promise<{ contacto: ContactoPersona; version: number }> {
+  const { data, error } = await client.rpc("fortius_inmuebles_anotar_contacto", {
+    p_persona: id, p_version: e.version, p_medio: e.medio, p_resultado: e.resultado, p_nota: e.nota ?? "",
+    p_cuando: e.cuando ?? null, p_cambia_volver: e.volver_a_llamar !== undefined, p_volver: e.volver_a_llamar ?? null,
+    p_sigue: e.lo_que_sigue ?? null,
+  });
+  if (error?.code === "PT404") throw new ApiError(404, NO_EXISTE);
+  if (error?.code === "PT409") throw new ApiError(409, CONFLICTO);
+  if (error) fallo(error);
+  const r = data as { contacto: FilaContacto & { persona_id?: string }; version: number | string };
+  const { id: cid, cuando, medio, resultado, nota, quien_id } = r.contacto;
+  return { contacto: conNombre(nombres)({ id: cid, cuando, medio, resultado, nota, quien_id }), version: Number(r.version) };
 }

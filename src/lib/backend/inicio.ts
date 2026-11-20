@@ -58,17 +58,24 @@ const trozos = <X,>(xs: X[], n = 200) => Array.from({ length: Math.ceil(xs.lengt
 // ── Lectura ──────────────────────────────────────────────────────────────────────────────────────────
 export async function leerInicio(client: SupabaseClient, yo: string): Promise<Inicio> {
   const hoy = hoyTexto(), semana = masDias(hoy, 7);
-  const [sol, ta, con, ven] = await Promise.all([
+  const pedirContactos = (sinArchivar: boolean) => {
+    const q = client.from(T.personas).select("id,nombre,telefonos,nota,volver_a_llamar,version")
+      .lte("volver_a_llamar", hoy).eq("no_contactar", false).eq("fallecida", false).is("deleted_at", null);
+    // Una persona archivada no sale en Inicio aunque tenga fecha: archivar es sacarla de la lista diaria.
+    return (sinArchivar ? q.is("archivada_el", null) : q).order("volver_a_llamar").limit(100);
+  };
+  const [sol, ta, conAhora, ven] = await Promise.all([
     client.from(T.solicitudes).select("id,nombre,telefono,correo,mensaje,recibida_el,asignada_a,asunto_id,interesado_id,consulta_id,version,inmueble:fortius_inmuebles_inmuebles(id,nombre,folio)")
       .eq("estado", "por_atender").order("recibida_el").limit(200),
     client.from(T.tareas).select("id,asunto_id,titulo,quien,clase,fecha,hora,volver_a_preguntar,recordada_el,responsable_id,quien_persona_id,interesado_id,inmueble_id,version,asunto:fortius_inmuebles_asuntos(folio,nombre,en_que_va,deleted_at)")
       .eq("estado", "pendiente").is("deleted_at", null).not("asunto_id", "is", null)
       .or(`fecha.lte.${semana},quien.neq.fortius`).order("fecha", { ascending: true, nullsFirst: false }).limit(1000),
-    client.from(T.personas).select("id,nombre,telefonos,nota,volver_a_llamar,version")
-      .lte("volver_a_llamar", hoy).eq("no_contactar", false).eq("fallecida", false).is("deleted_at", null).order("volver_a_llamar").limit(100),
+    pedirContactos(true),
     client.from(T.documentos).select("id,asunto_id,nombre,vence_el,avisar_dias,asunto:fortius_inmuebles_asuntos(nombre,deleted_at)")
       .not("vence_el", "is", null).lte("vence_el", masDias(hoy, 90)).neq("estado", "no_aplica").is("deleted_at", null).order("vence_el").limit(200),
   ]);
+  // Unos minutos entre publicar el código y que la base reciba la columna «archivada»: se lee como antes.
+  const con = conAhora.error?.code === "42703" ? await pedirContactos(false) : conAhora;
   for (const r of [sol, ta, con, ven]) if (r.error) fallo(r.error);
 
   type FilaTarea = Omit<TareaInicio, "asunto" | "para" | "interesado" | "inmueble"> & {

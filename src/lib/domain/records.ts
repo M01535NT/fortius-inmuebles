@@ -89,6 +89,9 @@ export type Lead = {
   tipoPropiedad?: string;
   mensaje?: string;
   perfil?: LeadProfile;
+  /** Ficha del Directorio a la que se ligó desde el panel nuevo (`/api/admin/leads/{id}/a-directorio`); la pone la base. */
+  personaId?: string;
+  personaEl?: string;
   asesorId?: string;
   creadoEl: string; // ISO
   notas: LeadNota[];

@@ -28,7 +28,8 @@ export type CambioConsulta = Partial<Pick<Consulta,
   "quien_nombre" | "quien_telefonos" | "canal" | "que_pasa" | "datos" | "otras_personas" | "documentos_pedir">>;
 
 export const leerAbiertas = () => pedir<{ consultas: ConsultaAbierta[] }>(base).then((r) => r.consultas);
-export const empezarConsulta = (cuerpo: { quien_nombre?: string; persona_id?: string } = {}) =>
+/** `desde_lead`: id de una consulta del sitio ya ligada con «a-directorio»; trae su mensaje, el canal y el inmueble. */
+export const empezarConsulta = (cuerpo: { quien_nombre?: string; persona_id?: string; desde_lead?: string } = {}) =>
   pedir<{ consulta: { id: string; version: number } }>(base, "POST", cuerpo).then((r) => r.consulta);
 export const leerConsulta = (id: string) => pedir<{ consulta: Consulta }>(`${base}/${id}`).then((r) => r.consulta);
 export const guardarConsulta = (id: string, version: number, cambio: CambioConsulta) =>

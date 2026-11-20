@@ -52,7 +52,52 @@ export const nuevaConsultaSchema = z.object({
   quien_nombre: z.string().trim().max(160).optional(),
   canal: claveCatalogo.optional(),
   persona_id: z.uuid().optional(),
+  /** Desde una consulta del sitio (registro «leads»): trae su mensaje, el canal «sitio» y lo que dijo del inmueble. */
+  desde_lead: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/).optional(),
 }).strict();
+
+/** Lo que trae una consulta del sitio, tal como se guardó (registro viejo «leads»). */
+export type LeadDelSitio = {
+  nombre?: unknown; mensaje?: unknown; zona?: unknown; tipoPropiedad?: unknown; propiedadSlug?: unknown; personaId?: unknown;
+  perfil?: { operacion?: unknown } | null;
+};
+const texto = (x: unknown, max: number) => (typeof x === "string" ? x.trim().slice(0, max) : "");
+/** Qué quiere, según lo que eligió en el sitio. «Rentar» del sitio es buscar dónde vivir: no se adivina. */
+const QUIERE_DEL_SITIO: Partial<Record<string, (typeof QUIERE)[number]>> = { vender: "vender", comprar: "comprar", arrendar: "rentar" };
+
+/**
+ * Arma lo que la consulta nueva recibe de una consulta del sitio: el mensaje en «Qué pasa» (con el inmueble por el que
+ * preguntó), la zona como colonia, el tipo si está en la lista de tipos y qué quiere si se sabe. Nada se inventa.
+ * `tipoDeLista` traduce el tipo del sitio («nave-industrial») a la clave de la lista de tipos, o null si no se ofrece.
+ */
+export function desdeElSitio(lead: LeadDelSitio, inmueble: string | null, tipoDeLista: (t: string) => string | null) {
+  const lineas = [
+    texto(lead.mensaje, 4000) ? `Del sitio: ${texto(lead.mensaje, 4000)}` : "Llegó por el sitio.",
+    inmueble ? `Preguntó por: ${inmueble}` : "",
+  ].filter(Boolean);
+  const tipoSitio = texto(lead.tipoPropiedad, 40);
+  const tipo = tipoSitio ? tipoDeLista(tipoSitio) : null;
+  const quiere = QUIERE_DEL_SITIO[texto(lead.perfil?.operacion, 20)];
+  const campos: DatosConsulta = {
+    ...(quiere ? { que_quiere: quiere } : {}),
+    ...(tipo ? { tipo } : {}),
+    ...(texto(lead.zona, 120) ? { colonia: texto(lead.zona, 120) } : {}),
+  };
+  return { canal: "sitio" as const, quien_nombre: texto(lead.nombre, 160), que_pasa: lineas.join("\n"), datos: campos };
+}
+
+async function leerLead(client: SupabaseClient, id: string): Promise<{ lead: LeadDelSitio; inmueble: string | null }> {
+  const r = await client.from("fortius_inmuebles_records").select("data").eq("collection", "leads").eq("id", id).maybeSingle();
+  if (r.error) fallo(r.error);
+  if (!r.data) throw new ApiError(404, "Esa consulta del sitio no existe o la lleva otro asesor.");
+  const lead = (r.data as { data: LeadDelSitio }).data ?? {};
+  const slug = texto(lead.propiedadSlug, 160);
+  if (!slug) return { lead, inmueble: null };
+  // El nombre del inmueble si quien atiende lo ve; si no, su dirección en el sitio.
+  const i = await client.from("fortius_inmuebles_inmuebles").select("nombre,folio").eq("slug", slug).is("deleted_at", null).maybeSingle();
+  const fila = i.error ? null : (i.data as { nombre: string; folio: string | null } | null);
+  return { lead, inmueble: fila ? [fila.nombre, fila.folio].filter(Boolean).join(" · ") : `/inmuebles/${slug}` };
+}
 
 export const cambioConsultaSchema = z.object({
   version,
@@ -92,20 +137,50 @@ export async function listarAbiertas(client: SupabaseClient, user: StaffUser): P
 export async function crearConsulta(client: SupabaseClient, user: StaffUser, entrada: z.infer<typeof nuevaConsultaSchema>) {
   // Desde el Directorio: la consulta llega con el nombre, el teléfono y el correo que ya tiene la ficha.
   type Ficha = { nombre: string; telefonos: { pais: string; numero: string }[] | null; correo: string | null };
+  // Desde una consulta del sitio: lo que escribió y la ficha a la que ya se ligó («Persona y asunto»).
+  let sitio: ReturnType<typeof desdeElSitio> | null = null;
+  let personaId = entrada.persona_id;
+  if (entrada.desde_lead) {
+    const { lead, inmueble } = await leerLead(client, entrada.desde_lead);
+    const ligada = typeof lead.personaId === "string" && z.uuid().safeParse(lead.personaId).success ? lead.personaId : undefined;
+    if (personaId && ligada && personaId !== ligada) throw new ApiError(409, "Esa consulta del sitio ya está ligada a otra persona. Vuelve a cargar.");
+    personaId = personaId ?? ligada;
+    // Dos clics dan la misma: si ya hay una consulta abierta de ese mensaje del sitio, se devuelve esa.
+    const abierta = await abiertaDelSitio(client, entrada.desde_lead);
+    if (abierta) return abierta;
+    const catalogos = await mapaCatalogos(client);
+    const tipos = ofrecidos(catalogos.tipo_inmueble);
+    sitio = desdeElSitio(lead, inmueble, (t) => (tipos.find((x) => x.clave === t) ?? tipos.find((x) => x.significado === t))?.clave ?? null);
+  }
   let ficha: Ficha | null = null;
-  if (entrada.persona_id) {
-    const p = await client.from("fortius_inmuebles_personas").select("nombre,telefonos,correo").eq("id", entrada.persona_id).is("deleted_at", null).maybeSingle();
+  if (personaId) {
+    const p = await client.from("fortius_inmuebles_personas").select("nombre,telefonos,correo").eq("id", personaId).is("deleted_at", null).maybeSingle();
     if (p.error) fallo(p.error);
     if (!p.data) throw new ApiError(404, "Esa persona ya no está en el Directorio.");
     ficha = p.data as Ficha;
   }
   const r = await client.from(T.consultas).insert({
-    quien_nombre: entrada.quien_nombre ?? ficha?.nombre ?? "", canal: entrada.canal ?? "llamada", persona_id: entrada.persona_id ?? null,
+    quien_nombre: entrada.quien_nombre ?? ficha?.nombre ?? sitio?.quien_nombre ?? "", canal: entrada.canal ?? sitio?.canal ?? "llamada", persona_id: personaId ?? null,
     ...(ficha ? { quien_telefonos: Array.isArray(ficha.telefonos) ? ficha.telefonos.slice(0, 5) : [], quien_correo: ficha.correo } : {}),
+    ...(sitio ? { que_pasa: sitio.que_pasa, datos: sitio.datos, desde_lead: entrada.desde_lead } : {}),
     responsable_id: user.id, creado_por: user.id,
   }).select("id,version").single();
+  if (r.error?.code === "23505" && entrada.desde_lead) {
+    // Otro clic la abrió justo antes: se devuelve esa; si no se ve (la atiende otra persona), se avisa.
+    const abierta = await abiertaDelSitio(client, entrada.desde_lead);
+    if (abierta) return abierta;
+    throw new ApiError(409, "Ya hay una consulta abierta de ese mensaje del sitio y la atiende otra persona.");
+  }
   if (r.error) fallo(r.error);
   return r.data as { id: string; version: number };
+}
+
+/** La consulta abierta que salió de esa consulta del sitio, si quien está en sesión la ve. */
+async function abiertaDelSitio(client: SupabaseClient, leadId: string): Promise<{ id: string; version: number } | null> {
+  const r = await client.from(T.consultas).select("id,version")
+    .eq("desde_lead", leadId).eq("estado", "abierta").is("deleted_at", null).limit(1).maybeSingle();
+  if (r.error) fallo(r.error);
+  return (r.data as { id: string; version: number } | null) ?? null;
 }
 
 type FilaCarga = Omit<Carga, "documento"> & { documento?: string | null };
@@ -249,6 +324,8 @@ export async function cerrarConsulta(client: SupabaseClient, id: string, entrada
     ? { estado: "no_procede", motivo: entrada.motivo || null }
     : { estado: "abierta" };
   const r = await client.from(T.consultas).update(cambios).eq("id", id).eq("version", entrada.version).neq("estado", "asunto").select("id");
+  // Reabrir cuando ya hay otra abierta del mismo mensaje del sitio: solo una a la vez.
+  if (r.error?.code === "23505") throw new ApiError(409, "Ya hay otra consulta abierta de ese mensaje del sitio. Sigue en esa.");
   if (r.error) fallo(r.error);
   if (!r.data?.length) throw new ApiError(409, "La consulta cambió en otra ventana. Vuelve a cargarla.");
   return {};
