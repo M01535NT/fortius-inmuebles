@@ -37,8 +37,10 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [x] Directorio y la ficha de la persona con el aspecto nuevo.
 - [x] Configuración con el aspecto nuevo.
 - [x] Bandeja, Biblioteca, Herramientas, Consultas, Agenda, Formatos, Dinero, Trámites, Equipo y Eliminados con el mismo orden (no tienen pantalla modelo; siguen a las demás).
-- [ ] La pantalla vieja de Personas, la de entrada al panel y las de aviso (cargando, error) con el mismo orden.
-- [ ] Mirar cada pantalla en capturas junto a su modelo, en computadora, teléfono y oscuro.
+- [x] La pantalla de Personas, la de entrada al panel y las de aviso (cargando, error) con el mismo orden.
+- [x] Mirar cada pantalla en capturas junto a su modelo, en computadora, teléfono y oscuro.
+- [ ] Ver en pantalla las cuatro que no salieron en captura: cargando, error, un formato abierto y un informe abierto.
+- [ ] Decidir si Personas y Directorio se juntan en una sola pantalla: hoy son dos listas de gente con datos distintos.
 - [ ] Pruebas automáticas otra vez.
 
 El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
