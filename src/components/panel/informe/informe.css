@@ -1,0 +1,16 @@
+/*
+ * Informe para el cliente: el marco es la ventana de documento (documento.css); a la izquierda, «Qué lleva» con el título de
+ * grupo y la tarjeta del modelo visual (fichas/modelo.css), renglones de 44 px y letra de 13 px.
+ */
+.panel-root .inf-partes .as-ren { min-height: 44px; padding: 7px 14px; gap: 10px; }
+.panel-root .inf-partes .as-ren-c b { font-size: 13.5px; font-weight: 500; }
+.panel-root .inf-partes .as-ren-c span { font-size: 12px; }
+.panel-root .inf-nota { padding-top: 6px; }
+/* El aviso de error ocupa el ancho de la ventana, sin el fondo de la columna de la izquierda. */
+.panel-root .inf-error { grid-column: 1 / -1; width: 100%; max-width: 520px; margin: 0 auto; background: transparent; border: 0; }
+@media (max-width: 900px) {
+  .panel-root .inf-partes .as-ren { min-height: 52px; }
+  /* En el teléfono el número del informe no se encima en el título: el título se recorta y la píldora no se encoge. */
+  .panel-root .dc-cabeza > .as-pill { flex: none; }
+  .panel-root .dc-cabeza .dc-titulo { overflow: hidden; }
+}

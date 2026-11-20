@@ -9,7 +9,7 @@ import { calculateClosingBudget } from "@/lib/finance/closing";
 import { D, cents, localToday } from "@/lib/finance/money";
 import { pesos } from "@/lib/panel/herramientas";
 
-import { Resultado, type LineaResultado } from "./resultado";
+import { DatosCuenta, Resultado, type LineaResultado } from "./resultado";
 
 const LEYENDA_COMPRA = "Cuenta de referencia, no asesoría fiscal. El ISAI y el Registro salen de las leyes de ingresos 2026; la notaría, el avalúo y el banco son cotizaciones. Lo que falta queda por cotizar.";
 const LEYENDA_VENTA = "Cuenta de referencia, no asesoría fiscal. El ISR se escribe ya determinado (notaría, contador o «Cálculo de ISR»).";
@@ -108,28 +108,39 @@ export function CalculadoraCostos({ precioInicial, para, ladoInicial = "compra" 
   const leyenda = lado === "compra" ? LEYENDA_COMPRA : LEYENDA_VENTA;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Campo etiqueta={lado === "compra" ? "Precio de compra" : "Precio de venta"} dinero inputMode="decimal" value={formatoMonto(precio)} onChange={(e) => setPrecio(limpiar(e.target.value))} />
-      {lado === "compra" ? (
-        <>
-          <Desplegable etiqueta="Municipio" valor={municipio} opciones={MUNICIPIOS} alElegir={(v) => v && setMunicipio(v)} />
-          <Interruptor etiqueta="Forma de pago" valor={pago} alElegir={setPago} opciones={[{ valor: "contado", etiqueta: "Contado" }, { valor: "credito", etiqueta: "Crédito" }]} />
-          {pago === "credito" ? <Desplegable etiqueta="Enganche" valor={enganche} opciones={ENGANCHES} alElegir={(v) => v && setEnganche(v)} /> : null}
-          <Monto etiqueta="Base del ISAI" valor={base} alCambiar={setBase} ayuda="La determina el municipio con precio, valor catastral y avalúo. Si la dejas vacía se usa el precio." />
-          <Monto etiqueta="Notaría (con IVA)" valor={notaria} alCambiar={setNotaria} ayuda="Cotización de la notaría, sin ISAI ni Registro." />
-          <Monto etiqueta="Avalúo" valor={avaluo} alCambiar={setAvaluo} />
-          {pago === "credito" ? <Monto etiqueta="Comisión por apertura del crédito" valor={apertura} alCambiar={setApertura} ayuda="La que cotice el banco o Infonavit." /> : null}
-        </>
-      ) : (
-        <>
-          <Desplegable etiqueta="Comisión" valor={comision} opciones={COMISIONES} alElegir={(v) => v && setComision(v)} />
-          <Interruptor etiqueta="IVA de la factura" valor={iva} alElegir={setIva} opciones={[{ valor: 16, etiqueta: "16%" }, { valor: 8, etiqueta: "8%" }]} />
-          <Monto etiqueta="ISR por la venta" valor={isr} alCambiar={setIsr} ayuda="El que calcule la notaría o el contador. Escribe 0 si la venta está exenta." />
-          <Monto etiqueta="Saldo del crédito por liquidar" valor={saldo} alCambiar={setSaldo} ayuda="Vacío si el inmueble no tiene hipoteca." />
-          {opcional(saldo) ? <Monto etiqueta="Cancelación de la hipoteca" valor={cancelacion} alCambiar={setCancelacion} /> : null}
-        </>
-      )}
-      <Monto etiqueta="Otros gastos" valor={otros} alCambiar={setOtros} ayuda="Opcional: predial y agua al corriente, constancias, gestoría." />
+    <div className="her-cuenta">
+      <DatosCuenta titulo="La operación">
+        <Campo etiqueta={lado === "compra" ? "Precio de compra" : "Precio de venta"} dinero inputMode="decimal" value={formatoMonto(precio)} onChange={(e) => setPrecio(limpiar(e.target.value))} />
+        {lado === "compra" ? (
+          <>
+            <Desplegable etiqueta="Municipio" valor={municipio} opciones={MUNICIPIOS} alElegir={(v) => v && setMunicipio(v)} />
+            <Interruptor etiqueta="Forma de pago" valor={pago} alElegir={setPago} opciones={[{ valor: "contado", etiqueta: "Contado" }, { valor: "credito", etiqueta: "Crédito" }]} />
+            {pago === "credito" ? <Desplegable etiqueta="Enganche" valor={enganche} opciones={ENGANCHES} alElegir={(v) => v && setEnganche(v)} /> : null}
+          </>
+        ) : (
+          <>
+            <Desplegable etiqueta="Comisión" valor={comision} opciones={COMISIONES} alElegir={(v) => v && setComision(v)} />
+            <Interruptor etiqueta="IVA de la factura" valor={iva} alElegir={setIva} opciones={[{ valor: 16, etiqueta: "16%" }, { valor: 8, etiqueta: "8%" }]} />
+          </>
+        )}
+      </DatosCuenta>
+      <DatosCuenta titulo={lado === "compra" ? "Cotizaciones" : "Lo que se descuenta"}>
+        {lado === "compra" ? (
+          <>
+            <Monto etiqueta="Base del ISAI" valor={base} alCambiar={setBase} ayuda="La determina el municipio con precio, valor catastral y avalúo. Si la dejas vacía se usa el precio." />
+            <Monto etiqueta="Notaría (con IVA)" valor={notaria} alCambiar={setNotaria} ayuda="Cotización de la notaría, sin ISAI ni Registro." />
+            <Monto etiqueta="Avalúo" valor={avaluo} alCambiar={setAvaluo} />
+            {pago === "credito" ? <Monto etiqueta="Comisión por apertura del crédito" valor={apertura} alCambiar={setApertura} ayuda="La que cotice el banco o Infonavit." /> : null}
+          </>
+        ) : (
+          <>
+            <Monto etiqueta="ISR por la venta" valor={isr} alCambiar={setIsr} ayuda="El que calcule la notaría o el contador. Escribe 0 si la venta está exenta." />
+            <Monto etiqueta="Saldo del crédito por liquidar" valor={saldo} alCambiar={setSaldo} ayuda="Vacío si el inmueble no tiene hipoteca." />
+            {opcional(saldo) ? <Monto etiqueta="Cancelación de la hipoteca" valor={cancelacion} alCambiar={setCancelacion} /> : null}
+          </>
+        )}
+        <Monto etiqueta="Otros gastos" valor={otros} alCambiar={setOtros} ayuda="Opcional: predial y agua al corriente, constancias, gestoría." />
+      </DatosCuenta>
       <Resultado
         lineas={lineas}
         vacio="Escribe un precio para ver los costos de cierre."
@@ -140,9 +151,9 @@ export function CalculadoraCostos({ precioInicial, para, ladoInicial = "compra" 
         tipo={lado}
         fuente={lado === "compra" ? FUENTE_COMPRA : FUENTE_VENTA}
       />
-      {lado === "compra" && isai?.note ? <p className="pn-her-leyenda">ISAI: {isai.note}</p> : null}
-      {cuenta && cuenta.pending.length ? <p className="pn-her-leyenda pn-tono-aviso">Falta cotizar: {cuenta.pending.join(", ").toLowerCase()}.</p> : null}
-      <p className="pn-her-leyenda">{leyenda}</p>
+      {lado === "compra" && isai?.note ? <p className="as-m her-ley">ISAI: {isai.note}</p> : null}
+      {cuenta && cuenta.pending.length ? <p className="as-m her-ley pn-tono-aviso">Falta cotizar: {cuenta.pending.join(", ").toLowerCase()}.</p> : null}
+      <p className="as-m her-ley">{leyenda}</p>
     </div>
   );
 }

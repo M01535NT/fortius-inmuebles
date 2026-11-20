@@ -1,17 +1,18 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 
-import { EditarDato, FilaDato, GrupoDatos, Pestanas, copiarTexto } from "@/components/panel/fichas/piezas";
+import { EditarDato, FilaDato, GrupoDatos, copiarTexto } from "@/components/panel/fichas/piezas";
+import { BotonesDeVista } from "@/components/panel/kit/segmentado";
 import { Icono, type NombreIcono } from "@/components/panel/icons";
+import { useCatalogos, type LectorCatalogos } from "@/components/panel/datos/catalogos";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
-import { Switch } from "@/components/panel/ui/switch";
 import {
-  agregar, cambiar, cambiarFicha, CLASES_PERSONA, iniciales, leerFicha, NOMBRE_PAPEL, PAPELES,
+  agregar, cambiar, cambiarFicha, CLASES_PERSONA, iniciales, leerFicha,
   type Asunto, type CambioFicha, type CampoDato, type ClasePersona, type EntradaHistorial, type FichaPersona, type Papel,
   type PersonaDelAsunto, type PersonaDuplicada, type ResultadoPersona,
 } from "@/lib/panel/asuntos/api";
@@ -26,14 +27,35 @@ import { useRegresoDeVentana } from "./ventana";
  * La flecha ← de la ventana regresa de la ficha a los grupos.
  */
 
-const GRUPOS: readonly { clave: string; titulo: string; icono: NombreIcono; papeles: readonly Papel[] }[] = [
-  { clave: "busca", titulo: "Quien nos busca", icono: "tel", papeles: ["contacto"] },
-  { clave: "duenos", titulo: "Dueños y herederos", icono: "llave", papeles: ["propietario", "titular", "heredero", "copropietario", "vendedor"] },
-  { clave: "otro", titulo: "Del otro lado", icono: "users", papeles: ["comprador", "inquilino", "inversionista", "contraparte"] },
-  { clave: "ayudan", titulo: "Quienes ayudan", icono: "edif", papeles: ["apoderado", "abogado", "notaria", "banco"] },
+/**
+ * Los cuatro grupos son los cuatro lados de los papeles (SPEC.md, sección 3): de quien nos busca, del lado del cliente,
+ * del otro lado y de apoyo. De qué lado es cada papel, y el nombre de cada lado, lo dice el catálogo de papeles
+ * (Configuración → Catálogos). Aquí solo el ícono de cada lado y su nombre mientras llega el catálogo.
+ */
+type Grupo = { clave: string; titulo: string; icono: NombreIcono };
+const LADOS: readonly Grupo[] = [
+  { clave: "busca", titulo: "Quien nos busca", icono: "tel" },
+  { clave: "cliente", titulo: "Dueños y herederos", icono: "llave" },
+  { clave: "otro", titulo: "Del otro lado", icono: "users" },
+  { clave: "apoyo", titulo: "Quienes ayudan", icono: "edif" },
 ];
-/** El papel con que nace quien se agrega desde cada grupo. */
-const PAPEL_DEL_GRUPO: Record<string, Papel> = { busca: "contacto", duenos: "propietario", otro: "comprador", ayudan: "abogado" };
+/** El papel con que nace quien se agrega desde cada grupo, el de siempre (si el catálogo lo sigue ofreciendo ahí). */
+const PAPEL_DEL_GRUPO: Record<string, Papel> = { busca: "contacto", cliente: "propietario", otro: "comprador", apoyo: "abogado" };
+const gruposDe = (cat: LectorCatalogos): Grupo[] => {
+  const nombres = cat.catalogos.papel?.significados ?? [];
+  return LADOS.map((g) => ({ ...g, titulo: nombres.find((s) => s.clave === g.clave)?.etiqueta ?? g.titulo }));
+};
+/** El grupo de un papel; si su catálogo todavía no llega, el primero (nadie se queda sin verse). */
+const grupoDe = (cat: LectorCatalogos, papel: Papel) => {
+  const grupos = gruposDe(cat);
+  return grupos.find((g) => g.clave === cat.significado("papel", papel)) ?? grupos[0];
+};
+/** El papel con que nace quien se agrega desde un grupo: el de siempre; si ya no se ofrece en ese grupo, el primero que quede. */
+const papelDelGrupo = (cat: LectorCatalogos, grupo: string): Papel => {
+  const delGrupo = cat.ofrecidos("papel").filter((v) => v.significado === grupo);
+  const deSiempre = PAPEL_DEL_GRUPO[grupo];
+  return (delGrupo.find((v) => v.clave === deSiempre) ?? delGrupo[0])?.clave ?? deSiempre ?? "contacto";
+};
 const NOMBRE_CLASE: Record<ClasePersona, string> = { persona: "Persona", empresa: "Empresa", institucion: "Institución" };
 const ESTADOS_CIVILES = ["Soltero(a)", "Casado(a)", "Unión libre", "Divorciado(a)", "Viudo(a)"] as const;
 const ESTADO_DOC: Record<string, { texto: string; clase: string }> = {
@@ -101,10 +123,11 @@ export function Personas({ a, foco, hacer, notas, alAbrirPersona, alVerNotas }: 
 
 // ── Al abrir: por grupos ─────────────────────────────────────────────────────────────────────────────
 function Grupos({ a, notas, alAbrir, alAgregar }: { a: Asunto; notas: EntradaHistorial[] | null; alAbrir: (id: string) => void; alAgregar: (papel: Papel) => void }) {
+  const cat = useCatalogos();
   return (
     <div className="pp-grupos">
-      {GRUPOS.map((g) => {
-        const miembros = a.personas.filter((p) => g.papeles.includes(p.papel));
+      {gruposDe(cat).map((g) => {
+        const miembros = a.personas.filter((p) => grupoDe(cat, p.papel).clave === g.clave);
         return (
           <section key={g.clave} className="pp-grupo" aria-labelledby={`pp-${g.clave}`}>
             <div className="pp-grupo-h">
@@ -112,7 +135,7 @@ function Grupos({ a, notas, alAbrir, alAgregar }: { a: Asunto; notas: EntradaHis
               <h3 id={`pp-${g.clave}`}>{g.titulo}</h3>
               {miembros.length ? <span className="as-m as-num">{miembros.length}</span> : null}
               <span className="as-sp" />
-              <button type="button" className="as-btn as-gho" onClick={() => alAgregar(PAPEL_DEL_GRUPO[g.clave])} aria-label={`Agregar a ${g.titulo.toLowerCase()}`}>
+              <button type="button" className="as-btn as-gho" onClick={() => alAgregar(papelDelGrupo(cat, g.clave))} aria-label={`Agregar a ${g.titulo.toLowerCase()}`}>
                 <Icono nombre="mas" tamano={16} />Agregar
               </button>
             </div>
@@ -125,7 +148,7 @@ function Grupos({ a, notas, alAbrir, alAgregar }: { a: Asunto; notas: EntradaHis
                       <Avatar p={p} />
                       <span className="pp-tarjeta-c">
                         <b>{p.nombre}</b>
-                        <span>{NOMBRE_PAPEL[p.papel]} · {p.fallecida ? "Falleció" : p.no_contactar ? "No contactar" : p.telefono ?? "Sin teléfono"}</span>
+                        <span>{cat.etiqueta("papel", p.papel)} · {p.fallecida ? "Falleció" : p.no_contactar ? "No contactar" : p.telefono ?? "Sin teléfono"}</span>
                         {p.nota ? <span className="pp-lazo"><Icono nombre="liga" tamano={13} />{p.nota}</span> : null}
                       </span>
                       {n ? <span className="pp-cuenta" title={`${n} ${n === 1 ? "nota la menciona" : "notas la mencionan"}`}><Icono nombre="nota" tamano={13} />{n}</span> : null}
@@ -143,6 +166,7 @@ function Grupos({ a, notas, alAbrir, alAgregar }: { a: Asunto; notas: EntradaHis
 
 // ── La ficha ─────────────────────────────────────────────────────────────────────────────────────────
 function ListaPersonas({ a, abierta, alAbrir, alAgregar }: { a: Asunto; abierta: string; alAbrir: (id: string) => void; alAgregar: () => void }) {
+  const cat = useCatalogos();
   const [q, setQ] = useState("");
   const plano = (t: string) => t.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
   const lista = a.personas.filter((p) => !q.trim() || plano(p.nombre).includes(plano(q.trim())) || digitos(p).includes(q.replace(/\D/g, "") || "-"));
@@ -159,7 +183,7 @@ function ListaPersonas({ a, abierta, alAbrir, alAgregar }: { a: Asunto; abierta:
         {lista.map((p) => (
           <button key={p.id} type="button" className="pp-item" aria-current={p.id === abierta || undefined} onClick={() => alAbrir(p.id)}>
             <Avatar p={p} />
-            <span className="pp-item-c"><b>{p.nombre}</b><span>{NOMBRE_PAPEL[p.papel]}</span></span>
+            <span className="pp-item-c"><b>{p.nombre}</b><span>{cat.etiqueta("papel", p.papel)}</span></span>
           </button>
         ))}
       </div>
@@ -175,6 +199,7 @@ type Edicion = {
 
 function FichaEnAsunto({ a, p, hacer, cuantas, alVerNotas }: { a: Asunto; p: PersonaDelAsunto; hacer: Hacer; cuantas: number; alVerNotas: () => void }) {
   const { avisar } = useAvisos();
+  const cat = useCatalogos();
   const [ficha, setFicha] = useState<FichaPersona | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pestana, setPestana] = useState<"datos" | "docs" | "otros">("datos");
@@ -230,8 +255,8 @@ function FichaEnAsunto({ a, p, hacer, cuantas, alVerNotas }: { a: Asunto; p: Per
           </button>
         </div>
         <div className="pp-ficha-acc">
-          <Pildora etiqueta="Papel en el asunto" valor={p.papel} opciones={PAPELES.map((v) => ({ valor: v, etiqueta: NOMBRE_PAPEL[v] }))}
-            alElegir={(v) => { if (v !== p.papel) void hacer(() => cambiar(a.id, "personas", { id: p.id, version: p.version, papel: v }), `${p.nombre}: ${NOMBRE_PAPEL[v].toLowerCase()}`); }} />
+          <Pildora etiqueta="Papel en el asunto" valor={p.papel} opciones={cat.opciones("papel", p.papel)}
+            alElegir={(v) => { if (v !== p.papel) void hacer(() => cambiar(a.id, "personas", { id: p.id, version: p.version, papel: v }), `${p.nombre}: ${cat.etiqueta("papel", v).toLowerCase()}`); }} />
           {contacto ? (
             <>
               <a className="as-btn as-gho as-ico" href={`tel:+${digitos(p)}`} aria-label={`Llamar a ${p.nombre}`} title="Llamar"><Icono nombre="tel" tamano={18} /></a>
@@ -256,8 +281,8 @@ function FichaEnAsunto({ a, p, hacer, cuantas, alVerNotas }: { a: Asunto; p: Per
         </div>
       </header>
 
-      <Pestanas etiqueta="Qué ver de la persona" valor={pestana} alElegir={setPestana}
-        opciones={[{ valor: "datos", etiqueta: "Datos" }, { valor: "docs", etiqueta: `Documentos${docs.length ? ` (${docs.length})` : ""}` }, { valor: "otros", etiqueta: "Otros asuntos" }]} />
+      <BotonesDeVista etiqueta="Qué ver de la persona" valor={pestana} alElegir={setPestana}
+        opciones={[{ valor: "datos", etiqueta: "Datos", icono: "users" }, { valor: "docs", etiqueta: "Documentos", icono: "file", cuenta: docs.length }, { valor: "otros", etiqueta: "Otros asuntos", icono: "asu" }]} />
 
       {error ? <p className="as-ban" role="alert"><Icono nombre="alerta" tamano={16} />{error}</p> : !ficha ? <div className="as-cargando" aria-busy="true"><span /><span /></div> : pestana === "datos" ? (
         <div className="pp-hoja">
@@ -310,7 +335,7 @@ function FichaEnAsunto({ a, p, hacer, cuantas, alVerNotas }: { a: Asunto; p: Per
           {otros.length ? otros.map((x) => (
             <Link key={x.id} href={`/panel/asuntos/${x.id}`} className="as-ren">
               <Icono nombre="asu" tamano={16} />
-              <span className="as-ren-c"><b>{x.nombre}</b><span>{x.folio} · {x.papeles.map((v) => NOMBRE_PAPEL[v as Papel] ?? v).join(", ")}{x.cerrado ? " · cerrado" : ""}</span></span>
+              <span className="as-ren-c"><b>{x.nombre}</b><span>{x.folio} · {x.papeles.map((v) => cat.etiqueta("papel", v)).join(", ")}{x.cerrado ? " · cerrado" : ""}</span></span>
               <Icono nombre="ch" tamano={16} />
             </Link>
           )) : <p className="as-m as-pad">Solo aparece en este asunto.</p>}
@@ -340,9 +365,9 @@ function AltaPersona({ a, papel: inicial, hacer, alCancelar, alAgregar }: {
   const [pais, setPais] = useState("+52");
   const [numero, setNumero] = useState("");
   const [relacion, setRelacion] = useState("");
-  const [fallecida, setFallecida] = useState(false);
   const [duplicada, setDuplicada] = useState<PersonaDuplicada | null>(null);
-  const grupo = useMemo(() => GRUPOS.find((g) => g.papeles.includes(papel)), [papel]);
+  const cat = useCatalogos();
+  const grupo = grupoDe(cat, papel);
 
   async function guardar(usar?: "misma" | "otra") {
     const t = nombre.trim();
@@ -350,7 +375,7 @@ function AltaPersona({ a, papel: inicial, hacer, alCancelar, alAgregar }: {
     const nota = relacion.trim() ? { nota: relacion.trim() } : {};
     const cuerpo = usar === "misma" && duplicada
       ? { papel, persona_id: duplicada.id, ...nota }
-      : { papel, aunque_exista: usar === "otra", ...nota, nueva: { nombre: t, clase, fallecida, ...(numero.trim() && !fallecida ? { telefono: { pais, numero } } : {}) } };
+      : { papel, aunque_exista: usar === "otra", ...nota, nueva: { nombre: t, clase, ...(numero.trim() ? { telefono: { pais, numero } } : {}) } };
     let r: ResultadoPersona = {};
     let ok = false;
     await hacer(async () => { r = await agregar<ResultadoPersona>(a.id, "personas", cuerpo); ok = true; }, undefined);
@@ -361,33 +386,25 @@ function AltaPersona({ a, papel: inicial, hacer, alCancelar, alAgregar }: {
 
   return (
     <form className="as-card as-pad as-form" onSubmit={(e) => { e.preventDefault(); void guardar(); }}>
-      <p className="as-sub">{grupo ? <Icono nombre={grupo.icono} tamano={15} /> : null}Agregar a {grupo?.titulo.toLowerCase() ?? "Personas"}</p>
+      <p className="as-sub"><Icono nombre={grupo.icono} tamano={15} />Agregar a {grupo.titulo.toLowerCase()}</p>
       <p className="as-m">Basta con el nombre y su papel; lo demás, cuando lo tengas.</p>
       <div className="as-g2">
         <label className="pn-campo" htmlFor={`${id}-n`}>Nombre
           <input ref={ref} id={`${id}-n`} className="as-inp as-inp-borde" value={nombre} maxLength={160} onChange={(e) => { setNombre(e.target.value); setDuplicada(null); }} />
         </label>
-        <Desplegable etiqueta="Papel" valor={papel} opciones={PAPELES.map((v) => ({ valor: v, etiqueta: NOMBRE_PAPEL[v] }))} alElegir={(v) => { if (v) setPapel(v); }} />
+        <Desplegable etiqueta="Papel" valor={papel} opciones={cat.opciones("papel", papel)} alElegir={(v) => { if (v) setPapel(v); }} />
         <Desplegable etiqueta="Es" valor={clase} opciones={CLASES_PERSONA.map((v) => ({ valor: v, etiqueta: NOMBRE_CLASE[v] }))} alElegir={(v) => { if (v) setClase(v); }} />
-        {!fallecida ? (
-          <div className="pn-campo">
-            <label htmlFor={`${id}-t`}>Teléfono</label>
-            <span className="as-tel">
-              <input aria-label="Clave del país" className="as-inp as-inp-borde as-clave" value={pais} maxLength={5} onChange={(e) => setPais(e.target.value)} />
-              <input id={`${id}-t`} className="as-inp as-inp-borde" inputMode="tel" value={numero} maxLength={30} onChange={(e) => { setNumero(e.target.value); setDuplicada(null); }} />
-            </span>
-          </div>
-        ) : null}
+        <div className="pn-campo">
+          <label htmlFor={`${id}-t`}>Teléfono</label>
+          <span className="as-tel">
+            <input aria-label="Clave del país" className="as-inp as-inp-borde as-clave" value={pais} maxLength={5} onChange={(e) => setPais(e.target.value)} />
+            <input id={`${id}-t`} className="as-inp as-inp-borde" inputMode="tel" value={numero} maxLength={30} onChange={(e) => { setNumero(e.target.value); setDuplicada(null); }} />
+          </span>
+        </div>
       </div>
       <label className="pn-campo" htmlFor={`${id}-r`}>Su relación con los demás (opcional)
         <input id={`${id}-r`} className="as-inp as-inp-borde" value={relacion} maxLength={500} onChange={(e) => setRelacion(e.target.value)} placeholder="Hija de Rosa, recibe el poder" />
       </label>
-      {clase === "persona" ? (
-        <label className="as-fila as-switch">
-          <Switch checked={fallecida} onCheckedChange={setFallecida} aria-label="Falleció" />
-          <span>Falleció</span>
-        </label>
-      ) : null}
       {duplicada ? (
         <div className="as-ban" role="status">
           <Icono nombre="users" tamano={16} />

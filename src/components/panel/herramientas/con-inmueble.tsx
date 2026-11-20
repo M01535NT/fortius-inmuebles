@@ -20,10 +20,10 @@ export function ConInmueble({ cual }: { cual: Cual }) {
   const props = { precioInicial: elegido ? elegido.precio : undefined, para };
   const key = `${cual}-${codigo ?? "libre"}`;
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div className="her-cuenta">
       {elegido ? <ParaInmueble elegido={elegido} alQuitar={quitar} /> : null}
-      {elegido?.aviso ? <p className="pn-sub pn-tono-aviso" style={{ margin: 0 }}>{elegido.aviso}</p> : null}
-      {noEncontrado ? <p className="pn-sub pn-tono-aviso" style={{ margin: 0 }}>No se encontró el inmueble {codigo}. La cuenta queda libre.</p> : null}
+      {elegido?.aviso ? <p className="as-m her-ley pn-tono-aviso">{elegido.aviso}</p> : null}
+      {noEncontrado ? <p className="as-m her-ley pn-tono-aviso">No se encontró el inmueble {codigo}. La cuenta queda libre.</p> : null}
       {cual === "credito" ? <CalculadoraCredito key={key} {...props} />
         : cual === "comision" ? <CalculadoraComision key={key} {...props} />
         : cual === "isr" ? <CalculadoraIsr key={key} {...props} />

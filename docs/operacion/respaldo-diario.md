@@ -17,6 +17,12 @@ Si falla, GitHub manda un correo al titular. Los registros del flujo solo muestr
 
 **Límite:** la base sale de una instantánea consistente, pero los archivos se copian unos segundos o minutos después. Un archivo subido justo en ese intervalo podría faltar en la copia de esa noche; la verificación lo detectaría y la copia fallaría en lugar de quedar incompleta en silencio. Por eso se programa de madrugada.
 
+### Qué guarda desde el 19/11/2026
+
+- La copia incluye ahora **las listas que el director ajusta** en Configuración (orígenes, tipos y demás opciones de los desplegables) y **el historial de llamadas y contactos de cada persona** del Directorio. Son 68 tablas en total.
+- **Las copias anteriores siguen sirviendo.** Una copia de antes de este cambio se verifica y se restaura igual. Al restaurarla, el panel queda con las listas que trae el sistema de fábrica y con el historial de contactos vacío, porque esa copia no los tenía.
+- **El día que se integre este cambio,** si la copia corre en los minutos en que Supabase todavía está aplicando las tablas nuevas, se detiene con el aviso «vuelve a lanzar la copia en unos minutos» y no sube nada. Basta con lanzarla de nuevo a mano (**Actions → Respaldo diario → Run workflow**). Es a propósito: la copia solo se guarda cuando la base y el código coinciden, para que siempre se pueda restaurar.
+
 ## Pasos del titular (una sola vez)
 
 ### 1. Crear tu llave (5 minutos)

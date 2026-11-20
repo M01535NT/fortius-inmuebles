@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Directorio y ficha de persona</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0}
+a{color:#2560f0}a:hover{color:#1f54d6}
+.app{font-family:"Archivo",-apple-system,"Segoe UI",sans-serif;font-size:13px;line-height:1.4;color:#0f1218;background:#f5f6f8;display:flex;flex-wrap:wrap;min-height:900px}
+.app *{box-sizing:border-box}
+.app button,.app input{font:inherit;color:inherit;cursor:pointer}
+.side{flex:1 1 216px;max-width:232px;background:#eceef2;border-right:1px solid #dfe3e9;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.grp{font-size:11px;font-weight:600;color:#596070;padding:14px 8px 4px}
+.it{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 8px;border-radius:7px;border:0;background:none;text-align:left;width:100%}
+.it.on{background:#dfe3ea;font-weight:600}
+.it span.n{margin-left:auto;color:#596070;font-size:12px}
+.col{flex:1 1 300px;max-width:340px;background:#fff;border-right:1px solid #e2e5ea;display:flex;flex-direction:column;min-width:0}
+.bar{display:flex;align-items:center;gap:8px;min-height:52px;padding:0 14px;border-bottom:1px solid #e2e5ea;flex-wrap:wrap}
+.bar h1{margin:0;font-size:15px;font-weight:700}
+.ib{width:30px;height:30px;border:0;border-radius:7px;background:none;display:inline-flex;align-items:center;justify-content:center;color:#596070}
+.seg{display:inline-flex;background:#eceef2;border-radius:8px;padding:2px}
+.seg button{border:0;background:none;min-height:26px;padding:0 10px;border-radius:6px;font-size:12px;font-weight:500;color:#596070}
+.seg button.on{background:#fff;color:#0f1218;font-weight:600;box-shadow:0 1px 2px rgba(15,18,24,.14)}
+.row{display:flex;align-items:center;gap:10px;padding:8px 14px;border:0;border-bottom:1px solid #eef0f3;background:none;text-align:left;width:100%}
+.row.on{background:#2560f0;color:#fff}
+.row small{font-size:12px;color:#596070;display:block}
+.row.on small{color:#e8efff}
+.av{width:30px;height:30px;border-radius:50%;background:#dfe3ea;color:#3d4554;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none}
+.main{flex:999 1 460px;min-width:0;display:flex;flex-direction:column}
+.cuerpo{padding:24px 28px;display:flex;flex-direction:column;gap:20px;max-width:760px}
+.t{font-size:11px;font-weight:600;color:#596070;padding-bottom:4px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;overflow:hidden}
+.dato{display:flex;align-items:center;min-height:36px;padding:0 14px;border-bottom:1px solid #eef0f3}
+.dato:last-child{border-bottom:0}
+.dato label{flex:0 0 170px;color:#596070}
+.vacio{color:#7a8394}
+.sec{border:1px solid #d5dae2;background:#fff;border-radius:8px;min-height:30px;padding:0 12px;font-weight:500}
+.tag{font-size:11px;color:#8a5a00;background:#fff0d6;border-radius:5px;padding:1px 7px;margin-left:auto}
+</style>
+</helmet>
+<div class="app">
+  <nav class="side" aria-label="Secciones">
+    <div style="padding:4px 8px 10px"><b style="font-size:15px;letter-spacing:.04em">FORTIUS</b></div>
+    <div class="grp">Trabajo</div>
+    <button class="it">Inicio<span class="n">3</span></button><button class="it">Asuntos<span class="n">6</span></button><button class="it">Bandeja<span class="n">4</span></button><button class="it">Inmuebles</button><button class="it on">Directorio<span class="n">17</span></button><button class="it">Biblioteca</button><button class="it">Herramientas</button>
+    <div class="grp">Directorio</div>
+    <button class="it">Todas</button><button class="it">Clientes</button><button class="it">Contactos sin asunto</button><button class="it">Por llamar<span class="n">2</span></button>
+  </nav>
+  <section class="col" aria-label="Lista de personas">
+    <div class="bar"><h1>Directorio</h1><span style="margin-left:auto"></span>
+      <button class="ib" aria-label="Buscar"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+      <button class="ib" aria-label="Nueva persona"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="grp" style="padding:8px 14px 4px">J – L</div>
+    <button class="row"><span class="av">JM</span><span>Jorge Méndez (ejemplo)<small>Heredero · Casa en la Murúa</small></span></button>
+    <button class="row on"><span class="av" style="background:#fff;color:#2560f0">LM</span><span>Laura Méndez (ejemplo)<small>Contacto · Casa en la Murúa</small></span></button>
+    <button class="row"><span class="av">LR</span><span>Lic. Ramírez (ejemplo)<small>Abogado · Terreno con sentencia</small></span></button>
+    <div class="grp" style="padding:8px 14px 4px">M – P</div>
+    <button class="row"><span class="av">MÁ</span><span>Miguel Ángel (ejemplo)<small>Comprador · Casa del suegro</small></span></button>
+    <button class="row"><span class="av">ND</span><span>Nora Delgado (ejemplo)<small>Contraparte · Departamento</small></span></button>
+    <button class="row"><span class="av">NE</span><span>Notaría de ejemplo<small>Notaría · Casa del suegro</small></span></button>
+    <button class="row"><span class="av">PL</span><span>Patricia Lagos (ejemplo)<small>Propietaria · Cinco locales</small></span></button>
+  </section>
+  <section class="main" aria-label="Ficha de Laura Méndez">
+    <div class="bar" style="background:#fff">
+      <div class="seg" role="group" aria-label="Ver de la persona"><button class="on">Datos</button><button>Documentos</button><button>Asuntos</button><button>Notas</button></div>
+      <span style="margin-left:auto"></span><button class="sec">Llamar</button><button class="sec">WhatsApp</button><button class="sec">Nuevo asunto</button>
+      <button class="ib" aria-label="Más opciones"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div>
+    <div class="cuerpo">
+      <div style="display:flex;align-items:center;gap:14px"><span class="av" style="width:52px;height:52px;font-size:17px">LM</span>
+        <div><div style="font-size:24px;font-weight:700;line-height:1.15">Laura Méndez (ejemplo)</div><div style="color:#596070">Contacto en Casa en la Murúa · vive en San Diego</div></div></div>
+      <div><div class="t">Contacto</div><div class="card">
+        <div class="dato"><label>Teléfono</label><span>+1 619 555 0142</span></div>
+        <div class="dato"><label>Correo</label><span class="vacio">Agregar</span></div>
+        <div class="dato"><label>Prefiere</label><span>WhatsApp, por la tarde</span></div></div></div>
+      <div><div class="t">Datos personales</div><div class="card">
+        <div class="dato"><label>Nombre completo</label><span>Laura Méndez Ortiz</span><span class="tag">Por confirmar</span></div>
+        <div class="dato"><label>CURP</label><span>•••• •••• •••• 42</span><span class="tag">Por confirmar</span></div>
+        <div class="dato"><label>Estado civil</label><span>Casada</span></div>
+        <div class="dato"><label>Domicilio</label><span class="vacio">Agregar</span></div></div>
+        <div style="color:#596070;padding-top:8px">Agregar dato ▾ · 2 datos se leyeron de su identificación</div></div>
+      <div><div class="t">Fijado</div><div class="card"><div class="dato" style="min-height:44px">Vive en San Diego y firma por poder de sus hermanos.</div></div></div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

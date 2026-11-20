@@ -8,7 +8,9 @@ import { BARRA_TELEFONO, CONFIGURACION, CONSULTA, seccionPorRuta, seccionesPara,
 import { errorMessage, isLoggedIn, login, logout, needsMfaCode, useSession, verifyMfaCode } from "@/lib/panel/legado/sesion";
 
 import { usePreferencia } from "./almacen";
+import { useCuentaAsuntos } from "./asunto/cuenta";
 import { Favoritos, Recientes } from "./asunto/recientes";
+import { ProveedorCatalogos } from "./datos/catalogos";
 import { Gesto, Icono, Logo } from "./icons";
 import { useAtajo, useTecladoEnListas } from "./kit/atajos";
 import { AvisosProvider, useAvisos } from "./kit/avisos";
@@ -44,9 +46,9 @@ function Acceso() {
   }
   return (
     <main className="pn-acceso">
-      <form className="pn-tarjeta" onSubmit={enviar}>
-        <Logo alto={24} />
-        <h1 className="pn-h1">{pasoCodigo ? "Código de verificación" : "Entra al panel"}</h1>
+      <form onSubmit={enviar}>
+        <Logo alto={22} />
+        <h1 className="pn-acceso-t">{pasoCodigo ? "Código de verificación" : "Entra al panel"}</h1>
         {pasoCodigo ? (
           <label className="pn-campo">Código de 6 dígitos
             <input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={codigo} onChange={(e) => setCodigo(e.target.value)} autoFocus required />
@@ -70,32 +72,55 @@ function Acceso() {
 
 const activaEn = (ruta: string) => (s: Seccion) => (s.ruta === "/panel" ? ruta === "/panel" : ruta === s.ruta || ruta.startsWith(s.ruta + "/"));
 
-/** Las secciones del menú lateral (boceto), en el orden que el asesor eligió arrastrando. */
+/*
+ * La Bandeja sale del menú, de la barra del teléfono, del buscador y de los conteos hasta su paso: su tabla todavía no
+ * existe en la base. La ruta /panel/bandeja se queda con un aviso; su código sigue en components/panel/bandeja.
+ */
+
+/** El número junto a cada sección (modelo visual): lo que te toca en Inicio y los asuntos abiertos. */
+function useCuentasMenu(): Record<string, { n: number; dice: string }> {
+  const { cuenta } = useRecordatorios();
+  const asuntos = useCuentaAsuntos();
+  return {
+    inicio: { n: cuenta, dice: "por atender" },
+    asuntos: { n: asuntos, dice: asuntos === 1 ? "abierto" : "abiertos" },
+  };
+}
+const numero = (n: number) => (n > 99 ? "99+" : String(n));
+
+/** Las secciones del menú lateral (modelo visual: grupo «Trabajo»), en el orden que el asesor eligió arrastrando. */
 function Menu({ contraido, secciones }: { contraido: boolean; secciones: Seccion[] }) {
   const ruta = usePathname();
   const [guardado, guardarOrden] = usePreferencia(CLAVE_ORDEN, "[]");
   const items = useMemo(() => aplicarOrden(secciones, leerOrdenGuardado(guardado), (s) => s.slug), [guardado, secciones]);
   const activa = activaEn(ruta);
-  const { cuenta } = useRecordatorios();
+  const cuentas = useCuentasMenu();
   return (
-    <ListaReordenable
-      items={items}
-      clave={(s) => s.slug}
-      nombre={(s) => s.nombre}
-      etiqueta="Secciones"
-      alReordenar={(nuevo) => guardarOrden(JSON.stringify(nuevo.map((s) => s.slug)))}
-      renderItem={(s, { asa }) => (
-        <div className="pn-item-fila">
-          <Link href={s.ruta} className="pn-link" aria-current={activa(s) ? "page" : undefined} title={contraido ? s.nombre : undefined}
-            aria-label={s.slug === "inicio" && cuenta ? `${s.nombre}: ${cuenta} por atender` : contraido ? s.nombre : undefined}>
-            <Icono nombre={s.icono} tamano={18} />
-            <span className="pn-txt">{s.nombre}</span>
-            {s.slug === "inicio" && cuenta ? <span className="pn-cuenta-menu" aria-hidden>{cuenta > 99 ? "99+" : cuenta}</span> : null}
-          </Link>
-          <span className="pn-asa-menu">{asa}</span>
-        </div>
-      )}
-    />
+    <>
+      {contraido ? null : <p className="pn-sec">Trabajo</p>}
+      <ListaReordenable
+        items={items}
+        clave={(s) => s.slug}
+        nombre={(s) => s.nombre}
+        etiqueta="Secciones"
+        alReordenar={(nuevo) => guardarOrden(JSON.stringify(nuevo.map((s) => s.slug)))}
+        renderItem={(s, { asa }) => {
+          const c = cuentas[s.slug];
+          const n = c?.n ?? 0;
+          return (
+            <div className="pn-item-fila">
+              <Link href={s.ruta} className="pn-link" aria-current={activa(s) ? "page" : undefined} title={contraido ? s.nombre : undefined}
+                aria-label={n ? `${s.nombre}: ${n} ${c!.dice}` : contraido ? s.nombre : undefined}>
+                <Icono nombre={s.icono} tamano={16} />
+                <span className="pn-txt">{s.nombre}</span>
+                {n ? (contraido ? <span className="pn-cuenta-menu" aria-hidden>{numero(n)}</span> : <span className="pn-nav-n" aria-hidden>{numero(n)}</span>) : null}
+              </Link>
+              <span className="pn-asa-menu">{asa}</span>
+            </div>
+          );
+        }}
+      />
+    </>
   );
 }
 
@@ -122,17 +147,14 @@ function OpcionesCuenta() {
   );
 }
 
-/** Al pie del menú (boceto): tu inicial, tu nombre y si eres director o asesor. */
+/** Al pie del menú (modelo visual): quien entró y si es director o asesor, en una línea; abre apariencia, configuración y salir. */
 function MenuCuenta({ iniciales, nombre, rol }: { iniciales: string; nombre: string; rol: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="pn-cuenta" aria-label={`Cuenta de ${nombre}`}>
         <span className="pn-av" aria-hidden>{iniciales}</span>
-        <span className="pn-txt pn-cuenta-c">
-          <span className="pn-cuenta-n">{nombre}</span>
-          <small>{rol}</small>
-        </span>
-        <span className="pn-txt" aria-hidden><Icono nombre="down" tamano={14} /></span>
+        <span className="pn-txt pn-cuenta-c"><span className="pn-cuenta-n">{nombre}</span> · {rol}</span>
+        <span className="pn-txt pn-cuenta-ch" aria-hidden><Icono nombre="down" tamano={13} /></span>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start" className="w-60">
         <OpcionesCuenta />
@@ -265,7 +287,7 @@ export function PanelShell({ children }: { children: ReactNode }) {
     <div className="panel-root" data-panel-raiz="" data-theme={tema === "light" || tema === "dark" ? tema : undefined}>
       <AvisosProvider>
         <TooltipProvider>
-          {!listo ? <div className="pn-acceso" aria-busy="true" /> : sesion ? <Armazon>{children}</Armazon> : <Acceso />}
+          {!listo ? <div className="pn-acceso" aria-busy="true" /> : sesion ? <ProveedorCatalogos><Armazon>{children}</Armazon></ProveedorCatalogos> : <Acceso />}
         </TooltipProvider>
       </AvisosProvider>
     </div>

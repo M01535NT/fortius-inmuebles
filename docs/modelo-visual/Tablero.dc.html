@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Asuntos como tablero</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0}
+a{color:#2560f0}a:hover{color:#1f54d6}
+.app{font-family:"Archivo",-apple-system,"Segoe UI",sans-serif;font-size:13px;line-height:1.4;color:#0f1218;background:#f5f6f8;display:flex;flex-wrap:wrap;min-height:900px}
+.app *{box-sizing:border-box}
+.app button{font:inherit;color:inherit;cursor:pointer}
+.side{flex:1 1 216px;max-width:232px;background:#eceef2;border-right:1px solid #dfe3e9;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.grp{font-size:11px;font-weight:600;color:#596070;padding:14px 8px 4px}
+.it{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 8px;border-radius:7px;border:0;background:none;text-align:left;width:100%}
+.it.on{background:#dfe3ea;font-weight:600}
+.it span.n{margin-left:auto;color:#596070;font-size:12px}
+.main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:8px;min-height:52px;padding:0 18px;border-bottom:1px solid #e2e5ea;background:#fff;flex-wrap:wrap}
+.bar h1{margin:0;font-size:15px;font-weight:700}
+.seg{display:inline-flex;background:#eceef2;border-radius:8px;padding:2px}
+.seg button{border:0;background:none;min-height:26px;padding:0 10px;border-radius:6px;font-size:12px;font-weight:500;color:#596070}
+.seg button.on{background:#fff;color:#0f1218;font-weight:600;box-shadow:0 1px 2px rgba(15,18,24,.14)}
+.sec{border:1px solid #d5dae2;background:#fff;border-radius:8px;min-height:30px;padding:0 12px;font-weight:500}
+.pri{border:0;background:#2560f0;color:#fff;border-radius:8px;min-height:30px;padding:0 12px;font-weight:600}
+.tab{display:flex;gap:14px;padding:18px;overflow-x:auto;align-items:flex-start}
+.c{flex:1 0 230px;min-width:230px;display:flex;flex-direction:column;gap:8px}
+.c h2{margin:0;font-size:12px;font-weight:600;color:#596070;display:flex;justify-content:space-between;padding:0 4px 2px}
+.tj{background:#fff;border:1px solid #e2e5ea;border-radius:10px;padding:11px 12px;display:flex;flex-direction:column;gap:4px;text-align:left;width:100%}
+.tj.on{border-color:#2560f0;box-shadow:0 0 0 3px #d6e2ff}
+.tj b{font-weight:600}
+.tj small{font-size:12px;color:#596070}
+.hoy{color:#2560f0;font-weight:600}.tarde{color:#b3261e;font-weight:600}
+.hueco{border:1.5px dashed #c2c8d2;border-radius:10px;min-height:56px;display:flex;align-items:center;justify-content:center;color:#596070;font-size:12px}
+</style>
+</helmet>
+<div class="app">
+  <nav class="side" aria-label="Secciones">
+    <div style="padding:4px 8px 10px"><b style="font-size:15px;letter-spacing:.04em">FORTIUS</b></div>
+    <div class="grp">Trabajo</div>
+    <button class="it">Inicio<span class="n">3</span></button><button class="it on">Asuntos<span class="n">6</span></button><button class="it">Bandeja<span class="n">4</span></button><button class="it">Inmuebles</button><button class="it">Directorio</button><button class="it">Biblioteca</button><button class="it">Herramientas</button>
+    <div class="grp">Vistas guardadas</div>
+    <button class="it">Los que lleva Nallely</button><button class="it">Ventas en sucesión</button><button class="it">Sin siguiente paso<span class="n">1</span></button>
+  </nav>
+  <section class="main" aria-label="Asuntos como tablero">
+    <div class="bar"><h1>Asuntos</h1><span style="color:#596070">6 abiertos</span><span style="margin-left:auto"></span>
+      <div class="seg" role="group" aria-label="Ver como"><button>Lista</button><button class="on">Tablero</button><button>Tiempo</button></div>
+      <button class="sec">Todo el equipo ▾</button><button class="sec">Filtrar ▾</button><button class="pri">Nueva consulta</button></div>
+    <div class="tab">
+      <div class="c"><h2><span>En estudio</span><span>2</span></h2>
+        <button class="tj on"><b>Casa en la Murúa</b><small>2026-0007 · Venta · Laura Méndez</small><small><span class="hoy">Hoy</span> · Consultar el adeudo de predial</small></button>
+        <button class="tj"><b>Terreno con sentencia de prescripción</b><small>2026-0002 · Venta · Lic. Ramírez</small><small>Mañana · Pedir los documentos que faltan</small></button></div>
+      <div class="c"><h2><span>Propuesta</span><span>1</span></h2>
+        <button class="tj"><b>Nave industrial en El Florido</b><small>2026-0005 · Venta · Industrias del Norte</small><small class="tarde">Sin siguiente paso</small></button>
+        <div class="hueco">Suelta aquí para pasar a Propuesta</div></div>
+      <div class="c"><h2><span>En marcha</span><span>3</span></h2>
+        <button class="tj"><b>Casa del suegro, solo el trámite</b><small>2026-0004 · Gestión · Miguel Ángel</small><small><span class="tarde">Ayer</span> · Solicitar la carta de no adeudo</small></button>
+        <button class="tj"><b>Cinco locales de Plaza del Lago</b><small>2026-0006 · Renta · Patricia Lagos</small><small><span class="hoy">Hoy</span> · Enviar contrato del Local 5</small></button>
+        <button class="tj"><b>Departamento con reserva de dominio</b><small>2026-0003 · Litigio · Carlos Duarte</small><small>sáb 21 nov · Firmar la rescisión</small></button></div>
+      <div class="c"><h2><span>Por cobrar</span><span>0</span></h2>
+        <div class="hueco">Nada por cobrar</div></div>
+    </div>
+    <div style="margin-top:auto;padding:10px 18px;border-top:1px solid #e2e5ea;color:#596070;font-size:12px;background:#fff">Arrastra una tarjeta para cambiar en qué va · ↩ abrir · espacio, un vistazo · clic derecho, más acciones</div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

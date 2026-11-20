@@ -5,22 +5,27 @@ import { Icono } from "@/components/panel/icons";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { agregar, cambiar, cambiarAsunto, type Asunto, type PuntoSituacion } from "@/lib/panel/asuntos/api";
 import {
-  DEBE, DE_QUIEN, NOMBRE_DEBE, NOMBRE_DE_QUIEN, NOMBRE_OCUPA, NOMBRE_QUIERE, NOMBRE_SI_NO, NOMBRE_TIPO, OCUPA, QUIERE, SI_NO, TIPOS_INMUEBLE,
+  DEBE, DE_QUIEN, NOMBRE_DEBE, NOMBRE_DE_QUIEN, NOMBRE_OCUPA, NOMBRE_QUIERE, NOMBRE_SI_NO, OCUPA, QUIERE, SI_NO,
   type DatosConsulta,
 } from "@/lib/backend/consultas-contrato";
+import { useCatalogos, type LectorCatalogos } from "@/components/panel/datos/catalogos";
 
 import { ElegirVarios, type Hacer } from "./comun";
 
 const op = <T extends string>(lista: readonly T[], nombres: Record<T, string>) => lista.map((v) => ({ valor: v, etiqueta: nombres[v] }));
 
-/** Los datos de siempre (los mismos de la consulta), cada uno con sus opciones. */
-const HECHOS = [
+/**
+ * Los datos de siempre (los mismos de la consulta), cada uno con sus opciones. «Qué es» sale del catálogo de tipos de
+ * inmueble, con el valor que ya tiene aunque esté desactivado; las demás preguntas siguen fijas (etapa 12, paso 4).
+ */
+const hechos = (cat: LectorCatalogos, a: Asunto) => [
   { clave: "que_quiere", etiqueta: "Qué quiere", opciones: op(QUIERE, NOMBRE_QUIERE) },
   { clave: "de_quien", etiqueta: "De quién es", opciones: op(DE_QUIEN, NOMBRE_DE_QUIEN) },
-  { clave: "tipo", etiqueta: "Qué es", opciones: op(TIPOS_INMUEBLE, NOMBRE_TIPO) },
+  { clave: "tipo", etiqueta: "Qué es", opciones: cat.opciones("tipo_inmueble", hechoTexto(a, "tipo")) },
   { clave: "ocupa", etiqueta: "Quién lo ocupa", opciones: op(OCUPA, NOMBRE_OCUPA) },
   { clave: "escritura", etiqueta: "Hay escritura", opciones: op(SI_NO, NOMBRE_SI_NO) },
-] as const;
+];
+const hechoTexto = (a: Asunto, clave: string) => { const v = hechoDe(a, clave); return typeof v === "string" ? v : null; };
 
 /** Lo anotado en Situación manda; si todavía no se anota nada, se ve lo que se dijo en la consulta. */
 export function hechoDe(a: Asunto, clave: string): string | string[] | null {
@@ -32,9 +37,9 @@ export function hechoDe(a: Asunto, clave: string): string | string[] | null {
 }
 
 /** El resumen del renglón: los tres primeros hechos, en palabras. */
-export function resumenSituacion(a: Asunto): string {
+export function resumenSituacion(a: Asunto, cat: LectorCatalogos): string {
   const partes: string[] = [];
-  for (const h of HECHOS) {
+  for (const h of hechos(cat, a)) {
     const v = hechoDe(a, h.clave);
     const o = h.opciones.find((x) => x.valor === v);
     if (o) partes.push(h.clave === "escritura" ? (v === "si" ? "Con escritura" : v === "no" ? "Sin escritura" : "Escritura: no sabe") : o.etiqueta);
@@ -68,6 +73,7 @@ function Averiguar({ a, p, hacer }: { a: Asunto; p: PuntoSituacion; hacer: Hacer
 
 /** Situación (boceto): lo que se sabe del caso, en listas, y lo que falta averiguar, que se vuelve tarea con un toque. */
 export function Situacion({ a, hacer }: { a: Asunto; hacer: Hacer }) {
+  const cat = useCatalogos();
   const [nuevo, setNuevo] = useState("");
   const [conto, setConto] = useState(a.situacion);
   const poner = (clave: string, valor: string | string[] | null, aviso: string) =>
@@ -78,7 +84,7 @@ export function Situacion({ a, hacer }: { a: Asunto; hacer: Hacer }) {
     <div className="as-form">
       <div className="as-card as-pad">
         <div className="as-g2">
-          {HECHOS.map((h) => {
+          {hechos(cat, a).map((h) => {
             const v = hechoDe(a, h.clave);
             return (
               <Desplegable key={h.clave} etiqueta={h.etiqueta} valor={typeof v === "string" ? v : ""} vacio="Sin dato" opciones={h.opciones}
@@ -86,7 +92,7 @@ export function Situacion({ a, hacer }: { a: Asunto; hacer: Hacer }) {
             );
           })}
           <ElegirVarios etiqueta="Qué debe" valores={Array.isArray(debe) ? debe.filter((x): x is (typeof DEBE)[number] => (DEBE as readonly string[]).includes(x)) : []}
-            opciones={op(DEBE, NOMBRE_DEBE)} alCambiar={(v) => void poner("debe", v, "Qué debe: anotado")} />
+            opciones={op(DEBE, NOMBRE_DEBE)} vacio="Sin dato" exclusivas={["nada", "no_sabe"]} alCambiar={(v) => void poner("debe", v, "Qué debe: anotado")} />
         </div>
       </div>
 

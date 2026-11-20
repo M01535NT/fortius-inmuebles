@@ -3,6 +3,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import { leerAsuntos, leerEquipo, type FilaAsunto, type Miembro } from "@/lib/panel/asuntos/api";
 
+import { abiertos, publicarCuentaAsuntos } from "./cuenta";
+
 type Ctx = {
   asuntos: FilaAsunto[] | null;
   error: string | null;
@@ -48,6 +50,9 @@ export function ProveedorAsuntos({ children }: { children: ReactNode }) {
       return nueva;
     });
   }, []);
+
+  // El número junto a «Asuntos» en el menú sigue a la lista mientras está cargada.
+  useEffect(() => { if (asuntos) publicarCuentaAsuntos(abiertos(asuntos)); }, [asuntos]);
 
   const nombreDe = useCallback((id: string | null | undefined) =>
     (equipo.find((m) => m.id === id) ?? companeros.find((m) => m.id === id))?.nombre ?? "Otra persona del equipo", [equipo, companeros]);

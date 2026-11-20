@@ -10,10 +10,11 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
 import {
-  agregar, cambiar, diasHasta, fechaCorta, NOMBRE_PAPEL, subir, sumarDias, urlArchivo,
+  agregar, cambiar, diasHasta, fechaCorta, subir, sumarDias, urlArchivo,
   type Asunto, type DocumentoDelAsunto, type ResultadoSubida,
 } from "@/lib/panel/asuntos/api";
 import { copiarGuia, cuantasTrae } from "@/lib/panel/biblioteca";
+import { useCatalogos, type LectorCatalogos } from "@/components/panel/datos/catalogos";
 
 import { useGuias } from "../biblioteca/guias";
 import { BotonSubir, DialogoMensaje, personaPara, primerNombre, type Hacer } from "./comun";
@@ -23,12 +24,15 @@ const COMUNES = ["Identificación oficial", "CURP", "Acta de nacimiento", "Acta 
   "Boleta predial", "Recibo de agua", "Certificado de libertad de gravamen", "Constancia de situación fiscal", "Poder notarial", "Avalúo"];
 
 /** Quién lo entrega: una persona del asunto o un papel. */
-function quienEntrega(a: Asunto, d: DocumentoDelAsunto): string {
+/** Los grupos se guardan con su clave; en pantalla se leen como frase. Los que escribe el asesor salen tal cual. */
+const NOMBRE_GRUPO: Record<string, string> = { persona: "De la persona", inmueble: "Del inmueble", credito: "Del crédito", otro: "Otros", Otros: "Otros" };
+
+function quienEntrega(a: Asunto, d: DocumentoDelAsunto, cat: LectorCatalogos): string {
   const p = d.entrega_persona_id ? a.personas.find((x) => x.persona_id === d.entrega_persona_id) : null;
   if (p) return primerNombre(p.nombre);
   if (d.entrega_papel === "fortius") return "Fortius";
   if (d.entrega_papel === "cliente" || !d.entrega_papel) return "el cliente";
-  const n = NOMBRE_PAPEL[d.entrega_papel as keyof typeof NOMBRE_PAPEL];
+  const n = cat.catalogos.papel?.valores.some((v) => v.clave === d.entrega_papel) ? cat.etiqueta("papel", d.entrega_papel) : null;
   return n ? `${d.entrega_papel === "notaria" ? "la" : "el"} ${n.toLowerCase()}` : d.entrega_papel;
 }
 
@@ -40,6 +44,7 @@ function Vence({ d }: { d: DocumentoDelAsunto }) {
 
 function Renglon({ a, d, hacer, pedir }: { a: Asunto; d: DocumentoDelAsunto; hacer: Hacer; pedir: (texto: string) => void }) {
   const recibido = d.estado === "recibido";
+  const cat = useCatalogos();
   const archivo = useRef<HTMLInputElement>(null);
   const opciones = [
     { valor: "fortius", etiqueta: "Fortius" }, { valor: "cliente", etiqueta: "El cliente" },
@@ -56,7 +61,7 @@ function Renglon({ a, d, hacer, pedir }: { a: Asunto; d: DocumentoDelAsunto; hac
         <b className={d.estado === "no_aplica" ? "as-tachado" : ""}>{d.nombre}</b>
         <span>
           {d.estado === "falta" ? <><span className="as-warn">Falta</span> · </> : d.estado === "no_aplica" ? "No aplica · " : null}
-          Lo entrega {quienEntrega(a, d)}
+          Lo entrega {quienEntrega(a, d, cat)}
           {d.archivos.length ? ` · ${d.archivos.length} archivo${d.archivos.length > 1 ? "s" : ""}` : ""}
           {d.archivos.some((x) => x.por_cliente) ? " · lo subió el cliente" : ""}
         </span>
@@ -218,7 +223,7 @@ export function Documentos({ a, hacer }: { a: Asunto; hacer: Hacer }) {
 
       {grupos.length ? grupos.map((g) => (
         <div key={g}>
-          <p className="as-sub">{g}</p>
+          <p className="as-sub">{NOMBRE_GRUPO[g] ?? g}</p>
           <div className="as-card">
             {a.documentos.filter((d) => (d.grupo || "Otros") === g).map((d) => (
               <Renglon key={d.id} a={a} d={d} hacer={hacer} pedir={(texto) => setMensaje({ titulo: `Pedir ${d.nombre}`, texto })} />

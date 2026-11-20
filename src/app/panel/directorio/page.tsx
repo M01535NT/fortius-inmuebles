@@ -1,6 +1,8 @@
-import { Directorio } from "@/components/panel/biblioteca/directorio";
+import { Suspense } from "react";
 
-/** Directorio del panel nuevo (etapa 7): cada persona una vez, con sus asuntos. */
+import { Directorio } from "@/components/panel/personas/directorio";
+
+/** Directorio del panel nuevo: cada persona una vez, con sus asuntos; la lista a la izquierda y su ficha a la derecha. */
 export default function PaginaDirectorio() {
-  return <Directorio />;
+  return <Suspense fallback={null}><Directorio /></Suspense>;
 }

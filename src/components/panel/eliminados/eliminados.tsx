@@ -1,0 +1,96 @@
+"use client";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { MarcoAjustes } from "@/components/panel/configuracion/marco";
+import { useAvisos } from "@/components/panel/kit/avisos";
+import { Boton } from "@/components/panel/kit/boton";
+import { Desplegable } from "@/components/panel/kit/desplegable";
+import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
+import { Fila, GrupoLista } from "@/components/panel/kit/lista";
+import {
+  CLASES_ELIMINADO, NOMBRE_CLASE_ELIMINADO, leerEliminados, recuperarEliminado, type ClaseEliminado, type Eliminado, type ListaEliminados,
+} from "@/lib/panel/eliminados";
+
+const fecha = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : new Intl.DateTimeFormat("es-MX", { timeZone: "America/Tijuana", day: "numeric", month: "short", year: "numeric" }).format(d);
+};
+
+/**
+ * Eliminados dentro del marco de Configuración (modelo visual «Ajustes»): la lista de secciones a la izquierda con
+ * Eliminados elegido; a la derecha el título, una línea de ayuda, qué se ve y, por clase, lo eliminado con «Recuperar».
+ * Cada quien ve lo que la base le deja ver; lo que solo el director recupera lo dice en el renglón.
+ */
+export function Eliminados() {
+  const { avisar } = useAvisos();
+  const [lista, setLista] = useState<Eliminado[] | null>(null);
+  const [hayMas, setHayMas] = useState<ClaseEliminado[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [clase, setClase] = useState<ClaseEliminado | "">("");
+  const [ocupado, setOcupado] = useState<string | null>(null);
+
+  // El estado cambia solo cuando llega la respuesta (nada se pone de golpe al montar).
+  const aplicar = useCallback((r: ListaEliminados) => { setLista(r.eliminados); setHayMas(r.hayMas); setError(null); }, []);
+  const fallar = useCallback((e: unknown) => setError(e instanceof Error ? e.message : "No se pudo leer Eliminados."), []);
+  const cargar = useCallback(() => leerEliminados().then(aplicar, fallar), [aplicar, fallar]);
+  useEffect(() => { leerEliminados().then(aplicar, fallar); }, [aplicar, fallar]);
+
+  const grupos = useMemo(() => CLASES_ELIMINADO
+    .filter((c) => !clase || c === clase)
+    .map((c) => ({ clase: c, filas: (lista ?? []).filter((x) => x.clase === c) }))
+    .filter((g) => g.filas.length), [lista, clase]);
+
+  async function recuperar(x: Eliminado) {
+    if (ocupado) return;
+    setOcupado(x.id);
+    try {
+      await recuperarEliminado(x);
+      setLista((l) => (l ? l.filter((y) => !(y.clase === x.clase && y.id === x.id)) : l));
+      avisar(`Se recuperó «${x.nombre}». Ya está otra vez en ${NOMBRE_CLASE_ELIMINADO[x.clase]}.`);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : "No se pudo recuperar. Vuelve a intentarlo.");
+      void cargar();
+    } finally { setOcupado(null); }
+  }
+
+  // Con «+» cuando la clase llegó al tope: hay más de las que se muestran.
+  const cuantos = (c: ClaseEliminado) => `${(lista ?? []).filter((x) => x.clase === c).length}${hayMas.includes(c) ? "+" : ""}`;
+
+  return (
+    <MarcoAjustes actual="eliminados" abierta>
+    <section className="pn-conf-seccion aj-seccion" aria-labelledby="conf-eliminados">
+      <div className="aj-cab">
+        <div className="aj-cab-t">
+          <h1 id="conf-eliminados">Eliminados</h1>
+          <p>Lo que se mandó a Eliminados. Recuperar lo regresa a su lugar, tal como estaba.</p>
+        </div>
+      </div>
+      <Desplegable etiqueta="Mostrar" valor={clase} vacio={`Todo${lista ? ` · ${lista.length}${hayMas.length ? "+" : ""}` : ""}`}
+        opciones={CLASES_ELIMINADO.map((c) => ({ valor: c, etiqueta: lista ? `${NOMBRE_CLASE_ELIMINADO[c]} · ${cuantos(c)}` : NOMBRE_CLASE_ELIMINADO[c] }))}
+        alElegir={setClase} />
+      {error ? <EstadoError texto={error} alReintentar={() => void cargar()} />
+        : !lista ? <Cargando lineas={4} etiqueta="Cargando Eliminados" />
+        : !grupos.length ? (
+          <Vacio titulo={clase ? `No hay ${NOMBRE_CLASE_ELIMINADO[clase].toLowerCase()} en Eliminados` : "No hay nada en Eliminados"}
+            texto="Lo que se mande a Eliminados aparece aquí y se puede recuperar." icono="bote" />
+        )
+        : grupos.map((g) => (
+          <GrupoLista key={g.clase} titulo={`${NOMBRE_CLASE_ELIMINADO[g.clase]} · ${cuantos(g.clase)}`}>
+            {g.filas.map((x) => (
+              <Fila key={`${x.clase}-${x.id}`} titulo={x.nombre} subtitulo={x.detalle ?? undefined}
+                detalle={x.aviso ?? (x.recuperable ? undefined : x.clase === "guia" ? "La recupera quien la hizo o el director" : "Lo recupera el director")}
+                lado={fecha(x.eliminado_el)}
+                acciones={x.recuperable ? (
+                  <Boton variante="normal" icono="ciclo" deshabilitado={ocupado !== null} onClick={() => void recuperar(x)}
+                    aria-label={`Recuperar ${x.nombre}`}>{ocupado === x.id ? "Recuperando…" : "Recuperar"}</Boton>
+                ) : undefined} />
+            ))}
+            {hayMas.includes(g.clase) ? (
+              <p className="pn-conf-nota" style={{ padding: "8px 14px" }}>Se muestran los más recientes; hay más en Eliminados.</p>
+            ) : null}
+          </GrupoLista>
+        ))}
+    </section>
+    </MarcoAjustes>
+  );
+}

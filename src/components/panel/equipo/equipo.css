@@ -1,20 +1,33 @@
-/* Equipo del panel (boceto aprobado). Bajo .panel-root; usa las piezas de asunto.css y biblioteca.css. */
-.panel-root .eq-pagina { max-width: 860px; }
-.panel-root .eq-card { overflow: hidden; }
-.panel-root .eq-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px; }
-.panel-root .eq-quien { display: flex; align-items: center; gap: 12px; flex: 1 1 200px; min-width: 0; }
+/*
+ * Equipo con el orden del modelo visual: la barra de 52 px del asunto (caso.css) con el título de 15 px, y el cuerpo de
+ * fichas/modelo.css (.fm-col, .fm-card) hasta 860 px. Aquí solo el encabezado de cada persona y sus cuatro cifras,
+ * separadas por líneas como una tabla de Mac.
+ */
+.panel-root .eq-col { --fm-max: 860px; padding-top: 0; }
+.panel-root .eq-barra { gap: 8px; }
+.panel-root .eq-h1 { margin: 0; font-size: 15px; font-weight: 700; }
+.panel-root .eq-solo { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.panel-root .eq-card > .eq-cab { border-top: 0; }
+.panel-root .eq-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-height: 52px; padding: 8px 10px 8px 14px; }
+.panel-root .eq-quien { display: flex; align-items: center; gap: 10px; flex: 1 1 200px; min-width: 0; }
+.panel-root .eq-quien .as-ren-c b { font-size: 13.5px; }
+.panel-root .eq-quien .as-ren-c span { font-size: 12px; color: var(--ink-muted); }
 .panel-root .eq-pills { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .panel-root .eq-pills .as-pill { display: inline-flex; align-items: center; gap: 4px; }
-.panel-root .eq-cifras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 0 12px 12px; }
-.panel-root .eq-cifra { display: flex; flex-direction: column; min-width: 0; padding: 10px 12px; border-radius: 10px; background: var(--fill); }
-.panel-root .eq-cifra b { font-size: 18px; font-weight: 680; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.panel-root .eq-ver { height: 30px; min-height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 500; }
+.panel-root .eq-cifras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.panel-root .eq-cifra { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 10px 14px; }
+.panel-root .eq-cifra + .eq-cifra { border-left: 1px solid var(--linea-suave); }
+.panel-root .eq-cifra b { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .panel-root .eq-cifra span { font-size: 12px; color: var(--ink-muted); }
-.panel-root .eq-cab .as-av { width: 36px; height: 36px; font-size: 13px; }
 
 @media (max-width: 640px) {
   .panel-root .eq-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel-root .eq-cifra:nth-child(3) { border-left: 0; }
+  .panel-root .eq-cifra:nth-child(n + 3) { border-top: 1px solid var(--linea-suave); }
   .panel-root .eq-cab { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
-  .panel-root .eq-pills { grid-column: 1 / -1; grid-row: 2; padding-left: 48px; }
+  .panel-root .eq-pills { grid-column: 1 / -1; grid-row: 2; padding-left: 40px; }
   .panel-root .eq-pills:empty { display: none; }
-  .panel-root .eq-cab .as-btn { min-height: 44px; }
+  .panel-root .eq-ver { min-height: 44px; height: 44px; }
+  .panel-root .eq-solo { display: none; }
 }

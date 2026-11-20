@@ -33,7 +33,37 @@
 .dc-ventana .as-btn:disabled { opacity: 0.5; pointer-events: none; }
 .dc-ventana .pn-captura-hoja { box-shadow: 0 2px 14px rgba(0, 0, 0, 0.12); }
 
+/*
+ * Marco del modelo visual (Main.dc.html): cabecera de 52 px como la barra del asunto, letra de 13 px en la columna de
+ * preguntas, campos y botones de 32 px y esquinas de 8 a 12 px. Cómo se llena no cambia: solo el marco y el aspecto.
+ */
+.dc-cabeza { min-height: 52px; gap: 8px; padding-top: 6px; padding-bottom: 6px; box-sizing: border-box; }
+.dc-cabeza .as-tile { width: 26px; height: 26px; border-radius: 7px; }
+.dc-titulo { display: flex; align-items: baseline; gap: 8px; }
+.dc-titulo b { flex: none; max-width: 60%; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+.dc-titulo .as-m { flex: 1; min-width: 0; margin: 0; font-size: 13px; }
+.dc-vivo { height: 22px; padding: 0 8px; font-size: 11px; }
+.dc-ventana { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); }
+.dc-pregunta { padding: 18px 18px 32px; gap: 12px; font-size: 13px; background: var(--card); }
+.dc-pregunta .as-m { font-size: 12px; }
+.dc-form { gap: 12px; }
+.dc-q, .dc-h2 { font-size: 15px; font-weight: 700; }
+.dc-barra { height: 4px; }
+.dc-multi legend { font-size: 12px; }
+.dc-multi label { min-height: 34px; font-size: 13px; }
+.dc-largo textarea { font-size: 13px; border-radius: 8px; }
+@media (min-width: 901px) {
+  .dc-pregunta .as-btn { height: 32px; min-height: 32px; border-radius: 8px; font-size: 13px; }
+  .dc-pregunta .dc-grande { height: 36px; min-height: 36px; }
+  .dc-pregunta :is(input:not([type="checkbox"]):not([type="radio"]), select, .pn-control, button[role="combobox"]) { height: 32px; min-height: 32px; border-radius: 8px; font-size: 13px; }
+  .dc-pregunta .pn-campo { font-size: 12px; }
+  .dc-hoja { padding: 20px 18px 48px; }
+}
+
 @media (max-width: 900px) {
+  .dc-titulo { flex-direction: column; gap: 0; }
+  .dc-titulo b { max-width: 100%; }
+  .dc-pregunta { font-size: 15px; }
   .dc-ventana { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; overflow-y: auto; }
   .dc-pregunta { border-right: 0; border-bottom: 1px solid var(--border); padding: 16px 16px 20px; overflow: visible; }
   .dc-hoja { overflow: visible; padding: 16px 12px calc(40px + env(safe-area-inset-bottom, 0px)); }

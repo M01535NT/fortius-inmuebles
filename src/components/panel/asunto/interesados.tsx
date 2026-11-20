@@ -2,6 +2,7 @@
 import { useId, useState } from "react";
 
 import { Icono } from "@/components/panel/icons";
+import { CampoFecha } from "@/components/panel/kit/campo-fecha";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Interruptor } from "@/components/panel/kit/segmentado";
 import {
@@ -50,7 +51,6 @@ function RenglonOferta({ a, o, hacer }: { a: Asunto; o: Oferta; hacer: Hacer }) 
 }
 
 function Tarjeta({ a, i, hacer }: { a: Asunto; i: Interesado; hacer: Hacer }) {
-  const id = useId();
   const visita = visitaDe(a, i);
   const [fecha, setFecha] = useState(visita?.fecha ?? "");
   const [hora, setHora] = useState(visita?.hora?.slice(0, 5) ?? "");
@@ -101,10 +101,8 @@ function Tarjeta({ a, i, hacer }: { a: Asunto; i: Interesado; hacer: Hacer }) {
             <ElegirVarios etiqueta="Le interesa" valores={i.inmuebles} vacio="Elegir inmuebles" opciones={a.inmuebles.map((x) => ({ valor: x.id, etiqueta: x.nombre }))}
               alCambiar={(v) => void hacer(() => cambiar(a.id, "interesados", { id: i.id, version: i.version, inmuebles: v }), "Anotado")} />
           ) : null}
-          <label className="pn-campo" htmlFor={`${id}-f`}>Visita
-            <input id={`${id}-f`} type="date" className="as-inp as-inp-borde" value={fecha} min={sumarDias(-30)}
-              onChange={(e) => { setFecha(e.target.value); if (e.target.value) ponerVisita(e.target.value, hora); }} />
-          </label>
+          <CampoFecha etiqueta="Visita" valor={fecha || null} minimo={sumarDias(-30)} vacio="Sin visita"
+            alElegir={(f) => { setFecha(f ?? ""); if (f) ponerVisita(f, hora); }} />
           <Desplegable etiqueta="Hora" valor={hora} vacio="Sin hora" opciones={HORAS} alElegir={(v) => { setHora(v); if (fecha) ponerVisita(fecha, v); }} />
         </div>
         {visita ? (

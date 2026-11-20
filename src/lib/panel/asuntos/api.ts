@@ -1,5 +1,5 @@
 import type {
-  Asunto, ClaveApartado, Encargo, EnQueVa, EntradaHistorial, FilaAsunto, Miembro, Papel, PersonaDuplicada, Quien,
+  Asunto, ClaveApartado, Encargo, EntradaHistorial, FilaAsunto, Miembro, PersonaDuplicada,
 } from "@/lib/backend/asuntos-contrato";
 import type { Destino, ResultadoSubida } from "@/lib/backend/apartados-contrato";
 import type { CambioFicha, FichaPersona } from "@/lib/backend/directorio-contrato";
@@ -86,19 +86,12 @@ export const continuarAsunto = (asuntoId: string, nombre?: string) =>
 export type ResultadoPersona = { id?: string; duplicada?: PersonaDuplicada };
 
 // ── Textos de pantalla ─────────────────────────────────────────────────────────────────────────────────
-export const NOMBRE_EN_QUE_VA: Record<EnQueVa, string> = {
-  estudio: "En estudio", propuesta: "Propuesta", en_marcha: "En marcha", por_cobrar: "Por cobrar", cerrado: "Cerrado",
-};
-export const NOMBRE_ENCARGO: Record<Encargo, string> = { revisar: "Revisar", comercializar: "Comercializar", tramitar: "Tramitar", asesorar: "Asesorar" };
-export const ICONO_ENCARGO: Record<Encargo, [NombreIcono, string]> = {
+// Los nombres de en qué va, los encargos y los papeles salen de los catálogos (useCatalogos). Aquí solo los íconos.
+/** Ícono y color de los cuatro encargos de sistema; uno que agregue el director usa el del asunto. */
+const ICONO_ENCARGO: Partial<Record<Encargo, [NombreIcono, string]>> = {
   revisar: ["ojo", "violet"], comercializar: ["etiq", "orange"], tramitar: ["sello", "teal"], asesorar: ["band", "indigo"],
 };
-export const NOMBRE_PAPEL: Record<Papel, string> = {
-  contacto: "Contacto", propietario: "Propietario", titular: "Titular", heredero: "Heredero", copropietario: "Copropietario",
-  comprador: "Comprador", vendedor: "Vendedor", inquilino: "Inquilino", inversionista: "Inversionista", contraparte: "Contraparte",
-  apoderado: "Apoderado", abogado: "Abogado", notaria: "Notaría", banco: "Banco",
-};
-export const NOMBRE_QUIEN: Record<Quien, string> = { fortius: "Fortius", cliente: "El cliente", abogado: "El abogado", notaria: "La notaría", otro: "Otra persona" };
+export const iconoEncargo = (e: Encargo | undefined): [NombreIcono, string] => (e ? ICONO_ENCARGO[e] : undefined) ?? ["asu", "gray"];
 
 /** Los apartados con nombre fijo: nombre, ícono, color y en qué etapa de PLAN.md llega su ventana completa. */
 export const APARTADO: Record<ClaveApartado, { nombre: string; icono: NombreIcono; color: string; etapa: number }> = {

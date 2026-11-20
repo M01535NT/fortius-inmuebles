@@ -1,25 +1,37 @@
-/* Dinero (boceto Dinero y DineroEscritorio): cabecera con «Movimiento nuevo», cifra grande, selector y grupos. */
-.pn-din-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.pn-din-cab h1 { margin: 0; font-size: 34px; line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
-@media (min-width: 768px) { .pn-din-cab h1 { font-size: 28px; } }
-.pn-din-suma { display: flex; flex-direction: column; gap: 2px; padding: 4px 4px 2px; }
-.pn-din-suma .pn-din-sl { font-size: 13px; font-weight: 500; color: var(--ink-muted); }
-.pn-din-suma .pn-din-sb { font-size: 40px; line-height: 1.05; font-weight: 700; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
-.pn-din-suma .pn-din-ss { font-size: 14px; color: var(--ink-muted); }
-.pn-din-vacio { padding: 28px 12px; text-align: center; color: var(--ink-muted); font-size: 15px; line-height: 1.5; }
-.pn-din-big { display: flex; flex-direction: column; gap: 2px; }
-.pn-din-big .pn-din-sl { font-size: 13px; font-weight: 500; color: var(--ink-muted); }
-.pn-din-big .pn-din-dv { font-size: 36px; line-height: 1.05; font-weight: 700; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
-.pn-din-lineas { overflow: hidden; }
-.pn-din-ln { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border); font-size: 15px; }
-.pn-din-ln:first-child { border-top: 0; }
-.pn-din-ln > span:first-child { color: var(--ink-muted); }
-.pn-din-ln > span:last-child { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
-.pn-din-ln[data-falta="true"] > span:last-child { color: var(--ink-muted); font-weight: 500; }
-.pn-din-pie { display: flex; flex-wrap: wrap; gap: 6px 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--ink-muted); }
-.pn-din-mas { color: var(--accent); font-weight: 700; }
-/* Comprobante del apartado (DEC-56): nombre del archivo o «Falta el comprobante» y su botón. */
+/*
+ * Dinero con el orden del modelo visual («Inmuebles»): la columna de la lista, su barra de 52 px y el abierto en azul son
+ * los de Asuntos (asunto.css); los renglones, los títulos de grupo, las tarjetas, la cifra grande y los campos en renglón,
+ * los de fichas/modelo.css. Aquí solo lo propio: el ancho de la lista, el resumen de arriba y los avisos.
+ */
+@media (min-width: 901px) { .panel-root .din-dos { grid-template-columns: 320px minmax(0, 1fr); } }
+.panel-root .din-ej { font-size: 12px; }
+.panel-root .din-suma { display: flex; flex-direction: column; gap: 1px; padding: 12px 14px 4px; }
+.panel-root .din-suma > span { font-size: 12px; color: var(--ink-muted); }
+.panel-root .din-suma > b { font-size: 26px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.panel-root .din-suma > small { font-size: 12px; color: var(--ink-muted); }
+.panel-root .din-filtros { flex-wrap: wrap; gap: 8px; }
+.panel-root .din-lleva { flex: 1 1 100%; }
+.panel-root .din-lleva .pn-campo { flex-direction: row; align-items: center; gap: 8px; font-size: 12px; font-weight: 400; }
+.panel-root .din-lleva .pn-campo > label { flex: none; }
+.panel-root .din-lleva .pn-control { height: 30px; min-height: 30px; border-radius: 7px; font-size: 13px; }
+.panel-root .din-aviso { margin: 10px 12px; padding: 10px 12px; border-radius: 10px; background: var(--fill); font-size: 12.5px; line-height: 1.45; color: var(--ink-muted); }
+.panel-root .din-falta { background: var(--warning-soft); color: var(--warning); }
+.panel-root .din-vacio { padding: 28px 18px; text-align: center; line-height: 1.5; }
+
+/* El detalle a la derecha. */
+.panel-root .din-col { --fm-max: 640px; }
+.panel-root .din-der { text-align: right; }
+.panel-root .din-mini { flex: none; height: 28px; min-height: 28px; padding: 0 10px; gap: 6px; border-radius: 7px; font-size: 12.5px; }
+.panel-root .din-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 10px; }
+.panel-root .fm-col > .din-acciones { padding-top: 0; }
+.panel-root .din-error { margin: 0; font-size: 13px; }
+
+/* Comprobante en la hoja «Movimiento nuevo» (DEC-56): nombre del archivo o «Falta el comprobante» y su botón. */
 .pn-din-etq { font-size: 14px; font-weight: 500; color: var(--ink); }
-.pn-din-archivo { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 16px; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--card); font-size: 15px; }
+.pn-din-archivo { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 16px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--card); font-size: 15px; }
 .pn-din-archivo > span { min-width: 0; overflow-wrap: anywhere; }
-.pn-din-aviso { margin: 0; padding: 12px 16px; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--card); font-size: 14px; line-height: 1.5; color: var(--ink-muted); }
+
+@media (max-width: 900px) {
+  .panel-root .din-lleva .pn-control, .panel-root .din-mini { height: 44px; min-height: 44px; }
+  .panel-root .din-suma > b { font-size: 30px; }
+}

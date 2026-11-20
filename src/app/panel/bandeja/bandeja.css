@@ -53,3 +53,70 @@
 @media (prefers-reduced-motion: reduce) {
   .panel-root .bj-zona { transition: none; }
 }
+
+/*
+ * Esqueleto del modelo visual (Main.dc.html e Inmuebles.dc.html): la lista en la columna de Asuntos (asunto.css: barra de
+ * 52 px, renglones con línea suave y el elegido en azul) y el archivo abierto a la derecha con la barra del asunto
+ * (caso.css .cp-barra) y las tarjetas de fichas/modelo.css. Aquí solo lo propio de la Bandeja.
+ */
+@media (min-width: 901px) { .panel-root .bj-dos { grid-template-columns: 340px minmax(0, 1fr); } }
+.panel-root .bj-arriba { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 10px; border-bottom: 1px solid var(--linea-suave); font-size: 13px; }
+.panel-root .bj-resumen { margin: 0; color: var(--ink-muted); font-size: 12px; }
+.panel-root .bj-aviso { margin: 0; color: var(--warning); font-size: 12px; }
+.panel-root .bj-nota { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--ink-muted); font-size: 12px; }
+.panel-root .bj-nota-lista { padding: 10px 14px; }
+.panel-root .bj-arriba .fx-drop { gap: 10px; padding: 10px; border-radius: 10px; }
+.panel-root .bj-arriba .fx-drop-icono { width: 32px; height: 32px; border-radius: 8px; }
+.panel-root .bj-arriba .fx-drop-txt b { font-size: 13px; }
+.panel-root .bj-arriba .fx-drop-txt span { font-size: 12px; }
+/* El botón baja a su propio renglón para que el texto no se apriete en la columna de 340 px; suave, porque la acción
+   principal ya está en el «+» de la barra. */
+.panel-root .bj-arriba .fx-drop { flex-wrap: wrap; }
+.panel-root .bj-arriba .fx-drop > div { flex: 1 1 100% !important; }
+.panel-root .bj-arriba .fx-drop .pn-btn {
+  flex: 1 1 auto; height: 30px; min-height: 30px; padding: 0 12px; border-color: transparent; border-radius: 8px;
+  background: var(--accent-soft); color: var(--accent); font-size: 13px;
+}
+.panel-root .bj-arriba .fx-drop .pn-btn:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+/* «Ver»: el interruptor en una línea, con la letra de 13 px del modelo. */
+.panel-root .bj-arriba .pn-campo { flex-direction: row; align-items: center; gap: 10px; font-size: 12px; }
+.panel-root .bj-arriba :is(.pn-int, .pn-int-lado) { font-size: 13px; }
+/* El formulario de «Dónde va» con la medida del modelo: campos de 32 px y letra de 13 px. */
+@media (min-width: 901px) {
+  .panel-root .bj-col :is(.pn-campo input, .pn-control) { height: 32px; min-height: 32px; font-size: 13px; border-radius: 8px; }
+  .panel-root .bj-col .pn-campo { font-size: 12px; }
+  .panel-root .bj-col .bj-bloque .pn-btn { height: 32px; min-height: 32px; border-radius: 8px; font-size: 13px; }
+  .panel-root .bj-col :is(.fx-warnbox, .fx-recblk) { padding: 10px 14px; font-size: 13px; }
+}
+.panel-root .bj-vacio { padding: 16px 12px; }
+.panel-root .as-lista .bj-it { align-items: center; }
+.panel-root .bj-it .bj-mini { width: 36px; height: 36px; border-radius: 8px; font-size: 10px; }
+.panel-root .as-lista .bj-it[aria-current="page"] .bj-mini { border-color: transparent; background: rgb(255 255 255 / 0.2); color: var(--accent-ink); }
+.panel-root .bj-it small[data-mal] { color: var(--error); }
+.panel-root .bj-it .bj-rec { color: var(--accent); white-space: normal; }
+.panel-root .bj-it .bj-rec[data-nada] { color: var(--warning); }
+.panel-root .bj-it[aria-current="page"] small[data-mal], .panel-root .bj-it[aria-current="page"] .bj-rec { color: var(--accent-ink); }
+.panel-root .bj-pbar { display: block; margin-top: 4px; }
+
+/* El archivo abierto: barra de 52 px, vista previa, nombre de 24 px y «Dónde va» en tarjeta de 12 px. */
+.panel-root .bj-col { --fm-max: 680px; }
+.panel-root .bj-barra-t { color: var(--ink-muted); font-size: 13px; }
+.panel-root .bj-cuerpo, .panel-root .bj-det { display: flex; flex-direction: column; gap: 16px; font-size: 13px; }
+.panel-root .bj-det-cab { display: flex; align-items: flex-start; gap: 12px; }
+.panel-root .bj-det-cab > .fm-cab { flex: 1; min-width: 0; }
+.panel-root .bj-det-cab .pn-btn { height: 30px; min-height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; }
+.panel-root .bj-h2 { font-size: 20px; }
+.panel-root .bj-guardado { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-weight: 600; }
+.panel-root .bj-col .fx-pv { border-radius: 12px; }
+.panel-root .bj-col .bj-bloque { gap: 10px; padding: 14px; border-radius: 12px; background: var(--card); }
+.panel-root .bj-col .bj-bloque-t { margin: 0; padding: 0; }
+.panel-root .bj-col :is(.fx-recblk, .fx-warnbox) { border-radius: 12px; }
+@media (max-width: 900px) {
+  .panel-root .bj-arriba { padding: 10px 14px; }
+  .panel-root .bj-it .bj-mini { width: 44px; height: 44px; }
+  .panel-root .bj-det-cab .pn-btn { height: 44px; min-height: 44px; }
+}
+
+/* Mientras la Bandeja llega en su paso: el título y un aviso al centro. */
+.panel-root .bj-pronto { display: grid; align-content: start; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+@media (max-width: 900px) { .panel-root .bj-pronto .pn-btn { min-height: 44px; } }

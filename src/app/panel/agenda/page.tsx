@@ -40,6 +40,8 @@ import {
 import type { Task } from "@/lib/tasks";
 import { citasDelDia, proximaFecha, semanaDesde, semanaEnLista, sumarDias, type FilaCita } from "@/lib/panel/datos/agenda";
 
+import "@/components/panel/asunto/asunto.css";
+import "@/components/panel/asunto/vistas.css";
 import "./agenda.css";
 
 type AsesorNombre = { id: string; nombre?: string };
@@ -360,28 +362,29 @@ function Agenda() {
   );
 
   return (
-    <div className="pn-pagina" style={telefono ? undefined : { maxWidth: 1180 }}>
-      <header className="pn-encabezado">
-        <div>
-          <h1 className="pn-h1">{telefono ? tituloDia : "Agenda"}</h1>
-          <p className="pn-sub">
-            {telefono
-              ? (cargando ? "" : cuantasDia ? `${cuantasDia} ${cuantasDia === 1 ? "cita" : "citas"}` : "Sin citas")
-              : `${textoSemana(desde)}${cargando ? "" : ` · ${total ? `${total} ${total === 1 ? "cita" : "citas"}` : "sin citas"} en 7 días`} · Datos de ejemplo`}
-          </p>
-        </div>
-        {telefono ? null : (
-          <div className="pn-ag-ctl">
-            {interruptor}
-            <span className="pn-ag-nav">
-              <button type="button" className="pn-iconbtn" aria-label="Semana anterior" title="Semana anterior" onClick={() => irA(salto - 1)}><Gesto nombre="izquierda" tamano={18} /></button>
-              <button type="button" className="pn-ag-hoy" aria-keyshortcuts="T" onClick={() => irA(0)}>Hoy</button>
-              <button type="button" className="pn-iconbtn" aria-label="Semana siguiente" title="Semana siguiente" onClick={() => irA(salto + 1)}><Gesto nombre="derecha" tamano={18} /></button>
-            </span>
-            <Boton onClick={() => setNueva({ modo: "linea" })} aria-keyshortcuts="N">Nueva cita</Boton>
-          </div>
-        )}
-      </header>
+    <div className={telefono ? "pn-pagina ag-pagina" : "as-vista ag-vista"}>
+      {telefono ? (
+        <header className="as-vbar ag-bar">
+          <h1 className="as-h1-lista">{tituloDia}</h1>
+          <span className="as-cab-n">{cargando ? "" : cuantasDia ? `${cuantasDia} ${cuantasDia === 1 ? "cita" : "citas"}` : "Sin citas"}</span>
+        </header>
+      ) : (
+        // La barra de 52 px del modelo visual: título, semana a la vista y, a la derecha, vista, flechas, «Hoy» y «Nueva cita».
+        <header className="as-vbar ag-bar">
+          <h1 className="as-h1-lista">Agenda</h1>
+          <span className="as-cab-n">
+            {`${textoSemana(desde)}${cargando ? "" : ` · ${total ? `${total} ${total === 1 ? "cita" : "citas"}` : "sin citas"}`} · Datos de ejemplo`}
+          </span>
+          <span className="as-sp" />
+          {interruptor}
+          <span className="pn-ag-nav">
+            <button type="button" className="as-btn as-gho as-ico" aria-label="Semana anterior" title="Semana anterior" onClick={() => irA(salto - 1)}><Gesto nombre="izquierda" tamano={16} /></button>
+            <button type="button" className="pn-ag-hoy" aria-keyshortcuts="T" onClick={() => irA(0)}>Hoy</button>
+            <button type="button" className="as-btn as-gho as-ico" aria-label="Semana siguiente" title="Semana siguiente" onClick={() => irA(salto + 1)}><Gesto nombre="derecha" tamano={16} /></button>
+          </span>
+          <Boton className="as-vnueva" icono="mas" onClick={() => setNueva({ modo: "linea" })} aria-keyshortcuts="N">Nueva cita</Boton>
+        </header>
+      )}
 
       {telefono ? (
         <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
@@ -413,9 +416,10 @@ function Agenda() {
 
       <div className="pn-ag-cuerpo">
         {preguntas.map((e) => (
-          <div key={e.id} className="pn-ask pn-ask-linea">
-            <span style={{ flex: 1, minWidth: 0, fontSize: 14 }}>
-              <span style={{ color: "var(--ink-muted)" }}>Ya pasó · {e.fecha === hoyTexto ? "" : `${diaLargo(e.fecha)}, `}{e.hora ?? "sin hora"} </span>
+          <div key={e.id} className="pn-ask pn-ask-linea ag-ask">
+            <span className="ag-ask-icono" aria-hidden><Icono nombre="alerta" tamano={15} /></span>
+            <span className="ag-ask-t">
+              <span>Ya pasó · {e.fecha === hoyTexto ? "" : `${diaLargo(e.fecha)}, `}{e.hora ?? "sin hora"} </span>
               <b>{e.titulo}</b>
             </span>
             <button type="button" className="pn-sbtn" onClick={() => setComoFue(e.id)}>¿Cómo te fue?</button>
@@ -511,17 +515,18 @@ function Agenda() {
           </section>
         ) : null}
 
-        {!telefono ? (
-          <p className="pn-kbd-linea pn-solo-escritorio">
-            <span><kbd className="pn-kbd">N</kbd> nueva cita</span>
-            <span><kbd className="pn-kbd">←</kbd> <kbd className="pn-kbd">→</kbd> semana</span>
-            <span><kbd className="pn-kbd">T</kbd> hoy</span>
-            <span><kbd className="pn-kbd">1</kbd> <kbd className="pn-kbd">2</kbd> semana o lista</span>
-            <span><kbd className="pn-kbd">Esc</kbd> cerrar</span>
-            <span>Arrastra una cita para cambiarla de hora o de día</span>
-          </p>
-        ) : null}
       </div>
+
+      {!telefono ? (
+        <p className="as-vpie pn-kbd-linea pn-solo-escritorio">
+          <span><kbd className="pn-kbd">N</kbd> nueva cita</span>
+          <span><kbd className="pn-kbd">←</kbd> <kbd className="pn-kbd">→</kbd> semana</span>
+          <span><kbd className="pn-kbd">T</kbd> hoy</span>
+          <span><kbd className="pn-kbd">1</kbd> <kbd className="pn-kbd">2</kbd> semana o lista</span>
+          <span><kbd className="pn-kbd">Esc</kbd> cerrar</span>
+          <span>Arrastra una cita para cambiarla de hora o de día</span>
+        </p>
+      ) : null}
 
       <HojaAdaptable abierta={evAbierto !== null} titulo={evAbierto?.titulo ?? "Cita"} alCerrar={() => cerrar()}
         cabecera={<span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-muted)" }}>Cita</span>}>

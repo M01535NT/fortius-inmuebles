@@ -1,0 +1,142 @@
+/*
+ * Asuntos como el modelo visual (docs/modelo-visual/Main.dc.html y Tablero.dc.html): barras de 52 px, letra de 13 px,
+ * la fila de vistas «Lista · Tablero · Tiempo» y, a todo lo ancho, el tablero o el tiempo. Tokens de panel-ds.css.
+ */
+
+/* ---------- La lista (columna de 330 px) ---------- */
+.panel-root .as-dos, .panel-root .as-vista { font-size: 13px; }
+.panel-root .as-lista .as-cab { gap: 8px; padding: 0 8px 0 14px; }
+.panel-root .as-lista .as-cab .pn-vistas { align-self: center; flex: none; }
+.panel-root .as-lista .as-buscar { margin: 10px 14px 0; }
+.panel-root .as-lista .as-filtros { gap: 6px; padding: 8px 14px 10px; }
+.panel-root .as-lista .as-filtros .as-pil, .panel-root .as-vbar .as-pil {
+  height: 30px; padding: 0 8px 0 10px; border-radius: 8px; border-color: var(--border-strong); font-size: 13px; font-weight: 500;
+}
+.panel-root .as-vistas > svg:first-child { color: var(--ink-muted); }
+.panel-root .as-lista .as-it-c b { font-size: 13px; }
+.panel-root .as-lista .as-it-c small { font-size: 12px; }
+
+/* ---------- Asuntos a todo lo ancho ---------- */
+.panel-root .as-vista { min-height: 100dvh; display: flex; flex-direction: column; }
+.panel-root .as-amplia { flex: 1; min-height: 100dvh; display: flex; flex-direction: column; min-width: 0; }
+.panel-root .as-vbar {
+  position: sticky; top: 0; z-index: 3; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 52px; padding: 8px 18px;
+  border-bottom: 1px solid var(--border); background: var(--card);
+}
+.panel-root .as-vbar .as-h1-lista { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.panel-root .as-vbar .pn-vistas { align-self: center; }
+.panel-root .as-vbuscar { width: 180px; height: 30px; margin: 0; border-radius: 8px; background: var(--bg); }
+.panel-root .as-vbuscar input { font-size: 13px; }
+.panel-root .as-vnueva { height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+.panel-root .as-vpie {
+  position: sticky; bottom: 0; margin-top: auto; padding: 10px 18px; border-top: 1px solid var(--border); background: var(--card);
+  color: var(--ink-muted); font-size: 12px;
+}
+
+/* El tablero: columnas de 230 px con su título chico y su cuenta; tarjetas blancas de esquinas de 10 px. */
+.panel-root .as-tablero { display: flex; align-items: flex-start; gap: 14px; padding: 18px; overflow-x: auto; scrollbar-width: thin; }
+.panel-root .as-col { flex: 1 0 230px; min-width: 230px; display: flex; flex-direction: column; gap: 8px; border-radius: 12px; transition: background-color 120ms ease; }
+.panel-root .as-col[data-sobre] { background: var(--accent-soft); box-shadow: 0 0 0 6px var(--accent-soft); }
+.panel-root .as-col > h2 { display: flex; justify-content: space-between; margin: 0; padding: 0 4px 2px; font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .as-col > h2 > span:last-child { font-variant-numeric: tabular-nums; }
+.panel-root .as-tj {
+  display: flex; flex-direction: column; gap: 4px; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--card); color: var(--ink); text-decoration: none; cursor: grab;
+  transition: border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+.panel-root .as-tj:hover { border-color: var(--border-strong); }
+.panel-root .as-tj:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 10px; }
+.panel-root .as-tj:active { cursor: grabbing; }
+.panel-root .as-tj[data-arrastra] { opacity: 0.45; }
+.panel-root .as-tj b { font-weight: 600; overflow-wrap: anywhere; }
+.panel-root .as-tj small { font-size: 12px; color: var(--ink-muted); }
+.panel-root :is(.as-tj, .as-ti-nombre, .as-ti-sin-it) [data-tono="hoy"] { color: var(--accent); font-weight: 600; }
+.panel-root :is(.as-tj, .as-ti-nombre, .as-ti-sin-it) [data-tono="tarde"], .panel-root .as-tj small[data-tono="tarde"] { color: var(--error); font-weight: 600; }
+.panel-root .as-hueco {
+  display: flex; align-items: center; justify-content: center; min-height: 56px; padding: 8px; border: 1.5px dashed var(--border-strong);
+  border-radius: 10px; color: var(--ink-muted); font-size: 12px; text-align: center;
+}
+.panel-root .as-col[data-sobre] .as-hueco { border-color: var(--accent); color: var(--accent); }
+
+/* El tiempo: el nombre a la izquierda y dos semanas en columnas; la marca cae en el día de lo que sigue. */
+.panel-root .as-tiempo { display: flex; flex-direction: column; gap: 18px; padding: 18px; overflow-x: auto; scrollbar-width: thin; }
+.panel-root .as-ti-rejilla { display: flex; flex-direction: column; min-width: 900px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); overflow: hidden; }
+.panel-root .as-ti-fila {
+  display: grid; grid-template-columns: minmax(220px, 280px) repeat(16, minmax(40px, 1fr)); align-items: center; min-height: 52px;
+  border-bottom: 1px solid var(--linea-suave); color: var(--ink); text-decoration: none;
+}
+.panel-root .as-ti-fila:last-child { border-bottom: 0; }
+.panel-root .as-ti-fila > * { grid-row: 1; min-width: 0; }
+.panel-root a.as-ti-fila:hover { background-color: var(--fill); }
+.panel-root a.as-ti-fila:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 0; }
+.panel-root .as-ti-cab { min-height: 34px; background: var(--bg); font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .as-ti-cab > span { padding: 0 6px; text-align: center; white-space: nowrap; }
+.panel-root .as-ti-cab > span:first-child { padding-left: 14px; text-align: left; }
+.panel-root .as-ti-cab > span[data-hoy] { color: var(--accent); }
+.panel-root .as-ti-cab > span[data-finde] { color: var(--ink-faint); }
+.panel-root .as-ti-nombre { grid-column: 1; display: flex; flex-direction: column; gap: 2px; padding: 8px 14px; border-right: 1px solid var(--linea-suave); }
+.panel-root .as-ti-nombre b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .as-ti-nombre small { font-size: 12px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* La línea va del centro de «Hoy» al centro del día de la marca (`--n` es cuántos días abarca). */
+.panel-root .as-ti-tramo { height: 4px; margin-inline: calc(100% / var(--n, 1) / 2); border-radius: 2px; background: color-mix(in srgb, var(--accent) 28%, transparent); }
+.panel-root .as-ti-marca { justify-self: center; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--card); }
+.panel-root .as-ti-marca[data-tono="tarde"] { background: var(--error); }
+.panel-root .as-ti-sin { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; background: var(--card); overflow: hidden; }
+.panel-root .as-ti-sin > h2 { margin: 0; padding: 10px 14px 6px; font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .as-ti-sin > h2 > span { margin-left: 4px; font-weight: 500; }
+.panel-root .as-ti-sin-it { display: flex; flex-direction: column; gap: 2px; padding: 9px 14px; border-top: 1px solid var(--linea-suave); color: var(--ink); text-decoration: none; }
+.panel-root .as-ti-sin-it:hover { background: var(--fill); }
+.panel-root .as-ti-sin-it b { font-weight: 600; }
+.panel-root .as-ti-sin-it small { font-size: 12px; color: var(--ink-muted); }
+
+/* El inspector (modelo visual): botones de 30 px en su barra y un pie con lo que hace el teclado. */
+.panel-root .as-win-pie { display: none; }
+@media (min-width: 901px) {
+  .panel-root .as-win[data-inspector] .as-win-h .as-btn.as-gho { height: 30px; border-radius: 7px; }
+  .panel-root .as-win[data-inspector] .as-win-h .as-btn.as-ico { width: 30px; }
+  .panel-root .as-win[data-inspector] .as-win-pie {
+    display: block; flex: none; padding: 10px 16px; border-top: 1px solid var(--linea-suave); background: var(--card); color: var(--ink-muted); font-size: 12px;
+  }
+  /* Ancho del modelo (380 px) y su letra: 13 px, títulos de grupo de 11 px, círculos de 16 px. */
+  html .panel-root { --insp: clamp(340px, 27vw, 380px); }
+  .panel-root .as-win[data-inspector] .as-win-c { padding: 14px 16px 32px; gap: 12px; font-size: 13px; }
+  .panel-root .as-win[data-inspector] .as-sub { font-size: 11px; }
+  .panel-root .as-win[data-inspector] .as-sub-fila .as-m { font-size: 11px; font-weight: 600; }
+  .panel-root .as-win[data-inspector] .as-tareas { padding: 0; border-radius: 10px; }
+  .panel-root .as-win[data-inspector] .as-tareas .as-t-env + .as-t-env { border-top: 1px solid var(--linea-suave); }
+  .panel-root .as-win[data-inspector] .as-t { min-height: 0; }
+  .panel-root .as-win[data-inspector] .as-ckb { width: 34px; height: 34px; }
+  .panel-root .as-win[data-inspector] .as-ck { width: 16px; height: 16px; border-width: 1.5px; }
+  .panel-root .as-win[data-inspector] .as-tb { padding: 8px 0; font-size: 13px; }
+  .panel-root .as-win[data-inspector] .as-tb .as-m { font-size: 12px; }
+  /* El reloj de posponer aparece al pasar o al llegar con el teclado (el modelo no lo muestra fijo). */
+  .panel-root .as-win[data-inspector] .as-t > .as-btn.as-ico { opacity: 0; transition: opacity 120ms ease; }
+  .panel-root .as-win[data-inspector] .as-t:is(:hover, :focus-within) > .as-btn.as-ico,
+  .panel-root .as-win[data-inspector] .as-t > .as-btn.as-ico[data-state="open"] { opacity: 1; }
+  .panel-root .as-win[data-inspector] .as-win-c > .as-fila .as-btn { height: 30px; min-height: 30px; padding: 0 10px; border-radius: 8px; font-size: 13px; }
+  .panel-root .as-win[data-inspector] .as-win-c :is(input, textarea) { font-size: 13px; }
+  .panel-root .as-win[data-inspector] .as-win-c > .as-fila :is(.pn-int, .pn-int-lado) { font-size: 13px; }
+}
+@media (min-width: 901px) and (hover: none) {
+  .panel-root .as-win[data-inspector] .as-t > .as-btn.as-ico { opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  .panel-root .as-dos, .panel-root .as-vista { font-size: 15px; }
+  .panel-root .as-lista .as-cab { flex-wrap: wrap; padding: 8px 8px 8px 14px; }
+  .panel-root .as-lista .as-cab .pn-vistas, .panel-root .as-vbar .pn-vistas { order: 9; flex: 1 1 100%; }
+  .panel-root .as-lista .as-filtros .as-pil, .panel-root .as-vbar .as-pil, .panel-root .as-vbuscar, .panel-root .as-vnueva { height: 44px; }
+  .panel-root .as-vbar { padding: max(8px, env(safe-area-inset-top, 0px)) 14px 10px; }
+  .panel-root .as-vbuscar { flex: 1 1 160px; width: auto; }
+  .panel-root .as-vpie { display: none; }
+  .panel-root .as-amplia { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .panel-root .as-tablero { padding: 14px; scroll-snap-type: x proximity; scroll-padding-inline: 14px; }
+  /* «Nueva consulta» es el «+» de la barra de abajo en el teléfono. */
+  .panel-root .as-vnueva { display: none; }
+  .panel-root .as-col { flex-basis: 78vw; min-width: 78vw; scroll-snap-align: start; }
+  .panel-root .as-tj { padding: 12px 14px; }
+  .panel-root .as-tj small, .panel-root .as-ti-nombre small, .panel-root .as-ti-sin-it small { font-size: 13.5px; }
+  .panel-root .as-tiempo { padding: 14px; }
+  .panel-root .as-ti-nombre { position: sticky; left: 0; z-index: 1; background: var(--card); }
+}
+@media (prefers-reduced-motion: reduce) { .panel-root :is(.as-col, .as-tj) { transition: none; } }

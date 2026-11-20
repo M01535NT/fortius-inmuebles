@@ -6,7 +6,7 @@ import { apiResponse, assertSameOrigin, readJson } from "@/lib/backend/http";
 export const runtime = "nodejs";
 type Contexto = { params: Promise<{ id: string }> };
 
-/** Volver a llamar, no contactar o la nota de un contacto. */
+/** Volver a llamar, lo que sigue, no contactar, la nota, o archivar y recuperar a una persona. */
 export async function PATCH(request: Request, contexto: Contexto) {
   return apiResponse(async () => {
     assertSameOrigin(request);

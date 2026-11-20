@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Configuración</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0}
+a{color:#2560f0}a:hover{color:#1f54d6}
+.app{font-family:"Archivo",-apple-system,"Segoe UI",sans-serif;font-size:13px;line-height:1.4;color:#0f1218;background:#f5f6f8;min-height:900px;display:flex;flex-wrap:wrap}
+.app *{box-sizing:border-box}
+.app button,.app input{font:inherit;color:inherit}
+.side{flex:1 1 220px;max-width:250px;background:#eceef2;border-right:1px solid #dfe3e9;padding:14px 10px;display:flex;flex-direction:column;gap:2px}
+.it{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 8px;border-radius:7px;border:0;background:none;text-align:left;width:100%;cursor:pointer}
+.it.on{background:#2560f0;color:#fff;font-weight:600}
+.grp{font-size:11px;font-weight:600;color:#596070;padding:14px 8px 4px}
+.main{flex:999 1 480px;min-width:0;padding:26px 32px;display:flex;flex-direction:column;gap:18px;max-width:860px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;overflow:hidden}
+.f{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-bottom:1px solid #eef0f3}
+.f:last-child{border-bottom:0}
+.f input{flex:1;min-width:0;border:0;outline:0;background:none;min-height:30px}
+.sw{width:34px;height:20px;border-radius:999px;background:#12a150;position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+.sw.no{background:#c2c8d2}.sw.no::after{right:auto;left:2px}
+.asa{color:#7a8394;cursor:grab;letter-spacing:-2px}
+.tag{font-size:11px;color:#596070;background:#eceef2;border-radius:5px;padding:1px 7px}
+.sec{border:1px solid #d5dae2;background:#fff;border-radius:8px;min-height:30px;padding:0 12px;font-weight:500;cursor:pointer}
+</style>
+</helmet>
+<div class="app">
+  <nav class="side" aria-label="Secciones de configuración">
+    <label for="bs" style="position:absolute;left:-9999px">Buscar en configuración</label>
+    <input id="bs" placeholder="Buscar" style="min-height:30px;border:1px solid #dfe3e9;border-radius:7px;padding:0 10px;background:#fff;margin-bottom:6px">
+    <div class="grp">Tu cuenta</div>
+    <button class="it">Perfil</button><button class="it">Apariencia</button><button class="it">Avisos</button>
+    <div class="grp">El despacho</div>
+    <button class="it">Empresa y folio</button><button class="it">Equipo y funciones</button><button class="it">Módulos</button>
+    <div class="grp">Cómo se trabaja</div>
+    <button class="it on">Catálogos</button><button class="it">Fichas</button><button class="it">Tipos de asunto</button><button class="it">Machotes</button><button class="it">Plazos y mensajes</button>
+    <div class="grp">Otros</div>
+    <button class="it">Eliminados</button>
+  </nav>
+  <section class="main" aria-label="Catálogos">
+    <div><h1 style="margin:0;font-size:22px;font-weight:700">Catálogos</h1>
+      <div style="color:#596070;margin-top:4px">Las listas que usa todo el panel. Apagar un valor no lo borra.</div></div>
+    <div class="card">
+      <div class="f"><span style="flex:1;font-weight:600">Catálogo</span><button class="sec">Papeles de las personas ▾</button></div>
+    </div>
+    <div>
+      <div class="grp" style="padding-left:2px">Dueños y herederos</div>
+      <div class="card">
+        <div class="f"><span class="asa" aria-hidden="true">⋮⋮</span><input aria-label="Nombre del valor" value="Propietario"><span class="tag">Del sistema</span><span class="sw" role="switch" aria-checked="true" aria-label="Activo"></span></div>
+        <div class="f"><span class="asa" aria-hidden="true">⋮⋮</span><input aria-label="Nombre del valor" value="Titular"><span class="sw" role="switch" aria-checked="true" aria-label="Activo"></span></div>
+        <div class="f"><span class="asa" aria-hidden="true">⋮⋮</span><input aria-label="Nombre del valor" value="Heredero"><span class="sw" role="switch" aria-checked="true" aria-label="Activo"></span></div>
+        <div class="f"><span class="asa" aria-hidden="true">⋮⋮</span><input aria-label="Nombre del valor" value="Acreedor"><span class="tag">Nuevo</span><span class="sw" role="switch" aria-checked="true" aria-label="Activo"></span></div>
+      </div>
+    </div>
+    <div>
+      <div class="grp" style="padding-left:2px">Del otro lado</div>
+      <div class="card">
+        <div class="f"><span class="asa" aria-hidden="true">⋮⋮</span><input aria-label="Nombre del valor" value="Comprador"><span class="sw" role="switch" aria-checked="true" aria-label="Activo"></span></div>
+        <div class="f"><span class="asa" aria-hidden="true">⋮⋮</span><input aria-label="Nombre del valor" value="Contraparte"><span class="sw" role="switch" aria-checked="true" aria-label="Activo"></span></div>
+        <div class="f"><span class="asa" aria-hidden="true">⋮⋮</span><input aria-label="Nombre del valor" value="Inversionista" style="color:#596070"><span class="sw no" role="switch" aria-checked="false" aria-label="Activo"></span></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="sec">Agregar valor</button><span style="color:#596070">Arrastra un renglón para cambiar el orden o pasarlo de grupo.</span></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

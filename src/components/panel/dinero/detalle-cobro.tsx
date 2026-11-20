@@ -1,12 +1,11 @@
 "use client";
-import { Tarjeta } from "@/components/panel/kit/lista";
 import { diaLargo } from "@/lib/panel/calendario";
 import { dinero, historial, lineaCobro, type PorCobrar } from "@/lib/panel/datos/dinero";
 
 /**
- * Detalle de un cobro, como el boceto: «Comisión · folio», la cifra grande (Falta cobrar o Cobrado completo),
- * las líneas del cálculo en una tarjeta, una nota, «Registrar cobro» y los movimientos (recibos).
- * Hoy un cobro se registra con el recibo 18 del asunto: «Registrar cobro» abre ese recibo en Formatos.
+ * Detalle de un cobro con el orden del modelo visual: la cifra grande (Falta cobrar o Cobrado completo) y las líneas del
+ * cálculo en una tarjeta de renglones, de dónde sale y los movimientos (recibos). «Registrar cobro» y «Abrir el asunto»
+ * van en la barra de arriba. Hoy un cobro se registra con el recibo 18 del asunto: «Registrar cobro» abre ese recibo.
  */
 export function DetalleCobro({ fila }: { fila: PorCobrar }) {
   const recibos = historial(fila.recibos);
@@ -19,33 +18,33 @@ export function DetalleCobro({ fila }: { fila: PorCobrar }) {
     { k: "Vence", v: "Sin fecha anotada", falta: true },
   ];
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 4 }}>
-      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-muted)" }}>{["Comisión", fila.folio].filter(Boolean).join(" · ")}</span>
-      <div className="pn-din-big">
-        <span className="pn-din-sl">{completo ? (fila.descuento > 0 ? "Saldado con pago total" : "Cobrado completo") : "Falta cobrar"}</span>
-        <span className="pn-din-dv">{dinero(completo ? fila.total : fila.falta)}</span>
-      </div>
-      <Tarjeta className="pn-din-lineas">
-        {lineas.map((l) => <div key={l.k} className="pn-din-ln" data-falta={l.falta || undefined}><span>{l.k}</span><span>{l.v}</span></div>)}
-      </Tarjeta>
-      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>{fila.fuente ? `De dónde sale: ${fila.fuente}.` : "Sale del cierre del asunto."} Al generar el PDF de un recibo, se descuenta de lo que te deben.</p>
-      {!completo ? (
-        <a className="pn-btn pn-btn-primario pn-btn-bloque" style={{ minHeight: 48 }} href={`/panel/formatos?asunto=${encodeURIComponent(fila.asuntoId)}&formato=18`}>Registrar cobro</a>
-      ) : null}
+    <>
+      <section className="fm-grupo" aria-label="La comisión">
+        <div className="fm-t">La comisión</div>
+        <div className="fm-card">
+          <div className="fm-big">
+            <span>{completo ? (fila.descuento > 0 ? "Saldado con pago total" : "Cobrado completo") : "Falta cobrar"}</span>
+            <b>{dinero(completo ? fila.total : fila.falta)}</b>
+          </div>
+          {lineas.map((l) => (
+            <div key={l.k} className="fm-dato"><span className="fm-k">{l.k}</span>{l.falta ? <span className="fm-v din-der" data-vacio="">{l.v}</span> : <b className="fm-num">{l.v}</b>}</div>
+          ))}
+        </div>
+        <p className="as-m fm-pie">{fila.fuente ? `De dónde sale: ${fila.fuente}.` : "Sale del cierre del asunto."} Al generar el PDF de un recibo, se descuenta de lo que te deben.</p>
+      </section>
       {recibos.length ? (
-        <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <h3 className="pn-grupo" style={{ margin: 0 }}>Movimientos</h3>
-          <Tarjeta className="pn-din-lineas">
+        <section className="fm-grupo" aria-label="Movimientos">
+          <div className="fm-t"><span>Movimientos</span><span className="fm-t-n">{recibos.length}</span></div>
+          <div className="fm-card">
             {recibos.map((c) => (
-              <div key={c.id} className="pn-din-ln">
-                <span>{[c.fecha ? diaLargo(c.fecha) : "Sin fecha", lineaCobro(c)].join(" · ")}</span>
-                <span className={c.emitido ? undefined : "pn-tono-aviso"}>{dinero(c.importe, c.moneda)}</span>
+              <div key={c.id} className="fm-dato">
+                <span className="fm-k">{[c.fecha ? diaLargo(c.fecha) : "Sin fecha", lineaCobro(c)].join(" · ")}</span>
+                <b className="fm-num" data-tono={c.emitido ? undefined : "aviso"}>{dinero(c.importe, c.moneda)}</b>
               </div>
             ))}
-          </Tarjeta>
+          </div>
         </section>
       ) : null}
-      <a className="pn-btn pn-btn-secundario" href={`/panel/asuntos?ver=${encodeURIComponent(fila.asuntoId)}`}>Abrir el asunto</a>
-    </div>
+    </>
   );
 }

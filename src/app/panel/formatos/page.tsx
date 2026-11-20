@@ -10,7 +10,9 @@ import { Gesto, Icono } from "@/components/panel/icons";
 import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
 import { Fila } from "@/components/panel/kit/lista";
 import { HojaAdaptable } from "@/components/panel/ui/hoja-adaptable";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/panel/ui/tabs";
+import { BotonesDeVista } from "@/components/panel/kit/segmentado";
+import "@/components/panel/asunto/asunto.css";
+import "@/components/panel/asunto/vistas.css";
 import type { Property } from "@/data/propiedades";
 import type { Cliente } from "@/lib/backend/contracts";
 import { aTexto } from "@/lib/panel/calendario";
@@ -108,32 +110,31 @@ function Formatos() {
 
 
   return (
-    <div className="pn-pagina" style={{ maxWidth: 860, display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <h1 className="pn-fmt-h1">Formatos</h1>
-        <span className="pn-sub" style={{ margin: 0, fontSize: 13 }}>Se llenan sobre el documento y el PDF sale igual</span>
-      </div>
+    <div className="as-vista fmt-vista">
+      {/* La barra de 52 px del modelo visual: título, las tres vistas en una fila de botones y el buscador. */}
+      <header className="as-vbar">
+        <h1 className="as-h1-lista">Formatos</h1>
+        <span className="as-cab-n fmt-sub">Se llenan sobre el documento y el PDF sale igual</span>
+        <span className="as-sp" />
+        <BotonesDeVista etiqueta="Vista" valor={vista} alElegir={setVista} opciones={[
+          { valor: "catalogo", etiqueta: "Catálogo" },
+          { valor: "borradores", etiqueta: "Borradores", cuenta: borradores.length },
+          { valor: "emitidos", etiqueta: "Emitidos", cuenta: emitidos.length },
+        ]} />
+        <label className="as-buscar as-vbuscar fmt-buscar">
+          <Icono nombre="buscar" tamano={14} aria-hidden />
+          <span className="pn-solo-lector">Buscar un formato</span>
+          <input ref={caja} type="search" value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Número o nombre (09, recibo)" autoComplete="off" />
+        </label>
+      </header>
+      <div className="fmt-cuerpo">
       {asuntoPedido && !pedido && !cargando ? (
         <p className="pn-sub" style={{ margin: 0 }}>
           {nombreAsunto(asuntoPedido) ? `Para ${nombreAsunto(asuntoPedido)}: elige el formato.` : "Ese asunto ya no está abierto; elige el asunto al empezar."}
         </p>
       ) : null}
-      <Tabs value={vista} onValueChange={(v) => setVista(v as Vista)}>
-        <div className="pn-fmt-controles">
-          <TabsList>
-            <TabsTrigger value="catalogo">Catálogo</TabsTrigger>
-            <TabsTrigger value="borradores">Borradores{borradores.length ? <span className="pn-fmt-cuenta">{borradores.length}</span> : null}</TabsTrigger>
-            <TabsTrigger value="emitidos">Emitidos{emitidos.length ? <span className="pn-fmt-cuenta">{emitidos.length}</span> : null}</TabsTrigger>
-          </TabsList>
-          <label className="pn-fmt-buscar">
-            <Icono nombre="buscar" tamano={18} aria-hidden />
-            <span className="pn-solo-lector">Buscar un formato</span>
-            <input ref={caja} type="search" value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Número o nombre (09, recibo)" autoComplete="off" />
-          </label>
-        </div>
-
-        <TabsContent value="catalogo">
-          <div style={{ display: "grid", gap: 20, marginTop: 16 }}>
+        {vista === "catalogo" ? (
+          <div className="fmt-grupos">
             {entradas.length === 0 ? (
               <div className="pn-tarjeta pn-fmt-vacio"><strong>Ningún formato coincide</strong><span>Prueba con el número (09) o una palabra del nombre (recibo, contrato, visita).</span></div>
             ) : null}
@@ -151,14 +152,14 @@ function Formatos() {
               </section>
             ))}
           </div>
-        </TabsContent>
+        ) : null}
 
-        {(["borradores", "emitidos"] as const).map((v) => {
+        {(["borradores", "emitidos"] as const).filter((v) => v === vista).map((v) => {
           const lista = v === "borradores" ? borradoresVistos : emitidosVistos;
           const total = v === "borradores" ? borradores.length : emitidos.length;
           return (
-            <TabsContent key={v} value={v}>
-              <div style={{ display: "grid", gap: 20, marginTop: 16 }}>
+            <div key={v} role="tabpanel" aria-label={v === "borradores" ? "Borradores" : "Emitidos"}>
+              <div className="fmt-grupos">
                 {cargando ? <Cargando lineas={4} etiqueta="Cargando documentos" /> : null}
                 {error ? <EstadoError texto={error} alReintentar={() => { setError(null); setIntento((n) => n + 1); }} /> : null}
                 {!cargando && !error && total === 0 ? (
@@ -178,11 +179,11 @@ function Formatos() {
                   </div>
                 ) : null}
               </div>
-            </TabsContent>
+            </div>
           );
         })}
-      </Tabs>
-      <div className="pn-fmt-pie">
+      </div>
+      <div className="as-vpie pn-fmt-pie">
         <span><kbd className="pn-kbd">/</kbd> buscar</span>
         <span><kbd className="pn-kbd">1</kbd> <kbd className="pn-kbd">2</kbd> <kbd className="pn-kbd">3</kbd> catálogo, borradores, emitidos</span>
         <span><kbd className="pn-kbd">Esc</kbd> cerrar</span>

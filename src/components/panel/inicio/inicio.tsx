@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 import { useMisPreferencias } from "@/components/panel/datos/use-mis-preferencias";
 import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
@@ -16,7 +17,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
 import {
-  cambiar, diasHasta, fechaCorta, haceCuanto, iniciales, leerEquipo, NOMBRE_QUIEN, sumarDias, type Miembro,
+  cambiar, diasHasta, fechaCorta, haceCuanto, iniciales, leerEquipo, sumarDias, type Miembro,
 } from "@/lib/panel/asuntos/api";
 import { cambiarPersonaDirectorio } from "@/lib/panel/biblioteca";
 import { empezarConsulta } from "@/lib/panel/consulta/api";
@@ -48,6 +49,7 @@ const tocaPreguntar = (t: TareaInicio) => !!t.volver_a_preguntar && diasHasta(t.
  */
 export function Inicio() {
   const { avisar } = useAvisos();
+  const cat = useCatalogos();
   const router = useRouter();
   const sesion = useSession();
   const director = sesion?.role === "admin";
@@ -123,21 +125,21 @@ export function Inicio() {
   const otrosDelEquipo = equipo.filter((m) => m.id !== yo || director);
 
   return (
-    <div className="db-pagina in-pagina">
-      <div className="db-top">
-        <div>
-          <h1>Inicio</h1>
-          <p className="db-sub">{datos ? fechaLarga(datos.hoy) : " "}</p>
-        </div>
+    <div className="in-raiz">
+      {/* Barra de 52 px como las del modelo visual: el título, el día y, a la derecha, de quién ver y «Nueva consulta». */}
+      <div className="in-barra">
+        <h1>Inicio</h1>
+        <span className="in-dia">{datos ? fechaLarga(datos.hoy) : ""}</span>
         <span className="as-sp" />
         {director && equipo.length > 1 ? (
-          <div className="db-filtro">
+          <div className="db-filtro in-filtro">
             <Desplegable etiqueta="De quién" valor={de} vacio="Todo el equipo" alElegir={setDe}
               opciones={equipo.map((m) => ({ valor: m.id, etiqueta: m.id === yo ? `${m.nombre} (yo)` : m.nombre }))} />
           </div>
         ) : null}
-        <Link href="/panel/consulta" className="as-btn as-pri"><Icono nombre="tel" tamano={16} />Nueva consulta</Link>
+        <Link href="/panel/consulta" className="as-btn as-pri in-nueva"><Icono nombre="tel" tamano={15} />Nueva consulta</Link>
       </div>
+    <div className="db-pagina in-pagina">
 
       {error ? <div className="as-vacio"><Icono nombre="alerta" tamano={24} /><b>{error}</b><button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button></div> : null}
       {!v && !error ? <div className="as-cargando" aria-label="Cargando"><span /><span /><span /></div> : null}
@@ -225,7 +227,7 @@ export function Inicio() {
             {v.otros.map((t) => {
               const n = espera(t);
               return (
-                <Tarea key={t.id} t={t} alHacer={marcarHecha} detalle={`${t.asunto.nombre} · ${t.para?.nombre ?? NOMBRE_QUIEN[t.quien]}`}
+                <Tarea key={t.id} t={t} alHacer={marcarHecha} detalle={`${t.asunto.nombre} · ${t.para?.nombre ?? cat.etiqueta("quien_tarea", t.quien)}`}
                   pildora={n > 0 ? <span className={`as-pill ${tocaPreguntar(t) ? "as-pill-bad" : "as-pill-warn"}`}>{n === 1 ? "Lleva 1 día" : `Lleva ${n} días`}</span> : undefined}
                   extra={n > 0 || tocaPreguntar(t) ? (
                     <button type="button" className="as-btn as-gho as-ico" title="Recordarle" aria-label={`Recordarle: ${t.titulo}`} onClick={() => setRecordar(t)}>
@@ -298,6 +300,7 @@ export function Inicio() {
         alCerrar={() => setRecordar(null)}
         alEnviar={() => { const t = recordar; if (t) void hacer(() => cambiar(t.asunto_id, "tareas", { id: t.id, version: t.version, recordar: true }), "Se le recordó: volver a preguntar en 3 días"); }} />
     </div>
+    </div>
   );
 }
 
@@ -353,13 +356,14 @@ function Bloque({ icono, color, titulo, cuenta, vacio, children }: { icono: Nomb
 }
 
 function Tarea({ t, alHacer, detalle, pildora, extra }: { t: TareaInicio; alHacer: (t: TareaInicio) => void; detalle?: string; pildora?: ReactNode; extra?: ReactNode }) {
+  const cat = useCatalogos();
   const n = t.fecha ? diasHasta(t.fecha) : 1;
   return (
     <div className="as-t in-t" data-est="pendiente">
       <button type="button" className="as-ckb" aria-label={`Marcar hecha: ${t.titulo}`} onClick={() => alHacer(t)}><span className="as-ck" /></button>
       <Link className="as-tb in-tb" href={`/panel/asuntos/${t.asunto_id}?ver=${t.clase === "visita" ? "interesados" : "plan"}`}>
         <span className="as-n">{t.titulo}</span>
-        <span className="as-m">{detalle ?? (t.quien === "fortius" ? t.asunto.nombre : `${t.asunto.nombre} · ${NOMBRE_QUIEN[t.quien]}`)}</span>
+        <span className="as-m">{detalle ?? (t.quien === "fortius" ? t.asunto.nombre : `${t.asunto.nombre} · ${cat.etiqueta("quien_tarea", t.quien)}`)}</span>
       </Link>
       {extra}
       {pildora ?? <span className={`as-pill ${n < 0 ? "as-pill-bad" : n === 0 ? "as-pill-acc" : ""}`}>{fechaCorta(t.fecha, t.hora)}</span>}

@@ -119,7 +119,7 @@ async function saveOwner(f){
 async function appFixture(){
  const f=await fixture();
  for(const suffix of ['app_runs','app_run_versions','app_files','app_shares','integration_jobs','integration_artifacts','integration_pages','signature_events'])f.owner.tables['fortius_inmuebles_'+suffix]=[];
- f.owner.schema_version=6;
+ f.owner.schema_version=backupTools.currentSchemaVersion;
  for(const [bucket,path,kind] of [
   ['fortius-inmuebles-private',appOwner+'/52000000-0000-4000-8000-000000000003.pdf','app'],
   ['fortius-inmuebles-private',appOwner+'/52000000-0000-4000-8000-000000000004.pdf','app'],
@@ -225,16 +225,16 @@ test('validates metadata and uniqueness of buckets even without any objects in t
 
 test('rejects manifest schema downgrades and mismatches while accepting a genuine historical backup',async()=>{
  const f=await fixture();try{
-  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.panelSuffixes])delete f.owner.tables['fortius_inmuebles_'+suffix];
+  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.panelSuffixes,...backupTools.directorySuffixes])delete f.owner.tables['fortius_inmuebles_'+suffix];
   delete f.owner.schema_version;f.manifest.database.schemaVersion=6;await saveOwner(f);
   await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);
   f.manifest.database.schemaVersion=1;await f.save();await backupTools.verifyBackup(f.root);
   delete f.manifest.database.schemaVersion;await f.save();await backupTools.verifyBackup(f.root);
   const target=join(f.parent,'legacy-restored');assert.equal((await backupTools.restoreBackupObjects(f.root,target)).objects,1);
-  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.panelSuffixes])f.owner.tables['fortius_inmuebles_'+suffix]=[];
-  f.owner.schema_version=6;
-  for(const version of [1,2,3,4,5,'6',null]){f.manifest.database.schemaVersion=version;await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);}
-  f.manifest.database.schemaVersion=6;await f.save();await backupTools.verifyBackup(f.root);
+  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.panelSuffixes,...backupTools.directorySuffixes])f.owner.tables['fortius_inmuebles_'+suffix]=[];
+  f.owner.schema_version=backupTools.currentSchemaVersion;
+  for(const version of [1,2,3,4,5,6,'7',null]){f.manifest.database.schemaVersion=version;await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);}
+  f.manifest.database.schemaVersion=7;await f.save();await backupTools.verifyBackup(f.root);
  }finally{await f.close();}
 });
 
@@ -250,7 +250,7 @@ async function addObject(f,bucket,path,label,isPublic=false){
 test('requires the backed-up object of every panel document file and call upload, with the same fingerprint and size',async()=>{
  for(const [table,path] of [['documento_archivos','asuntos/56000000-0000-4000-8000-000000000001/56000000-0000-4000-8000-000000000002.pdf'],['cargas_por_acomodar','consultas/56000000-0000-4000-8000-000000000003/56000000-0000-4000-8000-000000000004.pdf']]){
   const f=await fixture();try{
-   f.owner.schema_version=6;
+   f.owner.schema_version=backupTools.currentSchemaVersion;
    const bytes=Buffer.from('synthetic panel file '+table),sha256=backupTools.sha256(bytes);
    f.owner.tables['fortius_inmuebles_'+table]=[{id:'56000000-0000-4000-8000-000000000009',path,sha256,byte_length:bytes.length}];
    // The row exists but its object was not backed up.
@@ -274,7 +274,7 @@ test('requires the backed-up object of every panel document file and call upload
 
 test('requires the private photo of each own-section row and each uploaded property photo in the public bucket',async()=>{
  const f=await fixture();try{
-  f.owner.schema_version=6;
+  f.owner.schema_version=backupTools.currentSchemaVersion;
   const foto='asuntos/56000000-0000-4000-8000-000000000001/56000000-0000-4000-8000-000000000005.jpg';
   const medio='panel/inmuebles/56000000-0000-4000-8000-000000000006/56000000-0000-4000-8000-000000000007.jpg';
   f.owner.tables.fortius_inmuebles_apartado_filas=[{id:'56000000-0000-4000-8000-000000000011',foto_path:foto},{id:'56000000-0000-4000-8000-000000000012',foto_path:null}];

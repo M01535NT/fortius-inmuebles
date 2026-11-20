@@ -6,7 +6,7 @@ import { Segmentado } from "@/components/panel/kit/segmentado";
 import { aTexto } from "@/lib/panel/calendario";
 import { calcularCredito, pesos } from "@/lib/panel/herramientas";
 
-import { Resultado } from "./resultado";
+import { DatosCuenta, Resultado } from "./resultado";
 
 const LEYENDA = "Cálculo de referencia. No incluye seguros, comisiones del banco ni impuestos de la operación.";
 
@@ -28,11 +28,13 @@ export function CalculadoraCredito({ precioInicial, para }: { precioInicial?: nu
   ] : [];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Campo etiqueta="Precio del inmueble" dinero inputMode="decimal" value={formatoMonto(precio)} onChange={(e) => setPrecio(e.target.value.replace(/[^0-9.]/g, ""))} />
-      <Segmentado etiqueta="Enganche" valor={enganche} alElegir={setEnganche} opciones={[{ valor: 10, etiqueta: "10%" }, { valor: 20, etiqueta: "20%" }, { valor: 30, etiqueta: "30%" }, { valor: 40, etiqueta: "40%" }]} />
-      <Segmentado etiqueta="Plazo" valor={plazo} alElegir={setPlazo} opciones={[{ valor: 10, etiqueta: "10 años" }, { valor: 15, etiqueta: "15 años" }, { valor: 20, etiqueta: "20 años" }, { valor: 25, etiqueta: "25 años" }]} />
-      <Campo etiqueta="Tasa anual (%)" inputMode="decimal" value={tasa} onChange={(e) => setTasa(e.target.value.replace(/[^0-9.]/g, ""))} error={t > 25 ? "La tasa no puede pasar de 25%." : undefined} />
+    <div className="her-cuenta">
+      <DatosCuenta>
+        <Campo etiqueta="Precio del inmueble" dinero inputMode="decimal" value={formatoMonto(precio)} onChange={(e) => setPrecio(e.target.value.replace(/[^0-9.]/g, ""))} />
+        <Segmentado etiqueta="Enganche" valor={enganche} alElegir={setEnganche} opciones={[{ valor: 10, etiqueta: "10%" }, { valor: 20, etiqueta: "20%" }, { valor: 30, etiqueta: "30%" }, { valor: 40, etiqueta: "40%" }]} />
+        <Segmentado etiqueta="Plazo" valor={plazo} alElegir={setPlazo} opciones={[{ valor: 10, etiqueta: "10 años" }, { valor: 15, etiqueta: "15 años" }, { valor: 20, etiqueta: "20 años" }, { valor: 25, etiqueta: "25 años" }]} />
+        <Campo etiqueta="Tasa anual (%)" inputMode="decimal" value={tasa} onChange={(e) => setTasa(e.target.value.replace(/[^0-9.]/g, ""))} error={t > 25 ? "La tasa no puede pasar de 25%." : undefined} />
+      </DatosCuenta>
       <Resultado
         lineas={lineas}
         vacio="Escribe un precio para ver la mensualidad."
@@ -42,7 +44,7 @@ export function CalculadoraCredito({ precioInicial, para }: { precioInicial?: nu
         leyenda={LEYENDA}
         tipo="credito"
       />
-      <p className="pn-her-leyenda">{LEYENDA}</p>
+      <p className="as-m her-ley">{LEYENDA}</p>
     </div>
   );
 }

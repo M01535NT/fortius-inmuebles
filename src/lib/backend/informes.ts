@@ -15,6 +15,8 @@ import { NOMBRE_RESPUESTA, type Concepto, type Moneda } from "./apartados-contra
 import { fallo, idSchema, leerAsunto } from "./asuntos";
 import type { Asunto } from "./asuntos-contrato";
 import { leerEquipo } from "./asuntos-equipo";
+import { mapaCatalogos } from "./catalogos";
+import { etiquetaDe, significadoDe } from "./catalogos-contrato";
 import { createServerClient } from "./auth";
 import type { StaffUser } from "./contracts";
 import { ApiError } from "./http";
@@ -65,13 +67,13 @@ function siguienteFecha(hoy: string, cada: CadaInforme): string {
 }
 
 /** El párrafo de «En qué va» que se propone; el asesor lo cambia a su gusto. */
-function proponer(a: Asunto, sigue: MaterialInforme["sigue"]): string {
+function proponer(a: Asunto, sigue: MaterialInforme["sigue"], logrado: boolean): string {
   const base: Record<Asunto["en_que_va"], string> = {
     estudio: "Estamos estudiando su asunto: reunimos los documentos y revisamos su situación para decirle qué se puede hacer y cómo.",
     propuesta: "Ya revisamos su asunto y le presentamos nuestra propuesta de trabajo. Quedamos atentos a su respuesta para empezar.",
     en_marcha: "Su asunto está en marcha y avanza conforme al plan.",
     por_cobrar: "El trabajo que nos encargó está terminado. Solo queda pendiente el pago acordado.",
-    cerrado: a.resultado === "no_se_dio" ? "El asunto se cerró sin llegar al resultado que se buscaba." : "El asunto se cerró: se logró lo que nos encargó.",
+    cerrado: logrado ? "El asunto se cerró: se logró lo que nos encargó." : "El asunto se cerró sin llegar al resultado que se buscaba.",
   };
   const partes = [base[a.en_que_va]];
   if (a.en_espera) partes.push(`Por ahora está en espera${a.espera_motivo ? `: ${a.espera_motivo.replace(/\.$/, "")}` : ""}.`);
@@ -86,10 +88,11 @@ type DocExtra = { id: string; recibido_el: string | null; created_at: string; de
 /** Junta todo lo que el asunto puede decir en un informe. Nada de notas, decisiones, análisis ni nombres de interesados. */
 export async function materialInforme(client: SupabaseClient, user: StaffUser, asuntoId: string): Promise<{ material: MaterialInforme; asunto: Asunto; tareaPendiente: string[] }> {
   const a = await leerAsunto(client, asuntoId);
-  const [tx, dx, equipo] = await Promise.all([
+  const [tx, dx, equipo, catalogos] = await Promise.all([
     client.from(T.tareas).select("id,hecha_el,repetir").eq("asunto_id", asuntoId).is("deleted_at", null).limit(2000),
     client.from(T.documentos).select("id,recibido_el,created_at,deleted_at,grupo").eq("asunto_id", asuntoId).limit(2000),
     leerEquipo(client, user).catch(() => []),
+    mapaCatalogos(client),
   ]);
   if (tx.error) fallo(tx.error);
   if (dx.error) fallo(dx.error);
@@ -113,7 +116,7 @@ export async function materialInforme(client: SupabaseClient, user: StaffUser, a
 
   const sigue: MaterialInforme["sigue"] = propias.filter((t) => t.estado === "pendiente")
     .sort((x, y) => (x.fecha ?? "9999").localeCompare(y.fecha ?? "9999") || x.orden - y.orden).slice(0, 8)
-    .map((t) => ({ id: t.id, texto: t.titulo, fecha: t.fecha, hora: t.hora, quien: t.quien }));
+    .map((t) => ({ id: t.id, texto: t.titulo, fecha: t.fecha, hora: t.hora, quien: t.quien, quien_nombre: etiquetaDe(catalogos.quien_tarea, t.quien) }));
 
   const comercializa = a.encargos.includes("comercializar") || a.interesados.length > 0;
   const vivos = a.interesados.filter((i) => i.estado !== "descartado");
@@ -146,7 +149,7 @@ export async function materialInforme(client: SupabaseClient, user: StaffUser, a
   const material: MaterialInforme = {
     numero: previos.length + 1, hoy, desde, folio: a.folio, asunto: a.nombre,
     lleva: equipo.find((m) => m.id === a.responsable_id)?.nombre ?? user.name?.trim() ?? "Fortius Inmuebles",
-    personas, propuesta: proponer(a, sigue), hecho, sigue,
+    personas, propuesta: proponer(a, sigue, significadoDe(catalogos.resultado_cierre, a.resultado) !== "no_logrado"), hecho, sigue,
     faltan: a.documentos.filter((d) => d.estado === "falta").map((d) => ({ id: d.id, texto: d.nombre, persona_id: d.entrega_persona_id, papel: d.entrega_papel })),
     toca: a.tareas.filter((t) => t.estado === "pendiente" && t.quien === "cliente" && !t.interesado_id).map((t) => ({ id: t.id, texto: t.titulo })),
     actividad,

@@ -1,0 +1,190 @@
+# Comprobación de las etapas 0 a 10
+
+Las etapas 0 a 10 del panel están construidas y publicadas desde el 18/11/2026. Aquí queda su lista de comprobación, que sirve de guion para probarlas con datos reales usando los casos de `docs/casos-reales.md`. El plan vigente está en `PLAN.md`.
+
+**0. Preparación**
+
+- [x] Hay una lista de lo que se reutiliza y lo que se rehace.
+- [x] Está escrito qué cambia en la base de datos, y lo autorizaste antes de aplicarlo. *(Autorizado el 16/11. Se quitaron los cambios viejos que nunca se aplicaron y quedaron escritos los primeros: folios, asuntos, apartados y personas..)*
+- [x] El sitio público y el panel provisional siguen funcionando igual. *(En esta etapa no se tocó código ni la base.)*
+- [x] Las pruebas automáticas siguen pasando. *(Pasaron al publicar el panel, el 18/11.)*
+
+**1. La base visual**
+
+- [x] El menú lateral tiene Inicio, Asuntos, Inmuebles, Directorio, Biblioteca, Herramientas y Equipo.
+- [x] En el teléfono aparece la barra de abajo con el botón de nueva consulta al centro.
+- [x] Se ve bien en claro y en oscuro.
+- [x] Los botones se alcanzan con el dedo y con el teclado.
+- [x] Colores, letra e íconos son los del boceto.
+
+*16/11: construida, revisada con capturas en claro, oscuro y teléfono, y aprobada por ti. Las pantallas que ya existían (Inicio, Asuntos, Inmuebles, Herramientas) conservan su contenido anterior con los colores nuevos hasta su etapa; Directorio, Biblioteca, Equipo y Nueva consulta muestran en qué etapa llegan. «Recientes» del menú llega con los asuntos.*
+
+**2. Asuntos**
+
+- [ ] La lista muestra los seis casos, cada uno con su siguiente paso y su fecha.
+- [ ] Se filtra por en qué va y, como director, por quién lo lleva.
+- [ ] El asunto de la casa en sucesión abre con sus apartados, y lo que cambias sigue ahí al volver a entrar.
+- [ ] Se agrega y se quita un apartado sin perder lo que tenía.
+- [ ] Se cambia en qué va y queda anotado en el historial.
+- [ ] Un asunto sin siguiente paso lo avisa, pero deja seguir.
+- [ ] El asunto de la casa del suegro no muestra ni reclama fotos, publicación ni contrato de venta.
+
+*17/11: aprobada por ti con datos simulados. Falta probar la lista de comprobación con datos reales.*
+
+*16/11: construida. Ya están la lista (buscar, qué ver y, para el director, quién lo lleva), el asunto con lo que sigue, en qué va, la espera, el cierre y la reapertura, los apartados que se agregan y se quitan, apartados propios como lista o texto, y las ventanas de Personas (con papel, fallecida y teléfono con clave de país), Plan (etapas y tareas, marcar hecha y posponer) e Historial (notas, decisiones y cambios). Los demás apartados dicen en qué etapa llegan. El director puede cargar los seis casos como ejemplo con un botón. Falta: probar la lista de comprobación con datos reales. Las tareas sin poderse hacer, la línea de tiempo y las vistas de tabla y galería llegan en la etapa 5.*
+
+**3. La consulta**
+
+- [ ] Capturas la llamada de la casa en sucesión en menos de tres minutos, sin salir de la pantalla.
+- [ ] Anotas a la mamá fallecida y a los dos hermanos ahí mismo, cada uno con su papel.
+- [ ] El teléfono de Estados Unidos se guarda con su clave.
+- [ ] La lista de qué pedirle cambia sola según lo que respondes (titular fallecida, hipoteca, inquilino).
+- [ ] Adjuntas lo que ya mandó el abogado del terreno y queda marcado como recibido.
+- [ ] Al abrir el asunto, nace con su persona, su inmueble, su lista de documentos y su primer plan.
+- [ ] Una consulta que no se vuelve asunto se guarda como contacto, con fecha para volver a llamar, o se cierra como «no procede».
+- [ ] Si se corta la llamada, lo capturado no se pierde.
+
+*17/11: aprobada por ti con datos simulados; falta probar la lista con datos reales.*
+
+*17/11: construida. La consulta se guarda sola mientras escribes y, si se corta la llamada o la conexión, lo capturado queda en el equipo y se manda al volver; si dejaste una a medias, la pantalla te ofrece seguirla. Ya están: quién llama (con clave de país), por dónde llegó, qué pasa, los datos de siempre en listas desplegables, la lista de qué pedirle que cambia sola (se quita lo que no aplique, se agrega lo que falte y sale como mensaje para WhatsApp que tú envías), otras personas del caso con su papel y si falleció, y lo que ya mandó (PDF o fotos, quedan como recibidos). «Abrir asunto» crea en un solo paso la persona, el asunto con sus apartados, las otras personas, el inmueble si se describió, la lista de documentos, lo recibido y un primer plan de ejemplo. «Sin asunto» la guarda como contacto con fecha para volver a llamar, o la cierra como «no procede». En el asunto ya se ven el inmueble, la lista de documentos y, en Situación, los datos de siempre y lo que contó. Falta: probar la lista de comprobación con datos reales. El contacto guardado aparece en Inicio el día de llamarle.*
+
+**4. Inmuebles**
+
+- [ ] La nave industrial pide sus datos propios (altura, andenes, kVA) y la casa los suyos.
+- [ ] Subes varias fotos a la vez y eliges la portada.
+- [ ] Cargas video, recorrido 360, planos y permisos.
+- [ ] La dirección exacta no sale en el sitio a menos que lo actives.
+- [ ] Guardar no publica: el inmueble aparece en el sitio solo cuando lo publicas, y desaparece al retirarlo.
+- [ ] Los cinco locales viven en un solo asunto, cada uno con su precio y su estado, ligados a su plaza.
+- [ ] Publicas los cinco locales de una vez.
+- [ ] Cambias un precio y queda guardado quién, cuándo y por qué. El de la nave va en dólares.
+
+*17/11: aprobada por ti con datos simulados.*
+
+*17/11: construida y revisada con datos simulados. La lista de Inmuebles muestra cada uno con su portada, lo que trae (fotos, video, 360) y si está publicado; se eligen varios para publicarlos, retirarlos o compartirlos. «Nuevo» pide nombre, tipo, operación y, si se sabe, el propietario, y abre su asunto de captación. La ficha se abre a un lado, en Inmuebles o en el apartado Inmueble del asunto, con seis pestañas: Ficha (datos propios de cada tipo, estado, y precio con su historia de quién, cuándo y por qué, en pesos o dólares), Fotos (varias a la vez, portada, ordenar y quitar), Video y 360 (subidos o por enlace), Planos (los mismos documentos del asunto), Ubicación (la dirección exacta es privada salvo que la actives) y Sitio (publicar, qué lleva y qué falta, descripción y compartir). En el asunto de la plaza, los locales se ven con su estado, «Agregar otro igual» suma uno y «Publicar todos» los publica de una vez. Falta: comprobar que lo publicado aparece en el sitio público y probar la lista con datos reales.*
+
+**5. Los apartados a fondo**
+
+- [ ] Pides los documentos que faltan con un mensaje listo para WhatsApp. El sistema no lo envía: lo envías tú.
+- [ ] Cada documento dice quién lo entrega y, si vence, cuándo; el sistema avisa antes.
+- [ ] Subes varios archivos de una vez y cada uno cae en su renglón. El cliente también puede subir los suyos por una liga.
+- [ ] Emites la opinión jurídica de la casa en sucesión, y lo que hay que resolver pasa al plan con un toque.
+- [ ] Si la opinión es «no factible», el panel ofrece cobrar el estudio, cerrar el asunto o dejarlo en espera.
+- [ ] Una tarea puede quedar hecha, sin aplicar o sin poderse hacer todavía, con su motivo.
+- [ ] Haces el presupuesto del caso de asesoría separando tus honorarios de los gastos de terceros, y dices quién paga.
+- [ ] Registras un cobro y haces su recibo.
+- [ ] El presupuesto tiene vigencia; al enviarlo nace sola la tarea de darle seguimiento.
+- [ ] Al cargar el contrato firmado, el panel propone pasar a «En marcha»; al cobrar todo, propone cerrar. Nunca lo cambia solo.
+- [ ] Una tarea que le toca a otro nace con fecha para volver a preguntar.
+- [ ] Anotas a un interesado en un local, con su visita (día y hora) y su oferta.
+- [ ] Creas un apartado propio como tabla y otro como galería con fotos.
+- [ ] Pones un asunto en espera y lo reanudas; lo cierras como «se logró» o «no se dio».
+- [ ] De un asunto terminado continúas en uno nuevo, con las mismas personas, inmueble y documentos.
+- [ ] Llevas la casa del suegro de principio a fin: hipoteca, crédito y escritura en un solo plan.
+
+*17/11: construida y revisada con datos simulados. Documentos agrupa lo que falta y lo recibido, dice quién lo entrega y cuándo vence (avisa antes), pide lo que falta con un mensaje listo para WhatsApp, sube varios archivos a la vez y acomoda cada uno por su nombre, y crea la liga para que el cliente suba los suyos desde su teléfono. Situación anota los datos de siempre y lo que falta averiguar, que se vuelve tarea con un toque. Opinión jurídica lleva el resultado, el análisis y lo que hay que resolver con quién lo hace; con un botón pasa todo al plan, y si sale «no factible» ofrece cobrar el estudio, cerrar o esperar un mes. Honorarios separa tus honorarios (monto o porcentaje del precio) de los gastos de terceros, con quién paga, vigencia, otra versión del presupuesto, el contrato firmado y los cobros con su recibo y lo que falta. Interesados lleva qué local le interesa, la visita con día y hora y la oferta con su respuesta. El Plan se abre por tarea para cambiar cómo va (hecha, no aplica o no se puede todavía, con su motivo), quién, día y hora; «Recordarle» abre WhatsApp, y se ve por etapas o en el tiempo. Los apartados propios ya se ven como lista, tabla (con columnas tuyas y totales), galería (con foto y precio por m²) o texto. El asunto propone pasar a Propuesta, a En marcha o cerrar, y nunca lo cambia solo; uno cerrado se continúa en uno nuevo. Falta: probar la lista con datos reales y la liga del cliente en un teléfono de verdad. Hacer la opinión y el presupuesto en PDF desde el panel llega con sus plantillas en la etapa 6. Los avisos de vencimiento ya salen en Inicio. Las tareas que esperan a otra o que se repiten entraron en la etapa 10.*
+
+**6. Documentos y Herramientas**
+
+- [ ] Haces un contrato desde un asunto y solo te pregunta lo que falta.
+- [ ] Lo que capturas en el contrato queda guardado en la persona y en el inmueble, y no se vuelve a pedir.
+- [ ] Mientras contestas ves la hoja llenándose, y tocar un espacio te lleva a ese dato.
+- [ ] Descargas el PDF y sale como la plantilla, sin notas internas.
+- [ ] Cargas el contrato firmado, en PDF o en foto, y queda en los Documentos del asunto.
+- [ ] Haces una opinión de valor sin asunto, y después la pasas a su asunto.
+- [ ] Los cálculos que dependen de una regla fiscal dicen su fuente y su fecha; si falta la regla, lo dicen y no inventan.
+
+*17/11: construida y revisada con datos simulados. Desde un asunto, «Nuevo → Contrato o formato» abre la lista de formatos; al elegir uno se abre su ventana con la pregunta a un lado y la hoja real al otro. Solo pregunta lo que falta: quién vende, el inmueble, su precio y sus datos legales entran solos del asunto. Lo que se contesta se guarda solo y vuelve a la ficha de la persona y al inmueble; tocar un espacio de la hoja lleva a ese dato. Al terminar: descargar el PDF (queda en los Documentos del asunto como versión nueva si cambió), enviarlo por WhatsApp, cargar el firmado en PDF o foto y volver al asunto; con el contrato firmado, el asunto propone pasar a En marcha. Los documentos hechos aquí tienen un lápiz en Documentos para seguir llenándolos. Herramientas tiene opinión de valor, cálculo de ISR, gastos del comprador, gastos del vendedor, crédito, comisión y contratos y formatos; lo que se hace sin asunto queda en «Trabajos sueltos» y se pasa a su asunto cuando el cliente contrata. El ISR dice su ley, artículos, reforma y fecha de revisión, y si falta un dato dice «Pendiente» y qué falta. Falta: probar con datos reales, las fotos de la opinión de valor y de los levantamientos (por ahora el recuadro sale vacío) y el PDF del presupuesto de honorarios y de la opinión jurídica desde sus apartados, que por ahora se suben hechos.*
+
+**7. Directorio y Biblioteca**
+
+- [ ] Buscas a una persona por nombre o teléfono y llegas a su asunto.
+- [ ] Una persona que está en dos asuntos aparece una sola vez, con los dos.
+- [ ] Desde un contacto sin asunto abres un asunto nuevo sin volver a capturarlo.
+- [ ] Copias una lista de documentos y un plan de la Biblioteca a un asunto, y los cambias ahí sin alterar el original.
+- [ ] Guardas en la Biblioteca el plan de un asunto para volver a usarlo.
+
+*17/11: construida y revisada con datos simulados. El Directorio muestra a cada persona una sola vez con todos sus asuntos (lo cerrado, apagado); se busca por nombre o teléfono y se filtra por «Con asunto», «Contactos sin asunto» o «Por llamar». Tocar un asunto lleva a sus Personas. Cada persona tiene en su menú: nuevo asunto con ella (la consulta ya trae su nombre y teléfono), llamar, WhatsApp, copiar el teléfono, recordarme llamarle y no contactar; quien falleció o no quiere contacto no tiene llamar ni WhatsApp. El director une dos fichas de la misma persona: todo pasa a la que se queda y la otra va a Eliminados. La Biblioteca tiene «Qué pedir» y «Qué hacer» (y los apartados que se guarden), con su contenido de ejemplo; cada guía se abre para leerla y se usa en un asunto. En el asunto, Documentos → Agregar y Plan → Biblioteca traen las guías; lo copiado se cambia en el asunto y la guía queda igual. «Guardar este plan en la Biblioteca» guarda las etapas y tareas del asunto (las fechas pasan a días contados desde la primera), y un apartado propio también se guarda. Quien hizo la guía o el director la cambian; solo el director la marca «Revisado por el abogado». Falta: probar con datos reales. «Por llamar» ya sale en Inicio.*
+
+**8. Inicio**
+
+- [ ] Al entrar ves primero lo que hay que atender: las solicitudes del sitio, con el tiempo que llevan esperando.
+- [ ] Ves lo de hoy, lo de la semana, las visitas con su hora y lo que falta cobrar.
+- [ ] Ves lo que esperas de otros, y le recuerdas a quien lleva más días.
+- [ ] Marcas una tarea como hecha desde Inicio y queda anotada en su asunto.
+- [ ] Como director, pasas una solicitud a un asesor.
+- [ ] Una solicitud por un inmueble publicado queda anotada en los Interesados de ese inmueble.
+
+*17/11: construida y revisada con datos simulados. Inicio abre con «Por atender»: las solicitudes del sitio con lo que escribieron, por qué inmueble preguntan y cuánto llevan esperando (en ámbar pasada una hora, en rojo pasadas dos). «Atender» abre la consulta ya llena con su nombre, teléfono y mensaje, por el canal «Sitio»; el menú trae escribirle por WhatsApp, verla en Interesados, «No procede» y, para el director, «Pasar a» cualquier persona del equipo. Las que nadie lleva le llegan al director; cada asesor ve las que le tocan. Si preguntan por un inmueble publicado, la solicitud queda a cargo de quien lleva el asunto de ese inmueble y la persona se anota sola en sus Interesados (si su teléfono o correo ya existen, se usa la misma ficha). Después vienen Para hoy, Visitas (los próximos siete días, con hora, quién viene y a qué inmueble), Esta semana, Lo esperas de otros (lo que lleva más días arriba, con «Recordarle» por WhatsApp que recorre la fecha tres días), Volver a llamar (los contactos guardados, con llamar, nuevo asunto, llamarle en una semana o «ya le llamé»), Por vencer (los documentos que entran en su aviso) y Por cobrar (honorarios del presupuesto aceptado menos lo cobrado, en pesos o dólares). Marcar una tarea la deja hecha en su asunto, con su historial. El director elige ver todo el equipo o a una persona. El formulario del sitio ya reconoce los inmuebles publicados desde el panel nuevo (antes los ignoraba). Falta: probar la lista con datos reales y con una cuenta de asesor.*
+
+**9. Equipo**
+
+- [ ] Con una cuenta de asesor solo ves tus asuntos, tus inmuebles y tus personas.
+- [ ] Escribir la dirección de un asunto ajeno no lo abre.
+- [ ] Como director ves a cada asesor con lo vencido, lo de hoy y lo que falta cobrar.
+- [ ] Cambias quién lleva un asunto y queda anotado.
+
+*17/11: construida y revisada con datos simulados. Equipo, solo para el director, muestra a cada persona con sus asuntos abiertos, lo de hoy, lo de la semana y lo que falta cobrar (en pesos y dólares), y arriba lo vencido, los asuntos sin siguiente paso y las solicitudes del sitio que tiene sin atender; un aviso dice cuántas solicitudes esperan a que las pases. «Ver» abre Asuntos ya filtrado por esa persona. Cambiar quién lleva un asunto se hace desde el asunto y queda en su historial. Con cuenta de asesor, Equipo no sale en el menú y, si se escribe la dirección, dice que es solo del director; un asunto ajeno responde «no existe o no te toca verlo» y ofrece volver a tus asuntos. Lo que ve cada quien lo decide la base (asuntos, personas, inmuebles, tareas, documentos, dinero y solicitudes), no la pantalla; esas reglas ya venían en los cambios de la base de las etapas anteriores.*
+
+*17/11, en revisión: los cambios de la base ya están aplicados. Hay una cuenta «Asesor de ejemplo» con dos de los seis asuntos de ejemplo para probar la etapa. Decidiste que, al cambiar quién lleva un asunto, sus tareas pendientes pasen a la nueva persona; ya está hecho. Falta: que entres con la cuenta de ejemplo y compruebes lo que ve.*
+
+**10. Funciones extra**
+
+Las ventanas:
+
+- [ ] En el asunto de la plaza, de la ficha de un local regresas con la flecha a la lista de locales.
+- [ ] Desde Honorarios haces el contrato y, al cerrarlo, regresas a Honorarios. De la Opinión jurídica pasas a Honorarios y la flecha te regresa a la Opinión.
+- [ ] Si no hay ventana anterior, la flecha cierra y quedas en el asunto.
+- [ ] Abres una ventana a la derecha, a la izquierda, al centro y a pantalla completa.
+- [ ] El panel recuerda la que elegiste: la siguiente ventana abre igual, también al volver a entrar.
+- [ ] Con un toque pasas a pantalla completa y vuelves a como estaba.
+- [ ] En el teléfono toda ventana abre a pantalla completa.
+
+Los informes para el cliente:
+
+- [ ] Desde la casa del suegro haces un informe para el comprador sin capturar nada: sale con lo hecho, lo que sigue y lo que le falta entregar.
+- [ ] Desde la plaza, el informe para la propietaria dice cuántos preguntaron, cuántas visitas hubo y qué ofertas llegaron por cada local, sin nombres ni teléfonos de los interesados.
+- [ ] En el caso de asesoría eliges a cuál de los dos clientes va, o a los dos.
+- [ ] Cambias el párrafo de «En qué va», apagas una parte y quitas un renglón: la hoja cambia al momento.
+- [ ] El informe no lleva notas internas, decisiones internas ni el análisis de la opinión jurídica.
+- [ ] Lo guardas, lo descargas en PDF y lo mandas por WhatsApp. El panel no lo envía solo.
+- [ ] Queda en Documentos, en «Informes», con su número, y anotado en el Historial.
+- [ ] Lo pones cada mes: nace la tarea de mandarlo, aparece en Inicio y, al mandarlo, nace la del mes siguiente.
+
+Lo de todos los días (construido el 17/11):
+
+- [ ] En el buscador escribes «Llamar a Laura jueves 10am»: dice que es una llamada, el jueves a las 10 con Laura, y la guarda en la herencia de la Murúa. Abres el asunto y está en su Plan.
+- [ ] Lo mismo en el Plan del asunto, escrito o dictado con el micrófono.
+- [ ] Dictas una nota y la parte de «Qué pasa» de una consulta.
+- [ ] Buscas por teléfono, por folio y por nombre: salen el asunto, la persona y el inmueble; desde el mismo cuadro abres una consulta nueva.
+- [ ] Marcas con estrella el asunto de la plaza y un local: salen arriba en el menú y en el buscador, también en otro equipo.
+- [ ] En Asuntos filtras «los que lleva Jorge» y lo guardas como vista; al día siguiente la eliges y vuelve igual.
+- [ ] En una nota mencionas a alguien del equipo con @; esa persona lo ve en «Para ti» de su Inicio, con el punto de nuevo, y el número junto a «Inicio» sube. «Ya lo vi» lo apaga.
+- [ ] Das permiso de avisos en Configuración: con el panel abierto, te avisa una hora antes de una cita y cuando entra una solicitud del sitio. Apagas «Citas próximas» y deja de avisar esas.
+- [ ] En el Plan, la firma espera a «Recibir el avalúo»: se lee «espera a…» hasta que el avalúo queda hecho.
+- [ ] Pones «Pagar el predial» cada año; al dejarla hecha nace la del año siguiente, y si la desmarcas, la nueva se quita.
+
+*17/11: construidas las ventanas y los informes para el cliente; falta que los veas. El boceto no los muestra.*
+
+*Las ventanas: toda ventana tiene la flecha ← (regresa al apartado anterior o a la lista de locales; si no hay, cierra), el botón que elige dónde se abre (derecha, izquierda, centro o pantalla completa) y el de pantalla completa. Lo que elijas se recuerda en ese navegador. En el teléfono siguen a pantalla completa. De paso se corrigió «Volver al asunto» desde un formato o una herramienta, que dejaba en la lista de asuntos en vez de abrir el asunto; y en Honorarios ya está «Hacer el contrato aquí».*
+
+*Los informes: en el asunto, «Nuevo → Informe para el cliente» abre la pantalla con la hoja a la vista y el membrete de Fortius. Eliges para quién, cambias «En qué va», enciendes o apagas cada parte, quitas renglones y dices si se repite. «Guardar informe» lo deja en Documentos, en «Informes», con su número, y lo anota en el Historial; después se descarga en PDF o se manda por WhatsApp. No hizo falta ningún cambio en la base de datos. La hoja es una propuesta: dime qué cambiarle.*
+
+*17/11, en revisión: en «Lo lleva» y en el pie del informe salía el inicio del correo en vez del nombre; ahora sale el nombre de «Mi perfil».*
+
+Personas y notas del asunto (decidido el 17/11):
+
+- [ ] En la herencia de la Murúa abres Personas y las ves por grupos: quien nos busca, dueños y herederos, del otro lado y quienes ayudan. «Del otro lado» dice «Nadie todavía».
+- [ ] Agregas a alguien desde «Quienes ayudan» y nace con su papel ya puesto.
+- [ ] Tocas a Laura y se abre su ficha con la lista de todos a un lado; pasas a Jorge con un toque y la flecha te regresa a los grupos.
+- [ ] Cambias su estado civil y su domicilio ahí mismo; el CURP y el RFC se ven ocultos hasta que los pides.
+- [ ] Desde cualquier ventana del asunto escribes una nota con @Laura y #Documentos; la mención abre su ficha o el apartado.
+- [ ] Filtras las notas que mencionan a Laura, y su ficha dice cuántas son.
+- [ ] Fijas la nota de que Laura vive en San Diego: queda arriba en todas las ventanas del asunto, y el Historial dice quién la fijó.
+- [ ] Ninguna nota sale en un informe para el cliente.
+
+*17/11: construido; publicado el 18/11. La única pieza nueva de la base es la lista de notas fijadas del asunto, ya aplicada. Personas abre por grupos; la ficha muestra la lista de todos a un lado (en el teléfono o en una ventana angosta, la flecha regresa a los grupos). Las notas están en un costado de cada ventana del asunto, salvo en el Historial, que ya las muestra. Falta: que lo veas y probarlo con datos reales.*
+
+*17/11: construidas (publicadas el 18/11) las funciones de todos los días de `SPEC.md` (sección 14, «Lo de todos los días»), sin cambios en la base de datos: favoritos, vistas y lo ya visto de «Para ti» se guardan en tus preferencias, y las tareas que esperan o se repiten usan lo que la base ya tenía. El boceto no las define; lo decidido está en `SPEC.md` y espera que lo veas. «Tiempo esperando» y la liga del cliente ya existían. Lo que no entró: avisos al teléfono o por correo con el panel cerrado (hace falta un servicio de envío; queda para después) y que el cliente vea su último informe en su liga, como dice `SPEC.md`. Falta: que lo veas y probarlo con datos reales.*
+
+*17/11, revisión de la etapa (solo lectura del código): se corrigió que una mención a «Jorge Ramírez» avisara también a un «Jorge» del equipo; que buscar «Domingo Pérez» o «5 de Mayo» creara una tarea; que «el 2%» o «2 dictámenes» se leyeran como fechas; que posponer una tarea la volviera a marcar como nueva en «Para ti»; que el buscador guardara la tarea en un asunto al azar; que fijar una nota provocara «alguien más cambió esto»; que escribir solo la hora en el Plan borrara el día elegido; que «Para ti» enlazara a asuntos que no te toca ver; que el número de Inicio contara documentos de otros o una tarea dos veces; y que las tareas mensuales se fueran recorriendo del 31 al 28. El servidor ahora revisa que la persona de una tarea y las ligas de una nota sean de ese asunto. Decidiste que un asesor también pueda mencionar a todo el equipo; ya está hecho (solo ve sus nombres, no lo que llevan). Pendiente: si un colaborador deja hecha una tarea que se repite de otra persona, la siguiente queda a nombre del colaborador.*

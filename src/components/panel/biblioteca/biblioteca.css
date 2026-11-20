@@ -38,6 +38,33 @@
 .panel-root .db-renglon-tarea { grid-template-columns: minmax(0, 1fr) 150px 84px auto; }
 .panel-root .db-bloque { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
 
+/*
+ * Biblioteca con el esqueleto del modelo visual (Main.dc.html / Inmuebles.dc.html): la columna de lista de Asuntos
+ * (asunto.css) con grupos de título chico, y la guía abierta con la barra del asunto (caso.css) y las tarjetas de
+ * fichas/modelo.css. Aquí solo lo propio.
+ */
+@media (min-width: 901px) { .panel-root .bb-dos { grid-template-columns: 330px minmax(0, 1fr); } }
+.panel-root .bb-sub { margin: 0; padding: 10px 14px; border-bottom: 1px solid var(--linea-suave); color: var(--ink-muted); font-size: 12px; }
+.panel-root .bb-grupo-t { display: flex; align-items: center; gap: 6px; margin: 0; padding: 14px 14px 6px; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .bb-grupo-t > span { font-weight: 500; font-variant-numeric: tabular-nums; }
+.panel-root .bb-grupo-t + .bb-it { border-top: 1px solid var(--linea-suave); }
+.panel-root .as-lista .bb-it { align-items: center; }
+.panel-root .as-lista .bb-it[aria-current="page"] .as-tile { box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.7); }
+.panel-root .bb-nota { margin: 0; padding: 12px 14px; color: var(--ink-muted); font-size: 12px; }
+.panel-root .bb-col { --fm-max: 680px; font-size: 13px; }
+.panel-root .bb-barra-t { color: var(--ink-muted); font-size: 13px; }
+.panel-root .bb-col > .cp-barra .bb-usar { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.panel-root .bb-col .fm-dato > svg { flex: none; color: var(--ink-faint); }
+.panel-root .bb-cuando { flex: none; color: var(--ink-muted); font-size: 12px; }
+.panel-root .bb-revisado { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0; color: var(--exito); font-size: 12px; font-weight: 600; }
+@media (max-width: 900px) {
+  /* La barra cabe en una línea: «‹ Biblioteca», el botón y los tres puntos; el nombre del grupo ya va abajo. */
+  .panel-root .bb-col > .cp-barra { flex-wrap: nowrap; }
+  .panel-root .bb-barra-t { display: none; }
+  .panel-root .bb-col { font-size: 15px; }
+  .panel-root .bb-cuando { font-size: 13px; }
+}
+
 @media (max-width: 640px) {
   .panel-root .db-pagina { padding: 16px 16px 96px; }
   .panel-root .db-top .as-buscar, .panel-root .db-filtro { width: 100%; }

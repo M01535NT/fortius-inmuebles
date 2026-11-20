@@ -1,42 +1,225 @@
-/* La consulta en vivo, como el boceto aprobado (docs/boceto-fortius-por-asuntos.html, «Consulta en vivo»). Tokens de panel-ds.css. */
+/* La consulta en vivo (SPEC.md, sección 4), con la dirección de diseño del 18/11 (panel-kit.css): una hoja con quién
+   llama y qué pasa al frente, las preguntas como renglones «dato: valor» y lo de apoyo plegado a la derecha. */
 
-.cs-in { max-width: 1120px; margin: 0 auto; padding: 22px 24px 80px; display: flex; flex-direction: column; gap: 16px; }
-.cs-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.cs-h1 { font-size: 20px; }
-.cs-vivo { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 550; background: var(--exito-soft); color: var(--exito); }
-.cs-vivo i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.cs-vivo-mal { background: var(--warning-soft); color: var(--warning); }
-.cs-ban { background: var(--fill); }
+.cs-in { max-width: 1180px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; }
+
+/* Barra fija arriba: cerrar, el guardado y la única acción azul. */
+.cs-barra {
+  position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px; min-height: 64px; margin: 0 -8px 8px; padding: 12px 8px;
+  background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px);
+}
+.cs-h1 { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+.cs-estado { display: inline-flex; align-items: center; gap: 7px; margin-left: 4px; font-size: 13px; color: var(--ink-faint); }
+.cs-estado i { width: 7px; height: 7px; border-radius: 50%; background: var(--exito); }
+.cs-estado[data-mal] { color: var(--warning); }
+.cs-estado[data-mal] i { background: var(--warning); }
+.cs-otras .cs-num { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--fill); font-size: 12px; font-weight: 650; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums; }
 .cs-sin { display: flex; flex-direction: column; }
 
-.cs-dos { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-.cs-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.cs-g { display: flex; flex-direction: column; gap: 12px; }
-.cs-g3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.cs-in .cs-que { min-height: 160px; font-size: 14px; }
-.cs-g3 .as-inp:not(.as-area), .cs-g .as-inp:not(.as-area) { height: 44px; }
-.cs-multi { height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 6px; text-align: left; font-size: 14px; color: var(--ink); cursor: pointer; }
+.cs-dos { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 32px; align-items: start; }
 
-.cs-h2 { display: flex; align-items: center; gap: 8px; padding: 0 2px 8px; font-size: 15px; font-weight: 650; }
-.cs-docs { padding: 2px 6px; }
-.cs-docs .as-t[data-est="pendiente"] .as-ck { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.cs-docs .as-t[data-est="no_aplica"] .as-n { color: var(--ink-faint); text-decoration: line-through; }
-.cs-agregar { display: flex; align-items: center; gap: 8px; padding: 0 10px 0 14px; min-height: 44px; color: var(--ink-faint); border-top: 1px solid var(--border); }
-.cs-inp-plano { flex: 1; border: 0; background: none; height: 40px; padding: 0; }
-.cs-inp-plano:focus { box-shadow: none; background: none; }
-.cs-subir { cursor: pointer; }
-.cs-subir:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
-.cs-para { padding: 0 2px; }
-.cs-msg { min-height: 180px; }
+/* La hoja. */
+.cs-hoja { display: flex; flex-direction: column; gap: 24px; padding: 32px 40px 28px; min-width: 0; }
+.cs-quien {
+  width: 100%; border: 0; background: none; padding: 0; color: var(--ink); font: inherit;
+  font-size: 28px; font-weight: 650; letter-spacing: -0.022em; line-height: 1.2; outline: none;
+  resize: none; field-sizing: content; min-height: 34px; overflow: hidden;
+}
+.cs-quien::placeholder { color: var(--ink-faint); }
+.cs-contacto { margin: -12px -8px 0; }
+.cs-contacto .pn-prop, .cs-preguntas .pn-prop { padding-left: 8px; }
 
-@media (max-width: 1000px) {
-  .cs-dos { grid-template-columns: minmax(0, 1fr); }
+.cs-que-bloque { display: flex; flex-direction: column; gap: 6px; }
+.cs-que-bloque .pn-bloque-t label { cursor: text; }
+.cs-que {
+  width: 100%; min-height: 132px; field-sizing: content; resize: none; border: 0; border-radius: var(--r-md); padding: 10px 12px; margin: 0 -12px;
+  width: calc(100% + 24px); background: var(--fill); color: var(--ink); font: inherit; font-size: 16px; line-height: 1.55;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+.cs-que::placeholder { color: var(--ink-faint); }
+.cs-que:focus { outline: none; background: var(--card); box-shadow: 0 0 0 1px var(--accent), 0 0 0 4px var(--accent-soft); }
+
+.cs-preguntas { display: flex; flex-direction: column; gap: 6px; padding-top: 20px; border-top: 1px solid var(--border); }
+.cs-preguntas .pn-props { margin: 0 -8px; }
+
+.cs-para { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; padding-top: 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--ink-muted); }
+.cs-para > svg { color: var(--ink-faint); }
+
+/* Lo de apoyo, sobre el lienzo: bloques plegables separados por una línea fina. */
+.cs-lado { position: sticky; top: 72px; display: flex; flex-direction: column; min-width: 0; }
+.cs-docs { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; }
+.cs-doc { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 2px 4px 2px 6px; border-radius: var(--r-md); font-size: 14px; transition: background-color 150ms ease; }
+.cs-doc:hover { background: var(--fill); }
+.cs-doc-n { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow-wrap: anywhere; }
+.cs-doc-t { overflow-wrap: anywhere; }
+/* Ya lo mandó: queda a la vista, en tono suave, sin tacharlo. */
+.cs-doc[data-recibido] .cs-doc-t { color: var(--ink-muted); }
+.cs-doc-ic { color: var(--ink-faint); flex-shrink: 0; margin: 0 1px; }
+.cs-doc-x, .cs-doc-acc { width: 28px; height: 28px; min-width: 28px; padding: 0; opacity: 0; transition: opacity 150ms ease; }
+.cs-doc:hover :is(.cs-doc-x, .cs-doc-acc), .cs-doc:focus-within :is(.cs-doc-x, .cs-doc-acc) { opacity: 1; }
+.cs-doc-acc:has(input:focus-visible) { opacity: 1; outline: 2px solid var(--accent); outline-offset: 1px; }
+label.cs-doc-acc { cursor: pointer; display: inline-grid; place-items: center; }
+/* El archivo de un documento, debajo de su nombre. */
+.cs-arch { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 12.5px; color: var(--ink-muted); }
+.cs-arch-n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-arch-x { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 0; border-radius: var(--r-sm); background: none; color: var(--ink-faint); cursor: pointer; }
+.cs-arch-x:hover { background: var(--fill); color: var(--ink); }
+.cs-arch-x:focus-visible { outline: 2px solid var(--accent); }
+.cs-otro-arch { cursor: pointer; font-size: 14px; }
+.cs-otro-arch:has(input:focus-visible) { box-shadow: 0 0 0 2px var(--accent); }
+.cs-quitados {
+  display: inline-flex; align-items: center; gap: 4px; height: 30px; margin: 2px 0 0 4px; padding: 0 6px; border: 0; border-radius: var(--r-sm);
+  background: none; color: var(--ink-faint); font: inherit; font-size: 12.5px; cursor: pointer; transition: background-color 150ms ease, color 150ms ease;
+}
+.cs-quitados:hover { background: var(--fill); color: var(--ink); }
+.cs-quitados:focus-visible { outline: 2px solid var(--accent); }
+.cs-persona { min-height: 48px; }
+.cs-persona .as-av { width: 30px; height: 30px; font-size: 11px; }
+.cs-agregar { display: flex; align-items: center; gap: 10px; padding: 0 6px 0 8px; min-height: 36px; color: var(--ink-faint); border-radius: var(--r-md); }
+.cs-agregar:focus-within { background: var(--card); box-shadow: 0 0 0 1px var(--accent); }
+.cs-inp-plano { flex: 1; border: 0; background: none; height: 34px; padding: 0; color: var(--ink); font: inherit; font-size: 14px; outline: none; }
+.cs-inp-plano::placeholder { color: var(--ink-faint); }
+.cs-whats { margin-top: 10px; width: 100%; gap: 8px; }
+.cs-whats-flecha { color: var(--ink-faint); margin-left: 2px; }
+.cs-persona-nueva { margin-top: 4px; padding: 14px; border-radius: var(--r-lg); background: var(--card); box-shadow: var(--sombra-hoja); }
+
+.panel-root textarea.cs-msg { min-height: 180px; }
+
+/* Aviso de persona repetida: dentro de la hoja, junto a los datos de quien llama, en tono de aviso y sin velo.
+   La elección es una lista desplegable; elegida, queda en una línea con «Cambiar». */
+.cs-par {
+  display: flex; flex-direction: column; gap: 8px; margin-top: -6px; padding: 12px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border)); border-radius: 12px;
+  background: color-mix(in srgb, var(--warning-soft) 55%, var(--card));
+  animation: cs-par-entra 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes cs-par-entra { from { opacity: 0; transform: translateY(-4px); } }
+.cs-par-t { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 650; color: var(--ink); }
+.cs-par-t > svg { color: var(--warning); flex: none; }
+.cs-par-l { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.cs-par-it { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
+.cs-par-it + .cs-par-it { border-top: 1px solid color-mix(in srgb, var(--warning) 16%, var(--border)); }
+.cs-par-it .as-av { width: 30px; height: 30px; font-size: 11px; flex: none; }
+.cs-par-c { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink-muted); }
+.cs-par-n { min-width: 0; overflow-wrap: anywhere; }
+.cs-par-n b { color: var(--ink); font-size: 14px; font-weight: 600; }
+.cs-par-f { margin-left: 8px; font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+.cs-par-c small { font-size: 12.5px; }
+.cs-par-as { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; color: var(--ink); }
+.cs-par-as li { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cs-par-as .as-num { margin-right: 6px; font-size: 12.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.cs-par-va { color: var(--ink-muted); }
+.cs-par-elige {
+  display: grid; grid-template-columns: minmax(120px, 168px) minmax(0, 1fr); align-items: center; gap: 8px;
+  padding-top: 8px; border-top: 1px solid color-mix(in srgb, var(--warning) 16%, var(--border)); font-size: 13px; color: var(--ink-muted);
+}
+.cs-par-elige .pn-control { background: var(--card); }
+.cs-par-hecho { flex-direction: row; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; background: none; border-color: var(--border); font-size: 13px; color: var(--ink-muted); animation: none; }
+.cs-par-hecho > svg { color: var(--ink-faint); flex: none; }
+.cs-par-dice { flex: 1; min-width: 0; }
+.cs-par-dice b { color: var(--ink); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .cs-par { animation: none; } }
+
+/* Modelo visual («Consulta»): en computadora, la consulta es una sola hoja que baja pegada al borde de arriba. Lleva su
+   barra de 52 px con una línea abajo y, dentro, dos columnas: lo que se captura sobre blanco y, a la derecha, lo de apoyo
+   (Documentos y Otras personas) sobre gris, separado por una línea. «Qué pasa» se escribe sin caja, como en una hoja. */
+@media (min-width: 1101px) {
+  .cs-in {
+    max-width: 1120px; margin: 0 auto 48px; padding: 0; overflow: clip; background: var(--card);
+    border: 1px solid var(--border); border-top: 0; border-radius: 0 0 14px 14px; box-shadow: 0 18px 48px rgb(15 18 24 / 0.10);
+    animation: cs-baja 240ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .cs-barra { min-height: 52px; margin: 0; padding: 0 12px 0 10px; background: var(--card); border-bottom: 1px solid var(--border); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .cs-dos { grid-template-columns: minmax(0, 1fr) 320px; gap: 0; align-items: stretch; }
+  .cs-hoja.pn-superficie { border: 0; border-radius: 0; box-shadow: none; background: none; padding: 24px 28px 28px; gap: 20px; }
+  .cs-quien { font-size: 26px; font-weight: 700; }
+  .cs-que { margin: 0 -8px; width: calc(100% + 16px); min-height: 96px; padding: 6px 8px; background: none; font-size: 15px; }
+  .cs-que:focus { background: none; box-shadow: 0 0 0 2px var(--accent-soft); }
+  .cs-lado { position: static; padding: 14px 16px 24px; background: color-mix(in srgb, var(--bg) 55%, var(--card)); border-left: 1px solid var(--border); }
+}
+@keyframes cs-baja { from { transform: translateY(-16px); opacity: 0; } }
+
+/*
+ * Medidas del modelo visual (Consulta.dc.html): letra de 13 px; rótulos de 11 px en gris («Quién llama», «Qué pasa»,
+ * «Preguntas · 3 de 6», «Documentos · 1 de 4»); los datos en renglones de 33 px con su línea abajo; botones de la barra
+ * de 30 px; la columna de apoyo sobre el gris del lienzo.
+ */
+.panel-root .cs-in { font-size: 13px; }
+.panel-root .cs-rotulo, .panel-root .cs-hoja .pn-bloque-t, .panel-root .cs-lado .pn-plegable-cab {
+  font-size: 11px; font-weight: 600; color: var(--ink-muted); letter-spacing: 0;
+}
+.panel-root .cs-rotulo { display: block; margin-bottom: -16px; cursor: text; }
+.panel-root .cs-quien { font-size: 15px; font-weight: 500; letter-spacing: -0.005em; min-height: 22px; }
+.panel-root .cs-hoja .pn-bloque-t { min-height: 22px; }
+.panel-root .cs-hoja .pn-bloque-t > svg { display: none; }
+.panel-root .cs-hoja .pn-bloque-t .pn-cuenta { margin-left: -4px; color: var(--ink-muted); font-weight: 600; }
+.panel-root .cs-tab { font-size: 11px; }
+.panel-root .cs-hoja .pn-prop { min-height: 33px; border-bottom: 1px solid var(--linea-suave); }
+.panel-root .cs-hoja .pn-prop-e { font-size: 13px; }
+.panel-root .cs-hoja .pn-prop-e > svg { display: none; }
+.panel-root .cs-hoja .pn-prop-v :is(.pn-control, input) { font-size: 13px; }
+.panel-root .cs-preguntas { padding-top: 12px; border-top: 0; }
+.panel-root .cs-que { font-size: 15px; }
+.panel-root .cs-barra :is(.pn-btn) { height: 30px; min-height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; }
+.panel-root .cs-barra .pn-btn-fantasma:not(.pn-btn-icono) { border: 1px solid var(--border-strong); background: var(--card); color: var(--ink); font-weight: 500; }
+.panel-root .cs-barra .pn-btn-icono { width: 30px; padding: 0; }
+.panel-root .cs-atajo { margin-left: 4px; padding: 0 5px; border-radius: 5px; background: rgb(255 255 255 / 0.22); font: inherit; font-size: 11px; font-weight: 500; }
+.panel-root .cs-lado .pn-plegable-cab > svg:first-child { display: none; }
+.panel-root .cs-lado .pn-plegable-res { font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .cs-doc { min-height: 30px; font-size: 13px; }
+@media (min-width: 1101px) {
+  .panel-root .cs-lado { background: var(--bg); padding: 14px 18px 24px; }
+  /* La hoja del modelo mide 860 px con su columna de apoyo de 260 px; aquí un poco más ancha para que quepan los documentos. */
+  .panel-root .cs-in { max-width: 940px; }
+  .panel-root .cs-dos { grid-template-columns: minmax(0, 1fr) 280px; }
+  .panel-root .cs-hoja.pn-superficie { padding: 20px 24px 24px; }
+  .panel-root .cs-que { min-height: 72px; }
+  .panel-root .cs-que:focus, .panel-root .cs-que:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent-soft); }
+}
+.panel-root .cs-hoja .pn-bloque-t { gap: 0; }
+/* «· 3 de 6» va pegado al rótulo; la clase es la misma que la de la cuenta del menú, así que se le quita aquel aspecto. */
+.panel-root .cs-hoja .pn-bloque-t .pn-cuenta {
+  display: inline; width: auto; min-height: 0; margin: 0 0 0 4px; padding: 0; border-radius: 0; background: none; cursor: default; font-size: 11px;
+}
+@media (max-width: 900px) {
+  .panel-root .cs-in { font-size: 15px; }
+  .panel-root .cs-quien { font-size: 20px; font-weight: 600; }
+  .panel-root .cs-barra .pn-btn { height: 44px; min-height: 44px; }
+  .panel-root .cs-barra .pn-btn-icono { width: 44px; }
+  .panel-root .cs-hoja .pn-prop { min-height: 44px; }
+  .panel-root .cs-hoja .pn-prop-e, .panel-root .cs-hoja .pn-prop-v :is(.pn-control, input) { font-size: 15px; }
+  .panel-root .cs-atajo, .panel-root .cs-tab { display: none; }
 }
 @media (max-width: 640px) {
-  .cs-in { padding: 14px 16px 110px; }
-  .cs-g3 { grid-template-columns: minmax(0, 1fr); }
-  .cs-top .as-btn { height: 44px; }
-  .cs-top .as-ico { width: 44px; }
-  .cs-vivo { order: 5; }
-  .cs-top .as-pri { order: 6; width: 100%; }
+  .panel-root .cs-barra .cs-abrir { height: 50px; min-height: 50px; border-radius: var(--r-lg); font-size: 15.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .cs-in { animation: none; } }
+
+@media (max-width: 1100px) {
+  .cs-dos { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .cs-lado { position: static; }
+}
+@media (max-width: 900px) {
+  .cs-doc-x, .cs-doc-acc { opacity: 1; width: 44px; height: 44px; min-width: 44px; }
+  .cs-arch-x { width: 36px; height: 36px; }
+  .cs-quitados { height: 44px; }
+  .cs-doc { min-height: 44px; }
+}
+@media (max-width: 640px) {
+  .cs-in { padding: 0 12px calc(160px + env(safe-area-inset-bottom, 0px)); }
+  /* Sin desenfoque: el desenfoque haría que «Abrir asunto» quedara fijo a la barra y no a la pantalla. */
+  .cs-barra { min-height: 60px; gap: 4px; background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  /* «Abrir asunto», fijo abajo a todo lo ancho, encima de la barra de secciones y fuera de la zona del gesto. */
+  .cs-barra .cs-abrir {
+    position: fixed; z-index: 19; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px)); height: 50px; border-radius: var(--r-lg); font-size: 15.5px;
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+  .cs-estado-t, .cs-ocultar-tel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .cs-hoja { padding: 22px 16px 20px; gap: 20px; border-radius: var(--r-lg); }
+  .cs-quien { font-size: 24px; }
+  .cs-lado { padding: 0 4px; }
+  .cs-par-elige { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .cs-par-elige .pn-control, .cs-par-cambiar { min-height: 44px; }
+  .cs-par-as li { white-space: normal; }
 }

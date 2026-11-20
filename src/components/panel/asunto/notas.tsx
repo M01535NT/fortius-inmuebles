@@ -7,8 +7,10 @@ import { Desplegable } from "@/components/panel/kit/desplegable";
 import { BotonDictar, sumarDictado } from "@/components/panel/kit/dictar";
 import { Switch } from "@/components/panel/ui/switch";
 import {
-  agregar, fijarNota, haceCuanto, iniciales, NOMBRE_PAPEL, type Apartado, type Asunto, type EntradaHistorial, type Miembro, type NuevaNota, type PersonaDelAsunto,
+  agregar, fijarNota, haceCuanto, iniciales, type Apartado, type Asunto, type EntradaHistorial, type Miembro, type NuevaNota, type PersonaDelAsunto,
 } from "@/lib/panel/asuntos/api";
+
+import { useCatalogos } from "@/components/panel/datos/catalogos";
 
 import type { Hacer } from "./comun";
 import { useAsuntos } from "./proveedor";
@@ -86,6 +88,7 @@ export function NotasDelAsunto({ a, notas, fijadas, desde, nombreDeApartado, per
   // A los del equipo solo se les avisa si se eligieron de la lista: un texto parecido («@Jorge Ramírez») no menciona a «Jorge».
   const [delEquipo, setDelEquipo] = useState<Set<string>>(() => new Set());
 
+  const cat = useCatalogos();
   const personas = useMemo(() => personasUnicas(a), [a]);
   /** Los compañeros que se pueden mencionar: todo el equipo menos quien escribe. */
   const equipo = useMemo(() => todoElEquipo.filter((m) => m.id !== yo), [todoElEquipo, yo]);
@@ -98,12 +101,12 @@ export function NotasDelAsunto({ a, notas, fijadas, desde, nombreDeApartado, per
     const coincide = (n: string) => plano(n).split(/\s+/).some((w) => w.startsWith(q)) || plano(n).startsWith(q);
     return buscando.marca === "@"
       ? [
-        ...personas.filter((p) => coincide(p.nombre)).slice(0, 6).map((p) => ({ clave: p.persona_id, texto: `@${p.nombre}`, detalle: NOMBRE_PAPEL[p.papel], persona: p })),
+        ...personas.filter((p) => coincide(p.nombre)).slice(0, 6).map((p) => ({ clave: p.persona_id, texto: `@${p.nombre}`, detalle: cat.etiqueta("papel", p.papel), persona: p })),
         ...equipo.filter((m) => coincide(m.nombre)).slice(0, 4).map((m) => ({ clave: `e-${m.id}`, texto: `@${m.nombre}`, detalle: "Equipo", miembro: m })),
       ]
       : apartados.filter((y) => plano(y.nombre).startsWith(q) || plano(y.nombre).includes(q))
         .slice(0, 6).map((y) => ({ clave: y.x.id, texto: `#${y.nombre}`, detalle: "Apartado", apartado: y.x }));
-  }, [buscando, personas, apartados, equipo]);
+  }, [buscando, personas, apartados, equipo, cat]);
 
   /** Mira si lo que está justo antes del cursor es una @ o un # a medio escribir. */
   function mirar(valor: string, cursor: number) {

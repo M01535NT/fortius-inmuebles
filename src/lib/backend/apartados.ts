@@ -4,12 +4,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import {
-  COLUMNAS_INICIALES, DIAS_LIGA, ESTADOS_DOCUMENTO, ESTADOS_INTERESADO, ESTADOS_PRESUPUESTO, FORMAS_PAGO, MONEDAS, PASOS_DOCUMENTO,
+  DIAS_LIGA, ESTADOS_DOCUMENTO, ESTADOS_INTERESADO, ESTADOS_PRESUPUESTO, FORMAS_PAGO, MONEDAS, PASOS_DOCUMENTO,
   RESPUESTAS_OFERTA, RESULTADOS_OPINION, TIPOS_COLUMNA,
-  type ArchivoDelDocumento, type Cobro, type Columna, type Concepto, type Destino, type DocumentoDelAsunto, type Interesado,
+  type ArchivoDelDocumento, type Cobro, type Concepto, type Destino, type DocumentoDelAsunto, type Interesado,
   type LigaCliente, type Oferta, type Opinion, type Presupuesto, type PuntoOpinion, type PuntoSituacion, type ResultadoSubida, type ValorCelda,
 } from "./apartados-contrato";
-import { QUIEN, type Asunto, type FilaPropia } from "./asuntos-contrato";
+import type { Asunto, FilaPropia } from "./asuntos-contrato";
+import { claveCatalogo } from "./catalogos";
 import { fallo } from "./fallo";
 import { createServerClient } from "./auth";
 import { FIRMAS } from "./firmas";
@@ -204,8 +205,8 @@ const cambioPunto = z.object({ id, version, texto: texto(500).optional(), resuel
 
 const guardaOpinion = z.object({ resultado: z.enum(RESULTADOS_OPINION).nullable().optional(), analisis: z.string().max(20000).optional() }).strict();
 const cambioOpinion = guardaOpinion.extend({ id, version, pasar_al_plan: z.literal(true).optional() }).strict();
-const nuevoPuntoOpinion = z.object({ texto: texto(500), quien: z.enum(QUIEN).default("fortius") }).strict();
-const cambioPuntoOpinion = z.object({ id, version, texto: texto(500).optional(), quien: z.enum(QUIEN).optional(), a_plan: z.literal(true).optional(), quitar }).strict();
+const nuevoPuntoOpinion = z.object({ texto: texto(500), quien: claveCatalogo.default("fortius") }).strict();
+const cambioPuntoOpinion = z.object({ id, version, texto: texto(500).optional(), quien: claveCatalogo.optional(), a_plan: z.literal(true).optional(), quitar }).strict();
 
 const nuevoPresupuesto = z.object({ copiar_de: id.optional() }).strict();
 const cambioPresupuesto = z.object({
@@ -693,12 +694,13 @@ export async function hacerRecibo(client: SupabaseClient, user: StaffUser, asunt
 }
 
 // ── Continuar en un asunto nuevo ─────────────────────────────────────────────────────────────────────
-export const continuarSchema = z.object({ nombre: z.string().trim().max(160).optional(), encargos: z.array(z.enum(["revisar", "comercializar", "tramitar", "asesorar"])).max(4).optional() }).strict();
+export const continuarSchema = z.object({ nombre: z.string().trim().max(160).optional(), encargos: z.array(claveCatalogo).max(20).optional() }).strict();
 
 /** Copia personas, inmuebles y documentos con sus archivos. Los archivos se copian en el almacén para que cada asunto tenga los suyos. */
 export async function continuarAsunto(client: SupabaseClient, user: StaffUser, asuntoId: string, e: z.infer<typeof continuarSchema>,
   apartadosPara: (encargos: string[]) => string[]): Promise<{ id: string; folio: string }> {
-  const r = await client.rpc("fortius_inmuebles_continuar_asunto", { p_asunto: asuntoId, p_nombre: e.nombre ?? null, p_encargos: e.encargos ?? null });
+  // Conserva los papeles y encargos del asunto original aunque ya no se ofrezcan; un encargo nuevo sí tiene que ofrecerse.
+  const r = await client.rpc("fortius_inmuebles_continuar_asunto_conservando", { p_asunto: asuntoId, p_nombre: e.nombre ?? null, p_encargos: e.encargos ?? null });
   if (r.error) fallo(r.error);
   const nuevo = r.data as { id: string; folio: string; documentos: Record<string, string> };
   // Los apartados del asunto de antes que estaban a la vista, más los que pide lo encargado.

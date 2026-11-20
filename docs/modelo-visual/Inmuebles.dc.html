@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inmuebles y ficha de un inmueble</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0}
+a{color:#2560f0}a:hover{color:#1f54d6}
+.app{font-family:"Archivo",-apple-system,"Segoe UI",sans-serif;font-size:13px;line-height:1.4;color:#0f1218;background:#f5f6f8;display:flex;flex-wrap:wrap;min-height:900px}
+.app *{box-sizing:border-box}
+.app button{font:inherit;color:inherit;cursor:pointer}
+.side{flex:1 1 216px;max-width:232px;background:#eceef2;border-right:1px solid #dfe3e9;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.grp{font-size:11px;font-weight:600;color:#596070;padding:14px 8px 4px}
+.it{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 8px;border-radius:7px;border:0;background:none;text-align:left;width:100%}
+.it.on{background:#dfe3ea;font-weight:600}
+.it span.n{margin-left:auto;color:#596070;font-size:12px}
+.col{flex:1 1 320px;max-width:360px;background:#fff;border-right:1px solid #e2e5ea;display:flex;flex-direction:column;min-width:0}
+.bar{display:flex;align-items:center;gap:8px;min-height:52px;padding:0 14px;border-bottom:1px solid #e2e5ea;flex-wrap:wrap}
+.bar h1{margin:0;font-size:15px;font-weight:700}
+.ib{width:30px;height:30px;border:0;border-radius:7px;background:none;display:inline-flex;align-items:center;justify-content:center;color:#596070}
+.seg{display:inline-flex;background:#eceef2;border-radius:8px;padding:2px}
+.seg button{border:0;background:none;min-height:26px;padding:0 10px;border-radius:6px;font-size:12px;font-weight:500;color:#596070}
+.seg button.on{background:#fff;color:#0f1218;font-weight:600;box-shadow:0 1px 2px rgba(15,18,24,.14)}
+.row{display:flex;align-items:center;gap:10px;padding:8px 14px;border:0;border-bottom:1px solid #eef0f3;background:none;text-align:left;width:100%}
+.row.on{background:#2560f0;color:#fff}
+.row small{font-size:12px;color:#596070;display:block}
+.row.on small{color:#e8efff}
+.fo{width:48px;height:36px;border-radius:6px;background:#dfe3ea;flex:none}
+.main{flex:999 1 460px;min-width:0;display:flex;flex-direction:column}
+.cuerpo{padding:22px 28px;display:flex;flex-direction:column;gap:18px;max-width:820px}
+.t{font-size:11px;font-weight:600;color:#596070;padding-bottom:4px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;overflow:hidden}
+.dato{display:flex;align-items:center;min-height:36px;padding:0 14px;border-bottom:1px solid #eef0f3}
+.dato:last-child{border-bottom:0}
+.dato label{flex:0 0 190px;color:#596070}
+.vacio{color:#7a8394}
+.sec{border:1px solid #d5dae2;background:#fff;border-radius:8px;min-height:30px;padding:0 12px;font-weight:500}
+.pri{border:0;background:#2560f0;color:#fff;border-radius:8px;min-height:30px;padding:0 12px;font-weight:600}
+.ok{font-size:11px;color:#0a6b35;background:#e3f6ea;border-radius:5px;padding:1px 7px;font-weight:600}
+.pla{flex:1 1 150px;height:104px;border-radius:10px;background:#dfe3ea;display:flex;align-items:center;justify-content:center;color:#596070;font-size:12px}
+</style>
+</helmet>
+<div class="app">
+  <nav class="side" aria-label="Secciones">
+    <div style="padding:4px 8px 10px"><b style="font-size:15px;letter-spacing:.04em">FORTIUS</b></div>
+    <div class="grp">Trabajo</div>
+    <button class="it">Inicio<span class="n">3</span></button><button class="it">Asuntos<span class="n">6</span></button><button class="it">Bandeja<span class="n">4</span></button><button class="it on">Inmuebles<span class="n">9</span></button><button class="it">Directorio</button><button class="it">Biblioteca</button><button class="it">Herramientas</button>
+    <div class="grp">Inventario</div>
+    <button class="it">Todos</button><button class="it">Publicados<span class="n">8</span></button><button class="it">Sin publicar<span class="n">1</span></button><button class="it">En venta</button><button class="it">En renta</button>
+  </nav>
+  <section class="col" aria-label="Lista de inmuebles">
+    <div class="bar"><h1>Inmuebles</h1><span style="margin-left:auto"></span>
+      <div class="seg" role="group" aria-label="Ver como"><button class="on">Lista</button><button>Galería</button><button>Mapa</button></div>
+      <button class="ib" aria-label="Nuevo inmueble"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <button class="row"><span class="fo"></span><span>Casa con jardín en Playas de Tijuana<small>Casa · $4,250,000 MXN</small></span></button>
+    <button class="row on"><span class="fo" style="background:#fff"></span><span>Nave industrial en El Florido<small>Nave · $1,450,000 USD · Publicado</small></span></button>
+    <button class="row"><span class="fo"></span><span>Local comercial en plaza de Otay<small>Local · $18,500 MXN al mes</small></span></button>
+    <button class="row"><span class="fo"></span><span>Departamento amueblado en Zona Río<small>Departamento · $22,000 MXN al mes</small></span></button>
+    <button class="row"><span class="fo"></span><span>Oficina en renta en Zona Río<small>Oficina · $15,000 MXN al mes</small></span></button>
+    <button class="row"><span class="fo"></span><span>Terreno con vista al mar en Rosarito<small>Terreno · $2,100,000 MXN</small></span></button>
+    <div style="margin-top:auto;padding:10px 14px;color:#596070;font-size:12px;border-top:1px solid #eef0f3">⇧ clic elige varios · publicar o retirar de una vez</div>
+  </section>
+  <section class="main" aria-label="Ficha de la nave industrial">
+    <div class="bar" style="background:#fff">
+      <div class="seg" role="group" aria-label="Partes de la ficha"><button class="on">Ficha</button><button>Fotos</button><button>Planos</button><button>Sitio</button></div>
+      <span style="margin-left:auto"></span><span class="ok">Publicado</span><button class="sec">Ver en el sitio</button><button class="sec">Compartir ▾</button>
+      <button class="ib" aria-label="Más opciones"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div>
+    <div class="cuerpo">
+      <div><div style="color:#596070">FORTIUS-000011 · del asunto 2026-0005</div>
+        <div style="font-size:24px;font-weight:700;line-height:1.15">Nave industrial en El Florido</div>
+        <div style="color:#596070">Nave o bodega · Venta · <b style="color:#0f1218">$1,450,000 USD</b> · cambió hace 12 días</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><div class="pla">Portada [FOTO]</div><div class="pla">[FOTO]</div><div class="pla">[FOTO]</div><div class="pla">Video y 360</div></div>
+      <div><div class="t">Datos de una nave</div><div class="card">
+        <div class="dato"><label>Superficie de nave</label><span>2,400 m²</span></div>
+        <div class="dato"><label>Superficie de patio</label><span>1,100 m²</span></div>
+        <div class="dato"><label>Altura libre</label><span>9 m</span></div>
+        <div class="dato"><label>Andenes</label><span>4</span></div>
+        <div class="dato"><label>Carga eléctrica</label><span>500 kVA</span></div>
+        <div class="dato"><label>Uso de suelo</label><span class="vacio">Agregar</span></div></div>
+        <div style="color:#596070;padding-top:8px">Agregar dato ▾ · estos datos son los de «Nave o bodega»; se cambian en Configuración</div></div>
+      <div><div class="t">Para contratos</div><div class="card">
+        <div class="dato"><label>Folio real</label><span>1289441</span></div>
+        <div class="dato"><label>Clave catastral</label><span class="vacio">Agregar</span></div>
+        <div class="dato"><label>Propietario</label><span>Industrias del Norte (ejemplo)</span></div></div></div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

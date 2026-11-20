@@ -2,170 +2,76 @@
 import { useMemo, useState } from "react";
 
 import { Boton } from "@/components/panel/kit/boton";
-import { Campo } from "@/components/panel/kit/campo";
-import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Interruptor } from "@/components/panel/kit/segmentado";
-import type { Cliente } from "@/lib/backend/contracts";
-import type { Asesor, Lead } from "@/lib/domain/records";
-import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
-import { operacionSugerida } from "@/lib/panel/datos/consultas-acciones";
-import { buscarPersonas, coincidenciasDeConsulta, hayDuplicadoFuerte, MOTIVO_COINCIDENCIA, operacionDeConsulta, UNIR_PENDIENTE } from "@/lib/panel/datos/consultas-persona";
-import { rutaPersona } from "@/lib/panel/datos/relacionado";
+import type { PersonaDirectorio } from "@/lib/backend/directorio-contrato";
+import type { Lead } from "@/lib/domain/records";
 
-const TIPOS = Object.entries(EXPEDIENTE_OPERACIONES).map(([valor, etiqueta]) => ({ valor, etiqueta }));
-const rutaAsunto = (id: string) => `/panel/asuntos?ver=${encodeURIComponent(id)}`;
 const caja = { display: "grid", gap: 10, padding: 12, border: "1px solid var(--border)", borderRadius: "var(--r-lg)" } as const;
+const rutaFicha = (id: string) => `/panel/directorio?id=${encodeURIComponent(id)}`;
+const soloDigitos = (s: string | null | undefined) => (s ?? "").replace(/\D/g, "");
 
-export type DatosAsunto = { clienteId: string; asesorId: string; operacion: string; propiedadSlug?: string };
-export type AsuntoReciente = { id: string; folio: string | null };
+/** La ficha del Directorio que ya tiene su mismo teléfono (últimos 10 dígitos) o su correo. Solo para avisar. */
+function mismaPersona(lead: Lead, gente: readonly PersonaDirectorio[]) {
+  const tel = soloDigitos(lead.telefono).slice(-10);
+  const correo = lead.email?.trim().toLowerCase() ?? "";
+  for (const p of gente) {
+    if (tel.length >= 7 && p.telefonos.some((t) => soloDigitos(`${t.pais}${t.numero}`).endsWith(tel))) return { persona: p, por: "teléfono" };
+    if (correo && p.correo?.toLowerCase() === correo) return { persona: p, por: "correo" };
+  }
+  return null;
+}
 
 /**
- * La consulta y su persona (PN-05).
- * - Ya ligada: dice quién es, abre su ficha y ofrece abrir un asunto (o abrir el que se acaba de crear).
- * - Sin ligar: sugiere a quien pueda ser la misma persona (teléfono, correo, nombre) y deja buscar en Personas;
- *   «Crear persona» (con asunto si se elige) usa la conversión verificada de la base. Los parecidos avisan, no frenan.
- * - «Unir con esta ficha» liga la consulta a una persona que ya existe. Si el servidor todavía no sabe hacerlo
- *   (migración pendiente, ver PLAN, PN-05), `unirPendiente` lo dice con calma y queda «Abrir su ficha».
+ * La consulta del sitio y su persona, sobre el Directorio (no sobre la lista vieja de clientes).
+ * - Ya ligada: dice quién es, abre su ficha y empieza un asunto con ella (la consulta nueva, con la persona puesta).
+ * - Sin ligar: «Crear persona» la liga a la ficha con su mismo teléfono o correo, o la crea; «Persona y asunto» hace eso
+ *   y abre la consulta nueva. Si ya hay alguien parecido, se avisa antes; no frena.
  */
-export function PersonaDeLaConsulta({ lead, personas, asesores, miAsesor, ocupado, asuntoReciente, alCrear, alAbrirAsunto, alUnir, unirPendiente }: {
-  lead: Lead; personas: readonly Cliente[]; asesores: readonly Asesor[]; miAsesor: string | null; ocupado: boolean;
-  asuntoReciente: AsuntoReciente | null;
-  /** Crea la persona y, con `asunto`, abre también el asunto. Devuelve si se pudo. */
-  alCrear: (asunto: { operacion: string; asesorId: string } | null) => Promise<boolean>;
-  alAbrirAsunto: (d: DatosAsunto) => Promise<boolean>;
-  /** Liga la consulta a esa persona. Devuelve si se pudo. */
-  alUnir: (persona: Cliente) => Promise<boolean>;
-  /** El servidor todavía no sabe unir: se avisa y se ofrece abrir su ficha. */
-  unirPendiente: boolean;
+export function PersonaDeLaConsulta({ lead, directorio, ocupado, alCrear, alEmpezarAsunto }: {
+  lead: Lead; directorio: readonly PersonaDirectorio[]; ocupado: boolean;
+  /** Crea o liga la persona; con `conAsunto`, abre después la consulta nueva. Devuelve si se pudo. */
+  alCrear: (conAsunto: boolean) => Promise<boolean>;
+  /** Abre una consulta nueva desde esta del sitio, con la persona ya ligada. */
+  alEmpezarAsunto: () => Promise<boolean>;
 }) {
-  const persona = lead.clienteId ? personas.find((p) => p.id === lead.clienteId) ?? null : null;
-  const fijo = lead.asesorId || miAsesor || "";
-  const [asesorId, setAsesorId] = useState<string>(fijo);
-  const eligeAsesor = !fijo;
-  const opcionesAsesor = asesores.map((a) => ({ valor: a.id, etiqueta: a.nombre }));
-
-  if (lead.clienteId) {
-    return <PersonaLigada lead={lead} clienteId={lead.clienteId} persona={persona} asuntoReciente={asuntoReciente} ocupado={ocupado}
-      asesorId={asesorId} setAsesorId={setAsesorId} eligeAsesor={eligeAsesor} opcionesAsesor={opcionesAsesor} alAbrirAsunto={alAbrirAsunto} />;
-  }
-  return <PersonaSinLigar lead={lead} personas={personas} ocupado={ocupado} alUnir={alUnir} unirPendiente={unirPendiente}
-    asesorId={asesorId} setAsesorId={setAsesorId} eligeAsesor={eligeAsesor} opcionesAsesor={opcionesAsesor} alCrear={alCrear} />;
-}
-
-type Asesoria = { asesorId: string; setAsesorId: (v: string) => void; eligeAsesor: boolean; opcionesAsesor: { valor: string; etiqueta: string }[] };
-
-function PersonaLigada({ lead, clienteId, persona, asuntoReciente, ocupado, asesorId, setAsesorId, eligeAsesor, opcionesAsesor, alAbrirAsunto }: {
-  lead: Lead; clienteId: string; persona: Cliente | null; asuntoReciente: AsuntoReciente | null; ocupado: boolean;
-  alAbrirAsunto: (d: DatosAsunto) => Promise<boolean>;
-} & Asesoria) {
-  const [abriendo, setAbriendo] = useState(false);
-  const [operacion, setOperacion] = useState<string>(() => operacionSugerida(persona?.tipo));
-  return (
-    <section style={caja} aria-labelledby={`persona-${lead.id}`}>
-      <h3 id={`persona-${lead.id}`} className="pn-grupo" style={{ margin: 0 }}>Persona</h3>
-      <p style={{ margin: 0 }}>Está en Personas{persona ? `: ${persona.nombre}` : ""}.</p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <a className="pn-btn pn-btn-secundario" href={rutaPersona(clienteId)}>Abrir su ficha</a>
-        {asuntoReciente ? <a className="pn-btn pn-btn-secundario" href={rutaAsunto(asuntoReciente.id)}>Abrir el asunto{asuntoReciente.folio ? ` ${asuntoReciente.folio}` : ""}</a> : null}
-        {!abriendo && !asuntoReciente ? <Boton variante="texto" onClick={() => { setOperacion(operacionSugerida(persona?.tipo)); setAbriendo(true); }}>Abrir un asunto</Boton> : null}
-      </div>
-      {abriendo ? (
-        <form noValidate style={{ display: "grid", gap: 10 }} onSubmit={(e) => {
-          e.preventDefault();
-          if (!asesorId) return;
-          void alAbrirAsunto({ clienteId, asesorId, operacion, ...(lead.propiedadSlug ? { propiedadSlug: lead.propiedadSlug } : {}) }).then((ok) => { if (ok) setAbriendo(false); });
-        }}>
-          <Desplegable etiqueta="Tipo de asunto" valor={operacion} opciones={TIPOS} alElegir={(v) => { if (v) setOperacion(v); }} />
-          {eligeAsesor ? <Desplegable etiqueta="Lo lleva" valor={asesorId} vacio="Elige…" opciones={opcionesAsesor} alElegir={setAsesorId} /> : null}
-          <div style={{ display: "flex", gap: 8 }}>
-            <Boton type="submit" deshabilitado={ocupado || !asesorId}>Abrir asunto</Boton>
-            <Boton variante="texto" onClick={() => setAbriendo(false)}>Cancelar</Boton>
-          </div>
-        </form>
-      ) : null}
-    </section>
-  );
-}
-
-function PersonaSinLigar({ lead, personas, ocupado, asesorId, setAsesorId, eligeAsesor, opcionesAsesor, alCrear, alUnir, unirPendiente }: {
-  lead: Lead; personas: readonly Cliente[]; ocupado: boolean; alUnir: (p: Cliente) => Promise<boolean>; unirPendiente: boolean;
-  alCrear: (asunto: { operacion: string; asesorId: string } | null) => Promise<boolean>;
-} & Asesoria) {
-  const sugeridas = useMemo(() => coincidenciasDeConsulta(lead, personas), [lead, personas]);
-  const [buscando, setBuscando] = useState(false);
-  const [texto, setTexto] = useState("");
-  const halladas = useMemo(() => buscarPersonas(texto, personas), [texto, personas]);
+  // La ruta del Directorio marca la consulta con `personaId`.
+  const personaId = lead.personaId ?? null;
+  const ligada = personaId ? directorio.find((p) => p.id === personaId) ?? null : null;
+  const parecida = useMemo(() => (personaId ? null : mismaPersona(lead, directorio)), [personaId, lead, directorio]);
   const [conAsunto, setConAsunto] = useState<"no" | "si">("no");
-  const [operacion, setOperacion] = useState<string>(() => operacionDeConsulta(lead));
-  const fuerte = hayDuplicadoFuerte(sugeridas);
-  const faltaAsesor = conAsunto === "si" && !asesorId;
 
-  // Unir no se deshace desde aquí: se pide confirmar en la misma fila antes de hacerlo.
-  const [porUnir, setPorUnir] = useState<string | null>(null);
-  const filaPersona = (p: Cliente, motivo?: string) => {
-    const nombre = p.nombre?.trim() || "esta persona";
-    const confirmando = porUnir === p.id && !unirPendiente;
+  if (personaId) {
     return (
-      <li key={p.id} style={{ display: "grid", gap: 6, padding: "6px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 44, flexWrap: "wrap" }}>
-          <span style={{ minWidth: 0, flex: "1 1 160px" }}>
-            <span style={{ fontWeight: 500 }}>{p.nombre?.trim() || "Sin nombre"}</span>
-            <span className="pn-sub" style={{ display: "block", margin: 0 }}>{[motivo, p.telefono, p.email].filter(Boolean).join(" · ")}</span>
-          </span>
-          <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {!unirPendiente && !confirmando ? <Boton variante="secundario" deshabilitado={ocupado} onClick={() => setPorUnir(p.id)} aria-label={`Unir la consulta con la ficha de ${nombre}`}>Unir con esta ficha</Boton> : null}
-            <a className="pn-btn pn-btn-texto" href={rutaPersona(p.id)} aria-label={`Abrir la ficha de ${nombre}`}>Abrir su ficha</a>
-          </span>
+      <section style={caja} aria-labelledby={`persona-${lead.id}`}>
+        <h3 id={`persona-${lead.id}`} className="pn-grupo" style={{ margin: 0 }}>Persona</h3>
+        <p style={{ margin: 0 }}>Está en el Directorio{ligada ? `: ${ligada.nombre}` : ""}.</p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <a className="pn-btn pn-btn-secundario" href={rutaFicha(personaId)}>Abrir su ficha</a>
+          <Boton variante="texto" deshabilitado={ocupado} onClick={() => void alEmpezarAsunto()}>Empezar un asunto</Boton>
         </div>
-        {confirmando ? (
-          <div role="group" aria-label={`Confirmar unir con ${nombre}`} style={{ display: "grid", gap: 8, padding: 10, border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
-            <p style={{ margin: 0 }}>La consulta queda en la ficha de {nombre} y no se crea otra persona. Para cambiarlo después, hay que pedirlo al director.</p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <Boton deshabilitado={ocupado} autoFocus onClick={() => { void alUnir(p).then((ok) => { if (ok) setPorUnir(null); }); }}>Unir con {p.nombre?.trim().split(/\s+/)[0] || "esta ficha"}</Boton>
-              <Boton variante="texto" onClick={() => setPorUnir(null)}>Cancelar</Boton>
-            </div>
-          </div>
-        ) : null}
-      </li>
+      </section>
     );
-  };
+  }
 
   return (
     <section style={caja} aria-labelledby={`persona-${lead.id}`}>
       <h3 id={`persona-${lead.id}`} className="pn-grupo" style={{ margin: 0 }}>Persona</h3>
-      {sugeridas.length ? (
-        <div style={{ display: "grid", gap: 4 }}>
-          <p style={{ margin: 0 }}>{sugeridas.length === 1 ? "Puede ser alguien que ya está en Personas:" : "Puede ser alguna de estas personas:"}</p>
-          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid" }}>{sugeridas.map((c) => filaPersona(c.persona, MOTIVO_COINCIDENCIA[c.por]))}</ul>
-        </div>
-      ) : <p style={{ margin: 0 }}>Todavía no está en Personas.</p>}
-      {unirPendiente ? <p className="pn-sub" role="status" style={{ margin: 0 }}>{UNIR_PENDIENTE}</p> : null}
-
-      {buscando ? (
-        <div style={{ display: "grid", gap: 4 }}>
-          <Campo etiqueta="Buscar en Personas" placeholder="Teléfono, correo o nombre" value={texto} onChange={(e) => setTexto(e.target.value)} type="search" autoComplete="off" autoFocus />
-          {texto.trim().length >= 3 ? (halladas.length
-            ? <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid" }}>{halladas.map((p) => filaPersona(p))}</ul>
-            : <p className="pn-sub" style={{ margin: 0 }}>Nadie coincide en Personas.</p>) : null}
-        </div>
-      ) : <div><Boton variante="texto" onClick={() => setBuscando(true)}>Buscar en Personas</Boton></div>}
-
+      {parecida ? (
+        <p className="pn-tono-aviso" style={{ margin: 0 }}>
+          Ya hay alguien con su {parecida.por}: {parecida.persona.nombre}. Al crearla, la consulta queda en esa ficha y no se repite.{" "}
+          <a href={rutaFicha(parecida.persona.id)}>Ver su ficha</a>
+        </p>
+      ) : <p style={{ margin: 0 }}>Todavía no está en el Directorio.</p>}
       <form noValidate style={{ display: "grid", gap: 10, borderTop: "1px solid var(--border)", paddingTop: 10 }} onSubmit={(e) => {
         e.preventDefault();
-        if (faltaAsesor) return;
-        void alCrear(conAsunto === "si" ? { operacion, asesorId } : null);
+        void alCrear(conAsunto === "si");
       }}>
         <Interruptor etiqueta="Crear" valor={conAsunto} alElegir={setConAsunto}
           opciones={[{ valor: "no", etiqueta: "Solo la persona" }, { valor: "si", etiqueta: "Persona y asunto" }]} />
-        {conAsunto === "si" ? (
-          <>
-            <Desplegable etiqueta="Tipo de asunto" valor={operacion} opciones={TIPOS} alElegir={(v) => { if (v) setOperacion(v); }} />
-            {eligeAsesor ? <Desplegable etiqueta="Lo lleva" valor={asesorId} vacio="Elige…" opciones={opcionesAsesor} alElegir={setAsesorId} /> : null}
-          </>
-        ) : null}
-        {fuerte ? <p className="pn-tono-aviso" style={{ margin: 0 }}>Ya hay alguien con su {sugeridas.some((c) => c.por === "telefono") ? "teléfono" : "correo"}. Si es la misma persona, {unirPendiente ? "abre su ficha" : "únela con su ficha"}; si no, créala.</p> : null}
-        <div><Boton type="submit" variante={fuerte ? "secundario" : "primario"} deshabilitado={ocupado || faltaAsesor}>{conAsunto === "si" ? "Crear persona y asunto" : "Crear persona"}</Boton></div>
-        <span className="pn-campo-ayuda">Se crea con su nombre y contacto, y la consulta queda ligada a la ficha.</span>
+        <div><Boton type="submit" deshabilitado={ocupado}>{conAsunto === "si" ? "Crear persona y empezar asunto" : "Crear persona"}</Boton></div>
+        <span className="pn-campo-ayuda">
+          {conAsunto === "si" ? "Queda en el Directorio y se abre la consulta con ella puesta; ahí nace el asunto." : "Queda en el Directorio con su nombre y contacto, y la consulta ligada a su ficha."}
+        </span>
       </form>
     </section>
   );

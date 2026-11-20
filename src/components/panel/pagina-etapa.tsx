@@ -1,16 +1,21 @@
 import type { Seccion } from "@/lib/panel/secciones";
 
 import { Icono } from "./icons";
+import "./asunto/asunto.css";
+import "./asunto/vistas.css";
 
-/** Pantalla de una sección que todavía no se construye: su nombre y en qué etapa de PLAN.md llega. */
+/**
+ * Pantalla de una sección que todavía no se construye, con el marco del modelo visual: barra de 52 px con su nombre y,
+ * al centro, qué será y en qué etapa de PLAN.md llega.
+ */
 export function PaginaEtapa({ seccion }: { seccion: Seccion }) {
   return (
-    <div className="pn-pagina" style={{ maxWidth: 760, display: "flex", flexDirection: "column", gap: 16 }}>
-      <div className="pn-encabezado"><div><h1 className="pn-h1">{seccion.nombre}</h1></div></div>
-      <div className="pn-vacio">
+    <div className="as-vista">
+      <header className="as-vbar"><h1 className="as-h1-lista">{seccion.nombre}</h1></header>
+      <div className="as-in as-elige">
         <Icono nombre={seccion.icono} tamano={28} />
-        <b style={{ color: "var(--ink)", fontWeight: 600 }}>{seccion.resumen}</b>
-        <span style={{ fontSize: 13 }}>Llega en la etapa {seccion.etapa}.</span>
+        <b>{seccion.resumen}</b>
+        <p className="as-m">Llega en la etapa {seccion.etapa}.</p>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { crearAsunto, crearEnParte, fallo, idSchema } from "./asuntos";
+import { claveCatalogo } from "./catalogos";
 import type { StaffUser } from "./contracts";
 import { FIRMAS as FIRMAS_DOCUMENTO } from "./consultas";
 import { BUCKET_EXPEDIENTES } from "./expediente-archivos";
@@ -11,7 +12,7 @@ import { limpiarNombre } from "./apartados";
 import { sinMetadatos } from "./files";
 import { ApiError } from "./http";
 import {
-  camposDe, ESTADOS_INMUEBLE, estadosPara, MONEDAS, OPERACIONES, TIPOS_INMUEBLE,
+  camposDe, ESTADOS_INMUEBLE, estadosPara, MONEDAS, OPERACIONES,
   type AsuntoDelInmueble, type CambioPrecio, type DocumentoDelInmueble, type EstadoInmueble, type FilaInmueble, type Inmueble, type Medio,
   type Operacion, type TipoInmueble,
 } from "./inmuebles-contrato";
@@ -92,7 +93,11 @@ export async function leerInmueble(client: SupabaseClient, id: string): Promise<
   if (docs.error) fallo(docs.error);
   const documentos = ((docs.data ?? []) as unknown as (Omit<DocumentoDelInmueble, "archivos"> & { inmueble_id: string | null; archivos: { count: number }[] })[])
     .filter((d) => d.inmueble_id === null || d.inmueble_id === id)
-    .map(({ inmueble_id: _, archivos, ...d }) => ({ ...d, archivos: archivos?.[0]?.count ?? 0 }));
+    .map((d) => {
+      const { archivos, ...resto } = d;
+      delete (resto as { inmueble_id?: string | null }).inmueble_id;
+      return { ...resto, archivos: archivos?.[0]?.count ?? 0 };
+    });
   const medios = ((me.data ?? []) as MedioLeido[]).map(aMedio);
   const fotos = medios.filter((m) => m.tipo === "foto");
   return {
@@ -113,7 +118,7 @@ const https = z.string().trim().max(1000).regex(/^https:\/\/[^\s]+$/, "Pega un e
 export const cambioInmuebleSchema = z.object({
   version: z.number().int().positive(),
   nombre: z.string().trim().min(1).max(160).optional(),
-  tipo: z.enum(TIPOS_INMUEBLE).nullable().optional(),
+  tipo: claveCatalogo.nullable().optional(),
   operacion: z.enum(OPERACIONES).nullable().optional(),
   estado: z.enum(ESTADOS_INMUEBLE).optional(),
   precio: z.number().min(0).max(1e12).nullable().optional(),
@@ -191,7 +196,7 @@ export async function publicarVarios(client: SupabaseClient, entrada: z.infer<ty
 
 export const nuevoInmuebleSchema = z.object({
   nombre: z.string().trim().min(1).max(160),
-  tipo: z.enum(TIPOS_INMUEBLE).optional(),
+  tipo: claveCatalogo.optional(),
   operacion: z.enum(OPERACIONES).optional(),
   colonia: z.string().trim().max(120).optional(),
   asunto_id: idSchema.optional(),
@@ -226,8 +231,10 @@ export async function copiarInmueble(client: SupabaseClient, id: string, entrada
 }
 
 export async function eliminarInmueble(client: SupabaseClient, id: string, v: number, restaurar: boolean): Promise<void> {
-  const r = await client.from(T.inmuebles).update({ deleted_at: restaurar ? null : new Date().toISOString(), publicado: false, version: v })
-    .eq("id", id).eq("version", v).select("id").maybeSingle();
+  const q = client.from(T.inmuebles).update({ deleted_at: restaurar ? null : new Date().toISOString(), publicado: false, version: v })
+    .eq("id", id).eq("version", v);
+  // Solo se recupera lo que está en Eliminados y solo se elimina lo que no lo está.
+  const r = await (restaurar ? q.not("deleted_at", "is", null) : q.is("deleted_at", null)).select("id").maybeSingle();
   if (r.error) fallo(r.error);
   if (!r.data) throw new ApiError(409, "Alguien más cambió este inmueble. Vuelve a cargar y repite el cambio.");
 }

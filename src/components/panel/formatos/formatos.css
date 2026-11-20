@@ -44,3 +44,33 @@
 .panel-root .pn-fmt-firmada:hover { text-decoration: underline; }
 .panel-root .pn-fmt-cuenta { margin-left: 4px; font-size: 12px; font-weight: 500; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .panel-root .pn-fmt-pbar > span, .panel-root .pn-fmt-dcard-enlace { transition: none; } }
+
+/*
+ * Marco del modelo visual (Main.dc.html y Tablero.dc.html): la barra de 52 px de Asuntos (vistas.css .as-vbar) con las
+ * tres vistas en fila de botones y el buscador; abajo, a lo ancho y con tope de 860 px, los grupos en tarjetas de 12 px
+ * y renglones de 13 px. Aquí solo lo propio de Formatos.
+ */
+.panel-root .fmt-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.panel-root .as-vbar .fmt-buscar { width: 250px; }
+.panel-root .fmt-cuerpo { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 860px; margin: 0 auto; padding: 18px; box-sizing: border-box; }
+.panel-root .fmt-grupos { display: grid; gap: 16px; }
+.panel-root .fmt-vista .pn-fmt-grupo { margin: 0 0 6px; font-size: 12px; }
+.panel-root .fmt-vista .pn-lista, .panel-root .fmt-vista .pn-tarjeta { border: 1px solid var(--border); border-radius: 12px; }
+.panel-root .fmt-vista .pn-lista .pn-fila { min-height: 48px; padding-top: 6px; padding-bottom: 6px; }
+.panel-root .fmt-vista .pn-lista .pn-fila .pn-fila-titulo { font-size: 13px; }
+.panel-root .fmt-vista .pn-lista .pn-fila .pn-fila-sub { font-size: 12px; }
+.panel-root .fmt-vista .pn-fmt-num { min-width: 32px; height: 24px; border-radius: 6px; font-size: 12px; }
+.panel-root .fmt-vista .pn-fmt-flecha { width: 15px; height: 15px; }
+.panel-root .fmt-vista .pn-fmt-dcard { padding: 12px 14px; border-color: var(--border); border-radius: 12px; font-size: 13px; }
+.panel-root .fmt-vista .pn-fmt-cn { font-size: 13px; }
+.panel-root .fmt-vista .pn-fmt-ch, .panel-root .fmt-vista .pn-fmt-lado { font-size: 12px; }
+.panel-root .fmt-vista .pn-fmt-vacio strong { font-size: 14px; }
+.panel-root .fmt-vista .pn-fmt-vacio span { font-size: 13px; }
+.panel-root .fmt-vista .as-vpie.pn-fmt-pie { gap: 6px 14px; }
+@media (max-width: 900px) {
+  .panel-root .fmt-sub { display: none; }
+  .panel-root .as-vbar .fmt-buscar { flex: 1 1 100%; width: auto; height: 44px; }
+  .panel-root .fmt-cuerpo { padding: 14px; }
+  .panel-root .fmt-vista .pn-lista .pn-fila { min-height: 56px; }
+  .panel-root .fmt-vista .pn-lista .pn-fila .pn-fila-titulo { font-size: 15px; }
+}

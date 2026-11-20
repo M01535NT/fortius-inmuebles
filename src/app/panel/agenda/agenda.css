@@ -17,6 +17,44 @@
 .panel-root .pn-ag-mas-fila span { font-size: 13px; color: var(--ink-muted); }
 .panel-root .pn-ag-mas-fila[data-cerca] .pn-ag-en { color: var(--warning); font-weight: 600; }
 
+/*
+ * Marco del modelo visual (Main.dc.html y Tablero.dc.html): la barra de 52 px de Asuntos a todo lo ancho (vistas.css
+ * .as-vbar), letra de 13 px, tarjetas de 12 px y el pie de teclas. Aquí solo lo propio de la Agenda.
+ */
+.panel-root .ag-vista .pn-ag-cuerpo { gap: 12px; margin: 0; padding: 18px; }
+.panel-root .ag-bar .as-cab-n { white-space: nowrap; }
+.panel-root .ag-bar .pn-ag-hoy { min-height: 30px; height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; }
+.panel-root .ag-bar .pn-ag-nav { gap: 2px; }
+.panel-root .ag-bar :is(.pn-int, .pn-int-lado) { min-height: 30px; gap: 8px; font-size: 13px; }
+.panel-root .ag-vista .as-vpie { display: flex; }
+.panel-root .ag-vista .as-vpie .pn-kbd { min-width: 18px; height: 18px; font-size: 11px; }
+/* «Ya pasó · ¿Cómo te fue?»: un renglón chico con la línea de aviso, no un cartel. */
+.panel-root .ag-ask { gap: 10px; min-height: 44px; padding: 6px 6px 6px 12px; border-color: color-mix(in srgb, var(--warning) 40%, transparent); border-radius: 12px; font-size: 13px; }
+.panel-root .ag-ask-icono { display: grid; place-items: center; flex: none; color: var(--warning); }
+.panel-root .ag-ask-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .ag-ask-t > span { color: var(--ink-muted); }
+.panel-root .ag-ask .pn-sbtn { min-height: 30px; height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; }
+.panel-root .ag-vista .pn-sem { border-color: var(--border); border-radius: 12px; }
+.panel-root .ag-vista .pn-sem-dia { padding: 8px 4px; font-size: 12px; }
+.panel-root .ag-vista .pn-sem-dia b { font-size: 15px; }
+.panel-root .ag-vista .pn-sem-dia[data-hoy] b { min-width: 24px; height: 24px; }
+.panel-root .ag-vista .pn-ag-mas .pn-h2 { font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .ag-vista .pn-ag-mas .pn-tarjeta, .panel-root .ag-vista .pn-lista { border-radius: 12px; }
+.panel-root .ag-vista .pn-grupo { font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .ag-vista .pn-lista .pn-fila { min-height: 44px; }
+.panel-root .ag-vista .pn-lista .pn-fila-titulo { font-size: 13px; }
+.panel-root .ag-vista .pn-lista :is(.pn-fila-sub, .pn-fila-lado) { font-size: 12px; }
+.panel-root .ag-vista .pn-ag-mas-fila { min-height: 44px; }
+.panel-root .ag-vista .pn-ag-mas-fila b { font-size: 13px; }
+.panel-root .ag-vista .pn-ag-mas-fila span { font-size: 12px; }
+@media (max-width: 900px) {
+  /* En el teléfono la barra va pegada arriba, a todo lo ancho, como la de las demás listas. */
+  .panel-root .ag-pagina { padding-top: 0; }
+  .panel-root .ag-pagina > .ag-bar { min-height: 52px; margin: 0 calc(-1 * var(--pn-gutter, 16px)); padding-left: 16px; padding-right: 16px; }
+  .panel-root .ag-ask .pn-sbtn { min-height: 44px; height: 44px; }
+  .panel-root .ag-ask-t { white-space: normal; }
+}
+
 /* Bloques de cita por tipo (visita, firma, llamada, levantamiento y otros). */
 .panel-root .pn-evb {
   display: flex; flex-direction: column; align-items: flex-start; gap: 1px; overflow: hidden; text-align: left; padding: 4px 8px;

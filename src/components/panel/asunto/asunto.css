@@ -1,7 +1,7 @@
 /* Asuntos: lista y asunto abierto, como el boceto aprobado (docs/boceto-fortius-por-asuntos.html). Tokens de panel-ds.css. */
 
-.as-dos { display: grid; grid-template-columns: 340px minmax(0, 1fr); min-height: 100dvh; }
-.as-lista { position: sticky; top: 0; height: 100dvh; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--border); }
+.as-dos { display: grid; grid-template-columns: 330px minmax(0, 1fr); min-height: 100dvh; }
+.as-lista { position: sticky; top: 0; height: 100dvh; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--border); background: var(--card); scrollbar-width: thin; }
 .as-det { min-width: 0; }
 .as-lado { display: flex; flex-direction: column; gap: 10px; padding: 16px 10px 40px; }
 .as-in { max-width: 760px; margin: 0 auto; padding: 22px 24px 80px; display: flex; flex-direction: column; gap: 16px; }
@@ -72,6 +72,44 @@
 .as-it[aria-current="page"] { background: var(--card); border-color: var(--border); box-shadow: 0 1px 2px rgb(0 0 0 / 0.04); }
 .as-it-c { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .as-it-c b { font-weight: 600; overflow-wrap: anywhere; }
+/* La columna de la lista como el modelo visual («Main»): hoja blanca, barra de 52 px con título, cuenta y acciones de
+   ícono; renglones a todo lo ancho separados por una línea fina; el elegido en azul sólido con letra blanca, como la
+   selección de una lista de Mac; al pie, sus atajos. */
+.as-lista .as-lado { padding: 0; gap: 0; min-height: 100%; }
+.as-lista .as-cab { position: sticky; top: 0; z-index: 2; min-height: 52px; padding: 0 8px 0 14px; gap: 6px; border-bottom: 1px solid var(--border); background: var(--card); }
+.as-lista .as-h1-lista { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.as-cab-n { color: var(--ink-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.as-lista .as-cab .as-btn.as-gho, .as-lista .as-cab .as-cab-mas { height: 30px; min-height: 30px; border-radius: 7px; color: var(--ink-muted); }
+.as-lista .as-cab .as-cab-mas { width: 30px; padding: 0; border: 0; background: none; }
+.as-lista .as-cab .as-cab-mas:hover { background: var(--fill); color: var(--ink); }
+.as-lista .as-buscar { height: 30px; margin: 10px 12px 0; border-radius: 7px; background: var(--bg); }
+.as-lista .as-buscar input { font-size: 13px; }
+.as-lista .as-filtros { padding: 8px 12px 10px; border-bottom: 1px solid var(--linea-suave); }
+.as-lista .as-items { gap: 0; }
+.as-lista .as-it { padding: 9px 14px; border: 0; border-bottom: 1px solid var(--linea-suave); border-radius: 0; }
+.as-lista .as-it:hover { background: var(--fill); }
+.as-lista .as-it:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 0; }
+.as-lista .as-it[aria-current="page"] { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+.as-lista .as-it[aria-current="page"]:focus-visible { outline-color: var(--accent-ink); outline-offset: -4px; }
+/* Renglón que es botón (Bandeja, Biblioteca): sin el aspecto de botón; el azul del elegido y el gris al pasar mandan. */
+.as-lista button.as-it { background-color: transparent; font: inherit; text-align: left; cursor: pointer; }
+.as-it-c b { font-size: 13.5px; }
+.as-it-c small { font-size: 12px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.as-it-c small[data-falta] { color: var(--warning); }
+.as-it-c small [data-tono="tarde"] { color: var(--error); font-weight: 600; }
+.as-it-c small [data-tono="hoy"] { color: var(--accent); font-weight: 600; }
+.as-it[aria-current="page"] .as-it-c small, .as-it[aria-current="page"] .as-it-c small [data-tono] { color: color-mix(in srgb, var(--accent-ink) 88%, var(--accent)); }
+.as-pie-teclas { position: sticky; bottom: 0; margin-top: auto; padding: 10px 14px; border-top: 1px solid var(--linea-suave); background: var(--card); color: var(--ink-muted); font-size: 12px; }
+.as-pie-teclas kbd { font: inherit; font-size: 11px; padding: 0 5px; margin-right: 2px; border-radius: 5px; background: var(--side); }
+@media (max-width: 900px), (hover: none) { .as-pie-teclas { display: none; } }
+@media (max-width: 900px) {
+  .as-lista .as-cab .as-btn.as-gho, .as-lista .as-cab .as-cab-mas { height: 44px; min-height: 44px; }
+  .as-lista .as-cab .as-cab-mas { width: 44px; }
+  .as-lista .as-buscar { height: 44px; }
+  .as-lista .as-lado { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .as-it-c b { font-size: 15px; }
+  .as-it-c small { font-size: 13.5px; }
+}
 .as-vacio-lista { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 16px; text-align: center; color: var(--ink-muted); }
 .as-vacio-lista b { color: var(--ink); }
 .as-cargando { display: flex; flex-direction: column; gap: 8px; padding: 8px 4px; }
@@ -130,7 +168,7 @@ button.as-ren:hover { background: var(--fill); }
 .as-sub-fila > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
 .as-form { display: flex; flex-direction: column; gap: 12px; }
 .as-form > .as-btn { align-self: flex-start; }
-.as-form .as-inp:not(.as-area) { height: 44px; }
+/* La altura de los campos la pone el juego único (panel-kit.css). */
 .as-g2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .as-tel { display: flex; gap: 6px; }
 .as-clave { width: 64px; flex: none; }
@@ -146,41 +184,106 @@ button.as-ren:hover { background: var(--fill); }
 .as-hico-nota { background: var(--accent-soft); color: var(--accent); }
 .as-htxt { color: var(--ink) !important; font-size: 14px !important; overflow-wrap: anywhere; }
 
-/* Ventana de un apartado */
-.as-velo { position: fixed; inset: 0; background: var(--scrim); z-index: 40; animation: as-funde 150ms; }
+/*
+ * Ventana de un apartado, con la dirección de diseño (panel-kit.css): una hoja blanca, la cabecera con el nombre al
+ * frente y los controles discretos, y dentro grupos separados por líneas finas en vez de cajas. Entra con un
+ * desplazamiento corto y sale más rápido de lo que entra; con movimiento reducido, sin animación.
+ */
+.as-velo { position: fixed; inset: 0; background: var(--scrim); z-index: 40; animation: as-funde 180ms ease-out; }
+.as-velo[data-state="closed"] { animation: as-desvanece 140ms ease-in forwards; }
 .as-win {
-  position: fixed; top: 0; right: 0; bottom: 0; width: min(580px, 100%); background: var(--bg); border-left: 1px solid var(--border);
-  box-shadow: var(--sombra-flota); z-index: 41; display: flex; flex-direction: column; animation: as-desliza 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --win-x: 20px;
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(600px, 100%); background: var(--card);
+  box-shadow: -1px 0 0 var(--border), var(--sombra-flota); z-index: 41; display: flex; flex-direction: column;
+  animation: as-desliza 220ms cubic-bezier(0.23, 1, 0.32, 1);
 }
+.as-win[data-state="closed"] { animation: as-sale 150ms ease-in forwards; }
 .as-win:focus { outline: none; }
-.as-win-h { display: flex; align-items: center; gap: 10px; padding: 12px max(14px, env(safe-area-inset-right, 0px)) 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
-.as-win-t { min-width: 0; flex: 1; }
-.as-win-b { font-size: 15px; font-weight: 650; }
-.as-win-c { flex: 1; overflow-y: auto; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 60px 16px; display: flex; flex-direction: column; gap: 14px; overscroll-behavior: contain; }
+.as-win-h {
+  display: flex; align-items: center; gap: 4px; min-height: 64px; padding: max(10px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 10px 10px;
+  border-bottom: 1px solid var(--border); background: var(--card);
+}
+.as-win-h > .as-tile { margin: 0 4px 0 6px; }
+.as-win-t { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; margin-left: 4px; }
+.as-win-b { font-size: 17px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.25; }
+.as-win-t .as-m { font-size: 12.5px; }
+.as-win-h .as-btn.as-gho { height: 34px; border-radius: var(--r-sm); color: var(--ink-muted); transition: background-color 150ms ease, color 150ms ease; }
+.as-win-h .as-btn.as-gho:hover { color: var(--ink); }
+.as-win-h .as-btn.as-ico { width: 34px; padding: 0; }
+.as-win-h .as-btn:active { transform: scale(0.97); }
+.as-win-sep { width: 1px; height: 20px; margin: 0 4px; background: var(--border); }
+.as-win-notas { gap: 6px; padding: 0 10px; font-size: 13.5px; font-weight: 550; }
+.as-win-notas[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent) !important; }
+.as-win-cuenta { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--fill); color: var(--ink); font-size: 12px; font-weight: 650; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums; }
+.as-win-notas[aria-pressed="true"] .as-win-cuenta { background: var(--card); color: var(--accent); }
+.as-win-c { flex: 1; overflow-y: auto; padding: 24px max(28px, env(safe-area-inset-right, 0px)) 64px 28px; display: flex; flex-direction: column; gap: 20px; overscroll-behavior: contain; }
 .as-win-c > * { flex-shrink: 0; }
+
+/* Dentro de la hoja, sin cajas dentro de cajas: los grupos de renglones se separan con líneas finas; lo que se está
+   capturando (un formulario) va sobre un fondo suave. */
+.as-win .as-card { background: none; border: 0; border-radius: 0; box-shadow: inset 0 1px 0 var(--border), inset 0 -1px 0 var(--border); }
+.as-win .as-card > button.as-ren, .as-win .as-card > button.as-ren:first-child, .as-win .as-card > button.as-ren:last-child { border-radius: var(--r-md); }
+.as-win .as-card.as-pad { background: var(--fill); box-shadow: none; border-radius: var(--r-lg); padding: 16px; }
+.as-win .as-card.as-gal, .as-win .as-card.as-tareas { box-shadow: none; }
+.as-win .as-sub { font-size: 13px; color: var(--ink-muted); }
+.as-win .pp-tarjeta { border-color: transparent; background: var(--fill); transition: background-color 150ms ease; }
+.as-win .pp-tarjeta:hover { border-color: transparent; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.as-win .pp-tarjeta:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.as-win .pp-hueco { padding: 4px 0 2px 28px; border: 0; }
+.as-lat { background: var(--bg); }
+
 @keyframes as-funde { from { opacity: 0; } }
-@keyframes as-desliza { from { transform: translateX(24px); opacity: 0; } }
-@keyframes as-desliza-izq { from { transform: translateX(-24px); opacity: 0; } }
+@keyframes as-desvanece { to { opacity: 0; } }
+@keyframes as-desliza { from { transform: translateX(var(--win-x)); opacity: 0; } }
+@keyframes as-sale { to { transform: translateX(calc(var(--win-x) * 0.6)); opacity: 0; } }
 @keyframes as-brota { from { transform: scale(0.97); opacity: 0; } }
+@keyframes as-encoge { to { transform: scale(0.98); opacity: 0; } }
+@keyframes as-baja { from { transform: translateY(-28px); opacity: 0; } }
+@keyframes as-sube { to { transform: translateY(-20px); opacity: 0; } }
 
 /* Dónde se abre la ventana (SPEC.md, «Las ventanas»): solo en pantallas anchas; en el teléfono siempre ocupa la pantalla. */
 .as-solo-pc { display: none; }
 @media (min-width: 901px) {
   .as-solo-pc { display: inline-flex; }
-  .as-win[data-modo="izquierda"] { right: auto; left: 0; border-left: 0; border-right: 1px solid var(--border); animation-name: as-desliza-izq; }
+  .as-win[data-modo="izquierda"] { --win-x: -20px; right: auto; left: 0; box-shadow: 1px 0 0 var(--border), var(--sombra-flota); }
+  /* Al centro es una hoja (modelo visual, «Consulta»): baja pegada al borde de arriba, con lo demás atenuado detrás. */
   .as-win[data-modo="centro"] {
-    inset: 5vh 0; margin-inline: auto; width: min(920px, calc(100% - 64px)); border: 1px solid var(--border); border-radius: 16px;
-    overflow: hidden; animation-name: as-brota;
+    top: 0; bottom: 5vh; left: 0; margin-inline: auto; width: min(920px, calc(100% - 64px)); border-radius: 0 0 var(--r-lg) var(--r-lg);
+    box-shadow: 0 0 0 1px var(--border), 0 24px 60px rgb(15 18 24 / 0.3); overflow: hidden; animation-name: as-baja;
   }
-  .as-win[data-modo="completa"] { left: 0; width: 100%; border-left: 0; animation-name: as-funde; }
-  .as-win[data-modo="completa"] .as-win-c { padding-inline: max(16px, calc((100% - 880px) / 2)); }
+  .as-win[data-modo="centro"][data-state="closed"] { animation-name: as-sube; }
+  /* A la derecha es el inspector (modelo visual, «Main»): una columna junto al asunto, sin velo; el asunto se angosta
+     para dejarle lugar en vez de quedar tapado. */
+  .panel-root { --insp: clamp(360px, 30vw, 420px); }
+  .as-win[data-inspector] {
+    width: var(--insp); z-index: 25; box-shadow: -1px 0 0 var(--border), -8px 0 24px rgb(15 18 24 / 0.06);
+  }
+  .as-win[data-inspector][data-notas] { width: calc(var(--insp) + 300px); }
+  .as-win[data-inspector] .as-win-h { min-height: 52px; padding-top: 8px; padding-bottom: 8px; }
+  .as-win[data-inspector] .as-win-h > .as-tile, .as-win[data-inspector] .as-win-t .as-m { display: none; }
+  .as-win[data-inspector] .as-win-b { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .as-win[data-inspector] .as-win-t { margin-right: 4px; }
+  /* Angosto: «Notas» queda con su ícono y su número; el nombre del apartado cabe completo. */
+  .as-win[data-inspector] .as-win-h .as-ocultar-tel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .as-win[data-inspector] .as-win-c { padding: 18px 18px 40px; gap: 16px; }
+  .panel-root .pn-main { transition: padding-right 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+  .panel-root:has(.as-win[data-inspector][data-state="open"]) .pn-main { padding-right: var(--insp); }
+  .panel-root:has(.as-win[data-inspector][data-notas][data-state="open"]) .pn-main { padding-right: calc(var(--insp) + 300px); }
+  /* Con las notas al lado del inspector no cabe todo: la lista de asuntos se recoge sola (como la barra lateral de una
+     app de Mac cuando falta espacio) y vuelve al cerrar las notas. */
+  .panel-root:has(.as-win[data-inspector][data-notas][data-state="open"]) .as-dos[data-det="true"] { grid-template-columns: minmax(0, 1fr); }
+  .panel-root:has(.as-win[data-inspector][data-notas][data-state="open"]) .as-dos[data-det="true"] > .as-lista { display: none; }
+  .as-win[data-modo="completa"] { left: 0; width: 100%; box-shadow: none; animation-name: as-funde; }
+  .as-win[data-modo="completa"][data-state="closed"] { animation-name: as-desvanece; }
+  .as-win[data-modo="completa"] .as-win-c { padding-inline: max(28px, calc((100% - 880px) / 2)); }
 }
-@media (prefers-reduced-motion: reduce) { .as-velo, .as-win { animation: none; } .as-cargando span { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .as-velo, .as-win, .as-velo[data-state="closed"], .as-win[data-state="closed"] { animation: none; } .as-cargando span { animation: none; } }
 
 /* Teléfono y tableta: una columna a la vez */
 @media (max-width: 900px) {
   .as-dos { display: block; }
-  .as-lista { position: static; height: auto; overflow: visible; border-right: 0; }
+  /* La lista llega hasta abajo aunque tenga pocos renglones: sin franja gris bajo el último. */
+  .as-lista { position: static; height: auto; min-height: 100dvh; overflow: visible; border-right: 0; }
   .as-dos[data-det="true"] .as-lista { display: none; }
   .as-dos[data-det="false"] .as-det { display: none; }
   .as-lado { padding: 16px 12px 110px; }
@@ -191,8 +294,13 @@ button.as-ren:hover { background: var(--fill); }
   .as-ico { width: 44px; }
   .as-pills .as-pil { min-height: 32px; }
   .as-g2 { grid-template-columns: minmax(0, 1fr); }
-  .as-win { width: 100%; border-left: 0; }
-  .as-win-c { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+  .as-win { --win-x: 0px; width: 100%; box-shadow: none; animation-name: as-funde; }
+  .as-win[data-state="closed"] { animation-name: as-desvanece; }
+  .as-win-h { min-height: 60px; padding-left: 4px; gap: 0; }
+  .as-win-h .as-btn.as-gho { height: 44px; }
+  .as-win-h .as-btn.as-ico { width: 44px; }
+  .as-win-b { font-size: 16px; }
+  .as-win-c { padding: 18px 16px calc(40px + env(safe-area-inset-bottom, 0px)); gap: 16px; }
 }
 
 /* Apartados a fondo (etapa 5): documentos, opinión, honorarios, interesados, plan y apartados propios */
@@ -302,7 +410,7 @@ button.as-ren:hover { background: var(--fill); }
 .as-notas-filtro .pn-campo > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .as-notas-comp { position: relative; margin: 0 14px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); display: flex; flex-direction: column; }
 .as-notas-comp:focus-within { border-color: var(--accent); }
-.as-notas-comp textarea { border: 0; resize: none; background: transparent; padding: 10px 11px 4px; min-height: 58px; width: 100%; font: inherit; color: var(--ink); outline: none; }
+.as-notas-comp textarea { border: 0; resize: none; background: transparent; padding: 10px 11px 4px; min-height: 80px; width: 100%; font: inherit; color: var(--ink); outline: none; }
 .as-notas-comp textarea::placeholder { color: var(--ink-faint); }
 .as-notas-tags { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 10px; }
 .as-tag { display: inline-flex; align-items: center; gap: 2px; height: 26px; padding: 0 2px 0 8px; border-radius: 7px; font-size: 12px; font-weight: 550; background: var(--accent-soft); color: var(--accent); }
@@ -396,3 +504,11 @@ button.as-ren:hover { background: var(--fill); }
 .as-btn[data-favorito] svg { fill: currentColor; }
 /* La tarea que se repite con su informe: se dice, no se cambia aquí. */
 .as-edicion-nota { display: flex; align-items: center; gap: 6px; margin: 0; align-self: end; min-height: 40px; }
+
+/* Nueva tarea en una línea (hallazgo 34): se ve como «+ Nueva tarea…» y se abre al escribir. */
+.as-nueva-linea { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 6px 0 14px; color: var(--ink-faint); cursor: text; }
+.as-nueva-linea .as-con-dictar { flex: 1; }
+.as-nueva-linea .as-inp { flex: 1; height: 40px; padding: 0; border: 0; background: none; box-shadow: none; }
+.as-nueva-linea:focus-within { color: var(--accent); }
+.as-nueva-tarea:not(.as-pad):focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.panel-root .as-nueva-linea .as-inp:focus, .panel-root .as-nueva-linea .as-inp:focus-visible { border: 0; box-shadow: none; outline: none; background: none; }

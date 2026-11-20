@@ -1,5 +1,7 @@
 import type { Guia, ResultadoCopia } from "@/lib/backend/biblioteca-contrato";
-import type { CambioPersonaDirectorio, PersonaDirectorio } from "@/lib/backend/directorio-contrato";
+import type {
+  CambioPersonaDirectorio, ContactoPersona, LeadADirectorio, NuevoContacto, PersonaDirectorio, VistaDirectorio,
+} from "@/lib/backend/directorio-contrato";
 
 import { pedir } from "./asuntos/api";
 
@@ -24,7 +26,22 @@ export const copiarGuia = (id: string, asuntoId: string) =>
 
 // ── Directorio ──
 const dir = "/api/admin/directorio";
-export const leerDirectorio = () => pedir<{ personas: PersonaDirectorio[] }>(dir).then((r) => r.personas);
+/** «Qué ver»: activas (por omisión), archivadas, sin seguimiento o todas; y, si se da, solo las que lleva ese asesor. */
+export const leerDirectorio = (filtro: { ver?: VistaDirectorio; asesor?: string } = {}) => {
+  const q = new URLSearchParams();
+  if (filtro.ver) q.set("ver", filtro.ver);
+  if (filtro.asesor) q.set("asesor", filtro.asesor);
+  const s = q.toString();
+  return pedir<{ personas: PersonaDirectorio[] }>(s ? `${dir}?${s}` : dir).then((r) => r.personas);
+};
 export const cambiarPersonaDirectorio = (p: Pick<PersonaDirectorio, "id" | "version">, cambio: CambioPersonaDirectorio) =>
   pedir<{ version: number }>(`${dir}/${p.id}`, "PATCH", { version: p.version, ...cambio });
+/** Archivar no es mandar a Eliminados: la persona sale de la lista diaria y se recupera igual. */
+export const archivarPersona = (p: Pick<PersonaDirectorio, "id" | "version">, archivada: boolean) => cambiarPersonaDirectorio(p, { archivada });
+/** Anota una llamada o un mensaje con «¿cómo te fue?»; devuelve el contacto y la versión nueva de la persona. */
+export const anotarContactoPersona = (personaId: string, contacto: NuevoContacto) =>
+  pedir<{ contacto: ContactoPersona; version: number }>(`/api/admin/personas/${personaId}/contactos`, "POST", contacto);
+/** «Crear persona» desde una consulta del sitio: la liga o la crea en el Directorio (no en «clientes»). */
+export const leadADirectorio = (leadId: string, version: number) =>
+  pedir<LeadADirectorio>(`/api/admin/leads/${encodeURIComponent(leadId)}/a-directorio`, "POST", { version });
 export const unirFichas = (origen: string, destino: string) => pedir<{ ok: true }>(`${dir}/${origen}/unir`, "POST", { con: destino });

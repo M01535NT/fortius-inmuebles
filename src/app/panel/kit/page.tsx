@@ -12,6 +12,9 @@ import { ListaReordenable } from "@/components/panel/kit/reordenable";
 import { Segmentado } from "@/components/panel/kit/segmentado";
 import { SelectorFecha, SelectorHora } from "@/components/panel/kit/selector-fecha";
 import { aTexto } from "@/lib/panel/calendario";
+import "@/components/panel/asunto/asunto.css";
+import "@/components/panel/asunto/vistas.css";
+import "./kit.css";
 
 type Paso = { id: string; nombre: string };
 const PASOS: Paso[] = [
@@ -36,9 +39,13 @@ export default function Muestrario() {
   const errorCorreo = correo.includes(".") ? undefined : "Falta el dominio. Ejemplo: nombre@correo.com";
 
   return (
-    <div className="pn-pagina">
-      <h1 className="pn-h1">Muestrario del kit</h1>
-      <p className="pn-sub">Las piezas del panel en un solo lugar. Cambia el tema en Configuración para verlas en oscuro.</p>
+    // Marco del modelo visual: barra de 52 px con el título y, debajo, las piezas en tarjetas de 12 px.
+    <div className="as-vista kit-vista">
+      <header className="as-vbar">
+        <h1 className="as-h1-lista">Muestrario del kit</h1>
+        <span className="as-cab-n kit-sub">Las piezas del panel en un solo lugar. Cambia el tema en Configuración para verlas en oscuro.</span>
+      </header>
+      <div className="kit-cuerpo">
 
       <section className="pn-bloque" aria-labelledby="k-botones">
         <h2 id="k-botones">Botones</h2>
@@ -142,6 +149,7 @@ export default function Muestrario() {
           <kbd className="pn-kbd">Ctrl</kbd> <kbd className="pn-kbd">K</kbd> abre «Buscar o crear» desde cualquier pantalla del panel.
         </p>
       </section>
+      </div>
     </div>
   );
 }

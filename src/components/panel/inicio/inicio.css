@@ -1,5 +1,59 @@
 /* Inicio del panel (boceto aprobado). Bajo .panel-root; usa las piezas de asunto.css y biblioteca.css. */
 .panel-root .in-pagina { max-width: 860px; gap: 20px; }
+
+/*
+ * Inicio con el orden y el aspecto del modelo visual (Main.dc.html): barra blanca de 52 px con el título de 15 px, letra
+ * de 13 px, tarjetas blancas de esquinas de 12 px y renglones como las tareas del inspector (círculo de 16 px, título y
+ * una línea gris). Las fechas van en texto de color, como en la lista y el tablero: azul hoy, rojo lo vencido.
+ */
+.panel-root .in-raiz { min-height: 100dvh; font-size: 13px; }
+.panel-root .in-barra {
+  position: sticky; top: 0; z-index: 3; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 52px; padding: 8px 18px;
+  border-bottom: 1px solid var(--border); background: var(--card);
+}
+.panel-root .in-barra h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.panel-root .in-dia { color: var(--ink-muted); }
+.panel-root .in-dia::first-letter { text-transform: uppercase; }
+.panel-root .in-filtro { width: 190px; }
+.panel-root .in-filtro .pn-control, .panel-root .in-filtro button { min-height: 30px; height: 30px; font-size: 13px; border-radius: 8px; }
+.panel-root .in-nueva { height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+.panel-root .in-raiz .in-pagina { padding: 22px 24px 80px; gap: 18px; }
+.panel-root .in-raiz .db-h2 { gap: 8px; padding: 0 2px 8px; font-size: 13px; font-weight: 600; }
+.panel-root .in-raiz .db-h2 .as-num { font-size: 12px; font-weight: 500; }
+.panel-root .in-raiz .in-card { padding: 0; border-radius: 12px; overflow: hidden; }
+.panel-root .in-raiz .in-card > .in-t { min-height: 0; padding: 7px 16px 7px 6px; }
+.panel-root .in-raiz .in-card > .in-t + .in-t, .panel-root .in-raiz .in-card > .as-ren + .as-ren, .panel-root .in-raiz .in-card > .db-fila + .db-fila { border-top-color: var(--linea-suave); }
+.panel-root .in-raiz .in-t .as-ckb { width: 32px; height: 34px; }
+.panel-root .in-raiz .in-t .as-ck { width: 16px; height: 16px; border-width: 1.5px; }
+.panel-root .in-raiz .in-tb .as-n { font-size: 13px; font-weight: 500; }
+.panel-root .in-raiz .in-tb .as-m { font-size: 12px; }
+.panel-root .in-raiz .in-card > .as-ren { min-height: 0; margin: 0; width: 100%; padding: 10px 16px; }
+.panel-root .in-raiz .in-card > .db-fila { min-height: 0; padding: 10px 16px; }
+.panel-root .in-raiz .as-ren-c b { font-size: 13px; }
+.panel-root .in-raiz .as-ren-c span { font-size: 12px; }
+.panel-root .in-raiz .in-vacio { padding: 12px 16px; font-size: 13px; }
+.panel-root .in-raiz .in-card .as-pill { height: auto; padding: 0; background: none; font-size: 12px; font-weight: 500; color: var(--ink-muted); }
+.panel-root .in-raiz .in-card .as-pill-acc { color: var(--accent); font-weight: 600; }
+.panel-root .in-raiz .in-card .as-pill-bad { color: var(--error); font-weight: 600; }
+.panel-root .in-raiz .in-card .as-pill-warn { color: var(--warning); font-weight: 600; }
+.panel-root .in-raiz .in-card .as-pill-ok { color: var(--exito); font-weight: 600; }
+.panel-root .in-raiz .in-card .as-btn { height: 30px; padding: 0 10px; border-radius: 8px; font-size: 13px; font-weight: 500; }
+.panel-root .in-raiz .in-card .as-btn.as-ico { width: 30px; padding: 0; }
+.panel-root .in-raiz .in-card .as-av { width: 26px; height: 26px; font-size: 10.5px; }
+@media (max-width: 900px) {
+  .panel-root .in-raiz { font-size: 15px; }
+  .panel-root .in-barra { padding: max(8px, env(safe-area-inset-top, 0px)) 14px 8px; }
+  .panel-root .in-filtro { order: 9; flex: 1 1 100%; width: auto; }
+  /* En el teléfono «Nueva consulta» es el «+» de la barra de abajo; aquí no se repite. */
+  .panel-root .in-nueva { display: none; }
+  .panel-root .in-filtro .pn-control, .panel-root .in-filtro button, .panel-root .in-nueva { min-height: 44px; height: 44px; }
+  .panel-root .in-raiz .in-pagina { padding: 16px 14px calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .panel-root .in-raiz .in-tb .as-n { font-size: 15px; }
+  .panel-root .in-raiz .in-tb .as-m, .panel-root .in-raiz .as-ren-c span { font-size: 13.5px; }
+  .panel-root .in-raiz .in-t .as-ckb { width: 44px; height: 44px; }
+  .panel-root .in-raiz .in-card .as-btn { height: 44px; min-height: 44px; }
+  .panel-root .in-raiz .in-card .as-btn.as-ico { width: 44px; }
+}
 .panel-root .in-card { padding: 2px 8px; }
 .panel-root .in-card > .db-fila { padding: 8px 4px; }
 .panel-root .in-card > .as-ren { margin: 0 -8px; width: calc(100% + 16px); text-decoration: none; }

@@ -6,12 +6,14 @@ import { useLoLleva } from "@/components/panel/datos/lo-lleva";
 import { DetalleCobro } from "@/components/panel/dinero/detalle-cobro";
 import { DetalleMovimiento } from "@/components/panel/dinero/detalle-movimiento";
 import { MovimientoNuevo } from "@/components/panel/dinero/movimiento-nuevo";
+import "@/components/panel/asunto/asunto.css";
+import "@/components/panel/asunto/caso.css";
+import "@/components/panel/fichas/modelo.css";
 import "@/components/panel/dinero/dinero.css";
-import { Gesto } from "@/components/panel/icons";
+import { Renglon, TramoLista } from "@/components/panel/fichas/renglon";
+import { Icono } from "@/components/panel/icons";
 import { Cargando, EstadoError } from "@/components/panel/kit/estados";
-import { Fila, GrupoLista } from "@/components/panel/kit/lista";
-import { Segmentado } from "@/components/panel/kit/segmentado";
-import { MaestroDetalle, PieAtajos } from "@/components/panel/fichas/piezas";
+import { BotonesDeVista } from "@/components/panel/kit/segmentado";
 import type { Property } from "@/data/propiedades";
 import type { Cliente } from "@/lib/backend/contracts";
 import { aTexto, diaLargo } from "@/lib/panel/calendario";
@@ -32,8 +34,9 @@ type Pestana = "deben" | "entregar" | "historial";
 type FilaDeben = { clave: string; plazo: Plazo; falta: number } & ({ clase: "cierre"; f: PorCobrar } | { clase: "mov"; m: Movimiento });
 
 /**
- * Dinero (PN-08), como el boceto: cabecera con «Movimiento nuevo», la cifra grande del resumen, el selector
- * (Te deben, Por entregar, Historial) y los grupos. El detalle se abre al lado en escritorio y abajo en el teléfono.
+ * Dinero (PN-08) con el orden del modelo visual («Inmuebles»): a la izquierda la columna de la lista (barra de 52 px con
+ * «Movimiento nuevo», la cifra del resumen, las vistas Te deben · Por entregar · Historial y los renglones, el abierto en
+ * azul) y a la derecha el detalle con su barra y tarjetas de renglones. En el teléfono, una a la vez.
  * Te deben = comisión estimada del cierre del asunto menos los recibos 18 emitidos (DEC-53), más las comisiones sueltas y
  * los gastos por reembolsar de la tabla de movimientos, agrupados en Vencido, Esta semana y Después.
  * Por entregar = apartados en resguardo (DEC-56); «Registrar entrega» los pasa al Historial.
@@ -156,39 +159,41 @@ export default function Dinero() {
       };
   const listo = !estado.cargando && !estado.error;
   const avisoMovs = movs.sinServidor
-    ? <p className="pn-din-aviso" role="status">Los gastos por reembolsar y los apartados se guardan cuando se publique el panel nuevo. Por ahora aquí solo se ven las comisiones del cierre.</p>
-    : movs.error ? <EstadoError texto={movs.error} alReintentar={() => setIntentoMovs((n) => n + 1)} /> : null;
+    ? <p className="din-aviso" role="status">Los gastos por reembolsar y los apartados se guardan cuando se publique el panel nuevo. Por ahora aquí solo se ven las comisiones del cierre.</p>
+    : movs.error ? <div className="din-aviso"><EstadoError texto={movs.error} alReintentar={() => setIntentoMovs((n) => n + 1)} /></div> : null;
   const opcionesAsunto = useMemo(() => asuntos.map((a) => ({ valor: a.id, etiqueta: [a.folio, a.titulo].filter(Boolean).join(" · ") })), [asuntos]);
+  const hayAbierto = elegido !== null || movElegido !== null;
 
   const lista = (
-    <>
-      <div className="fx-lista-cab">
-        <div className="fx-titulo" data-chico="">
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <h1>Dinero</h1>
-            <span className="fx-cuenta">Datos de ejemplo</span>
-          </div>
-          <button type="button" className="fx-icono-btn" onClick={() => setNuevo(true)} aria-label="Movimiento nuevo" title="Movimiento nuevo (N)" aria-keyshortcuts="N">
-            <Gesto nombre="mas" tamano={20} />
+    <section className="as-lista" aria-label="Dinero">
+      <div className="as-lado">
+        <div className="as-fila as-cab">
+          <h1 className="as-h1-lista">Dinero</h1>
+          <span className="as-m din-ej">Datos de ejemplo</span>
+          <span className="as-sp" />
+          <button type="button" className="as-btn as-gho as-ico as-cab-mas" onClick={() => setNuevo(true)} aria-label="Movimiento nuevo" title="Movimiento nuevo (N)" aria-keyshortcuts="N">
+            <Icono nombre="mas" tamano={16} />
           </button>
         </div>
         {estado.cargando ? null : (
-          <div className="pn-din-suma" aria-live="polite">
-            <span className="pn-din-sl">{resumen.etiqueta}</span>
-            <span className="pn-din-sb">{resumen.cifra}</span>
-            <span className="pn-din-ss">{resumen.sub}</span>
+          <div className="din-suma" aria-live="polite">
+            <span>{resumen.etiqueta}</span>
+            <b>{resumen.cifra}</b>
+            <small>{resumen.sub}</small>
           </div>
         )}
-        <Segmentado etiqueta="Ver" sinEtiqueta valor={ver} alElegir={(v) => { setVer(v); setAbierto(null); }} opciones={[
-          { valor: "deben", etiqueta: "Te deben" },
-          { valor: "entregar", etiqueta: "Por entregar" },
-          { valor: "historial", etiqueta: "Historial" },
-        ]} />
-        {loLleva.control}
-      </div>
-      <div className="fx-lista-cuerpo" style={{ gap: 14 }}>
-        {estado.cargando ? <Cargando lineas={4} etiqueta="Cargando el dinero" /> : null}
-        {estado.error ? <EstadoError texto={estado.error} alReintentar={() => { setEstado((s) => ({ ...s, cargando: true, error: null })); setIntento((n) => n + 1); }} /> : null}
+        <div className="as-fila as-filtros din-filtros">
+          <BotonesDeVista etiqueta="Ver" valor={ver} alElegir={(v) => { setVer(v); setAbierto(null); }} opciones={[
+            { valor: "deben", etiqueta: "Te deben" },
+            { valor: "entregar", etiqueta: "Por entregar" },
+            { valor: "historial", etiqueta: "Historial" },
+          ]} />
+          {loLleva.control ? <div className="din-lleva">{loLleva.control}</div> : null}
+        </div>
+
+        {estado.cargando ? <div className="din-aviso"><Cargando lineas={4} etiqueta="Cargando el dinero" /></div> : null}
+        {estado.error ? <div className="din-aviso"><EstadoError texto={estado.error} alReintentar={() => { setEstado((s) => ({ ...s, cargando: true, error: null })); setIntento((n) => n + 1); }} /></div> : null}
+
         {listo && ver === "deben" ? (
           <>
             {avisoMovs}
@@ -197,32 +202,38 @@ export default function Dinero() {
                 const grupo = filasDeben.filter((f) => f.plazo === p);
                 if (!grupo.length) return null;
                 return (
-                  <GrupoLista key={p} titulo={p === "vencido" ? "Vencido" : p === "semana" ? "Esta semana" : "Después"}>
-                    {grupo.map((g) => g.clase === "cierre" ? (
-                      <Fila key={g.clave} alPulsar={() => setAbierto(g.clave)} seleccionada={g.clave === abierto}
-                        titulo={g.f.titulo} subtitulo="Comisión por la venta"
-                        detalle={g.f.cobradoDolares > 0 ? `Además cobrado en dólares: ${dinero(g.f.cobradoDolares, "USD")}` : "Sin fecha"} tonoDetalle={g.f.cobradoDolares > 0 ? "aviso" : "normal"}
-                        lado={dinero(g.f.falta)} ladoMenor={ladoMenor(g.f)} />
-                    ) : (
-                      <Fila key={g.clave} alPulsar={() => setAbierto(g.clave)} seleccionada={g.clave === abierto}
-                        titulo={titulo(g.m.asuntoId)} subtitulo={[NOMBRE_TIPO[g.m.tipo], g.m.concepto].filter(Boolean).join(" · ")}
-                        detalle={venceTexto(g.m.venceEl, hoy)} tonoDetalle={g.plazo === "vencido" ? "error" : "normal"}
-                        lado={dinero(g.falta, g.m.moneda)} ladoMenor={g.m.cobrado > 0 ? `de ${dinero(g.m.monto, g.m.moneda)}` : undefined} />
-                    ))}
-                  </GrupoLista>
+                  <section key={p} aria-label={p === "vencido" ? "Vencido" : p === "semana" ? "Esta semana" : "Después"}>
+                    <TramoLista titulo={p === "vencido" ? "Vencido" : p === "semana" ? "Esta semana" : "Después"} cuenta={grupo.length} />
+                    <div className="as-items">
+                      {grupo.map((g) => g.clase === "cierre" ? (
+                        <Renglon key={g.clave} className="din-it" alPulsar={() => setAbierto(g.clave)} seleccionado={g.clave === abierto}
+                          titulo={g.f.titulo} subtitulo="Comisión por la venta"
+                          detalle={g.f.cobradoDolares > 0 ? `Además cobrado en dólares: ${dinero(g.f.cobradoDolares, "USD")}` : "Sin fecha"} tonoDetalle={g.f.cobradoDolares > 0 ? "aviso" : "normal"}
+                          lado={dinero(g.f.falta)} ladoMenor={ladoMenor(g.f)} />
+                      ) : (
+                        <Renglon key={g.clave} className="din-it" alPulsar={() => setAbierto(g.clave)} seleccionado={g.clave === abierto}
+                          titulo={titulo(g.m.asuntoId)} subtitulo={[NOMBRE_TIPO[g.m.tipo], g.m.concepto].filter(Boolean).join(" · ")}
+                          detalle={venceTexto(g.m.venceEl, hoy)} tonoDetalle={g.plazo === "vencido" ? "error" : "normal"}
+                          lado={dinero(g.falta, g.m.moneda)} ladoMenor={g.m.cobrado > 0 ? `de ${dinero(g.m.monto, g.m.moneda)}` : undefined} />
+                      ))}
+                    </div>
+                  </section>
                 );
               })
-            ) : <p className="pn-din-vacio">{loLleva.activo ? "Nadie te debe nada de quien elegiste en «Lo lleva»." : "Nadie te debe nada. Todo está cobrado."}</p>}
+            ) : <p className="as-m din-vacio">{loLleva.activo ? "Nadie te debe nada de quien elegiste en «Lo lleva»." : "Nadie te debe nada. Todo está cobrado."}</p>}
             {completos.length ? (
-              <GrupoLista titulo="Cobrados completos">
-                {completos.map((f) => (
-                  <Fila key={f.asuntoId} alPulsar={() => setAbierto(`c:${f.asuntoId}`)} seleccionada={`c:${f.asuntoId}` === abierto}
-                    titulo={f.titulo} subtitulo="Comisión por la venta" lado={dinero(f.total)} ladoMenor="cobrado" />
-                ))}
-              </GrupoLista>
+              <section aria-label="Cobrados completos">
+                <TramoLista titulo="Cobrados completos" cuenta={completos.length} />
+                <div className="as-items">
+                  {completos.map((f) => (
+                    <Renglon key={f.asuntoId} className="din-it" alPulsar={() => setAbierto(`c:${f.asuntoId}`)} seleccionado={`c:${f.asuntoId}` === abierto}
+                      titulo={f.titulo} subtitulo="Comisión por la venta" lado={dinero(f.total)} ladoMenor="cobrado" />
+                  ))}
+                </div>
+              </section>
             ) : null}
             {sinComision ? (
-              <p style={{ margin: 0, fontSize: 14, color: "var(--warning)" }}>
+              <p className="din-aviso din-falta">
                 {sinComision === 1 ? "1 asunto llegó al cierre sin comisión anotada" : `${sinComision} asuntos llegaron al cierre sin comisión anotada`}: anótala en el cierre del asunto para verla aquí.
               </p>
             ) : null}
@@ -232,16 +243,16 @@ export default function Dinero() {
           <>
             {avisoMovs}
             {apartados.length ? (
-              <GrupoLista>
+              <div className="as-items">
                 {apartados.map((m) => (
-                  <Fila key={m.id} alPulsar={() => setAbierto(`m:${m.id}`)} seleccionada={`m:${m.id}` === abierto}
+                  <Renglon key={m.id} className="din-it" alPulsar={() => setAbierto(`m:${m.id}`)} seleccionado={`m:${m.id}` === abierto}
                     titulo={titulo(m.asuntoId)} subtitulo={["Apartado", m.concepto].filter(Boolean).join(" · ")}
                     detalle={m.comprobante ? `Recibido el ${diaLargo(m.creadoEl.slice(0, 10))}` : "Falta el comprobante"} tonoDetalle={m.comprobante ? "normal" : "aviso"}
                     lado={dinero(m.monto, m.moneda)} />
                 ))}
-              </GrupoLista>
+              </div>
             ) : movs.sinServidor || movs.error ? null : (
-              <p className="pn-din-vacio">No hay apartados en resguardo. Cuando recibas uno, anótalo con «Movimiento nuevo» y su comprobante.</p>
+              <p className="as-m din-vacio">No hay apartados en resguardo. Cuando recibas uno, anótalo con «Movimiento nuevo» y su comprobante.</p>
             )}
           </>
         ) : null}
@@ -249,50 +260,80 @@ export default function Dinero() {
           cobros.length || movsCerrados.length ? (
             <>
               {movsCerrados.length ? (
-                <GrupoLista titulo="Movimientos">
-                  {movsCerrados.map((m) => (
-                    <Fila key={m.id} alPulsar={() => setAbierto(`m:${m.id}`)} seleccionada={`m:${m.id}` === abierto}
-                      titulo={`${m.tipo === "apartado" ? "Entrega" : NOMBRE_TIPO[m.tipo]} · ${titulo(m.asuntoId)}`}
-                      subtitulo={[m.liquidadoEl ? diaLargo(m.liquidadoEl.slice(0, 10)) : "", m.tipo === "apartado" ? "entregado al propietario" : m.tipo === "gasto" ? "reembolsado" : "cobrado", m.concepto].filter(Boolean).join(" · ")}
-                      derecha={<span className={m.tipo === "apartado" ? undefined : "pn-din-mas"} style={{ flex: "none", marginLeft: "auto", fontVariantNumeric: "tabular-nums" }}>{m.tipo === "apartado" ? "" : "+"}{dinero(m.monto, m.moneda)}</span>} />
-                  ))}
-                </GrupoLista>
+                <section aria-label="Movimientos">
+                  <TramoLista titulo="Movimientos" cuenta={movsCerrados.length} />
+                  <div className="as-items">
+                    {movsCerrados.map((m) => (
+                      <Renglon key={m.id} className="din-it" alPulsar={() => setAbierto(`m:${m.id}`)} seleccionado={`m:${m.id}` === abierto}
+                        titulo={`${m.tipo === "apartado" ? "Entrega" : NOMBRE_TIPO[m.tipo]} · ${titulo(m.asuntoId)}`}
+                        subtitulo={[m.liquidadoEl ? diaLargo(m.liquidadoEl.slice(0, 10)) : "", m.tipo === "apartado" ? "entregado al propietario" : m.tipo === "gasto" ? "reembolsado" : "cobrado", m.concepto].filter(Boolean).join(" · ")}
+                        lado={`${m.tipo === "apartado" ? "" : "+"}${dinero(m.monto, m.moneda)}`} tonoLado={m.tipo === "apartado" ? "normal" : "bien"} />
+                    ))}
+                  </div>
+                </section>
               ) : null}
               {cobros.length ? (
-                <GrupoLista titulo={movsCerrados.length ? "Recibos" : undefined}>
-                  {cobros.map((c) => (
-                    <Fila key={c.id} href={`/panel/asuntos?ver=${encodeURIComponent(c.expedienteId)}`} titulo={`Cobro · ${titulo(c.expedienteId)}`}
-                      subtitulo={[c.fecha ? diaLargo(c.fecha) : "Sin fecha de pago", lineaCobro(c)].join(" · ")}
-                      derecha={<span className={c.emitido ? "pn-din-mas" : "pn-tono-aviso"} style={{ flex: "none", marginLeft: "auto", fontVariantNumeric: "tabular-nums" }}>+{dinero(c.importe, c.moneda)}</span>} />
-                  ))}
-                </GrupoLista>
+                <section aria-label="Recibos">
+                  <TramoLista titulo="Recibos" cuenta={cobros.length} />
+                  <div className="as-items">
+                    {cobros.map((c) => (
+                      <Renglon key={c.id} className="din-it" href={`/panel/asuntos?ver=${encodeURIComponent(c.expedienteId)}`} titulo={`Cobro · ${titulo(c.expedienteId)}`}
+                        subtitulo={[c.fecha ? diaLargo(c.fecha) : "Sin fecha de pago", lineaCobro(c)].join(" · ")}
+                        lado={`+${dinero(c.importe, c.moneda)}`} tonoLado={c.emitido ? "bien" : "aviso"} />
+                    ))}
+                  </div>
+                </section>
               ) : null}
             </>
-          ) : <p className="pn-din-vacio">Todavía no hay cobros. Cada recibo de honorarios que hagas en un asunto aparece aquí.</p>
+          ) : <p className="as-m din-vacio">Todavía no hay cobros. Cada recibo de honorarios que hagas en un asunto aparece aquí.</p>
         ) : null}
+        <div className="as-pie-teclas" aria-hidden><kbd>J</kbd><kbd>K</kbd> moverse · <kbd>P</kbd> registrar cobro · <kbd>N</kbd> nuevo</div>
       </div>
-      <PieAtajos atajos={[[["J", "K"], "moverse"], [["P"], "registrar cobro"], [["N"], "nuevo"]]} />
-    </>
+    </section>
   );
 
   return (
-    <>
-      <MaestroDetalle abierta={elegido !== null || movElegido !== null} ancho={440} bordeCuerpo lista={lista} volver={{ etiqueta: "Dinero", alPulsar: () => setAbierto(null) }}
-        detalle={elegido ? (
-          <div className="fx-detalle-in" data-angosta="">
-            <h2 style={{ margin: "0 0 4px", fontSize: 22, lineHeight: 1.2, fontWeight: 600, overflowWrap: "anywhere" }}>{elegido.titulo}</h2>
-            <DetalleCobro fila={elegido} />
+    <div className="as-dos din-dos" data-det={hayAbierto}>
+      {lista}
+      <section className="as-det" aria-label={hayAbierto ? "Detalle del movimiento" : "Dinero"}>
+        {hayAbierto ? (
+          <div className="cp fm-col din-col">
+            <div className="cp-barra">
+              <button type="button" className="as-btn as-gho as-atras" onClick={() => setAbierto(null)}><Icono nombre="at" tamano={16} />Dinero</button>
+              <span className="as-sp" />
+              {elegido && elegido.falta > 0 ? (
+                <a className="pn-btn pn-btn-primario" href={`/panel/formatos?asunto=${encodeURIComponent(elegido.asuntoId)}&formato=18`} aria-keyshortcuts="P">Registrar cobro</a>
+              ) : null}
+              <a className="pn-btn" href={`/panel/asuntos?ver=${encodeURIComponent(elegido ? elegido.asuntoId : movElegido?.asuntoId ?? "")}`}>Abrir el asunto</a>
+            </div>
+            {elegido ? (
+              <>
+                <div className="fm-cab din-cab">
+                  <span className="as-m">{["Comisión", elegido.folio].filter(Boolean).join(" · ")}</span>
+                  <h2 className="fm-h1">{elegido.titulo}</h2>
+                </div>
+                <DetalleCobro fila={elegido} />
+              </>
+            ) : movElegido ? (
+              <>
+                <div className="fm-cab din-cab">
+                  <span className="as-m">{NOMBRE_TIPO[movElegido.tipo]}</span>
+                  <h2 className="fm-h1">{titulo(movElegido.asuntoId)}</h2>
+                </div>
+                <DetalleMovimiento key={movElegido.id} m={movElegido} pedirCobro={pedirCobro} alCambiar={alCambiar} />
+              </>
+            ) : null}
           </div>
-        ) : movElegido ? (
-          <div className="fx-detalle-in" data-angosta="">
-            <h2 style={{ margin: "0 0 4px", fontSize: 22, lineHeight: 1.2, fontWeight: 600, overflowWrap: "anywhere" }}>{titulo(movElegido.asuntoId)}</h2>
-            <DetalleMovimiento key={movElegido.id} m={movElegido} pedirCobro={pedirCobro} alCambiar={alCambiar}
-              asunto={{ id: movElegido.asuntoId, titulo: titulo(movElegido.asuntoId) }} />
+        ) : (
+          <div className="as-in as-elige">
+            <Icono nombre="pago" tamano={28} />
+            <p className="as-m">{estado.cargando ? "Cargando…" : "Elige un movimiento para verlo."}</p>
           </div>
-        ) : <div className="fx-nada">{estado.cargando ? "Cargando…" : "Elige un movimiento para verlo."}</div>} />
+        )}
+      </section>
       <MovimientoNuevo abierta={nuevo} alCerrar={() => setNuevo(false)} asuntos={opcionesAsunto} sinServidor={movs.sinServidor}
         alGuardar={(m) => { alCambiar(m); setVer(m.tipo === "apartado" ? "entregar" : "deben"); setAbierto(`m:${m.id}`); }} />
-    </>
+    </div>
   );
 }
 

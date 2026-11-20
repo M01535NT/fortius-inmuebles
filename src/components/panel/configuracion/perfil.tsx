@@ -5,6 +5,7 @@ import { Gesto } from "@/components/panel/icons";
 import { Hoja } from "@/components/panel/kit/hoja";
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo } from "@/components/panel/kit/campo";
+import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Cargando, EstadoError } from "@/components/panel/kit/estados";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import type { Asesor } from "@/lib/domain/records";
@@ -22,13 +23,16 @@ type Props = {
   error: string | null;
   alReintentar: () => void;
   guardar: (id: string, data: Asesor) => Promise<Asesor>;
+  /** Director sin ficha: las fichas activas del equipo que ninguna cuenta usa, para elegir la suya. */
+  fichasLibres?: { id: string; nombre: string }[];
+  alElegirFicha?: (asesorId: string) => Promise<void>;
 };
 
 /**
  * Tu perfil, como el boceto: dos filas (Nombre con la foto, Teléfono) que abren la edición en una hoja.
  * Es la ficha del asesor de quien está en sesión. El correo es el de la cuenta y no se cambia aquí.
  */
-export function SeccionPerfil({ correo, nombreSesion, miAsesor, cargando, error, alReintentar, guardar }: Props) {
+export function SeccionPerfil({ correo, nombreSesion, miAsesor, cargando, error, alReintentar, guardar, fichasLibres = [], alElegirFicha }: Props) {
   const [editando, setEditando] = useState(false);
   return (
     <SeccionConfig id="conf-perfil" titulo="Tu perfil">
@@ -58,8 +62,43 @@ export function SeccionPerfil({ correo, nombreSesion, miAsesor, cargando, error,
             <div className="pn-conf-prow"><span className="pn-conf-k">Correo</span><span className="pn-conf-v">{correo ?? "—"}</span></div>
           </div>
         )}
-      {miAsesor === null && !cargando && !error ? <p className="pn-conf-intro">Tu cuenta es de dirección: no tiene nombre ni teléfono que cambiar aquí.</p> : null}
+      {miAsesor === null && !cargando && !error ? (
+        alElegirFicha && fichasLibres.length
+          ? <ElegirMiFicha libres={fichasLibres} nombreSesion={nombreSesion} alElegir={alElegirFicha} />
+          : <p className="pn-conf-intro">Tu cuenta todavía no tiene ficha en el equipo: no hay nombre ni teléfono que cambiar aquí.</p>
+      ) : null}
     </SeccionConfig>
+  );
+}
+
+/** Se parece al nombre de la cuenta: sin acentos ni mayúsculas, la primera palabra igual. */
+const sinAcentos = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
+/**
+ * El director sin ficha elige cuál ficha del equipo es la suya: desde ahí su nombre y su teléfono se cambian en
+ * «Tu perfil» y deja de salir aparte en Equipo «sin cuenta para entrar».
+ */
+function ElegirMiFicha({ libres, nombreSesion, alElegir }: { libres: { id: string; nombre: string }[]; nombreSesion?: string; alElegir: (id: string) => Promise<void> }) {
+  const { avisar } = useAvisos();
+  const primera = sinAcentos(nombreSesion ?? "").split(/\s+/)[0];
+  const parecida = primera ? libres.find((f) => sinAcentos(f.nombre).split(/\s+/)[0] === primera) : undefined;
+  const [eleccion, setEleccion] = useState(parecida?.id ?? (libres.length === 1 ? libres[0].id : ""));
+  const [ocupado, setOcupado] = useState(false);
+  return (
+    <form noValidate style={{ display: "grid", gap: 12, marginTop: 12 }}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!eleccion || ocupado) return;
+        setOcupado(true);
+        alElegir(eleccion).catch((err: unknown) => avisar(err instanceof Error ? err.message : "No se guardó. Vuelve a intentarlo.")).finally(() => setOcupado(false));
+      }}>
+      <Desplegable etiqueta="Tu ficha en el equipo" valor={eleccion} vacio="Elige tu ficha"
+        opciones={libres.map((f) => ({ valor: f.id, etiqueta: f.nombre }))} alElegir={setEleccion}
+        ayuda="Es la que sale en Equipo sin cuenta para entrar. Al elegirla, tu cuenta y esa ficha quedan como la misma persona." />
+      <div className="pn-conf-acciones">
+        <Boton type="submit" deshabilitado={!eleccion || ocupado}>{ocupado ? "Guardando…" : "Es la mía"}</Boton>
+      </div>
+    </form>
   );
 }
 

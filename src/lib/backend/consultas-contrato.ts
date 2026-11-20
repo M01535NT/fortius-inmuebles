@@ -5,19 +5,21 @@
  */
 import type { Encargo, Papel, Quien } from "./asuntos-contrato";
 
-export const CANALES = ["llamada", "whatsapp", "en_persona", "sitio", "otro"] as const;
-export type Canal = (typeof CANALES)[number];
+/** Clave del catálogo «fuente» (por dónde llegó). Las opciones y sus nombres están en Configuración → Catálogos. */
+export type Canal = string;
+/** Clave del catálogo «tipo_inmueble». */
+export type TipoInmueble = string;
+
+// Las preguntas de la consulta siguen fijas hasta que cada tipo de asunto traiga las suyas (etapa 12, paso 4).
 
 export const QUIERE = ["vender", "rentar", "comprar", "regularizar", "asesoria"] as const;
 export const DE_QUIEN = ["suyo", "familiar", "fallecio", "empresa", "no_sabe"] as const;
-export const TIPOS_INMUEBLE = ["casa", "departamento", "terreno", "local", "oficina", "nave_bodega", "plaza_conjunto"] as const;
 export const OCUPA = ["vacio", "dueno", "inquilino", "invadido", "no_sabe"] as const;
 export const SI_NO = ["si", "no", "no_sabe"] as const;
 export const DEBE = ["hipoteca", "predial", "servicios", "nada", "no_sabe"] as const;
 
 export type Quiere = (typeof QUIERE)[number];
 export type DeQuien = (typeof DE_QUIEN)[number];
-export type TipoInmueble = (typeof TIPOS_INMUEBLE)[number];
 export type Ocupa = (typeof OCUPA)[number];
 export type SiNo = (typeof SI_NO)[number];
 export type Debe = (typeof DEBE)[number];
@@ -29,8 +31,10 @@ export type DatosConsulta = {
 };
 
 export type OtraPersona = { nombre: string; papel: Papel; pais?: string; numero?: string; fallecida?: boolean };
-export type DocumentoPedir = { nombre: string; grupo?: "persona" | "inmueble" | "credito" | "otro"; entrega_papel?: string; quitado?: boolean; propio?: boolean };
-export type Carga = { id: string; nombre_original: string; mime: string; byte_length: number; created_at: string };
+/** Un documento de la lista de la consulta. `recibido`: ya lo mandó (se marca, o tiene un archivo ligado). */
+export type DocumentoPedir = { nombre: string; grupo?: "persona" | "inmueble" | "credito" | "otro"; entrega_papel?: string; quitado?: boolean; propio?: boolean; recibido?: boolean };
+/** Un archivo cargado en la consulta. `documento`: el nombre exacto del documento de la lista al que pertenece; sin él, es un archivo suelto. */
+export type Carga = { id: string; nombre_original: string; mime: string; byte_length: number; created_at: string; documento?: string };
 
 export const ESTADOS_CONSULTA = ["abierta", "asunto", "contacto", "no_procede"] as const;
 export type EstadoConsulta = (typeof ESTADOS_CONSULTA)[number];
@@ -48,12 +52,8 @@ export type Consulta = {
 export type ConsultaAbierta = { id: string; quien_nombre: string; que_pasa: string; updated_at: string };
 
 // ── Nombres en pantalla ──────────────────────────────────────────────────────────────────────────────
-export const NOMBRE_CANAL: Record<Canal, string> = { llamada: "Llamada", whatsapp: "WhatsApp", en_persona: "En persona", sitio: "Sitio", otro: "Otro" };
 export const NOMBRE_QUIERE: Record<Quiere, string> = { vender: "Vender", rentar: "Rentar", comprar: "Comprar", regularizar: "Regularizar", asesoria: "Asesoría" };
 export const NOMBRE_DE_QUIEN: Record<DeQuien, string> = { suyo: "Suyo", familiar: "De un familiar", fallecio: "Falleció el titular", empresa: "De una empresa", no_sabe: "No sabe" };
-export const NOMBRE_TIPO: Record<TipoInmueble, string> = {
-  casa: "Casa", departamento: "Departamento", terreno: "Terreno", local: "Local", oficina: "Oficina", nave_bodega: "Nave o bodega", plaza_conjunto: "Plaza o conjunto",
-};
 export const NOMBRE_OCUPA: Record<Ocupa, string> = { vacio: "Vacío", dueno: "El dueño", inquilino: "Un inquilino", invadido: "Invadido", no_sabe: "No sabe" };
 export const NOMBRE_SI_NO: Record<SiNo, string> = { si: "Sí", no: "No", no_sabe: "No sabe" };
 export const NOMBRE_DEBE: Record<Debe, string> = { hipoteca: "Hipoteca", predial: "Predial", servicios: "Servicios", nada: "Nada", no_sabe: "No sabe" };
@@ -78,11 +78,15 @@ export function documentosSegun(d: DatosConsulta): DocumentoPedir[] {
 
 /**
  * La lista que se guarda: la que sale de las reglas, con lo que se quitó marcado, más lo que se agregó a mano.
- * Lo quitado se recuerda por nombre: si la regla vuelve a pedir algo que se quitó, sigue quitado.
+ * Lo quitado y lo recibido se recuerdan por nombre: si la regla vuelve a pedir algo que se quitó, sigue quitado; si ya
+ * llegó, sigue recibido.
  */
 export function unirDocumentos(datos: DatosConsulta, antes: readonly DocumentoPedir[]): DocumentoPedir[] {
   const quitados = new Set(antes.filter((x) => x.quitado).map((x) => x.nombre));
-  const regla = documentosSegun(datos).map((x) => (quitados.has(x.nombre) ? { ...x, quitado: true } : x));
+  const recibidos = new Set(antes.filter((x) => x.recibido).map((x) => x.nombre));
+  const regla = documentosSegun(datos).map((x) => ({
+    ...x, ...(quitados.has(x.nombre) ? { quitado: true } : {}), ...(recibidos.has(x.nombre) ? { recibido: true } : {}),
+  }));
   const nombres = new Set(regla.map((x) => x.nombre));
   return [...regla, ...antes.filter((x) => x.propio && !nombres.has(x.nombre))];
 }
@@ -97,14 +101,24 @@ export function encargosSegun(d: DatosConsulta): Encargo[] {
   return e;
 }
 
-/** El papel de quien llama: dueño si es suyo; si no, contacto. Se cambia después en Personas. */
-export const papelDeQuienLlama = (d: DatosConsulta): Papel => (d.de_quien === "suyo" ? "propietario" : "contacto");
+/**
+ * El papel de quien llama: dueño si es suyo; comprador si quiere comprar (si ese papel se sigue ofreciendo); si no,
+ * contacto. Se cambia después en Personas.
+ */
+export function papelDeQuienLlama(d: DatosConsulta, seOfrece: (papel: Papel) => boolean = () => true): Papel {
+  if (d.de_quien === "suyo") return "propietario";
+  if (d.que_quiere === "comprar" && seOfrece("comprador")) return "comprador";
+  return "contacto";
+}
 
 const primerNombre = (n: string) => n.trim().split(/\s+/)[0] ?? "";
 
+/** El nombre de un tipo de inmueble, tal como está en su catálogo. */
+export type NombreDeTipo = (tipo: TipoInmueble) => string;
+
 /** «Casa en la Murúa», o «Casa de Laura» si no hay colonia. */
-export function nombreDelAsunto(quien: string, d: DatosConsulta): string {
-  const tipo = d.tipo ? NOMBRE_TIPO[d.tipo] : "Inmueble";
+export function nombreDelAsunto(quien: string, d: DatosConsulta, nombreTipo: NombreDeTipo): string {
+  const tipo = d.tipo ? nombreTipo(d.tipo) : "Inmueble";
   const colonia = d.colonia?.trim();
   if (colonia) return `${tipo} en ${colonia}`.slice(0, 160);
   const n = primerNombre(quien);
@@ -112,10 +126,10 @@ export function nombreDelAsunto(quien: string, d: DatosConsulta): string {
 }
 
 /** Se crea el inmueble si se dijo qué es o dónde está. */
-export function inmuebleSegun(quien: string, d: DatosConsulta): { nombre: string; tipo: TipoInmueble | null; operacion: "venta" | "renta" | null; colonia: string | null } | null {
+export function inmuebleSegun(quien: string, d: DatosConsulta, nombreTipo: NombreDeTipo): { nombre: string; tipo: TipoInmueble | null; operacion: "venta" | "renta" | null; colonia: string | null } | null {
   if (!d.tipo && !d.colonia?.trim()) return null;
   return {
-    nombre: nombreDelAsunto(quien, d), tipo: d.tipo ?? null, colonia: d.colonia?.trim() || null,
+    nombre: nombreDelAsunto(quien, d, nombreTipo), tipo: d.tipo ?? null, colonia: d.colonia?.trim() || null,
     operacion: d.que_quiere === "rentar" ? "renta" : d.que_quiere === "vender" ? "venta" : null,
   };
 }
@@ -135,9 +149,13 @@ export function primerPlan(encargos: readonly Encargo[], hayDocumentos: boolean)
   return [{ nombre: "Primeros pasos", tareas }];
 }
 
-/** El mensaje para WhatsApp con lo que falta pedirle. El sistema no lo envía: lo envía el asesor. */
-export function mensajeParaPedir(quien: string, docs: readonly DocumentoPedir[]): string {
+/**
+ * El mensaje para WhatsApp con lo que falta pedirle: sin lo quitado ni lo recibido (marcado, o con un archivo ligado
+ * entre `cargas`). El sistema no lo envía: lo envía el asesor.
+ */
+export function mensajeParaPedir(quien: string, docs: readonly DocumentoPedir[], cargas: readonly Pick<Carga, "documento">[] = []): string {
   const n = primerNombre(quien);
-  const lista = docs.filter((x) => !x.quitado).map((x) => `• ${x.nombre}`).join("\n");
+  const conArchivo = new Set(cargas.map((c) => c.documento).filter(Boolean));
+  const lista = docs.filter((x) => !x.quitado && !x.recibido && !conArchivo.has(x.nombre)).map((x) => `• ${x.nombre}`).join("\n");
   return `Hola${n ? ` ${n}` : ""}, para empezar a revisar tu asunto necesito:\n\n${lista}\n\nMe lo puedes mandar por aquí, en foto o PDF. Gracias.`;
 }
