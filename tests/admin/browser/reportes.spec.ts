@@ -13,7 +13,7 @@ for (const width of [390, 1440]) test(`commercial report fits at ${width}px`, as
     };
     return route.fulfill({ json: { records: (records[key] ?? []).map(data => ({ id: (data as {id:string}).id, data, version: 1, createdAt: "2026-10-01", updatedAt: "2026-10-01" })) } });
   });
-  await page.goto("/admin/reportes");
+  await page.goto("/admin-anterior/reportes");
   await expect(page.getByRole("heading", { name: "Reportes comerciales" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Resultados del periodo" })).toBeVisible();
   await expect(page.locator("summary", { hasText: "Por asesor" })).toBeVisible();

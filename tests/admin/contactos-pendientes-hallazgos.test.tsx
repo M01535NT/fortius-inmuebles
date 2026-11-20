@@ -1,8 +1,8 @@
 import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/contactos" }));
-import LeadDetailPage from "@/app/admin/leads/[id]/page";
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin-anterior/contactos" }));
+import LeadDetailPage from "@/app/admin-anterior/leads/[id]/page";
 import { ContactLog } from "@/components/admin/contacts/contact-log";
 import { ContactPreview } from "@/components/admin/contacts/contact-preview";
 import { PeriodReport } from "@/components/admin/workspace/period-report";
@@ -106,7 +106,7 @@ test("tras otro guardado de la ficha, la nota se guarda sobre la versión vigent
 */
 test("la fecha de una nota en la vista previa es la de Tijuana", () => {
   const conNota = prospecto({ notas: [{ id: "n1", texto: "Nota de ensayo", fecha: "2026-11-13T04:00:00.000Z" }] } as Partial<Lead>);
-  const row = { id: "l1", kind: "lead", href: "/admin/leads/l1", name: "Prospecto de ensayo", phone: "6640000000", wants: "", zone: "", budget: null, step: "", when: null, late: false, sort: "" } as ContactRow;
+  const row = { id: "l1", kind: "lead", href: "/admin-anterior/leads/l1", name: "Prospecto de ensayo", phone: "6640000000", wants: "", zone: "", budget: null, step: "", when: null, late: false, sort: "" } as ContactRow;
   render(<ContactPreview row={row} lead={conNota} tasks={[]} events={[]} today={hoy} />);
   const fila = screen.getByText("Nota de ensayo").parentElement!;
   expect(fila.textContent).toContain("12 nov");

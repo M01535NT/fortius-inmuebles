@@ -116,7 +116,7 @@ test("navigation keeps native required fields active and saves only on explicit 
     direccionAproximada: "Cerca del parque", descripcion: ["Descripción conservada"],
   } });
   completeSave!();
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/propiedades"));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin-anterior/propiedades"));
 });
 
 test("a failed save retains the draft and restores navigation and cancel without another write", async () => {
@@ -140,7 +140,7 @@ test("a failed save retains the draft and restores navigation and cancel without
   expect(push).not.toHaveBeenCalled();
   vi.mocked(confirmAction).mockResolvedValueOnce(true);
   fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/propiedades"));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin-anterior/propiedades"));
   expect(writes).toHaveLength(1);
 });
 

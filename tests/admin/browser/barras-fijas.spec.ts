@@ -53,7 +53,7 @@ for (const width of [390, 1440]) {
   test(`la barra flotante de la operación no tapa nada a ${width} px y las pestañas van arriba`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await mockApi(page);
-    await page.goto(`/admin/operaciones/${id}`);
+    await page.goto(`/admin-anterior/operaciones/${id}`);
     await expect(page.getByRole("region", { name: "Siguiente acción" })).toBeVisible();
     const tabs = await page.getByRole("tablist", { name: "Secciones del asunto" }).boundingBox();
     const confirm = await page.getByRole("heading", { name: "Antes de seguir, confirma" }).boundingBox();
@@ -64,7 +64,7 @@ for (const width of [390, 1440]) {
   test(`la barra fija de Nueva operación no tapa nada a ${width} px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await mockApi(page);
-    await page.goto("/admin/operaciones/nueva");
+    await page.goto("/admin-anterior/operaciones/nueva");
     await expect(page.getByText("Vender su inmueble")).toBeVisible();
     expect(await overlapAtBottom(page)).toBeLessThanOrEqual(0);
   });

@@ -7,7 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
-import HistoryPage from "@/app/admin/historial/page";
+import HistoryPage from "@/app/admin-anterior/historial/page";
 const { request } = vi.hoisted(() => ({ request: vi.fn() }));
 vi.mock("@/lib/admin/store", () => ({
   useSession: () => ({ id: "admin", role: "admin" }),
@@ -26,7 +26,7 @@ test("NAV-13: lo eliminado ya no se recupera aquí; el historial lleva a la pape
   render(<HistoryPage />);
   await waitFor(() => expect(screen.queryByText("Cargando historial…")).toBeNull());
   expect(screen.queryByRole("radio", { name: "Recuperar eliminados" })).toBeNull();
-  expect(screen.getByRole("link", { name: "Ver eliminados" }).getAttribute("href")).toBe("/admin/papelera");
+  expect(screen.getByRole("link", { name: "Ver eliminados" }).getAttribute("href")).toBe("/admin-anterior/papelera");
   expect(request).toHaveBeenCalledWith(expect.stringContaining("deleted=0"));
 });
 test("successful history retry clears the obsolete error", async () => {

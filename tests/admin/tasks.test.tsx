@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { TaskForm } from "@/components/admin/task-form";
 import type { Task } from "@/lib/tasks";
-import TaskDetailPage from "@/app/admin/tareas/[id]/page";
+import TaskDetailPage from "@/app/admin-anterior/tareas/[id]/page";
 import TasksPage from "@/components/admin/screens/tareas";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { chooseOption, hiddenValue } from "./agenda-helpers";

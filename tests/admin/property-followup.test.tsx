@@ -9,13 +9,13 @@ import { clearAdminCache, type AdminProperty, type Cliente, type Lead } from "@/
 import { keyLoanLate, prepProgress, prepState } from "@/lib/propiedad-seguimiento";
 import { propiedades } from "../fixtures/propiedades";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/propiedades/casa/seguimiento" }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin-anterior/propiedades/casa/seguimiento" }));
 
 afterEach(() => { cleanup(); clearAdminCache(); vi.unstubAllGlobals(); });
 
 const today = "2026-10-29";
 const house = (over: Partial<AdminProperty> = {}): AdminProperty => ({ ...propiedades[0], slug: "casa-playas", titulo: "Casa en Playas", tipo: "casa", operacion: "venta", estado: "disponible", publicada: true, publicadaEl: "2026-10-20", zona: "Playas de Tijuana", direccionAproximada: "Cerca del malecón", precio: { modalidad: "publico", monto: 4_000_000, moneda: "MXN" }, ficha: { recamaras: 3, estacionamientos: 2, construccionM2: 180 }, demo: true, ...over });
-const seeker = (over: Partial<Seeker> = {}): Seeker => ({ id: "lead1", kind: "lead", nombre: "Ana Ruiz", telefono: "664 123 4567", href: "/admin/leads/lead1", tipoPropiedad: "casa", zona: "Playas, Otay", perfil: { operacion: "comprar", presupuestoMax: 4_000_000, moneda: "MXN", recamaras: 3 }, ...over });
+const seeker = (over: Partial<Seeker> = {}): Seeker => ({ id: "lead1", kind: "lead", nombre: "Ana Ruiz", telefono: "664 123 4567", href: "/admin-anterior/leads/lead1", tipoPropiedad: "casa", zona: "Playas, Otay", perfil: { operacion: "comprar", presupuestoMax: 4_000_000, moneda: "MXN", recamaras: 3 }, ...over });
 const lead = (over: Partial<Lead> = {}): Lead => ({ id: "lead1", nombre: "Ana Ruiz", telefono: "6641234567", origen: "manual", estado: "nuevo", creadoEl: "2026-10-20T10:00:00Z", notas: [], ...over });
 
 describe("avisos al comprador", () => {
@@ -147,7 +147,7 @@ test("SIM-19: la ficha del inmueble va por pestañas y no pierde lo escrito", as
     if (url.endsWith("/propiedades")) return Response.json({ records: [{ id: "casa", data: property, version }] });
     return Response.json({ records: [] });
   });
-  window.history.replaceState(null, "", "/admin/propiedades/casa/seguimiento?seccion=compradores");
+  window.history.replaceState(null, "", "/admin-anterior/propiedades/casa/seguimiento?seccion=compradores");
   render(<PropertyFile slug="casa" initialTab="llaves" />);
   // La dirección anterior de Hoy («?seccion=compradores») abre «Interesados».
   await waitFor(() => expect(screen.getByRole("tab", { name: "Interesados" }).getAttribute("aria-selected")).toBe("true"));
@@ -178,7 +178,7 @@ test("SIM-19: la preparación se marca con una casilla y guarda al momento", asy
     if (url.endsWith("/propiedades")) return Response.json({ records: [{ id: "casa", data: property, version }] });
     return Response.json({ records: [] });
   });
-  window.history.replaceState(null, "", "/admin/propiedades/casa/editar?tab=material");
+  window.history.replaceState(null, "", "/admin-anterior/propiedades/casa/editar?tab=material");
   render(<PropertyFile slug="casa" />);
   const list = within(await screen.findByRole("list", { name: "Lista de preparación" }));
   expect(list.getByRole("checkbox", { name: /Sesión de fotos/ }).getAttribute("aria-checked")).toBe("true");

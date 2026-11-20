@@ -1,14 +1,14 @@
 import {afterEach,beforeEach,expect,it,vi} from "vitest";
 import {cleanup,fireEvent,render,screen,waitFor} from "@testing-library/react";
 const {session}=vi.hoisted(()=>({session:vi.fn()}));vi.mock("@/lib/admin/store",async original=>({...await original<typeof import("@/lib/admin/store")>(),useSession:session}));
-import Page from "@/app/admin/control-comercial/page";
+import Page from "@/app/admin-anterior/control-comercial/page";
 import {emptyComercialBook,newOpportunity} from "@/lib/comercial/types";
 const id="61000000-0000-4000-8000-000000000003";
 const b=()=>({id,nombre:"Cartera de prueba",version:1,data:{...emptyComercialBook(),oportunidades:[newOpportunity("I1","Inmueble")]},created_at:"2026-10-04",updated_at:"2026-10-04"});
 beforeEach(()=>{session.mockReturnValue({role:"admin"});vi.stubGlobal("fetch",vi.fn(async(url:string)=>Response.json(url.endsWith(id)?{cartera:b(),emisiones:[],revisiones:[{version:1}]}:{carteras:[b()]})));});
 afterEach(()=>{cleanup();vi.unstubAllGlobals();});
 it("consumes the portfolio deep link once and does not reload after saving",async()=>{
- window.history.replaceState(null,"","/admin/control-comercial?cartera="+id);
+ window.history.replaceState(null,"","/admin-anterior/control-comercial?cartera="+id);
  try {
   render(<Page/>);
   await screen.findByText(/Versión guardada 1/);

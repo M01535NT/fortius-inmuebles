@@ -94,7 +94,7 @@ for (const width of [320, 390, 768, 1440]) {
       if (width === 1440) await noAxeViolations(page);
     };
 
-    await page.goto("/admin/contactos");
+    await page.goto("/admin-anterior/contactos");
     await expect(page.getByRole("heading", { level: 1, name: "Contactos" })).toBeVisible();
     const filtros = page.getByRole("group", { name: "Mostrar personas" });
     await expect(filtros.getByRole("button", { name: /^Todas/ })).toHaveAttribute("aria-pressed", "true");
@@ -112,11 +112,11 @@ for (const width of [320, 390, 768, 1440]) {
     await expect(filtros.getByRole("button", { name: /^Clientes/ })).toHaveAttribute("aria-pressed", "true");
     await expect(people.getByText("Familia Ortega Ruiz").first()).toBeVisible();
     await expect(people.getByRole("link", { name: /Ramón Félix Arce/ })).toHaveCount(0);
-    await page.goto("/admin/contactos?tab=clientes");
+    await page.goto("/admin-anterior/contactos?tab=clientes");
     await expect(filtros.getByRole("button", { name: /^Clientes/ })).toHaveAttribute("aria-pressed", "true");
     await expect(people.getByText("Familia Ortega Ruiz").first()).toBeVisible();
 
-    await page.goto("/admin/propiedades");
+    await page.goto("/admin-anterior/propiedades");
     await expect(page.getByRole("heading", { level: 1, name: "Inmuebles" })).toBeVisible();
     await expect(page.getByText("3 inmuebles · 2 publicados")).toBeVisible();
     await page.getByRole("radio", { name: "En renta" }).click();
@@ -130,7 +130,7 @@ for (const width of [320, 390, 768, 1440]) {
     await page.keyboard.press("Escape");
     expect(await fits(page)).toBe(true);
 
-    await page.goto("/admin/agenda");
+    await page.goto("/admin-anterior/agenda");
     await expect(page.getByRole("heading", { level: 1, name: "Agenda" })).toBeVisible();
     await expect(page.getByText(/^Semana del/)).toBeVisible();
     const week = page.getByRole("region", { name: "Agenda semanal" });
@@ -141,17 +141,17 @@ for (const width of [320, 390, 768, 1440]) {
     await expect(page.getByRole("link", { name: "Mandarle el análisis de renta" })).toBeVisible();
     await shot("tareas");
 
-    await page.goto("/admin/herramientas");
+    await page.goto("/admin-anterior/herramientas");
     await expect(page.getByRole("heading", { level: 1, name: "Herramientas" })).toBeVisible();
     await shot("herramientas");
 
-    await page.goto("/admin/contenido");
+    await page.goto("/admin-anterior/contenido");
     await expect(page.getByRole("navigation", { name: "Sitio web" }).getByRole("link", { name: "Textos del sitio" })).toHaveAttribute("aria-current", "page");
     expect(await fits(page)).toBe(true);
-    await page.goto("/admin/reportes");
+    await page.goto("/admin-anterior/reportes");
     await expect(page.getByRole("navigation", { name: "Reportes" }).getByRole("link", { name: "Reportes" })).toHaveAttribute("aria-current", "page");
     await shot("reportes");
-    await page.goto("/admin/asesores");
+    await page.goto("/admin-anterior/asesores");
     await expect(page.getByRole("heading", { level: 1, name: "Equipo" })).toBeVisible();
     await page.waitForLoadState("networkidle");
     await expect(page.getByRole("heading", { level: 1, name: "Equipo" })).toBeVisible();

@@ -119,7 +119,7 @@ test("callback failure still clears hash before transport", async () => {
   window.history.replaceState(
     null,
     "",
-    "/admin#type=recovery&access_token=secret&refresh_token=refresh",
+    "/admin-anterior#type=recovery&access_token=secret&refresh_token=refresh",
   );
   vi.stubGlobal("fetch", async () => {
     expect(window.location.hash).toBe("");
@@ -129,7 +129,7 @@ test("callback failure still clears hash before transport", async () => {
   expect(window.location.hash).toBe("");
 });
 test("an anchor such as #hoy is not a sign-in link and stays in the address", async () => {
-  window.history.replaceState(null, "", "/admin/ayuda#hoy");
+  window.history.replaceState(null, "", "/admin-anterior/ayuda#hoy");
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
   expect(await acceptPasswordLink()).toBe(false);

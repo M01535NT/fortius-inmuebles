@@ -25,7 +25,7 @@ test("antes de la firma avisa con la liga al trámite ligado y el paso en que va
   data.tramites = [tramite()];
   render(<MortgageGateNotice operationId={OP} operacion="venta" stage="negociacion" next="cierre" blocked={false} />);
   expect(screen.getByText("La firma espera la cancelación de hipoteca")).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Abrir el trámite" }).getAttribute("href")).toBe("/admin/tramites?id=tr-1");
+  expect(screen.getByRole("link", { name: "Abrir el trámite" }).getAttribute("href")).toBe("/admin-anterior/tramites?id=tr-1");
   expect(screen.getByText(/Casa de ejemplo: va en/)).toBeTruthy();
   // FLX-03: no frena; dice que se puede pasar y que queda anotado.
   expect(screen.getByText(/Puedes pasar a la firma; quedará anotado en el historial/)).toBeTruthy();
@@ -34,7 +34,7 @@ test("antes de la firma avisa con la liga al trámite ligado y el paso en que va
 test("si el asesor no ve el trámite y el servidor frenó, lleva a la lista de trámites", () => {
   data.tramites = [];
   render(<MortgageGateNotice operationId={OP} operacion="venta" stage="negociacion" next="cierre" blocked />);
-  expect(screen.getByRole("link", { name: "Ver los trámites" }).getAttribute("href")).toBe("/admin/tramites");
+  expect(screen.getByRole("link", { name: "Ver los trámites" }).getAttribute("href")).toBe("/admin-anterior/tramites");
 });
 
 test("no avisa en renta, lejos de la firma, ni con la cancelación inscrita", () => {

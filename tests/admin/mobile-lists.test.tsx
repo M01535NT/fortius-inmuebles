@@ -7,12 +7,12 @@ vi.mock("@/components/admin/workspace/confirm", () => {
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { ContactsScreen } from "@/components/admin/contacts/contacts";
-import PropiedadesPage from "@/app/admin/propiedades/page";
+import PropiedadesPage from "@/app/admin-anterior/propiedades/page";
 import { clearAdminCache, db, type Lead } from "@/lib/admin/store";
 import { propiedades } from "../fixtures/propiedades";
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/contactos" }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin-anterior/contactos" }));
 
 const lead: Lead = {
   id: "lead-movil",
@@ -73,7 +73,7 @@ test("mobile contact rows show what the person wants and the next step; search a
   render(<ContactsScreen />);
   const list = await screen.findByRole("list", { name: "Contactos" });
   const link = within(list).getByRole("link", { name: new RegExp(lead.nombre) });
-  expect(link.getAttribute("href")).toBe(`/admin/leads/${lead.id}`);
+  expect(link.getAttribute("href")).toBe(`/admin-anterior/leads/${lead.id}`);
   // C40: hueco vacío en lugar de relleno.
   for (const filler of ["Por preguntar", "Zona por definir", "Sin siguiente paso", "Sin fecha"]) expect(link.textContent).not.toContain(filler);
   fireEvent.change(screen.getAllByRole("searchbox", { name: "Buscar nombre o teléfono" })[0], { target: { value: "sin coincidencia" } });
@@ -93,7 +93,7 @@ test("mobile property rows expose full details and preserve versioned changes an
   // LV-10f: cada inmueble se abre en su ficha rápida; ahí van estado, responsable y acciones.
   fireEvent.click(within(list).getByRole("button", { name: `Abrir ${property.titulo}` }));
   const ficha = within(await screen.findByRole("dialog", { name: property.titulo }));
-  expect(ficha.getByRole("link", { name: `Editar ${property.titulo}` }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
+  expect(ficha.getByRole("link", { name: `Editar ${property.titulo}` }).getAttribute("href")).toBe(`/admin-anterior/propiedades/${property.slug}/editar`);
   expect(ficha.getByText("Asesora de prueba")).toBeTruthy();
   fireEvent.keyDown(ficha.getByRole("combobox", { name: `Estado de ${property.titulo}` }), { key: "Enter" });
   fireEvent.click(await screen.findByRole("option", { name: "Apartada" }));
@@ -132,7 +132,7 @@ test("mobile property deletion requires confirmation and retains the row when th
 
 test("SIM-17 (FLX-01): «Agregar contacto» abre «Nuevo perfil» y no hay captura aparte en Contactos", async () => {
   render(<ContactsScreen />);
-  for (const link of screen.getAllByRole("link", { name: "Agregar contacto" })) expect(link.getAttribute("href")).toBe("/admin/personas?nuevo=1");
+  for (const link of screen.getAllByRole("link", { name: "Agregar contacto" })) expect(link.getAttribute("href")).toBe("/admin-anterior/personas?nuevo=1");
   expect(screen.queryByRole("button", { name: "Busca comprar o rentar" })).toBeNull();
   expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
   await screen.findByRole("list", { name: "Contactos" });

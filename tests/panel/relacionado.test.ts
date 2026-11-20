@@ -21,9 +21,9 @@ test("PN-03 relacionado: la persona enlaza su inmueble, sus próximas citas y su
     eventos: [ev({ clienteId: "c1" }), ev({ id: "vieja", clienteId: "c1", fecha: "2026-11-01" })],
   });
   expect(g.map((x) => x.titulo)).toEqual(["Inmueble que le interesa", "Próximas citas", "Consultas"]);
-  expect(g[0].enlaces[0].href).toBe("/panel/inmuebles?ver=FORTIUS-000001");
+  expect(g[0].enlaces[0].href).toBe("/admin/inmuebles?ver=FORTIUS-000001");
   expect(g[1].enlaces.map((e) => e.id)).toEqual(["e1"]);
-  expect(g[2].enlaces[0].href).toBe("/panel/consultas?ver=l1");
+  expect(g[2].enlaces[0].href).toBe("/admin/consultas?ver=l1");
 });
 
 test("PN-03 relacionado: el inmueble muestra quién pregunta y sus visitas; la consulta encuentra a la persona por teléfono", () => {

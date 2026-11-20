@@ -5,7 +5,7 @@ import { conflictFields, describeValue, fieldLabel, mergeChoice } from "@/lib/ad
 import { AdminShell } from "@/components/admin/admin-shell";
 import * as api from "@/lib/admin/store";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin/notas", useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin-anterior/notas", useRouter: () => ({ push: vi.fn() }) }));
 
 describe("comparación campo por campo (RP-17)", () => {
   const base = { id: "t1", titulo: "Llamar", vence: "2026-11-14", prioridad: "normal", historial: [{ id: "h1" }] };

@@ -48,7 +48,7 @@ it("prepara transferencia explícita por sesión sin datos privados en el enlace
   const payload = JSON.parse(sessionStorage.getItem("fortius.apps.inversiones.transfer.v1")!);
   expect(payload).toMatchObject({ version: 1, source: "rehabilitacion", input: { currency: "MXN" } });
   expect(payload.input.flows).toHaveLength(3);
-  expect(screen.getByRole("link", { name: "Abrir inversión con este presupuesto" }).getAttribute("href")).toBe("/admin/apps/inversiones?importar=rehabilitacion");
+  expect(screen.getByRole("link", { name: "Abrir inversión con este presupuesto" }).getAttribute("href")).toBe("/admin-anterior/apps/inversiones?importar=rehabilitacion");
 });
 it("cambia de magnitud a moneda y conserva fuente y fecha del tipo de cambio", () => {
   render(<Harness slug="conversor" />);

@@ -12,10 +12,10 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { PropertyForm } from "@/components/admin/property-form";
-import EditPropertyPage from "@/app/admin/propiedades/[slug]/editar/page";
-import LeadPage from "@/app/admin/leads/[id]/page";
-import ConfigPage from "@/app/admin/configuracion/page";
-import ContenidoPage from "@/app/admin/contenido/page";
+import EditPropertyPage from "@/app/admin-anterior/propiedades/[slug]/editar/page";
+import LeadPage from "@/app/admin-anterior/leads/[id]/page";
+import ConfigPage from "@/app/admin-anterior/configuracion/page";
+import ContenidoPage from "@/app/admin-anterior/contenido/page";
 import { ContactsScreen } from "@/components/admin/contacts/contacts";
 import {
   db,
@@ -25,7 +25,7 @@ import {
 } from "@/lib/admin/store";
 import type { Property } from "@/data/propiedades";
 const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams("tab=clientes"), usePathname: () => "/admin/contactos" }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams("tab=clientes"), usePathname: () => "/admin-anterior/contactos" }));
 const property: Property = {
   slug: "real",
   codigo: "C-1",
@@ -160,7 +160,7 @@ test("property edits preserve all multimedia and fields and never navigate on fa
   fireEvent.submit(
     screen.getByRole("button", { name: "Guardar cambios" }).closest("form")!,
   );
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/propiedades"));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin-anterior/propiedades"));
 });
 test("staff can save the public source and delivery facts on a property", async () => {
   await db.propiedades.load();

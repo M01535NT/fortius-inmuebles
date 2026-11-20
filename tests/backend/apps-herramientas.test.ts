@@ -38,8 +38,8 @@ describe("Catálogo de Herramientas (HER-01)", () => {
     expect(RETIRED_APPS.some(a => a.slug === "rehabilitacion")).toBe(false);
   });
   it("Comparables abre la opinión de valor sin operación en sus comparables (HER-05)", () => {
-    expect(appHref("comparables")).toBe("/admin/apps/documentos?formato=07&seccion=comparables");
-    expect(appHref("hipoteca")).toBe("/admin/apps/hipoteca");
+    expect(appHref("comparables")).toBe("/admin-anterior/apps/documentos?formato=07&seccion=comparables");
+    expect(appHref("hipoteca")).toBe("/admin-anterior/apps/hipoteca");
   });
 });
 
@@ -50,9 +50,9 @@ describe("Herramientas abiertas desde los datos (HER-05)", () => {
     expect(prefillFromUrl("ofertas", new URLSearchParams("precio=100"))).toEqual({ input: {}, context: {} });
   });
   it("un precio en dólares no se pasa a la hipoteca, que calcula en pesos", () => {
-    expect(hipotecaHref({ precio: 250000, moneda: "USD", inmueble: "depa" })).toBe("/admin/apps/hipoteca?inmueble=depa");
-    expect(hipotecaHref({ precio: 2_800_000.5, moneda: "MXN" })).toBe("/admin/apps/hipoteca?precio=2800000.5");
-    expect(hipotecaHref({})).toBe("/admin/apps/hipoteca");
+    expect(hipotecaHref({ precio: 250000, moneda: "USD", inmueble: "depa" })).toBe("/admin-anterior/apps/hipoteca?inmueble=depa");
+    expect(hipotecaHref({ precio: 2_800_000.5, moneda: "MXN" })).toBe("/admin-anterior/apps/hipoteca?precio=2800000.5");
+    expect(hipotecaHref({})).toBe("/admin-anterior/apps/hipoteca");
   });
   it("lee las ofertas de las propuestas de compra (14) sin recapturar", () => {
     const rows = ofertasDesdePropuestas([

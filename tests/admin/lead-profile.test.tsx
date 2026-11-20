@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { clearAdminCache, db, type Lead } from "@/lib/admin/store";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/contactos" }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin-anterior/contactos" }));
 let writes: Record<string, unknown>[] = [];
 beforeEach(() => {
   clearAdminCache(); writes = [];

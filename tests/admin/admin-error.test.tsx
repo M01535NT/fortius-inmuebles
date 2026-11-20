@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
-import AdminError from "@/app/admin/error";
+import AdminError from "@/app/admin-anterior/error";
 
 afterEach(cleanup);
 
@@ -14,5 +14,5 @@ test("SIM-11: el error del panel tranquiliza, permite reintentar y vuelve a Hoy,
   expect(screen.queryByText(/fallo interno/)).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
   expect(retry).toHaveBeenCalledOnce();
-  expect(screen.getByRole("link", { name: "Volver a Hoy" }).getAttribute("href")).toBe("/admin");
+  expect(screen.getByRole("link", { name: "Volver a Hoy" }).getAttribute("href")).toBe("/admin-anterior");
 });

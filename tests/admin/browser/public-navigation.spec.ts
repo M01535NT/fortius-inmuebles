@@ -77,7 +77,7 @@ test("leaving an initially loaded admin page restores public navigation", async 
     }
     return route.fulfill({ json: { records: [] } });
   });
-  await page.goto("/admin");
+  await page.goto("/admin-anterior");
   await page.getByRole("button", { name: "Menú del panel" }).click();
   await page.getByRole("link", { name: "Ver sitio", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -96,7 +96,7 @@ test("leaving an initially loaded admin page restores public navigation", async 
 });
 
 test("login offers a way back to the public site without signing in", async ({ page }) => {
-  await page.goto("/admin");
+  await page.goto("/admin-anterior");
   await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
   await page.getByRole("link", { name: "Volver al sitio" }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -104,7 +104,7 @@ test("login offers a way back to the public site without signing in", async ({ p
 });
 
 test("public and admin not-found pages return to the complete public site", async ({ page }) => {
-  for (const path of ["/ruta-inexistente-mnt", "/admin/ruta-inexistente-mnt"]) {
+  for (const path of ["/ruta-inexistente-mnt", "/admin/ruta-inexistente-mnt", "/admin-anterior/ruta-inexistente-mnt"]) {
     await page.goto(path);
     await expect(page.getByRole("heading", { name: "Página no encontrada." })).toBeVisible();
     await page.getByRole("link", { name: "Volver al inicio", exact: true }).click();
@@ -127,12 +127,12 @@ test("an admin render error stays inside the panel with a working way back to Ho
     return route.fulfill({ json: { records } });
   });
   // Contactos muestra los prospectos; el dato mal formado rompe su vista.
-  await page.goto("/admin/contactos");
+  await page.goto("/admin-anterior/contactos");
   // SIM-11: el error se queda dentro del panel, sin detalles técnicos, y ofrece volver a Hoy.
   await expect(page.getByRole("heading", { name: "No pudimos abrir esta página." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reintentar" })).toBeVisible();
   await page.getByRole("link", { name: "Volver a Hoy", exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/admin-anterior$/);
 });
 
 test("short phone screens can reach the first footer navigation link", async ({ page }) => {

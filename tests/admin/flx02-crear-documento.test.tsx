@@ -24,11 +24,11 @@ it("el inmueble crea el documento en el asunto elegido entre los suyos; sin asun
   const where = await screen.findByRole("combobox", { name: "Asunto donde se crea" });
   expect(where.textContent).toContain("EXP-000501");
   fireEvent.click(screen.getByRole("option", { name: /Opinión de valor comercial/ }));
-  expect(push).toHaveBeenLastCalledWith(`/admin/operaciones/${A}?crear=07`);
+  expect(push).toHaveBeenLastCalledWith(`/admin-anterior/operaciones/${A}?crear=07`);
   cleanup();
   dossiers.list = [];
   render(<PropertyCreateDocument slug="casa-ejemplo" />);
-  expect((await screen.findByRole("link", { name: /Abrir un asunto para sus documentos/ })).getAttribute("href")).toBe("/admin/operaciones?nuevo=1&inmueble=casa-ejemplo");
+  expect((await screen.findByRole("link", { name: /Abrir un asunto para sus documentos/ })).getAttribute("href")).toBe("/admin-anterior/operaciones?nuevo=1&inmueble=casa-ejemplo");
 });
 
 it("HER-04: el documento suelto pasa al asunto con sus datos (sin sus fotos) y se abre ahí; el suelto no se toca", async () => {
@@ -49,7 +49,7 @@ it("HER-04: el documento suelto pasa al asunto con sus datos (sin sus fotos) y s
   fireEvent.click(await screen.findByRole("combobox", { name: "Asunto" }));
   fireEvent.click(await screen.findByRole("option", { name: /Laura Méndez · EXP-000501/ }));
   fireEvent.click(pasar);
-  await waitFor(() => expect(push).toHaveBeenCalledWith(`/admin/operaciones/${A}?documento=d77`));
+  await waitFor(() => expect(push).toHaveBeenCalledWith(`/admin-anterior/operaciones/${A}?documento=d77`));
   // Con la versión guardada más reciente y sin las fotos del usuario; el trabajo suelto no se modifica.
   expect(calls.find(c => c.method === "POST")?.body).toEqual({ formatoId: "07", data: { fechaValor: "2026-11-15" } });
   expect(calls.filter(c => c.url.startsWith("/api/admin/apps/runs") && c.method !== "GET")).toEqual([]);

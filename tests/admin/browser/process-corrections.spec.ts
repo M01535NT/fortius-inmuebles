@@ -22,7 +22,7 @@ for(const width of [390,768,1440]) {
    const data=u.pathname.endsWith('/clientes')?clients:u.pathname.endsWith('/asesores')?[adviser]:[];
    return route.fulfill({json:{records:data.map(v=>({id:v.id,data:v,version:1}))}});
   });
-  await page.goto('/admin/operaciones/nueva');
+  await page.goto('/admin-anterior/operaciones/nueva');
   const seller=page.getByRole('radio',{name:/^Vender su inmueble/});await seller.focus();await page.keyboard.press('Enter');
   // SIM-17: elegir con el teclado avanza solo al paso 2.
   await expect(page.getByRole('heading',{name:'¿Quién es?'})).toBeVisible();
@@ -36,8 +36,8 @@ for(const width of [390,768,1440]) {
   await page.screenshot({path:info.outputPath('contacto-'+width+'.png'),fullPage:true});
   for(const [i,r] of routes.entries()){
    // La dirección anterior con ?expediente= abre la operación guiada.
-   await page.goto('/admin/operaciones?expediente='+ops[i].id);
-   await expect(page).toHaveURL(new RegExp('/admin/operaciones/'+ops[i].id));
+   await page.goto('/admin-anterior/operaciones?expediente='+ops[i].id);
+   await expect(page).toHaveURL(new RegExp('/admin-anterior/operaciones/'+ops[i].id));
    await expect(page.getByText(ops[i].folio,{exact:true})).toBeVisible();
    const guide=page.getByRole('region',{name:'Esta etapa'});await expect(guide).toBeVisible();
    // Los estados de cada requisito están en «Más», junto a «Confirmar».

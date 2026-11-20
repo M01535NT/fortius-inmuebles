@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
-const nav = vi.hoisted(() => ({ path: "/admin/operaciones", search: new URLSearchParams(), listeners: new Set<() => void>(), push: vi.fn() }));
+const nav = vi.hoisted(() => ({ path: "/admin-anterior/operaciones", search: new URLSearchParams(), listeners: new Set<() => void>(), push: vi.fn() }));
 vi.mock("next/navigation", async () => {
   const react = await import("react");
   const subscribe = (cb: () => void) => { nav.listeners.add(cb); return () => nav.listeners.delete(cb); };
@@ -71,7 +71,7 @@ function respond(url: string, init?: RequestInit): Response | Promise<Response> 
 }
 beforeEach(() => {
   clearAdminCache(); vi.mocked(confirmAction).mockReset().mockResolvedValue(true); nav.push.mockReset();
-  nav.path = "/admin/operaciones"; nav.search = new URLSearchParams();
+  nav.path = "/admin-anterior/operaciones"; nav.search = new URLSearchParams();
   vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-16T18:00:00Z"));
   server = { ops: [base()], deleted: [], docs: [], emissions: {}, tasks: [], activity: [], runs: {}, puts: [], methods: [] };
   vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => respond(url, init)));
@@ -90,7 +90,7 @@ function intakeDone() {
   server.tasks.push({ id: `checklist-${ID}`, titulo: "Reunir los documentos del propietario", estado: "completada", prioridad: "normal", categoria: "documentacion", pasos: [{ id: "D01", texto: "D01 · Escritura", hecho: true }], expedienteId: ID, asesorId: "a1" });
 }
 async function openOperation(tab?: string) {
-  nav.path = `/admin/operaciones/${ID}`; nav.search = new URLSearchParams(tab ? { tab } : {});
+  nav.path = `/admin-anterior/operaciones/${ID}`; nav.search = new URLSearchParams(tab ? { tab } : {});
   render(<OperationScreen id={ID} />);
   // Con «Ajustes» abierto (panel lateral modal de Radix), el fondo queda oculto al lector de pantalla.
   await screen.findByRole("heading", { level: 1, name: "Familia Castañeda Ortiz", hidden: !!tab });
@@ -374,7 +374,7 @@ it("Ajustes ofrece como contraparte al interesado que busca esa operación, no u
   expect((screen.getByLabelText("Contraparte externa y respaldo") as HTMLTextAreaElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Guardar ajustes" }));
   await waitFor(() => expect(server.puts.at(-1)?.body).toMatchObject({ flujo: { contraparteLeadId: "lead-renta" } }));
-  expect(screen.getByRole("link", { name: "Programar una cita" }).getAttribute("href")).toBe(`/admin/agenda?expediente=${ID}`);
+  expect(screen.getByRole("link", { name: "Programar una cita" }).getAttribute("href")).toBe(`/admin-anterior/agenda?expediente=${ID}`);
 });
 
 it("una operación de búsqueda de renta ya abierta se muestra como histórica y conserva su contraparte (COR-11)", async () => {
@@ -549,7 +549,7 @@ it("la lista separa lo que espera algo de ti, filtra por urgencia sin mostrar et
   await waitFor(() => expect(nav.search.get("urgencia")).toBeNull());
   const waiting = screen.getByRole("region", { name: /Esperan algo de ti/ });
   const castaneda = within(waiting).getByRole("link", { name: /Familia Castañeda Ortiz/ });
-  expect(castaneda.getAttribute("href")).toBe(`/admin/operaciones/${ID}`);
+  expect(castaneda.getAttribute("href")).toBe(`/admin-anterior/operaciones/${ID}`);
   expect(within(castaneda).getByText("Tarea vencida")).toBeTruthy();
   expect(within(castaneda).getByText("Vencido · 14 oct")).toBeTruthy();
   expect(within(waiting).getByRole("link", { name: /EXP-SIN-CLIENTE\. Falta la entrevista inicial/ })).toBeTruthy();
@@ -604,7 +604,7 @@ it("Alta directa no pide folio, protege la captura al salir, permite descartar y
   await waitFor(() => expect((unit as HTMLInputElement).value).toBe(""));
   await pickCombo(screen.getByRole("combobox", { name: "Cliente" }), "Familia Castañeda Ortiz");
   fireEvent.click(screen.getByRole("button", { name: "Abrir asunto" }));
-  await waitFor(() => expect(nav.push).toHaveBeenCalledWith(`/admin/operaciones/${ID2}`));
+  await waitFor(() => expect(nav.push).toHaveBeenCalledWith(`/admin-anterior/operaciones/${ID2}`));
 });
 
 it("el tablero reúne todas las páginas de la consulta y solo lee, sin escribir", async () => {
@@ -679,14 +679,14 @@ it("FLX-02: «Crear documento» crea cualquier formato sin entrevista ni etapa y
   expect(screen.queryByRole("option", { name: /Tablero y control comercial/ })).toBeNull();
 });
 it("FLX-02: ?crear=<formato> (desde la persona o el inmueble) crea y abre ese formato una vez y lo quita de la dirección", async () => {
-  nav.path = `/admin/operaciones/${ID}`; nav.search = new URLSearchParams({ crear: "07" });
+  nav.path = `/admin-anterior/operaciones/${ID}`; nav.search = new URLSearchParams({ crear: "07" });
   render(<OperationScreen id={ID} />);
   await screen.findByRole("dialog", { name: /Opinión de valor/ });
   expect(server.docs.map(d => d.formato_id)).toEqual(["07"]);
   await waitFor(() => expect(nav.search.has("crear")).toBe(false));
   cleanup();
   // Un formato que no se ofrece (el 03 es la cartera global) no crea nada.
-  nav.path = `/admin/operaciones/${ID}`; nav.search = new URLSearchParams({ crear: "03" });
+  nav.path = `/admin-anterior/operaciones/${ID}`; nav.search = new URLSearchParams({ crear: "03" });
   render(<OperationScreen id={ID} />);
   await screen.findByRole("button", { name: "Crear documento" });
   await waitFor(() => expect(nav.search.has("crear")).toBe(false));

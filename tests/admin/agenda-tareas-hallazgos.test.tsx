@@ -1,6 +1,6 @@
 const confirmAction = vi.hoisted(() => vi.fn().mockResolvedValue(false));
 vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction, confirmDelete: vi.fn().mockResolvedValue(false) }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/agenda" }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin-anterior/agenda" }));
 import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";

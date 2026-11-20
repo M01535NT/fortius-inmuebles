@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
-import ReportesPage from "@/app/admin/reportes/page";
+import ReportesPage from "@/app/admin-anterior/reportes/page";
 import { clearAdminCache } from "@/lib/admin/store";
 
 vi.mock("@/lib/admin/store", async importOriginal => {

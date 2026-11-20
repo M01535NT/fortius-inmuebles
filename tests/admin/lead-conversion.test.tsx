@@ -2,12 +2,12 @@ import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { ContactsScreen } from "@/components/admin/contacts/contacts";
-import LeadDetail from "@/app/admin/leads/[id]/page";
-import ClientDetail from "@/app/admin/clientes/[id]/page";
-import Dashboard from "@/app/admin/page";
+import LeadDetail from "@/app/admin-anterior/leads/[id]/page";
+import ClientDetail from "@/app/admin-anterior/clientes/[id]/page";
+import Dashboard from "@/app/admin-anterior/page";
 import { clearAdminCache, db, convertirLead, type Lead, type Cliente } from "@/lib/admin/store";
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/contactos" }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin-anterior/contactos" }));
 const original: Lead = { id: "l1", nombre: "Persona capturada", telefono: "6641234567", email: "persona@example.invalid", origen: "manual", estado: "contactado", asesorId: "a1", creadoEl: "2026-10-04", notas: [{ id: "n1", texto: "Seguimiento antes de convertir", fecha: "2026-10-04" }], zona: "Otay", tipoPropiedad: "casa", mensaje: "Consulta inicial", perfil: { operacion: "comprar", presupuestoMax: 250000, moneda: "USD", requisitos: "Acceso sin escalones", futureField: "conservar" } };
 const cliente: Cliente = { ...original, id: "c1", tipo: "comprador", notas: "", creadoEl: "2026-10-05", actualizadoEl: "2026-10-05", leadId: "l1", convertidoEl: "2026-10-05", leadOriginal: original };
 const record = <T extends { id: string }>(data: T, version: number) => ({ id: data.id, data, version, createdAt: "2026-10-04", updatedAt: "2026-10-05" });
@@ -52,14 +52,14 @@ test("COR-10: la ficha no convierte a mano; con registro de cliente y sin firma 
   const filters = within(screen.getByRole("group", { name: "Mostrar personas" }));
   fireEvent.click(filters.getByRole("button", { name: /^En seguimiento/ }));
   const links = await within(await screen.findByRole("list", { name: "Contactos" })).findAllByRole("link", { name: /Persona capturada/ });
-  expect(new Set(links.map(link => link.getAttribute("href")))).toEqual(new Set(["/admin/clientes/c1"]));
+  expect(new Set(links.map(link => link.getAttribute("href")))).toEqual(new Set(["/admin-anterior/clientes/c1"]));
   fireEvent.click(filters.getByRole("button", { name: /^Clientes/ }));
   expect(screen.getByText("Nadie coincide con la búsqueda")).toBeTruthy();
 });
 
 test("preparar operación abre la entrevista sin convertir prematuramente",async()=>{
  currentLead = { ...original, perfil: { ...original.perfil, operacion: "vender" } };
- await detail("lead");expect((await screen.findByRole("link",{name:"Abrir asunto"})).getAttribute("href")).toBe("/admin/operaciones/nueva?leadId=l1&intencion=vender");expect(posts).toEqual([]);expect(db.clientes.list()).toEqual([]);
+ await detail("lead");expect((await screen.findByRole("link",{name:"Abrir asunto"})).getAttribute("href")).toBe("/admin-anterior/operaciones/nueva?leadId=l1&intencion=vender");expect(posts).toEqual([]);expect(db.clientes.list()).toEqual([]);
 });
 test("la conversión explícita conserva el lead tras fallo y permite reintentar",async()=>{
  await db.leads.load();fail=true;await expect(convertirLead(db.leads.list()[0])).rejects.toThrow("Servicio temporalmente");expect(db.clientes.list()).toEqual([]);fail=false;await convertirLead(db.leads.list()[0]);expect(db.clientes.list()[0].id).toBe("c1");
@@ -76,7 +76,7 @@ test("la ficha del cliente muestra el perfil, asesor, historial y contacto hered
   expect(screen.getByText("250,000 USD", { exact: true })).toBeTruthy();
   expect(screen.getByText("Ana Asesora", { exact: true })).toBeTruthy();
   expect(screen.getByText(original.notas[0].texto, { exact: true })).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Ver su historial como prospecto" }).getAttribute("href")).toBe("/admin/leads/l1");
+  expect(screen.getByRole("link", { name: "Ver su historial como prospecto" }).getAttribute("href")).toBe("/admin-anterior/leads/l1");
   fireEvent.click(screen.getByRole("button", { name: "Editar cliente" }));
   expect((screen.getByLabelText("Correo electrónico", { exact: true }) as HTMLInputElement).value).toBe(original.email);
   fireEvent.change(screen.getByLabelText("Presupuesto máximo", { exact: true }), { target: { value: "260000" } });

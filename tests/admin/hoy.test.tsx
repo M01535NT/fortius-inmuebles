@@ -1,7 +1,7 @@
 import * as React from "react";
 import { afterEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import AdminDashboard from "@/app/admin/page";
+import AdminDashboard from "@/app/admin-anterior/page";
 import { clearAdminCache } from "@/lib/admin/store";
 import { resetTodayData } from "@/components/admin/workspace/use-today-queue";
 import { requirementName, greeting, interviewProgress, interviewSummary, longDate, overdueReports, queueFromExpiry, queueFromInterviews, queueFromLeads, queueFromReports, queueFromWaiting, sortQueue, todayTasks, upcomingItems, waitingItems, weekDays, type TodayDossier } from "@/lib/admin/today";
@@ -26,7 +26,7 @@ test("Esperan algo de ti shows one card per operation with its most urgent reaso
   ] });
   expect(items.map(i => i.folio)).toEqual(["EXP-2026-038", "EXP-2026-041"]);
   // C35: el título es el problema y el requisito va en la línea secundaria, sin folio.
-  expect(items[0]).toMatchObject({ who: "Familia Navarro", reason: "Falta la firma del copropietario.", when: "Desde el 13 oct", late: true, href: "/admin/operaciones/d1" });
+  expect(items[0]).toMatchObject({ who: "Familia Navarro", reason: "Falta la firma del copropietario.", when: "Desde el 13 oct", late: true, href: "/admin-anterior/operaciones/d1" });
   expect(items[0].detail).toBe("Quién es dueño y quién firma · Casa en Playas · Dictamen jurídico");
   const silent = waitingItems({ today, names, offers: [], followups: [], tasks: [], dossiers: [dossier({ requisitos: { titularidad: review("observado", { soporte: " " }) } })] });
   expect(silent[0].reason).toBe("Hay un problema con «Quién es dueño y quién firma».");
@@ -83,14 +83,14 @@ test("the overdue task behind a waiting card is named so «Tareas de hoy» does 
 });
 
 test("SIM-16: the single queue puts what is late first, then by kind, and names each pending once", () => {
-  const waiting = waitingItems({ today, names, offers: [], followups: [{ id: "f1", kind: "lead", personId: "l1", personName: "Rosa Prospecto", fecha: today, href: "/admin/leads/l1" }], tasks: [task({ id: "late", expedienteId: "d1", vence: "2026-10-13", titulo: "Pedir el predial" })], dossiers: [
+  const waiting = waitingItems({ today, names, offers: [], followups: [{ id: "f1", kind: "lead", personId: "l1", personName: "Rosa Prospecto", fecha: today, href: "/admin-anterior/leads/l1" }], tasks: [task({ id: "late", expedienteId: "d1", vence: "2026-10-13", titulo: "Pedir el predial" })], dossiers: [
     dossier({}), dossier({ id: "d2", folio: "EXP-2026-041", requisitos: { valor: review("recibido", { registradoEl: `${today}T09:00:00Z` }) } }),
   ] });
   const queue = sortQueue([
     ...queueFromWaiting(waiting),
-    ...queueFromLeads([{ id: "w1", who: "Llegó del sitio", detail: "Dejó sus datos", since: "Lleva 3 h sin respuesta", late: true, href: "/admin/leads/w1", forDirector: true }, { id: "w2", who: "Recién llegado", detail: "Dejó sus datos", since: "Llegó hace 5 min", late: false, href: "/admin/leads/w2", forDirector: true }]),
+    ...queueFromLeads([{ id: "w1", who: "Llegó del sitio", detail: "Dejó sus datos", since: "Lleva 3 h sin respuesta", late: true, href: "/admin-anterior/leads/w1", forDirector: true }, { id: "w2", who: "Recién llegado", detail: "Dejó sus datos", since: "Llegó hace 5 min", late: false, href: "/admin-anterior/leads/w2", forDirector: true }]),
     ...queueFromInterviews([{ id: "e1", intencion: "vender", respuestas: {}, estado: "borrador", version: 1, contacto: { nombre: "Héctor Gaxiola" }, updated_at: "2026-10-15T10:00:00Z" } as never]),
-    ...queueFromExpiry([{ id: "contrato:d2", date: "2026-10-20", kind: "Contrato", text: "El contrato de servicio vence en 4 días.", meta: "Familia Navarro · Exclusiva", late: false, href: "/admin/operaciones/d2" }]),
+    ...queueFromExpiry([{ id: "contrato:d2", date: "2026-10-20", kind: "Contrato", text: "El contrato de servicio vence en 4 días.", meta: "Familia Navarro · Exclusiva", late: false, href: "/admin-anterior/operaciones/d2" }]),
     ...queueFromReports(overdueReports({ today, names, reports: { d2: "2026-09-01T12:00:00Z" }, dossiers: [dossier({ id: "d2", folio: "EXP-2026-041", etapa: "comercializacion" })] })),
   ]);
   expect(queue.map(item => [item.kind, item.who, item.late])).toEqual([
@@ -155,7 +155,7 @@ test("a task is marked done from Hoy and the change is saved", async () => {
 });
 
 test("C40: a client with an active operation is not listed again for the profile follow-up", () => {
-  const followup = { id: "f1", kind: "cliente" as const, personId: "c1", personName: "Familia Navarro", fecha: "2026-10-10", href: "/admin/clientes/c1" };
+  const followup = { id: "f1", kind: "cliente" as const, personId: "c1", personName: "Familia Navarro", fecha: "2026-10-10", href: "/admin-anterior/clientes/c1" };
   const scheduled = [task({ expedienteId: "d1", vence: "2026-10-20" })];
   expect(waitingItems({ today, names, offers: [], tasks: scheduled, followups: [followup], dossiers: [dossier({})] })).toEqual([]);
   expect(waitingItems({ today, names, offers: [], tasks: [], followups: [followup], dossiers: [] }).map(i => i.reason)).toEqual(["Darle seguimiento"]);
@@ -206,12 +206,12 @@ test("CRM-01: al director, el prospecto de otro asesor que pasó el plazo sube a
   ];
   const items = unattendedLeads({ leads, properties: [], me: "a1", admin: true, now, adviserName: id => id === "a2" ? "Rubén" : id === "a1" ? "Dirección" : undefined });
   const director = queueFromLeads(items, { admin: true, me: "a1" });
-  expect(director.find(i => i.id === "plazo:w1")).toMatchObject({ kind: "plazo", late: true, href: "/admin/leads/w1#reasignar", detail: "Le toca a Rubén: llámale tú o reasígnala", when: "Lleva 3 h sin respuesta" });
+  expect(director.find(i => i.id === "plazo:w1")).toMatchObject({ kind: "plazo", late: true, href: "/admin-anterior/leads/w1#reasignar", detail: "Le toca a Rubén: llámale tú o reasígnala", when: "Lleva 3 h sin respuesta" });
   expect(director.find(i => i.id === "plazo:w1")?.leadId).toBeUndefined();
   // A tiempo, sin asesor o propio del director: sigue como «Nuevo».
   expect(director.filter(i => i.kind === "nuevo").map(i => i.leadId)).toEqual(["w3", "w4", "w2"]);
   // Sube por encima de un problema de operación vencido.
-  const problem = queueFromWaiting([{ id: "op", kind: "problema", rank: 0, who: "EXP-1", reason: "Problema", late: true, href: "/admin/operaciones/op", sort: "EXP-1" } as never]);
+  const problem = queueFromWaiting([{ id: "op", kind: "problema", rank: 0, who: "EXP-1", reason: "Problema", late: true, href: "/admin-anterior/operaciones/op", sort: "EXP-1" } as never]);
   expect(sortQueue([...problem, ...director])[0].id).toBe("plazo:w1");
   // El asesor ve su propio vencido como «Nuevo», no como aviso.
   expect(queueFromLeads(unattendedLeads({ leads, properties: [], me: "a2", admin: false, now }), { admin: false, me: "a2" }).map(i => i.kind)).toEqual(["nuevo", "nuevo"]);

@@ -40,9 +40,9 @@ test("la bandeja junta menciones de lo que puedes ver, tareas que te asignaron y
   expect(items.map(item => item.key)).toEqual([
     "mencion:n4:2026-11-14T12:00:00Z", "mencion:n1:2026-11-14T10:00:00Z", "respuesta:t1:2026-11-14T09:00:00Z", "asignacion:t1",
   ]);
-  expect(items[0]).toMatchObject({ title: "Te mencionaron en Familia Navarro", href: "/admin/operaciones/d1?notas=1" });
-  expect(items[1]).toMatchObject({ title: "Te mencionaron en Casa en Playas", who: "Marco", href: "/admin/propiedades/casa/editar?notas=1" });
-  expect(items[3]).toMatchObject({ title: "Te asignaron una tarea", text: "Pedir el predial", href: "/admin/tareas/t1" });
+  expect(items[0]).toMatchObject({ title: "Te mencionaron en Familia Navarro", href: "/admin-anterior/operaciones/d1?notas=1" });
+  expect(items[1]).toMatchObject({ title: "Te mencionaron en Casa en Playas", who: "Marco", href: "/admin-anterior/propiedades/casa/editar?notas=1" });
+  expect(items[3]).toMatchObject({ title: "Te asignaron una tarea", text: "Pedir el predial", href: "/admin-anterior/tareas/t1" });
 });
 
 test("lo leído se guarda acotado y solo cuenta cuando ya llegó del servidor", () => {

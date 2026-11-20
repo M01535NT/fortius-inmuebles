@@ -82,7 +82,7 @@ describe("estados del archivo", () => {
     expect(listo.estado).toBe("por-confirmar");
     expect(textoEstado(listo)).toMatch(/^Por confirmar/);
     expect(guardando(listo).estado).toBe("guardando");
-    const g = guardadoEn(listo, { clase: "asunto", expedienteId: "e", archivoId: "x", titulo: "INE frente", texto: "En el asunto Venta (F-1)", href: "/panel/asuntos?ver=e" });
+    const g = guardadoEn(listo, { clase: "asunto", expedienteId: "e", archivoId: "x", titulo: "INE frente", texto: "En el asunto Venta (F-1)", href: "/admin/asuntos?ver=e" });
     expect(g.carga).toBeNull();
     expect(textoEstado(g)).toBe("En el asunto Venta (F-1)");
     const d = deshecho(g);

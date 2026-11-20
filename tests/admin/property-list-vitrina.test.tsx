@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), usePathname: () => "/admin/propiedades", useSearchParams: () => new URLSearchParams() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), usePathname: () => "/admin-anterior/propiedades", useSearchParams: () => new URLSearchParams() }));
 vi.mock("@/components/admin/workspace/use-person-status", () => ({ usePersonStatus: () => ({ ofClient: () => undefined, ofLead: () => undefined, ofProperty: () => undefined }) }));
 const guardados = vi.hoisted(() => vi.fn(async (item: unknown, version?: number) => (void version, item)));
 vi.mock("@/lib/admin/store", async importOriginal => {
@@ -27,7 +27,7 @@ it("la vitrina dice qué pide cada inmueble y lleva a resolverlo", () => {
   render(<PropertyList />);
   const vitrina = within(screen.getByRole("region", { name: /Piden algo hoy/ }));
   expect(vitrina.getByText("Le falta fotos")).toBeTruthy();
-  expect(vitrina.getByRole("link", { name: "Completar: Departamento en Zona Río" }).getAttribute("href")).toBe("/admin/propiedades/depa-rio/editar");
+  expect(vitrina.getByRole("link", { name: "Completar: Departamento en Zona Río" }).getAttribute("href")).toBe("/admin-anterior/propiedades/depa-rio/editar");
   expect(vitrina.queryByText("Casa en Chapultepec")).toBeNull();
 });
 
@@ -73,6 +73,6 @@ it("J y K se mueven entre los inmuebles y cada uno se abre en su ficha rápida",
   expect(document.activeElement).toBe(casa);
   fireEvent.click(depa);
   const ficha = within(await screen.findByRole("dialog", { name: "Departamento en Zona Río" }));
-  expect(ficha.getByRole("link", { name: "Subir fotos" }).getAttribute("href")).toBe("/admin/propiedades/depa-rio/editar");
+  expect(ficha.getByRole("link", { name: "Subir fotos" }).getAttribute("href")).toBe("/admin-anterior/propiedades/depa-rio/editar");
   expect(ficha.getByRole("link", { name: "Completar: Departamento en Zona Río" })).toBeTruthy();
 });

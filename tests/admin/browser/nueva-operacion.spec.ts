@@ -75,7 +75,7 @@ for (const width of [320, 390, 768, 1440]) {
       await page.waitForTimeout(400); // vuelve al modo claro antes de medir el contraste
     };
 
-    await page.goto("/admin/operaciones/nueva");
+    await page.goto("/admin-anterior/operaciones/nueva");
     await expect(page.getByRole("heading", { name: "¿Qué quiere hacer el cliente?" })).toBeVisible();
     await expect(page.getByText("Paso 1 de 4")).toBeVisible();
     // SIM-17: el paso 1 avanza al elegir; no hay «Continuar» que pulsar.
@@ -105,7 +105,7 @@ for (const width of [320, 390, 768, 1440]) {
     await expect(page.getByRole("heading", { name: "Listo, el asunto está creado" })).toBeVisible();
     await expect(page.getByText("Paso 4 de 4")).toBeVisible();
     await expect(page.getByText("EXP-2030-001")).toBeVisible();
-    await expect(page.getByRole("link", { name: /Abrir el asunto/ })).toHaveAttribute("href", "/admin/operaciones/exp-qa");
+    await expect(page.getByRole("link", { name: /Abrir el asunto/ })).toHaveAttribute("href", "/admin-anterior/operaciones/exp-qa");
     await shot("paso-4");
     if (width === 1440) await noAxeViolations(page);
 

@@ -93,7 +93,7 @@ it("avisa si el teléfono ya está registrado y usa esa ficha cuando es la misma
   expect(lead).toMatchObject({ id: "lead-1", estado: "contactado", zona: "Otay", perfil: { operacion: "comprar", presupuestoMax: 2500000, moneda: "MXN", formaPago: "credito", tipoCredito: "infonavit", proximaAccion: "Enviarle opciones que cumplan su perfil" } });
   expect(lead.notas.at(-1).texto).toContain("sin abrir asunto");
   expect(request.mock.calls.some(c => c[1] === "POST")).toBe(false);
-  expect(screen.getByRole("link", { name: /Ver su ficha/ }).getAttribute("href")).toBe("/admin/leads/lead-1");
+  expect(screen.getByRole("link", { name: /Ver su ficha/ }).getAttribute("href")).toBe("/admin-anterior/leads/lead-1");
 });
 
 it("una entrevista de compra a medias ya no abre operación: lleva a guardarlo como interesado (COR-11)", async () => {
@@ -101,7 +101,7 @@ it("una entrevista de compra a medias ya no abre operación: lleva a guardarlo c
   request.mockResolvedValue({ entrevista: { ...interview, intencion: "comprar" } });
   render(<NewOperationWizard />);
   expect(await screen.findByText("Esta entrevista ya no abre asunto")).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Guardarlo como interesado" }).getAttribute("href")).toBe("/admin/operaciones/nueva?intencion=comprar&leadId=lead");
+  expect(screen.getByRole("link", { name: "Guardarlo como interesado" }).getAttribute("href")).toBe("/admin-anterior/operaciones/nueva?intencion=comprar&leadId=lead");
 });
 
 it("guarda lo capturado con la versión actual y lo conserva si el servidor rechaza", async () => {
@@ -166,7 +166,7 @@ it("al terminar la entrevista muestra la operación creada", async () => {
   expect(request.mock.calls.find(c => c[1] === "PUT")?.[2]).toMatchObject({ completar: true, respuestas: { relacion: "por_aclarar", ocupacion: "por_aclarar", alertas: "por_aclarar", siguienteAccion: "Entrevista inicial en persona" } });
   expect(screen.getByText("Lo encuentras en Asuntos, en la etapa Prospecto.")).toBeTruthy();
   expect(await screen.findByText("EXP-2026-047")).toBeTruthy();
-  expect(screen.getByRole("link", { name: /Abrir el asunto/ }).getAttribute("href")).toBe("/admin/operaciones/exp-1");
+  expect(screen.getByRole("link", { name: /Abrir el asunto/ }).getAttribute("href")).toBe("/admin-anterior/operaciones/exp-1");
   expect(screen.getByText("Paso 4 de 4")).toBeTruthy();
 });
 

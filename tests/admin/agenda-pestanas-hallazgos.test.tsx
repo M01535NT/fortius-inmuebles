@@ -1,6 +1,6 @@
 const confirmAction = vi.hoisted(() => vi.fn().mockResolvedValue(false));
 vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction, confirmDelete: vi.fn().mockResolvedValue(false) }));
-const nav = vi.hoisted(() => ({ path: "/admin/agenda", search: new URLSearchParams(), listeners: new Set<() => void>() }));
+const nav = vi.hoisted(() => ({ path: "/admin-anterior/agenda", search: new URLSearchParams(), listeners: new Set<() => void>() }));
 vi.mock("next/navigation", async () => {
   const react = await import("react");
   const subscribe = (cb: () => void) => { nav.listeners.add(cb); return () => nav.listeners.delete(cb); };
@@ -10,7 +10,7 @@ vi.mock("next/navigation", async () => {
 import * as React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, beforeEach, expect, test, vi } from "vitest";
-import AgendaPage from "@/app/admin/agenda/page";
+import AgendaPage from "@/app/admin-anterior/agenda/page";
 import { clearAdminCache } from "@/lib/admin/store";
 
 beforeAll(() => {
@@ -20,7 +20,7 @@ beforeAll(() => {
 beforeEach(() => {
   clearAdminCache();
   confirmAction.mockClear();
-  nav.path = "/admin/agenda"; nav.search = new URLSearchParams("tab=tareas");
+  nav.path = "/admin-anterior/agenda"; nav.search = new URLSearchParams("tab=tareas");
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ records: [] })));
 });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });

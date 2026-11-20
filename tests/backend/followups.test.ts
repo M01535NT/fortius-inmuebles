@@ -12,7 +12,7 @@ const cliente = (id: string, fecha: string, extra: Partial<Cliente> = {}): Clien
 
 test("a converted lead produces one client followup and keeps the responsible adviser", () => {
   const items = projectFollowups([lead("lead1", "2026-09-20", { clienteId: "client1", asesorId: "old" })], [cliente("client1", "2026-09-21", { leadId: "lead1", asesorId: "new" })]);
-  expect(items).toEqual([{ id: "cliente:client1", kind: "cliente", personId: "client1", personName: "Cliente client1", asesorId: "new", fecha: "2026-09-21", href: "/admin/clientes/client1" }]);
+  expect(items).toEqual([{ id: "cliente:client1", kind: "cliente", personId: "client1", personName: "Cliente client1", asesorId: "new", fecha: "2026-09-21", href: "/admin-anterior/clientes/client1" }]);
 });
 
 test("closed leads are excluded; today's followup is not overdue", () => {

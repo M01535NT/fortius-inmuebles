@@ -120,7 +120,7 @@ test("un problema guarda título y explicación; un revisado dice quién y cuán
 test("la tarjeta del tablero muestra la próxima tarea, lo vencido y su columna", () => {
   const names = { client: (id?: string) => id === "c1" ? "Familia Navarro" : undefined, property: (slug?: string | null) => slug === "casa" ? "Casa en Playas" : undefined };
   const card = boardCard(op({ etapa: "documentacion" }), [task({ vence: "2026-10-14", titulo: "Pedir la firma" }), task({ id: "t2", vence: "2026-10-30" })], today, names, "a1");
-  expect(card).toMatchObject({ who: "Familia Navarro", property: "Casa en Playas", next: "Pedir la firma", date: "2026-10-14", late: true, mine: true, column: 4, href: "/admin/operaciones/51000000-0000-4000-8000-000000000001" });
+  expect(card).toMatchObject({ who: "Familia Navarro", property: "Casa en Playas", next: "Pedir la firma", date: "2026-10-14", late: true, mine: true, column: 4, href: "/admin-anterior/operaciones/51000000-0000-4000-8000-000000000001" });
   expect(boardCard(op({ cliente_id: "x", propiedad_slug: null }), [], today, names).next).toBe("Agendar la próxima tarea");
   expect([dueLabel("2026-10-14", today), dueLabel(today, today), dueLabel("2026-10-20", today), dueLabel(undefined, today)]).toEqual(["Vencido · 14 oct", "Hoy", "20 oct", "Sin fecha"]);
 });

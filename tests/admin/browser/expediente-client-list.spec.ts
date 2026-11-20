@@ -29,7 +29,7 @@ for (const width of [390, 768, 1440]) {
       const data = url.pathname.endsWith("/clientes") ? clients : url.pathname.endsWith("/asesores") ? [{ id: "adviser", nombre: "Nallely De la Cruz", activo: true }] : [];
       return route.fulfill({ json: { records: data.map(item => ({ id: item.id, data: item, version: 1 })) } });
     });
-    await page.goto("/admin/operaciones");
+    await page.goto("/admin-anterior/operaciones");
     await expect(page.getByRole("heading", { name: "Asuntos", exact: true })).toBeVisible();
     // Lista del boceto C: «Esperan algo de ti» y «Al día», con filtro por urgencia (titular, 15/11/2026).
     const waiting = page.getByRole("region", { name: /Esperan algo de ti/ });
@@ -51,7 +51,7 @@ for (const width of [390, 768, 1440]) {
     await expect(waiting.getByRole("link", { name: /Juan Ibarra/ })).toHaveCount(0);
     await search.fill("EXP-000002");
     await waiting.getByRole("link", { name: /Juan Ibarra/ }).click();
-    await expect(page).toHaveURL(new RegExp(`/admin/operaciones/${ids[1]}$`));
+    await expect(page).toHaveURL(new RegExp(`/admin-anterior/operaciones/${ids[1]}$`));
     await expect(page.getByRole("heading", { level: 1, name: "Juan Ibarra" })).toBeVisible();
     await expect(page.getByText(/^Etapa 1 de 10/).filter({ visible: true }).first()).toBeVisible();
     await expect(page.getByRole("region", { name: "Siguiente acción" }).getByRole("heading", { level: 2, name: "Hacer la entrevista inicial" })).toBeVisible();
@@ -61,7 +61,7 @@ for (const width of [390, 768, 1440]) {
     await page.getByRole("link", { name: /^(Volver a )?Asuntos$/ }).filter({ visible: true }).first().click();
     await page.getByRole("link", { name: "Ver eliminados" }).click();
     await expect(page.getByText("No hay asuntos eliminados")).toBeVisible();
-    await page.goto("/admin/operaciones/nueva");
+    await page.goto("/admin-anterior/operaciones/nueva");
     await expect(page.getByRole("heading", { name: "¿Qué quiere hacer el cliente?" })).toBeVisible();
     expect(errors).toEqual([]);
   });

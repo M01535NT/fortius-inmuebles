@@ -20,7 +20,7 @@ beforeEach(() => {
     if (init?.method === "PUT") { const body = JSON.parse(String(init.body)); writes.push(body); return Response.json({ record: { id: body.data.slug, data: body.data, version: 1, createdAt: "2026-11-12", updatedAt: "2026-11-12" } }); }
     return Response.json({ records: [] });
   }));
-  window.history.pushState({}, "", "/admin/propiedades/nueva?origen=compartido");
+  window.history.pushState({}, "", "/admin-anterior/propiedades/nueva?origen=compartido");
 });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); window.history.pushState({}, "", "/"); });
 
@@ -62,7 +62,7 @@ it("desde Herramientas el alta llega como compartido y guarda la inmobiliaria co
 });
 
 it("un inmueble propio no lleva datos de inmobiliaria", async () => {
-  window.history.pushState({}, "", "/admin/propiedades/nueva");
+  window.history.pushState({}, "", "/admin-anterior/propiedades/nueva");
   render(<PropertyForm />);
   expect((screen.getByLabelText("¿De quién es el inmueble?") as HTMLSelectElement).value).toBe("propio");
   expect(screen.queryByLabelText("Inmobiliaria que lo comparte")).toBeNull();

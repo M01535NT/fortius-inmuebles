@@ -2,7 +2,7 @@ import * as React from "react";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
-import AdminDashboard from "@/app/admin/page";
+import AdminDashboard from "@/app/admin-anterior/page";
 import { AgendaCalendar as CalendarioPage } from "@/components/admin/agenda/calendar";
 import { clearAdminCache, type Evento } from "@/lib/admin/store";
 import type { Task } from "@/lib/tasks";
@@ -38,7 +38,7 @@ test("Hoy lists today's and overdue open tasks by Tijuana date and links to each
   render(<AdminDashboard />);
   const today = within(await screen.findByRole("list", {name:"Tareas de hoy"}));
   await today.findByRole("link", {name:/Revisar expediente/});
-  expect(today.getByRole("link", {name:/Revisar expediente/}).getAttribute("href")).toBe("/admin/tareas/late");
+  expect(today.getByRole("link", {name:/Revisar expediente/}).getAttribute("href")).toBe("/admin-anterior/tareas/late");
   expect(today.getByText("Vencida desde el 21 sep")).toBeTruthy();
   expect(today.getByRole("link", {name:/Confirmar documentos/})).toBeTruthy();
   expect(today.queryByText("Tarea terminada")).toBeNull();
@@ -50,7 +50,7 @@ test("calendar projects an open task deadline without creating an event", async 
   tasks = [{id:"due",titulo:"Enviar propuesta",descripcion:"",categoria:"negociacion",estado:"en-curso",prioridad:"alta",vence:"2026-09-22",pasos:[]}];
   render(<CalendarioPage />);
   const links = await screen.findAllByRole("link", {name:/Enviar propuesta/});
-  expect(new Set(links.map(link => link.getAttribute("href")))).toEqual(new Set(["/admin/tareas/due"]));
+  expect(new Set(links.map(link => link.getAttribute("href")))).toEqual(new Set(["/admin-anterior/tareas/due"]));
   expect(screen.getByRole("button", {name:"22 de septiembre de 2026, 1 tareas"})).toBeTruthy();
   expect(screen.getByText("Sin citas este día")).toBeTruthy();
 });
@@ -84,7 +84,7 @@ test("Hoy keeps this evening's eight Tijuana events when UTC is already tomorrow
   expect(agenda.queryByText("Visita 6")).toBeNull();
   expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(5);
   expect(agenda.getAllByRole("listitem")).toHaveLength(5);
-  expect(screen.getByRole("link", { name: "Ver las 8 citas" }).getAttribute("href")).toBe("/admin/agenda?fecha=2026-09-22");
+  expect(screen.getByRole("link", { name: "Ver las 8 citas" }).getAttribute("href")).toBe("/admin-anterior/agenda?fecha=2026-09-22");
 });
 
 test("Hoy's agenda shows only the operating day, not later or past days", async () => {
@@ -159,7 +159,7 @@ test("Hoy shows one overdue followup for a converted client and points to the cl
   render(<AdminDashboard />);
   // El único pendiente es la portada «Lo siguiente» y no se repite en la cola (C34, SIM-16).
   const cover = within(await screen.findByRole("region", { name: "Lo siguiente" }));
-  expect(await cover.findByRole("link", { name: /Cliente convertido/ })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
+  expect(await cover.findByRole("link", { name: /Cliente convertido/ })).toHaveProperty("href", "http://localhost:3000/admin-anterior/clientes/client1");
   expect(cover.getByText("Desde el 21 sep")).toBeTruthy();
   expect(cover.queryByText("Prospecto", {exact:true})).toBeNull();
   expect(screen.getAllByText("Cliente convertido", { exact: false })).toHaveLength(1);
@@ -170,7 +170,7 @@ test("Hoy shows one overdue followup for a converted client and points to the cl
 test("calendar saves a linked event with client, property, expediente and adviser", async () => {
   let saved: Record<string, unknown> | null = null;
   const expedienteId = "51000000-0000-4000-8000-000000000010";
-  window.history.replaceState(null, "", `/admin/agenda?expediente=${expedienteId}`);
+  window.history.replaceState(null, "", `/admin-anterior/agenda?expediente=${expedienteId}`);
   vi.stubGlobal("fetch", async (url: string, options?: RequestInit) => {
     if (options?.method === "PUT") {
       saved = JSON.parse(String(options.body)).data;

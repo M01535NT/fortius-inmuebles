@@ -30,7 +30,7 @@ test("Fortius Inmuebles mark remains visible through email login and top bar", a
     return route.fulfill({ json: { ok: true } });
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/admin");
+  await page.goto("/admin-anterior");
   await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
   const loginMark = page.getByRole("main").getByRole("img", { name: "Fortius Inmuebles" });
   await expect(loginMark).toBeVisible();
@@ -48,7 +48,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     "panel modules fit and remain reachable at " + width,
     async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/admin");
+      await page.goto("/admin-anterior");
       await expect(
         page.getByRole("heading", { level: 1, name: "Hoy", exact: true }),
       ).toBeVisible();
@@ -69,7 +69,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         for (const name of ["Hoy", "Bandeja", "Asuntos", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"])
           await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
         await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
-        await expect(page.locator("#admin-account-menu").getByRole("link", { name: "Administración", exact: true })).toHaveAttribute("href", "/admin/asesores");
+        await expect(page.locator("#admin-account-menu").getByRole("link", { name: "Administración", exact: true })).toHaveAttribute("href", "/admin-anterior/asesores");
         await page.screenshot({ path: testInfo.outputPath("navigation-" + width + ".png"), fullPage: true });
         await page.keyboard.press("Escape");
         await nav.getByRole("link", { name: "Contactos" }).click();
@@ -87,7 +87,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         path: testInfo.outputPath("clients-" + width + ".png"),
         fullPage: true,
       });
-      await page.goto("/admin/propiedades/nueva");
+      await page.goto("/admin-anterior/propiedades/nueva");
       await expect(page.getByRole("button", { name: "Crear inmueble", exact: true })).toBeVisible();
       await expect(page.getByRole("button", { name: "Guardar y publicar", exact: true })).toHaveCount(0);
       await expect(page.getByLabel("Folio del inmueble", { exact: true })).toHaveAttribute("readonly", "");
@@ -113,7 +113,7 @@ test("failed initial load is explicit and does not render an empty-success dashb
       json: { error: "Servidor temporalmente no disponible" },
     }),
   );
-  await page.goto("/admin");
+  await page.goto("/admin-anterior");
   await expect(page.getByRole("main").getByRole("alert")).toContainText(
     "Servidor temporalmente no disponible",
   );
@@ -141,7 +141,7 @@ for (const width of [375, 768]) {
         "contenido",
         "configuracion",
       ]) {
-        await page.goto("/admin/" + moduleName);
+        await page.goto("/admin-anterior/" + moduleName);
         await expect(
           page.getByRole("main").getByRole("heading").first(),
         ).toBeVisible();
@@ -173,7 +173,7 @@ for (const width of [375, 768]) {
 }
 test("la dirección anterior del tablero de notas lleva a Hoy (DEC-42)", async ({ page }) => {
   // DEC-42 (12/11/2026): se retiró el tablero de notas sueltas; las notas viven en el inmueble y la operación.
-  await page.goto("/admin/notas");
-  await expect(page).toHaveURL(/\/admin\/?$/);
+  await page.goto("/admin-anterior/notas");
+  await expect(page).toHaveURL(/\/admin-anterior\/?$/);
   await expect(page.getByRole("heading", { level: 1, name: "Hoy", exact: true })).toBeVisible();
 });

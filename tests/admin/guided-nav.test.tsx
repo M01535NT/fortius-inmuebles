@@ -14,7 +14,7 @@ vi.mock("@/components/admin/workspace/use-today-queue", () => ({ usePendingCount
 import { SideNav, MobileTabBar, NewMenu, isNavActive, MAIN_NAV, MORE_NAV } from "@/components/admin/workspace/guided-nav";
 
 const user = { name: "Mariana Ruiz", email: "mariana@example.invalid", initials: "MR" };
-const sidenav = (role: string, pathname = "/admin") => render(<SideNav pathname={pathname} role={role} user={user} onLogout={async () => {}} search={<button type="button">Buscar</button>} />);
+const sidenav = (role: string, pathname = "/admin-anterior") => render(<SideNav pathname={pathname} role={role} user={user} onLogout={async () => {}} search={<button type="button">Buscar</button>} />);
 beforeEach(() => { tasks.length = 0; leads.length = 0; clients.length = 0; pending.value = 0; });
 afterEach(cleanup);
 
@@ -22,13 +22,13 @@ test("el menú lateral lleva las ocho secciones y Herramientas, el buscador y la
   sidenav("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
   expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Bandeja", "Asuntos", "Contactos", "Personas", "Inmuebles", "Agenda", "Trámites", "Herramientas"]);
-  expect(within(nav).getByRole("link", { name: "Herramientas" }).getAttribute("href")).toBe("/admin/herramientas");
+  expect(within(nav).getByRole("link", { name: "Herramientas" }).getAttribute("href")).toBe("/admin-anterior/herramientas");
   expect(screen.getByRole("button", { name: "Buscar" })).toBeTruthy();
   const account = screen.getByRole("button", { name: /Mariana Ruiz, Asesor/ });
   expect(account.getAttribute("aria-expanded")).toBe("false");
   fireEvent.click(account);
   const menu = document.getElementById("admin-account-menu")!;
-  expect(within(menu).getByRole("link", { name: "Mi perfil" }).getAttribute("href")).toBe("/admin/perfil");
+  expect(within(menu).getByRole("link", { name: "Mi perfil" }).getAttribute("href")).toBe("/admin-anterior/perfil");
   expect(within(menu).queryByRole("link", { name: "Administración" })).toBeNull();
   expect(within(menu).getByRole("button", { name: "Cerrar sesión" })).toBeTruthy();
   expect(within(menu).getByText("Asesor")).toBeTruthy();
@@ -45,7 +45,7 @@ test("«+ Nuevo» abre las seis altas y «Agregar archivo» (FLX-01), la operaci
   fireEvent.keyDown(trigger, { key: "Enter" });
   const menu = screen.getByRole("menu", { name: "Qué quieres crear" });
   expect(within(menu).getAllByRole("menuitem").map(item => [item.textContent, item.getAttribute("href")])).toEqual([
-    ["Atender a alguien", "/admin/operaciones/nueva"], ["Nuevo perfil", "/admin/personas?nuevo=1"], ["Nuevo asunto", "/admin/operaciones/nueva?intencion=vender"], ["Nuevo inmueble", "/admin/propiedades/nueva"], ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1"], ["Agendar visita", "/admin/agenda?nueva=1"], ["Agregar archivo", "/admin/bandeja"],
+    ["Atender a alguien", "/admin-anterior/operaciones/nueva"], ["Nuevo perfil", "/admin-anterior/personas?nuevo=1"], ["Nuevo asunto", "/admin-anterior/operaciones/nueva?intencion=vender"], ["Nuevo inmueble", "/admin-anterior/propiedades/nueva"], ["Nueva tarea", "/admin-anterior/agenda?tab=tareas&nueva=1"], ["Agendar visita", "/admin-anterior/agenda?nueva=1"], ["Agregar archivo", "/admin-anterior/bandeja"],
   ]);
   fireEvent.click(within(menu).getByRole("menuitem", { name: "Nueva tarea" }));
   expect(heard).toEqual(["tarea"]);
@@ -57,44 +57,44 @@ test("«+ Nuevo» abre las seis altas y «Agregar archivo» (FLX-01), la operaci
 });
 
 test("el administrador encuentra Administración en el menú lateral y en su cuenta, marcada dentro de esas páginas", () => {
-  sidenav("admin", "/admin/blog");
+  sidenav("admin", "/admin-anterior/blog");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
   const entry = within(nav).getByRole("link", { name: "Administración" });
-  expect(entry.getAttribute("href")).toBe("/admin/asesores");
+  expect(entry.getAttribute("href")).toBe("/admin-anterior/asesores");
   expect(entry.getAttribute("aria-current")).toBe("page");
   expect(within(nav).getByRole("link", { name: "Herramientas" }).getAttribute("aria-current")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: /Mariana Ruiz, Administrador/ }));
   const link = within(document.getElementById("admin-account-menu")!).getByRole("link", { name: "Administración" });
-  expect(link.getAttribute("href")).toBe("/admin/asesores");
+  expect(link.getAttribute("href")).toBe("/admin-anterior/asesores");
   expect(link.getAttribute("aria-current")).toBe("page");
 });
 
 test("la sección activa incluye sus fichas de detalle y las direcciones anteriores", () => {
-  const [hoy, bandeja, operaciones, contactos, personas, agenda] = ["/admin", "/admin/bandeja", "/admin/operaciones", "/admin/contactos", "/admin/personas", "/admin/agenda"].map(href => MAIN_NAV.find(item => item.href === href)!);
+  const [hoy, bandeja, operaciones, contactos, personas, agenda] = ["/admin-anterior", "/admin-anterior/bandeja", "/admin-anterior/operaciones", "/admin-anterior/contactos", "/admin-anterior/personas", "/admin-anterior/agenda"].map(href => MAIN_NAV.find(item => item.href === href)!);
   // FLX-01 (RP-58): la Bandeja es la segunda sección.
   expect(bandeja.label).toBe("Bandeja");
-  expect(isNavActive("/admin/bandeja", bandeja)).toBe(true);
-  expect(isNavActive("/admin/bandeja", hoy)).toBe(false);
-  expect(isNavActive("/admin", hoy)).toBe(true);
-  expect(isNavActive("/admin/operaciones", hoy)).toBe(false);
-  expect(isNavActive("/admin/operaciones/nueva", operaciones)).toBe(true);
-  expect(isNavActive("/admin/leads/123", contactos)).toBe(true);
+  expect(isNavActive("/admin-anterior/bandeja", bandeja)).toBe(true);
+  expect(isNavActive("/admin-anterior/bandeja", hoy)).toBe(false);
+  expect(isNavActive("/admin-anterior", hoy)).toBe(true);
+  expect(isNavActive("/admin-anterior/operaciones", hoy)).toBe(false);
+  expect(isNavActive("/admin-anterior/operaciones/nueva", operaciones)).toBe(true);
+  expect(isNavActive("/admin-anterior/leads/123", contactos)).toBe(true);
   // Personas va junto a Contactos y cada una marca solo su pantalla.
-  expect(isNavActive("/admin/personas", personas)).toBe(true);
-  expect(isNavActive("/admin/personas", contactos)).toBe(false);
-  expect(isNavActive("/admin/contactos", personas)).toBe(false);
-  expect(isNavActive("/admin/tareas/9", agenda)).toBe(true);
-  expect(isNavActive("/admin/agendas", agenda)).toBe(false);
-  for (const path of ["/admin/herramientas", "/admin/apps/hipoteca", "/admin/notas", "/admin/reportes", "/admin/configuracion", "/admin/perfil"]) expect(isNavActive(path, MORE_NAV)).toBe(true);
-  expect(isNavActive("/admin/propiedades", MORE_NAV)).toBe(false);
+  expect(isNavActive("/admin-anterior/personas", personas)).toBe(true);
+  expect(isNavActive("/admin-anterior/personas", contactos)).toBe(false);
+  expect(isNavActive("/admin-anterior/contactos", personas)).toBe(false);
+  expect(isNavActive("/admin-anterior/tareas/9", agenda)).toBe(true);
+  expect(isNavActive("/admin-anterior/agendas", agenda)).toBe(false);
+  for (const path of ["/admin-anterior/herramientas", "/admin-anterior/apps/hipoteca", "/admin-anterior/notas", "/admin-anterior/reportes", "/admin-anterior/configuracion", "/admin-anterior/perfil"]) expect(isNavActive(path, MORE_NAV)).toBe(true);
+  expect(isNavActive("/admin-anterior/propiedades", MORE_NAV)).toBe(false);
 });
 
 test("Trámites va en el menú para el asesor y el director y se marca en sus pantallas, no Herramientas (TRA-01)", () => {
   for (const role of ["editor", "admin"]) {
-    sidenav(role, "/admin/tramites");
+    sidenav(role, "/admin-anterior/tramites");
     const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
     const link = within(nav).getByRole("link", { name: "Trámites" });
-    expect(link.getAttribute("href")).toBe("/admin/tramites");
+    expect(link.getAttribute("href")).toBe("/admin-anterior/tramites");
     expect(link.getAttribute("aria-current")).toBe("page");
     expect(within(nav).getByRole("link", { name: "Herramientas" }).getAttribute("aria-current")).toBeNull();
     cleanup();
@@ -109,7 +109,7 @@ test("el contador de Hoy muestra las tarjetas de la cola de Hoy (COR-05)", () =>
 
 test("la barra inferior del celular marca la sección y abre el menú «Más»", () => {
   const onMenu = vi.fn();
-  render(<MobileTabBar pathname="/admin/contactos" menuOpen={false} onMenu={onMenu} menuButton={React.createRef()} />);
+  render(<MobileTabBar pathname="/admin-anterior/contactos" menuOpen={false} onMenu={onMenu} menuButton={React.createRef()} />);
   const tabs = screen.getByRole("navigation", { name: "Secciones principales" });
   expect(within(tabs).getByRole("link", { name: "Contactos" }).getAttribute("aria-current")).toBe("page");
   // SIM-17: el «+» abre el mismo menú que «+ Nuevo».
@@ -123,6 +123,6 @@ test("la barra inferior del celular marca la sección y abre el menú «Más»",
 
 test("en la barra inferior el lector de pantalla oye primero la sección y después el contador", () => {
   pending.value = 1;
-  render(<MobileTabBar pathname="/admin" menuOpen={false} onMenu={() => {}} menuButton={React.createRef()} />);
+  render(<MobileTabBar pathname="/admin-anterior" menuOpen={false} onMenu={() => {}} menuButton={React.createRef()} />);
   expect(screen.getByRole("link", { name: "Hoy, 1 pendiente" }).getAttribute("aria-current")).toBe("page");
 });

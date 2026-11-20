@@ -5,7 +5,7 @@ import { act, cleanup, render, renderHook, screen, waitFor, within } from "@test
 /*
   Hallazgos de Operaciones (C-89 a C-91). Datos ficticios de ensayo; el servidor se simula con fetch.
 */
-const nav = vi.hoisted(() => ({ path: "/admin/operaciones", search: new URLSearchParams(), listeners: new Set<() => void>(), push: vi.fn() }));
+const nav = vi.hoisted(() => ({ path: "/admin-anterior/operaciones", search: new URLSearchParams(), listeners: new Set<() => void>(), push: vi.fn() }));
 vi.mock("next/navigation", async () => {
   const react = await import("react");
   const subscribe = (cb: () => void) => { nav.listeners.add(cb); return () => nav.listeners.delete(cb); };
@@ -55,14 +55,14 @@ function respond(url: string, init?: RequestInit): Response {
 }
 beforeEach(() => {
   clearAdminCache(); nav.push.mockReset();
-  nav.path = "/admin/operaciones"; nav.search = new URLSearchParams();
+  nav.path = "/admin-anterior/operaciones"; nav.search = new URLSearchParams();
   vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-16T18:00:00Z"));
   server = { ops: [base()], runs: {}, puts: [] };
   vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => respond(url, init)));
 });
 afterEach(() => { cleanup(); clearAdminCache(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 async function openOperation() {
-  nav.path = `/admin/operaciones/${ID}`; nav.search = new URLSearchParams();
+  nav.path = `/admin-anterior/operaciones/${ID}`; nav.search = new URLSearchParams();
   render(<OperationScreen id={ID} />);
   await screen.findByRole("heading", { level: 1, name: "Propietaria de ensayo" });
 }

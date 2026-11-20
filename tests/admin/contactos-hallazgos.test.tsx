@@ -51,7 +51,7 @@ test("tras convertir, la tarea de siguiente paso del prospecto cubre el seguimie
 test("la vista previa muestra las notas más recientes", () => {
   const notas = ["quinta", "cuarta", "tercera", "segunda", "primera"].map((texto, i) => ({ id: `n${i}`, texto, fecha: `2026-11-0${5 - i}T18:00:00.000Z` }));
   const conNotas = lead({ notas } as Partial<Lead>);
-  const row = { id: "l1", kind: "lead", href: "/admin/leads/l1", name: "Prospecto de ensayo", phone: "6640000000", wants: "", zone: "", budget: null, step: "", when: null, late: false, sort: "" } as ContactRow;
+  const row = { id: "l1", kind: "lead", href: "/admin-anterior/leads/l1", name: "Prospecto de ensayo", phone: "6640000000", wants: "", zone: "", budget: null, step: "", when: null, late: false, sort: "" } as ContactRow;
   render(<ContactPreview row={row} lead={conNotas} tasks={[]} events={[]} today={hoy} />);
   expect(screen.queryByText("quinta")).not.toBeNull();
   expect(screen.queryByText("primera")).toBeNull();

@@ -76,7 +76,7 @@ it("la cancelación de hipoteca empieza su trámite ligado al asunto", async () 
   mocks.upsert.mockResolvedValue(undefined);
   render(<GuideStepTab op={op(flow({ guia: { clave: "cancelacion_hipoteca", paso: 0, acreedor: "infonavit" } }))} onSave={vi.fn()} />);
   fireEvent.click(screen.getByRole("button", { name: "Empezar el trámite" }));
-  await waitFor(() => expect(mocks.push).toHaveBeenCalledWith(expect.stringMatching(/^\/admin\/tramites\?id=/)));
+  await waitFor(() => expect(mocks.push).toHaveBeenCalledWith(expect.stringMatching(/^\/admin-anterior\/tramites\?id=/)));
   expect(mocks.upsert.mock.calls[0][1]).toMatchObject({ acreedor: "infonavit", expedienteId: "exp-1" });
 });
 
@@ -104,7 +104,7 @@ it("Hoy muestra los avisos de los asuntos propios; sin avisos no ocupa lugar", a
   render(<AsuntoAvisos />);
   expect(await screen.findByText("Se guardó sin: Los documentos de la lista")).toBeTruthy();
   expect(screen.queryByText("Pasó a «Cierre» sin: La firma")).toBeNull();
-  expect(screen.getByRole("link").getAttribute("href")).toBe("/admin/operaciones/exp-1?tab=actividad");
+  expect(screen.getByRole("link").getAttribute("href")).toBe("/admin-anterior/operaciones/exp-1?tab=actividad");
   cleanup();
   mocks.json.mockResolvedValueOnce({ avisos: [] });
   const { container } = render(<AsuntoAvisos />);

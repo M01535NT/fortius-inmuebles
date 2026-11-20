@@ -3,7 +3,7 @@ vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction, confirmD
 import * as React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import BlogAdminPage from "@/app/admin/blog/page";
+import BlogAdminPage from "@/app/admin-anterior/blog/page";
 import { ReadyMessages } from "@/components/admin/contacts/ready-messages";
 import { clearAdminCache, type Lead } from "@/lib/admin/store";
 

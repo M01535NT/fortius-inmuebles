@@ -2,7 +2,7 @@ import * as React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
-import BlogAdminPage from "@/app/admin/blog/page";
+import BlogAdminPage from "@/app/admin-anterior/blog/page";
 import { clearAdminCache, db } from "@/lib/admin/store";
 
 const existingPost = {

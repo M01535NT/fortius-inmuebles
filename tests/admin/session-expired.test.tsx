@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { AdminShell } from "@/components/admin/admin-shell";
 import * as api from "@/lib/admin/store";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin/notas", useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin-anterior/notas", useRouter: () => ({ push: vi.fn() }) }));
 
 /*
   RP-19 (UX-04): la sesión vence mientras alguien escribe. La pantalla no se cierra: se pide

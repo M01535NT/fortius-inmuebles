@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { clearAdminCache } from "@/lib/admin/store";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin", useRouter: () => ({ push: () => undefined }) }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin-anterior", useRouter: () => ({ push: () => undefined }) }));
 
 beforeEach(() => {
   clearAdminCache();
@@ -28,7 +28,7 @@ async function openMenu() {
 test("mobile menu exposes the signed-in account and Escape restores trigger focus", async () => {
   const { trigger, nav } = await openMenu();
   expect(within(nav).getByText("Administrador")).toBeTruthy();
-  expect(within(nav).getByRole("link", { name: "Trámites" }).getAttribute("href")).toBe("/admin/tramites");
+  expect(within(nav).getByRole("link", { name: "Trámites" }).getAttribute("href")).toBe("/admin-anterior/tramites");
   expect(nav.contains(document.activeElement)).toBe(true);
   within(nav).getByRole("link", { name: "Agenda" }).focus();
   fireEvent.keyDown(document, { key: "Escape" });

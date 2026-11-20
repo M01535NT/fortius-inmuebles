@@ -15,7 +15,7 @@ const { requestHeaders, rpc } = vi.hoisted(() => ({ requestHeaders: new Headers(
 vi.mock("server-only", () => ({}));
 vi.mock("next/font/google", () => ({ Archivo: () => ({ variable: "archivo" }), IBM_Plex_Mono: () => ({ variable: "plex" }) }));
 vi.mock("next/headers", () => ({ headers: async () => requestHeaders }));
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin", useRouter: () => ({ push() {} }) }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin-anterior", useRouter: () => ({ push() {} }) }));
 vi.mock("next/server", async (original) => ({ ...await original<typeof import("next/server")>(), connection: async () => {} }));
 vi.mock("@/lib/backend/auth", () => ({ createServerClient: () => ({ rpc }) }));
 vi.mock("@/components/home/site-nav", () => ({ SiteNav: () => <nav>public nav</nav> }));
@@ -47,7 +47,7 @@ test("proxy overwrites spoofed path headers, emits a fresh nonce CSP and hardeni
 });
 
 test("admin root layout and metadata never query the public backend", async () => {
-  requestHeaders.set("x-fortius-inmuebles-pathname", "/admin/inmuebles");
+  requestHeaders.set("x-fortius-inmuebles-pathname", "/admin-anterior/inmuebles");
   requestHeaders.set("x-nonce", "nonce-test");
   vi.stubGlobal("fetch", vi.fn(() => { throw new Error("public backend must not run"); }));
   const html = renderToStaticMarkup(await RootLayout({ children: <main>Admin</main> }));

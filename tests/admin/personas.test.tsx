@@ -72,7 +72,7 @@ it("el perfil junta la guía de su operación y los documentos de la persona y d
   expect(await screen.findByText("Versión 2")).toBeTruthy();
   fireEvent.click(screen.getByRole("radio", { name: "Hechos aquí" }));
   expect(screen.queryByText("Escritura pública")).toBeNull();
-  expect(screen.getByRole("link", { name: "Abrir el asunto" }).getAttribute("href")).toBe(`/admin/operaciones/${OP}`);
+  expect(screen.getByRole("link", { name: "Abrir el asunto" }).getAttribute("href")).toBe(`/admin-anterior/operaciones/${OP}`);
 });
 
 it("FLX-02 · «Crear documento» en la persona abre el formato dentro de su asunto; sin asunto ofrece abrir uno", async () => {
@@ -85,11 +85,11 @@ it("FLX-02 · «Crear documento» en la persona abre el formato dentro de su asu
   // La 02 ya está en el asunto: se abre la que hay.
   expect((await screen.findByRole("option", { name: /Entrevista inicial/ })).textContent).toContain("Ya está en el asunto");
   fireEvent.click(screen.getByRole("option", { name: /Levantamiento de casa/ }));
-  expect(push).toHaveBeenLastCalledWith(`/admin/operaciones/${OP}?crear=04B`);
+  expect(push).toHaveBeenLastCalledWith(`/admin-anterior/operaciones/${OP}?crear=04B`);
   cleanup();
   render(<PersonasApp initialId="cliente:cli-2" />);
   await screen.findByRole("heading", { name: "Ana Robles" });
-  expect((await screen.findByRole("link", { name: /Abrir un asunto para sus documentos/ })).getAttribute("href")).toBe("/admin/operaciones?nuevo=1&clienteId=cli-2");
+  expect((await screen.findByRole("link", { name: /Abrir un asunto para sus documentos/ })).getAttribute("href")).toBe("/admin-anterior/operaciones?nuevo=1&clienteId=cli-2");
 });
 
 it("«Agregar archivo» lo guarda y lo liga a la persona; un prospecto todavía no recibe archivos", async () => {
@@ -149,18 +149,18 @@ it("LV-10e · la ficha junta sus inmuebles con foto, sus operaciones con su etap
   await screen.findByRole("heading", { level: 2, name: "Laura Méndez" });
   const inmuebles = screen.getByRole("region", { name: "Sus inmuebles" });
   const tarjeta = within(inmuebles).getByRole("link", { name: /Casa en Chapultepec/ });
-  expect(tarjeta.getAttribute("href")).toBe("/admin/propiedades/casa-chapultepec/editar");
+  expect(tarjeta.getAttribute("href")).toBe("/admin-anterior/propiedades/casa-chapultepec/editar");
   expect(tarjeta.textContent).toContain("$4,200,000 MXN");
   expect(tarjeta.textContent).toMatch(/Lo vende/);
   const operaciones = screen.getByRole("region", { name: "Asuntos" });
   const fila = within(operaciones).getByRole("link", { name: /EXP-000342/ });
-  expect(fila.getAttribute("href")).toBe(`/admin/operaciones/${OP}`);
+  expect(fila.getAttribute("href")).toBe(`/admin-anterior/operaciones/${OP}`);
   expect(fila.textContent).toMatch(/^\d+ · /);
   const historia = screen.getByRole("region", { name: "Lo que ha pasado" });
   const sucesos = within(historia).getAllByRole("listitem").map(li => li.textContent);
   expect(sucesos[0]).toMatch(/Nallely Díaz anotó: «Quiere vender antes de fin de año»/);
   expect(sucesos[1]).toMatch(/Se terminó: Pedir el predial/);
-  expect(screen.getByRole("link", { name: "Agendar" }).getAttribute("href")).toBe("/admin/agenda?nueva=1&clienteId=cli-1");
+  expect(screen.getByRole("link", { name: "Agendar" }).getAttribute("href")).toBe("/admin-anterior/agenda?nueva=1&clienteId=cli-1");
 });
 
 it("LV-10e · un dato se cambia en su lugar con su versión y se puede deshacer", async () => {

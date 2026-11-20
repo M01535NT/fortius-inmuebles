@@ -27,7 +27,7 @@ it('abre una operación sin capturar su folio y lleva a la operación con el fol
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).not.toHaveProperty('folio');
   expect(writes[0]).toMatchObject({ clienteId: 'c1', asesorId: 'a1', operacion: 'venta', flujo: { ruta: 'captacion', estado: 'activa' } });
-  await waitFor(() => expect(push).toHaveBeenCalledWith('/admin/operaciones/new-exp'));
+  await waitFor(() => expect(push).toHaveBeenCalledWith('/admin-anterior/operaciones/new-exp'));
 });
 it('pide asignar un asesor al cliente antes de abrir la operación', async () => {
   vi.stubGlobal('fetch', vi.fn());

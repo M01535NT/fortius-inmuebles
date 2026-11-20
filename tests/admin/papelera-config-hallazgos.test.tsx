@@ -1,4 +1,4 @@
-const nav = vi.hoisted(() => ({ pathname: "/admin" }));
+const nav = vi.hoisted(() => ({ pathname: "/admin-anterior" }));
 vi.mock("next/navigation", () => ({
   usePathname: () => nav.pathname,
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
@@ -11,8 +11,8 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { PapeleraScreen } from "@/components/admin/papelera/papelera";
 import { AdviserAccountLinks } from "@/components/admin/adviser-account-links";
 import { TaskForm } from "@/components/admin/task-form";
-import ConfiguracionPage from "@/app/admin/configuracion/page";
-import HistoryPage from "@/app/admin/historial/page";
+import ConfiguracionPage from "@/app/admin-anterior/configuracion/page";
+import HistoryPage from "@/app/admin-anterior/historial/page";
 import { clearAdminCache, isLoggedIn, type Asesor } from "@/lib/admin/store";
 import type { Task } from "@/lib/tasks";
 
@@ -27,7 +27,7 @@ const calls: Array<{ url: string; method: string; body?: unknown }> = [];
 
 beforeEach(() => {
   clearAdminCache();
-  nav.pathname = "/admin";
+  nav.pathname = "/admin-anterior";
   role = "admin";
   extra = () => undefined;
   calls.length = 0;
@@ -44,13 +44,13 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 /*
   BUG-C80: un asesor (editor) que pulsa «Ver eliminados» en Operaciones (board.tsx:183) llega a
-  /admin/papelera y ve «Esta sección la administra el director». admin-shell.tsx:381 bloquea toda
+  /admin-anterior/papelera y ve «Esta sección la administra el director». admin-shell.tsx:381 bloquea toda
   ruta de ADMIN_NAV para quien no es director, y ADMIN_NAV incluye Eliminados (guided-nav.tsx:42),
   aunque PapeleraScreen (papelera.tsx:120) está hecha para que el asesor restaure sus operaciones.
 */
 test("el asesor puede abrir Eliminados para restaurar sus operaciones", async () => {
   role = "editor";
-  nav.pathname = "/admin/papelera";
+  nav.pathname = "/admin-anterior/papelera";
   render(<AdminShell><h1>Pantalla de eliminados</h1></AdminShell>);
   await waitFor(() => expect(screen.queryByText("Verificando acceso…")).toBeNull());
   await waitFor(() => expect(screen.queryByText("Cargando módulo…")).toBeNull());
@@ -65,7 +65,7 @@ test("el asesor puede abrir Eliminados para restaurar sus operaciones", async ()
   sabe cuál restaurar. (Igual en historial/page.tsx:105: «Registro eliminado».)
 */
 test("Eliminados distingue por nombre dos inmuebles borrados", async () => {
-  nav.pathname = "/admin/papelera";
+  nav.pathname = "/admin-anterior/papelera";
   extra = url => url.startsWith("/api/admin/historial") ? {
     // Seguridad (48e02a8) devuelve el título de la foto del registro en cada entrada.
     entries: [

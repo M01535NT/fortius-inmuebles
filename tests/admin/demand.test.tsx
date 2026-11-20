@@ -6,12 +6,12 @@ import { DemandView, budgetText, groupTitle } from "@/components/admin/propertie
 import type { AdminProperty } from "@/lib/admin/store";
 import { propiedades } from "../fixtures/propiedades";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/propiedades" }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin-anterior/propiedades" }));
 afterEach(cleanup);
 
 // Datos ficticios de ensayo (COR-19).
 const house = (over: Partial<AdminProperty> = {}): AdminProperty => ({ ...propiedades[0], slug: "casa-playas", titulo: "Casa en Playas", tipo: "casa", operacion: "venta", estado: "disponible", publicada: true, zona: "Playas de Tijuana", direccionAproximada: "Cerca del malecón", precio: { modalidad: "publico", monto: 4_000_000, moneda: "MXN" }, ficha: {}, demo: true, ...over });
-const seeker = (id: string, over: Partial<Seeker> = {}): Seeker => ({ id, kind: "lead", nombre: `Interesado ${id}`, telefono: "6640000000", href: `/admin/leads/${id}`, tipoPropiedad: "casa", zona: "Lomas Virreyes", perfil: { operacion: "comprar", presupuestoMax: 5_000_000, moneda: "MXN" }, ...over });
+const seeker = (id: string, over: Partial<Seeker> = {}): Seeker => ({ id, kind: "lead", nombre: `Interesado ${id}`, telefono: "6640000000", href: `/admin-anterior/leads/${id}`, tipoPropiedad: "casa", zona: "Lomas Virreyes", perfil: { operacion: "comprar", presupuestoMax: 5_000_000, moneda: "MXN" }, ...over });
 
 test("la zona se compara sin acentos ni «de»: «Lomas Virreyes» es «Lomas de Virreyes»", () => {
   expect(zoneKey("Lomas de Virreyes")).toBe(zoneKey("Lomas Virreyes"));
@@ -40,8 +40,8 @@ test("agrupa a quien busca y no tiene inmueble que le sirva, con cuántos son y 
 });
 
 test("captar para ese perfil abre la operación del propietario con zona y tipo", () => {
-  expect(captureHref({ intent: "comprar", tipo: "casa", zona: "Lomas Virreyes" })).toBe("/admin/operaciones/nueva?intencion=vender&zona=Lomas+Virreyes&tipo=casa");
-  expect(captureHref({ intent: "rentar" })).toBe("/admin/operaciones/nueva?intencion=arrendar");
+  expect(captureHref({ intent: "comprar", tipo: "casa", zona: "Lomas Virreyes" })).toBe("/admin-anterior/operaciones/nueva?intencion=vender&zona=Lomas+Virreyes&tipo=casa");
+  expect(captureHref({ intent: "rentar" })).toBe("/admin-anterior/operaciones/nueva?intencion=arrendar");
 });
 
 test("cuenta quién espera un inmueble como el que se capta", () => {
@@ -54,7 +54,7 @@ test("la vista muestra cada grupo con su liga para captar", () => {
   render(<DemandView groups={demandGroups([seeker("a"), seeker("b")], [])} />);
   expect(screen.getByText("Casa en venta · Lomas Virreyes")).toBeTruthy();
   expect(screen.getByText(/2 interesados/)).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Captar inmueble para este perfil" }).getAttribute("href")).toBe("/admin/operaciones/nueva?intencion=vender&zona=Lomas+Virreyes&tipo=casa");
+  expect(screen.getByRole("link", { name: "Captar inmueble para este perfil" }).getAttribute("href")).toBe("/admin-anterior/operaciones/nueva?intencion=vender&zona=Lomas+Virreyes&tipo=casa");
   cleanup();
   render(<DemandView groups={[]} />);
   expect(screen.getByText("Nadie espera algo que no tengamos")).toBeTruthy();

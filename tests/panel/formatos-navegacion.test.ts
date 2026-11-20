@@ -7,20 +7,22 @@ const z = (keys: string[], y: number, page = 0): Zona => ({ keys, label: keys.jo
 
 describe("PN-06 llegar y volver (AUD-05)", () => {
   it("solo acepta rutas del panel para volver", () => {
-    expect(rutaDeRegreso("/panel/asuntos?ver=abc")).toBe("/panel/asuntos?ver=abc");
-    expect(rutaDeRegreso("/panel")).toBe("/panel");
-    expect(rutaDeRegreso("//evil.com/panel")).toBeNull();
+    expect(rutaDeRegreso("/admin/asuntos?ver=abc")).toBe("/admin/asuntos?ver=abc");
+    expect(rutaDeRegreso("/admin")).toBe("/admin");
+    expect(rutaDeRegreso("//evil.com/admin")).toBeNull();
     expect(rutaDeRegreso("https://evil.com")).toBeNull();
-    expect(rutaDeRegreso("/panelx")).toBeNull();
-    expect(rutaDeRegreso("/admin")).toBeNull();
-    expect(rutaDeRegreso("/panel\\..\\x")).toBeNull();
+    expect(rutaDeRegreso("/adminx")).toBeNull();
+    // El provisional en reserva no es una ruta del panel: la X no regresa ahí.
+    expect(rutaDeRegreso("/admin-anterior")).toBeNull();
+    expect(rutaDeRegreso("/admin-anterior/operaciones")).toBeNull();
+    expect(rutaDeRegreso("/admin\\..\\x")).toBeNull();
     expect(rutaDeRegreso(null)).toBeNull();
   });
 
   it("la captura abierta desde un asunto lleva de vuelta a él", () => {
-    expect(rutaCaptura("d1", rutaAsunto("e 1"))).toBe(`/panel/formatos/d1?volver=${encodeURIComponent("/panel/asuntos?ver=e%201")}`);
-    expect(rutaCaptura("d1", null)).toBe("/panel/formatos/d1");
-    expect(rutaCaptura("d1", "https://x.com")).toBe("/panel/formatos/d1");
+    expect(rutaCaptura("d1", rutaAsunto("e 1"))).toBe(`/admin/formatos/d1?volver=${encodeURIComponent("/admin/asuntos?ver=e%201")}`);
+    expect(rutaCaptura("d1", null)).toBe("/admin/formatos/d1");
+    expect(rutaCaptura("d1", "https://x.com")).toBe("/admin/formatos/d1");
   });
 
   it("encuentra el formato pedido; un 04 con tipo abre la entrada 04 con su tipo", () => {

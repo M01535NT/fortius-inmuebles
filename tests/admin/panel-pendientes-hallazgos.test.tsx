@@ -5,8 +5,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { hasRemoteMatch } from "next/dist/shared/lib/match-remote-pattern";
 import nextConfig from "../../next.config";
-import BlogAdminPage from "@/app/admin/blog/page";
-import ArchivosPage from "@/app/admin/archivos/page";
+import BlogAdminPage from "@/app/admin-anterior/blog/page";
+import ArchivosPage from "@/app/admin-anterior/archivos/page";
 import { PropertyForm } from "@/components/admin/property-form";
 import { clearAdminCache } from "@/lib/admin/store";
 import type { Property } from "@/data/propiedades";

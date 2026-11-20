@@ -1,13 +1,13 @@
 import * as React from "react";
 import { afterEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import AdminDashboard from "@/app/admin/page";
-import ReportesPage from "@/app/admin/reportes/page";
-import OperacionesPage from "@/app/admin/operaciones/page";
+import AdminDashboard from "@/app/admin-anterior/page";
+import ReportesPage from "@/app/admin-anterior/reportes/page";
+import OperacionesPage from "@/app/admin-anterior/operaciones/page";
 import { OperationScreen } from "@/components/admin/operation/screen";
 import { clearAdminCache } from "@/lib/admin/store";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin/operaciones", useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin-anterior/operaciones", useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
 vi.mock("@/lib/admin/store", async original => ({ ...await original<typeof import("@/lib/admin/store")>(), useSession: () => ({ id: "admin", email: "admin@example.test", role: "admin" }) }));
 const baseDate = "2026-10-13";
 function install(records: Record<string, unknown[]> = {}) {
@@ -43,7 +43,7 @@ test("due converted contact is visible on arrival and points to the client, once
   // Un solo pendiente: es la portada «Lo siguiente» y no se repite abajo (C34).
   const cover=await screen.findByRole("region",{name:"Lo siguiente"});
   const link=await within(cover).findByRole("link",{name:/Contacto convertido/});
-  expect(link.getAttribute("href")).toBe("/admin/clientes/client");
+  expect(link.getAttribute("href")).toBe("/admin-anterior/clientes/client");
   expect(screen.getAllByRole("link",{name:/Contacto convertido/})).toHaveLength(1);
   expect(cover.closest("details")).toBeNull();
 });
@@ -53,7 +53,7 @@ test("reports opens the actual overdue client records and labels historical scop
   render(<ReportesPage/>);
   await screen.findByRole("heading", {name:"Reportes comerciales"});
   fireEvent.click(await screen.findByRole("button", {name:/Contactos vencidos/}));
-  expect(screen.getByRole("link",{name:/Cliente con pendiente/}).getAttribute("href")).toBe("/admin/clientes/client");
+  expect(screen.getByRole("link",{name:/Cliente con pendiente/}).getAttribute("href")).toBe("/admin-anterior/clientes/client");
   expect(screen.getByText("Desde el inicio")).toBeTruthy();
 });
 
@@ -64,15 +64,15 @@ test("every task due today or overdue stays on Hoy, oldest deadline first", asyn
   await within(today).findByRole("link",{name:/Pendiente 0/});
   const links=within(today).getAllByRole("link",{name:/Pendiente/});
   expect(links).toHaveLength(5);
-  expect(links[0].getAttribute("href")).toBe("/admin/tareas/t-4");
-  expect(within(today).getByRole("link",{name:/Pendiente 3/}).getAttribute("href")).toBe("/admin/tareas/t-3");
+  expect(links[0].getAttribute("href")).toBe("/admin-anterior/tareas/t-4");
+  expect(within(today).getByRole("link",{name:/Pendiente 3/}).getAttribute("href")).toBe("/admin-anterior/tareas/t-3");
   expect(within(screen.getByRole("region",{name:"Agenda de hoy"})).getByText("0 de 5 hechas")).toBeTruthy();
 });
 
 test("an empty operations module offers creation without forcing the form open", async () => {
   install(); render(<OperacionesPage/>);
   await screen.findByText("Todavía no hay asuntos");
-  expect(screen.getByRole("link",{name:"Nuevo asunto"}).getAttribute("href")).toBe("/admin/operaciones/nueva");
+  expect(screen.getByRole("link",{name:"Nuevo asunto"}).getAttribute("href")).toBe("/admin-anterior/operaciones/nueva");
   expect(screen.queryByRole("button",{name:"Abrir asunto"})).toBeNull();
   // C38: la alta directa ya no es una tarjeta fija al pie del tablero.
   expect(screen.queryByRole("button", {name:"Alta directa, sin entrevista"})).toBeNull();

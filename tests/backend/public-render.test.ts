@@ -77,7 +77,7 @@ test("image optimization allows only the configured public bucket and existing e
 
 test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
-  expect(await config.redirects?.()).toHaveLength(23);
+  expect(await config.redirects?.()).toHaveLength(27);
   expect(await config.redirects?.()).toContainEqual({
     source: "/descargas/checklist-venta-mnt.pdf",
     destination: "/descargas/checklist-venta-fortius.pdf",
@@ -87,25 +87,25 @@ test("legacy public PDF keeps a permanent route to the Fortius asset", async () 
 
 test("las listas anteriores del panel redirigen a sus secciones nuevas sin tocar las fichas de detalle", async () => {
   const redirects = await (await import("../../next.config")).default.redirects!();
-  const panel = redirects.filter(r => r.source.startsWith("/admin"));
+  const panel = redirects.filter(r => r.source.startsWith("/admin-anterior/"));
   const simple = Object.fromEntries(panel.filter(r => !("has" in r)).map(r => [r.source, r.destination]));
   expect(simple).toEqual({
-    "/admin/expedientes": "/admin/operaciones",
-    "/admin/proceso/preparacion": "/admin/operaciones?etapa=verificacion-precio",
-    "/admin/proceso/promocion": "/admin/operaciones?etapa=publicacion-seguimiento",
-    "/admin/proceso/negociacion": "/admin/operaciones?etapa=visitas-ofertas",
-    "/admin/proceso/cierre": "/admin/operaciones?etapa=cierre-entrega",
-    "/admin/proceso/postventa": "/admin/operaciones?etapa=cierre-entrega",
-    "/admin/proceso/:etapa": "/admin/operaciones?etapa=:etapa",
-    "/admin/leads": "/admin/contactos",
-    "/admin/clientes": "/admin/contactos?tab=clientes",
-    "/admin/calendario": "/admin/agenda",
-    "/admin/tareas": "/admin/agenda?tab=tareas",
-    "/admin/apps": "/admin/herramientas",
-    "/admin/documentos": "/admin/herramientas",
+    "/admin-anterior/expedientes": "/admin-anterior/operaciones",
+    "/admin-anterior/proceso/preparacion": "/admin-anterior/operaciones?etapa=verificacion-precio",
+    "/admin-anterior/proceso/promocion": "/admin-anterior/operaciones?etapa=publicacion-seguimiento",
+    "/admin-anterior/proceso/negociacion": "/admin-anterior/operaciones?etapa=visitas-ofertas",
+    "/admin-anterior/proceso/cierre": "/admin-anterior/operaciones?etapa=cierre-entrega",
+    "/admin-anterior/proceso/postventa": "/admin-anterior/operaciones?etapa=cierre-entrega",
+    "/admin-anterior/proceso/:etapa": "/admin-anterior/operaciones?etapa=:etapa",
+    "/admin-anterior/leads": "/admin-anterior/contactos",
+    "/admin-anterior/clientes": "/admin-anterior/contactos?tab=clientes",
+    "/admin-anterior/calendario": "/admin-anterior/agenda",
+    "/admin-anterior/tareas": "/admin-anterior/agenda?tab=tareas",
+    "/admin-anterior/apps": "/admin-anterior/herramientas",
+    "/admin-anterior/documentos": "/admin-anterior/herramientas",
   });
   // Un expediente enlazado con ?expediente=<id> abre su operación; las fichas de detalle no se redirigen.
-  expect(panel.find(r => "has" in r)).toMatchObject({ source: "/admin/operaciones", destination: "/admin/operaciones/:id", has: [{ type: "query", key: "expediente" }] });
+  expect(panel.find(r => "has" in r)).toMatchObject({ source: "/admin-anterior/operaciones", destination: "/admin-anterior/operaciones/:id", has: [{ type: "query", key: "expediente" }] });
   expect(panel.every(r => r.permanent === false && !/\/(leads|clientes|tareas|apps)\/:/.test(r.source))).toBe(true);
 });
 

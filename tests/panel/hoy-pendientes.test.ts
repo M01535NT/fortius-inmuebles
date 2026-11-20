@@ -34,7 +34,7 @@ describe("tramitesDeHoy", () => {
     expect(tonoTramite({ espera: espera(HOY) }, HOY)).toBe("aviso");
   });
   it("enlaza a la ficha del trámite", () => {
-    expect(rutaTramite("t 1")).toBe("/panel/tramites?ver=t%201");
+    expect(rutaTramite("t 1")).toBe("/admin/tramites?ver=t%201");
   });
 });
 

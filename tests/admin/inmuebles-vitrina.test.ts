@@ -21,8 +21,8 @@ test("llaves atrasadas van primero; lo vendido no aparece; cada inmueble una sol
   const vendida = casa({ slug: "v", titulo: "Vendida", estado: "vendida", galeria: [] } as Partial<AdminProperty>);
   const lista = pidenAlgoHoy([sinFotos, vendida, atrasada, casa({ slug: "ok", titulo: "Completa" })], [], "2026-11-14", toDay);
   expect(lista.map(p => [p.property.slug, p.tono, p.accion])).toEqual([["b", "alert", "Ver las llaves"], ["a", "warn", "Completar"]]);
-  expect(lista[0]).toMatchObject({ motivo: "Las llaves siguen con Iliana", href: "/admin/propiedades/b/seguimiento" });
-  expect(lista[1]).toMatchObject({ motivo: "Le falta fotos", href: "/admin/propiedades/a/editar" });
+  expect(lista[0]).toMatchObject({ motivo: "Las llaves siguen con Iliana", href: "/admin-anterior/propiedades/b/seguimiento" });
+  expect(lista[1]).toMatchObject({ motivo: "Le falta fotos", href: "/admin-anterior/propiedades/a/editar" });
 });
 
 test("el precio escrito en la fila acepta pesos con o sin formato y rechaza centavos o cero", () => {

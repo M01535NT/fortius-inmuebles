@@ -19,8 +19,8 @@ describe("ofertas del interesado", () => {
     expect(offerCandidates(leads, "casa", ["v"], "c").map(l => l.id)).toEqual(["c", "v", "z"]);
   });
   it("sale en su línea de tiempo y resume cómo paga", () => {
-    const { past } = personTimeline({ events: [], tasks: [], today: "2026-11-12", offers: [{ id: doc, text: "Oferta por escrito (14) · Casa", at: "2026-11-10", href: `/admin/operaciones/${op}` }] });
-    expect(past[0]).toMatchObject({ kind: "Oferta", href: `/admin/operaciones/${op}` });
+    const { past } = personTimeline({ events: [], tasks: [], today: "2026-11-12", offers: [{ id: doc, text: "Oferta por escrito (14) · Casa", at: "2026-11-10", href: `/admin-anterior/operaciones/${op}` }] });
+    expect(past[0]).toMatchObject({ kind: "Oferta", href: `/admin-anterior/operaciones/${op}` });
     expect(creditSummary({ formaPago: "credito", tipoCredito: "infonavit", estadoCredito: "preautorizado" })).toBe("Crédito Infonavit · Preautorizado");
     expect(creditSummary({ formaPago: "contado" })).toBe("Contado");
     expect(creditSummary({})).toBeUndefined();

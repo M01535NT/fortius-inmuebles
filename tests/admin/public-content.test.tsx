@@ -27,5 +27,5 @@ test("footer uses public settings and hides unconfigured contact channels", () =
 });
 test("public navigation does not expose a panel shortcut", () => {
   const { container } = render(<SiteNav />);
-  expect(container.querySelector('a[href="/admin"]')).toBeNull();
+  expect(container.querySelector('a[href="/admin-anterior"]')).toBeNull();
 });

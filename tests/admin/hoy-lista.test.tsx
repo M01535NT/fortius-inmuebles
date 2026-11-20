@@ -1,7 +1,7 @@
 import * as React from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import AdminDashboard from "@/app/admin/page";
+import AdminDashboard from "@/app/admin-anterior/page";
 import { clearAdminCache } from "@/lib/admin/store";
 import { resetTodayData } from "@/components/admin/workspace/use-today-queue";
 import type { TodayDossier } from "@/lib/admin/today";
@@ -85,7 +85,7 @@ test("con 15 pendientes: 4 con foto o cara, 10 filas en total y «Ver los 15 asu
   // «Lo siguiente» lleva la foto grande; de las filas, solo las 3 primeras llevan foto o cara.
   expect(container.querySelectorAll("[class*='mediaCell']")).toHaveLength(3);
   // Hoy no crece: el resto se revisa en Asuntos, y el enlace cuenta asuntos (no pendientes).
-  expect(screen.getByRole("link", { name: "Ver los 15 asuntos" }).getAttribute("href")).toBe("/admin/operaciones");
+  expect(screen.getByRole("link", { name: "Ver los 15 asuntos" }).getAttribute("href")).toBe("/admin-anterior/operaciones");
   expect(screen.queryByRole("link", { name: /personas por atender/ })).toBeNull();
   expect(screen.queryByRole("button", { name: /^Ver los/ })).toBeNull();
 });
@@ -97,8 +97,8 @@ test("con prospectos fuera de la lista, el enlace a Asuntos cuenta asuntos y otr
   render(<AdminDashboard />);
   await screen.findByRole("list", { name: "Pendientes vencidos" });
   const asuntos = await screen.findByRole("link", { name: "Ver los 12 asuntos" });
-  expect(asuntos.getAttribute("href")).toBe("/admin/operaciones");
-  expect(screen.getByRole("link", { name: "Ver a las 3 personas por atender" }).getAttribute("href")).toBe("/admin/personas");
+  expect(asuntos.getAttribute("href")).toBe("/admin-anterior/operaciones");
+  expect(screen.getByRole("link", { name: "Ver a las 3 personas por atender" }).getAttribute("href")).toBe("/admin-anterior/personas");
 });
 
 test("dos pendientes de la misma persona van en una fila que dice «2 pendientes»", async () => {

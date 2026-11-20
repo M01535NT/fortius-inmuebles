@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 const push = vi.hoisted(() => vi.fn());
 const rol = vi.hoisted(() => ({ value: "editor" as string }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/admin/apps" }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/admin-anterior/apps" }));
 vi.mock("@/lib/admin/store", async importOriginal => ({ ...(await importOriginal<typeof import("@/lib/admin/store")>()), useSession: () => ({ id: "u-1", email: "a@fortius.test", role: rol.value }) }));
 import { AppsCatalog } from "@/components/admin/apps/catalog";
 

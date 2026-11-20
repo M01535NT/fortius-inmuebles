@@ -11,12 +11,12 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { RecordNotes } from "@/components/admin/workspace/record-notes";
-import BlogPage from "@/app/admin/blog/page";
+import BlogPage from "@/app/admin-anterior/blog/page";
 import { AdminShell } from "@/components/admin/admin-shell";
 import * as api from "@/lib/admin/store";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => window.location.pathname.startsWith("/admin") ? window.location.pathname : "/admin",
+  usePathname: () => window.location.pathname.startsWith("/admin-anterior") ? window.location.pathname : "/admin-anterior",
   useRouter: () => ({ push: vi.fn() }),
 }));
 let fail = false;
@@ -150,19 +150,19 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
   const links = () => Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href"));
-  expect(links()).toEqual(["/admin/bandeja", "/admin/personas", "/admin/propiedades", "/admin/agenda", "/admin/tramites", "/admin/herramientas", "/admin/perfil", "/"]);
+  expect(links()).toEqual(["/admin-anterior/bandeja", "/admin-anterior/personas", "/admin-anterior/propiedades", "/admin-anterior/agenda", "/admin-anterior/tramites", "/admin-anterior/herramientas", "/admin-anterior/perfil", "/"]);
   const admin = within(nav).getByRole("button", { name: /Administración/ });
   expect(admin.getAttribute("aria-expanded")).toBe("false");
   fireEvent.click(admin);
   expect(links()).toEqual([
-    "/admin/bandeja", "/admin/personas", "/admin/propiedades", "/admin/agenda", "/admin/tramites", "/admin/herramientas",
-    "/admin/asesores", "/admin/contenido", "/admin/reportes", "/admin/historial", "/admin/papelera", "/admin/configuracion",
-    "/admin/perfil", "/",
+    "/admin-anterior/bandeja", "/admin-anterior/personas", "/admin-anterior/propiedades", "/admin-anterior/agenda", "/admin-anterior/tramites", "/admin-anterior/herramientas",
+    "/admin-anterior/asesores", "/admin-anterior/contenido", "/admin-anterior/reportes", "/admin-anterior/historial", "/admin-anterior/papelera", "/admin-anterior/configuracion",
+    "/admin-anterior/perfil", "/",
   ]);
   const tabs = screen.getByRole("navigation", { name: "Secciones principales" });
-  expect(Array.from(tabs.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual(["/admin", "/admin/operaciones", "/admin/contactos"]); // SIM-17: el «+» es un botón que abre «+ Nuevo».
+  expect(Array.from(tabs.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual(["/admin-anterior", "/admin-anterior/operaciones", "/admin-anterior/contactos"]); // SIM-17: el «+» es un botón que abre «+ Nuevo».
   expect(within(tabs).getByRole("button", { name: "Nuevo" }).getAttribute("aria-haspopup")).toBe("menu");
-  for (const href of ["finanzas", "territorio", "portal-clientes", "expedientes", "leads", "tareas"]) expect(document.querySelector(`a[href="/admin/${href}"]`)).toBeNull();
+  for (const href of ["finanzas", "territorio", "portal-clientes", "expedientes", "leads", "tareas"]) expect(document.querySelector(`a[href="/admin-anterior/${href}"]`)).toBeNull();
   fireEvent.click(
     Array.from(nav.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Cerrar sesión"),
@@ -176,7 +176,7 @@ test("callback secrets are removed before request, password mode survives verifi
   window.history.replaceState(
     null,
     "",
-    "/admin#type=invite&access_token=secret&refresh_token=refresh",
+    "/admin-anterior#type=invite&access_token=secret&refresh_token=refresh",
   );
   render(
     <AdminShell>
@@ -197,7 +197,7 @@ test("callback secrets are removed before request, password mode survives verifi
 });
 
 test("failed post-save reconciliation shows a retryable warning without discarding the open draft", async () => {
-  window.history.replaceState(null, "", "/admin/notas");
+  window.history.replaceState(null, "", "/admin-anterior/notas");
   render(
     <AdminShell>
       <input aria-label="Borrador abierto" defaultValue="Mi texto sin perder" />

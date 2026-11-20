@@ -19,7 +19,7 @@ beforeEach(() => {
   data = {};
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2027-01-01T07:30:00Z"));
-  window.history.replaceState(null, "", "/admin/agenda");
+  window.history.replaceState(null, "", "/admin-anterior/agenda");
   vi.stubGlobal("fetch", async (url: string, options?: RequestInit) => {
     const name = url.split("?")[0].split("/").at(-1)!;
     if (options?.method === "PUT") {
@@ -64,11 +64,11 @@ test("el detalle de una cita lleva la cara, la foto del inmueble y lo que sigue 
   fireEvent.click(await day.findByRole("button", { name: "Abrir Visita a la casa" }));
   const detail = within(screen.getByRole("dialog", { name: "Visita a la casa" }));
   expect(detail.getByRole("link", { name: "Inmueble: Casa de ensayo" }).querySelector("img")?.getAttribute("src")).toBe("/brand/ensayo.jpg");
-  expect(detail.getByRole("link", { name: /Cliente de ensayo/ }).getAttribute("href")).toBe("/admin/clientes/c1");
+  expect(detail.getByRole("link", { name: /Cliente de ensayo/ }).getAttribute("href")).toBe("/admin-anterior/clientes/c1");
   const next = within(detail.getByRole("region", { name: "Lo que sigue" }));
   expect(next.getByText("Firma de ensayo")).toBeTruthy();
-  expect(next.getByRole("link", { name: "Pedir documentos de ensayo" }).getAttribute("href")).toBe("/admin/tareas/t1");
-  expect(detail.getByRole("link", { name: "Ver a Cliente" }).getAttribute("href")).toBe("/admin/clientes/c1");
+  expect(next.getByRole("link", { name: "Pedir documentos de ensayo" }).getAttribute("href")).toBe("/admin-anterior/tareas/t1");
+  expect(detail.getByRole("link", { name: "Ver a Cliente" }).getAttribute("href")).toBe("/admin-anterior/clientes/c1");
 });
 
 test("eliminar desde el detalle cierra el panel y se deshace", async () => {

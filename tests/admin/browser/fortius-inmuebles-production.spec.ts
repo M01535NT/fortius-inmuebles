@@ -24,6 +24,12 @@ test("disabled public leads remain explicit after hydration", async ({ page }) =
 test("admin renders independently while the public backend is unavailable", async ({ page }) => {
   const response = await page.goto("/admin");
   expect(response?.status()).toBe(200);
+  await expect(page.getByRole("heading", { name: "Entra al panel" })).toBeVisible();
+});
+
+test("the provisional panel in reserve renders independently while the public backend is unavailable", async ({ page }) => {
+  const response = await page.goto("/admin-anterior");
+  expect(response?.status()).toBe(200);
   await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
 });
 

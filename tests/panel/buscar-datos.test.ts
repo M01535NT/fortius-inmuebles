@@ -20,8 +20,8 @@ test("Buscar o crear: con una letra solo salen secciones; con dos, también los 
 
 test("Buscar o crear: encuentra por teléfono sin espacios y por folio, y lleva a la ficha", () => {
   expect(filtrarAgrupado(datos, "6641234567").map((e) => e.id)).toEqual(["p-c1"]);
-  expect(filtrarAgrupado(datos, "fortius-000007")[0]).toMatchObject({ grupo: "Inmuebles", ruta: "/panel/inmuebles?ver=FORTIUS-000007" });
-  expect(filtrarAgrupado(datos, "Ana Ruiz")[0]).toMatchObject({ ruta: "/panel/personas?ver=c1", detalle: "Propietario · 664 123 4567" });
+  expect(filtrarAgrupado(datos, "fortius-000007")[0]).toMatchObject({ grupo: "Inmuebles", ruta: "/admin/inmuebles?ver=FORTIUS-000007" });
+  expect(filtrarAgrupado(datos, "Ana Ruiz")[0]).toMatchObject({ ruta: "/admin/personas?ver=c1", detalle: "Propietario · 664 123 4567" });
 });
 
 test("Buscar o crear: cada grupo de datos queda junto y con un máximo", () => {
