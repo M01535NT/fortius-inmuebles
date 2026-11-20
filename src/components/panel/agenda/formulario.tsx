@@ -1,35 +1,39 @@
 "use client";
 import { useState } from "react";
 
+import { opcionesPersona, type PersonaVista } from "@/components/panel/datos/persona-vista";
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo } from "@/components/panel/kit/campo";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Interruptor } from "@/components/panel/kit/segmentado";
 import { SelectorFecha, SelectorHora } from "@/components/panel/kit/selector-fecha";
 import type { Property } from "@/data/propiedades";
-import type { Cliente } from "@/lib/backend/contracts";
 import { EVENTO_TIPO_LABELS, EVENTO_TIPOS, type Evento } from "@/lib/domain/records";
 import { nuevaCita, seEmpalma, tituloCita, type DatosCita } from "@/lib/panel/datos/agenda-acciones";
 
 const TIPOS = EVENTO_TIPOS.map((t) => ({ valor: t, etiqueta: EVENTO_TIPO_LABELS[t] }));
 
 /**
- * Nueva cita o cambiarla (PN-04, boceto «Agenda»): tipo, día, hora, con quién y dónde. El título es opcional: si no se escribe,
- * se arma con el tipo y la persona. Si se empalma con otra cita, se avisa y se puede guardar igual.
+ * Nueva cita o cambiarla (PN-04, boceto «Agenda»): tipo, día, hora, con quién (del Directorio) y dónde. El título es opcional:
+ * si no se escribe, se arma con el tipo y la persona. Si se empalma con otra cita, se avisa y se puede guardar igual.
+ * Una cita de antes con la persona de la lista vieja la conserva (`clienteId`) hasta que se elija a alguien del Directorio.
  */
-export function FormularioCita({ inicial, citas, personas, inmuebles, hoy, ocupado, textoGuardar, alGuardar }: {
-  inicial: DatosCita; citas: readonly Evento[]; personas: readonly Cliente[]; inmuebles: readonly Property[]; hoy: Date;
+export function FormularioCita({ inicial, citas, personas, antes, inmuebles, hoy, ocupado, textoGuardar, alGuardar }: {
+  inicial: DatosCita; citas: readonly Evento[]; personas: readonly PersonaVista[];
+  /** Nombre de la persona de la lista vieja, si la cita la trae. */
+  antes?: string;
+  inmuebles: readonly Property[]; hoy: Date;
   ocupado: boolean; textoGuardar: string; alGuardar: (d: DatosCita, persona?: string) => void;
 }) {
   const [d, setD] = useState<DatosCita>(inicial);
-  const persona = personas.find((c) => c.id === d.clienteId)?.nombre;
-  const ordenadas = [...personas].sort((a, b) => (a.nombre ?? "").localeCompare(b.nombre ?? "", "es"));
+  const persona = (d.personaId ? personas.find((c) => c.id === d.personaId)?.nombre : antes) || undefined;
   const empalme = d.hora !== null ? seEmpalma(nuevaCita(d, persona, "__borrador__"), citas) : null;
   return (
     <form noValidate style={{ display: "grid", gap: 12, marginTop: 8 }} onSubmit={(e) => { e.preventDefault(); alGuardar(d, persona); }}>
       <Desplegable etiqueta="Tipo" valor={d.tipo} opciones={TIPOS} alElegir={(tipo) => { if (tipo) setD({ ...d, tipo }); }} />
-      <Desplegable etiqueta="Con quién (opcional)" valor={d.clienteId} vacio="Sin persona" opciones={ordenadas.map((c) => ({ valor: c.id, etiqueta: c.nombre }))}
-        alElegir={(clienteId) => setD({ ...d, clienteId, propiedadSlug: d.propiedadSlug || (personas.find((c) => c.id === clienteId)?.propiedadSlug ?? "") })} />
+      <Desplegable etiqueta="Con quién (opcional)" valor={d.personaId ?? ""} vacio="Sin persona" opciones={opcionesPersona(personas, d.personaId)}
+        alElegir={(personaId) => setD({ ...d, personaId: personaId || undefined })}
+        ayuda={!d.personaId && antes ? `Antes: ${antes}. Elige a la persona del Directorio.` : undefined} />
       <Desplegable etiqueta="Inmueble (opcional)" valor={d.propiedadSlug} vacio="Sin inmueble" opciones={inmuebles.map((p) => ({ valor: p.slug, etiqueta: `${p.titulo} · ${p.codigo}` }))}
         alElegir={(propiedadSlug) => setD({ ...d, propiedadSlug })} />
       <SelectorFecha etiqueta="Día" valor={d.fecha} hoy={hoy} alElegir={(fecha) => setD({ ...d, fecha })} />

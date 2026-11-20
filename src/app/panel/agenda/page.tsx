@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent as TeclaReact } from "react";
 
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
+import { personaDe, useDirectorio } from "@/components/panel/datos/persona-vista";
 import { useFichaEnDireccion } from "@/components/panel/datos/use-ficha-url";
 import { FormularioCita } from "@/components/panel/agenda/formulario";
 import { ComoTeFue, type RespuestaComoFue } from "@/components/panel/agenda/como-fue";
@@ -30,6 +31,8 @@ import { tareasDeLaSemana, tareasPorFecha, textoSemana, type TareaDia } from "@/
 import { datosDeCita, deHoraGuardada, editarCita, nuevaCita, nuevaDesdeDireccion, seEmpalma, type DatosCita } from "@/lib/panel/datos/agenda-acciones";
 import { anotarEnAsunto, leerExpedientes, leerMiAsesor, leerVencimientos } from "@/lib/panel/datos/colecciones";
 import { filasAsuntos, nuevoSiguiente, type Expediente } from "@/lib/panel/datos/asuntos";
+import { leerAsuntos } from "@/lib/panel/asuntos/api";
+import type { FilaAsunto } from "@/lib/backend/asuntos-contrato";
 import { vencenAsuntos, vencenMovimientos, vencenTramites } from "@/lib/panel/datos/vencimientos";
 import type { Tramite } from "@/lib/tramites";
 import type { ContratoServidor } from "@/lib/panel/datos/hoy";
@@ -72,6 +75,9 @@ function Agenda() {
     leerVencimientos<ContratoServidor>(c.signal).then((v) => setVencenContratos(vencimientosEnDias(v)), () => undefined);
     return () => c.abort();
   }, []);
+  // Los asuntos del panel, para el nombre del asunto de una cita agendada desde él (`asuntoId`).
+  const [asuntos, setAsuntos] = useState<FilaAsunto[]>([]);
+  useEffect(() => { let vivo = true; leerAsuntos().then((a) => { if (vivo) setAsuntos(a); }, () => undefined); return () => { vivo = false; }; }, []);
   // Más vencimientos (DECISIONES, Agenda): las esperas de los trámites, los cobros de Dinero (nada si el servidor aún no
   // tiene la tabla) y la fecha clave de los asuntos. Cada uno en su día, en «Todo el día» y en «Más adelante».
   const tramites = useColeccion<Tramite>("tramites");
@@ -99,9 +105,12 @@ function Agenda() {
     setNueva(desde ? { modo: "detalle", inicial: {
       tipo: desde.tipo ?? "visita", titulo: "", fecha: aTexto(new Date()), hora: 10 * 60, clienteId: desde.clienteId, propiedadSlug: desde.propiedadSlug,
       notas: "", asesorId: null, expedienteId: desde.expedienteId || undefined,
+      personaId: desde.personaId || undefined, asuntoId: desde.asuntoId || undefined,
     } } : { modo: "linea" });
   }
   useEffect(() => { if (pideNueva) router.replace("/panel/agenda", { scroll: false }); }, [pideNueva, router]);
+  // Con quién: se elige del Directorio. La lista vieja solo da el nombre de las citas de antes que la traen.
+  const directorio = useDirectorio();
   const clientes = useColeccion<Cliente>("clientes");
   const leads = useColeccion<Lead>("leads");
   const inmuebles = useColeccion<Property>("propiedades");
@@ -352,6 +361,9 @@ function Agenda() {
   const tituloDia = fechaDia === hoyTexto ? "Hoy" : fechaDia === aTexto(sumarDias(hoy, 1)) ? "Mañana" : mayuscula(diaLargo(fechaDia));
   const cuantasDia = citasDia.length;
   const exp = evAbierto?.expedienteId ? expedientes.find((x) => x.id === evAbierto.expedienteId) : undefined;
+  const asuntoPanel = evAbierto?.asuntoId ? asuntos.find((x) => x.id === evAbierto.asuntoId) : undefined;
+  const personaAbierta = evAbierto ? personaDe(evAbierto, directorio, clientes.datos) : null;
+  const antesDe = (e: Evento) => (!e.personaId && e.clienteId ? clientes.datos.find((c) => c.id === e.clienteId)?.nombre?.trim() || undefined : undefined);
   const evCambiando = cambiando ? datos.find((e) => e.id === cambiando) ?? null : null;
   const evMoviendo = moviendo ? datos.find((e) => e.id === moviendo) ?? null : null;
   const evComoFue = comoFue ? datos.find((e) => e.id === comoFue) ?? null : null;
@@ -533,10 +545,12 @@ function Agenda() {
         {evAbierto ? (
           <DetalleCita
             ev={evAbierto} empalme={Boolean(filaAbierta?.empalme)} hoy={hoy}
-            cliente={evAbierto.clienteId ? clientes.datos.find((c) => c.id === evAbierto.clienteId) : undefined}
+            persona={personaAbierta ?? undefined} sinPersona={!personaAbierta && Boolean(evAbierto.personaId || evAbierto.clienteId)}
             lead={evAbierto.leadId ? leads.datos.find((l) => l.id === evAbierto.leadId) : undefined}
             inmueble={evAbierto.propiedadSlug ? inmuebles.datos.find((p) => p.slug === evAbierto.propiedadSlug) : undefined}
-            asunto={exp ? { id: exp.id, texto: exp.titulo?.trim() || exp.folio || "Asunto" } : undefined}
+            asunto={asuntoPanel ? { id: asuntoPanel.id, texto: [asuntoPanel.folio, asuntoPanel.nombre].filter(Boolean).join(" · ") || "Asunto" }
+              : evAbierto.asuntoId ? { id: evAbierto.asuntoId, texto: "Abrir el asunto" }
+              : exp ? { id: exp.id, texto: exp.titulo?.trim() || exp.folio || "Asunto" } : undefined}
             asesor={variosAsesores && evAbierto.asesorId ? nombreAsesor.get(evAbierto.asesorId) || undefined : undefined}
             pide={pidenComoFue.has(evAbierto.id)} ocupado={ocupado}
             alAnotar={() => setComoFue(evAbierto.id)}
@@ -558,10 +572,10 @@ function Agenda() {
 
       <HojaAdaptable abierta={nueva !== null} titulo="Nueva cita" alCerrar={() => setNueva(null)}>
         {nueva?.modo === "linea" ? (
-          <NuevaEnUnaLinea personas={clientes.datos} citas={datos} hoy={hoy} asesorId={miAsesor} ocupado={ocupado}
+          <NuevaEnUnaLinea personas={directorio} citas={datos} hoy={hoy} asesorId={miAsesor} ocupado={ocupado}
             alAgendar={(d) => void guardarCita(d)} alDetalle={(d) => setNueva({ modo: "detalle", inicial: d.titulo ? d : inicialNueva })} />
         ) : nueva?.modo === "detalle" ? (
-          <FormularioCita key="nueva" inicial={nueva.inicial} citas={datos} personas={clientes.datos} inmuebles={inmuebles.datos} hoy={hoy} ocupado={ocupado}
+          <FormularioCita key="nueva" inicial={nueva.inicial} citas={datos} personas={directorio} inmuebles={inmuebles.datos} hoy={hoy} ocupado={ocupado}
             textoGuardar="Agendar" alGuardar={(d, persona) => void guardarCita(d, persona)} />
         ) : null}
       </HojaAdaptable>
@@ -569,7 +583,7 @@ function Agenda() {
       <HojaAdaptable abierta={evCambiando !== null} titulo="Cambiar datos" alCerrar={() => setCambiando(null)}>
         {evCambiando ? (
           <FormularioCita key={evCambiando.id} inicial={datosDeCita(evCambiando)} citas={datos.filter((e) => e.id !== evCambiando.id)}
-            personas={clientes.datos} inmuebles={inmuebles.datos} hoy={hoy} ocupado={ocupado} textoGuardar="Guardar cambios"
+            personas={directorio} antes={antesDe(evCambiando)} inmuebles={inmuebles.datos} hoy={hoy} ocupado={ocupado} textoGuardar="Guardar cambios"
             alGuardar={(d, persona) => void guardarCita(d, persona)} />
         ) : null}
       </HojaAdaptable>

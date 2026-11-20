@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/panel/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
 import { Switch } from "@/components/panel/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/panel/ui/tabs";
-import type { Cliente } from "@/lib/backend/contracts";
+import type { PersonaVista } from "@/components/panel/datos/persona-vista";
 import type { Archivo, Asesor } from "@/lib/domain/records";
 import { aTexto, diaLargo } from "@/lib/panel/calendario";
 import { enlaceWhatsApp } from "@/lib/panel/datos/consultas";
@@ -60,7 +60,7 @@ const fecha = (iso?: string) => (iso ? diaLargo(aTexto(new Date(iso))) : "");
  * llevar. Debajo: Documentos con visor, Notas (separadas del Historial) y Datos.
  */
 export function DetalleTramite({ t, persona, inmueble, documentos, tareas, ocupado, firma, pedido, ...a }: {
-  t: CualquierTramite; persona: Cliente | null; inmueble: string; documentos: Archivo[]; tareas: Task[]; ocupado: boolean; firma: string; pedido: PedidoDetalle;
+  t: CualquierTramite; persona: PersonaVista | null; inmueble: string; documentos: Archivo[]; tareas: Task[]; ocupado: boolean; firma: string; pedido: PedidoDetalle;
 } & AccionesTramite) {
   const v = vistaTramite(t);
   const pasos = v.pasos;
@@ -389,7 +389,7 @@ function abrirParaImprimir(titulo: string, texto: string) {
 }
 
 /** «Avance al propietario»: arma el mensaje sin notas internas. El panel no envía nada: lo copia o lo abre, y deja registrado que se mandó. */
-function Avance({ t, v, persona, firma, alEnviado, alCerrar }: { t: CualquierTramite; v: VistaTramite; persona: Cliente | null; firma: string; alEnviado: (m: MedioAvance) => void; alCerrar: () => void }) {
+function Avance({ t, v, persona, firma, alEnviado, alCerrar }: { t: CualquierTramite; v: VistaTramite; persona: PersonaVista | null; firma: string; alEnviado: (m: MedioAvance) => void; alCerrar: () => void }) {
   const [partes, setPartes] = useState({ listo: true, sigue: true, necesita: true, pagos: false });
   const [medio, setMedio] = useState<MedioAvance>("whatsapp");
   const [copiado, setCopiado] = useState(false);
@@ -470,7 +470,7 @@ function Visor({ documentos, pasos, indice, alCambiar, alVer }: {
 
 /** Datos: tareas, datos del crédito (hipoteca) o del trámite, y pagos. */
 function Datos({ t, v, persona, inmueble, tareas, ocupado, alTareaHecha, alNuevaTarea, alPagar }: {
-  t: CualquierTramite; v: VistaTramite; persona: Cliente | null; inmueble: string; tareas: Task[]; ocupado: boolean;
+  t: CualquierTramite; v: VistaTramite; persona: PersonaVista | null; inmueble: string; tareas: Task[]; ocupado: boolean;
   alTareaHecha: (id: string) => void; alNuevaTarea: () => void; alPagar: (id: string) => void;
 }) {
   const ultimo = [...t.notas].map((n) => n.fecha ?? "").sort().pop();

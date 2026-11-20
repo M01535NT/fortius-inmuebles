@@ -1,7 +1,6 @@
 "use client";
 import { useId, useMemo, useState } from "react";
 
-import type { Cliente } from "@/lib/backend/contracts";
 import type { Evento } from "@/lib/domain/records";
 import { nuevaCita, seEmpalma, type DatosCita } from "@/lib/panel/datos/agenda-acciones";
 import { datosDeLinea, leerLinea } from "@/lib/panel/linea-cita";
@@ -12,13 +11,13 @@ import { datosDeLinea, leerLinea } from "@/lib/panel/linea-cita";
  * con lo ya escrito.
  */
 export function NuevaEnUnaLinea({ personas, citas, hoy, asesorId, ocupado, textoInicial = "", alAgendar, alDetalle }: {
-  personas: readonly Cliente[]; citas: readonly Evento[]; hoy: Date; asesorId: string | null; ocupado: boolean; textoInicial?: string;
+  personas: readonly { id: string; nombre: string; archivada?: boolean }[]; citas: readonly Evento[]; hoy: Date; asesorId: string | null; ocupado: boolean; textoInicial?: string;
   alAgendar: (d: DatosCita) => void;
   alDetalle: (d: DatosCita) => void;
 }) {
   const id = useId();
   const [texto, setTexto] = useState(textoInicial);
-  const linea = useMemo(() => leerLinea(texto, hoy, personas.map((p) => ({ id: p.id, nombre: p.nombre ?? "" }))), [texto, hoy, personas]);
+  const linea = useMemo(() => leerLinea(texto, hoy, personas.filter((p) => !p.archivada && p.nombre).map((p) => ({ id: p.id, nombre: p.nombre }))), [texto, hoy, personas]);
   const datos = datosDeLinea(linea, hoy, asesorId);
   const choque = texto.trim() && linea.completa ? seEmpalma(nuevaCita(datos, undefined, "prueba"), citas) : null;
   const listo = texto.trim().length > 0 && linea.completa;
@@ -35,7 +34,7 @@ export function NuevaEnUnaLinea({ personas, citas, hoy, asesorId, ocupado, texto
       ) : null}
       {texto.trim() && !linea.completa ? <p className="pn-campo-ayuda" style={{ margin: 0 }}>Falta el día: escribe «hoy», «mañana», «el jueves» o «20 nov».</p> : null}
       {choque ? <div className="pn-warnbox" role="status">{choque}</div> : null}
-      {linea.persona && !linea.persona.id ? <p className="pn-campo-ayuda" style={{ margin: 0 }}>«{linea.persona.texto}» no está en Personas: queda en el título de la cita.</p> : null}
+      {linea.persona && !linea.persona.id ? <p className="pn-campo-ayuda" style={{ margin: 0 }}>«{linea.persona.texto}» no está en el Directorio: queda en el título de la cita.</p> : null}
       <button type="submit" className="pn-fdone" disabled={!listo || ocupado} aria-disabled={!listo || ocupado || undefined}>{ocupado ? "Agendando…" : "Agendar"}</button>
       <button type="button" className="pn-dlink" style={{ justifySelf: "center", margin: 0 }} onClick={() => alDetalle(datos)}>Con más detalle</button>
     </form>

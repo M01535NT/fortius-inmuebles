@@ -3,12 +3,12 @@ import Link from "next/link";
 
 import { Icono } from "@/components/panel/icons";
 import type { Property } from "@/data/propiedades";
-import type { Cliente } from "@/lib/backend/contracts";
+import { rutaPersona, type PersonaVista } from "@/components/panel/datos/persona-vista";
 import type { Lead } from "@/lib/domain/records";
 import { EVENTO_TIPO_LABELS } from "@/lib/domain/records";
 import { aTexto, diaLargo, horaTexto } from "@/lib/panel/calendario";
 import { DURACION_MIN } from "@/lib/panel/datos/agenda";
-import { deHoraGuardada } from "@/lib/panel/datos/agenda-acciones";
+import { deHoraGuardada, esDelPanel } from "@/lib/panel/datos/agenda-acciones";
 import { textoResultado, yaPaso, type EventoConResultado } from "@/lib/panel/datos/agenda-resultado";
 import { iniciales } from "@/lib/panel/datos/asuntos";
 import { enlaceWhatsApp } from "@/lib/panel/datos/consultas";
@@ -23,9 +23,10 @@ export const lugarDeNotas = (notas?: string) => /^Lugar:\s*(.+)$/m.exec(notas ??
  * «¿Cómo te fue?» si ya pasó, con quién (llamar, WhatsApp «voy en camino»), dónde (cómo llegar), el asunto,
  * y al final Mover, Cambiar datos y Cancelar cita (con Deshacer, sin pedir confirmación).
  */
-export function DetalleCita({ ev, empalme, hoy, cliente, lead, inmueble, asunto, asesor, pide, ocupado, alAnotar, alNoLlego, alMover, alCambiar, alCancelar }: {
+export function DetalleCita({ ev, empalme, hoy, persona, sinPersona, lead, inmueble, asunto, asesor, pide, ocupado, alAnotar, alNoLlego, alMover, alCambiar, alCancelar }: {
   ev: EventoConResultado; empalme: boolean; hoy: Date;
-  cliente?: Cliente; lead?: Lead; inmueble?: Property; asunto?: { id: string; texto: string }; asesor?: string;
+  /** La persona del Directorio (o, en citas de antes, la de la lista vieja). `sinPersona`: la cita la tenía y no se encontró. */
+  persona?: PersonaVista; sinPersona?: boolean; lead?: Lead; inmueble?: Property; asunto?: { id: string; texto: string }; asesor?: string;
   pide: boolean; ocupado: boolean;
   alAnotar: () => void; alNoLlego: () => void; alMover: () => void; alCambiar: () => void; alCancelar: () => void;
 }) {
@@ -33,8 +34,8 @@ export function DetalleCita({ ev, empalme, hoy, cliente, lead, inmueble, asunto,
   const dur = DURACION_MIN[ev.tipo] ?? 30;
   const paso = yaPaso(ev, hoy);
   const estado = ev.resultado ? textoResultado(ev.resultado).split(". ")[0] : paso ? "Ya pasó" : ev.fecha === aTexto(hoy) ? "Hoy" : "Próxima";
-  const nombre = cliente?.nombre?.trim() || lead?.nombre?.trim() || "";
-  const telefono = cliente?.telefono || lead?.telefono || "";
+  const nombre = persona?.nombre || lead?.nombre?.trim() || "";
+  const telefono = persona?.telefono || lead?.telefono || "";
   const tel = telefono.replace(/[^\d+]/g, "");
   const wa = telefono ? enlaceWhatsApp(telefono, `Hola ${nombre.split(/\s+/)[0] ?? ""}, voy en camino a nuestra cita.`) : null;
   const lugar = lugarDeNotas(ev.notas) ?? (inmueble ? [inmueble.direccionAproximada, inmueble.zona].filter(Boolean).join(", ") : null);
@@ -67,13 +68,18 @@ export function DetalleCita({ ev, empalme, hoy, cliente, lead, inmueble, asunto,
       {nombre ? (
         <div className="pn-dato" style={{ cursor: "default" }}>
           <span className="pn-av" aria-hidden>{iniciales(nombre)}</span>
-          {/* La cita todavía guarda la persona de la lista vieja: se busca por su nombre en el Directorio. */}
-          <Link href={cliente ? `/panel/directorio?q=${encodeURIComponent(cliente.nombre?.trim() || cliente.telefono || "")}` : rutaConsulta(lead?.id ?? "")} style={{ flex: 1, minWidth: 0, display: "grid", gap: 1, color: "inherit", textDecoration: "none" }}>
+          {/* La del Directorio abre su ficha; la de la lista vieja se busca por su nombre. */}
+          <Link href={persona ? rutaPersona(persona) : rutaConsulta(lead?.id ?? "")} style={{ flex: 1, minWidth: 0, display: "grid", gap: 1, color: "inherit", textDecoration: "none" }}>
             <b style={{ fontSize: 15 }}>{nombre}</b>
-            <span style={{ fontSize: 13, color: "var(--ink-muted)" }}>{telefono || (cliente ? "Persona" : "Consulta")}</span>
+            <span style={{ fontSize: 13, color: "var(--ink-muted)" }}>{telefono || (persona ? "Persona" : "Consulta")}</span>
           </Link>
           {tel ? <a className="pn-iconbtn" href={`tel:${tel}`} aria-label={`Llamar a ${nombre}`}><Icono nombre="llamada" tamano={18} /></a> : null}
           {wa ? <a className="pn-iconbtn" href={wa} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp a ${nombre}: voy en camino`}><Icono nombre="mensaje" tamano={18} /></a> : null}
+        </div>
+      ) : sinPersona ? (
+        <div className="pn-dato" style={{ cursor: "default" }}>
+          <span className="pn-av" aria-hidden><Icono nombre="users" tamano={18} /></span>
+          <span style={{ flex: 1, fontSize: 15, color: "var(--ink-muted)" }}>Sin persona</span>
         </div>
       ) : null}
       {lugar || inmueble ? (
@@ -87,7 +93,7 @@ export function DetalleCita({ ev, empalme, hoy, cliente, lead, inmueble, asunto,
         </div>
       ) : null}
       {asunto ? (
-        <Link className="pn-dato" href={`/panel/asuntos?ver=${encodeURIComponent(asunto.id)}`}>
+        <Link className="pn-dato" href={esDelPanel(asunto.id) ? `/panel/asuntos/${asunto.id}` : `/panel/asuntos?ver=${encodeURIComponent(asunto.id)}`}>
           <span className="pn-av" aria-hidden style={{ borderRadius: "var(--r-md)" }}><Icono nombre="expediente" tamano={18} /></span>
           <span style={{ flex: 1, minWidth: 0, display: "grid", gap: 1 }}>
             <span style={{ fontSize: 13, color: "var(--ink-muted)" }}>Asunto</span>

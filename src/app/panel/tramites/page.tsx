@@ -3,6 +3,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 
 import { useLoLleva } from "@/components/panel/datos/lo-lleva";
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
+import { opcionesPersona, personaDe, useDirectorio, vistaDeCliente, type PersonaVista } from "@/components/panel/datos/persona-vista";
 import { useFichaEnDireccion } from "@/components/panel/datos/use-ficha-url";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Boton } from "@/components/panel/kit/boton";
@@ -47,7 +48,10 @@ import { ACREEDORES, esHipoteca, nuevoTramite, type Acreedor, type CualquierTram
 function Tramites() {
   const tramites = useColeccion<CualquierTramite>("tramites");
   const archivos = useColeccion<Archivo>("archivos");
-  const personas = useColeccion<Cliente>("clientes");
+  // Propietario o persona: se elige del Directorio. La lista vieja solo da el nombre de los trámites de antes que la traen.
+  const directorio = useDirectorio();
+  const clientes = useColeccion<Cliente>("clientes");
+  const conocidas = useMemo(() => [...directorio, ...clientes.datos.map(vistaDeCliente)], [directorio, clientes.datos]);
   const inmuebles = useColeccion<Property>("propiedades");
   const asesores = useColeccion<Asesor>("asesores");
   const tareas = useColeccion<Task>("tareas");
@@ -90,7 +94,7 @@ function Tramites() {
     return () => window.removeEventListener("keydown", tecla);
   }, []);
 
-  const filas = useMemo(() => ordenarTramites(tramites.datos.map((t) => filaTramite(t, personas.datos, hoy)), tramites.datos), [tramites.datos, personas.datos, hoy]);
+  const filas = useMemo(() => ordenarTramites(tramites.datos.map((t) => filaTramite(t, conocidas, hoy)), tramites.datos), [tramites.datos, conocidas, hoy]);
   // «Lo lleva» (PN-10): el director puede quedarse con los trámites de un asesor o con los suyos.
   const asesorDe = useMemo(() => new Map(tramites.datos.map((x) => [x.id, x.asesorId])), [tramites.datos]);
   const loLleva = useLoLleva(useMemo(() => [...asesorDe.values()], [asesorDe]), miAsesor, asesores.datos);
@@ -117,7 +121,7 @@ function Tramites() {
   const resumenFiltros = [...tiposF, ...dondeF].join(" · ");
   useEffect(() => { orden.current = ordenVisible ? ordenVisible.split("|") : []; abiertaRef.current = abierta; abrirRef.current = abrir; });
   const t = tramites.datos.find((x) => x.id === abierta) ?? null;
-  const persona = t ? personas.datos.find((p) => p.id === t.clienteId) ?? null : null;
+  const persona = t ? personaDe(t, directorio, clientes.datos) : null;
   const inmueble = t?.propiedadSlug ? inmuebles.datos.find((p) => p.slug === t.propiedadSlug)?.titulo ?? "" : "";
   const documentos = t ? archivos.datos.filter((a) => a.tramiteId === t.id) : [];
   const tareasT = t ? tareasDeTramite(tareas.datos, t.id) : [];
@@ -150,8 +154,8 @@ function Tramites() {
   const crear = async (d: NuevoDatos) => {
     const id = `tra-${crypto.randomUUID()}`;
     const base = d.tipo === "cancelacion_hipoteca"
-      ? nuevoTramite({ id, acreedor: d.acreedor, titulo: d.titulo, clienteId: d.clienteId, asesorId: d.asesorId, propiedadSlug: d.propiedadSlug })
-      : nuevoTramiteGuia({ id, tipo: d.tipo, titulo: d.titulo, clienteId: d.clienteId, asesorId: d.asesorId, propiedadSlug: d.propiedadSlug });
+      ? nuevoTramite({ id, acreedor: d.acreedor, titulo: d.titulo, personaId: d.personaId, asesorId: d.asesorId, propiedadSlug: d.propiedadSlug })
+      : nuevoTramiteGuia({ id, tipo: d.tipo, titulo: d.titulo, personaId: d.personaId, asesorId: d.asesorId, propiedadSlug: d.propiedadSlug });
     const nuevo = { ...base, creadoEl: new Date().toISOString() };
     if (await guardar(nuevo, `Trámite abierto: ${GUIAS[d.tipo].nombre}`)) { setCreando(false); abrir(nuevo.id); }
   };
@@ -310,7 +314,7 @@ function Tramites() {
       </section>
 
       <HojaAdaptable abierta={creando} titulo="Nuevo trámite" descripcion="Elige qué vas a tramitar." alCerrar={() => setCreando(false)}>
-        {creando ? <NuevoTramite personas={personas.datos} inmuebles={inmuebles.datos} asesores={asesores.datos} miAsesor={miAsesor} ocupado={ocupado} alGuardar={(d) => void crear(d)} /> : null}
+        {creando ? <NuevoTramite personas={directorio} inmuebles={inmuebles.datos} asesores={asesores.datos} miAsesor={miAsesor} ocupado={ocupado} alGuardar={(d) => void crear(d)} /> : null}
       </HojaAdaptable>
     </div>
   );
@@ -323,7 +327,7 @@ function diasDesde(creadoEl: string | undefined, hoy: string): string {
   return ` · lleva ${n} ${n === 1 ? "día" : "días"}`;
 }
 
-type NuevoDatos = { tipo: TipoTramite; acreedor: Acreedor; titulo: string; clienteId: string; asesorId: string; propiedadSlug: string };
+type NuevoDatos = { tipo: TipoTramite; acreedor: Acreedor; titulo: string; personaId: string; asesorId: string; propiedadSlug: string };
 const ACREEDOR_OPCIONES = (Object.keys(ACREEDORES) as Acreedor[]).map((a) => ({ valor: a, etiqueta: ACREEDORES[a] }));
 
 /**
@@ -331,11 +335,11 @@ const ACREEDOR_OPCIONES = (Object.keys(ACREEDORES) as Acreedor[]).map((a) => ({ 
  * La hipoteca pide acreedor y propietario (TRA-01: la base lo exige); las guías que no son la hipoteca salen «Por confirmar».
  */
 function NuevoTramite({ personas, inmuebles, asesores, miAsesor, ocupado, alGuardar }: {
-  personas: readonly Cliente[]; inmuebles: readonly Property[]; asesores: readonly Asesor[]; miAsesor: string | null; ocupado: boolean;
+  personas: readonly PersonaVista[]; inmuebles: readonly Property[]; asesores: readonly Asesor[]; miAsesor: string | null; ocupado: boolean;
   alGuardar: (d: NuevoDatos) => void;
 }) {
   const [tipo, setTipo] = useState<TipoTramite | null>(null);
-  const [d, setD] = useState({ acreedor: "infonavit" as Acreedor, titulo: "", clienteId: "", asesorId: miAsesor ?? "", propiedadSlug: "" });
+  const [d, setD] = useState({ acreedor: "infonavit" as Acreedor, titulo: "", personaId: "", asesorId: miAsesor ?? "", propiedadSlug: "" });
   const [intento, setIntento] = useState(false);
   if (!tipo) {
     return (
@@ -353,9 +357,8 @@ function NuevoTramite({ personas, inmuebles, asesores, miAsesor, ocupado, alGuar
   const g = GUIAS[tipo];
   const hipoteca = tipo === "cancelacion_hipoteca";
   const inmueble = inmuebles.find((p) => p.slug === d.propiedadSlug);
-  const titulo = d.titulo.trim() || inmueble?.titulo || personas.find((p) => p.id === d.clienteId)?.nombre || (hipoteca ? "" : g.nombre);
-  const falta = hipoteca && !d.clienteId ? "Elige al propietario." : !titulo ? "Escribe un nombre o elige el inmueble." : !d.asesorId ? "Elige quién lo lleva." : null;
-  const ordenadas = [...personas].sort((a, b) => (a.nombre ?? "").localeCompare(b.nombre ?? "", "es"));
+  const titulo = d.titulo.trim() || inmueble?.titulo || personas.find((p) => p.id === d.personaId)?.nombre || (hipoteca ? "" : g.nombre);
+  const falta = hipoteca && !d.personaId ? "Elige al propietario." : !titulo ? "Escribe un nombre o elige el inmueble." : !d.asesorId ? "Elige quién lo lleva." : null;
   return (
     <form noValidate style={{ display: "grid", gap: 12, marginTop: 8 }} onSubmit={(e) => { e.preventDefault(); setIntento(true); if (!falta) alGuardar({ ...d, tipo, titulo }); }}>
       <div style={{ display: "grid", gap: 4 }}>
@@ -370,9 +373,9 @@ function NuevoTramite({ personas, inmuebles, asesores, miAsesor, ocupado, alGuar
       ) : null}
       <Desplegable etiqueta="Inmueble" valor={d.propiedadSlug} vacio="Sin inmueble" opciones={inmuebles.map((p) => ({ valor: p.slug, etiqueta: `${p.titulo} · ${p.codigo}` }))}
         alElegir={(propiedadSlug) => setD({ ...d, propiedadSlug })} />
-      <Desplegable etiqueta={hipoteca ? "Propietario" : "Persona"} valor={d.clienteId} vacio={hipoteca ? "Elige…" : "Sin persona"} opciones={ordenadas.map((c) => ({ valor: c.id, etiqueta: c.nombre }))}
-        alElegir={(clienteId) => setD({ ...d, clienteId, propiedadSlug: d.propiedadSlug || (personas.find((c) => c.id === clienteId)?.propiedadSlug ?? "") })}
-        ayuda={hipoteca ? undefined : "Puedes ligarlo a un inmueble, a una persona o a ninguno."} />
+      <Desplegable etiqueta={hipoteca ? "Propietario" : "Persona"} valor={d.personaId} vacio={hipoteca ? "Elige…" : "Sin persona"} opciones={opcionesPersona(personas, d.personaId)}
+        alElegir={(personaId) => setD({ ...d, personaId })}
+        ayuda={hipoteca ? (personas.length ? undefined : "Agrega primero al propietario en el Directorio.") : "Puedes ligarlo a un inmueble, a una persona del Directorio o a ninguno."} />
       <Campo etiqueta="Nombre del trámite" placeholder={inmueble?.titulo ?? (hipoteca ? "Por ejemplo: Casa en Playas" : g.nombre)} maxLength={160} value={d.titulo} onChange={(e) => setD({ ...d, titulo: e.target.value })} autoComplete="off" />
       {miAsesor ? null : <Desplegable etiqueta="Lo lleva" valor={d.asesorId} vacio="Elige…" opciones={asesores.map((a) => ({ valor: a.id, etiqueta: a.nombre }))} alElegir={(asesorId) => setD({ ...d, asesorId })} />}
       {intento && falta ? <p role="alert" style={{ margin: 0, color: "var(--error)" }}>{falta}</p> : null}
