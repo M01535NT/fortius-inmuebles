@@ -81,7 +81,7 @@ Cada asesor ve lo que lleva; el director ve todo el equipo y puede elegir a una 
 
 ### Configuración y catálogos
 
-Configuración se abre desde la cuenta de quien entró. Además del perfil, la apariencia y los avisos de cada quien, ahí el director ajusta el panel a su trabajo sin programar: las listas, los datos de cada ficha, los tipos de asunto, los machotes (sección 8), la empresa, el equipo y los módulos. Todo lo que sigue lo cambia solo el director.
+Configuración se abre desde la cuenta de quien entró. Además del perfil, la seguridad (cambiar la contraseña y, el director, la entrada en dos pasos), la apariencia y los avisos de cada quien, ahí el director ajusta el panel a su trabajo sin programar: las listas, los datos de cada ficha, los tipos de asunto, los machotes (sección 8), la empresa, el equipo y los módulos. Todo lo que sigue lo cambia solo el director.
 
 **Catálogos** (las listas):
 
@@ -496,6 +496,7 @@ Las escribe el titular. Lo jurídico lo revisa el abogado antes de usarlo con cl
 - **Abogado de Fortius:** los abogados que llevan los juicios y trámites entran al panel con su propia cuenta y llevan ahí el expediente. **Ven solo los juicios que llevan o en los que colaboran,** como un asesor ve los suyos; no ven los demás asuntos. Si ven los honorarios y los cobros de esos juicios está por decidir (sección 18).
 - Esto se hace cumplir en la base de datos, no solo escondiendo botones.
 - El director entra con dos pasos (contraseña y un código).
+- **Recuperar el acceso:** en la entrada, «¿Olvidaste tu contraseña?» manda un enlace al correo. Ese enlace, igual que el de una invitación, abre la entrada para elegir la contraseña (de 12 a 128 caracteres). Cambiar la contraseña o activar los dos pasos pide haber entrado hace poco; si no, el panel lo dice y ofrece salir y volver a entrar. Se registran hasta dos dispositivos para el código; desde el panel no se quitan.
 
 ### Funciones del equipo
 
