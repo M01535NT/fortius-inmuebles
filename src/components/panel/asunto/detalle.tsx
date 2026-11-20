@@ -28,6 +28,8 @@ import { DialogoTexto, useAngosto, Ventana } from "./ventana";
 import { DialogoCierre } from "./cierre";
 import { ContenidoApartado, iconoPropio, nombreApartado, resumenApartado } from "./apartados";
 import { NotasDelAsunto, type FiltroNotas } from "./notas";
+import { dinero } from "./comun";
+import type { Comision } from "@/lib/backend/comision";
 import { faltaCobrar } from "./honorarios";
 import { hechoDe } from "./situacion";
 import { NOMBRE_DE_QUIEN, NOMBRE_QUIERE } from "@/lib/backend/consultas-contrato";
@@ -363,6 +365,8 @@ export function DetalleAsunto({ id }: { id: string }) {
         {cerrado && (a.capto_id || a.vendio_id) ? (
           <p className="as-m">{[a.capto_id ? `Captó ${nombreDe(a.capto_id)}` : "", a.vendio_id ? `Vendió ${nombreDe(a.vendio_id)}` : ""].filter(Boolean).join(" · ")}</p>
         ) : null}
+        {/* Solo al director le llega `comision`: la estimación del reparto, calculada al vuelo. */}
+        {a.comision ? <LineaComision c={a.comision} nombreDe={nombreDe} /> : null}
       </div>
 
       {cerrado ? (
@@ -496,5 +500,22 @@ export function DetalleAsunto({ id }: { id: string }) {
           abrir(r.id, "nueva-fila");
         }, `Se agregó ${t}`)} />
     </div>
+  );
+}
+
+const PAPEL_COMISION: Record<Comision["reparto"][number]["papel"], string> = { capto: "Captó", vendio: "Vendió", ambos: "Captó y vendió" };
+
+/** «Comisión estimada · Captó Ana 25 %: $12,500 MXN · …», con «Aún no cuenta» si el asunto no está cerrado como logrado. */
+function LineaComision({ c, nombreDe }: { c: Comision; nombreDe: (id: string) => string }) {
+  const montos = (m: Comision["honorario"]) => m.map((x) => dinero(x.monto, x.moneda)).join(" + ");
+  const partes = [
+    ...c.reparto.map((r) => `${PAPEL_COMISION[r.papel]} ${nombreDe(r.asesor_id)} ${r.porcentaje} %${r.montos.length ? `: ${montos(r.montos)}` : ""}`),
+    c.presupuesto_numero === null ? "Sin presupuesto aceptado" : `Honorario ${c.honorario.length ? montos(c.honorario) : "por calcular"} (presupuesto ${c.presupuesto_numero})`,
+    c.por_calcular ? `${c.por_calcular} ${c.por_calcular === 1 ? "concepto" : "conceptos"} por calcular` : "",
+  ].filter(Boolean);
+  return (
+    <p className="as-m" title="Estimación sobre el honorario del presupuesto aceptado. No es registro de lo pagado.">
+      <b>Comisión estimada</b>{c.cuenta ? null : <span className="as-pill as-pill-warn" style={{ marginInline: 6 }}>Aún no cuenta</span>} · {partes.join(" · ")}
+    </p>
   );
 }
