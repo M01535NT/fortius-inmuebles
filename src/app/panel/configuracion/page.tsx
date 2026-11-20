@@ -1,13 +1,15 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
+import { SeccionBlog } from "@/components/panel/configuracion/blog";
 import { SeccionCatalogos } from "@/components/panel/configuracion/catalogos";
 import { MarcoAjustes, useSeccionesAjustes } from "@/components/panel/configuracion/marco";
 import { SeccionPerfil } from "@/components/panel/configuracion/perfil";
 import { SeccionApariencia, SeccionAvisos } from "@/components/panel/configuracion/preferencias";
 import { SeccionEquipo } from "@/components/panel/configuracion/equipo";
 import { SeccionPrincipal } from "@/components/panel/configuracion/partes";
+import { SeccionTextos } from "@/components/panel/configuracion/textos";
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import type { Asesor } from "@/lib/domain/records";
@@ -15,7 +17,7 @@ import { elegirMiFicha, leerMiFicha } from "@/lib/panel/datos/configuracion-cuen
 import { useSession } from "@/lib/panel/legado/sesion";
 
 /**
- * Configuración como el modelo visual («Ajustes»): Perfil, Apariencia, Avisos, Equipo y Catálogos (solo el director),
+ * Configuración como el modelo visual («Ajustes»): Perfil, Apariencia, Avisos, Equipo, Catálogos, Blog y Textos del sitio (estos tres, solo el director),
  * una a la vez con ?ver=. La cuenta del director es la misma persona que su ficha del equipo: si todavía no tiene,
  * «Perfil» le deja elegir cuál es.
  */
@@ -27,6 +29,7 @@ function Ajustes() {
   const sesion = useSession();
   const { avisar } = useAvisos();
   const params = useSearchParams();
+  const router = useRouter();
   const { todas, director: esDirector } = useSeccionesAjustes();
   const equipo = useColeccion<Asesor>("asesores");
   const [miId, setMiId] = useState<string | null | undefined>(undefined);
@@ -68,6 +71,12 @@ function Ajustes() {
             <SeccionEquipo key={`equipo-${vuelta}`} esDirector={esDirector} asesores={equipo.datos} cargando={equipo.cargando} error={equipo.error} alReintentar={equipo.reintentar} miId={miId ?? null} />
           )
           : actual?.clave === "catalogos" && esDirector ? <SeccionCatalogos />
+          // Sitio público (solo el director): la entrada abierta del blog va en ?entrada= para que «atrás» regrese a la lista.
+          : actual?.clave === "blog" && esDirector ? (
+            <SeccionBlog entrada={params.get("entrada")}
+              alAbrir={(id) => router.push(`/panel/configuracion?ver=blog${id ? `&entrada=${encodeURIComponent(id)}` : ""}`, { scroll: false })} />
+          )
+          : actual?.clave === "textos" && esDirector ? <SeccionTextos />
           : (
             <SeccionPerfil
               correo={sesion?.email} nombreSesion={sesion?.name} miAsesor={miAsesor}

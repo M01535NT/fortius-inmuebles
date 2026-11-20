@@ -15,7 +15,7 @@ import "./configuracion.css";
  * y con «Buscar»; a la derecha, una sección a la vez. Lo usan Configuración y Eliminados. En el teléfono, la lista o la
  * sección, con «‹ Configuración» para volver.
  */
-export type ClaveAjuste = "perfil" | "apariencia" | "avisos" | "equipo" | "catalogos";
+export type ClaveAjuste = "perfil" | "apariencia" | "avisos" | "equipo" | "catalogos" | "blog" | "textos";
 type Item = { clave: ClaveAjuste; nombre: string; icono: NombreIcono; subtitulo: string; buscar: string; director?: boolean };
 const GRUPOS: { titulo: string; items: Item[] }[] = [
   { titulo: "Tu cuenta", items: [
@@ -28,6 +28,11 @@ const GRUPOS: { titulo: string; items: Item[] }[] = [
   ] },
   { titulo: "Cómo se trabaja", items: [
     { clave: "catalogos", nombre: "Catálogos", icono: "lista", subtitulo: "Las listas que usa todo el panel. Apagar un valor no lo borra.", buscar: "listas papeles tipos valores", director: true },
+  ] },
+  // Solo el director: la base no deja a un asesor cambiar el blog ni los textos del sitio.
+  { titulo: "Sitio público", items: [
+    { clave: "blog", nombre: "Blog", icono: "nota", subtitulo: "Guías y actualidad. Un borrador no sale en el sitio hasta que lo publicas.", buscar: "articulos entradas guias actualidad publicar borrador", director: true },
+    { clave: "textos", nombre: "Textos del sitio", icono: "globo", subtitulo: "Lo que dice el sitio público. Al guardar, sale en el sitio.", buscar: "contenido inicio portada seo preguntas testimonios", director: true },
   ] },
 ];
 const sinAcentos = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();

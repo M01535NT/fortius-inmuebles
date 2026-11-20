@@ -9,7 +9,7 @@ export class ErrorDeLectura extends Error {
 }
 
 export type Registro<T> = { id: string; data: T; version: number };
-export type NombreColeccion = "clientes" | "propiedades" | "leads" | "eventos" | "asesores" | "tareas" | "tramites" | "archivos";
+export type NombreColeccion = "clientes" | "propiedades" | "leads" | "eventos" | "asesores" | "tareas" | "tramites" | "archivos" | "posts" | "contenido";
 
 export async function leerColeccion<T>(nombre: NombreColeccion, senal?: AbortSignal): Promise<T[]> {
   return (await leerRegistros<T>(nombre, senal)).map((r) => r.data);
