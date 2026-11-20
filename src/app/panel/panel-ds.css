@@ -185,6 +185,33 @@ button.pn-sec { cursor: pointer; }
   .pn-acceso .pn-btn { height: 32px; font-size: 13px; }
 }
 .pn-acceso .pn-error { margin: 0; font-size: 12px; }
+/* Recuperar el acceso y el enlace del correo (mismas llamadas que el provisional). La liga de abajo, como en una app de
+   Mac: texto azul, sin caja; en el teléfono, 44 px para el dedo. */
+.pn-acceso { grid-template-rows: 1fr auto 1fr; gap: 16px; }
+.pn-acceso form { grid-row: 2; }
+.pn-acceso-sitio { grid-row: 3; align-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; border-radius: 8px; color: var(--ink-muted); font-size: 13px; text-decoration: none; }
+.pn-acceso-sitio:hover { color: var(--ink); }
+.pn-acceso-liga { align-self: center; min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--accent); font: inherit; font-size: 13px; cursor: pointer; }
+.pn-acceso-liga:hover { text-decoration: underline; text-underline-offset: 3px; }
+:is(.pn-acceso-liga, .pn-acceso-sitio, .pn-acceso-clave button):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pn-acceso-nota { margin: -4px 0 0; text-align: center; font-size: 13px; color: var(--ink-muted); }
+.pn-acceso :is(.pn-error, .pn-acceso-ok) { display: flex; align-items: flex-start; gap: 6px; }
+.pn-acceso :is(.pn-error, .pn-acceso-ok) > svg { flex: none; margin-top: 1px; }
+.pn-acceso-ok { margin: 0; font-size: 12px; color: var(--exito); }
+.pn-acceso-codigo { letter-spacing: 0.3em; text-align: center; font-variant-numeric: tabular-nums; }
+.pn-acceso-clave { position: relative; display: flex; }
+.pn-acceso-clave input { flex: 1; min-width: 0; padding-right: 40px; }
+.pn-acceso-clave button {
+  position: absolute; inset: 0 0 0 auto; width: 36px; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 0 8px 8px 0; background: none; color: var(--ink-muted); cursor: pointer;
+}
+.pn-acceso-clave button[aria-pressed="true"] { color: var(--accent); }
+.pn-acceso .pn-campo-ayuda { font-size: 12px; font-weight: 400; color: var(--ink-muted); }
+@media (max-width: 900px) {
+  .pn-acceso-liga { min-height: 44px; }
+  .pn-acceso-clave input { padding-right: 48px; }
+  .pn-acceso-clave button { width: 44px; }
+}
 
 /* El aviso de error bajo la barra de 52 px (error.tsx). */
 .pn-marco-aviso { width: min(520px, 100%); margin: 48px auto; padding: 0 16px; box-sizing: border-box; }

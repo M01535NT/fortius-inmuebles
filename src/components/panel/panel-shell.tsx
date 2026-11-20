@@ -1,11 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { aplicarOrden, leerOrdenGuardado } from "@/lib/panel/ordenar";
 import { BARRA_TELEFONO, CONFIGURACION, CONSULTA, seccionPorRuta, seccionesPara, type Seccion } from "@/lib/panel/secciones";
-import { errorMessage, isLoggedIn, login, logout, needsMfaCode, useSession, verifyMfaCode } from "@/lib/panel/legado/sesion";
+import { acceptPasswordLink, errorMessage, isLoggedIn, logout, needsMfaCode, useSession } from "@/lib/panel/legado/sesion";
+
+import { Acceso } from "./acceso";
 
 import { usePreferencia } from "./almacen";
 import { useCuentaAsuntos } from "./asunto/cuenta";
@@ -26,49 +28,6 @@ import {
 const CLAVE_ORDEN = "fortius-panel-menu";
 const CLAVE_MINI = "fortius-nav";
 const CLAVE_TEMA = "fortius-theme";
-
-function Acceso() {
-  const [correo, setCorreo] = useState("");
-  const [clave, setClave] = useState("");
-  const [codigo, setCodigo] = useState("");
-  const [pasoCodigo, setPasoCodigo] = useState(needsMfaCode());
-  const [error, setError] = useState<string | null>(null);
-  const [enviando, setEnviando] = useState(false);
-
-  async function enviar(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setEnviando(true);
-    try {
-      if (pasoCodigo) await verifyMfaCode(codigo);
-      else { await login(correo, clave); if (needsMfaCode()) setPasoCodigo(true); }
-    } catch (err) { setError(errorMessage(err)); } finally { setEnviando(false); }
-  }
-  return (
-    <main className="pn-acceso">
-      <form onSubmit={enviar}>
-        <Logo alto={22} />
-        <h1 className="pn-acceso-t">{pasoCodigo ? "Código de verificación" : "Entra al panel"}</h1>
-        {pasoCodigo ? (
-          <label className="pn-campo">Código de 6 dígitos
-            <input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={codigo} onChange={(e) => setCodigo(e.target.value)} autoFocus required />
-          </label>
-        ) : (
-          <>
-            <label className="pn-campo">Correo
-              <input type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} autoComplete="username" required />
-            </label>
-            <label className="pn-campo">Contraseña
-              <input type="password" value={clave} onChange={(e) => setClave(e.target.value)} autoComplete="current-password" required />
-            </label>
-          </>
-        )}
-        {error ? <p className="pn-error" role="alert">{error}</p> : null}
-        <button type="submit" className="pn-btn pn-btn-primario" aria-disabled={enviando}>{pasoCodigo ? "Verificar" : "Entrar"}</button>
-      </form>
-    </main>
-  );
-}
 
 const activaEn = (ruta: string) => (s: Seccion) => (s.ruta === "/panel" ? ruta === "/panel" : ruta === s.ruta || ruta.startsWith(s.ruta + "/"));
 
@@ -277,9 +236,21 @@ export function PanelShell({ children }: { children: ReactNode }) {
   const [listo, setListo] = useState(false);
   const [tema] = usePreferencia(CLAVE_TEMA, "auto");
 
+  // Al volver del enlace del correo (recuperación o invitación) se elige la contraseña antes de entrar.
+  const [fijarClave, setFijarClave] = useState(false);
+  const [errorEnlace, setErrorEnlace] = useState<string | null>(null);
+  // El enlace se usa una sola vez: en modo estricto, el segundo montaje reutiliza la misma promesa.
+  const arranque = useRef<Promise<boolean> | null>(null);
+
   useEffect(() => {
     let vivo = true;
-    isLoggedIn({ boot: true }).catch(() => undefined).finally(() => { if (vivo) setListo(true); });
+    arranque.current ??= acceptPasswordLink().then(async (ligado) => {
+      if (!ligado) await isLoggedIn({ boot: true }).catch(() => undefined);
+      return ligado;
+    });
+    arranque.current
+      .then((ligado) => { if (vivo) setFijarClave(ligado); }, (e: unknown) => { if (vivo) setErrorEnlace(errorMessage(e)); })
+      .finally(() => { if (vivo) setListo(true); });
     return () => { vivo = false; };
   }, []);
 
@@ -287,7 +258,8 @@ export function PanelShell({ children }: { children: ReactNode }) {
     <div className="panel-root" data-panel-raiz="" data-theme={tema === "light" || tema === "dark" ? tema : undefined}>
       <AvisosProvider>
         <TooltipProvider>
-          {!listo ? <div className="pn-acceso" aria-busy="true" /> : sesion ? <ProveedorCatalogos><Armazon>{children}</Armazon></ProveedorCatalogos> : <Acceso />}
+          {!listo ? <div className="pn-acceso" aria-busy="true" /> : sesion && !fijarClave ? <ProveedorCatalogos><Armazon>{children}</Armazon></ProveedorCatalogos>
+            : <Acceso key={needsMfaCode() ? "codigo" : "entrar"} fijarClave={fijarClave} errorInicial={errorEnlace} alTerminarClave={() => { setFijarClave(false); setErrorEnlace(null); }} />}
         </TooltipProvider>
       </AvisosProvider>
     </div>
