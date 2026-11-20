@@ -14,9 +14,9 @@ El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla
 
 **Cómo se lee:** ☐ es que falta, ☑ es que ya quedó. La flecha 👉 marca la etapa en la que vamos. Cada vez que se termina una tarea, el agente la marca aquí y cambia la fecha de arriba.
 
-**Vamos en:** 👉 Etapa A.
+**Vamos en:** 👉 Etapa B.
 
-### 👉 Etapa A · Dejar listo lo que va a salir
+### Etapa A · Dejar listo lo que va a salir
 
 Todo el trabajo vive en una sola rama, así que el cambio lleva todo lo que hay en ella: el panel publicado, los catálogos y la Consulta y el asunto con su aspecto nuevo. Por eso primero se deja estable lo que quedó a medias. El 19/11 el titular pidió que todo el panel salga con el aspecto de app de Mac, no solo la Consulta y el asunto: por eso la etapa sigue abierta.
 
@@ -40,19 +40,23 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [x] La pantalla de Personas, la de entrada al panel y las de aviso (cargando, error) con el mismo orden.
 - [x] Mirar cada pantalla en capturas junto a su modelo, en computadora, teléfono y oscuro.
 - [x] Recorrer el panel con la base real: 16 pantallas, un asunto y un contrato a medio llenar cargan con sus datos. Catálogos y Bandeja no leen todavía: esperan cambios de la base que se aplican al integrar.
-- [ ] Ver en pantalla las tres que faltan: cargando, error y un informe abierto.
-- [ ] Juntar Personas y Directorio en una sola pantalla, la del menú, sin perder funciones. Hoy son dos listas de gente con datos distintos; Personas todavía lee los datos del panel provisional. Pide un cambio en la base.
-- [ ] Que la Bandeja avise cuando no pudo leer, en vez de decir que está vacía.
-- [x] Pruebas automáticas otra vez. Pasaron las 2,245, con el panel ya rehecho; se repiten cuando Personas y Directorio queden juntos.
+- [x] Ver en pantalla las que faltaban: el informe abierto, la de error y la de carga de una lista. La de carga de pantalla completa no se dejó ver en captura.
+- [x] Juntar Personas y Directorio en una sola pantalla, la del menú, sin perder funciones.
+- [x] La Bandeja sale del menú hasta su paso: su pantalla guardaba en el panel provisional. Mientras tanto los archivos se suben desde Documentos del asunto.
+- [x] Pruebas automáticas otra vez, completas y en una máquina limpia, antes de publicar. Pasaron.
 
 El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
 
-### Etapa B · Que lo pruebes tú
+### 👉 Etapa B · Que lo pruebes tú
+
+El 19/11 se publicó en fortiusinmuebles.com/panel todo lo de la etapa A, con sus cambios de la base. Se prueba ahí.
 
 - [ ] Entrar como director a /panel y llevar un caso completo, de la consulta al cobro.
 - [ ] Entrar con la cuenta de asesor y comprobar que solo ve lo suyo.
 - [ ] Revisar las etapas 9 (Equipo) y 10 (Funciones extra), que esperan tu visto bueno.
 - [ ] Corregir lo que encuentres.
+
+Ya construido y esperando la siguiente publicación: Agenda y Trámites con la gente del Directorio; tareas con persona, nota y documento; «Recibir los documentos» se marca sola; el inmueble de una consulta del sitio queda ligado al asunto; la comisión estimada; y los hallazgos 21, 22, 25, 28 y 38 de la prueba del 18/11.
 
 ### Etapa C · Red de seguridad
 
@@ -69,6 +73,8 @@ El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
 - [ ] Publicar, con tu permiso.
 - [ ] Comprobar en el sitio real que el sitio público sigue igual y que /admin abre el panel nuevo.
 
+*19/11: el cambio está preparado en una rama aparte; falta juntarlo, correr las pruebas de navegador y publicarlo con tu permiso. El panel anterior quedará en /admin-anterior.*
+
 ### Etapa E · Primera semana de uso
 
 - [ ] El equipo trabaja una semana en /admin con el panel nuevo.
@@ -77,7 +83,7 @@ El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
 
 ### Etapa F · Retirar lo viejo
 
-- [ ] Quitar el panel provisional y su dirección de reserva.
+- [ ] Quitar el panel provisional y su dirección de reserva. Antes, el panel nuevo debe tener lo que hoy solo está en el anterior: el blog, los textos del sitio, cambiar la contraseña y la entrada en dos pasos. Las cuatro cosas ya están construidas en ramas aparte; falta juntarlas.
 - [ ] Pruebas automáticas y publicar, con tu permiso.
 
 ### Lo que sigue después del cambio (no lo detiene)
