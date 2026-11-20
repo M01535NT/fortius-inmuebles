@@ -128,7 +128,7 @@ function EditorTextos({ guardado, alGuardar, alVerUltimo }: { guardado: SiteCont
       <div className="sp-grupo">
         <div className="sp-grupo-cab">
           <p className="sp-grupo-t">Preguntas frecuentes<span className="sp-grupo-n">{t.preguntas.length}</span></p>
-          <button type="button" className="pn-conf-cab-btn" aria-disabled={t.preguntas.length >= LIMITES_TEXTOS.preguntas}
+          <button type="button" className="pn-conf-cab-btn sp-cab-btn" aria-disabled={t.preguntas.length >= LIMITES_TEXTOS.preguntas}
             onClick={() => { if (t.preguntas.length < LIMITES_TEXTOS.preguntas) poner({ preguntas: [...t.preguntas, nuevaPregunta(crypto.randomUUID())] }); }}>
             <Icono nombre="mas" tamano={14} /> Agregar
           </button>
@@ -152,7 +152,7 @@ function EditorTextos({ guardado, alGuardar, alVerUltimo }: { guardado: SiteCont
       <div className="sp-grupo">
         <div className="sp-grupo-cab">
           <p className="sp-grupo-t">Testimonios<span className="sp-grupo-n">{autorizados} de {t.testimonios.length} en el sitio</span></p>
-          <button type="button" className="pn-conf-cab-btn" aria-disabled={t.testimonios.length >= LIMITES_TEXTOS.testimonios}
+          <button type="button" className="pn-conf-cab-btn sp-cab-btn" aria-disabled={t.testimonios.length >= LIMITES_TEXTOS.testimonios}
             onClick={() => { if (t.testimonios.length < LIMITES_TEXTOS.testimonios) poner({ testimonios: [...t.testimonios, nuevoTestimonio(crypto.randomUUID())] }); }}>
             <Icono nombre="mas" tamano={14} /> Agregar
           </button>

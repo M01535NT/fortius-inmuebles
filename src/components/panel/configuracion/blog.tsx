@@ -127,7 +127,7 @@ export function SeccionBlog({ entrada, alAbrir }: { entrada: string | null; alAb
 
   return (
     <SeccionConfig id="conf-blog" titulo="Blog"
-      accion={<button type="button" className="pn-conf-cab-btn" onClick={() => ir("nueva")}><Icono nombre="mas" tamano={14} /> Nueva entrada</button>}>
+      accion={<button type="button" className="pn-conf-cab-btn sp-cab-btn" onClick={() => ir("nueva")}><Icono nombre="mas" tamano={14} /> Nueva entrada</button>}>
       <div className="sp-barra">
         <label className="sp-busca">
           <Icono nombre="bus" tamano={14} />

@@ -109,3 +109,12 @@
   .panel-root .sp-formato summary { min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { .panel-root .sp-plegable-ch { transition: none; } }
+
+/* Ajustes tras las capturas: el botón de la cabecera en una línea, sin hueco sobre el contenido, y la vista previa
+   con su título y viñetas (las reglas de la sección pisan h2 y listas). */
+.panel-root .aj-main .sp-cab-btn { display: inline-flex; align-items: center; gap: 4px; }
+.panel-root .sp-contenido .pn-campo-cab { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.panel-root .sp-previa .sp-previa-h1 { margin: 0; padding: 0; font-size: 26px; line-height: 1.15; font-weight: 700; color: var(--ink); }
+.panel-root .sp-previa ul { list-style: disc; }
+.panel-root .sp-previa ol { list-style: decimal; }
+@media (max-width: 900px) { .panel-root .sp-resumen-portada { white-space: normal; align-items: flex-start; } .panel-root .sp-resumen-portada > svg { flex: none; margin-top: 3px; } }
