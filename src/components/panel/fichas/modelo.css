@@ -1,0 +1,75 @@
+/*
+ * La ficha abierta a la derecha de una lista, como el modelo visual (docs/modelo-visual/Inmuebles.dc.html y
+ * Personas.dc.html): barra de 52 px arriba (la del asunto, caso.css .cp-barra), encabezado, y tarjetas de datos con
+ * renglones de 36 px y el nombre del dato en su columna. La usan Inmuebles, el Directorio y Configuración.
+ * Ancho del cuerpo con --fm-max (764 px) y columna del nombre con --fm-k (190 px). Tokens de panel-ds.css.
+ */
+
+/* Columna: el cuerpo alineado a la izquierda (modelo: .cuerpo, 22–24 px arriba y 28 px a los lados). */
+.panel-root .fm-col { max-width: none; margin: 0; padding: 0 28px 96px; gap: 18px; }
+.panel-root .fm-col > .cp-barra { margin: 0 -28px 4px; padding: 0 14px; gap: 8px; }
+.panel-root .fm-col > :not(.cp-barra) { max-width: var(--fm-max, 764px); }
+.panel-root .fm-col > .cp-barra .pn-vistas { align-self: center; }
+.panel-root .fm-col > .cp-barra .pn-btn { height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 500; border-color: var(--border-strong); }
+.panel-root .fm-col > .cp-barra .as-btn.as-ico { width: 30px; height: 30px; border-radius: 7px; color: var(--ink-muted); }
+.panel-root .fm-col > .cp-barra .as-pill-ok { height: 20px; padding: 0 7px; border-radius: 5px; font-size: 11px; }
+
+/* Encabezado: folio o relación arriba, nombre de 24 px y una línea de datos. */
+.panel-root .fm-cab { display: flex; flex-direction: column; gap: 2px; padding-top: 2px; }
+.panel-root .fm-cab .as-m { margin: 0; }
+.panel-root .fm-cab-av { flex-direction: row; align-items: center; gap: 14px; }
+.panel-root .fm-cab-av > div { min-width: 0; }
+.panel-root .fm-h1 { margin: 0; font-size: 24px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.panel-root .fm-av {
+  width: 30px; height: 30px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--side-on); color: var(--ink-soft, var(--ink-muted)); font-size: 11px; font-weight: 700;
+}
+.panel-root .fm-av[data-grande] { width: 52px; height: 52px; font-size: 17px; }
+
+/* Grupos de datos (modelo: .t y .card). */
+.panel-root .fm-grupo { display: flex; flex-direction: column; }
+.panel-root .fm-t { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 4px; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .fm-t-n { font-weight: 500; font-variant-numeric: tabular-nums; }
+.panel-root .fm-t-n[data-ok] { color: var(--exito); }
+.panel-root .fm-pie { margin: 0; padding-top: 8px; }
+.panel-root .fm-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+/* Un dato (modelo: .dato): 36 px, el nombre a --fm-k y el valor; vacío dice «Agregar» en gris. */
+.panel-root .fm-dato {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 0 14px; border: 0; background: none;
+  color: var(--ink); font: inherit; font-size: 13px; font-weight: 400; text-align: left;
+}
+.panel-root button.fm-dato { cursor: pointer; transition: background-color 120ms ease; }
+.panel-root button.fm-dato:hover { background: var(--fill); }
+.panel-root button.fm-dato:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* La línea entre renglones va después de .fm-dato (que quita el borde de los botones) para que gane. */
+.panel-root .fm-card > * + * { border-top: 1px solid var(--linea-suave); }
+
+/* Renglón que se toca para cambiarse, con botones chicos al lado (Mostrar, Copiar). */
+.panel-root .fm-dato-b {
+  flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 8px; margin: 0 -14px; padding: 0 14px; border: 0; background: none;
+  color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background-color 120ms ease;
+}
+.panel-root .fm-dato:has(> .fm-dato-b) { gap: 4px; }
+.panel-root .fm-dato:has(> .fm-dato-b + *) > .fm-dato-b { margin-right: 0; }
+.panel-root .fm-dato-b:hover:not(:disabled) { background: var(--fill); }
+.panel-root .fm-dato-b:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.panel-root .fm-dato-b:disabled { cursor: default; }
+.panel-root .fm-k { flex: 0 0 var(--fm-k, 190px); min-width: 0; color: var(--ink-muted); }
+.panel-root .fm-v { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.panel-root .fm-v[data-vacio] { color: var(--ink-faint); }
+.panel-root .fm-tag { flex: none; margin-left: auto; padding: 1px 7px; border-radius: 5px; background: var(--warning-soft); color: var(--warning); font-size: 11px; font-weight: 500; }
+.panel-root .fm-dato-txt { min-height: 44px; padding-top: 10px; padding-bottom: 10px; line-height: 1.45; white-space: pre-line; }
+
+/* Teléfono: la barra en dos líneas, botones de 44 px y renglones más altos con el nombre más angosto. */
+@media (max-width: 900px) {
+  .panel-root .fm-col { padding: 0 16px calc(96px + env(safe-area-inset-bottom, 0px)); gap: 16px; }
+  .panel-root .fm-col > .cp-barra { margin: 0 -16px 0; padding: 6px 8px; flex-wrap: wrap; row-gap: 6px; }
+  .panel-root .fm-col > .cp-barra .pn-vistas { order: 9; flex: 1 1 100%; }
+  .panel-root .fm-col > .cp-barra .pn-vistas svg { display: none; }
+  .panel-root .fm-col > .cp-barra :is(.pn-btn, .as-btn.as-ico) { height: 44px; min-height: 44px; }
+  .panel-root .fm-col > .cp-barra .as-btn.as-ico { width: 44px; }
+  .panel-root .fm-dato { min-height: 48px; }
+  .panel-root .fm-k { flex-basis: 36%; }
+}
+@media (prefers-reduced-motion: reduce) { .panel-root :is(button.fm-dato, .fm-dato-b) { transition: none; } }

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { useCatalogos } from "@/components/panel/datos/catalogos";
@@ -6,7 +7,7 @@ import { Icono, type NombreIcono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { BotonFavorito } from "@/components/panel/kit/favorito";
-import { Interruptor } from "@/components/panel/kit/segmentado";
+import { BotonesDeVista, Interruptor } from "@/components/panel/kit/segmentado";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/panel/ui/dropdown-menu";
 import { Switch } from "@/components/panel/ui/switch";
@@ -21,14 +22,22 @@ import { cambioDeOperacion } from "@/lib/panel/inmuebles/operacion";
 
 import { Cuadro } from "../asunto/pildora";
 import "../asunto/asunto.css";
+import "../asunto/caso.css";
+import "../fichas/modelo.css";
 import "./inmueble.css";
 
-type Pestana = "datos" | "fotos" | "media" | "permisos" | "ubic" | "sitio";
-const PESTANAS: { clave: Pestana; nombre: string; icono: NombreIcono }[] = [
-  { clave: "datos", nombre: "Ficha", icono: "regla" }, { clave: "fotos", nombre: "Fotos", icono: "img" },
-  { clave: "media", nombre: "Video y 360", icono: "video" }, { clave: "permisos", nombre: "Planos", icono: "escudo" },
-  { clave: "ubic", nombre: "Ubicación", icono: "pin" }, { clave: "sitio", nombre: "Sitio", icono: "globo" },
+/**
+ * Las cuatro partes de la ficha (modelo visual «Inmuebles»): Ficha (con la ubicación), Fotos (con video y 360), Planos y
+ * Sitio. Son vistas de lo mismo: fila de botones juntos.
+ */
+type Pestana = "datos" | "fotos" | "permisos" | "sitio";
+const PESTANAS: { valor: Pestana; etiqueta: string; icono: NombreIcono }[] = [
+  { valor: "datos", etiqueta: "Ficha", icono: "regla" }, { valor: "fotos", etiqueta: "Fotos", icono: "img" },
+  { valor: "permisos", etiqueta: "Planos", icono: "escudo" }, { valor: "sitio", etiqueta: "Sitio", icono: "globo" },
 ];
+/** «Qué lleva» apunta a la parte donde se completa lo que falta. */
+const PARTE_DE: Record<ReturnType<typeof queLleva>[number]["clave"], Pestana> = { datos: "datos", ubic: "datos", fotos: "fotos", media: "fotos", permisos: "permisos" };
+const diasDesde = (iso: string) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 86400000));
 const PERMISOS = ["Licencia de uso de suelo", "Permiso de construcción", "Dictamen de protección civil", "Factibilidad de CFE", "Plano arquitectónico", "Plano de instalaciones"];
 const esPermiso = (d: { nombre: string; grupo: string | null }) =>
   d.grupo === "Permisos y planos" || /plano|licencia|permiso|dictamen|factibilidad|uso de suelo|escritura/i.test(d.nombre);
@@ -36,11 +45,15 @@ const fecha = (iso: string) => new Date(iso).toLocaleDateString("es-MX", { day: 
 const cifra = (v: number | string | undefined) => (typeof v === "number" ? v.toLocaleString("en-US") : v ?? "");
 
 /**
- * La ficha completa de un inmueble (boceto aprobado, ventana «Inmueble»). Cada cambio se guarda solo al salir del campo;
- * guardar nunca publica: publicar es el interruptor de la pestaña Sitio.
+ * La ficha completa de un inmueble (modelo visual «Inmuebles»). Cada cambio se guarda solo al salir del campo; guardar
+ * nunca publica: publicar es el interruptor de la parte Sitio. `enColumna` es la ficha a la derecha de la lista de
+ * Inmuebles, con su barra de 52 px, su encabezado y la tira de fotos; sin él, la ficha va dentro de la ventana de un asunto.
  */
-export function FichaInmueble({ id, alCambiar, nombreDe: dado }: { id: string; alCambiar?: () => void; nombreDe?: (uid: string | null) => string }) {
+export function FichaInmueble({ id, alCambiar, nombreDe: dado, enColumna, alVolver }: {
+  id: string; alCambiar?: () => void; nombreDe?: (uid: string | null) => string; enColumna?: boolean; alVolver?: () => void;
+}) {
   const { avisar } = useAvisos();
+  const cat = useCatalogos();
   const [equipo, setEquipo] = useState<Miembro[]>([]);
   useEffect(() => { if (!dado) leerEquipo().then((r) => setEquipo(r.equipo), () => undefined); }, [dado]);
   const nombreDe = dado ?? ((uid: string | null) => equipo.find((m) => m.id === uid)?.nombre ?? "Otra persona del equipo");
@@ -76,30 +89,122 @@ export function FichaInmueble({ id, alCambiar, nombreDe: dado }: { id: string; a
     return uno(cambio, aviso, deshacer);
   }, [avisar, alCambiar, cargar, enOrden]);
 
-  if (error) return <div className="as-vacio"><Icono nombre="alerta" tamano={24} /><b>{error}</b><button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button></div>;
-  if (!i) return <div className="as-cargando" aria-label="Cargando"><span /><span /><span /></div>;
+  const cuerpoCargando = error
+    ? <div className="as-vacio"><Icono nombre="alerta" tamano={24} /><b>{error}</b><button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button></div>
+    : <div className="as-cargando" aria-label="Cargando"><span /><span /><span /></div>;
+  if (!i) {
+    return enColumna ? (
+      <div className="cp fm-col">
+        <div className="cp-barra">{alVolver ? <BotonVolver alVolver={alVolver} /> : null}</div>
+        {cuerpoCargando}
+      </div>
+    ) : cuerpoCargando;
+  }
 
   const lleva = queLleva(i);
   const fotos = i.medios.filter((m) => m.tipo === "foto");
+  const vistas = (
+    <BotonesDeVista etiqueta="Partes de la ficha" valor={pestana} alElegir={setPestana}
+      opciones={PESTANAS.map((p) => ({ ...p, cuenta: p.valor === "fotos" ? fotos.length || undefined : undefined }))} />
+  );
+  const partes = (
+    <>
+      {pestana === "datos" ? <><Datos i={i} guardar={guardar} nombreDe={nombreDe} /><Ubicacion i={i} guardar={guardar} /></> : null}
+      {pestana === "fotos" ? <><Fotos i={i} guardar={guardar} recargar={cargar} /><Media i={i} recargar={cargar} /></> : null}
+      {pestana === "permisos" ? <Permisos i={i} recargar={cargar} /> : null}
+      {pestana === "sitio" ? <Sitio i={i} guardar={guardar} lleva={lleva} ir={(c) => setPestana(PARTE_DE[c])} conBarra={enColumna} /> : null}
+    </>
+  );
+
+  if (!enColumna) {
+    return (
+      <div className="as-form in-filas">
+        <div className="in-tabs-fila">{vistas}<BotonFavorito tipo="inmueble" id={i.id} nombre={i.nombre} /></div>
+        {partes}
+      </div>
+    );
+  }
+
+  const enlace = i.slug && i.publicado ? `/inventario/${i.slug}` : null;
+  const ultimoPrecio = i.precios[0]?.created_at;
+  const meta = [i.tipo ? cat.etiqueta("tipo_inmueble", i.tipo) : null, i.operacion ? NOMBRE_OPERACION[i.operacion] : null].filter(Boolean).join(" · ");
+  const otrasFotos = fotos.filter((f) => f.id !== (i.portada_id ?? fotos[0]?.id)).slice(0, 2);
+  const portada = fotos.find((f) => f.id === i.portada_id) ?? fotos[0];
+  const conMedia = i.medios.some((m) => m.tipo === "video" || m.tipo === "recorrido_360");
   return (
-    <div className="as-form">
-      <div className="in-tabs-fila">
-        <div className="in-tabs" role="tablist" aria-label="Partes del inmueble">
-          {PESTANAS.map((p) => (
-            <button key={p.clave} type="button" role="tab" aria-selected={pestana === p.clave} onClick={() => setPestana(p.clave)}>
-              <Icono nombre={p.icono} tamano={16} />{p.nombre}{p.clave === "fotos" && fotos.length ? ` ${fotos.length}` : ""}
+    <div className="cp fm-col">
+      <div className="cp-barra">
+        {alVolver ? <BotonVolver alVolver={alVolver} /> : null}
+        {vistas}
+        <span className="as-sp" />
+        <span className={`as-pill ${i.publicado ? "as-pill-ok" : ""} as-ocultar-tel`}>{i.publicado ? "Publicado" : "Sin publicar"}</span>
+        {enlace ? <a className="pn-btn as-ocultar-tel" href={enlace} target="_blank" rel="noopener noreferrer">Ver en el sitio</a> : null}
+        <MenuCompartir i={i} etiqueta />
+        <BotonFavorito tipo="inmueble" id={i.id} nombre={i.nombre} />
+        <DropdownMenu>
+          <DropdownMenuTrigger className="as-btn as-gho as-ico" aria-label="Más opciones" title="Más opciones"><Icono nombre="dots" tamano={16} /></DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {enlace ? <DropdownMenuItem asChild><a href={enlace} target="_blank" rel="noopener noreferrer"><Icono nombre="globo" tamano={16} />Ver en el sitio</a></DropdownMenuItem> : null}
+            <DropdownMenuItem onSelect={() => setPestana("sitio")}><Icono nombre="globo" tamano={16} />{i.publicado ? "Publicado · cambiar en Sitio" : "Publicar en Sitio"}</DropdownMenuItem>
+            {i.asunto ? <DropdownMenuItem asChild><Link href={`/panel/asuntos/${i.asunto.id}`}><Icono nombre="asu" tamano={16} />Ir a su asunto</Link></DropdownMenuItem> : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div className="fm-cab">
+        <p className="as-m">{[i.folio, i.asunto ? `del asunto ${i.asunto.folio}` : null, i.es_ejemplo ? "Ejemplo" : null].filter(Boolean).join(" · ")}</p>
+        <h2 className="fm-h1">{i.nombre}</h2>
+        <p className="as-m">
+          {meta ? `${meta} · ` : ""}<b className="in-precio">{precioTexto(i.precio, i.moneda, i.operacion)}</b>
+          {ultimoPrecio ? ` · cambió hace ${diasDesde(ultimoPrecio)} día${diasDesde(ultimoPrecio) === 1 ? "" : "s"}` : ""}
+        </p>
+      </div>
+      {pestana === "datos" ? (
+        <div className="in-tira">
+          <button type="button" className="in-pla" onClick={() => setPestana("fotos")} aria-label={portada ? "Ver las fotos" : "Subir fotos"}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- foto del inmueble ya optimizada al subir */}
+            {portada ? <img src={portada.url} alt="" /> : <span>Portada</span>}
+          </button>
+          {otrasFotos.map((f) => (
+            <button key={f.id} type="button" className="in-pla" onClick={() => setPestana("fotos")} aria-label="Ver las fotos">
+              {/* eslint-disable-next-line @next/next/no-img-element -- foto del inmueble ya optimizada al subir */}
+              <img src={f.url} alt="" />
             </button>
           ))}
+          <button type="button" className="in-pla" onClick={() => setPestana("fotos")}>
+            <span><Icono nombre="video" tamano={16} />{conMedia ? "Video y 360" : "Agregar video y 360"}</span>
+          </button>
         </div>
-        <BotonFavorito tipo="inmueble" id={i.id} nombre={i.nombre} />
-      </div>
-      {pestana === "datos" ? <Datos i={i} guardar={guardar} nombreDe={nombreDe} /> : null}
-      {pestana === "fotos" ? <Fotos i={i} guardar={guardar} recargar={cargar} /> : null}
-      {pestana === "media" ? <Media i={i} recargar={cargar} /> : null}
-      {pestana === "permisos" ? <Permisos i={i} recargar={cargar} /> : null}
-      {pestana === "ubic" ? <Ubicacion i={i} guardar={guardar} /> : null}
-      {pestana === "sitio" ? <Sitio i={i} guardar={guardar} lleva={lleva} ir={setPestana} /> : null}
+      ) : null}
+      {partes}
     </div>
+  );
+}
+
+/** En el teléfono, la ficha ocupa la pantalla: la flecha regresa a la lista. */
+function BotonVolver({ alVolver }: { alVolver: () => void }) {
+  return <button type="button" className="as-btn as-gho as-atras" onClick={alVolver}><Icono nombre="at" tamano={16} />Inmuebles</button>;
+}
+
+/** «Compartir ▾»: por WhatsApp o copiar el enlace del sitio (al publicar). */
+function MenuCompartir({ i, etiqueta }: { i: Inmueble; etiqueta?: boolean }) {
+  const { avisar } = useAvisos();
+  const enlace = i.slug ? `${typeof location === "undefined" ? "" : location.origin}/inventario/${i.slug}` : null;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className={etiqueta ? "pn-btn" : "as-btn"} aria-label="Compartir">
+        {etiqueta ? <span className="as-ocultar-tel">Compartir</span> : <><Icono nombre="subir" tamano={16} />Compartir</>}
+        {etiqueta ? <Icono nombre="subir" tamano={15} aria-hidden /> : null}<Icono nombre="down" tamano={14} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align={etiqueta ? "end" : "start"}>
+        <DropdownMenuItem onSelect={() => {
+          const t = `${i.nombre}${i.colonia ? ` · ${i.colonia}` : ""}\n${precioTexto(i.precio, i.moneda, i.operacion)}${enlace && i.publicado ? `\n${enlace}` : ""}`;
+          window.open(`https://wa.me/?text=${encodeURIComponent(t)}`, "_blank", "noopener");
+        }}><Icono nombre="chat" tamano={16} />Por WhatsApp</DropdownMenuItem>
+        <DropdownMenuItem disabled={!enlace || !i.publicado} onSelect={() => { if (enlace) void navigator.clipboard?.writeText(enlace).then(() => avisar("Enlace copiado"), () => avisar("No se pudo copiar")); }}>
+          <Icono nombre="copia" tamano={16} />Copiar enlace{!i.publicado ? " (al publicar)" : ""}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -120,17 +225,29 @@ function Campo({ etiqueta, valor, alGuardar, ph, unidad, numero, area, max = 160
     id, value: v, placeholder: ph, maxLength: max, onBlur: salir,
     onChange: (e: { target: { value: string } }) => setV(numero ? e.target.value.replace(/[^0-9.,]/g, "") : e.target.value),
   };
+  // Modelo visual: dentro de una tarjeta de datos es un renglón (nombre a la izquierda, valor a la derecha, «Agregar» si falta).
   return (
-    <label className="pn-campo" htmlFor={id}>{etiqueta}
+    <label className="pn-campo" htmlFor={id}><span className="fm-k">{etiqueta}</span>
       {area ? <textarea {...comun} className="as-inp as-inp-borde as-area in-desc" />
         : (
-          <span className={unidad ? "in-uni" : undefined}>
-            <input {...comun} className="as-inp as-inp-borde" inputMode={numero ? "decimal" : undefined}
+          <span className={unidad ? "in-uni fm-v" : "fm-v"}>
+            <input {...comun} placeholder={ph ?? "Agregar"} className="as-inp as-inp-borde" inputMode={numero ? "decimal" : undefined}
               onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }} />
             {unidad ? <i>{unidad}</i> : null}
           </span>
         )}
     </label>
+  );
+}
+
+/** Una tarjeta de datos del modelo visual: título pequeño arriba y los renglones dentro; a la derecha, cuántos tiene. */
+function Tarjeta({ titulo, cuenta, nota, children }: { titulo: string; cuenta?: string; nota?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="fm-grupo">
+      <div className="fm-t"><span>{titulo}</span>{cuenta ? <span className="fm-t-n" data-ok={cuenta === "Completo" || undefined}>{cuenta}</span> : null}</div>
+      <div className="fm-card in-card">{children}</div>
+      {nota ? <p className="as-m fm-pie">{nota}</p> : null}
+    </section>
   );
 }
 
@@ -141,18 +258,6 @@ function Interr({ titulo, detalle, icono, color, valor, alCambiar }: { titulo: s
       <span className="as-ren-c"><b>{titulo}</b><span>{detalle}</span></span>
       <Switch checked={valor} onCheckedChange={alCambiar} aria-label={titulo} />
     </label>
-  );
-}
-
-function Grupo({ titulo, abierto: inicial, cuenta, children }: { titulo: string; abierto: boolean; cuenta: string; children: ReactNode }) {
-  const [abierto, setAbierto] = useState(inicial);
-  return (
-    <div className="as-card">
-      <button type="button" className="in-gh" aria-expanded={abierto} onClick={() => setAbierto((x) => !x)}>
-        <Icono nombre="ch" tamano={15} /><span>{titulo}</span><span className="as-sp" /><span className={`as-pill ${cuenta.startsWith("Completo") ? "as-pill-ok" : ""}`}>{cuenta}</span>
-      </button>
-      {abierto ? <div className="as-pad"><div className="as-g2">{children}</div></div> : null}
-    </div>
   );
 }
 
@@ -170,10 +275,10 @@ function Datos({ i, guardar, nombreDe }: { i: Inmueble; guardar: Guardar; nombre
     else ficha[c.clave] = c.opciones || c.texto ? v : Number(v.replace(/,/g, ""));
     return { ficha };
   });
+  const nombreTipo = i.tipo ? cat.etiqueta("tipo_inmueble", i.tipo) : "";
   return (
     <>
-      <div className="as-card as-pad">
-        <div className="as-g2">
+      <Tarjeta titulo="Datos generales">
           <Campo etiqueta="Nombre" valor={i.nombre} alGuardar={(v) => { if (v) void guardar({ nombre: v }); }} />
           <Desplegable etiqueta="Tipo" valor={i.tipo ?? ""} vacio="Elegir" opciones={cat.opciones("tipo_inmueble", i.tipo)}
             alElegir={(v) => void guardar({ tipo: (v || null) as TipoInmueble | null })} />
@@ -187,14 +292,11 @@ function Datos({ i, guardar, nombreDe }: { i: Inmueble; guardar: Guardar; nombre
             }} />
           <Desplegable etiqueta="Estado" valor={i.estado} opciones={estadosPara(i.operacion).map((e) => ({ valor: e, etiqueta: NOMBRE_ESTADO[e] }))}
             alElegir={(v) => { if (v) void guardar({ estado: v as EstadoInmueble }, `Estado: ${NOMBRE_ESTADO[v as EstadoInmueble].toLowerCase()}`); }} />
-        </div>
-      </div>
-      <div className="as-card">
-        <div className="as-ren">
-          <Cuadro icono="pago" color="green" />
-          <span className="as-ren-c"><b>{i.operacion === "renta" ? "Renta mensual" : "Precio"}</b><span>{precioTexto(i.precio, i.moneda, i.operacion)}{i.precios.length ? ` · ${i.precios.length} cambio${i.precios.length > 1 ? "s" : ""}` : ""}</span></span>
-          <button type="button" className="as-btn" onClick={() => setPrecio(true)}>Cambiar</button>
-        </div>
+          <div className="fm-dato">
+            <span className="fm-k">{i.operacion === "renta" ? "Renta mensual" : "Precio"}</span>
+            <span className="fm-v">{precioTexto(i.precio, i.moneda, i.operacion)}{i.precios.length ? <span className="as-m"> · {i.precios.length} cambio{i.precios.length > 1 ? "s" : ""}</span> : null}</span>
+            <button type="button" className="pn-btn in-dato-btn" onClick={() => setPrecio(true)}>Cambiar</button>
+          </div>
         {i.precios.slice(0, 6).map((p) => (
           <div key={p.id} className="in-hist">
             <Icono nombre="reloj" tamano={15} />
@@ -204,30 +306,31 @@ function Datos({ i, guardar, nombreDe }: { i: Inmueble; guardar: Guardar; nombre
             </div>
           </div>
         ))}
-      </div>
+        {i.tipo === "local" || i.tipo === "oficina" || i.conjunto ? (
+          <div className="fm-dato"><span className="fm-k">Conjunto</span><span className="fm-v" data-vacio={!i.conjunto || undefined}>{i.conjunto ? `${i.conjunto.nombre} · ${i.conjunto.folio}` : "No pertenece a una plaza"}</span></div>
+        ) : null}
+      </Tarjeta>
       {!i.tipo ? <p className="as-m">Elige el tipo para ver sus datos (la nave pide altura y andenes; la casa, recámaras y baños).</p> : null}
       {grupos.map((g, gi) => {
         const llenos = g.campos.filter((c) => valorDe(c) !== undefined).length;
         return (
-          <Grupo key={`${i.tipo}-${g.nombre}`} titulo={g.nombre} abierto={gi === 0} cuenta={llenos === g.campos.length ? `Completo` : `${llenos} de ${g.campos.length}`}>
+          <Tarjeta key={`${i.tipo}-${g.nombre}`} titulo={gi === 0 && grupos.length === 1 ? `Datos de ${nombreTipo.toLowerCase()}` : g.nombre}
+            cuenta={llenos === g.campos.length ? "Completo" : `${llenos} de ${g.campos.length}`}
+            nota={gi === grupos.length - 1 ? `Estos datos son los de «${nombreTipo}».` : undefined}>
             {g.campos.map((c) => c.opciones
-              ? <Desplegable key={c.clave} etiqueta={c.nombre} valor={String(valorDe(c) ?? "")} vacio="Sin dato" opciones={c.opciones.map((o) => ({ valor: o, etiqueta: o }))} alElegir={(v) => poner(c, v)} />
+              ? <Desplegable key={c.clave} etiqueta={c.nombre} valor={String(valorDe(c) ?? "")} vacio="Agregar" opciones={c.opciones.map((o) => ({ valor: o, etiqueta: o }))} alElegir={(v) => poner(c, v)} />
               : <Campo key={c.clave} etiqueta={c.nombre} valor={String(cifra(valorDe(c)))} unidad={c.unidad} numero={!c.texto} alGuardar={(v) => poner(c, v)} />)}
-          </Grupo>
+          </Tarjeta>
         );
       })}
-      {i.tipo === "local" || i.tipo === "oficina" || i.conjunto ? (
-        <div className="as-card"><div className="as-ren"><Cuadro icono="edif" color="orange" />
-          <span className="as-ren-c"><b>Conjunto</b><span>{i.conjunto ? `${i.conjunto.nombre} · ${i.conjunto.folio}` : "No pertenece a una plaza"}</span></span></div></div>
-      ) : null}
       {i.unidades.length ? (
-        <div>
-          <p className="as-sub">Locales de esta plaza</p>
-          <div className="as-card">{i.unidades.map((u) => (
-            <div key={u.id} className="as-ren"><span className="as-ren-c"><b>{u.nombre}</b><span>{u.folio} · {precioTexto(u.precio, i.moneda, i.operacion)}{u.publicado ? " · publicado" : ""}</span></span>
+        <Tarjeta titulo="Locales de esta plaza" cuenta={String(i.unidades.length)}>
+          {i.unidades.map((u) => (
+            <div key={u.id} className="fm-dato"><span className="fm-k">{u.nombre}</span>
+              <span className="fm-v">{u.folio} · {precioTexto(u.precio, i.moneda, i.operacion)}{u.publicado ? " · publicado" : ""}</span>
               <span className="as-pill">{NOMBRE_ESTADO[u.estado]}</span></div>
-          ))}</div>
-        </div>
+          ))}
+        </Tarjeta>
       ) : null}
       <DialogoPrecio abierto={precio} i={i} alCerrar={() => setPrecio(false)} alGuardar={(p, m, motivo) => void guardar({ precio: p, moneda: m, motivo_precio: motivo }, "Precio cambiado")} />
     </>
@@ -446,29 +549,24 @@ function Permisos({ i, recargar }: { i: Inmueble; recargar: () => Promise<unknow
 // ── Ubicación ────────────────────────────────────────────────────────────────────────────────────────
 function Ubicacion({ i, guardar }: { i: Inmueble; guardar: Guardar }) {
   return (
-    <>
-      <div className="as-card as-pad">
-        <div className="as-g2">
-          <Campo etiqueta="Colonia" valor={i.colonia ?? ""} max={120} alGuardar={(v) => void guardar({ colonia: v || null })} />
-          <Campo etiqueta="Ciudad" valor={i.ciudad} max={80} alGuardar={(v) => { if (v) void guardar({ ciudad: v }); }} />
-          <Campo etiqueta="Dirección exacta (privada)" valor={i.direccion_exacta ?? ""} ph="Calle y número" max={300} alGuardar={(v) => void guardar({ direccion_exacta: v || null })} />
-          <Campo etiqueta="Referencias" valor={i.referencias ?? ""} ph="Entre qué calles" max={500} alGuardar={(v) => void guardar({ referencias: v || null })} />
-        </div>
-        <div className="in-sep"><Campo etiqueta="Enlace del mapa" valor={i.mapa ?? ""} ph="https://maps…" max={1000} alGuardar={(v) => void guardar({ mapa: v || null })} /></div>
-      </div>
-      <div className="as-card">
-        <Interr titulo="Dirección exacta en el sitio" detalle={i.mostrar_direccion ? "El público ve calle y número" : "El público ve solo la colonia"} icono="ojo" color="gray"
-          valor={i.mostrar_direccion} alCambiar={(v) => void guardar({ mostrar_direccion: v }, v ? "El sitio mostrará la dirección exacta" : "El sitio muestra solo la colonia")} />
-      </div>
-    </>
+    <Tarjeta titulo="Ubicación">
+      <Campo etiqueta="Colonia" valor={i.colonia ?? ""} max={120} alGuardar={(v) => void guardar({ colonia: v || null })} />
+      <Campo etiqueta="Ciudad" valor={i.ciudad} max={80} alGuardar={(v) => { if (v) void guardar({ ciudad: v }); }} />
+      <Campo etiqueta="Dirección exacta (privada)" valor={i.direccion_exacta ?? ""} ph="Calle y número" max={300} alGuardar={(v) => void guardar({ direccion_exacta: v || null })} />
+      <Campo etiqueta="Referencias" valor={i.referencias ?? ""} ph="Entre qué calles" max={500} alGuardar={(v) => void guardar({ referencias: v || null })} />
+      <Campo etiqueta="Enlace del mapa" valor={i.mapa ?? ""} ph="https://maps…" max={1000} alGuardar={(v) => void guardar({ mapa: v || null })} />
+      <Interr titulo="Dirección exacta en el sitio" detalle={i.mostrar_direccion ? "El público ve calle y número" : "El público ve solo la colonia"} icono="ojo" color="gray"
+        valor={i.mostrar_direccion} alCambiar={(v) => void guardar({ mostrar_direccion: v }, v ? "El sitio mostrará la dirección exacta" : "El sitio muestra solo la colonia")} />
+    </Tarjeta>
   );
 }
 
 // ── Sitio ────────────────────────────────────────────────────────────────────────────────────────────
-function Sitio({ i, guardar, lleva, ir }: { i: Inmueble; guardar: Guardar; lleva: ReturnType<typeof queLleva>; ir: (p: Pestana) => void }) {
-  const { avisar } = useAvisos();
+/** En la columna, Compartir ya está en la barra; dentro de la ventana de un asunto va al final. */
+function Sitio({ i, guardar, lleva, ir, conBarra }: {
+  i: Inmueble; guardar: Guardar; lleva: ReturnType<typeof queLleva>; ir: (c: ReturnType<typeof queLleva>[number]["clave"]) => void; conBarra?: boolean;
+}) {
   const sinFotos = !i.medios.some((m) => m.tipo === "foto");
-  const enlace = i.slug ? `${location.origin}/inventario/${i.slug}` : null;
   return (
     <>
       <div className="as-card">
@@ -490,18 +588,7 @@ function Sitio({ i, guardar, lleva, ir }: { i: Inmueble; guardar: Guardar; lleva
       </div>
       <Campo etiqueta="Descripción para el sitio" area max={10000} valor={i.descripcion} ph="Lo que verá quien busca. Deja una línea en blanco entre párrafos."
         alGuardar={(v) => void guardar({ descripcion: v })} />
-      <DropdownMenu>
-        <DropdownMenuTrigger className="as-btn"><Icono nombre="subir" tamano={16} />Compartir<Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem onSelect={() => {
-            const t = `${i.nombre}${i.colonia ? ` · ${i.colonia}` : ""}\n${precioTexto(i.precio, i.moneda, i.operacion)}${enlace && i.publicado ? `\n${enlace}` : ""}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(t)}`, "_blank", "noopener");
-          }}><Icono nombre="chat" tamano={16} />Por WhatsApp</DropdownMenuItem>
-          <DropdownMenuItem disabled={!enlace || !i.publicado} onSelect={() => { if (enlace) void navigator.clipboard?.writeText(enlace).then(() => avisar("Enlace copiado"), () => avisar("No se pudo copiar")); }}>
-            <Icono nombre="copia" tamano={16} />Copiar enlace{!i.publicado ? " (al publicar)" : ""}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {conBarra ? null : <div><MenuCompartir i={i} /></div>}
     </>
   );
 }

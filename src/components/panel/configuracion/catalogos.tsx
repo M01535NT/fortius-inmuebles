@@ -76,7 +76,7 @@ export function SeccionCatalogos() {
         : !c ? <Vacio titulo="Todavía no hay listas" texto="Las listas del panel aparecen aquí." icono="lista" />
         : (
           <>
-            <Desplegable etiqueta="Lista" valor={c.clave} opciones={lista.map((k) => ({ valor: k.clave, etiqueta: k.nombre }))}
+            <Desplegable etiqueta="Catálogo" valor={c.clave} opciones={lista.map((k) => ({ valor: k.clave, etiqueta: k.nombre }))}
               alElegir={(v) => { if (v) setElegido(v); }} />
             {c.ayuda ? <p className="pn-conf-intro">{c.ayuda}</p> : null}
             {estaVacio(c) ? (
@@ -94,8 +94,9 @@ export function SeccionCatalogos() {
                     {asa}
                     <Fila alPulsar={() => abrir(v)} titulo={v.etiqueta}
                       subtitulo={[significadoDe(c, v), padreDe(c, v)].filter(Boolean).join(" · ") || undefined}
-                      detalle={!v.activo ? "Ya no se ofrece" : v.de_sistema && !c.fijo ? "El panel lo usa: se renombra, no se apaga" : undefined}
-                      tonoDetalle={!v.activo ? "aviso" : "normal"} />
+                      detalle={!v.activo ? "Ya no se ofrece" : undefined}
+                      tonoDetalle={!v.activo ? "aviso" : "normal"}
+                      derecha={v.de_sistema && !c.fijo ? <span className="pn-conf-tag" title="El panel lo usa: se renombra, no se apaga">Del sistema</span> : undefined} />
                     {c.fijo ? null : (
                       <span className="pn-conf-cat-sw">
                         <Switch checked={v.activo} disabled={(v.de_sistema && v.activo) || ocupado === v.id}

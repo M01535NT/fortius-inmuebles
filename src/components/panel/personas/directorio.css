@@ -1,0 +1,23 @@
+/*
+ * Directorio como el modelo visual (docs/modelo-visual/Personas.dc.html). La lista es la de Asuntos (asunto.css) y la
+ * ficha la de fichas/modelo.css; aquí solo el ancho de la lista (340 px), los encabezados de letras, el cuerpo de
+ * 760 px con nombres de 170 px y los botones chicos de cada renglón.
+ */
+@media (min-width: 901px) { .panel-root .pe-dos { grid-template-columns: 340px minmax(0, 1fr); } }
+.panel-root .pe-tramo { padding: 8px 14px 4px; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .as-lista .pe-it { align-items: center; padding: 8px 14px; }
+.panel-root .as-lista .pe-it[aria-current="page"] .fm-av { background: var(--card); color: var(--accent); }
+.panel-root .pe-col { --fm-max: 732px; --fm-k: 170px; }
+.panel-root .pe-cab { padding-top: 4px; }
+.panel-root .pe-cab .as-m { font-size: 13px; }
+.panel-root .pe-mini { flex: none; height: 26px; min-height: 26px; padding: 0 8px; font-size: 12px; font-weight: 500; color: var(--accent); }
+.panel-root .pe-mini.as-ico { color: var(--ink-muted); }
+.panel-root .pe-mini.as-ico { width: 26px; padding: 0; }
+.panel-root .pe-asunto { min-height: 48px; padding: 6px 14px; text-decoration: none; }
+.panel-root .pe-asunto[data-cerrado] { opacity: 0.7; }
+.panel-root .pe-solo-tel { display: none; }
+@media (max-width: 900px) {
+  .panel-root .pe-solo-tel { display: inline-flex; }
+  .panel-root .pe-mini { height: 44px; min-height: 44px; }
+  .panel-root .pe-mini.as-ico { width: 44px; }
+}

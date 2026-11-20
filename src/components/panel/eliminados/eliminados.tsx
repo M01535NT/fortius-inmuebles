@@ -1,12 +1,12 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import "@/components/panel/configuracion/configuracion.css";
+import { MarcoAjustes } from "@/components/panel/configuracion/marco";
 import { useAvisos } from "@/components/panel/kit/avisos";
-import { Boton, BotonEnlace } from "@/components/panel/kit/boton";
+import { Boton } from "@/components/panel/kit/boton";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
-import { Fila, GrupoLista, Tarjeta } from "@/components/panel/kit/lista";
+import { Fila, GrupoLista } from "@/components/panel/kit/lista";
 import {
   CLASES_ELIMINADO, NOMBRE_CLASE_ELIMINADO, leerEliminados, recuperarEliminado, type ClaseEliminado, type Eliminado, type ListaEliminados,
 } from "@/lib/panel/eliminados";
@@ -17,9 +17,9 @@ const fecha = (iso: string) => {
 };
 
 /**
- * Eliminados, con el orden de Configuración (modelo visual «Ajustes»): título, una línea de ayuda, la lista para elegir
- * qué se ve y, por clase, lo eliminado con «Recuperar». Cada quien ve lo que la base le deja ver; lo que solo el director
- * recupera lo dice en el renglón.
+ * Eliminados dentro del marco de Configuración (modelo visual «Ajustes»): la lista de secciones a la izquierda con
+ * Eliminados elegido; a la derecha el título, una línea de ayuda, qué se ve y, por clase, lo eliminado con «Recuperar».
+ * Cada quien ve lo que la base le deja ver; lo que solo el director recupera lo dice en el renglón.
  */
 export function Eliminados() {
   const { avisar } = useAvisos();
@@ -57,16 +57,17 @@ export function Eliminados() {
   const cuantos = (c: ClaseEliminado) => `${(lista ?? []).filter((x) => x.clase === c).length}${hayMas.includes(c) ? "+" : ""}`;
 
   return (
-    <div className="pn-pagina pn-conf" style={{ display: "flex", flexDirection: "column" }}>
-      <div>
-        <h1 className="pn-conf-h1">Eliminados</h1>
-        <p className="pn-conf-intro">Lo que se mandó a Eliminados. Recuperar lo regresa a su lugar, tal como estaba.</p>
+    <MarcoAjustes actual="eliminados" abierta>
+    <section className="pn-conf-seccion aj-seccion" aria-labelledby="conf-eliminados">
+      <div className="aj-cab">
+        <div className="aj-cab-t">
+          <h1 id="conf-eliminados">Eliminados</h1>
+          <p>Lo que se mandó a Eliminados. Recuperar lo regresa a su lugar, tal como estaba.</p>
+        </div>
       </div>
-      <Tarjeta className="pn-lista" style={{ padding: "4px 14px 12px" }}>
-        <Desplegable etiqueta="Mostrar" valor={clase} vacio={`Todo${lista ? ` · ${lista.length}${hayMas.length ? "+" : ""}` : ""}`}
-          opciones={CLASES_ELIMINADO.map((c) => ({ valor: c, etiqueta: lista ? `${NOMBRE_CLASE_ELIMINADO[c]} · ${cuantos(c)}` : NOMBRE_CLASE_ELIMINADO[c] }))}
-          alElegir={setClase} />
-      </Tarjeta>
+      <Desplegable etiqueta="Mostrar" valor={clase} vacio={`Todo${lista ? ` · ${lista.length}${hayMas.length ? "+" : ""}` : ""}`}
+        opciones={CLASES_ELIMINADO.map((c) => ({ valor: c, etiqueta: lista ? `${NOMBRE_CLASE_ELIMINADO[c]} · ${cuantos(c)}` : NOMBRE_CLASE_ELIMINADO[c] }))}
+        alElegir={setClase} />
       {error ? <EstadoError texto={error} alReintentar={() => void cargar()} />
         : !lista ? <Cargando lineas={4} etiqueta="Cargando Eliminados" />
         : !grupos.length ? (
@@ -89,9 +90,7 @@ export function Eliminados() {
             ) : null}
           </GrupoLista>
         ))}
-      <div className="pn-conf-acciones">
-        <BotonEnlace href="/panel/configuracion" variante="texto">Volver a Configuración</BotonEnlace>
-      </div>
-    </div>
+    </section>
+    </MarcoAjustes>
   );
 }

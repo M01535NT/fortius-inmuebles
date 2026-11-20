@@ -1,28 +1,33 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { SeccionCatalogos } from "@/components/panel/configuracion/catalogos";
+import { MarcoAjustes, useSeccionesAjustes } from "@/components/panel/configuracion/marco";
 import { SeccionPerfil } from "@/components/panel/configuracion/perfil";
 import { SeccionApariencia, SeccionAvisos } from "@/components/panel/configuracion/preferencias";
 import { SeccionEquipo } from "@/components/panel/configuracion/equipo";
-import "@/components/panel/configuracion/configuracion.css";
-import { SeccionConfig } from "@/components/panel/configuracion/partes";
+import { SeccionPrincipal } from "@/components/panel/configuracion/partes";
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
 import { useAvisos } from "@/components/panel/kit/avisos";
-import { Fila, Tarjeta } from "@/components/panel/kit/lista";
 import type { Asesor } from "@/lib/domain/records";
 import { elegirMiFicha, leerMiFicha } from "@/lib/panel/datos/configuracion-cuentas";
-import { logout, useSession } from "@/lib/panel/legado/sesion";
+import { useSession } from "@/lib/panel/legado/sesion";
 
 /**
- * Configuración, como el boceto: Tu perfil, Apariencia, Avisos, Equipo · N, Catálogos (solo el director), Eliminados
- * y «Cerrar sesión». Una columna. La cuenta del director es la misma persona que su ficha del equipo: si todavía no
- * tiene, «Tu perfil» le deja elegir cuál es.
+ * Configuración como el modelo visual («Ajustes»): Perfil, Apariencia, Avisos, Equipo y Catálogos (solo el director),
+ * una a la vez con ?ver=. La cuenta del director es la misma persona que su ficha del equipo: si todavía no tiene,
+ * «Perfil» le deja elegir cuál es.
  */
 export default function Configuracion() {
+  return <Suspense fallback={null}><Ajustes /></Suspense>;
+}
+
+function Ajustes() {
   const sesion = useSession();
   const { avisar } = useAvisos();
-  const esDirector = sesion?.role === "admin";
+  const params = useSearchParams();
+  const { todas, director: esDirector } = useSeccionesAjustes();
   const equipo = useColeccion<Asesor>("asesores");
   const [miId, setMiId] = useState<string | null | undefined>(undefined);
   const [libres, setLibres] = useState<{ id: string; nombre: string }[]>([]);
@@ -50,26 +55,27 @@ export default function Configuracion() {
     return equipo.datos.find((a) => a.id === miId) ?? null;
   }, [miId, equipo.datos]);
 
+  const pedida = params.get("ver");
+  const actual = todas.find((i) => i.clave === pedida) ?? todas[0];
+
   return (
-    <div className="pn-pagina pn-conf" style={{ display: "flex", flexDirection: "column" }}>
-      <h1 className="pn-conf-h1">Configuración</h1>
-      <SeccionPerfil
-        correo={sesion?.email} nombreSesion={sesion?.name} miAsesor={miAsesor}
-        cargando={equipo.cargando} error={equipo.error} alReintentar={equipo.reintentar} guardar={equipo.guardar}
-        fichasLibres={esDirector ? libres : []} alElegirFicha={esDirector ? esMia : undefined}
-      />
-      <SeccionApariencia />
-      <SeccionAvisos />
-      {/* Al ligar tu ficha se vuelve a leer quién tiene cuenta, para que dejes de salir «sin cuenta para entrar». */}
-      <SeccionEquipo key={`equipo-${vuelta}`} esDirector={esDirector} asesores={equipo.datos} cargando={equipo.cargando} error={equipo.error} alReintentar={equipo.reintentar} miId={miId ?? null} />
-      {esDirector ? <SeccionCatalogos /> : null}
-      <SeccionConfig id="conf-eliminados" titulo="Eliminados">
-        <Tarjeta className="pn-lista">
-          <Fila href="/panel/eliminados" titulo="Eliminados" subtitulo="Ver y recuperar lo que se mandó a Eliminados" />
-        </Tarjeta>
-      </SeccionConfig>
-      <button type="button" className="pn-conf-salir" title={sesion?.email ? `Entraste como ${sesion.email}` : undefined}
-        onClick={() => { logout().catch(() => avisar("No se pudo cerrar la sesión en el servidor. Vuelve a intentarlo.")); }}>Cerrar sesión</button>
-    </div>
+    <MarcoAjustes actual={actual?.clave ?? null} abierta={Boolean(pedida)}>
+      <SeccionPrincipal subtitulo={actual?.subtitulo}>
+        {actual?.clave === "apariencia" ? <SeccionApariencia />
+          : actual?.clave === "avisos" ? <SeccionAvisos />
+          : actual?.clave === "equipo" ? (
+            // Al ligar tu ficha se vuelve a leer quién tiene cuenta, para que dejes de salir «sin cuenta para entrar».
+            <SeccionEquipo key={`equipo-${vuelta}`} esDirector={esDirector} asesores={equipo.datos} cargando={equipo.cargando} error={equipo.error} alReintentar={equipo.reintentar} miId={miId ?? null} />
+          )
+          : actual?.clave === "catalogos" && esDirector ? <SeccionCatalogos />
+          : (
+            <SeccionPerfil
+              correo={sesion?.email} nombreSesion={sesion?.name} miAsesor={miAsesor}
+              cargando={equipo.cargando} error={equipo.error} alReintentar={equipo.reintentar} guardar={equipo.guardar}
+              fichasLibres={esDirector ? libres : []} alElegirFicha={esDirector ? esMia : undefined}
+            />
+          )}
+      </SeccionPrincipal>
+    </MarcoAjustes>
   );
 }

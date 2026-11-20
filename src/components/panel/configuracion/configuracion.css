@@ -40,6 +40,110 @@
 .panel-root .pn-conf-salir { align-self: flex-start; min-height: 44px; margin-top: 24px; padding: 0 4px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; border-radius: var(--r-md); }
 .panel-root .pn-conf-salir:hover { text-decoration: underline; text-underline-offset: 3px; }
 
+/*
+ * Ajustes (docs/modelo-visual/Ajustes.dc.html): su propia lista de secciones a la izquierda (220–250 px, el gris de la
+ * barra lateral, la elegida en azul sólido) y una sección a la vez a la derecha (26 px arriba, 32 a los lados, hasta
+ * 860 px; título de 22 px). Las tarjetas con línea y renglones de 44 px. En el teléfono, una cosa a la vez.
+ */
+.panel-root .aj { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100dvh; }
+.panel-root .aj-lado { position: sticky; top: 0; align-self: start; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: 14px 10px; background: var(--side); border-right: 1px solid var(--border); }
+.panel-root .aj-lado-cab { display: none; }
+.panel-root .aj-buscar { display: flex; align-items: center; gap: 6px; min-height: 30px; margin-bottom: 6px; padding: 0 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--card); color: var(--ink-muted); }
+.panel-root .aj-buscar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.panel-root .aj-buscar input { flex: 1; min-width: 0; height: 28px; border: 0; outline: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; }
+.panel-root .aj-grupo { display: flex; flex-direction: column; gap: 2px; }
+.panel-root .aj-grp { padding: 14px 8px 4px; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .aj-it {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px; padding: 0 8px; border: 0; border-radius: 7px; background: none;
+  color: var(--ink); font: inherit; font-size: 13px; text-align: left; text-decoration: none; cursor: pointer; transition: background-color 120ms ease;
+}
+.panel-root .aj-it > svg:first-child { flex: none; color: var(--ink-muted); }
+.panel-root .aj-it:hover { background: var(--side-on); }
+.panel-root .aj-it:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.panel-root .aj-it[aria-current="page"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.panel-root .aj-it[aria-current="page"] > svg { color: currentColor; }
+.panel-root .aj-ch { display: none; margin-left: auto; color: var(--ink-faint); }
+.panel-root .aj-sp { flex: 1; min-height: 16px; }
+.panel-root .aj-salir { color: var(--ink-muted); }
+.panel-root .aj-main { min-width: 0; max-width: 860px; padding: 26px 32px 96px; display: flex; flex-direction: column; gap: 18px; }
+.panel-root .aj-atras { display: none; }
+
+/* La sección elegida: título de 22 px con su línea, y sus partes con 18 px entre ellas. */
+.panel-root .aj-main .aj-seccion { margin-top: 0; gap: 18px; }
+.panel-root .aj-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.panel-root .aj-cab-t { min-width: 0; }
+.panel-root .aj-cab h1 { margin: 0; padding: 0; font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--ink); }
+.panel-root .aj-cab p { margin: 4px 0 0; font-size: 13px; color: var(--ink-muted); }
+.panel-root .aj-main .pn-conf-intro, .panel-root .aj-main .pn-conf-nota { padding: 0 2px; font-size: 13px; }
+.panel-root .aj-main .pn-conf-cab-btn {
+  flex: none; white-space: nowrap; min-height: 30px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--card); font-size: 13px; font-weight: 500;
+}
+.panel-root .aj-main .pn-conf-cab-btn:hover { background: var(--fill); }
+/* Tarjetas del modelo: borde, esquinas de 12 px y renglones de 44 px con línea suave. */
+.panel-root .aj-main :is(.pn-conf-tarjeta, .pn-conf-caja, .pn-tarjeta) { border: 1px solid var(--border); border-radius: 12px; box-shadow: none; }
+.panel-root .aj-main :is(.pn-fila, .pn-conf-prow, .pn-conf-aviso, .pn-conf-equipo-fila) { min-height: 44px; border-top-color: var(--linea-suave); }
+.panel-root .aj-main .pn-fila { padding: 6px 14px; gap: 10px; }
+.panel-root .aj-main .pn-conf-equipo-fila > .pn-fila { padding-left: 4px; }
+.panel-root .aj-main .pn-fila-cuerpo { flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; }
+.panel-root .aj-main .pn-fila-titulo { font-size: 13px; font-weight: 500; }
+.panel-root .aj-main .pn-fila-sub { font-size: 12px; }
+.panel-root .aj-main .pn-fila-lado { font-size: 12px; color: var(--ink-muted); }
+.panel-root .aj-main .pn-fila-envoltura { border-top-color: var(--linea-suave); }
+.panel-root .aj-main .pn-fila-acciones { padding-right: 8px; }
+.panel-root .aj-main .pn-fila-acciones .pn-btn { height: 30px; min-height: 30px; padding: 0 10px; border-radius: 8px; font-size: 13px; font-weight: 500; }
+.panel-root .aj-main .pn-conf-prow { padding: 4px 10px 4px 14px; }
+.panel-root .aj-main .pn-conf-prow .pn-conf-k { flex: 0 0 170px; font-size: 13px; font-weight: 400; color: var(--ink-muted); }
+.panel-root .aj-main .pn-conf-prow .pn-conf-v { text-align: left; font-size: 13px; color: var(--ink); }
+.panel-root .aj-main .pn-conf-prow .pn-conf-foto { width: 30px; height: 30px; font-size: 11px; }
+/* Con la foto delante, el nombre del dato se angosta lo mismo para que los valores queden en una columna. */
+.panel-root .aj-main .pn-conf-prow:has(> .pn-conf-foto) .pn-conf-k { flex-basis: 128px; }
+.panel-root .aj-main .pn-conf-aviso { padding: 6px 14px; }
+.panel-root .aj-main .pn-conf-aviso label span:first-child { font-size: 13px; }
+.panel-root .aj-main .pn-conf-aviso label span + span { font-size: 12px; }
+.panel-root .aj-main .pn-agarre-btn { width: 26px; height: 36px; color: var(--ink-faint); }
+.panel-root .aj-main .pn-conf-equipo-fila > .pn-conf-cat-sw { min-height: 44px; padding: 0 14px 0 8px; }
+/* Un desplegable suelto (Lista, Tema) se ve como el renglón «Catálogo ▾» del modelo: nombre a la izquierda, lista a la derecha. */
+.panel-root .aj-seccion > .pn-campo {
+  display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 6px 8px 6px 14px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--card); font-size: 13px; font-weight: 600;
+}
+.panel-root .aj-seccion > .pn-campo .pn-control { width: auto; min-width: 200px; max-width: 60%; height: 30px; min-height: 30px; border-radius: 8px; font-size: 13px; font-weight: 500; }
+.panel-root .aj-seccion > .pn-campo .pn-campo-ayuda { flex-basis: 100%; order: 3; margin: 0; font-size: 12px; font-weight: 400; }
+.panel-root .aj-seccion > .pn-campo { flex-wrap: wrap; }
+.panel-root .aj-main .pn-grupo { margin: 4px 0 0; padding: 0 2px 4px; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+
+@media (max-width: 900px) {
+  .panel-root .aj { grid-template-columns: minmax(0, 1fr); }
+  .panel-root .aj-lado { position: static; height: auto; padding: 16px 16px 24px; background: var(--bg); border-right: 0; }
+  .panel-root .aj-lado-cab { display: block; padding: 0 2px 10px; }
+  .panel-root .aj-lado-h1 { margin: 0; font-size: 24px; font-weight: 700; }
+  .panel-root .aj-buscar { min-height: 44px; }
+  /* Como los Ajustes del teléfono: el título del grupo fuera y sus renglones en una tarjeta. */
+  .panel-root .aj-grupo { gap: 0; }
+  .panel-root .aj-grp { padding: 16px 4px 6px; }
+  .panel-root .aj-it { min-height: 48px; padding: 0 14px; border: 1px solid var(--border); border-top: 0; border-radius: 0; background: var(--card); font-size: 15px; }
+  .panel-root .aj-grp + .aj-it { border-top: 1px solid var(--border); border-radius: 12px 12px 0 0; }
+  .panel-root .aj-it + .aj-it { border-top: 1px solid var(--linea-suave); }
+  .panel-root .aj-grupo > .aj-it:last-child { border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+  .panel-root .aj-grp + .aj-it:last-child { border-radius: 12px; }
+  .panel-root .aj-it[aria-current="page"] { background: var(--card); color: var(--ink); font-weight: 400; }
+  .panel-root .aj-it[aria-current="page"] > svg:first-child { color: var(--ink-muted); }
+  .panel-root .aj-ch { display: inline-flex; }
+  .panel-root .aj-it.aj-salir { margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); color: var(--accent); }
+  .panel-root .aj[data-det="true"] .aj-lado { display: none; }
+  .panel-root .aj[data-det="false"] .aj-main { display: none; }
+  .panel-root .aj-main { padding: 8px 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .panel-root .aj-atras { display: inline-flex; align-self: flex-start; }
+  .panel-root .aj-main :is(.pn-fila, .pn-conf-prow, .pn-conf-aviso, .pn-conf-equipo-fila) { min-height: 48px; }
+  .panel-root .aj-main .pn-conf-prow .pn-conf-k { flex-basis: 36%; }
+  .panel-root .aj-main .pn-conf-cab-btn { min-height: 44px; }
+  .panel-root .aj-main .pn-fila-acciones .pn-btn { height: 44px; min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .panel-root .aj-it { transition: none; } }
+
+/* «Del sistema»: el valor que el panel usa por su clave (se renombra, no se apaga). */
+.panel-root .pn-conf-tag { flex: none; margin-left: auto; padding: 1px 7px; border-radius: 5px; background: var(--side); color: var(--ink-muted); font-size: 11px; font-weight: 500; white-space: nowrap; }
+
 /* Catálogos: el interruptor de cada valor, a la derecha de su fila, y el aviso de lista sin valores encendidos. */
 .panel-root .pn-conf-equipo-fila > .pn-conf-cat-sw { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px 0 8px; }
 .panel-root .pn-conf-cat-aviso { display: flex; align-items: flex-start; gap: 8px; padding: 0 4px; }
