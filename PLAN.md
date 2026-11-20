@@ -56,7 +56,9 @@ El 19/11 se publicó en fortiusinmuebles.com/panel todo lo de la etapa A, con su
 - [ ] Revisar las etapas 9 (Equipo) y 10 (Funciones extra), que esperan tu visto bueno.
 - [ ] Corregir lo que encuentres.
 
-Ya construido y esperando la siguiente publicación: Agenda y Trámites con la gente del Directorio; tareas con persona, nota y documento; «Recibir los documentos» se marca sola; el inmueble de una consulta del sitio queda ligado al asunto; la comisión estimada; y los hallazgos 21, 22, 25, 28 y 38 de la prueba del 18/11.
+Ya construido y esperando la siguiente publicación, con cuatro cambios de la base: Agenda y Trámites con la gente del Directorio; en el servidor, tareas con persona, nota y documento, y «Recibir los documentos» que se marca sola; el inmueble de una consulta del sitio ligado al asunto; la comisión estimada; unir fichas sin perder datos; y los hallazgos 21, 22, 23, 25, 28, 35 (compañero), 37, 38, 41, 43, 44 y 45 de la prueba del 18/11. Antes de publicarlo faltan las pruebas completas.
+
+Por hacer en las pantallas: elegir a una persona del asunto en una tarea, su nota, documento y archivo; mostrar la comisión al director; y que «¿Cómo te fue?» de una cita quede anotado en el asunto.
 
 ### Etapa C · Red de seguridad
 
