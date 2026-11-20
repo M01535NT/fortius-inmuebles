@@ -30,13 +30,13 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [x] Correr todas las pruebas automáticas. Pasaron las 2,245; las de navegador se corren antes de publicar, en la etapa D.
 - [x] Corregir lo que las pruebas marquen. Fueron dos errores de estilo, ya corregidos.
 
-- [ ] Marco del panel: menú lateral con sus grupos (Trabajo, Favoritos, Recientes) y sus conteos, y el buscador.
-- [ ] Asuntos: cambiar entre Lista, Tablero y Tiempo.
-- [ ] Inicio con el aspecto nuevo.
-- [ ] Inmuebles con el aspecto nuevo.
-- [ ] Directorio y la ficha de la persona con el aspecto nuevo.
-- [ ] Configuración con el aspecto nuevo.
-- [ ] Bandeja, Biblioteca, Herramientas y Equipo con el mismo orden (no tienen pantalla modelo; siguen a las demás).
+- [x] Marco del panel: menú lateral con sus grupos (Trabajo, Favoritos, Recientes) y sus conteos, y el buscador.
+- [x] Asuntos: cambiar entre Lista, Tablero y Tiempo.
+- [x] Inicio con el aspecto nuevo.
+- [x] Inmuebles con el aspecto nuevo.
+- [x] Directorio y la ficha de la persona con el aspecto nuevo.
+- [x] Configuración con el aspecto nuevo.
+- [ ] Bandeja, Biblioteca y Herramientas con el mismo orden (Equipo y Eliminados ya quedaron) (no tienen pantalla modelo; siguen a las demás).
 - [ ] Mirar cada pantalla en capturas junto a su modelo, en computadora, teléfono y oscuro.
 - [ ] Pruebas automáticas otra vez.
 
