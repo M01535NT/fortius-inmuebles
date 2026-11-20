@@ -95,12 +95,12 @@ export function DetalleArchivo({ archivo, url, datos, anterior, alGuardar, alQui
     : clase === "persona" && !asuntoPersona ? "Elige en cuál de sus asuntos." : "";
 
   return (
-    <div style={{ display: "grid", gap: 16, marginTop: 8 }}>
+    <div className="bj-det">
       <VistaPrevia archivo={archivo} url={url} />
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
-          <h2 style={{ margin: 0, fontSize: 19, lineHeight: 1.3, fontWeight: 600, overflowWrap: "anywhere" }}>{archivo.nombre}</h2>
-          <span className="pn-sub" style={{ margin: 0 }}>{tamano(archivo.bytes)} · {textoEstado(archivo)}</span>
+      <div className="bj-det-cab">
+        <div className="fm-cab">
+          <h2 className="fm-h1 bj-h2">{archivo.nombre}</h2>
+          <span className="as-m">{tamano(archivo.bytes)} · {textoEstado(archivo)}</span>
         </div>
         {url ? <a className="pn-btn pn-btn-secundario" href={url} target="_blank" rel="noopener noreferrer">Abrir</a> : null}
       </div>
@@ -132,7 +132,7 @@ export function DetalleArchivo({ archivo, url, datos, anterior, alGuardar, alQui
         <div><button type="button" className="fx-linkbtn" disabled={ocupado} onClick={() => { if (!ocupado) alQuitar(); }}>Quitar de la Bandeja</button></div>
       ) : (
         <section className="bj-bloque" aria-label="Dónde va">
-          <h3 className="pn-grupo" style={{ margin: 0, padding: 0 }}>Dónde va</h3>
+          <h3 className="fm-t bj-bloque-t">Dónde va</h3>
           <Desplegable etiqueta="Guardar en" valor={clase} opciones={CLASES_DESTINO}
             alElegir={(v) => { if (v) { setClase(v); setElegido(""); setAsuntoPersona(""); setBuscar(""); } }} />
           {motivo ? <p style={{ margin: 0, color: "var(--warning)" }}>{motivo}</p> : (

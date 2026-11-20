@@ -5,7 +5,6 @@ import { publicarCuentaBandeja } from "@/components/panel/bandeja/cuenta";
 import { DetalleArchivo, VistaPrevia, type DestinoElegido } from "@/components/panel/bandeja/detalle-archivo";
 import { ZonaSubir, type ZonaSubirRef } from "@/components/panel/bandeja/zona-subir";
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
-import { MaestroDetalle, PieAtajos } from "@/components/panel/fichas/piezas";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Boton } from "@/components/panel/kit/boton";
@@ -29,6 +28,9 @@ import { leerExpedientes } from "@/lib/panel/datos/colecciones";
 import { altDeArchivo } from "@/lib/panel/datos/inmueble-sitio";
 import { uploadFile } from "@/lib/panel/legado/archivos";
 
+import "@/components/panel/asunto/asunto.css";
+import "@/components/panel/asunto/caso.css";
+import "@/components/panel/fichas/modelo.css";
 import "./bandeja.css";
 
 const mensaje = (e: unknown, otro: string) => (e instanceof Error && e.message ? e.message : otro);
@@ -352,111 +354,133 @@ export default function Bandeja() {
   }, [abierto, ver]);
 
   const elegido = archivos.find((a) => a.id === abierto) ?? null;
+  // En el teléfono, al abrir un archivo se sube al principio (la lista quedó abajo).
+  const hayElegido = elegido !== null;
+  useEffect(() => { if (hayElegido && window.matchMedia("(max-width: 900px)").matches) window.scrollTo({ top: 0 }); }, [hayElegido, abierto]);
   const resumen = cuentas.enProceso
     ? `${cuentas.porConfirmar} por confirmar · ${cuentas.enProceso} en proceso`
     : archivos.length ? `${cuentas.porConfirmar} por confirmar` : "";
 
-  const lista = (
-    <>
-      <div className="fx-lista-cab">
-        <div className="fx-titulo" data-chico="">
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <h1>Bandeja</h1>
-            <span className="fx-cuenta" aria-live="polite">{resumen || "Nada por acomodar"} · Datos de ejemplo</span>
+  // Modelo visual (Main.dc.html / Inmuebles.dc.html): la lista en su columna con barra de 52 px y el elegido en azul;
+  // el archivo abierto a la derecha, con su barra y sus tarjetas. En el teléfono se ve una columna a la vez.
+  const pos = visibles.findIndex((x) => x.id === abierto);
+  return (
+    <div className="as-dos bj-dos" data-det={elegido !== null}>
+      <section className="as-lista" aria-label="Archivos de la Bandeja">
+        <div className="as-lado">
+          <div className="as-fila as-cab">
+            <h1 className="as-h1-lista">Bandeja</h1>
+            {archivos.length ? <span className="as-cab-n">{cuentas.porConfirmar}</span> : null}
+            <span className="as-sp" />
+            <button type="button" className="as-btn as-gho as-ico as-cab-mas" aria-label="Subir archivos" title="Subir archivos (U)" onClick={() => zona.current?.elegir()}>
+              <Icono nombre="mas" tamano={16} />
+            </button>
           </div>
-        </div>
-        <ZonaSubir ref={zona} alSoltar={agregar} compacta={archivos.length > 0} />
-        {problema ? <p role="alert" style={{ margin: 0, color: "var(--warning)", fontSize: 14 }}>{problema}</p> : null}
-        {sinAnotar ? (
-          <p className="pn-sub" style={{ margin: 0 }}>{conServidor ? "Si cierras la página ahora, lo que sigue subiendo se pierde." : "Si cierras la página, lo que siga por confirmar se pierde."}</p>
-        ) : null}
-        {servidor === "fallo" ? (
-          <p className="pn-sub" role="status" style={{ margin: 0, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            No se pudo leer lo que dejaste pendiente en otra visita.
-            <Boton variante="texto" onClick={() => { setServidor("leyendo"); setLecturaCola((n) => n + 1); }}>Reintentar</Boton>
-          </p>
-        ) : null}
-        {archivos.length ? (
-          <Segmentado etiqueta="Ver" valor={ver} alElegir={setVer} opciones={[
-            { valor: "pendientes", etiqueta: "Por confirmar", cuenta: archivos.length - cuentas.guardados },
-            { valor: "guardados", etiqueta: "Guardados", cuenta: cuentas.guardados },
-          ]} />
-        ) : null}
-      </div>
-      <div className="fx-lista-cuerpo">
-        {archivos.length === 0 ? (
-          <Vacio titulo="La Bandeja está vacía" texto="Sube lo que te mandaron: escrituras, identificaciones, fotos. Después eliges a dónde va cada uno." icono="descargar" />
-        ) : visibles.length === 0 ? (
-          ver === "pendientes"
-            ? <Vacio titulo="Todo está guardado" texto="Cada archivo ya tiene su lugar. Cámbiate a Guardados para ver dónde quedó." icono="verificado" />
-            : <Vacio titulo="Nada guardado todavía" texto="Elige a dónde va cada archivo y confírmalo." icono="descargar" />
-        ) : (
-          <div role="list" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {visibles.map((a) => {
-              const ocupado = a.estado === "subiendo" || a.estado === "guardando";
-              const malo = a.estado === "error" || Boolean(a.error);
-              return (
-                <div key={a.id} role="listitem" className="fx-fcard" data-actual={a.id === abierto || undefined}>
-                  <button type="button" className="fx-fmain" onClick={() => setAbierto(a.id)} aria-current={a.id === abierto || undefined}>
+          <div className="bj-arriba">
+            <p className="bj-resumen" aria-live="polite">{resumen || "Nada por acomodar"} · Datos de ejemplo</p>
+            <ZonaSubir ref={zona} alSoltar={agregar} compacta={archivos.length > 0} />
+            {problema ? <p role="alert" className="bj-aviso">{problema}</p> : null}
+            {sinAnotar ? (
+              <p className="bj-nota">{conServidor ? "Si cierras la página ahora, lo que sigue subiendo se pierde." : "Si cierras la página, lo que siga por confirmar se pierde."}</p>
+            ) : null}
+            {servidor === "fallo" ? (
+              <p className="bj-nota" role="status">
+                No se pudo leer lo que dejaste pendiente en otra visita.
+                <Boton variante="texto" onClick={() => { setServidor("leyendo"); setLecturaCola((n) => n + 1); }}>Reintentar</Boton>
+              </p>
+            ) : null}
+            {archivos.length ? (
+              <Segmentado etiqueta="Ver" valor={ver} alElegir={setVer} opciones={[
+                { valor: "pendientes", etiqueta: "Por confirmar", cuenta: archivos.length - cuentas.guardados },
+                { valor: "guardados", etiqueta: "Guardados", cuenta: cuentas.guardados },
+              ]} />
+            ) : null}
+          </div>
+          {archivos.length === 0 ? (
+            <div className="bj-vacio"><Vacio titulo="La Bandeja está vacía" texto="Sube lo que te mandaron: escrituras, identificaciones, fotos. Después eliges a dónde va cada uno." icono="descargar" /></div>
+          ) : visibles.length === 0 ? (
+            <div className="bj-vacio">
+              {ver === "pendientes"
+                ? <Vacio titulo="Todo está guardado" texto="Cada archivo ya tiene su lugar. Cámbiate a Guardados para ver dónde quedó." icono="verificado" />
+                : <Vacio titulo="Nada guardado todavía" texto="Elige a dónde va cada archivo y confírmalo." icono="descargar" />}
+            </div>
+          ) : (
+            <nav aria-label="Archivos" className="as-items">
+              {visibles.map((a) => {
+                const ocupado = a.estado === "subiendo" || a.estado === "guardando";
+                const malo = a.estado === "error" || Boolean(a.error);
+                const sugerencia = ver === "pendientes" && a.estado === "por-confirmar";
+                return (
+                  <button key={a.id} type="button" className="as-it bj-it" onClick={() => setAbierto(a.id)} aria-current={a.id === abierto ? "page" : undefined}>
                     <Miniatura archivo={a} url={vistas[a.id]} />
-                    <span className="fx-ftxt">
+                    <span className="as-it-c">
                       <b>{a.nombre}</b>
-                      <span style={malo ? { color: "var(--error)" } : undefined}>
+                      <small data-mal={malo || undefined}>
                         {tamano(a.bytes)} · {ver === "guardados" && a.guardado ? a.guardado.texto : a.error && a.estado !== "error" ? a.error : textoEstado(a)}
-                      </span>
+                      </small>
+                      {sugerencia ? (
+                        <small className="bj-rec" data-nada={anterior ? undefined : ""}>
+                          {anterior ? "Va al mismo lugar que el anterior: ábrelo para confirmar" : "Sin coincidencia clara: ábrelo y elige dónde va"}
+                        </small>
+                      ) : null}
+                      {ocupado ? <span className="fx-pbar bj-pbar" aria-hidden><span /></span> : null}
                     </span>
                   </button>
-                  {ocupado ? <div className="fx-pbar" aria-hidden><span /></div> : null}
-                  {ver === "pendientes" && a.estado === "por-confirmar" ? (
-                    <div className="fx-rec" data-nada={anterior ? undefined : ""}>
-                      <span className="fx-rec-v">{anterior ? "Va a" : "Sin coincidencia clara"}</span>
-                      <span className="fx-rec-r">{anterior ? "El mismo lugar que el anterior: ábrelo para confirmar" : "Ábrelo y elige dónde va"}</span>
-                    </div>
-                  ) : null}
+                );
+              })}
+            </nav>
+          )}
+          {ver === "guardados" && cuentas.guardados ? <p className="bj-nota bj-nota-lista">Esta lista es de lo que guardaste desde que abriste la página; cada archivo ya está en su lugar.</p> : null}
+          <div className="as-pie-teclas" aria-hidden><kbd>J</kbd><kbd>K</kbd> moverse · <kbd>U</kbd> subir</div>
+        </div>
+      </section>
+
+      <section className="as-det" aria-label={elegido ? `Archivo ${elegido.nombre}` : "Archivo"}>
+        {!elegido ? (
+          <div className="as-in as-elige">
+            <Icono nombre="descargar" tamano={28} />
+            <p className="as-m">Elige un archivo para revisarlo.</p>
+          </div>
+        ) : (
+          <div className="cp fm-col bj-col">
+            <div className="cp-barra">
+              <button type="button" className="as-btn as-gho as-atras" onClick={() => setAbierto(null)}><Icono nombre="at" tamano={16} />Bandeja</button>
+              <span className="as-num bj-barra-t">{ver === "pendientes" && pos >= 0 ? `${pos + 1} de ${visibles.length}` : elegido.estado === "guardado" ? "Guardado" : "Por confirmar"}</span>
+              <span className="as-sp" />
+              <button type="button" className="as-btn as-gho as-ico" aria-label="Cerrar" title="Cerrar" onClick={() => setAbierto(null)}><Icono nombre="x" tamano={16} /></button>
+            </div>
+            {elegido.estado === "guardado" && elegido.guardado ? (
+              <div className="bj-cuerpo">
+                <VistaPrevia archivo={elegido} url={vistas[elegido.id] ?? null} />
+                <h2 className="fm-h1 bj-h2">{elegido.nombre}</h2>
+                <div className="fm-grupo">
+                  <div className="fm-t">Dónde quedó</div>
+                  <div className="fm-card">
+                    <div className="fm-dato"><span className="fm-k bj-guardado"><Icono nombre="verificado" tamano={14} />Guardado</span><span className="fm-v">{elegido.guardado.texto}</span></div>
+                  </div>
                 </div>
-              );
-            })}
+                <div className="fx-filas-btn">
+                  <a className="pn-btn pn-btn-primario" href={elegido.guardado.href}>Abrir</a>
+                  <Boton variante="secundario" onClick={() => void regresar(elegido.id)}>Regresar a Por confirmar</Boton>
+                </div>
+              </div>
+            ) : (
+              <div className="bj-cuerpo">
+                <DetalleArchivo key={elegido.id} archivo={elegido} url={vistas[elegido.id] ?? null} datos={datos} anterior={anterior}
+                  alGuardar={(d) => void guardar(elegido.id, d)} alQuitar={() => quitar(elegido.id)} alReintentar={() => reintentar(elegido.id)} />
+              </div>
+            )}
           </div>
         )}
-        {ver === "guardados" && cuentas.guardados ? <p className="pn-sub" style={{ margin: 0 }}>Esta lista es de lo que guardaste desde que abriste la página; cada archivo ya está en su lugar.</p> : null}
-      </div>
-      <PieAtajos atajos={[[["J", "K"], "moverse"], [["U"], "subir"]]} />
-    </>
-  );
-
-  const detalle = !elegido ? <div className="fx-nada">Elige un archivo para revisarlo.</div>
-    : elegido.estado === "guardado" && elegido.guardado ? (
-      <div className="fx-detalle-in" data-angosta="">
-        <div style={{ display: "grid", gap: 16 }}>
-          <VistaPrevia archivo={elegido} url={vistas[elegido.id] ?? null} />
-          <h2 style={{ margin: 0, fontSize: 19, lineHeight: 1.3, fontWeight: 600, overflowWrap: "anywhere" }}>{elegido.nombre}</h2>
-          <div className="fx-tarjeta" style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 4 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--accent)" }}><Icono nombre="verificado" tamano={16} />Guardado</span>
-            <span style={{ fontSize: 15, fontWeight: 600 }}>{elegido.guardado.texto}</span>
-          </div>
-          <div className="fx-filas-btn">
-            <a className="pn-btn pn-btn-primario" href={elegido.guardado.href}>Abrir</a>
-            <Boton variante="secundario" onClick={() => void regresar(elegido.id)}>Regresar a Por confirmar</Boton>
-          </div>
-        </div>
-      </div>
-    ) : (
-      <div className="fx-detalle-in" data-angosta="">
-        <DetalleArchivo key={elegido.id} archivo={elegido} url={vistas[elegido.id] ?? null} datos={datos} anterior={anterior}
-          alGuardar={(d) => void guardar(elegido.id, d)} alQuitar={() => quitar(elegido.id)} alReintentar={() => reintentar(elegido.id)} />
-      </div>
-    );
-
-  return (
-    <MaestroDetalle abierta={elegido !== null} ancho={440} bordeCuerpo lista={lista} detalle={detalle}
-      volver={{ etiqueta: "Bandeja", alPulsar: () => setAbierto(null) }} />
+      </section>
+    </div>
   );
 }
 
 function Miniatura({ archivo, url }: { archivo: ArchivoBandeja; url?: string }) {
   const clase = claseArchivo(archivo.tipo);
   return (
-    <span className="fx-fthumb" aria-hidden>
+    <span className="bj-mini" aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element -- miniatura local (blob:) */}
       {url && clase === "foto" ? <img src={url} alt="" /> : clase === "pdf" ? "PDF" : clase === "video" ? "Video" : "Foto"}
     </span>

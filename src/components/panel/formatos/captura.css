@@ -105,6 +105,34 @@
 .panel-root .pn-captura-barra, .panel-root .pn-captura-pie, .panel-root .pn-captura-solo-movil { display: none; }
 .panel-root .pn-captura-listo { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; font-size: 14px; color: var(--ink-muted); }
 
+/*
+ * Marco del modelo visual en la computadora (Main.dc.html): ventana de 12 px, lateral con cabecera de 52 px, letra de
+ * 13 px, tarjetas de 12 px y botones de 32 px. Cómo se llena no cambia: solo el marco y el aspecto.
+ */
+@media (min-width: 901px) {
+  .panel-root .pn-captura-ventana { border-radius: 12px; }
+  .panel-root .pn-captura-lado { gap: 12px; padding: 0 16px; font-size: 13px; background: var(--card); }
+  .panel-root .pn-captura-lado-cabeza { flex: none; min-height: 52px; margin: 0 -16px; padding: 0 10px 0 16px; border-bottom: 1px solid var(--border); }
+  .panel-root .pn-captura-lado-cabeza h2 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .panel-root .pn-captura-cerrar { width: 32px; height: 32px; margin-right: 0; border-radius: 8px; }
+  .panel-root .pn-captura-lado-pie { margin: auto -16px 0; padding: 12px 16px 16px; background: var(--card); }
+  .panel-root .pn-captura-lado-pie p, .panel-root .pn-captura-progreso-fila, .panel-root .pn-captura-rotulo { font-size: 12px; }
+  .panel-root .pn-captura-grande { min-height: 36px; }
+  .panel-root .pn-captura-lado :is(.pn-btn, .as-btn):not(.as-ico) { min-height: 32px; border-radius: 8px; font-size: 13px; }
+  .panel-root .pn-captura-lado :is(input:not([type="checkbox"]):not([type="radio"]), select, .pn-control, button[role="combobox"]) { min-height: 32px; border-radius: 8px; font-size: 13px; }
+  .panel-root .pn-captura-pista { height: 4px; }
+  .panel-root .pn-captura-ed { border-radius: 12px; }
+  .panel-root .pn-captura-ed h3, .panel-root .pn-captura-campo h2 { font-size: 13px; font-weight: 700; }
+  .panel-root .pn-captura-lista-faltan, .panel-root .pn-captura-fila { border-radius: 12px; }
+  .panel-root .pn-captura-lista-faltan button, .panel-root .pn-captura-lista-faltan li > span { min-height: 36px; font-size: 13px; }
+  .panel-root .pn-captura-faltan button, .panel-root .pn-captura-faltan span { min-height: 34px; padding: 8px; font-size: 13px; }
+  .panel-root .pn-captura-fila legend, .panel-root .pn-captura-avance p { font-size: 13px; }
+  .panel-root .pn-captura-mesa { padding: 24px 28px 36px; }
+  .panel-root .pn-captura-encabezado h1 { font-size: 17px; }
+  .panel-root .pn-captura-asunto { font-size: 13px; }
+  .panel-root .pn-captura-num { height: 26px; min-width: 34px; border-radius: 6px; font-size: 12px; }
+}
+
 @media (max-width: 900px) {
   .panel-root .pn-captura { padding: 0; }
   .panel-root .pn-captura-fondo, .panel-root .pn-captura-solo-escritorio, .panel-root .pn-captura-lado-cabeza,

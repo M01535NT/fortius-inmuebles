@@ -1,0 +1,54 @@
+/*
+ * Consultas con el esqueleto del modelo visual (Main.dc.html / Inmuebles.dc.html): la lista en la columna de Asuntos
+ * (asunto.css: barra de 52 px, renglones con línea suave y el elegido en azul) y la consulta abierta a la derecha con la
+ * barra del asunto (caso.css) y las tarjetas de fichas/modelo.css. Lo de dentro de la consulta (fichas.css) se ajusta a
+ * la letra de 13 px y a las tarjetas de 12 px. Aquí solo lo propio de Consultas.
+ */
+@media (min-width: 901px) { .panel-root .cq-dos { grid-template-columns: 340px minmax(0, 1fr); } }
+
+/* La lista */
+.panel-root .cq-arriba { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--linea-suave); font-size: 13px; }
+.panel-root .cq-resumen { margin: 0; color: var(--ink-muted); font-size: 12px; }
+.panel-root .cq-arriba .fx-busca { flex: none; height: 30px; padding: 0 8px; border-radius: 7px; background: var(--bg); }
+.panel-root .cq-arriba .fx-busca input { height: 28px; font-size: 13px; }
+.panel-root .cq-arriba .fx-busca svg { width: 15px; height: 15px; }
+.panel-root .cq-filtros { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+.panel-root .cq-filtros > * { flex: 1 1 140px; min-width: 0; }
+.panel-root .cq-filtros .pn-campo > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.panel-root .cq-filtros :is(.pn-control, button[role="combobox"]) { height: 30px; min-height: 30px; border-radius: 8px; font-size: 13px; }
+.panel-root .cq-estado { padding: 14px 12px; }
+.panel-root .cq-it .cq-arr { display: flex; align-items: baseline; gap: 8px; }
+.panel-root .cq-it .cq-arr > b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .cq-it .cq-cuando { flex: none; }
+.panel-root .cq-it .cq-cuando[data-tono="aviso"] { color: var(--warning); font-weight: 600; }
+.panel-root .cq-it .cq-cuando[data-tono="error"] { color: var(--error); font-weight: 600; }
+.panel-root .cq-it .cq-msj { color: var(--ink-muted); }
+.panel-root .cq-it[aria-current="page"] .cq-cuando { color: var(--accent-ink); }
+.panel-root .cq-viejas-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px 6px; }
+.panel-root .cq-viejas-cab h2 { margin: 0; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .cq-viejas-cab .pn-btn { height: 28px; min-height: 28px; font-size: 12px; }
+.panel-root .cq-viejas > .as-items { border-top: 1px solid var(--linea-suave); }
+
+/* La consulta abierta */
+.panel-root .cq-col { --fm-max: 640px; font-size: 13px; }
+.panel-root .cq-barra-t { color: var(--ink-muted); font-size: 13px; }
+.panel-root .cq-det { display: flex; flex-direction: column; gap: 16px; }
+.panel-root .cq-det .fm-cab { gap: 4px; }
+.panel-root .cq-st { margin-top: 4px; height: 20px; padding: 0 7px; border-radius: 5px; font-size: 11px; }
+.panel-root .cq-col :is(.fx-tarjeta, .fx-ref, .fx-rep) { border: 1px solid var(--border); border-radius: 12px; }
+.panel-root .cq-col .fx-opt { min-height: 36px; font-size: 13px; border-top-color: var(--linea-suave); }
+.panel-root .cq-col .fx-opt .fx-h { font-size: 13px; font-weight: 400; }
+.panel-root .cq-col .fx-quote { padding: 10px 14px; font-size: 13px; border-radius: 0 10px 10px 0; }
+.panel-root .cq-col .fx-ref { min-height: 40px; font-size: 13px; }
+.panel-root .cq-col :is(.pn-btn, .as-btn):not(.as-ico) { height: 32px; min-height: 32px; border-radius: 8px; font-size: 13px; }
+.panel-root .cq-col textarea { font-size: 13px; }
+.panel-root .cq-col :is(.pn-control, .pn-campo input) { height: 32px; min-height: 32px; font-size: 13px; border-radius: 8px; }
+
+@media (max-width: 900px) {
+  .panel-root .cq-arriba { padding: 10px 14px; }
+  .panel-root .cq-arriba .fx-busca { height: 44px; }
+  .panel-root .cq-filtros :is(.pn-control, button[role="combobox"]) { height: 44px; min-height: 44px; }
+  .panel-root .cq-col { font-size: 15px; }
+  .panel-root .cq-col :is(.pn-btn, .as-btn):not(.as-ico), .panel-root .cq-col :is(.pn-control, .pn-campo input) { height: 44px; min-height: 44px; }
+  .panel-root .cq-col .fx-opt { min-height: 48px; font-size: 15px; }
+}
