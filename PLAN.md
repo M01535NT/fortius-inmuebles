@@ -43,7 +43,7 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [ ] Ver en pantalla las tres que faltan: cargando, error y un informe abierto.
 - [ ] Juntar Personas y Directorio en una sola pantalla, la del menú, sin perder funciones. Hoy son dos listas de gente con datos distintos; Personas todavía lee los datos del panel provisional. Pide un cambio en la base.
 - [ ] Que la Bandeja avise cuando no pudo leer, en vez de decir que está vacía.
-- [ ] Pruebas automáticas otra vez.
+- [x] Pruebas automáticas otra vez. Pasaron las 2,245, con el panel ya rehecho; se repiten cuando Personas y Directorio queden juntos.
 
 El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
 
