@@ -392,7 +392,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <p className="flex min-h-11 flex-wrap items-center justify-center gap-x-2 border-b border-[var(--card-edge)] bg-muted px-4 text-sm text-muted-foreground">
             <span>Panel anterior</span>
             <span aria-hidden="true">·</span>
-            <a href="/admin" className="inline-flex min-h-11 items-center font-semibold text-foreground underline underline-offset-4">Ir al panel nuevo</a>
+            <DocumentLink href="/admin" className="inline-flex min-h-11 items-center font-semibold text-foreground underline underline-offset-4">Ir al panel nuevo</DocumentLink>
           </p>
         )}
         {!focus && <MobileHeader user={user} search={<WorkspaceSearch />} />}
