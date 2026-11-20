@@ -93,6 +93,10 @@ export async function seedPanel(db, adminId) {
   await q(`insert into public.fortius_inmuebles_ligas_cliente(asunto_id,token_hash,expira_el) values ($1,$2,now()+interval '7 days')`, [asunto, sha256('liga de ensayo')]);
   await q(`insert into public.fortius_inmuebles_trabajos(asunto_id,clase,tipo,nombre,persona_id,inmueble_id) values ($1,'herramienta','credito','Cálculo de ensayo',$2,$3)`, [asunto, persona, inmueble]);
   await q(`select public.fortius_inmuebles_anotar_historial('asunto',$1::text,$1::uuid,'nota','Anotación de ensayo')`, [asunto]);
+  // Schema v7: a call noted in the person's contact history and a value the director added to a list.
+  const { version: fichaVersion } = await one('select version from public.fortius_inmuebles_personas where id=$1', [persona]);
+  await q(`select public.fortius_inmuebles_anotar_contacto($1,$2,'llamada','contesto','Llamada de ensayo')`, [persona, fichaVersion]);
+  await q(`insert into public.fortius_inmuebles_catalogo_valores(catalogo,clave,etiqueta,orden) values ('fuente','feria_ensayo','Feria de ensayo',90)`);
   return { asunto, persona, inmueble, consulta: consulta.id, files };
 }
 

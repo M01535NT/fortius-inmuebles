@@ -25,21 +25,31 @@ export const panelSuffixes = ['folios','biblioteca','personas','persona_datos_le
   'apartados','apartado_filas','historial','asunto_documentos','documento_archivos','trabajos','cargas_por_acomodar','plan_etapas',
   'interesados','interesado_inmuebles','ofertas','solicitudes','tareas','situacion_puntos','opiniones','opinion_puntos',
   'presupuestos','presupuesto_conceptos','cobros','ligas_cliente'];
-export const currentSuffixes = [...preferenceCurrentSuffixes,...panelSuffixes];
-export const currentSchemaVersion = 6;
+export const panelCurrentSuffixes = [...preferenceCurrentSuffixes,...panelSuffixes];
+// Schema v7 (19/11/2026): las listas que el director ajusta (panel_14) y el historial de contacto de cada persona
+// (panel_17). Las listas van antes que sus valores; los contactos, después de las personas.
+export const listSuffixes = ['catalogos','catalogo_valores'];
+export const directorySuffixes = [...listSuffixes,'persona_contactos'];
+export const currentSuffixes = [...panelCurrentSuffixes,...directorySuffixes];
+export const currentSchemaVersion = 7;
 export function ownerSchemaVersion(data) {
   if (data.prefix !== 'fortius_inmuebles') return undefined;
   if (Object.hasOwn(data,'schema_version')) {
-    if (![1,2,3,4,5,currentSchemaVersion].includes(data.schema_version)) throw Error('Unsupported owner backup schema version');
+    if (![1,2,3,4,5,6,currentSchemaVersion].includes(data.schema_version)) throw Error('Unsupported owner backup schema version');
     return data.schema_version;
   }
   // Only the complete pre-Apps inventory is historical. A partial Apps export
   // must fail instead of silently replacing omitted tables with empty arrays.
-  return panelSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 6 : preferenceSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 5 : expedienteFileSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 4 : Object.hasOwn(data.tables ?? {},'fortius_inmuebles_interviews') ? 3 : appSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 2 : 1;
+  const has = s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s);
+  return directorySuffixes.some(has) ? 7 : panelSuffixes.some(has) ? 6 : preferenceSuffixes.some(has) ? 5 : expedienteFileSuffixes.some(has) ? 4 : has('interviews') ? 3 : appSuffixes.some(has) ? 2 : 1;
+}
+/** The tables a complete export of each schema version carries. */
+export function suffixesForVersion(version) {
+  return version===7?currentSuffixes:version===6?panelCurrentSuffixes:version===5?preferenceCurrentSuffixes:version===4?expedienteCurrentSuffixes:version===3?interviewsCurrentSuffixes:version===2?appsCurrentSuffixes:historicalCurrentSuffixes;
 }
 export function tableOrderKeys(suffix) {
   if (!currentSuffixes.includes(suffix)) throw Error('Unknown backup table');
-  const keys={staff:['user_id'],adviser_accounts:['user_id'],user_preferences:['user_id'],rate_limits:['key'],record_references:['source_collection','source_id','field'],records:['collection','id'],record_revisions:['collection','id'],comercial_revisions:['book_id','version'],lead_conversions:['lead_id'],expediente_datos:['expediente_id'],app_run_versions:['run_id','version'],signature_events:['hash'],folios:['serie','anio','numero'],asunto_miembros:['asunto_id','usuario_id'],interesado_inmuebles:['interesado_id','inmueble_id'],persona_datos_legales:['persona_id'],persona_uniones:['origen_id']};
+  const keys={staff:['user_id'],adviser_accounts:['user_id'],user_preferences:['user_id'],rate_limits:['key'],record_references:['source_collection','source_id','field'],records:['collection','id'],record_revisions:['collection','id'],comercial_revisions:['book_id','version'],lead_conversions:['lead_id'],expediente_datos:['expediente_id'],app_run_versions:['run_id','version'],signature_events:['hash'],folios:['serie','anio','numero'],catalogos:['clave'],asunto_miembros:['asunto_id','usuario_id'],interesado_inmuebles:['interesado_id','inmueble_id'],persona_datos_legales:['persona_id'],persona_uniones:['origen_id']};
   return keys[suffix] ?? ['id'];
 }
 export function isBackupBucket(prefix,id) {
@@ -77,7 +87,7 @@ export function ownerExport(raw) {
     data={format:'mnt-owner-export-v1',prefix,exported_at:data.created_at,tables:{[`${prefix}_staff`]:data.staff,[`${prefix}_records`]:data.records,[`${prefix}_record_references`]:data.references,[`${prefix}_rate_limits`]:data.rate_limits,[`${prefix}_record_revisions`]:data.revisions}};
   }
   if(data.format!=='mnt-owner-export-v1'||!['cota','mnt','fortius_inmuebles'].includes(data.prefix)) throw Error('Invalid owner backup format');
-  const required=data.prefix==='fortius_inmuebles'?(ownerSchemaVersion(data)===6?currentSuffixes:ownerSchemaVersion(data)===5?preferenceCurrentSuffixes:ownerSchemaVersion(data)===4?expedienteCurrentSuffixes:ownerSchemaVersion(data)===3?interviewsCurrentSuffixes:ownerSchemaVersion(data)===2?appsCurrentSuffixes:historicalCurrentSuffixes):suffixes;
+  const required=data.prefix==='fortius_inmuebles'?suffixesForVersion(ownerSchemaVersion(data)):suffixes;
   for(const suffix of required) if(!Array.isArray(data.tables?.[`${data.prefix}_${suffix}`])) throw Error('Incomplete owner backup tables');
   if(data.prefix==='fortius_inmuebles') {
     const allowed=new Set(required.map(s=>data.prefix+'_'+s));

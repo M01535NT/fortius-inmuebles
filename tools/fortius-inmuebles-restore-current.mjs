@@ -7,6 +7,12 @@ const quote=value=>'"'+value.replaceAll('"','""')+'"';
 // The backup carries its own copy of those rows, so a freshly migrated target drops the starter
 // rows (only those: written by no one) before loading, and the result is exactly the backup.
 export const migrationSeededSuffixes=['biblioteca'];
+// Schema v7: the lists the director adjusts (panel_14) also come with the migrations. A v7 backup brings
+// its own copy, which replaces them (values first, then the lists they belong to). A backup older than
+// v7 has no lists: the migrations' lists stay, because without them the restored panel cannot save
+// anything. «catalogos» is written only by migrations; a value somebody added has creado_por.
+export const migrationListSuffixes=['catalogo_valores','catalogos'];
+const writtenBySomeone={catalogos:'false',catalogo_valores:'creado_por is not null'};
 export async function createRehearsalDatabase(){
  const db=new PGlite();
  try{
@@ -37,7 +43,9 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
  const backup=ownerExport(input);
  if(backup.prefix!=='fortius_inmuebles')throw Error('Current Fortius export required');
  const sourceSchemaVersion=ownerSchemaVersion(backup);
- const emptyTablesAdded=currentSuffixes.filter(s=>!Object.hasOwn(backup.tables,'fortius_inmuebles_'+s));
+ const absent=currentSuffixes.filter(s=>!Object.hasOwn(backup.tables,'fortius_inmuebles_'+s));
+ const listsKeptFromMigrations=migrationListSuffixes.filter(s=>absent.includes(s));
+ const emptyTablesAdded=absent.filter(s=>!listsKeptFromMigrations.includes(s));
  const rowsFor=table=>backup.tables[table]??[];
  let open=false;
  try{
@@ -58,7 +66,8 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
   // Never merge into existing data: the target must be freshly migrated. Starter rows are the only
   // rows allowed, and only when nobody wrote them (creado_por is null).
   for(const table of expected){
-   const filter=seeded.includes(table)?' where creado_por is not null':'';
+   const list=writtenBySomeone[table.replace('fortius_inmuebles_','')];
+   const filter=list?' where '+list:seeded.includes(table)?' where creado_por is not null':'';
    if((await db.query(`select exists(select 1 from public.${quote(table)}${filter}) x`)).rows[0].x)throw Error('Target table is not empty: '+table);
   }
   await db.exec('begin');
@@ -80,8 +89,15 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
   }
   let starterRowsReplaced=0;
   for(const table of seeded)starterRowsReplaced+=(await db.query(`delete from public.${quote(table)} where creado_por is null`)).affectedRows??0;
+  let listRowsReplaced=0;
+  for(const suffix of migrationListSuffixes){
+   if(listsKeptFromMigrations.includes(suffix))continue;
+   const where=suffix==='catalogo_valores'?' where creado_por is null':'';
+   listRowsReplaced+=(await db.query(`delete from public.${quote('fortius_inmuebles_'+suffix)}${where}`)).affectedRows??0;
+  }
   // Generated columns must be calculated by PostgreSQL, not copied from the export.
   for(const table of expected){
+   if(listsKeptFromMigrations.includes(table.replace('fortius_inmuebles_','')))continue;
    const writable=columns.get(table).writable.map(quote).join(',');
    if(!writable)throw Error('Migrated table has no writable columns: '+table);
    await db.query(`insert into public.${quote(table)} (${writable}) select ${writable} from jsonb_populate_recordset(null::public.${quote(table)},$1::jsonb)`,[JSON.stringify(rowsFor(table))]);
@@ -113,6 +129,13 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
   const tables={};
   for(const suffix of currentSuffixes){
    const table='fortius_inmuebles_'+suffix,sourceRows=rowsFor(table);
+   if(listsKeptFromMigrations.includes(suffix)){
+    // Nothing to compare with: the backup predates the lists. Only the migrations' own rows may be there.
+    const kept=(await db.query(`select count(*)::int n,count(*) filter (where ${writtenBySomeone[suffix]})::int written from public.${quote(table)}`)).rows[0];
+    if(kept.written)throw Error('Restored lists differ from the migrations: '+suffix);
+    tables[suffix]={rows:kept.n,keptFromMigrations:true};
+    continue;
+   }
    // These new nullable fields were absent in historical exports. Fill only
    // their null defaults in comparison input; never mutate the supplied backup.
    const defaults=suffix==='expedientes'?{flujo:null}:suffix==='expediente_actividad'?{detalle:null}:{};
@@ -145,7 +168,7 @@ export async function restoreCurrentInto(db,input,{target='memory'}={}){
   if(badAppVersions)throw Error('Restored app version history does not match runs');
   await db.exec('commit');
   open=false;
-  return {passed:true,target,productionWrites:0,sourceSchemaVersion,emptyTablesAdded,starterRowsReplaced,restoreOrder:[...currentSuffixes],tables,foreignKeysValidated:fks.length,auth:target==='memory'?'Identity placeholders only; full Auth recovery is not tested':'Accounts created in the target Auth beforehand; passwords and sessions are not restored',storage:'Object hashes are checked by the backup verifier; Storage service recovery is a separate step (restore-storage)'};
+  return {passed:true,target,productionWrites:0,sourceSchemaVersion,emptyTablesAdded,starterRowsReplaced,listRowsReplaced,listsKeptFromMigrations,restoreOrder:[...currentSuffixes],tables,foreignKeysValidated:fks.length,auth:target==='memory'?'Identity placeholders only; full Auth recovery is not tested':'Accounts created in the target Auth beforehand; passwords and sessions are not restored',storage:'Object hashes are checked by the backup verifier; Storage service recovery is a separate step (restore-storage)'};
  }catch(error){
   if(open)await db.exec('rollback').catch(()=>{});
   throw error;

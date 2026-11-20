@@ -1,12 +1,13 @@
--- Read-only owner export of all 65 current tables, including private Apps data.
--- Schema version 6 requires Apps, operational interviews, client documents (files, confirmed data
--- and AI readings), each user's preferences and the 34 tables of the panel by matters
--- (migrations panel_01 to panel_10). Preserve the raw export.
+-- Read-only owner export of all 68 current tables, including private Apps data.
+-- Schema version 7 requires Apps, operational interviews, client documents (files, confirmed data
+-- and AI readings), each user's preferences, the 34 tables of the panel by matters
+-- (migrations panel_01 to panel_10), the lists the director adjusts (panel_14) and each person's
+-- contact history (panel_17). Preserve the raw export.
 -- jsonb_build_object accepts at most 100 arguments: the tables go in two objects joined with ||.
 select jsonb_build_object(
   'format', 'mnt-owner-export-v1',
   'prefix', 'fortius_inmuebles',
-  'schema_version', 6,
+  'schema_version', 7,
   'exported_at', now(),
   'tables', jsonb_build_object(
     'fortius_inmuebles_staff', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_staff t),
@@ -74,6 +75,9 @@ select jsonb_build_object(
     'fortius_inmuebles_presupuestos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_presupuestos t),
     'fortius_inmuebles_presupuesto_conceptos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_presupuesto_conceptos t),
     'fortius_inmuebles_cobros', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_cobros t),
-    'fortius_inmuebles_ligas_cliente', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_ligas_cliente t)
+    'fortius_inmuebles_ligas_cliente', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_ligas_cliente t),
+    'fortius_inmuebles_catalogos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_catalogos t),
+    'fortius_inmuebles_catalogo_valores', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_catalogo_valores t),
+    'fortius_inmuebles_persona_contactos', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_persona_contactos t)
   )
 ) as backup;

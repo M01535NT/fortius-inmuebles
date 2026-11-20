@@ -8,16 +8,19 @@ const v4=['expediente_archivos','expediente_datos','ia_lecturas'];
 const v5=['user_preferences'];
 // Every table the panel_01..panel_10 migrations create, and none of the retired ones.
 const v6=['folios','biblioteca','personas','persona_datos_legales','persona_uniones','asuntos','consultas','inmuebles','inmueble_medios','inmueble_precios','inmueble_datos_legales','asunto_miembros','asunto_personas','asunto_inmuebles','apartados','apartado_filas','historial','asunto_documentos','documento_archivos','trabajos','cargas_por_acomodar','plan_etapas','interesados','interesado_inmuebles','ofertas','solicitudes','tareas','situacion_puntos','opiniones','opinion_puntos','presupuestos','presupuesto_conceptos','cobros','ligas_cliente'];
+// The lists the director adjusts (panel_14) and each person's contact history (panel_17).
+const v7=['catalogos','catalogo_valores','persona_contactos'];
 const retired=['pendientes','notas_internas','bandeja','movimientos','documentos'];
-const names=[...historical,...apps,"interviews",...v4,...v5,...v6];
-const backup=()=>({format:'mnt-owner-export-v1',prefix:'fortius_inmuebles',schema_version:6,tables:Object.fromEntries(names.map(n=>['fortius_inmuebles_'+n,[]]))});
+const names=[...historical,...apps,"interviews",...v4,...v5,...v6,...v7];
+const backup=()=>({format:'mnt-owner-export-v1',prefix:'fortius_inmuebles',schema_version:7,tables:Object.fromEntries(names.map(n=>['fortius_inmuebles_'+n,[]]))});
 
 test('current owner export includes every app, ledger, document and history table and rejects any omission',async()=>{
  const sql=await readFile(new URL('../../tools/fortius-inmuebles-owner-export.sql',import.meta.url),'utf8');
  for(const name of names) assert.ok(sql.includes('public.fortius_inmuebles_'+name+' t)'),name);
  for(const name of retired) assert.ok(!sql.includes('public.fortius_inmuebles_'+name+' t)'),'retired '+name);
- assert.match(sql,/all 65 current tables/);
- assert.equal(names.length,65);
+ assert.match(sql,/all 68 current tables/);
+ assert.match(sql,/'schema_version', 7,/);
+ assert.equal(names.length,68);
  assert.equal(tools.ownerExport(backup()).prefix,'fortius_inmuebles');
  assert.deepEqual([...tools.currentSuffixes].sort(),[...names].sort());
  for(const missing of names){const data=backup();delete data.tables['fortius_inmuebles_'+missing];assert.throws(()=>tools.ownerExport(data),/Incomplete/);}
@@ -25,11 +28,27 @@ test('current owner export includes every app, ledger, document and history tabl
  assert.throws(()=>tools.ownerExport(stripped),/Incomplete/,'a versioned current backup cannot be reclassified as historical');
 });
 
+test('a version 6 copy already saved still verifies: 65 tables, without the lists or the contact history',()=>{
+ const v6copy=backup();v6copy.schema_version=6;for(const name of v7)delete v6copy.tables['fortius_inmuebles_'+name];
+ const original=structuredClone(v6copy);
+ assert.deepEqual(tools.ownerExport(v6copy),original);assert.deepEqual(v6copy,original);
+ assert.equal(Object.keys(v6copy.tables).length,65);assert.equal(tools.ownerSchemaVersion(v6copy),6);
+ // Without a declared version, the same tables are still read as version 6.
+ const unversioned=structuredClone(v6copy);delete unversioned.schema_version;assert.equal(tools.ownerSchemaVersion(unversioned),6);
+ // A version 6 copy with a version 7 table is not a version 6 copy.
+ for(const name of v7){const mixed=structuredClone(v6copy);mixed.tables['fortius_inmuebles_'+name]=[];assert.throws(()=>tools.ownerExport(mixed),/Unexpected.*table/i,name);}
+ // A version 6 copy missing one of its own tables is incomplete.
+ const missing=structuredClone(v6copy);delete missing.tables.fortius_inmuebles_personas;assert.throws(()=>tools.ownerExport(missing),/Incomplete/);
+ // Any version 7 table without a declared version means version 7, which needs all three.
+ const partial=structuredClone(unversioned);partial.tables.fortius_inmuebles_persona_contactos=[];assert.equal(tools.ownerSchemaVersion(partial),7);
+ assert.throws(()=>tools.ownerExport(partial),/Incomplete/);
+});
+
 test('keeps the complete historical 18-table format unchanged, rejecting partial apps, unknown tables and versions',()=>{
- const old=backup();delete old.schema_version;for(const name of [...apps,'interviews',...v4,...v5,...v6])delete old.tables['fortius_inmuebles_'+name];
+ const old=backup();delete old.schema_version;for(const name of [...apps,'interviews',...v4,...v5,...v6,...v7])delete old.tables['fortius_inmuebles_'+name];
  const original=structuredClone(old);assert.deepEqual(tools.ownerExport(old),original);assert.deepEqual(old,original);
  const partial=structuredClone(old);partial.tables.fortius_inmuebles_app_runs=[];assert.throws(()=>tools.ownerExport(partial),/Incomplete/);
- const future=backup();future.schema_version=7;assert.throws(()=>tools.ownerExport(future),/Unsupported.*schema/i);
+ const future=backup();future.schema_version=8;assert.throws(()=>tools.ownerExport(future),/Unsupported.*schema/i);
  const extra=backup();extra.tables.fortius_inmuebles_future_table=[];assert.throws(()=>tools.ownerExport(extra),/Unexpected.*table/i);
  // A retired table of the old panel model is unknown, with or without a declared version.
  for(const name of retired){
@@ -53,6 +72,8 @@ test('includes the integrations bucket only for Fortius and gives every REST tab
  assert.deepEqual(tools.tableOrderKeys('interesado_inmuebles'),['interesado_id','inmueble_id']);
  assert.deepEqual(tools.tableOrderKeys('persona_datos_legales'),['persona_id']);
  assert.deepEqual(tools.tableOrderKeys('persona_uniones'),['origen_id']);
+ assert.deepEqual(tools.tableOrderKeys('catalogos'),['clave']);
+ assert.deepEqual(tools.tableOrderKeys('persona_contactos'),['id']);
  for(const name of retired)assert.throws(()=>tools.tableOrderKeys(name),/Unknown/i,name);
  assert.throws(()=>tools.tableOrderKeys('unknown'),/Unknown/i);
 });
@@ -75,7 +96,7 @@ test('denied internal ledgers remain explicitly incomplete REST evidence with a 
  }
 });
 test('REST failures cannot be hidden by an absent, historical, incomplete or wrong owner snapshot',async()=>{
- const historical=backup();historical.schema_version=1;for(const name of [...apps,"interviews",...v4,...v5,...v6])delete historical.tables['fortius_inmuebles_'+name];
+ const historical=backup();historical.schema_version=1;for(const name of [...apps,"interviews",...v4,...v5,...v6,...v7])delete historical.tables['fortius_inmuebles_'+name];
  const missing=backup();delete missing.tables.fortius_inmuebles_app_runs;
  const wrong={format:'mnt-owner-export-v1',prefix:'mnt',tables:Object.fromEntries(tools.suffixes.map(s=>['mnt_'+s,[]]))};
  for(const source of [undefined,historical,missing,wrong])await assert.rejects(tools.readRestSnapshot(restClient([{error:{code:'42501'}}]),'fortius_inmuebles','record_revisions',source));
