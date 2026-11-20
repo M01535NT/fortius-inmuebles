@@ -14,11 +14,11 @@ El sitio público nuevo tiene su propio plan en `docs/sitio/PLAN.md`; este habla
 
 **Cómo se lee:** ☐ es que falta, ☑ es que ya quedó. La flecha 👉 marca la etapa en la que vamos. Cada vez que se termina una tarea, el agente la marca aquí y cambia la fecha de arriba.
 
-**Vamos en:** 👉 Etapa B.
+**Vamos en:** 👉 Etapa A.
 
-### Etapa A · Dejar listo lo que va a salir
+### 👉 Etapa A · Dejar listo lo que va a salir
 
-Todo el trabajo vive en una sola rama, así que el cambio lleva todo lo que hay en ella: el panel publicado, los catálogos y la Consulta y el asunto con su aspecto nuevo. Por eso primero se deja estable lo que quedó a medias. Lo demás del aspecto de app de Mac sale después.
+Todo el trabajo vive en una sola rama, así que el cambio lleva todo lo que hay en ella: el panel publicado, los catálogos y la Consulta y el asunto con su aspecto nuevo. Por eso primero se deja estable lo que quedó a medias. El 19/11 el titular pidió que todo el panel salga con el aspecto de app de Mac, no solo la Consulta y el asunto: por eso la etapa sigue abierta.
 
 Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordina y revisa.
 
@@ -30,9 +30,19 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [x] Correr todas las pruebas automáticas. Pasaron las 2,245; las de navegador se corren antes de publicar, en la etapa D.
 - [x] Corregir lo que las pruebas marquen. Fueron dos errores de estilo, ya corregidos.
 
+- [ ] Marco del panel: menú lateral con sus grupos (Trabajo, Favoritos, Recientes) y sus conteos, y el buscador.
+- [ ] Asuntos: cambiar entre Lista, Tablero y Tiempo.
+- [ ] Inicio con el aspecto nuevo.
+- [ ] Inmuebles con el aspecto nuevo.
+- [ ] Directorio y la ficha de la persona con el aspecto nuevo.
+- [ ] Configuración con el aspecto nuevo.
+- [ ] Bandeja, Biblioteca, Herramientas y Equipo con el mismo orden (no tienen pantalla modelo; siguen a las demás).
+- [ ] Mirar cada pantalla en capturas junto a su modelo, en computadora, teléfono y oscuro.
+- [ ] Pruebas automáticas otra vez.
+
 El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
 
-### 👉 Etapa B · Que lo pruebes tú
+### Etapa B · Que lo pruebes tú
 
 - [ ] Entrar como director a /panel y llevar un caso completo, de la consulta al cobro.
 - [ ] Entrar con la cuenta de asesor y comprobar que solo ve lo suyo.
