@@ -15,11 +15,12 @@ import "./configuracion.css";
  * y con «Buscar»; a la derecha, una sección a la vez. Lo usan Configuración y Eliminados. En el teléfono, la lista o la
  * sección, con «‹ Configuración» para volver.
  */
-export type ClaveAjuste = "perfil" | "apariencia" | "avisos" | "equipo" | "catalogos";
+export type ClaveAjuste = "perfil" | "seguridad" | "apariencia" | "avisos" | "equipo" | "catalogos";
 type Item = { clave: ClaveAjuste; nombre: string; icono: NombreIcono; subtitulo: string; buscar: string; director?: boolean };
 const GRUPOS: { titulo: string; items: Item[] }[] = [
   { titulo: "Tu cuenta", items: [
     { clave: "perfil", nombre: "Perfil", icono: "arroba", subtitulo: "Tu nombre, tu foto y tu teléfono, como salen en el equipo y en el sitio.", buscar: "nombre foto telefono cuenta" },
+    { clave: "seguridad", nombre: "Seguridad", icono: "escudo", subtitulo: "Tu contraseña y la verificación en dos pasos.", buscar: "contrasena clave verificacion dos pasos codigo seguridad" },
     { clave: "apariencia", nombre: "Apariencia", icono: "ojo", subtitulo: "Claro, oscuro o como lo tenga tu equipo.", buscar: "tema claro oscuro" },
     { clave: "avisos", nombre: "Avisos", icono: "reloj", subtitulo: "Qué te avisa el panel mientras está abierto.", buscar: "notificaciones recordatorios" },
   ] },

@@ -8,6 +8,7 @@ import { SeccionPerfil } from "@/components/panel/configuracion/perfil";
 import { SeccionApariencia, SeccionAvisos } from "@/components/panel/configuracion/preferencias";
 import { SeccionEquipo } from "@/components/panel/configuracion/equipo";
 import { SeccionPrincipal } from "@/components/panel/configuracion/partes";
+import { SeccionSeguridad } from "@/components/panel/configuracion/seguridad";
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import type { Asesor } from "@/lib/domain/records";
@@ -15,7 +16,7 @@ import { elegirMiFicha, leerMiFicha } from "@/lib/panel/datos/configuracion-cuen
 import { useSession } from "@/lib/panel/legado/sesion";
 
 /**
- * Configuración como el modelo visual («Ajustes»): Perfil, Apariencia, Avisos, Equipo y Catálogos (solo el director),
+ * Configuración como el modelo visual («Ajustes»): Perfil, Seguridad, Apariencia, Avisos, Equipo y Catálogos (solo el director),
  * una a la vez con ?ver=. La cuenta del director es la misma persona que su ficha del equipo: si todavía no tiene,
  * «Perfil» le deja elegir cuál es.
  */
@@ -61,7 +62,8 @@ function Ajustes() {
   return (
     <MarcoAjustes actual={actual?.clave ?? null} abierta={Boolean(pedida)}>
       <SeccionPrincipal subtitulo={actual?.subtitulo}>
-        {actual?.clave === "apariencia" ? <SeccionApariencia />
+        {actual?.clave === "seguridad" ? <SeccionSeguridad />
+          : actual?.clave === "apariencia" ? <SeccionApariencia />
           : actual?.clave === "avisos" ? <SeccionAvisos />
           : actual?.clave === "equipo" ? (
             // Al ligar tu ficha se vuelve a leer quién tiene cuenta, para que dejes de salir «sin cuenta para entrar».
