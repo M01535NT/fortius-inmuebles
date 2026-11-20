@@ -12,7 +12,7 @@ import { crearConsulta, desdeElSitio, nuevaConsultaSchema } from "@/lib/backend/
 
 const PERSONA = "22222222-2222-4222-8222-222222222222";
 const OTRA = "33333333-3333-4333-8333-333333333333";
-const asesor: StaffUser = { id: "a1", email: "asesor@ejemplo.test", role: "asesor" };
+const asesor: StaffUser = { id: "a1", email: "asesor@ejemplo.test", role: "editor" };
 const tipos = (t: string) => ({ casa: "casa", "nave-industrial": "nave_bodega" } as Record<string, string>)[t] ?? null;
 
 describe("la consulta nueva desde una consulta del sitio", () => {
