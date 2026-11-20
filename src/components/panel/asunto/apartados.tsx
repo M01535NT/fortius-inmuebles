@@ -136,6 +136,9 @@ function metaTarea(a: Asunto, t: Tarea, cat: LectorCatalogos): { texto: string; 
 function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: Hacer; alCerrar: () => void }) {
   const id = useId();
   const cat = useCatalogos();
+  // Hallazgo 35: quién del equipo la lleva (aparte de «Quién la hace»: Fortius, el cliente, el notario…).
+  const { equipo, companeros, nombreDe } = useAsuntos();
+  const delEquipo = (companeros.length ? companeros : equipo).map((m) => ({ valor: m.id, etiqueta: m.nombre }));
   const nombreEstado = (e: EstadoTarea) => cat.etiqueta("estado_tarea", e);
   const [titulo, setTitulo] = useState(t.titulo);
   const [motivo, setMotivo] = useState(t.motivo ?? "");
@@ -162,6 +165,10 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
           alElegir={(v) => { if (v && v !== t.estado) void poner({ estado: v }, nombreEstado(v)); }} />
         <Desplegable etiqueta="Quién la hace" valor={t.quien} opciones={cat.opciones("quien_tarea", t.quien)}
           alElegir={(v) => { if (v && v !== t.quien) void poner({ quien: v }, `Le toca a ${cat.etiqueta("quien_tarea", v).toLowerCase()}`); }} />
+        {delEquipo.length > 1 ? (
+          <Desplegable etiqueta="Quién la lleva" valor={t.responsable_id} opciones={delEquipo}
+            alElegir={(v) => { if (v && v !== t.responsable_id) void poner({ responsable_id: v }, `Ahora la lleva ${nombreDe(v)}`); }} />
+        ) : null}
         <CampoFecha etiqueta="Día" valor={t.fecha} vacio="Sin día" alElegir={(f) => void poner({ fecha: f })} />
         <Desplegable etiqueta="Hora" valor={t.hora?.slice(0, 5) ?? ""} vacio="Sin hora" opciones={HORAS} alElegir={(v) => void poner({ hora: v || null })} />
         <Desplegable etiqueta="Espera a" valor={t.espera_a ?? ""} vacio="No espera a otra" opciones={otras}
@@ -193,7 +200,8 @@ function EdicionTarea({ a, t, hacer, alCerrar }: { a: Asunto; t: Tarea; hacer: H
       ) : null}
       <div className="as-fila as-fin">
         <Boton variante="fantasma" icono="bote" onClick={() => { alCerrar(); void poner({ quitar: true }, "Tarea quitada"); }}>Quitar</Boton>
-        <Boton variante="normal" onClick={alCerrar}>Listo</Boton>
+        {/* Hallazgo 37: «Listo» se confundía con dejarla hecha. Cada dato se guarda al cambiarlo; esto cierra la edición. */}
+        <Boton variante="normal" icono="ok" onClick={alCerrar}>Guardar</Boton>
       </div>
       <DialogoMensaje abierto={mensaje} titulo="Recordarle" para={para} alCerrar={() => setMensaje(false)}
         inicial={`Hola${para ? ` ${primerNombre(para.nombre)}` : ""}, ¿cómo va lo de «${t.titulo}»? Es para ${a.nombre}. Quedo al pendiente.`}

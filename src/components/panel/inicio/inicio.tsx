@@ -20,7 +20,7 @@ import {
   cambiar, diasHasta, fechaCorta, haceCuanto, iniciales, leerEquipo, sumarDias, type Miembro,
 } from "@/lib/panel/asuntos/api";
 import { cambiarPersonaDirectorio } from "@/lib/panel/biblioteca";
-import { empezarConsulta } from "@/lib/panel/consulta/api";
+import { empezarConsulta, leerAbiertas, type ConsultaAbierta } from "@/lib/panel/consulta/api";
 import {
   atenderSolicitud, leerInicio, pasarSolicitud, solicitudNoProcede,
   type ContactoInicio, type Inicio as DatosInicio, type Moneda, type ParaTiInicio, type SolicitudInicio, type TareaInicio,
@@ -42,6 +42,10 @@ const ordenar = (a: TareaInicio, b: TareaInicio) => `${a.fecha ?? "9"}${a.hora ?
 const espera = (t: TareaInicio) => (t.fecha ? -diasHasta(t.fecha) : 0);
 /** Ya toca volver a preguntarle (tres días después de su fecha, o de la última vez que se le recordó). */
 const tocaPreguntar = (t: TareaInicio) => !!t.volver_a_preguntar && diasHasta(t.volver_a_preguntar) <= 0;
+/** Hallazgo 41: cada tarea se pospone desde su renglón. */
+/** La primera línea de «Qué pasa», corta, para el renglón. */
+const primeraLinea = (t: string) => t.trim().split("\n")[0]?.trim().slice(0, 90) ?? "";
+const POSPONER = [["Mañana", 1], ["En 3 días", 3], ["En una semana", 7]] as const;
 
 /**
  * Inicio (boceto aprobado): primero quien espera respuesta del sitio; luego lo de hoy, las visitas, la semana, lo que
@@ -62,6 +66,9 @@ export function Inicio() {
   const [de, setDe] = useState("");
   const [recordar, setRecordar] = useState<TareaInicio | null>(null);
   const [hechas, setHechas] = useState<Set<string>>(() => new Set());
+  // Hallazgo 23: las consultas que se dejaron a medias, para retomarlas desde aquí. Si no se leen, no se muestra nada.
+  const [sinTerminar, setSinTerminar] = useState<ConsultaAbierta[]>([]);
+  useEffect(() => { leerAbiertas().then(setSinTerminar, () => undefined); }, []);
   // Hasta cuándo ya viste «Para ti» (te sigue en cualquier equipo): lo posterior sale marcado como nuevo y cuenta en el menú.
   const prefs = useMisPreferencias();
   const visto = prefs.cargado ? (prefs.panel.paraTiVisto ?? "") : "9999";
@@ -111,6 +118,14 @@ export function Inicio() {
     } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo marcar."); }
     await cargar();
   };
+  const posponer = (t: TareaInicio, dias: number) =>
+    void hacer(() => cambiar(t.asunto_id, "tareas", { id: t.id, version: t.version, fecha: sumarDias(dias) }), `Pasó a ${fechaCorta(sumarDias(dias)).toLowerCase()}`);
+  const pasar = (t: TareaInicio, m: Miembro) =>
+    void hacer(() => cambiar(t.asunto_id, "tareas", { id: t.id, version: t.version, responsable_id: m.id }), `Ahora la hace ${primerNombre(m.nombre)}`);
+  const acciones = (t: TareaInicio) => (
+    <AccionesTarea t={t} companeros={(companeros.length ? companeros : equipo).filter((m) => m.id !== t.responsable_id)} yo={yo}
+      alPosponer={(n) => posponer(t, n)} alPasar={(m) => pasar(t, m)} />
+  );
   const atender = async (s: SolicitudInicio) => {
     try {
       const r = await atenderSolicitud(s);
@@ -207,10 +222,23 @@ export function Inicio() {
             </Bloque>
           ) : null}
 
+          {sinTerminar.length ? (
+            <Bloque icono="tel" color="violet" titulo="Consultas sin terminar" cuenta={sinTerminar.length}>
+              {sinTerminar.slice(0, 8).map((c) => (
+                <Link key={c.id} className="as-ren" href={`/panel/consulta?id=${encodeURIComponent(c.id)}`}>
+                  <Cuadro icono="tel" color="violet" chico />
+                  <span className="as-ren-c"><b>{c.quien_nombre.trim() || "Sin nombre"}</b><span>{[primeraLinea(c.que_pasa), haceCuanto(c.updated_at)].filter(Boolean).join(" · ")}</span></span>
+                  <span className="as-pill as-pill-acc">Retomar</span>
+                  <Icono nombre="ch" tamano={16} />
+                </Link>
+              ))}
+            </Bloque>
+          ) : null}
+
           {datos!.paraTi.length ? <ParaTi items={datos!.paraTi} visto={visto} nombreDe={nombreDe} alVer={() => ponerVisto(new Date(datos!.paraTi[0].cuando).toISOString())} /> : null}
 
           <Bloque icono="hoy" color="blue" titulo="Para hoy" cuenta={v.hoy.length} vacio="Nada pendiente para hoy.">
-            {v.hoy.map((t) => <Tarea key={t.id} t={t} alHacer={marcarHecha} />)}
+            {v.hoy.map((t) => <Tarea key={t.id} t={t} alHacer={marcarHecha} extra={acciones(t)} />)}
           </Bloque>
 
           {v.visitas.length ? (
@@ -220,7 +248,7 @@ export function Inicio() {
           ) : null}
 
           <Bloque icono="cal" color="indigo" titulo="Esta semana" cuenta={v.semana.length} vacio="Sin nada con fecha esta semana.">
-            {v.semana.map((t) => <Tarea key={t.id} t={t} alHacer={marcarHecha} />)}
+            {v.semana.map((t) => <Tarea key={t.id} t={t} alHacer={marcarHecha} extra={acciones(t)} />)}
           </Bloque>
 
           <Bloque icono="users" color="orange" titulo="Lo esperas de otros" cuenta={v.otros.length} vacio="Nadie te debe nada esta semana.">
@@ -352,6 +380,34 @@ function Bloque({ icono, color, titulo, cuenta, vacio, children }: { icono: Nomb
       <h2 className="db-h2"><Cuadro icono={icono} color={color} chico />{titulo}<span className="as-m as-num">{cuenta || ""}</span></h2>
       <div className="as-card in-card">{cuenta ? children : <p className="as-m in-vacio">{vacio}</p>}</div>
     </section>
+  );
+}
+
+/** «⋯» de una tarea en Inicio: posponerla o pasársela a un compañero sin abrir el asunto. */
+function AccionesTarea({ t, companeros, yo, alPosponer, alPasar }: {
+  t: TareaInicio; companeros: readonly Miembro[]; yo: string | null; alPosponer: (dias: number) => void; alPasar: (m: Miembro) => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="as-btn as-gho as-ico" aria-label={`Más de la tarea: ${t.titulo}`} title="Posponer o pasar"><Icono nombre="dots" tamano={18} /></DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-56">
+        <DropdownMenuLabel>Posponer</DropdownMenuLabel>
+        {POSPONER.map(([texto, n]) => (
+          <DropdownMenuItem key={texto} onSelect={() => alPosponer(n)}><Icono nombre="cal" tamano={16} />{texto}</DropdownMenuItem>
+        ))}
+        {companeros.length ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Pasar a</DropdownMenuLabel>
+            {companeros.map((m) => (
+              <DropdownMenuItem key={m.id} onSelect={() => alPasar(m)}>
+                <span className="as-av in-av-chico" aria-hidden>{iniciales(m.nombre)}</span>{m.id === yo ? `${m.nombre} (yo)` : m.nombre}
+              </DropdownMenuItem>
+            ))}
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

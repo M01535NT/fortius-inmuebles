@@ -10,9 +10,10 @@ import { Desplegable } from "@/components/panel/kit/desplegable";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/panel/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/panel/ui/dropdown-menu";
 import {
-  leerInmuebles, NOMBRE_OPERACION, nuevoInmueble, OPERACIONES, precioTexto, publicarVarios,
-  type FilaInmueble, type Operacion, type TipoInmueble,
+  ESTADOS_INMUEBLE, leerInmuebles, NOMBRE_ESTADO, NOMBRE_OPERACION, nuevoInmueble, OPERACIONES, precioTexto, publicarVarios,
+  type EstadoInmueble, type FilaInmueble, type Operacion, type TipoInmueble,
 } from "@/lib/panel/inmuebles/api";
+import { leerEquipo, type Miembro } from "@/lib/panel/asuntos/api";
 
 import "../asunto/asunto.css";
 import "../asunto/caso.css";
@@ -52,6 +53,13 @@ export function ListaInmuebles() {
   const [todos, setTodos] = useState<FilaInmueble[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("");
+  // Hallazgo 44: además de «Qué ver», por tipo, colonia, estado y quién lo lleva. Vacío es «cualquiera».
+  const [tipo, setTipo] = useState("");
+  const [colonia, setColonia] = useState("");
+  const [estado, setEstado] = useState<EstadoInmueble | "">("");
+  const [lleva, setLleva] = useState("");
+  const [equipo, setEquipo] = useState<Miembro[]>([]);
+  useEffect(() => { leerEquipo().then((r) => setEquipo(r.equipo), () => undefined); }, []);
   const [elegidos, setElegidos] = useState<Set<string>>(new Set());
   const [eligiendo, setEligiendo] = useState(false);
   // Desde el buscador, «Inmueble nuevo» llega con ?nuevo=1 y abre el alta.
@@ -61,7 +69,8 @@ export function ListaInmuebles() {
   useEffect(() => { leerInmuebles().then((x) => { setTodos(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")); }, []);
 
   const abrir = (id: string | null) => router.replace(id ? `/panel/inmuebles?id=${id}` : "/panel/inmuebles", { scroll: false });
-  const ver = useMemo(() => (todos ?? []).filter((i) => pasa(i, filtro)), [todos, filtro]);
+  const ver = useMemo(() => (todos ?? []).filter((i) => pasa(i, filtro) && (!tipo || i.tipo === tipo) && (!colonia || i.colonia === colonia)
+    && (!estado || i.estado === estado) && (!lleva || i.responsable_id === lleva)), [todos, filtro, tipo, colonia, estado, lleva]);
   const sel = (todos ?? []).filter((i) => elegidos.has(i.id));
   const actual = todos?.find((i) => i.id === abierto) ?? null;
   const alternar = (id: string) => setElegidos((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
@@ -83,6 +92,16 @@ export function ListaInmuebles() {
     { valor: "" as Filtro, etiqueta: `Todos${todos ? ` · ${todos.length}` : ""}` },
     ...FILTROS.map((f) => ({ valor: f.valor as Filtro, etiqueta: `${f.etiqueta}${todos ? ` · ${todos.filter((i) => pasa(i, f.valor)).length}` : ""}` })),
   ];
+  const lista = todos ?? [];
+  const cuantos = (f: (i: FilaInmueble) => boolean) => (todos ? ` · ${lista.filter(f).length}` : "");
+  const tipos = [...new Set(lista.map((i) => i.tipo).filter((t): t is TipoInmueble => Boolean(t)))];
+  const colonias = [...new Set(lista.map((i) => i.colonia?.trim()).filter((c): c is string => Boolean(c)))].sort((a, b) => a.localeCompare(b, "es"));
+  const responsables = new Set(lista.map((i) => i.responsable_id));
+  const opcionesTipo = [{ valor: "", etiqueta: "Cualquier tipo" }, ...tipos.map((t) => ({ valor: t, etiqueta: `${cat.etiqueta("tipo_inmueble", t)}${cuantos((i) => i.tipo === t)}` }))];
+  const opcionesColonia = [{ valor: "", etiqueta: "Cualquier colonia" }, ...colonias.map((c) => ({ valor: c, etiqueta: `${c}${cuantos((i) => i.colonia?.trim() === c)}` }))];
+  const opcionesEstado = [{ valor: "" as const, etiqueta: "Cualquier estado" }, ...ESTADOS_INMUEBLE.map((e) => ({ valor: e, etiqueta: `${NOMBRE_ESTADO[e]}${cuantos((i) => i.estado === e)}` }))];
+  const opcionesLleva = [{ valor: "", etiqueta: "Todo el equipo" }, ...equipo.filter((m) => responsables.has(m.id)).map((m) => ({ valor: m.id, etiqueta: m.nombre }))];
+  const conFiltros = Boolean(tipo || colonia || estado || lleva);
   const seleccionando = eligiendo || elegidos.size > 0;
 
   return (
@@ -103,6 +122,14 @@ export function ListaInmuebles() {
           </div>
           <div className="as-fila as-filtros">
             <Pildora etiqueta="Qué ver" valor={filtro} opciones={opcionesFiltro} alElegir={setFiltro} />
+            {tipos.length > 1 ? <Pildora etiqueta="Tipo" valor={tipo} opciones={opcionesTipo} alElegir={setTipo} titulo={tipo ? undefined : "Tipo"} /> : null}
+            {colonias.length > 1 ? <Pildora etiqueta="Colonia" valor={colonia} opciones={opcionesColonia} alElegir={setColonia} titulo={colonia ? undefined : "Colonia"} /> : null}
+            <Pildora etiqueta="Estado" valor={estado} opciones={opcionesEstado} alElegir={setEstado} titulo={estado ? undefined : "Estado"} />
+            {opcionesLleva.length > 2 ? <Pildora etiqueta="Quién lo lleva" valor={lleva} opciones={opcionesLleva} alElegir={setLleva} titulo={lleva ? undefined : "Asesor"} /> : null}
+            {conFiltros ? (
+              <button type="button" className="as-btn as-gho as-ico" aria-label="Quitar los filtros" title="Quitar los filtros"
+                onClick={() => { setTipo(""); setColonia(""); setEstado(""); setLleva(""); }}><Icono nombre="x" tamano={14} /></button>
+            ) : null}
           </div>
 
           {seleccionando ? (

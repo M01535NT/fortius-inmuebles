@@ -102,6 +102,9 @@ function tramo(nombre: string) {
   return t ? `${t[0]} – ${t[t.length - 1]}` : "#";
 }
 
+/** Si tiene ese papel en alguno de sus asuntos; «sin_papel»: no está en ningún asunto. */
+const tienePapel = (p: PersonaDirectorio, x: string) => (x === "sin_papel" ? !p.asuntos.length : p.asuntos.some((a) => a.papeles.includes(x)));
+
 /** ↑ y ↓ pasan de una persona a otra (como Asuntos e Inmuebles). */
 function moverConFlechas(e: React.KeyboardEvent<HTMLElement>) {
   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -130,6 +133,8 @@ export function Directorio() {
   const [q, setQ] = useState(() => params.get("q") ?? "");
   const [filtro, setFiltro] = useState<Filtro>("");
   const [mias, setMias] = useState(false);
+  // Hallazgo 43: filtrar por el papel que tiene en algún asunto (vacío: cualquiera; «sin_papel»: sin asunto).
+  const [conPapel, setConPapel] = useState("");
   const [sigue, setSigue] = useState<PersonaDirectorio | null>(null);
   const [unir, setUnir] = useState<PersonaDirectorio | null>(null);
 
@@ -141,7 +146,14 @@ export function Directorio() {
   if (params.get("q") !== qPrevia) { setQPrevia(params.get("q")); if (params.get("q")) setQ(params.get("q") ?? ""); }
 
   const delEquipo = useMemo(() => (todas ?? []).filter((p) => !mias || p.responsable_id === sesion?.id), [todas, mias, sesion?.id]);
-  const ver = useMemo(() => delEquipo.filter((p) => pasa(p, filtro) && coincide(p, q.trim())), [delEquipo, filtro, q]);
+  const ver = useMemo(() => delEquipo.filter((p) => pasa(p, filtro) && (!conPapel || tienePapel(p, conPapel)) && coincide(p, q.trim())), [delEquipo, filtro, conPapel, q]);
+  const papelesPresentes = [...new Set(delEquipo.flatMap((p) => p.asuntos.flatMap((a) => a.papeles)))];
+  const opcionesPapel = [
+    { valor: "", etiqueta: "Cualquier papel" },
+    ...papelesPresentes.map((x) => ({ valor: x, etiqueta: `${papel(x)} · ${delEquipo.filter((p) => pasa(p, filtro) && tienePapel(p, x)).length}` }))
+      .sort((a, b) => a.etiqueta.localeCompare(b.etiqueta, "es")),
+    { valor: "sin_papel", etiqueta: `Sin asunto · ${delEquipo.filter((p) => pasa(p, filtro) && !p.asuntos.length).length}` },
+  ];
   const sinSeguimiento = delEquipo.filter((p) => pasa(p, "sin_seg")).length;
   const actual = todas?.find((p) => p.id === abierta) ?? null;
   const abrir = (id: string | null) => router.replace(id ? `/panel/directorio?id=${id}` : "/panel/directorio", { scroll: false });
@@ -211,6 +223,7 @@ export function Directorio() {
           </label>
           <div className="as-fila as-filtros">
             <Pildora etiqueta="Qué ver" valor={filtro} opciones={opcionesFiltro} alElegir={setFiltro} />
+            {papelesPresentes.length ? <Pildora etiqueta="Papel" valor={conPapel} opciones={opcionesPapel} alElegir={setConPapel} titulo={conPapel ? undefined : "Papel"} /> : null}
             {director ? (
               // Dos opciones (todo el equipo o las mías): interruptor. El asesor ya ve solo lo suyo.
               <label className="pe-mias"><Switch checked={mias} onCheckedChange={setMias} aria-label="Solo las que llevo yo" />Las mías</label>

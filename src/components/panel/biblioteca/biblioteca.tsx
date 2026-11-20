@@ -29,6 +29,7 @@ const SECCIONES: { clase: ClaseBiblioteca; titulo: string; icono: NombreIcono; c
   { clase: "apartado_propio", titulo: "Apartados", icono: "nota", color: "gray" },
 ];
 const dia = (n: number | null | undefined) => (n === null || n === undefined ? "" : n === 0 ? "el primer día" : `día ${n}`);
+const sinAcentos = (t: string) => t.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
 /**
  * Biblioteca (boceto aprobado): las metodologías, todas al mismo nivel. Se copian a un asunto y ahí se cambian;
@@ -39,6 +40,10 @@ export function Biblioteca() {
   const director = useSession()?.role === "admin";
   const guias = useGuias();
   const [abierta, setAbierta] = useState<string | null>(null);
+  // Hallazgo 45: buscar una guía por su nombre o por lo que trae.
+  const [q, setQ] = useState("");
+  const buscada = sinAcentos(q.trim());
+  const coincide = (x: Guia) => !buscada || sinAcentos(`${x.nombre} ${x.descripcion} ${JSON.stringify(x.contenido ?? {})}`).includes(buscada);
   const [editar, setEditar] = useState<Guia | { nueva: ClaseBiblioteca } | null>(null);
   const [usar, setUsar] = useState<Guia | null>(null);
 
@@ -73,6 +78,13 @@ export function Biblioteca() {
             </DropdownMenu>
           </div>
           <p className="bb-sub">Tus metodologías, todas al mismo nivel. Se copian a un asunto y ahí se cambian.</p>
+          {guias?.length ? (
+            <label className="as-buscar bb-buscar">
+              <Icono nombre="bus" tamano={15} />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar una guía" aria-label="Buscar en la Biblioteca" type="search" />
+            </label>
+          ) : null}
+          {guias?.length && buscada && !guias.some(coincide) ? <p className="bb-nota">Ninguna guía dice «{q.trim()}».</p> : null}
 
           {!guias ? <div className="as-cargando" aria-label="Cargando"><span /><span /><span /></div> : null}
           {guias && !guias.length ? (
@@ -83,11 +95,11 @@ export function Biblioteca() {
           ) : null}
 
           {guias ? SECCIONES.map((s) => {
-            const lista = guias.filter((x) => x.clase === s.clase);
+            const lista = guias.filter((x) => x.clase === s.clase && coincide(x));
             if (!lista.length) return null;
             return (
               <nav key={s.clase} aria-label={s.titulo} className="as-items bb-grupo">
-                <h2 className="bb-grupo-t">{s.titulo}<span>{lista.length}</span></h2>
+                <h2 className="bb-grupo-t">{s.titulo}<span title={lista.length === 1 ? "1 guía" : `${lista.length} guías`}>{lista.length}</span></h2>
                 {lista.map((x) => (
                   <button key={x.id} type="button" className="as-it bb-it" aria-current={abierta === x.id ? "page" : undefined} onClick={() => setAbierta(x.id)}>
                     <Cuadro icono={s.icono} color={s.color} chico />
