@@ -39,8 +39,10 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [x] Bandeja, Biblioteca, Herramientas, Consultas, Agenda, Formatos, Dinero, Trámites, Equipo y Eliminados con el mismo orden (no tienen pantalla modelo; siguen a las demás).
 - [x] La pantalla de Personas, la de entrada al panel y las de aviso (cargando, error) con el mismo orden.
 - [x] Mirar cada pantalla en capturas junto a su modelo, en computadora, teléfono y oscuro.
-- [ ] Ver en pantalla las cuatro que no salieron en captura: cargando, error, un formato abierto y un informe abierto.
-- [ ] Decidir si Personas y Directorio se juntan en una sola pantalla: hoy son dos listas de gente con datos distintos.
+- [x] Recorrer el panel con la base real: 16 pantallas, un asunto y un contrato a medio llenar cargan con sus datos. Catálogos y Bandeja no leen todavía: esperan cambios de la base que se aplican al integrar.
+- [ ] Ver en pantalla las tres que faltan: cargando, error y un informe abierto.
+- [ ] Juntar Personas y Directorio en una sola pantalla, la del menú, sin perder funciones. Hoy son dos listas de gente con datos distintos; Personas todavía lee los datos del panel provisional. Pide un cambio en la base.
+- [ ] Que la Bandeja avise cuando no pudo leer, en vez de decir que está vacía.
 - [ ] Pruebas automáticas otra vez.
 
 El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
@@ -54,8 +56,8 @@ El fallo 7 (el nombre cortado en la Consulta) ya quedó corregido.
 
 ### Etapa C · Red de seguridad
 
-- [ ] Sacar una copia de respaldo de la base.
-- [ ] Probar que la copia se puede restaurar.
+- [x] Sacar una copia de respaldo de la base. La copia diaria del 19/11 salió bien y coincide con la base: 65 tablas, 1,434 filas y 61 archivos. No incluye las cuentas de acceso.
+- [ ] Probar que la copia se puede restaurar. El ensayo con datos de ejemplo pasó; falta abrir una copia real, y para eso hace falta tu llave: la descargas y la abres en tu equipo, y el agente hace el resto en unos 15 minutos.
 - [ ] Activar la entrada en dos pasos de tu cuenta de director.
 
 ### Etapa D · El cambio
