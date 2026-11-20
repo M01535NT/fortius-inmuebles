@@ -36,7 +36,8 @@ Lo trabajan dos sesiones a la vez, cada una con sus carpetas, y el agente coordi
 - [x] Inmuebles con el aspecto nuevo.
 - [x] Directorio y la ficha de la persona con el aspecto nuevo.
 - [x] Configuración con el aspecto nuevo.
-- [ ] Bandeja, Biblioteca y Herramientas con el mismo orden (Equipo y Eliminados ya quedaron) (no tienen pantalla modelo; siguen a las demás).
+- [x] Bandeja, Biblioteca, Herramientas, Consultas, Agenda, Formatos, Dinero, Trámites, Equipo y Eliminados con el mismo orden (no tienen pantalla modelo; siguen a las demás).
+- [ ] La pantalla vieja de Personas, la de entrada al panel y las de aviso (cargando, error) con el mismo orden.
 - [ ] Mirar cada pantalla en capturas junto a su modelo, en computadora, teléfono y oscuro.
 - [ ] Pruebas automáticas otra vez.
 
