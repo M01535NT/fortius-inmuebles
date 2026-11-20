@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Desplegable } from "@/components/panel/kit/desplegable";
+import { EstadoError } from "@/components/panel/kit/estados";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/panel/ui/dropdown-menu";
 import { Switch } from "@/components/panel/ui/switch";
 import type { Documento } from "@/lib/formatos/documento/modelo";
@@ -49,6 +50,7 @@ export function InformeParaElCliente({ asuntoId }: { asuntoId: string }) {
   const [material, setMaterial] = useState<MaterialInforme | null>(null);
   const [opciones, setOpciones] = useState<OpcionesInforme | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0);
   const [render, setRender] = useState<Render | null>(null);
   const [maqueta, setMaqueta] = useState<Maqueta | null>(null);
   const [fallaHoja, setFallaHoja] = useState<string | null>(null);
@@ -60,11 +62,16 @@ export function InformeParaElCliente({ asuntoId }: { asuntoId: string }) {
   useEffect(() => {
     let vivo = true;
     leerMaterialInforme(asuntoId).then(
-      (m) => { if (vivo) { setMaterial(m); setOpciones(opcionesIniciales(m)); setError(null); } },
+      (m) => {
+        if (!vivo) return;
+        // Si el material llega incompleto, se dice; la pantalla no se queda cargando para siempre.
+        try { setOpciones(opcionesIniciales(m)); setMaterial(m); setError(null); }
+        catch { setError("El informe llegó incompleto. Vuelve a abrirlo; si sigue igual, avísale a dirección."); }
+      },
       (e: unknown) => { if (vivo) setError(e instanceof Error ? e.message : "No se pudo abrir."); },
     );
     return () => { vivo = false; };
-  }, [asuntoId]);
+  }, [asuntoId, intento]);
 
   useEffect(() => {
     let vivo = true;
@@ -91,10 +98,15 @@ export function InformeParaElCliente({ asuntoId }: { asuntoId: string }) {
 
   if (error) {
     return (
+      // Con el marco de siempre (barra con regreso y título) y el aviso del kit en el cuerpo.
       <div className="dc-ventana" role="dialog" aria-modal="true" aria-label="Informe para el cliente">
-        <div className="dc-pregunta" style={{ gridColumn: "1 / -1" }}>
-          <div className="as-vacio" role="alert"><Icono nombre="alerta" tamano={24} /><b>{error}</b></div>
-          <div className="as-fila"><button type="button" className="as-btn" onClick={() => router.push(regreso)}><Icono nombre="at" tamano={16} />Regresar al asunto</button></div>
+        <header className="dc-cabeza">
+          <button type="button" className="as-btn as-gho as-ico" aria-label="Regresar al asunto" title="Regresar al asunto" onClick={() => router.push(regreso)}><Icono nombre="at" tamano={18} /></button>
+          <Cuadro icono="file" color="teal" />
+          <div className="dc-titulo"><b>Informe para el cliente</b><p className="as-m as-corta">No se abrió</p></div>
+        </header>
+        <div className="dc-pregunta inf-error">
+          <EstadoError titulo="No se pudo abrir el informe" texto={error} alReintentar={() => { setError(null); setMaterial(null); setOpciones(null); setIntento((n) => n + 1); }} />
         </div>
       </div>
     );

@@ -116,3 +116,7 @@
   .panel-root .bj-it .bj-mini { width: 44px; height: 44px; }
   .panel-root .bj-det-cab .pn-btn { height: 44px; min-height: 44px; }
 }
+
+/* Mientras la Bandeja llega en su paso: el título y un aviso al centro. */
+.panel-root .bj-pronto { display: grid; align-content: start; gap: 24px; width: 100%; max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+@media (max-width: 900px) { .panel-root .bj-pronto .pn-btn { min-height: 44px; } }

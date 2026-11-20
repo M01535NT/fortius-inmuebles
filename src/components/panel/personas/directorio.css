@@ -20,4 +20,34 @@
   .panel-root .pe-solo-tel { display: inline-flex; }
   .panel-root .pe-mini { height: 44px; min-height: 44px; }
   .panel-root .pe-mini.as-ico { width: 44px; }
+  .panel-root .pe-mias { min-height: 44px; }
+  .panel-root .pe-aviso { min-height: 44px; }
+  /* En el teléfono, lo que sigue ocupa su renglón y Posponer y Hecho van abajo, a la derecha. */
+  .panel-root .pe-sigue-fila { flex-wrap: wrap; justify-content: flex-end; padding-top: 4px; padding-bottom: 6px; }
+  .panel-root .pe-sigue-fila .fm-dato-b { flex: 1 1 100%; min-height: 44px; margin-right: 0; }
 }
+
+/* Lista: «Las mías» junto a «Qué ver» y el aviso de quién se quedó sin seguimiento. */
+.panel-root .pe-mias { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; font-size: 12px; color: var(--ink-muted); cursor: pointer; }
+.panel-root .pe-aviso {
+  display: flex; align-items: center; gap: 8px; margin: 0 10px 8px; padding: 7px 10px; border: 0; border-radius: 8px;
+  background: var(--warning-soft); color: var(--warning); font-size: 12px; font-weight: 500; text-align: left; cursor: pointer;
+}
+.panel-root .pe-aviso > :last-child { margin-left: auto; }
+.panel-root .pe-aviso:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Ficha: el aviso de archivada con su botón, «Lo que sigue» con Posponer y Hecho, y el historial de contacto. */
+.panel-root .pe-ban-boton { align-items: center; }
+.panel-root .pe-ban-boton > span { flex: 1; }
+.panel-root .pe-sigue-fila { gap: 4px; padding-right: 8px; }
+.panel-root .pe-sigue-fila .fm-dato-b { gap: 10px; }
+.panel-root .pe-sigue-fila .fm-v { font-weight: 500; }
+.panel-root .pe-sigue-fila .fm-tag { flex: none; margin-left: auto; }
+.panel-root .fm-tag[data-vencido] { background: var(--error-soft); color: var(--error); }
+.panel-root .pe-hecho { color: var(--exito); }
+.panel-root .pe-anotar { gap: 8px; color: var(--accent); font-weight: 500; }
+.panel-root .pe-contacto { align-items: flex-start; padding-top: 9px; padding-bottom: 9px; }
+.panel-root .pe-contacto .fm-v { display: grid; gap: 2px; }
+.panel-root .pe-contacto .fm-v b { font-weight: 500; }
+.panel-root .pe-contacto .fm-v span { white-space: pre-line; }
+.panel-root .pe-contacto .fm-v small { color: var(--ink-muted); font-size: 12px; }

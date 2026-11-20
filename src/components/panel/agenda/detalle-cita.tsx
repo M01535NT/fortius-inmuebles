@@ -12,7 +12,7 @@ import { deHoraGuardada } from "@/lib/panel/datos/agenda-acciones";
 import { textoResultado, yaPaso, type EventoConResultado } from "@/lib/panel/datos/agenda-resultado";
 import { iniciales } from "@/lib/panel/datos/asuntos";
 import { enlaceWhatsApp } from "@/lib/panel/datos/consultas";
-import { rutaConsulta, rutaInmueble, rutaPersona } from "@/lib/panel/datos/relacionado";
+import { rutaConsulta, rutaInmueble } from "@/lib/panel/datos/relacionado";
 
 const duracion = (min: number) => (min >= 60 ? `${min / 60} h` : `${min} min`);
 /** El lugar escrito al agendar en una línea queda en las notas como «Lugar: …». */
@@ -67,7 +67,8 @@ export function DetalleCita({ ev, empalme, hoy, cliente, lead, inmueble, asunto,
       {nombre ? (
         <div className="pn-dato" style={{ cursor: "default" }}>
           <span className="pn-av" aria-hidden>{iniciales(nombre)}</span>
-          <Link href={cliente ? rutaPersona(cliente.id) : rutaConsulta(lead?.id ?? "")} style={{ flex: 1, minWidth: 0, display: "grid", gap: 1, color: "inherit", textDecoration: "none" }}>
+          {/* La cita todavía guarda la persona de la lista vieja: se busca por su nombre en el Directorio. */}
+          <Link href={cliente ? `/panel/directorio?q=${encodeURIComponent(cliente.nombre?.trim() || cliente.telefono || "")}` : rutaConsulta(lead?.id ?? "")} style={{ flex: 1, minWidth: 0, display: "grid", gap: 1, color: "inherit", textDecoration: "none" }}>
             <b style={{ fontSize: 15 }}>{nombre}</b>
             <span style={{ fontSize: 13, color: "var(--ink-muted)" }}>{telefono || (cliente ? "Persona" : "Consulta")}</span>
           </Link>

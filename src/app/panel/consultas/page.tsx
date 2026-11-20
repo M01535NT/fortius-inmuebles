@@ -15,15 +15,16 @@ import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
 import { HojaAdaptable } from "@/components/panel/ui/hoja-adaptable";
 import { Segmentado } from "@/components/panel/kit/segmentado";
 import type { Property } from "@/data/propiedades";
-import type { Cliente } from "@/lib/backend/contracts";
+import type { LeadADirectorio, PersonaDirectorio } from "@/lib/backend/directorio-contrato";
 import type { Asesor, Lead } from "@/lib/domain/records";
 import { CerrarConsulta, FormularioAnotar, NotasConsulta, SiguienteContacto } from "@/components/panel/consultas/acciones";
 import { PersonaDeLaConsulta } from "@/components/panel/consultas/persona";
-import { convertirConsulta, crearExpediente, ErrorDeLectura, leerMiAsesor } from "@/lib/panel/datos/colecciones";
+import { leadADirectorio, leerDirectorio } from "@/lib/panel/biblioteca";
+import { empezarConsulta } from "@/lib/panel/consulta/api";
+import { leerMiAsesor } from "@/lib/panel/datos/colecciones";
 import { anotar, atender, cerrarConsulta, nuevaConsulta, NOMBRE_CIERRE, programar, reabrir } from "@/lib/panel/datos/consultas-acciones";
 import { diaLargo } from "@/lib/panel/calendario";
-import { relacionadoConsulta, rutaInmueble, rutaPersona, type GrupoRelacionado } from "@/lib/panel/datos/relacionado";
-import { quitarAsunto, unirConsulta, UNIR_PENDIENTE } from "@/lib/panel/datos/consultas-persona";
+import { relacionadoConsulta, rutaInmueble, type GrupoRelacionado } from "@/lib/panel/datos/relacionado";
 import { armarRespuesta, asuntoDeCorreo, conFirmaDeCorreo, NOMBRE_PLANTILLA, plantillaInicial, plantillasDe, type Plantilla } from "@/lib/panel/datos/consultas-respuesta";
 import { Desplegable } from "@/components/panel/kit/desplegable";
 import { enlaceWhatsApp, filaConsulta, filtrarConsultas, ordenar, partirPorAntiguedad, type FilaConsulta, type Pestana } from "@/lib/panel/datos/consultas";
@@ -83,79 +84,57 @@ function Consultas() {
   );
   const abierta = useMemo(() => todas.find((f) => f.id === abiertaId) ?? null, [todas, abiertaId]);
   const leadAbierto = useMemo(() => leads.datos.find((l) => l.id === abiertaId) ?? null, [leads.datos, abiertaId]);
-  const clientes = useColeccion<Cliente>("clientes");
+  // El Directorio (tabla nueva de personas): para avisar si quien escribió ya tiene ficha. Si no se lee, no frena nada.
+  const [directorio, setDirectorio] = useState<PersonaDirectorio[]>([]);
+  const leerGente = useCallback(() => { leerDirectorio({ ver: "todas" }).then(setDirectorio, () => undefined); }, []);
+  useEffect(() => { leerGente(); }, [leerGente]);
 
   // Escrituras: se guarda con la versión que se leyó; cada cambio avisa y ofrece Deshacer (boceto de Consultas).
   const [ocupado, setOcupado] = useState(false);
   const { guardar } = leads;
   const router = useRouter();
 
-  // Persona y asunto desde la consulta (PN-05): la conversión verificada de la base crea la ficha y el vínculo.
-  // La ficha no se deshace (el vínculo de la conversión es inmutable); el asunto sí: va a eliminados y se recupera.
-  const [asuntoReciente, setAsuntoReciente] = useState<{ leadId: string; id: string; folio: string | null } | null>(null);
-  type Nuevo = { id: string; folio: string | null; version: number };
-  const avisarAsunto = (leadId: string, nuevo: Nuevo, texto: string) => {
-    setAsuntoReciente({ leadId, id: nuevo.id, folio: nuevo.folio });
-    avisar(texto, { duracion: 8000, etiqueta: "Deshacer", alAccionar: () => {
-      quitarAsunto(nuevo.id, nuevo.version).then(() => {
-        setAsuntoReciente((a) => (a?.id === nuevo.id ? null : a));
-        avisar("Se quitó el asunto; queda en eliminados");
-      }, (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer."));
-    } });
+  /**
+   * «Crear persona»: la ruta del Directorio la liga a una ficha con su mismo teléfono o correo, o la crea. Repetirlo da la
+   * misma persona. Con «Persona y asunto», después abre la consulta nueva desde la del sitio: el servidor pone la persona
+   * ligada, el canal, el mensaje y el inmueble por el que preguntó. El asunto nace ahí.
+   */
+  const empezarAsunto = async (leadId: string) => {
+    setOcupado(true);
+    try {
+      const c = await empezarConsulta({ desde_lead: leadId });
+      router.push(`/panel/consulta?id=${encodeURIComponent(c.id)}`);
+      return true;
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : "No se pudo empezar el asunto. Vuelve a intentarlo.");
+      return false;
+    } finally { setOcupado(false); }
   };
-  const crearPersona = async (l: Lead, asunto: { operacion: string; asesorId: string } | null) => {
+  const crearPersona = async (l: Lead, conAsunto: boolean) => {
     const version = leads.versionDe(l.id);
     if (version === null) { avisar("Recarga la página e inténtalo de nuevo."); return false; }
     setOcupado(true);
-    let clienteId: string;
+    let r: LeadADirectorio;
     try {
-      clienteId = (await convertirConsulta(l.id, version)).clienteId;
-      leads.reintentar(); clientes.reintentar();
+      r = await leadADirectorio(l.id, version);
+      leads.reintentar(); leerGente();
     } catch (e) {
+      // Con un choque (409) la consulta cambió: se vuelve a leer para el siguiente intento.
+      leads.reintentar();
       avisar(e instanceof Error ? e.message : "No se creó. Vuelve a intentarlo.");
       setOcupado(false);
       return false;
     }
-    const abrirFicha = { etiqueta: "Abrir su ficha", alAccionar: () => router.push(rutaPersona(clienteId)) };
-    if (!asunto) { avisar(`${l.nombre} ya está en Personas`, abrirFicha); setOcupado(false); return true; }
-    try {
-      const nuevo = await crearExpediente<Nuevo>({ clienteId, ...asunto, ...(l.propiedadSlug ? { propiedadSlug: l.propiedadSlug } : {}) });
-      avisarAsunto(l.id, nuevo, `${l.nombre} ya está en Personas, con su asunto${nuevo.folio ? ` ${nuevo.folio}` : ""}`);
-    } catch (e) {
-      // La persona sí quedó: el asunto se puede volver a abrir desde aquí mismo.
-      avisar(`${l.nombre} ya está en Personas, pero el asunto no se abrió. ${e instanceof Error ? e.message : ""}`.trim(), abrirFicha);
-    } finally { setOcupado(false); }
+    setOcupado(false);
+    const nombre = l.nombre?.trim() || "La persona";
+    if (conAsunto) {
+      // La persona ya quedó; si la consulta nueva no se abre, se dice y se puede empezar desde su ficha.
+      avisar(r.creada ? `${nombre} ya está en el Directorio` : `${nombre} ya tenía ficha; la consulta quedó en ella`);
+      return empezarAsunto(l.id);
+    }
+    avisar(r.creada ? `${nombre} ya está en el Directorio` : `${nombre} ya tenía ficha; la consulta quedó en ella`,
+      { etiqueta: "Abrir su ficha", alAccionar: () => router.push(`/panel/directorio?id=${encodeURIComponent(r.persona_id)}`) });
     return true;
-  };
-  // «Unir con su ficha» (PN-05): si el servidor todavía no sabe hacerlo, se recuerda en esta visita y se dice sin error.
-  const [unirPendiente, setUnirPendiente] = useState(false);
-  const unir = async (l: Lead, p: Cliente) => {
-    const version = leads.versionDe(l.id);
-    if (version === null) { avisar("Recarga la página e inténtalo de nuevo."); return false; }
-    setOcupado(true);
-    try {
-      const r = await unirConsulta(l.id, p.id, version);
-      if (r.estado === "pendiente") { setUnirPendiente(true); avisar(UNIR_PENDIENTE, { duracion: 8000 }); return false; }
-      leads.reintentar(); clientes.reintentar();
-      avisar(`La consulta quedó en la ficha de ${p.nombre?.trim() || "esa persona"}`, { etiqueta: "Abrir su ficha", alAccionar: () => router.push(rutaPersona(r.clienteId)) });
-      return true;
-    } catch (e) {
-      if (e instanceof ErrorDeLectura && e.estado === 409) leads.reintentar();
-      avisar(e instanceof Error ? e.message : "No se unió. Vuelve a intentarlo.");
-      return false;
-    } finally { setOcupado(false); }
-  };
-  const abrirAsunto = async (d: { clienteId: string; asesorId: string; operacion: string; propiedadSlug?: string }) => {
-    if (!leadAbierto) return false;
-    setOcupado(true);
-    try {
-      const nuevo = await crearExpediente<Nuevo>(d);
-      avisarAsunto(leadAbierto.id, nuevo, `Asunto abierto${nuevo.folio ? ` con el folio ${nuevo.folio}` : ""}`);
-      return true;
-    } catch (e) {
-      avisar(e instanceof Error ? e.message : "No se abrió el asunto. Vuelve a intentarlo.");
-      return false;
-    } finally { setOcupado(false); }
   };
   const cambiar = useCallback(async (previo: Lead, nuevo: Lead, texto: string, deshacer = true) => {
     setOcupado(true);
@@ -295,7 +274,7 @@ function Consultas() {
             <DetalleConsulta key={abierta.id} f={abierta} lead={leadAbierto} ocupado={ocupado}
           interes={interes ? { titulo: interes.titulo, href: rutaInmueble(interes.codigo) } : undefined}
           firmante={asesores.datos.find((a) => a.id === (leadAbierto.asesorId || miAsesor))?.nombre}
-          grupos={relacionadoConsulta(leadAbierto, { clientes: clientes.datos, inmuebles: inmuebles.datos })}
+          grupos={relacionadoConsulta(leadAbierto, { clientes: [], inmuebles: inmuebles.datos })}
           alCopiar={(t) => {
             navigator.clipboard?.writeText(t).then(() => avisar("Respuesta copiada"), () => avisar("No se pudo copiar. Selecciona el texto y cópialo."));
           }}
@@ -304,10 +283,8 @@ function Consultas() {
           alAnotar={(texto) => cambiar(leadAbierto, anotar(leadAbierto, texto), "Nota guardada", false)}
           alCerrar={(como, motivo) => cambiar(leadAbierto, cerrarConsulta(leadAbierto, como, motivo), `Cerrada: ${NOMBRE_CIERRE[como]}`)}
           alReabrir={() => cambiar(leadAbierto, reabrir(leadAbierto), "Se reabrió; está en seguimiento")}
-          persona={<PersonaDeLaConsulta lead={leadAbierto} personas={clientes.datos} asesores={asesores.datos} miAsesor={miAsesor} ocupado={ocupado}
-            asuntoReciente={asuntoReciente?.leadId === leadAbierto.id ? asuntoReciente : null}
-            alCrear={(asunto) => crearPersona(leadAbierto, asunto)} alAbrirAsunto={abrirAsunto}
-            alUnir={(p) => unir(leadAbierto, p)} unirPendiente={unirPendiente} />}
+          persona={<PersonaDeLaConsulta lead={leadAbierto} directorio={directorio} ocupado={ocupado}
+            alCrear={(conAsunto) => crearPersona(leadAbierto, conAsunto)} alEmpezarAsunto={() => empezarAsunto(leadAbierto.id)} />}
             />
           </div>
         ) : (

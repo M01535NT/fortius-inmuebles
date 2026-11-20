@@ -20,7 +20,6 @@ type Opcion = Entrada & { icono: NombreIcono; ruta: string; iniciales?: boolean 
 
 const IR_A: Opcion[] = [
   ...[...SECCIONES, CONFIGURACION].map((s) => ({ id: `ir-${s.slug}`, titulo: s.nombre, grupo: "Ir a" as const, icono: s.icono, ruta: s.ruta, claves: [s.resumen] })),
-  { id: "ir-bandeja", titulo: "Bandeja", grupo: "Ir a" as const, icono: "descargar", ruta: "/panel/bandeja", claves: ["archivos", "subir", "fotos", "documentos que llegan"] },
   { id: "ir-credito", titulo: "Crédito hipotecario", grupo: "Ir a" as const, icono: "costos", ruta: "/panel/herramientas/credito", claves: ["mensualidad", "hipoteca", "enganche", "calculadora"] },
   { id: "ir-comision", titulo: "Comisión", grupo: "Ir a" as const, icono: "precio", ruta: "/panel/herramientas/comision", claves: ["iva", "propietario", "calculadora"] },
 ];

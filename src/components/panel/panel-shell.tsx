@@ -10,7 +10,6 @@ import { errorMessage, isLoggedIn, login, logout, needsMfaCode, useSession, veri
 import { usePreferencia } from "./almacen";
 import { useCuentaAsuntos } from "./asunto/cuenta";
 import { Favoritos, Recientes } from "./asunto/recientes";
-import { useCuentaBandeja } from "./bandeja/cuenta";
 import { ProveedorCatalogos } from "./datos/catalogos";
 import { Gesto, Icono, Logo } from "./icons";
 import { useAtajo, useTecladoEnListas } from "./kit/atajos";
@@ -73,24 +72,18 @@ function Acceso() {
 
 const activaEn = (ruta: string) => (s: Seccion) => (s.ruta === "/panel" ? ruta === "/panel" : ruta === s.ruta || ruta.startsWith(s.ruta + "/"));
 
-/** La Bandeja (SPEC.md, sección 3): en el menú justo después de Asuntos, como en el modelo visual. */
-const BANDEJA: Seccion = {
-  slug: "bandeja", nombre: "Bandeja", icono: "descargar", etapa: 5, resumen: "Los archivos que llegan, para acomodarlos en su asunto.", ruta: "/panel/bandeja",
-};
-const conBandeja = (lista: Seccion[]) => {
-  const i = lista.findIndex((s) => s.slug === "asuntos");
-  return i < 0 ? [...lista, BANDEJA] : [...lista.slice(0, i + 1), BANDEJA, ...lista.slice(i + 1)];
-};
+/*
+ * La Bandeja sale del menú, de la barra del teléfono, del buscador y de los conteos hasta su paso: su tabla todavía no
+ * existe en la base. La ruta /panel/bandeja se queda con un aviso; su código sigue en components/panel/bandeja.
+ */
 
-/** El número junto a cada sección (modelo visual): lo que te toca en Inicio, los asuntos abiertos y lo que espera en la Bandeja. */
+/** El número junto a cada sección (modelo visual): lo que te toca en Inicio y los asuntos abiertos. */
 function useCuentasMenu(): Record<string, { n: number; dice: string }> {
   const { cuenta } = useRecordatorios();
   const asuntos = useCuentaAsuntos();
-  const bandeja = useCuentaBandeja();
   return {
     inicio: { n: cuenta, dice: "por atender" },
     asuntos: { n: asuntos, dice: asuntos === 1 ? "abierto" : "abiertos" },
-    bandeja: { n: bandeja, dice: "por acomodar" },
   };
 }
 const numero = (n: number) => (n > 99 ? "99+" : String(n));
@@ -202,7 +195,7 @@ function Armazon({ children }: { children: ReactNode }) {
   useAtajo("k", (e) => { e.preventDefault(); abrirBuscar(); }, { conControl: true });
   useTecladoEnListas();
   const esDirector = sesion?.role === "admin";
-  const secciones = useMemo(() => conBandeja(seccionesPara(esDirector)), [esDirector]);
+  const secciones = useMemo(() => seccionesPara(esDirector), [esDirector]);
   const iniciales = (sesion?.name ?? sesion?.email ?? "?").split(/[\s@.]+/).filter((p) => /^\p{L}/u.test(p)).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
   const activa = activaEn(ruta);
   const enBarra = (slugs: readonly string[]) => slugs.map((slug) => secciones.find((s) => s.slug === slug)).filter((s): s is Seccion => Boolean(s));
