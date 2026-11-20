@@ -47,9 +47,9 @@ function Acceso() {
   }
   return (
     <main className="pn-acceso">
-      <form className="pn-tarjeta" onSubmit={enviar}>
-        <Logo alto={24} />
-        <h1 className="pn-h1">{pasoCodigo ? "Código de verificación" : "Entra al panel"}</h1>
+      <form onSubmit={enviar}>
+        <Logo alto={22} />
+        <h1 className="pn-acceso-t">{pasoCodigo ? "Código de verificación" : "Entra al panel"}</h1>
         {pasoCodigo ? (
           <label className="pn-campo">Código de 6 dígitos
             <input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={codigo} onChange={(e) => setCodigo(e.target.value)} autoFocus required />

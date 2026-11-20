@@ -479,10 +479,12 @@ export default function Bandeja() {
 
 function Miniatura({ archivo, url }: { archivo: ArchivoBandeja; url?: string }) {
   const clase = claseArchivo(archivo.tipo);
+  // Si la imagen no carga, se queda el mosaico «Foto» en vez del ícono roto.
+  const [fallo, setFallo] = useState<string | null>(null);
   return (
     <span className="bj-mini" aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element -- miniatura local (blob:) */}
-      {url && clase === "foto" ? <img src={url} alt="" /> : clase === "pdf" ? "PDF" : clase === "video" ? "Video" : "Foto"}
+      {url && clase === "foto" && fallo !== url ? <img src={url} alt="" onError={() => setFallo(url)} /> : clase === "pdf" ? "PDF" : clase === "video" ? "Video" : "Foto"}
     </span>
   );
 }

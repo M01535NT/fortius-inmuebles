@@ -169,8 +169,25 @@ button.pn-sec { cursor: pointer; }
 .pn-error { color: var(--error); font-size: 13px; }
 
 /* ---------- Acceso ---------- */
-.pn-acceso { display: grid; place-items: center; min-height: 100dvh; padding: 24px; }
-.pn-acceso form { width: min(400px, 100%); display: flex; flex-direction: column; gap: 14px; padding: 22px; }
+/* Como la ventana de entrada de una app de Mac: chica, centrada, con el logo, dos campos y un botón; flota, por eso
+   lleva sombra. Lienzo del panel detrás. */
+.pn-acceso { display: grid; place-items: center; min-height: 100dvh; padding: 24px; background: var(--bg); }
+.pn-acceso form {
+  width: min(340px, 100%); display: flex; flex-direction: column; gap: 12px; padding: 28px 24px 24px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: 0 12px 40px rgb(15 18 24 / 0.10);
+}
+.pn-acceso form > svg, .pn-acceso form > img { align-self: center; margin-bottom: 4px; }
+.pn-acceso-t { margin: 0 0 4px; text-align: center; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+.pn-acceso .pn-campo input, .pn-acceso .pn-btn { border-radius: 8px; }
+.pn-acceso .pn-btn { margin-top: 4px; }
+@media (min-width: 901px) {
+  .pn-acceso .pn-campo input { height: 32px; font-size: 13px; }
+  .pn-acceso .pn-btn { height: 32px; font-size: 13px; }
+}
+.pn-acceso .pn-error { margin: 0; font-size: 12px; }
+
+/* El aviso de error bajo la barra de 52 px (error.tsx). */
+.pn-marco-aviso { width: min(520px, 100%); margin: 48px auto; padding: 0 16px; box-sizing: border-box; }
 
 /* ---------- Teléfono ---------- */
 .pn-barra { display: none; }

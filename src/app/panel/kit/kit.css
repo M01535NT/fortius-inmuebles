@@ -1,0 +1,13 @@
+/*
+ * Muestrario del kit con el marco del modelo visual: la barra de 52 px de vistas.css y, debajo, cada grupo de piezas en
+ * una tarjeta de 12 px con su título chico, como los grupos de fichas/modelo.css. Solo lo propio del muestrario.
+ */
+.panel-root .kit-sub { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .kit-cuerpo { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 860px; margin: 0 auto; padding: 18px 18px 48px; box-sizing: border-box; font-size: 13px; }
+.panel-root .kit-cuerpo > .pn-bloque { gap: 10px; margin: 0; padding: 14px 16px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.panel-root .kit-cuerpo > .pn-bloque > h2 { font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .kit-cuerpo .pn-sub { font-size: 13px; }
+@media (max-width: 900px) {
+  .panel-root .kit-sub { display: none; }
+  .panel-root .kit-cuerpo { padding: 14px 14px calc(96px + env(safe-area-inset-bottom, 0px)); }
+}

@@ -4,7 +4,12 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useLoLleva } from "@/components/panel/datos/lo-lleva";
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
 import { useFichaEnDireccion } from "@/components/panel/datos/use-ficha-url";
-import { Avatar, BotonFiltros, Buscador, MaestroDetalle, ResumenFiltros, Rol, type GrupoFiltro } from "@/components/panel/fichas/piezas";
+import { BotonFiltros, Buscador, ResumenFiltros, Rol, type GrupoFiltro } from "@/components/panel/fichas/piezas";
+import { iniciales } from "@/lib/panel/asuntos/api";
+import "@/components/panel/asunto/asunto.css";
+import "@/components/panel/asunto/caso.css";
+import "@/components/panel/fichas/modelo.css";
+import "./personas.css";
 import { Gesto, Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Boton } from "@/components/panel/kit/boton";
@@ -133,25 +138,32 @@ function Personas() {
     ] }] : []),
   ];
 
+  // En el teléfono la ficha ocupa la pantalla: al abrirla se sube al principio, como hacía MaestroDetalle.
+  const hayAbierta = abierta !== null;
+  useEffect(() => { if (hayAbierta && window.matchMedia("(max-width: 900px)").matches) window.scrollTo({ top: 0 }); }, [hayAbierta, abiertaId]);
+
   const lista = (
     <>
-      <div className="fx-lista-cab">
-        <div className="fx-titulo">
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <h1>Personas</h1>
-            <span className="fx-cuenta">{cargando ? "Cargando…" : `${cuentas.todas} ${cuentas.todas === 1 ? "persona" : "personas"}${verArchivados ? (cuentas.todas === 1 ? " archivada" : " archivadas") : ""} · Datos de ejemplo`}</span>
-          </div>
-          <Boton onClick={() => abrirNueva()} aria-keyshortcuts="N"><Gesto nombre="mas" tamano={18} />Nueva</Boton>
-        </div>
-        <div className="fx-fila-ctl">
+      {/* La barra de 52 px del modelo (Personas.dc.html): título, cuántas y «+» para una persona nueva. */}
+      <div className="as-fila as-cab">
+        <h1 className="as-h1-lista">Personas</h1>
+        {!cargando ? <span className="as-cab-n" aria-label={`${cuentas.todas} ${cuentas.todas === 1 ? "persona" : "personas"}`}>{cuentas.todas}</span> : null}
+        <span className="as-sp" />
+        <button type="button" className="as-btn as-gho as-ico as-cab-mas" aria-label="Nueva persona" title="Nueva persona (N)" aria-keyshortcuts="N" onClick={() => abrirNueva()}>
+          <Icono nombre="mas" tamano={16} />
+        </button>
+      </div>
+      <div className="pr-arriba">
+        <p className="pr-resumen">{cargando ? "Cargando…" : `${cuentas.todas} ${cuentas.todas === 1 ? "persona" : "personas"}${verArchivados ? (cuentas.todas === 1 ? " archivada" : " archivadas") : ""} · Datos de ejemplo`}</p>
+        <div className="pr-ctl">
           <Buscador valor={buscar} alCambiar={setBuscar} etiqueta="Buscar personas" placeholder="Nombre, teléfono o inmueble" />
           <BotonFiltros grupos={grupos} activos={activos} alLimpiar={limpiar} verTexto={visibles.length ? `Ver ${visibles.length} ${visibles.length === 1 ? "persona" : "personas"}` : "Nadie coincide"} extra={loLleva.control} />
         </div>
-        <Segmentado etiqueta="Ver" valor={ver} alElegir={setVer}
+        <Segmentado etiqueta="Ver" sinEtiqueta valor={ver} alElegir={setVer}
           opciones={[{ valor: "todas", etiqueta: "Todas", cuenta: cuentas.todas }, { valor: "propietario", etiqueta: "Propietarios", cuenta: cuentas.propietario }, { valor: "sin_contacto", etiqueta: "Sin contacto", cuenta: cuentas.sin_contacto }]} />
         {resumen ? <ResumenFiltros texto={resumen} alLimpiar={limpiar} /> : null}
       </div>
-      <div className="fx-lista-cuerpo">
+      <div className="pr-cuerpo">
         {sinSeg > 0 && ver !== "sin_contacto" && !buscar.trim() ? (
           <button type="button" className="fx-banda" onClick={() => setVer("sin_contacto")}>
             <span className="fx-banda-icono"><Icono nombre="alerta" tamano={18} /></span>
@@ -172,7 +184,7 @@ function Personas() {
                 accion={<Boton variante="secundario" onClick={() => { limpiar(); setVer("todas"); }}>Limpiar</Boton>} />
         ) : null}
         {visibles.length ? (
-          <div className="fx-tarjeta" role="list">
+          <div className="as-items pr-items" role="list">
             {visibles.map((c) => {
               const f = { nombre: c.nombre?.trim() || "Sin nombre" };
               const linea = lineaDeLista(c, hoy);
@@ -181,15 +193,15 @@ function Personas() {
               const href = canal === "correo" ? `mailto:${c.email}` : canal === "llamada" ? `tel:${c.telefono.replace(/[^\d+]/g, "")}`
                 : canal === "whatsapp" ? enlaceWhatsApp(p.whatsapp || c.telefono, `Hola ${f.nombre.split(/\s+/)[0]}, te escribo de Fortius Inmuebles.`) : null;
               return (
-                <div key={c.id} role="listitem" className="fx-fila" data-actual={c.id === abiertaId || undefined}>
-                  <button type="button" className="fx-fila-btn" onClick={() => abrir(c.id)} aria-current={c.id === abiertaId || undefined}>
-                    <Avatar nombre={f.nombre} />
-                    <span className="fx-fila-txt">
-                      <span className="fx-fila-nombre"><b>{f.nombre}</b><Rol>{ROL_DE_TIPO[c.tipo]}</Rol></span>
-                      <span className="fx-sig" data-tono={linea.tono}>{linea.texto}</span>
+                <div key={c.id} role="listitem" className="pr-fila" data-actual={c.id === abiertaId || undefined}>
+                  <button type="button" className="as-it pr-it" onClick={() => abrir(c.id)} aria-current={c.id === abiertaId ? "page" : undefined}>
+                    <span className="fm-av" aria-hidden>{iniciales(f.nombre)}</span>
+                    <span className="as-it-c">
+                      <span className="pr-nombre"><b>{f.nombre}</b><Rol>{ROL_DE_TIPO[c.tipo]}</Rol></span>
+                      <small className="pr-sig" data-tono={linea.tono}>{linea.texto}</small>
                     </span>
                   </button>
-                  <span className="fx-qa">
+                  <span className="pr-qa">
                     {canal && href ? (
                       p.noContactar ? (
                         <span className="fx-icono-btn" aria-hidden style={{ opacity: 0.35 }}><Icono nombre={ICONO_CANAL[canal]} tamano={18} /></span>
@@ -208,23 +220,46 @@ function Personas() {
     </>
   );
 
+  const pos = abierta ? visibles.findIndex((c) => c.id === abierta.id) : -1;
   return (
-    <>
-      <MaestroDetalle abierta={abierta !== null} ancho={380} lista={lista} volver={{ etiqueta: "Personas", alPulsar: () => cerrar() }}
-        detalle={abierta ? (
-          <div className="fx-detalle-in"><DetallePersona persona={abierta} personas={datos} guardar={guardar} alAbrirPersona={(id) => abrir(id)} versionDe={versionDe} alUnido={() => reintentar()} /></div>
-        ) : <div className="fx-nada">Elige una persona para ver su ficha.</div>} />
+    <div className="as-dos pr-dos" data-det={abierta !== null}>
+      <section className="as-lista" aria-label="Lista de personas">
+        <div className="as-lado">
+          {lista}
+          <div className="as-pie-teclas" aria-hidden><kbd>N</kbd> nueva persona</div>
+        </div>
+      </section>
+      <section className="as-det" aria-label={abierta ? `Ficha de ${abierta.nombre?.trim() || "la persona"}` : "Persona"}>
+        {abierta ? (
+          <div className="cp fm-col pr-col">
+            <div className="cp-barra">
+              <button type="button" className="as-btn as-gho as-atras" onClick={() => cerrar()}><Gesto nombre="izquierda" tamano={16} />Personas</button>
+              <span className="pr-barra-t">{pos >= 0 ? `${pos + 1} de ${visibles.length}` : ROL_DE_TIPO[abierta.tipo]}</span>
+              <span className="as-sp" />
+              <button type="button" className="as-btn as-gho as-ico" aria-label="Cerrar la ficha" title="Cerrar la ficha" onClick={() => cerrar()}><Icono nombre="x" tamano={16} /></button>
+            </div>
+            <div className="pr-cuerpo-det">
+              <DetallePersona persona={abierta} personas={datos} guardar={guardar} alAbrirPersona={(id) => abrir(id)} versionDe={versionDe} alUnido={() => reintentar()} />
+            </div>
+          </div>
+        ) : (
+          <div className="as-in as-elige">
+            <Icono nombre="cliente" tamano={28} />
+            <p className="as-m">Elige una persona para ver su ficha.</p>
+          </div>
+        )}
+      </section>
       <HojaAdaptable abierta={creando} titulo="Nueva persona" descripcion="Lo mínimo para darle seguimiento. Lo demás se completa después." alCerrar={() => setCreando(false)}>
         {creando ? (
           <FormularioPersona personas={datos} hoy={hoy} ocupado={ocupado} nombreInicial={nombreNuevo} alCancelar={() => setCreando(false)} alGuardar={(d) => void crear(d)}
             alAbrirExistente={(id) => { setCreando(false); abrir(id); }} />
         ) : null}
       </HojaAdaptable>
-    </>
+    </div>
   );
 }
 
 /** useSearchParams pide un límite de Suspense; el esqueleto es el mismo de la carga. */
 export default function PaginaPersonas() {
-  return <Suspense fallback={<div className="pn-pagina"><Cargando lineas={5} etiqueta="Cargando" /></div>}><Personas /></Suspense>;
+  return <Suspense fallback={<div className="as-cargando" aria-busy="true" aria-label="Cargando personas"><span /><span /><span /></div>}><Personas /></Suspense>;
 }

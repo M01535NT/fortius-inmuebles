@@ -1,0 +1,77 @@
+/*
+ * Personas con el esqueleto del modelo visual (docs/modelo-visual/Personas.dc.html), igual que el Directorio: la lista en
+ * la columna de Asuntos (asunto.css: barra de 52 px, renglones con línea suave y el elegido en azul) y la ficha a la
+ * derecha con la barra del asunto (caso.css) y el ancho de fichas/modelo.css. Lo de dentro de la ficha (fichas.css) se
+ * ajusta a la letra de 13 px y a las tarjetas de 12 px. Aquí solo lo propio de Personas.
+ */
+@media (min-width: 901px) { .panel-root .pr-dos { grid-template-columns: 340px minmax(0, 1fr); } }
+
+/* Arriba de la lista: resumen, buscador con filtros, «Ver» y lo que está filtrado. */
+.panel-root .pr-arriba { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--linea-suave); font-size: 13px; }
+.panel-root .pr-resumen { margin: 0; color: var(--ink-muted); font-size: 12px; }
+.panel-root .pr-ctl { display: flex; gap: 6px; align-items: center; }
+.panel-root .pr-arriba .fx-busca { height: 30px; padding: 0 8px; border-radius: 7px; background: var(--bg); }
+.panel-root .pr-arriba .fx-busca input { height: 28px; font-size: 13px; }
+.panel-root .pr-arriba .fx-busca svg { width: 15px; height: 15px; }
+.panel-root .pr-ctl > :not(.fx-busca) :is(button, .pn-btn) { height: 30px; min-height: 30px; min-width: 30px; border-radius: 7px; }
+.panel-root .pr-arriba :is(.pn-control, button[role="combobox"]) { height: 30px; min-height: 30px; border-radius: 8px; font-size: 13px; }
+.panel-root .pr-cuerpo { display: flex; flex-direction: column; }
+.panel-root .pr-cuerpo > .fx-banda { margin: 10px 12px 0; width: auto; min-height: 36px; padding: 6px 10px; border-radius: 10px; font-size: 12px; }
+.panel-root .pr-cuerpo > :is(.pn-cargando, .pn-vacio, [role="alert"]) { margin: 12px; }
+.panel-root .pr-items { margin-top: 8px; border-top: 1px solid var(--linea-suave); }
+
+/* Un renglón: el botón ocupa todo; el contacto rápido queda a la derecha, encima. */
+.panel-root .pr-fila { position: relative; }
+.panel-root .as-lista .pr-it { width: 100%; align-items: center; padding-right: 48px; }
+.panel-root .pr-nombre { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.panel-root .pr-nombre > b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-root .pr-nombre .fx-rol { height: 18px; padding: 0 6px; border-radius: 5px; font-size: 10px; }
+.panel-root .as-lista .pr-it .pr-sig[data-tono="tarde"] { color: var(--error); font-weight: 600; }
+.panel-root .as-lista .pr-it .pr-sig[data-tono="sin"] { color: var(--warning); font-weight: 600; }
+.panel-root .as-lista .pr-it[aria-current="page"] .fm-av { background: var(--card); color: var(--accent); }
+.panel-root .as-lista .pr-it[aria-current="page"] .fx-rol { background: rgb(255 255 255 / 0.22); color: var(--accent-ink); }
+.panel-root .as-lista .pr-it[aria-current="page"] .pr-sig { color: var(--accent-ink); }
+.panel-root .pr-qa { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); opacity: 0; transition: opacity 120ms ease; }
+.panel-root .pr-fila:hover .pr-qa, .panel-root .pr-fila:focus-within .pr-qa { opacity: 1; }
+.panel-root .pr-qa .fx-icono-btn { width: 30px; height: 30px; border-radius: 8px; }
+.panel-root .pr-fila[data-actual] .pr-qa .fx-icono-btn { color: var(--accent-ink); }
+.panel-root .pr-fila[data-actual] .pr-qa .fx-icono-btn:hover { background: rgb(255 255 255 / 0.18); box-shadow: none; }
+@media (hover: none) { .panel-root .pr-qa { opacity: 1; } }
+
+/* La ficha abierta: barra de 52 px y la letra de 13 px, con las tarjetas de 12 px. */
+/* 900 px de tope: con la columna a la derecha la ficha pasa de 760 px y se arma como en la computadora (contacto en la
+   cabecera y datos al lado); más angosta se arma como en el teléfono. */
+.panel-root .pr-col { --fm-max: 900px; font-size: 13px; }
+.panel-root .pr-col .fx-ficha { gap: 16px; }
+.panel-root .pr-col .fx-cab { gap: 12px; }
+.panel-root .pr-col .fx-cab-txt h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.panel-root .pr-col .fx-av[data-grande] { width: 48px; height: 48px; font-size: 15px; }
+.panel-root .pr-col .fx-cab-meta { font-size: 13px; }
+.panel-root .pr-col .fx-seccion-cab h3 { font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .pr-col .fx-sigue { padding: 12px 14px; }
+.panel-root .pr-col .fx-tabs button { height: 34px; font-size: 13px; }
+.panel-root .pr-col .fx-seg { border-radius: 8px; }
+.panel-root .pr-col .fx-seg button { min-height: 30px; font-size: 13px; }
+.panel-root .pr-barra-t { color: var(--ink-muted); font-size: 13px; }
+.panel-root .pr-cuerpo-det { display: flex; flex-direction: column; gap: 16px; }
+.panel-root .pr-col .fx-h1, .panel-root .pr-col h2.fx-nombre { font-size: 24px; letter-spacing: -0.01em; }
+.panel-root .pr-col :is(.fx-tarjeta, .fx-grupo-c, .fx-sigue, .fx-ref, .fx-rep) { border-radius: 12px; }
+.panel-root .pr-col .fx-tarjeta { border: 1px solid var(--border); }
+.panel-root .pr-col :is(.fx-dato, .fx-opt) { min-height: 36px; font-size: 13px; }
+.panel-root .pr-col :is(.pn-btn, .as-btn):not(.as-ico) { height: 32px; min-height: 32px; border-radius: 8px; font-size: 13px; }
+.panel-root .pr-col .fx-icono-btn { width: 32px; height: 32px; border-radius: 8px; }
+.panel-root .pr-col :is(.pn-control, .pn-campo input) { height: 32px; min-height: 32px; font-size: 13px; border-radius: 8px; }
+
+@media (max-width: 900px) {
+  .panel-root .pr-arriba { padding: 10px 14px; }
+  .panel-root .pr-arriba .fx-busca { height: 44px; }
+  .panel-root .pr-ctl > :not(.fx-busca) :is(button, .pn-btn) { height: 44px; min-height: 44px; min-width: 44px; }
+  .panel-root .pr-arriba :is(.pn-control, button[role="combobox"]) { height: 44px; min-height: 44px; }
+  .panel-root .pr-qa .fx-icono-btn { width: 44px; height: 44px; }
+  .panel-root .as-lista .pr-it { padding-right: 56px; }
+  .panel-root .pr-col { font-size: 15px; }
+  .panel-root .pr-col :is(.pn-btn, .as-btn):not(.as-ico), .panel-root .pr-col :is(.pn-control, .pn-campo input) { height: 44px; min-height: 44px; }
+  .panel-root .pr-col .fx-icono-btn { width: 44px; height: 44px; }
+  .panel-root .pr-col :is(.fx-dato, .fx-opt) { min-height: 48px; font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) { .panel-root .pr-qa { transition: none; } }

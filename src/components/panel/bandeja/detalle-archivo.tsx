@@ -24,7 +24,9 @@ type Datos = { asuntos: readonly FilaAsunto[]; inmuebles: readonly Property[]; p
 /** Vista previa grande del archivo (boceto): la hoja del PDF, la foto o el video. Todavía no tiene destino. */
 export function VistaPrevia({ archivo, url }: { archivo: ArchivoBandeja; url: string | null }) {
   const clase = claseArchivo(archivo.tipo);
-  if (clase === "pdf" || !url) {
+  // Si la imagen o el video no cargan (liga vencida, archivo dañado), cae al mosaico de su clase en vez del ícono roto.
+  const [fallo, setFallo] = useState<string | null>(null);
+  if (clase === "pdf" || !url || fallo === url) {
     return (
       <div className="fx-pv" aria-label={`Vista previa de ${archivo.nombre}`}>
         <div className="fx-pv-hoja" aria-hidden>
@@ -37,8 +39,8 @@ export function VistaPrevia({ archivo, url }: { archivo: ArchivoBandeja; url: st
   return (
     <div className="fx-pv">
       {/* eslint-disable-next-line @next/next/no-img-element -- vista previa local (blob:), next/image no aplica */}
-      {clase === "foto" ? <img src={url} alt={`Vista previa de ${archivo.nombre}`} />
-        : <video src={url} controls muted preload="metadata" aria-label={`Vista previa de ${archivo.nombre}`} />}
+      {clase === "foto" ? <img src={url} alt={`Vista previa de ${archivo.nombre}`} onError={() => setFallo(url)} />
+        : <video src={url} controls muted preload="metadata" aria-label={`Vista previa de ${archivo.nombre}`} onError={() => setFallo(url)} />}
     </div>
   );
 }
