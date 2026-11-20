@@ -1,4 +1,3 @@
-import type { Cliente } from "@/lib/backend/contracts";
 import type { Evento } from "@/lib/domain/records";
 import { normalizar } from "@/lib/panel/buscar";
 import { diaLargo } from "@/lib/panel/calendario";
@@ -17,7 +16,7 @@ export type GrupoTramite = "hoy" | "esperando" | "en_curso" | "listo";
 export const NOMBRE_GRUPO: Record<GrupoTramite, string> = { hoy: "Hoy toca preguntar", esperando: "Esperando", en_curso: "En curso", listo: "Listos" };
 
 export type FilaTramite = {
-  id: string; titulo: string; grupo: GrupoTramite; linea: string; estado: string; persona: Cliente | null;
+  id: string; titulo: string; grupo: GrupoTramite; linea: string; estado: string; persona: PersonaDeTramite | null;
   pasoNombre: string; numeroPaso: number;
   /** Tipo de trámite (boceto: «Cancelación de hipoteca», «Avalúo»…), su categoría para el filtro y dónde está ahora. */
   tipoNombre: string; categoria: string; dondeEsta: string;
@@ -34,8 +33,17 @@ export function grupoDe(t: Pick<Tramite, "estado" | "espera">, hoy: string): Gru
   return "en_curso";
 }
 
-export function filaTramite(t: CualquierTramite, personas: readonly Cliente[], hoy: string): FilaTramite {
-  const persona = personas.find((p) => p.id === t.clienteId) ?? null;
+/** Con quién va el trámite: una ficha del Directorio o, en los trámites de antes, un cliente del panel provisional. */
+export type PersonaDeTramite = { id: string; nombre: string };
+
+/** La persona del trámite: primero la del Directorio (`personaId`); si no tiene, el cliente de antes (`clienteId`). */
+export function personaDeTramite<P extends PersonaDeTramite>(t: Pick<CualquierTramite, "personaId" | "clienteId">, personas: readonly P[]): P | null {
+  const id = t.personaId || t.clienteId;
+  return id ? personas.find((p) => p.id === id) ?? null : null;
+}
+
+export function filaTramite(t: CualquierTramite, personas: readonly PersonaDeTramite[], hoy: string): FilaTramite {
+  const persona = personaDeTramite(t, personas);
   const v = vistaTramite(t);
   const grupo = grupoDe(t, hoy);
   let estado: string;
@@ -144,7 +152,9 @@ export function tareaDeTramite(t: CualquierTramite, d: { texto: string; vence: s
     id: `tarea-${crypto.randomUUID()}`, titulo, descripcion: `Trámite: ${t.titulo}`, categoria: "documentacion", estado: "pendiente", prioridad: "normal",
     vence: d.vence, pasos: [], creadoEl: ahora.toISOString(), ...comun,
   };
-  const cita: Evento | null = d.hora ? { id: crypto.randomUUID(), titulo, fecha: d.vence, hora: d.hora, tipo: "otro", ...comun } : null;
+  const cita: Evento | null = d.hora
+    ? { id: crypto.randomUUID(), titulo, fecha: d.vence, hora: d.hora, tipo: "otro", ...comun, ...(t.personaId ? { personaId: t.personaId } : {}) }
+    : null;
   return { tarea, cita };
 }
 

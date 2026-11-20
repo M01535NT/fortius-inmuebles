@@ -72,12 +72,23 @@ export function relacionadoConsulta(l: Lead, d: { clientes: readonly Cliente[]; 
   ]);
 }
 
-export function relacionadoCita(c: { clienteId?: string; leadId?: string; propiedadSlug?: string }, d: { clientes: readonly Cliente[]; leads: readonly Lead[]; inmuebles: readonly Property[] }): GrupoRelacionado[] {
-  const persona = c.clienteId ? d.clientes.find((x) => x.id === c.clienteId) : undefined;
+/**
+ * Lo ligado a una cita. «Con quién»: primero la persona del Directorio (`personaId`, buscada en `personas`); si la cita es
+ * de antes, su cliente; si no, la consulta del sitio.
+ */
+export function relacionadoCita(
+  c: { clienteId?: string; personaId?: string; leadId?: string; propiedadSlug?: string },
+  d: { clientes: readonly Cliente[]; leads: readonly Lead[]; inmuebles: readonly Property[]; personas?: readonly { id: string; nombre: string; detalle?: string }[] },
+): GrupoRelacionado[] {
+  const delDirectorio = c.personaId ? d.personas?.find((x) => x.id === c.personaId) : undefined;
+  const cliente = !delDirectorio && c.clienteId ? d.clientes.find((x) => x.id === c.clienteId) : undefined;
+  const persona = delDirectorio
+    ? { id: delDirectorio.id, texto: delDirectorio.nombre.trim() || "Sin nombre", detalle: delDirectorio.detalle || undefined, href: rutaPersona(delDirectorio.id) }
+    : cliente ? { id: cliente.id, texto: cliente.nombre?.trim() || "Sin nombre", detalle: cliente.telefono || undefined, href: rutaPersona(cliente.id) } : undefined;
   const consulta = !persona && c.leadId ? d.leads.find((x) => x.id === c.leadId) : undefined;
   const inmueble = c.propiedadSlug ? d.inmuebles.find((x) => x.slug === c.propiedadSlug) : undefined;
   return solo([
-    grupo("Con quién", persona ? [{ id: persona.id, texto: persona.nombre?.trim() || "Sin nombre", detalle: persona.telefono || undefined, href: rutaPersona(persona.id) }] : consulta ? [enlaceConsulta(consulta)] : []),
+    grupo("Con quién", persona ? [persona] : consulta ? [enlaceConsulta(consulta)] : []),
     grupo("Dónde", inmueble ? [enlaceInmueble(inmueble)] : []),
   ]);
 }

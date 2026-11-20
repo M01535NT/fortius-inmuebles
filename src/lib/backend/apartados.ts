@@ -589,10 +589,28 @@ export async function subirAlAsunto(client: SupabaseClient, user: StaffUser, asu
     }
   };
 
+  // La tarea y su renglón: se busca una vez; si no tiene, el primer archivo crea el renglón y los demás van ahí.
+  let tarea: { id: string; titulo: string; documento_id: string | null; version: number } | null = null;
+  if (destino === "tarea") {
+    if (!ref) throw new ApiError(400, "Falta la tarea");
+    const t = await client.from(T.tareas).select("id,titulo,documento_id,version").eq("id", ref).eq("asunto_id", asuntoId).is("deleted_at", null).maybeSingle();
+    if (t.error) fallo(t.error);
+    if (!t.data) throw new ApiError(404, "No se encontró la tarea.");
+    tarea = t.data as { id: string; titulo: string; documento_id: string | null; version: number };
+    if (tarea.documento_id && !lista.some((d) => d.id === tarea?.documento_id)) tarea.documento_id = null;
+  }
+
   for (const a of leidos) {
     let docId: string;
     let nuevo = false;
-    if (destino === "documento" || destino === "firmado") {
+    if (tarea) {
+      if (tarea.documento_id) docId = tarea.documento_id;
+      else {
+        docId = (await crearDoc(tarea.titulo.trim().slice(0, 200) || nombreSinExtension(a.nombre), { grupo: "Otros" })).id; nuevo = true;
+        await actualizar(client, T.tareas, asuntoId, tarea.id, tarea.version, { documento_id: docId });
+        tarea.documento_id = docId; tarea.version += 1;
+      }
+    } else if (destino === "documento" || destino === "firmado") {
       if (!ref || !lista.some((d) => d.id === ref)) throw new ApiError(404, "No se encontró el documento.");
       docId = ref;
     } else if (destino === "varios") {

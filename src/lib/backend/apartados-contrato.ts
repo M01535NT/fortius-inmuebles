@@ -27,7 +27,8 @@ export type DocumentoDelAsunto = {
 };
 
 /** Hacia dónde va lo que se sube: un renglón, «Subir varios» (cada archivo a su renglón) o un documento con papel propio. */
-export const DESTINOS = ["documento", "varios", "contrato", "opinion", "presupuesto", "fila", "firmado"] as const;
+/** «tarea»: el archivo de una tarea va a su renglón de Documentos (si no tiene, se crea con el título de la tarea). */
+export const DESTINOS = ["documento", "varios", "contrato", "opinion", "presupuesto", "fila", "firmado", "tarea"] as const;
 export type Destino = (typeof DESTINOS)[number];
 export type ResultadoSubida = { nombre: string; documento: string; nuevo: boolean };
 

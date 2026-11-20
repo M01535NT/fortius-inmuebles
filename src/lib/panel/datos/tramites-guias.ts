@@ -117,10 +117,11 @@ export function vistaTramite(t: CualquierTramite): VistaTramite {
 }
 
 /** Trámite nuevo de una guía que no es la hipoteca: con sus pasos y pendientes, o con sus partes. */
-export function nuevoTramiteGuia(input: { id: string; tipo: TipoGuia; titulo: string; clienteId: string; asesorId: string; propiedadSlug?: string }): TramiteGuia {
+export function nuevoTramiteGuia(input: { id: string; tipo: TipoGuia; titulo: string; clienteId?: string; personaId?: string; asesorId: string; propiedadSlug?: string }): TramiteGuia {
   const g = GUIAS[input.tipo];
   return {
-    id: input.id, tipo: input.tipo, titulo: input.titulo.trim().slice(0, 160), clienteId: input.clienteId || "", asesorId: input.asesorId, propiedadSlug: input.propiedadSlug || "", expedienteId: "",
+    id: input.id, tipo: input.tipo, titulo: input.titulo.trim().slice(0, 160), clienteId: input.clienteId || "", ...(input.personaId ? { personaId: input.personaId } : {}),
+    asesorId: input.asesorId, propiedadSlug: input.propiedadSlug || "", expedienteId: "",
     estado: "en_curso", pasoActual: 0, espera: null, ultimoAvance: null, notas: [],
     pasos: g.pasos.map((p) => ({ clave: p.clave, nombre: p.nombre, pendientes: p.pendientes.map((texto, i) => ({ id: `${p.clave}-${i + 1}`, texto, hecho: false })) })),
     partes: g.partes.map((p, i) => ({ id: `parte-${i + 1}`, nombre: p.nombre, institucion: p.institucion, estado: "pendiente" as const, llevar: [...g.llevar] })),

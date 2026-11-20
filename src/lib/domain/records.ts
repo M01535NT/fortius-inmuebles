@@ -137,6 +137,10 @@ export type Evento = {
   notas?: string;
   /** TRA-01: cita de un trámite. */
   tramiteId?: string;
+  /** Panel: la persona del Directorio (ficha de `fortius_inmuebles_personas`) con quien es la cita. */
+  personaId?: string;
+  /** Panel: el asunto al que va ligada la cita (los de `fortius_inmuebles_asuntos`, no los expedientes). */
+  asuntoId?: string;
 };
 
 export type Nota = {
@@ -186,6 +190,8 @@ export type Archivo = {
   visibility?: "private" | "public";
   /** TRA-01: documento privado de un trámite; la base exige el mismo cliente del trámite. */
   clienteId?: string;
+  /** Panel: la persona del Directorio del trámite; la base exige la misma del trámite. */
+  personaId?: string;
   tramiteId?: string;
   pasoClave?: string;
 };

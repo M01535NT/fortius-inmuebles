@@ -2,6 +2,7 @@
  * Lo que intercambian el panel y el servidor sobre los asuntos (SPEC.md, sección 5).
  * Tablas: docs/operacion/modelo-de-datos-panel.md, secciones 4.2, 4.3, 4.8 y 4.10.
  */
+import type { Comision } from "./comision";
 import type {
   Cobro, Columna, DocumentoDelAsunto, Interesado, LigaCliente, Opinion, Presupuesto, PuntoSituacion, ValorCelda,
 } from "./apartados-contrato";
@@ -89,6 +90,10 @@ export type Tarea = {
   espera_a: string | null;
   /** La persona del asunto de la que trata («Llamar a Laura»). */
   persona_id: string | null;
+  /** La persona del asunto que la hace (además de «quién», de la lista). */
+  quien_persona_id: string | null;
+  /** La nota de la tarea («» si no tiene). */
+  detalle: string;
   /** Cada cuánto se repite; `que: "informe"` la maneja el informe para el cliente. */
   repetir: { cada?: string; que?: string; de?: string; dia?: number } | null;
 };
@@ -114,6 +119,8 @@ export type Asunto = FilaAsunto & {
   ligas: LigaCliente[];
   /** Los datos de siempre que se anotaron en la consulta de la que nació (qué quiere, de quién es…), si la hubo. */
   datos_consulta: Record<string, unknown> | null;
+  /** Solo para el director: la comisión calculada al vuelo (null si no se anotó quién captó ni quién vendió). */
+  comision?: Comision | null;
 };
 
 export type EntradaHistorial = {

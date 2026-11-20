@@ -70,13 +70,21 @@ test("cada asesor ve solo los trámites de sus clientes; reasignar o borrar es d
 test("los pasos se cierran en orden, con sus pendientes y su documento", async () => {
   let t = await as(ana, () => put("tr-2", base("tr-2"), null));
   await as(ana, async () => {
-    await expect(put("tr-2", { ...t.data, pasoActual: 1 }, t.version)).rejects.toMatchObject({ code: "PT400", message: expect.stringMatching(/pendientes/) });
+    // Nada frena: con pendientes sin hacer el paso se cierra y el historial lo dice, con quién; se reabre para seguir.
+    const conPendientes = await put("tr-2", { ...t.data, pasoActual: 1 }, t.version);
+    expect(conPendientes.data.pasoActual).toBe(1);
+    expect(conPendientes.data.notas[conPendientes.data.notas.length - 1]).toMatchObject({ tipo: "evento", texto: "Se cerró el paso «Datos del crédito» con pendientes sin hacer", autor: ana });
+    t = await put("tr-2", { ...conPendientes.data, pasoActual: 0 }, conPendientes.version);
     t = await put("tr-2", { ...marcar(t.data, 0), pasoActual: 1 }, t.version);
     expect(t.data.pasos[0].cerradoEl).toBeTruthy();
     expect(t.data.pasos[0].cerradoPor).toBe(ana);
     expect(t.data.notas.some(n => n.tipo === "evento" && /Datos del crédito/.test(n.texto))).toBe(true);
     await expect(put("tr-2", { ...marcar(t.data, 1), pasoActual: 3 }, t.version)).rejects.toMatchObject({ code: "PT400" });
-    await expect(put("tr-2", { ...marcar(t.data, 1), pasoActual: 2 }, t.version)).rejects.toMatchObject({ code: "PT400", message: expect.stringMatching(/documento/) });
+    // Sin su documento el paso también se cierra, y el historial lo dice, con quién; se reabre para subirlo.
+    const sinDocumento = await put("tr-2", { ...marcar(t.data, 1), pasoActual: 2 }, t.version);
+    expect(sinDocumento.data.pasoActual).toBe(2);
+    expect(sinDocumento.data.notas[sinDocumento.data.notas.length - 1]).toMatchObject({ tipo: "evento", texto: "Se cerró el paso «Crédito liquidado» sin su documento", autor: ana });
+    t = await put("tr-2", { ...sinDocumento.data, pasoActual: 1 }, sinDocumento.version);
   });
   await archivo("doc-saldo", "tr-2", "liquidado");
   await as(ana, async () => {

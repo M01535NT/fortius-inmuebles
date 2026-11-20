@@ -16,9 +16,9 @@ import { z } from "zod";
   · Banco: carta de finiquito y escritura de cancelación ante notario (no hay vía oficial sin él).
   Las claves de los pasos son identificadores fijos (la base los revisa); el nombre cambia por acreedor.
 
-  La base guarda los pendientes de cada paso al abrir el trámite. Desde DEC-61 (migración
-  20261116110000_tramites_sin_frenos) un paso se cierra aunque falten pendientes o su documento: la base
-  lo anota en el historial y el panel lo avisa. Este archivo solo define textos.
+  La base guarda los pendientes de cada paso al abrir el trámite. Desde la migración
+  20261119100200_panel_19_agenda_y_tramites_con_persona un paso se cierra aunque falten pendientes o su documento:
+  la base lo anota en el historial, con quién y cuándo, y el panel lo avisa. Este archivo solo define textos.
 */
 export const ACREEDORES = { infonavit: "Infonavit", banco: "Banco", fovissste: "Fovissste" } as const;
 export type Acreedor = keyof typeof ACREEDORES;
@@ -62,6 +62,8 @@ export function pasosDe(acreedor: Acreedor): PasoDef[] {
 
 const id = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/);
 const reference = id.or(z.literal("")).optional();
+/** La persona del Directorio (panel nuevo): el uuid de su ficha, o vacío. */
+const persona = z.uuid().or(z.literal("")).optional();
 const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const texto = (max: number) => z.string().trim().max(max);
 const pendienteSchema = z.object({ id, texto: texto(300).min(1), hecho: z.boolean() }).strict();
@@ -72,7 +74,8 @@ const esperaSchema = z.object({ quien: texto(120).min(1), desde: fecha, volver: 
 const avanceSchema = z.object({ fecha: z.string().max(40).optional(), medio: z.enum(["whatsapp", "correo", "pdf"]) }).strict().nullable().optional();
 export const tramiteSchema = z.object({
   id, tipo: z.literal("cancelacion_hipoteca"), acreedor: z.enum(Object.keys(ACREEDORES) as [Acreedor, ...Acreedor[]]),
-  titulo: texto(160).min(1), clienteId: id, asesorId: id, propiedadSlug: reference, expedienteId: z.uuid().or(z.literal("")).optional(),
+  // El propietario: el cliente del panel provisional o la persona del Directorio (al menos uno).
+  titulo: texto(160).min(1), clienteId: id.or(z.literal("")), personaId: persona, asesorId: id, propiedadSlug: reference, expedienteId: z.uuid().or(z.literal("")).optional(),
   estado: z.enum(["en_curso", "terminado", "cancelado"]), pasoActual: z.number().int().min(0).max(TOTAL_PASOS),
   pasos: z.array(pasoSchema).length(TOTAL_PASOS),
   espera: esperaSchema,
@@ -84,7 +87,8 @@ export const tramiteSchema = z.object({
   firmaSinCancelacion: z.object({ motivo: texto(1000).min(10), autorizadoPor: z.string().max(80).optional(), autorizadoEl: z.string().max(40).optional() }).strict().nullable().optional(),
   creadoEl: z.string().max(40).optional(), actualizadoEl: z.string().max(40).optional(),
 }).strict().refine(t => t.pasos.every((p, i) => p.clave === PASO_CLAVES[i]), { message: "Pasos fuera de orden", path: ["pasos"] })
-  .refine(t => (t.estado === "terminado") === (t.pasoActual === TOTAL_PASOS), { message: "Solo termina al cerrar el último paso", path: ["estado"] });
+  .refine(t => (t.estado === "terminado") === (t.pasoActual === TOTAL_PASOS), { message: "Solo termina al cerrar el último paso", path: ["estado"] })
+  .refine(t => t.clienteId !== "" || !!t.personaId, { message: "Elige al propietario", path: ["personaId"] });
 export type Tramite = z.infer<typeof tramiteSchema>;
 
 /*
@@ -92,7 +96,7 @@ export type Tramite = z.infer<typeof tramiteSchema>;
   Registro Público y el trámite libre. Dos formas: «ruta» (pasos en orden, como la hipoteca, con su nombre
   guardado porque las guías aún están por confirmar con la fuente oficial) o «partes» (cambio de nombre de
   servicios y trámite libre: cada parte se marca solicitada y lista). La base los acepta desde la migración
-  20261116130000_tramites_por_tipo; antes de aplicarla, guardarlos responde «Trámite inválido».
+  20261119100200_panel_19_agenda_y_tramites_con_persona; antes de aplicarla, guardarlos responde «Trámite inválido».
 */
 export const TIPOS_GUIA = ["servicios", "avaluo", "regularizacion", "catastro", "registro", "libre"] as const;
 export type TipoGuia = (typeof TIPOS_GUIA)[number];
@@ -100,7 +104,7 @@ export const MAX_PASOS_GUIA = 12;
 const pasoGuiaSchema = z.object({ clave: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,39}$/), nombre: texto(120).min(1), pendientes: z.array(pendienteSchema).max(20), cerradoEl: z.string().max(40).optional(), cerradoPor: z.string().max(80).optional() }).strict();
 const parteSchema = z.object({ id, nombre: texto(120).min(1), institucion: texto(120).optional(), estado: z.enum(["pendiente", "solicitado", "listo"]), llevar: z.array(texto(160).min(1)).max(20).default([]) }).strict();
 export const tramiteGuiaSchema = z.object({
-  id, tipo: z.enum(TIPOS_GUIA), titulo: texto(160).min(1), clienteId: reference, asesorId: id, propiedadSlug: reference,
+  id, tipo: z.enum(TIPOS_GUIA), titulo: texto(160).min(1), clienteId: reference, personaId: persona, asesorId: id, propiedadSlug: reference,
   expedienteId: z.uuid().or(z.literal("")).optional(), estado: z.enum(["en_curso", "terminado", "cancelado"]),
   pasoActual: z.number().int().min(0).max(MAX_PASOS_GUIA), pasos: z.array(pasoGuiaSchema).max(MAX_PASOS_GUIA),
   partes: z.array(parteSchema).max(30).default([]), espera: esperaSchema,
@@ -118,10 +122,11 @@ export const esHipoteca = (t: { tipo: string }): t is Tramite => t.tipo === "can
 export type TramiteNota = Tramite["notas"][number];
 
 /** Trámite nuevo con los pendientes de cada paso según el acreedor. */
-export function nuevoTramite(input: { id: string; acreedor: Acreedor; titulo: string; clienteId: string; asesorId: string; propiedadSlug?: string; expedienteId?: string; pagos?: string[] }): Tramite {
+export function nuevoTramite(input: { id: string; acreedor: Acreedor; titulo: string; clienteId?: string; personaId?: string; asesorId: string; propiedadSlug?: string; expedienteId?: string; pagos?: string[] }): Tramite {
   return {
     id: input.id, tipo: "cancelacion_hipoteca", acreedor: input.acreedor, titulo: input.titulo.trim(),
-    clienteId: input.clienteId, asesorId: input.asesorId, propiedadSlug: input.propiedadSlug || "", expedienteId: input.expedienteId || "",
+    clienteId: input.clienteId || "", ...(input.personaId ? { personaId: input.personaId } : {}),
+    asesorId: input.asesorId, propiedadSlug: input.propiedadSlug || "", expedienteId: input.expedienteId || "",
     estado: "en_curso", pasoActual: 0, espera: null, credito: {}, ultimoAvance: null, notas: [],
     pasos: pasosDe(input.acreedor).map(p => ({ clave: p.clave, pendientes: p.pendientes.map((texto, i) => ({ id: `${p.clave}-${i + 1}`, texto, hecho: false })) })),
     // Montos de referencia del Registro de BC (Retys, octubre de 2026); la escritura solo con banco.

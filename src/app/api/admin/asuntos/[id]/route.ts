@@ -9,8 +9,8 @@ type Contexto = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, contexto: Contexto) {
   return apiResponse(async () => {
-    const { client } = await requireStaff();
-    return { asunto: await leerAsunto(client, idSchema.parse((await contexto.params).id)) };
+    const { user, client } = await requireStaff();
+    return { asunto: await leerAsunto(client, idSchema.parse((await contexto.params).id), user) };
   });
 }
 
@@ -21,7 +21,7 @@ export async function PATCH(request: Request, contexto: Contexto) {
     const { user, client } = await requireStaff();
     const id = idSchema.parse((await contexto.params).id);
     await cambiarAsunto(client, user, id, cambioAsuntoSchema.parse(await readJson(request, 32768)));
-    return { asunto: await leerAsunto(client, id) };
+    return { asunto: await leerAsunto(client, id, user) };
   });
 }
 

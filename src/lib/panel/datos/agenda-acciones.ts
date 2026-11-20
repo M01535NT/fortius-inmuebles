@@ -8,10 +8,19 @@ import { citasDelDia } from "@/lib/panel/datos/agenda";
 
 export type DatosCita = {
   tipo: EventoTipo; titulo: string; fecha: string; hora: number | null;
+  /** El cliente del panel provisional: las citas de antes lo conservan tal cual; el panel nuevo elige `personaId`. */
   clienteId: string; propiedadSlug: string; notas: string; asesorId?: string | null;
-  /** Asunto al que va ligada la cita (cuando se agenda desde un asunto). */
+  /** Expediente del panel provisional al que va ligada la cita. */
   expedienteId?: string;
+  /** La persona del Directorio con quien es la cita (uuid de su ficha). */
+  personaId?: string;
+  /** El asunto del panel al que va ligada la cita (cuando se agenda desde un asunto). */
+  asuntoId?: string;
 };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** ¿Es el id de una ficha del Directorio o de un asunto del panel? Los del panel provisional no son uuid. */
+export const esDelPanel = (id: string) => UUID.test(id);
 
 /**
  * «Visita» o «Agendar» desde un inmueble, una persona o un asunto: abre la Agenda con la cita nueva y lo de ahí ya elegido.
@@ -26,12 +35,22 @@ export function rutaNuevaCita(d: { tipo?: EventoTipo; inmueble?: string; persona
   return `/panel/agenda?${q.toString()}`;
 }
 
-/** Lo que trae la dirección para la cita nueva; null si no trae nada que elegir (se abre la línea vacía). */
-export function nuevaDesdeDireccion(q: { get: (k: string) => string | null }): { tipo?: EventoTipo; propiedadSlug: string; clienteId: string; expedienteId: string } | null {
+/**
+ * Lo que trae la dirección para la cita nueva; null si no trae nada que elegir (se abre la línea vacía). Una persona o un
+ * asunto del panel (uuid) van a `personaId` y `asuntoId`; un id del panel provisional, a `clienteId` y `expedienteId`.
+ */
+export function nuevaDesdeDireccion(q: { get: (k: string) => string | null }): {
+  tipo?: EventoTipo; propiedadSlug: string; clienteId: string; expedienteId: string; personaId: string; asuntoId: string;
+} | null {
   const limpio = (k: string) => { const v = q.get(k)?.trim() ?? ""; return /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(v) ? v : ""; };
   const tipo = q.get("tipo");
-  const r = { tipo: (EVENTO_TIPOS as readonly string[]).includes(tipo ?? "") ? (tipo as EventoTipo) : undefined, propiedadSlug: limpio("inmueble"), clienteId: limpio("persona"), expedienteId: limpio("asunto") };
-  return r.propiedadSlug || r.clienteId || r.expedienteId ? r : null;
+  const persona = limpio("persona"), asunto = limpio("asunto");
+  const r = {
+    tipo: (EVENTO_TIPOS as readonly string[]).includes(tipo ?? "") ? (tipo as EventoTipo) : undefined, propiedadSlug: limpio("inmueble"),
+    clienteId: esDelPanel(persona) ? "" : persona, personaId: esDelPanel(persona) ? persona.toLowerCase() : "",
+    expedienteId: esDelPanel(asunto) ? "" : asunto, asuntoId: esDelPanel(asunto) ? asunto.toLowerCase() : "",
+  };
+  return r.propiedadSlug || persona || asunto ? r : null;
 }
 
 const dos = (n: number) => String(n).padStart(2, "0");
@@ -55,6 +74,8 @@ function aplicar(base: Evento, d: DatosCita, persona?: string): Evento {
   const e: Evento = { ...base, tipo: d.tipo, titulo: tituloCita(d, persona), fecha: d.fecha };
   if (d.hora !== null) e.hora = aHoraGuardada(d.hora); else delete e.hora;
   if (d.clienteId) e.clienteId = d.clienteId; else delete e.clienteId;
+  if (d.personaId) e.personaId = d.personaId; else delete e.personaId;
+  if (d.asuntoId) e.asuntoId = d.asuntoId; else delete e.asuntoId;
   if (d.propiedadSlug) e.propiedadSlug = d.propiedadSlug; else delete e.propiedadSlug;
   const n = d.notas.trim();
   if (n) e.notas = n.slice(0, 2000); else delete e.notas;
@@ -70,7 +91,11 @@ export function editarCita(previa: Evento, d: DatosCita, persona?: string): Even
   return aplicar(previa, d, persona);
 }
 export function datosDeCita(e: Evento): DatosCita {
-  return { tipo: e.tipo, titulo: e.titulo, fecha: e.fecha, hora: deHoraGuardada(e.hora), clienteId: e.clienteId ?? "", propiedadSlug: e.propiedadSlug ?? "", notas: e.notas ?? "", asesorId: e.asesorId ?? null };
+  return {
+    tipo: e.tipo, titulo: e.titulo, fecha: e.fecha, hora: deHoraGuardada(e.hora), clienteId: e.clienteId ?? "", propiedadSlug: e.propiedadSlug ?? "",
+    notas: e.notas ?? "", asesorId: e.asesorId ?? null,
+    ...(e.personaId ? { personaId: e.personaId } : {}), ...(e.asuntoId ? { asuntoId: e.asuntoId } : {}),
+  };
 }
 
 /** ¿La cita se empalma con otra del mismo día? Se avisa antes de guardar. */

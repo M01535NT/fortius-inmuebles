@@ -1,5 +1,5 @@
 import type { EventoTipo } from "@/lib/domain/records";
-import type { DatosCita } from "@/lib/panel/datos/agenda-acciones";
+import { esDelPanel, type DatosCita } from "@/lib/panel/datos/agenda-acciones";
 import { EVENTO_TIPO_LABELS } from "@/lib/domain/records";
 import { aTexto, DIAS_LARGOS, horaTexto, MESES, MESES_CORTOS } from "@/lib/panel/calendario";
 
@@ -133,8 +133,11 @@ export const pareceCita = (l: LineaCita) => l.fecha !== null || l.hora !== null;
 
 /** Lo leído, listo para `nuevaCita` de la Agenda. El lugar va en las notas (las citas aún no tienen campo de lugar). */
 export function datosDeLinea(l: LineaCita, hoy: Date, asesorId: string | null = null): DatosCita {
+  // La persona hallada: una ficha del Directorio va a `personaId`; un cliente del panel provisional, a `clienteId`.
+  const id = l.persona?.id ?? "";
   return {
     tipo: l.tipo, titulo: l.titulo, fecha: l.fecha ?? aTexto(hoy), hora: l.hora,
-    clienteId: l.persona?.id ?? "", propiedadSlug: "", notas: l.lugar ? `Lugar: ${l.lugar}` : "", asesorId,
+    clienteId: esDelPanel(id) ? "" : id, propiedadSlug: "", notas: l.lugar ? `Lugar: ${l.lugar}` : "", asesorId,
+    ...(esDelPanel(id) ? { personaId: id } : {}),
   };
 }

@@ -9,7 +9,9 @@ import {
   type Apartado, type Asunto, type ClaveApartado, type Coincidencia, type InmuebleDelAsunto, type Encargo, type EntradaHistorial, type Etapa, type FilaAsunto,
   type PersonaDelAsunto, type PersonaDuplicada, type Siguiente, type Tarea,
 } from "./asuntos-contrato";
-import { claveCatalogo } from "./catalogos";
+import { claveCatalogo, mapaCatalogos } from "./catalogos";
+import { significadoDe } from "./catalogos-contrato";
+import { comisionDelAsunto, llevaReparto } from "./comision";
 import type { StaffUser } from "./contracts";
 import { fallo } from "./fallo";
 import { ApiError } from "./http";
@@ -144,8 +146,11 @@ type PapelLeido = {
   persona: { nombre: string; clase: PersonaDelAsunto["clase"]; fallecida: boolean; telefonos: { pais: string; numero: string }[]; correo: string | null; no_contactar: boolean } | null;
 };
 
-/** El asunto completo, con sus apartados, personas, plan y filas de los apartados propios. */
-export async function leerAsunto(client: SupabaseClient, id: string): Promise<Asunto> {
+/**
+ * El asunto completo, con sus apartados, personas, plan y filas de los apartados propios. Al director le llega además la
+ * comisión calculada al vuelo; a un asesor, no.
+ */
+export async function leerAsunto(client: SupabaseClient, id: string, user?: StaffUser): Promise<Asunto> {
   const a = await client.from(T.asuntos).select(COLUMNAS_ASUNTO).eq("id", id).is("deleted_at", null).maybeSingle();
   if (a.error) fallo(a.error);
   if (!a.data) throw new ApiError(404, "Ese asunto no existe o no te toca verlo.");
@@ -154,7 +159,7 @@ export async function leerAsunto(client: SupabaseClient, id: string): Promise<As
     client.from(T.papeles).select("id,persona_id,papel,principal,nota,version,persona:fortius_inmuebles_personas(nombre,clase,fallecida,telefonos,correo,no_contactar)")
       .eq("asunto_id", id).is("retirado_el", null).order("orden").order("created_at"),
     client.from(T.etapas).select("id,nombre,orden,version").eq("asunto_id", id).is("deleted_at", null).order("orden"),
-    client.from(T.tareas).select("id,titulo,clase,quien,fecha,hora,estado,motivo,etapa_id,responsable_id,volver_a_preguntar,recordada_el,pospuesta,interesado_id,inmueble_id,documento_id,origen,orden,version,espera_a,repetir,persona_id")
+    client.from(T.tareas).select("id,titulo,clase,quien,fecha,hora,estado,motivo,etapa_id,responsable_id,volver_a_preguntar,recordada_el,pospuesta,interesado_id,inmueble_id,documento_id,origen,orden,version,espera_a,repetir,persona_id,quien_persona_id,detalle")
       .eq("asunto_id", id).is("deleted_at", null).order("orden").order("created_at").limit(2000),
     client.from(T.ligasInmueble).select("inmueble:fortius_inmuebles_inmuebles(id,folio,nombre,tipo,operacion,colonia,precio,moneda,estado,publicado,slug)")
       .eq("asunto_id", id).is("retirado_el", null).order("orden"),
@@ -175,8 +180,12 @@ export async function leerAsunto(client: SupabaseClient, id: string): Promise<As
   const tareas = ((ta.data ?? []) as Tarea[]).map((t) => ({ ...t, hora: t.hora ? t.hora.slice(0, 5) : null }));
   const base = a.data as Omit<Asunto, "siguiente" | "busqueda" | "apartados" | "personas" | "etapas" | "tareas" | "inmuebles" | "datos_consulta" | keyof typeof extra>;
   const siguientes = await siguientesDe(client, [id]);
+  const catalogos = user?.role === "admin" ? await mapaCatalogos(client) : null;
+  const comision = catalogos
+    ? { comision: comisionDelAsunto({ ...base, presupuestos: extra.presupuestos, inmuebles }, (r) => significadoDe(catalogos.resultado_cierre, r)) }
+    : {};
   return {
-    ...base, cerrado_el: enHoraDeTijuana(base.cerrado_el),
+    ...base, cerrado_el: enHoraDeTijuana(base.cerrado_el), ...comision,
     siguiente: siguientes.get(id) ?? null, busqueda: [base.folio, ...personas.map((p) => p.nombre)].join(" "),
     ...extra, apartados: ((ap.data ?? []) as Apartado[]).map((x) => ({ ...x, columnas: Array.isArray(x.columnas) ? x.columnas : [] })),
     personas, etapas: (et.data ?? []) as Etapa[], tareas, inmuebles, datos_consulta: (con.data as { datos: Record<string, unknown> } | null)?.datos ?? null,
@@ -237,6 +246,18 @@ export async function cambiarAsunto(client: SupabaseClient, user: StaffUser, id:
   if (!Object.keys(cambios).length) throw new ApiError(400, "No hay nada que cambiar.");
   if (cambios.responsable_id && user.role !== "admin") throw new ApiError(403, "Solo el director cambia quién lleva el asunto.");
   if (cambios.resultado && cambios.en_que_va !== "cerrado") throw new ApiError(400, "Para anotar el resultado, el asunto se cierra.");
+  if (cambios.capto_id || cambios.vendio_id) {
+    // Se revisa con el asunto como queda después del cambio; lo ya anotado no se borra al reabrir.
+    const actual = await client.from(T.asuntos).select("encargos,resultado").eq("id", id).is("deleted_at", null).maybeSingle();
+    if (actual.error) fallo(actual.error);
+    const a = actual.data as { encargos: string[]; resultado: string | null } | null;
+    if (!a) throw new ApiError(409, "Alguien más cambió este asunto. Vuelve a cargar y repite el cambio.");
+    const catalogos = await mapaCatalogos(client);
+    const resultado = cambios.resultado !== undefined ? cambios.resultado : a.resultado;
+    if (!llevaReparto(cambios.encargos ?? a.encargos, resultado, (r) => significadoDe(catalogos.resultado_cierre, r))) {
+      throw new ApiError(400, "Quién captó y quién vendió se anota al cerrar como logrado un asunto que se comercializó.");
+    }
+  }
   const { data, error } = await client.from(T.asuntos).update(cambios).eq("id", id).eq("version", v).is("deleted_at", null).select("id").maybeSingle();
   if (error) fallo(error);
   if (!data) throw new ApiError(409, "Alguien más cambió este asunto. Vuelve a cargar y repite el cambio.");
@@ -290,6 +311,10 @@ const nuevaTarea = z.object({
   documento_id: idSchema.nullable().optional(), inmueble_id: idSchema.nullable().optional(),
   /** La persona del asunto de la que trata («Llamar a Laura»). */
   persona_id: idSchema.nullable().optional(),
+  /** La persona del asunto que la hace (además de «quién», de la lista). */
+  quien_persona_id: idSchema.nullable().optional(),
+  /** La nota de la tarea. */
+  detalle: z.string().trim().max(5000).optional(),
   /** «linea»: se escribió en una línea desde el buscador. */
   origen: z.enum(["manual", "linea"]).optional(),
 }).strict().refine((t) => !t.hora || t.fecha, "La hora necesita día.");
@@ -303,6 +328,12 @@ const cambioTarea = z.object({
   espera_a: idSchema.nullable().optional(),
   /** Cada cuánto se repite; null deja de repetirse. */
   repetir: z.enum(CADA_TAREA).nullable().optional(),
+  /** La persona del asunto que la hace; null la quita. */
+  quien_persona_id: idSchema.nullable().optional(),
+  /** La nota de la tarea; vacía la borra. */
+  detalle: z.string().trim().max(5000).optional(),
+  /** El renglón de Documentos al que va; null lo suelta. */
+  documento_id: idSchema.nullable().optional(),
 }).strict();
 
 const nuevaEtapa = z.object({ nombre: texto(120) }).strict();
@@ -554,12 +585,15 @@ export async function crearEnParte(client: SupabaseClient, user: StaffUser, asun
     case "tareas": {
       const e = nuevaTarea.parse(cuerpo);
       // La persona de la tarea tiene que ser de este asunto; si no, la tarea se guarda sin ella.
+      // Igual quien la hace y su documento: de este asunto, o la tarea se guarda sin ellos.
       if (e.persona_id) e.persona_id = (await delAsunto(client, asuntoId, [e.persona_id], [])).personas[0] ?? null;
+      if (e.quien_persona_id) e.quien_persona_id = (await delAsunto(client, asuntoId, [e.quien_persona_id], [])).personas[0] ?? null;
+      if (e.documento_id && !(await esDocumentoDelAsunto(client, asuntoId, e.documento_id))) e.documento_id = null;
       const orden = await siguienteOrden(client, T.tareas, { asunto_id: asuntoId });
       const { data, error } = await client.from(T.tareas).insert({
         asunto_id: asuntoId, titulo: e.titulo, quien: e.quien, fecha: e.fecha ?? null, hora: e.hora ?? null, etapa_id: e.etapa_id ?? null,
         clase: e.clase, documento_id: e.documento_id ?? null, inmueble_id: e.inmueble_id ?? null,
-        persona_id: e.persona_id ?? null, origen: e.origen ?? "manual",
+        persona_id: e.persona_id ?? null, quien_persona_id: e.quien_persona_id ?? null, detalle: e.detalle ?? "", origen: e.origen ?? "manual",
         responsable_id: e.responsable_id ?? user.id, orden, creado_por: user.id,
       }).select("id").single();
       if (error) fallo(error);
@@ -592,6 +626,13 @@ export async function crearEnParte(client: SupabaseClient, user: StaffUser, asun
 }
 
 /** Solo las personas y los apartados que son de este asunto (lo demás se descarta sin frenar). */
+/** ¿Ese renglón de Documentos es de este asunto y sigue fuera de Eliminados? */
+async function esDocumentoDelAsunto(client: SupabaseClient, asuntoId: string, documentoId: string): Promise<boolean> {
+  const { data, error } = await client.from(T.documentos).select("id").eq("id", documentoId).eq("asunto_id", asuntoId).is("deleted_at", null).maybeSingle();
+  if (error) fallo(error);
+  return Boolean(data);
+}
+
 async function delAsunto(client: SupabaseClient, asuntoId: string, personas: string[], apartados: string[]) {
   const [pe, ap] = await Promise.all([
     personas.length ? client.from(T.papeles).select("persona_id").eq("asunto_id", asuntoId).is("retirado_el", null).in("persona_id", personas) : null,
@@ -647,6 +688,8 @@ export async function cambiarEnParte(client: SupabaseClient, user: StaffUser, as
       if (r?.error) fallo(r.error);
       const antes = (r?.data ?? null) as TareaParaRepetir | null;
       if (c.espera_a) await validarEspera(client, asuntoId, id, c.espera_a);
+      if (c.quien_persona_id && !(await delAsunto(client, asuntoId, [c.quien_persona_id], [])).personas.length) throw new ApiError(400, "Esa persona no está en este asunto.");
+      if (c.documento_id && !(await esDocumentoDelAsunto(client, asuntoId, c.documento_id))) throw new ApiError(400, "Ese documento no es de este asunto.");
       if (repetir !== undefined && antes?.repetir?.que === "informe") throw new ApiError(400, "Esta tarea se repite con su informe; se cambia desde el informe.");
       await actualizar(client, T.tareas, asuntoId, id, v, {
         ...c, ...(quitar ? { deleted_at: new Date().toISOString() } : {}),

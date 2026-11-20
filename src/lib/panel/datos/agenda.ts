@@ -12,6 +12,8 @@ export type FilaCita = {
   id: string; fecha: string; hora?: string; titulo: string; tipo: string; notas?: string; empalme: boolean;
   /** Con quién, dónde y de quién es: se usan para enlazar la cita con su persona e inmueble (AUD-03, G2). */
   clienteId?: string; leadId?: string; propiedadSlug?: string; asesorId?: string;
+  /** La persona del Directorio y el asunto del panel (las citas de antes solo traen `clienteId`). */
+  personaId?: string; asuntoId?: string;
 };
 
 /**
@@ -62,6 +64,7 @@ export function citasDelDia(eventos: readonly Evento[], fecha: string): FilaCita
       id: e.id, fecha: e.fecha, hora: e.hora, titulo: e.titulo?.trim() || EVENTO_TIPO_LABELS[e.tipo] || "Cita",
       tipo: EVENTO_TIPO_LABELS[e.tipo] ?? "Otro", notas: e.notas?.trim() || undefined, empalme: empalmadas.has(e.id),
       clienteId: e.clienteId, leadId: e.leadId, propiedadSlug: e.propiedadSlug, asesorId: e.asesorId,
+      ...(e.personaId ? { personaId: e.personaId } : {}), ...(e.asuntoId ? { asuntoId: e.asuntoId } : {}),
     }))
     .sort((a, b) => (a.hora ?? "99:99").localeCompare(b.hora ?? "99:99"));
 }
