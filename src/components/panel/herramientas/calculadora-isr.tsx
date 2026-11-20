@@ -9,7 +9,7 @@ import { localToday } from "@/lib/finance/money";
 import { calculateSellerIsrCase } from "@/lib/finance/seller-isr";
 import { pesos } from "@/lib/panel/herramientas";
 
-import { Resultado, type LineaResultado } from "./resultado";
+import { DatosCuenta, Resultado, type LineaResultado } from "./resultado";
 
 const LEYENDA = "Estimación, no asesoría fiscal: el cálculo definitivo lo hace el notario. Si falta un dato o la fecha queda fuera de las reglas cargadas, queda pendiente.";
 
@@ -85,32 +85,38 @@ export function CalculadoraIsr({ precioInicial, para }: { precioInicial?: number
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Campo etiqueta="Precio de venta" dinero inputMode="decimal" placeholder="Falta" value={formatoMonto(precio)} onChange={(e) => setPrecio(limpiar(e.target.value))} />
-      <Campo etiqueta="Fecha estimada de la escritura" type="date" value={venta} onChange={(e) => setVenta(e.target.value)} />
-      <Campo etiqueta="Fecha en que se compró" type="date" value={compra} onChange={(e) => setCompra(e.target.value)} />
-      <Desplegable etiqueta="Propietarios" valor={duenos} opciones={PROPIETARIOS} alElegir={(v) => v && setDuenos(v)} />
-      <Interruptor etiqueta="Costo de compra" valor={modo} alElegir={setModo} opciones={[{ valor: "historico", etiqueta: "El de la escritura" }, { valor: "actualizado", etiqueta: "Ya actualizado" }]} />
-      {modo === "actualizado" ? (
-        <Monto etiqueta="Costo de adquisición actualizado" valor={actualizado} alCambiar={setActualizado} ayuda="El que dé la notaría o el contador." />
-      ) : (
-        <>
-          <Monto etiqueta="Precio en que se compró" valor={costo} alCambiar={setCosto} />
-          <Monto etiqueta="Valor del terreno en esa compra" valor={terreno} alCambiar={setTerreno} placeholder="Opcional" ayuda="Si se deja vacío, la ley toma el 20% del precio de compra." />
-          <Campo etiqueta="INPC del mes en que se compró" inputMode="decimal" placeholder="Falta" value={inpcCompra} onChange={(e) => setInpcCompra(limpiar(e.target.value))} ayuda="Lo publica el INEGI." />
-          <Campo etiqueta="INPC del mes anterior a la venta" inputMode="decimal" placeholder="Falta" value={inpcVenta} onChange={(e) => setInpcVenta(limpiar(e.target.value))} />
-        </>
-      )}
-      <Monto etiqueta="Mejoras y ampliaciones, actualizadas" valor={mejoras} alCambiar={setMejoras} ayuda="Escribe 0 si no hubo." />
-      <Monto etiqueta="Gastos notariales, impuestos y avalúo deducibles" valor={gastos} alCambiar={setGastos} ayuda="Escribe 0 si no hay." />
-      <Monto etiqueta="Comisión de la venta" valor={comision} alCambiar={setComision} ayuda="La que paga el vendedor, con IVA." />
-      <Interruptor etiqueta="Es su casa habitación" valor={casa} alElegir={setCasa} opciones={[{ valor: "no", etiqueta: "No" }, { valor: "si", etiqueta: "Sí" }]} />
-      {casa === "si" ? (
-        <>
-          <Interruptor etiqueta="Usó la exención en los tres años anteriores" valor={usoAntes} alElegir={setUsoAntes} opciones={[{ valor: "no", etiqueta: "No" }, { valor: "si", etiqueta: "Sí" }]} />
-          {usoAntes === "no" ? <Campo etiqueta="Valor de la UDI el día de la escritura" inputMode="decimal" placeholder="Falta" value={udi} onChange={(e) => setUdi(limpiar(e.target.value))} ayuda="Lo publica el Banco de México." /> : null}
-        </>
-      ) : null}
+    <div className="her-cuenta">
+      <DatosCuenta titulo="La venta">
+        <Campo etiqueta="Precio de venta" dinero inputMode="decimal" placeholder="Falta" value={formatoMonto(precio)} onChange={(e) => setPrecio(limpiar(e.target.value))} />
+        <Campo etiqueta="Fecha estimada de la escritura" type="date" value={venta} onChange={(e) => setVenta(e.target.value)} />
+        <Campo etiqueta="Fecha en que se compró" type="date" value={compra} onChange={(e) => setCompra(e.target.value)} />
+        <Desplegable etiqueta="Propietarios" valor={duenos} opciones={PROPIETARIOS} alElegir={(v) => v && setDuenos(v)} />
+      </DatosCuenta>
+      <DatosCuenta titulo="El costo de compra">
+        <Interruptor etiqueta="Costo de compra" valor={modo} alElegir={setModo} opciones={[{ valor: "historico", etiqueta: "El de la escritura" }, { valor: "actualizado", etiqueta: "Ya actualizado" }]} />
+        {modo === "actualizado" ? (
+          <Monto etiqueta="Costo de adquisición actualizado" valor={actualizado} alCambiar={setActualizado} ayuda="El que dé la notaría o el contador." />
+        ) : (
+          <>
+            <Monto etiqueta="Precio en que se compró" valor={costo} alCambiar={setCosto} />
+            <Monto etiqueta="Valor del terreno en esa compra" valor={terreno} alCambiar={setTerreno} placeholder="Opcional" ayuda="Si se deja vacío, la ley toma el 20% del precio de compra." />
+            <Campo etiqueta="INPC del mes en que se compró" inputMode="decimal" placeholder="Falta" value={inpcCompra} onChange={(e) => setInpcCompra(limpiar(e.target.value))} ayuda="Lo publica el INEGI." />
+            <Campo etiqueta="INPC del mes anterior a la venta" inputMode="decimal" placeholder="Falta" value={inpcVenta} onChange={(e) => setInpcVenta(limpiar(e.target.value))} />
+          </>
+        )}
+      </DatosCuenta>
+      <DatosCuenta titulo="Deducciones y exención">
+        <Monto etiqueta="Mejoras y ampliaciones, actualizadas" valor={mejoras} alCambiar={setMejoras} ayuda="Escribe 0 si no hubo." />
+        <Monto etiqueta="Gastos notariales, impuestos y avalúo deducibles" valor={gastos} alCambiar={setGastos} ayuda="Escribe 0 si no hay." />
+        <Monto etiqueta="Comisión de la venta" valor={comision} alCambiar={setComision} ayuda="La que paga el vendedor, con IVA." />
+        <Interruptor etiqueta="Es su casa habitación" valor={casa} alElegir={setCasa} opciones={[{ valor: "no", etiqueta: "No" }, { valor: "si", etiqueta: "Sí" }]} />
+        {casa === "si" ? (
+          <>
+            <Interruptor etiqueta="Usó la exención en los tres años anteriores" valor={usoAntes} alElegir={setUsoAntes} opciones={[{ valor: "no", etiqueta: "No" }, { valor: "si", etiqueta: "Sí" }]} />
+            {usoAntes === "no" ? <Campo etiqueta="Valor de la UDI el día de la escritura" inputMode="decimal" placeholder="Falta" value={udi} onChange={(e) => setUdi(limpiar(e.target.value))} ayuda="Lo publica el Banco de México." /> : null}
+          </>
+        ) : null}
+      </DatosCuenta>
       <Resultado
         lineas={lineas}
         vacio="Escribe el precio de venta para empezar."
@@ -121,7 +127,7 @@ export function CalculadoraIsr({ precioInicial, para }: { precioInicial?: number
         tipo="isr"
         fuente={FUENTE}
       />
-      <p className="pn-her-leyenda">{LEYENDA}</p>
+      <p className="as-m her-ley">{LEYENDA}</p>
     </div>
   );
 }

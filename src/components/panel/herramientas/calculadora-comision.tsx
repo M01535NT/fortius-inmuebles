@@ -5,7 +5,7 @@ import { Campo, formatoMonto, montoANumero } from "@/components/panel/kit/campo"
 import { Segmentado } from "@/components/panel/kit/segmentado";
 import { calcularComision, pesos } from "@/lib/panel/herramientas";
 
-import { Resultado } from "./resultado";
+import { DatosCuenta, Resultado } from "./resultado";
 
 const LEYENDA = "Cuenta de referencia. No incluye ISR, gastos notariales ni el reparto entre asesores.";
 
@@ -22,9 +22,11 @@ export function CalculadoraComision({ precioInicial, para }: { precioInicial?: n
   ] : [];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Campo etiqueta="Precio de venta" dinero inputMode="decimal" value={formatoMonto(precio)} onChange={(e) => setPrecio(e.target.value.replace(/[^0-9.]/g, ""))} />
-      <Segmentado etiqueta="Comisión" valor={pct} alElegir={setPct} opciones={[{ valor: 3, etiqueta: "3%" }, { valor: 4, etiqueta: "4%" }, { valor: 5, etiqueta: "5%" }, { valor: 6, etiqueta: "6%" }]} />
+    <div className="her-cuenta">
+      <DatosCuenta>
+        <Campo etiqueta="Precio de venta" dinero inputMode="decimal" value={formatoMonto(precio)} onChange={(e) => setPrecio(e.target.value.replace(/[^0-9.]/g, ""))} />
+        <Segmentado etiqueta="Comisión" valor={pct} alElegir={setPct} opciones={[{ valor: 3, etiqueta: "3%" }, { valor: 4, etiqueta: "4%" }, { valor: 5, etiqueta: "5%" }, { valor: 6, etiqueta: "6%" }]} />
+      </DatosCuenta>
       <Resultado
         lineas={lineas}
         vacio="Escribe un precio para ver la comisión."
@@ -34,7 +36,7 @@ export function CalculadoraComision({ precioInicial, para }: { precioInicial?: n
         leyenda={LEYENDA}
         tipo="comision"
       />
-      <p className="pn-her-leyenda">{LEYENDA}</p>
+      <p className="as-m her-ley">{LEYENDA}</p>
     </div>
   );
 }

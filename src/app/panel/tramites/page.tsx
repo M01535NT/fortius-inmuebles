@@ -8,10 +8,15 @@ import { useAvisos } from "@/components/panel/kit/avisos";
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo } from "@/components/panel/kit/campo";
 import { Desplegable } from "@/components/panel/kit/desplegable";
-import { Cargando, EstadoError, Vacio } from "@/components/panel/kit/estados";
+import { Cargando, EstadoError } from "@/components/panel/kit/estados";
 import { Fila, GrupoLista } from "@/components/panel/kit/lista";
 import { BotonFiltros, ResumenFiltros, type GrupoFiltro } from "@/components/panel/fichas/piezas";
+import { Renglon, TramoLista } from "@/components/panel/fichas/renglon";
+import { Icono } from "@/components/panel/icons";
 import { DetalleTramite, type PedidoDetalle } from "@/components/panel/tramites/detalle";
+import "@/components/panel/asunto/asunto.css";
+import "@/components/panel/asunto/caso.css";
+import "@/components/panel/fichas/modelo.css";
 import { HojaAdaptable } from "@/components/panel/ui/hoja-adaptable";
 import type { Property } from "@/data/propiedades";
 import type { Cliente } from "@/lib/backend/contracts";
@@ -32,9 +37,10 @@ import { archivoFromUpload, resolveFileUrl, uploadFile } from "@/lib/panel/legad
 import { ACREEDORES, esHipoteca, nuevoTramite, type Acreedor, type CualquierTramite, type TramiteGuia } from "@/lib/tramites";
 
 /**
- * Trámites (PN-07, boceto «Trámites» rehecho el 15/11/2026): una lista por lo que toca (Hoy, con «Anotar respuesta» en la fila;
- * Esperando, con los días que faltan; En curso) y los listos al final detrás de un enlace; «Filtrar» por tipo y por dónde está;
- * «Nuevo» con el catálogo por tipo. El trámite se abre como un solo checklist (`DetalleTramite`). Atajos: J y K, N, T y R.
+ * Trámites (PN-07) con el orden del modelo visual («Inmuebles»): la columna de la lista con su barra de 52 px (Filtrar y
+ * Nuevo), el buscador y los grupos por lo que toca (Hoy, con «Anotar respuesta» en el renglón; Esperando, con los días que
+ * faltan; En curso) y los listos al final detrás de un enlace. El trámite se abre a la derecha como un solo checklist
+ * (`DetalleTramite`), con Tarea y Avance en su barra; en el teléfono, uno a la vez. Atajos: J y K, N, T y R.
  * La cancelación de hipoteca (TRA-01) tiene sus reglas en la base; las demás guías se guardan desde la migración
  * 20261116130000_tramites_por_tipo (sin aplicar todavía: hasta entonces el aviso lo dice y no se rompe nada).
  */
@@ -151,57 +157,84 @@ function Tramites() {
   };
 
   const fila = (f: (typeof visibles)[number], g: GrupoTramite) => (
-    <Fila key={f.id}
-      izquierda={<span className="pn-tra-punto" data-estado={g} aria-hidden />}
+    <Renglon key={f.id} className="tra-it"
+      izquierda={<span className="fm-punto" data-tono={g === "hoy" ? "aviso" : g === "en_curso" ? "acento" : g === "listo" ? "bien" : undefined} aria-hidden />}
       titulo={f.titulo} subtitulo={f.linea} detalle={f.estado} tonoDetalle={g === "hoy" ? "aviso" : "normal"}
-      alPulsar={() => abrir(f.id)} seleccionada={f.id === abierta}
-      acciones={g === "hoy" ? <Boton variante="secundario" onClick={() => { abrir(f.id); pedir("responder", f.id); }}>Anotar respuesta</Boton> : undefined} />
+      alPulsar={() => abrir(f.id)} seleccionado={f.id === abierta}
+      accion={g === "hoy" ? <button type="button" className="as-btn fm-it-acc" onClick={() => { abrir(f.id); pedir("responder", f.id); }}>Anotar respuesta</button> : undefined} />
   );
+  const porHoy = activos.filter((f) => f.grupo === "hoy").length;
 
   return (
-    <div className="pn-pagina" style={{ maxWidth: 760 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <h1 className="pn-tra-h1">Trámites</h1>
-          <p className="pn-sub" style={{ fontSize: 13, margin: 0 }}>{tramites.cargando ? "Cargando…" : `${activos.length} activos${activos.some((f) => f.grupo === "hoy") ? ` · ${activos.filter((f) => f.grupo === "hoy").length} por preguntar hoy` : ""}`}</p>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <BotonFiltros grupos={gruposFiltro} activos={filtrosPuestos} alLimpiar={limpiarFiltros} extra={loLleva.control}
-            verTexto={`Ver ${visibles.length} ${visibles.length === 1 ? "trámite" : "trámites"}`} />
-          <Boton onClick={() => setCreando(true)} aria-keyshortcuts="N">Nuevo</Boton>
-        </div>
-      </div>
-      <div style={{ marginTop: 20 }}>
-        <Campo etiqueta="Buscar" placeholder="Inmueble, persona o tipo de trámite" value={buscar} onChange={(e) => setBuscar(e.target.value)} type="search" autoComplete="off" />
-      </div>
-      {resumenFiltros ? <div style={{ marginTop: 12 }}><ResumenFiltros texto={resumenFiltros} alLimpiar={limpiarFiltros} /></div> : null}
-      <div style={{ display: "grid", gap: 20, marginTop: 20 }}>
-        {tramites.cargando ? <Cargando lineas={4} etiqueta="Cargando trámites" /> : null}
-        {tramites.error ? <EstadoError texto={tramites.error} alReintentar={tramites.reintentar} /> : null}
-        {!tramites.cargando && !tramites.error && filas.length === 0 ? (
-          <Vacio titulo="Sin trámites" texto="Cancelaciones de hipoteca, servicios, avalúos, Catastro y otros trámites que no son venta ni renta aparecen aquí." icono="verificado" accion={<Boton onClick={() => setCreando(true)}>Nuevo trámite</Boton>} />
-        ) : null}
-        {!tramites.cargando && filas.length > 0 && visibles.length === 0 ? <Vacio titulo="Nada coincide" texto={filtrosPuestos ? "Ningún trámite coincide con el filtro." : "Prueba con otra palabra."} icono="buscar" /> : null}
-        {!tramites.cargando && visibles.length > 0 && !verListos && grupos.length === 0 ? <Vacio titulo="Sin trámites activos" texto="Los terminados están en «Ver listos»." icono="verificado" /> : null}
-        {verListos ? (
-          listos.length ? <GrupoLista titulo={`${NOMBRE_GRUPO.listo} · ${listos.length}`}>{listos.map((f) => fila(f, "listo"))}</GrupoLista>
-            : <Vacio titulo="Todavía no hay trámites listos" texto="Aquí quedan los trámites terminados." icono="verificado" />
-        ) : grupos.map(({ g, filas: fs }) => <GrupoLista key={g} titulo={`${NOMBRE_GRUPO[g]} · ${fs.length}`}>{fs.map((f) => fila(f, g))}</GrupoLista>)}
-        {listos.length || verListos ? (
-          <div className="pn-tra-mas"><Boton variante="texto" onClick={() => setVerListos((x) => !x)}>{verListos ? "Ver activos" : `Ver listos (${listos.length})`}</Boton></div>
-        ) : null}
-        <div className="pn-tra-pie pn-solo-escritorio">
-          <span><kbd className="pn-kbd">J</kbd> <kbd className="pn-kbd">K</kbd> cambiar</span>{" "}
-          <span><kbd className="pn-kbd">N</kbd> nuevo</span>{" "}
-          <span><kbd className="pn-kbd">T</kbd> tarea</span>{" "}
-          <span><kbd className="pn-kbd">R</kbd> avance</span>
-        </div>
-      </div>
+    <div className="as-dos tra-dos" data-det={t !== null}>
+      <section className="as-lista" aria-label="Trámites">
+        <div className="as-lado">
+          <div className="as-fila as-cab">
+            <h1 className="as-h1-lista">Trámites</h1>
+            {tramites.cargando ? null : <span className="as-cab-n" aria-label={`${activos.length} activos`}>{activos.length}</span>}
+            <span className="as-sp" />
+            <BotonFiltros grupos={gruposFiltro} activos={filtrosPuestos} alLimpiar={limpiarFiltros} extra={loLleva.control}
+              verTexto={`Ver ${visibles.length} ${visibles.length === 1 ? "trámite" : "trámites"}`} />
+            <button type="button" className="as-btn as-gho as-ico as-cab-mas" onClick={() => setCreando(true)} aria-label="Nuevo trámite" title="Nuevo trámite (N)" aria-keyshortcuts="N">
+              <Icono nombre="mas" tamano={16} />
+            </button>
+          </div>
+          <label className="as-buscar">
+            <Icono nombre="bus" tamano={15} />
+            <input value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Inmueble, persona o tipo de trámite" aria-label="Buscar trámites" type="search" autoComplete="off" />
+          </label>
+          <div className="as-fila as-filtros tra-filtros">
+            {resumenFiltros ? <ResumenFiltros texto={resumenFiltros} alLimpiar={limpiarFiltros} /> : (
+              <span className="as-m">{tramites.cargando ? "Cargando…" : porHoy ? `${porHoy} por preguntar hoy` : "Nada por preguntar hoy"}</span>
+            )}
+          </div>
 
-      <HojaAdaptable abierta={t !== null} titulo={t?.titulo ?? "Trámite"}
-        descripcion={t && vista ? [vista.nombreTipo, esHipoteca(t) ? ACREEDORES[t.acreedor] : "", inmueble && inmueble !== t.titulo ? inmueble : "", persona?.nombre].filter(Boolean).join(" · ") + diasDesde(t.creadoEl, hoy) : undefined}
-        alCerrar={() => cerrar()}>
+          {tramites.cargando ? <div className="tra-aviso"><Cargando lineas={4} etiqueta="Cargando trámites" /></div> : null}
+          {tramites.error ? <div className="tra-aviso"><EstadoError texto={tramites.error} alReintentar={tramites.reintentar} /></div> : null}
+          {!tramites.cargando && !tramites.error && filas.length === 0 ? (
+            <div className="as-vacio-lista">
+              <Icono nombre="verificado" tamano={26} />
+              <b>Sin trámites</b>
+              <p>Cancelaciones de hipoteca, servicios, avalúos, Catastro y otros trámites que no son venta ni renta aparecen aquí.</p>
+              <button type="button" className="as-btn as-pri" onClick={() => setCreando(true)}><Icono nombre="mas" tamano={16} />Nuevo trámite</button>
+            </div>
+          ) : null}
+          {!tramites.cargando && filas.length > 0 && visibles.length === 0 ? <p className="as-m as-nada">{filtrosPuestos ? "Ningún trámite coincide con el filtro." : "Nada coincide. Prueba con otra palabra."}</p> : null}
+          {!tramites.cargando && visibles.length > 0 && !verListos && grupos.length === 0 ? <p className="as-m as-nada">Sin trámites activos. Los terminados están en «Ver listos».</p> : null}
+          {verListos ? (
+            listos.length ? (
+              <section aria-label={NOMBRE_GRUPO.listo}>
+                <TramoLista titulo={NOMBRE_GRUPO.listo} cuenta={listos.length} />
+                <div className="as-items">{listos.map((f) => fila(f, "listo"))}</div>
+              </section>
+            ) : <p className="as-m as-nada">Todavía no hay trámites listos. Aquí quedan los terminados.</p>
+          ) : grupos.map(({ g, filas: fs }) => (
+            <section key={g} aria-label={NOMBRE_GRUPO[g]}>
+              <TramoLista titulo={NOMBRE_GRUPO[g]} cuenta={fs.length} />
+              <div className="as-items">{fs.map((f) => fila(f, g))}</div>
+            </section>
+          ))}
+          {listos.length || verListos ? (
+            <div className="tra-mas"><button type="button" className="as-btn as-gho" onClick={() => setVerListos((x) => !x)}>{verListos ? "Ver activos" : `Ver listos (${listos.length})`}</button></div>
+          ) : null}
+          <div className="as-pie-teclas" aria-hidden><kbd>J</kbd><kbd>K</kbd> cambiar · <kbd>N</kbd> nuevo · <kbd>T</kbd> tarea · <kbd>R</kbd> avance</div>
+        </div>
+      </section>
+
+      <section className="as-det" aria-label={t ? `Trámite ${t.titulo}` : "Trámite"}>
         {t ? (
+          <div className="cp fm-col tra-col">
+            <div className="cp-barra">
+              <button type="button" className="as-btn as-gho as-atras" onClick={() => cerrar()}><Icono nombre="at" tamano={16} />Trámites</button>
+              <span className="as-sp" />
+              <button type="button" className="as-btn" onClick={() => pedir("tarea", t.id)} aria-keyshortcuts="T"><Icono nombre="mas" tamano={15} />Tarea</button>
+              <button type="button" className="as-btn" onClick={() => pedir("avance", t.id)} aria-keyshortcuts="R"><Icono nombre="mensaje" tamano={15} /><span>Avance<span className="tra-ancho"> al propietario</span></span></button>
+            </div>
+            <div className="fm-cab">
+              <span className="as-m">{vista ? [vista.nombreTipo, esHipoteca(t) ? ACREEDORES[t.acreedor] : ""].filter(Boolean).join(" · ") : "Trámite"}</span>
+              <h2 className="fm-h1">{t.titulo}</h2>
+              <span className="as-m">{[inmueble && inmueble !== t.titulo ? inmueble : "", persona?.nombre, diasDesde(t.creadoEl, hoy).replace(" · ", "")].filter(Boolean).join(" · ")}</span>
+            </div>
           <DetalleTramite key={t.id} t={t} persona={persona} inmueble={inmueble} documentos={documentos} tareas={tareasT} ocupado={ocupado} firma={firma} pedido={pedido}
             alPendiente={(id) => void guardar(alternarPendiente(t, id), null)}
             alFechaPendiente={(id, f) => void guardar(fecharPendiente(t, id, f), null)}
@@ -267,8 +300,14 @@ function Tramites() {
             }}
             alVerDocumento={verDocumento}
           />
-        ) : null}
-      </HojaAdaptable>
+          </div>
+        ) : (
+          <div className="as-in as-elige">
+            <Icono nombre="verificado" tamano={28} />
+            <p className="as-m">{tramites.cargando ? "Cargando…" : "Elige un trámite de la lista."}</p>
+          </div>
+        )}
+      </section>
 
       <HojaAdaptable abierta={creando} titulo="Nuevo trámite" descripcion="Elige qué vas a tramitar." alCerrar={() => setCreando(false)}>
         {creando ? <NuevoTramite personas={personas.datos} inmuebles={inmuebles.datos} asesores={asesores.datos} miAsesor={miAsesor} ocupado={ocupado} alGuardar={(d) => void crear(d)} /> : null}

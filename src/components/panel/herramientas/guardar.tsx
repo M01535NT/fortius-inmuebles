@@ -2,8 +2,8 @@
 import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
+import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
-import { Boton } from "@/components/panel/kit/boton";
 import { leerAsunto } from "@/lib/panel/asuntos/api";
 import { empezarTrabajo, type Herramienta } from "@/lib/panel/documentos/api";
 
@@ -58,8 +58,8 @@ export function GuardarCuenta({ tipo, cuenta }: { tipo: Herramienta; cuenta: Omi
     }
   }
   return (
-    <Boton variante="primario" bloque style={{ minHeight: 48 }} deshabilitado={guardando} onClick={guardar}>
-      {guardando ? "Guardando…" : asunto ? `Guardar en ${asunto.folio}` : "Guardar"}
-    </Boton>
+    <button type="button" className="as-btn as-pri her-acc-btn" aria-disabled={guardando || undefined} onClick={() => { if (!guardando) void guardar(); }}>
+      <Icono nombre="ok" tamano={14} />{guardando ? "Guardando…" : asunto ? `Guardar en ${asunto.folio}` : "Guardar"}
+    </button>
   );
 }

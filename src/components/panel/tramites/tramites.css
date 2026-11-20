@@ -55,3 +55,57 @@
 .pn-tra-visor-hoja iframe { width: 100%; height: 100%; border: 0; }
 /* «Ver listos (3)» al final de la lista. */
 .panel-root .pn-tra-mas { display: flex; justify-content: center; }
+
+/*
+ * Orden del modelo visual («Inmuebles»): la columna de la lista y el abierto en azul son los de Asuntos (asunto.css); los
+ * renglones, títulos de grupo y tarjetas, los de fichas/modelo.css. El trámite abierto a la derecha (.tra-col) lleva las
+ * tarjetas del modelo: borde, 12 px de radio, renglones de 36 a 44 px y letra de 13 px.
+ */
+@media (min-width: 901px) { .panel-root .tra-dos { grid-template-columns: 320px minmax(0, 1fr); } }
+.panel-root .tra-dos .as-cab .fx-fbtn { width: 30px; min-width: 30px; height: 30px; padding: 0; border: 0; border-radius: 7px; background: none; color: var(--ink-muted); }
+.panel-root .tra-dos .as-cab .fx-fbtn:hover { background: var(--fill); color: var(--ink); }
+.panel-root .tra-dos .as-cab .fx-fbtn svg { width: 16px; height: 16px; }
+.panel-root .tra-dos .as-cab .fx-fb { top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; }
+.panel-root .tra-filtros { min-height: 36px; font-size: 12px; }
+.panel-root .tra-filtros .fx-fsum { flex: 1; min-height: 0; font-size: 12px; }
+.panel-root .tra-filtros .fx-fsum button { min-height: 28px; font-size: 12px; }
+.panel-root .tra-aviso { margin: 10px 12px; }
+.panel-root .tra-mas { display: flex; justify-content: center; padding: 10px; }
+.panel-root .tra-mas .as-btn { height: 30px; font-size: 13px; }
+
+.panel-root .tra-col { --fm-max: 720px; }
+.panel-root .tra-detalle, .panel-root .tra-seccion { display: flex; flex-direction: column; gap: 18px; }
+.panel-root .tra-seccion { gap: 10px; }
+.panel-root .tra-seccion > .fm-t { padding-bottom: 0; margin-bottom: -6px; }
+.panel-root .tra-col :is(.pn-tarjeta, .pn-tra-hoja) { border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: none; }
+.panel-root .tra-col .pn-grupo { margin: 0; padding: 0 0 4px; font-size: 11px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink-muted); }
+.panel-root .tra-col .pn-tra-paso { border-top-color: var(--linea-suave); }
+.panel-root .tra-col .pn-tra-cab { min-height: 44px; padding: 8px 14px; gap: 10px; }
+.panel-root .tra-col .pn-tra-cab:not([aria-disabled="true"]):hover { background: var(--fill); }
+.panel-root .tra-col .pn-tra-punto { width: 8px; height: 8px; }
+.panel-root .tra-col .pn-tra-nombre { font-size: 13.5px; }
+.panel-root .tra-col .pn-tra-inst { font-size: 12px; }
+.panel-root .tra-col .pn-tra-estado { font-size: 12px; }
+.panel-root .tra-col .pn-tra-cuerpo { gap: 8px; padding: 0 14px 12px 32px; font-size: 13px; }
+.panel-root .tra-col .pn-tra-cuerpo > p { font-size: 13px; }
+.panel-root .tra-col .pn-tra-linea { border-radius: 10px; font-size: 13px; }
+.panel-root .tra-col .pn-tra-kv { align-items: center; min-height: 36px; padding: 0 14px; border-top-color: var(--linea-suave); font-size: 13px; }
+.panel-root .tra-col .pn-tra-kv > span:first-child { flex: 0 0 var(--fm-k, 190px); }
+.panel-root .tra-col .pn-tra-kv > span:last-child { flex: 1; min-width: 0; font-weight: 500; text-align: left; overflow-wrap: anywhere; }
+.panel-root .tra-col .pn-tra-doc { min-height: 44px; padding: 8px 14px; border-top-color: var(--linea-suave); }
+.panel-root .tra-col .pn-tra-doc:hover { background: var(--fill); }
+.panel-root .tra-col .pn-tra-doc b { font-size: 13.5px; }
+.panel-root .tra-col .pn-tra-doc small { font-size: 12px; }
+.panel-root .tra-col .pn-tra-aviso-notas { border-radius: 10px; font-size: 12.5px; }
+/* Botones dentro del trámite al tamaño del modelo (30 px en computadora; 44 px en el teléfono, abajo). */
+.panel-root .tra-detalle .pn-btn { min-height: 30px; height: auto; padding: 5px 12px; border-radius: 7px; font-size: 13px; }
+
+@media (max-width: 900px) {
+  .panel-root .tra-dos .as-cab .fx-fbtn { width: 44px; min-width: 44px; height: 44px; }
+  .panel-root .tra-col .pn-tra-cab { min-height: 52px; }
+  .panel-root .tra-col .pn-tra-kv { min-height: 48px; }
+  .panel-root .tra-col .pn-tra-kv > span:first-child { flex-basis: 40%; }
+  .panel-root .tra-mas .as-btn { height: 44px; }
+  .panel-root .tra-detalle .pn-btn { min-height: 44px; }
+  .panel-root .tra-ancho { display: none; }
+}

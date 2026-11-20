@@ -3,32 +3,36 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
 
-import { Gesto, Icono, type NombreIcono } from "@/components/panel/icons";
-import { Tarjeta } from "@/components/panel/kit/lista";
+import { Icono, type NombreIcono } from "@/components/panel/icons";
 
+import "../asunto/asunto.css";
+import "../asunto/caso.css";
+import { Cuadro } from "../asunto/pildora";
+import "../fichas/modelo.css";
 import { ConAsuntoDeLaCuenta, useAsuntoDeLaCuenta } from "./guardar";
 import { TrabajosSueltos } from "./sueltos";
 
 import "./herramientas.css";
 
-type Herramienta = { ruta: string; nombre: string; sub: string; icono: NombreIcono };
+type Herramienta = { ruta: string; nombre: string; sub: string; icono: NombreIcono; color: string };
 
 /** Las herramientas (SPEC.md, sección 9). Cada una sirve con o sin asunto. */
 export const HERRAMIENTAS: readonly Herramienta[] = [
-  { ruta: "/panel/herramientas/valor", nombre: "Opinión de valor", sub: "Comparables y valor, por preguntas", icono: "precio" },
-  { ruta: "/panel/herramientas/isr", nombre: "Cálculo de ISR", sub: "Por la venta, con su artículo y fecha", icono: "balanza" },
-  { ruta: "/panel/herramientas/compra", nombre: "Gastos del comprador", sub: "ISAI, Registro, notaría y crédito", icono: "costos" },
-  { ruta: "/panel/herramientas/venta", nombre: "Gastos del vendedor", sub: "Comisión, cancelación e ISR", icono: "venta" },
-  { ruta: "/panel/herramientas/credito", nombre: "Crédito", sub: "Mensualidad según enganche, plazo y tasa", icono: "edificio" },
-  { ruta: "/panel/herramientas/comision", nombre: "Comisión", sub: "Lo que cobra Fortius, con IVA", icono: "pago" },
-  { ruta: "/panel/herramientas/formatos", nombre: "Contratos y formatos", sub: "Por preguntas, con la hoja a la vista", icono: "contrato" },
+  { ruta: "/panel/herramientas/valor", nombre: "Opinión de valor", sub: "Comparables y valor, por preguntas", icono: "precio", color: "blue" },
+  { ruta: "/panel/herramientas/isr", nombre: "Cálculo de ISR", sub: "Por la venta, con su artículo y fecha", icono: "balanza", color: "indigo" },
+  { ruta: "/panel/herramientas/compra", nombre: "Gastos del comprador", sub: "ISAI, Registro, notaría y crédito", icono: "costos", color: "teal" },
+  { ruta: "/panel/herramientas/venta", nombre: "Gastos del vendedor", sub: "Comisión, cancelación e ISR", icono: "venta", color: "orange" },
+  { ruta: "/panel/herramientas/credito", nombre: "Crédito", sub: "Mensualidad según enganche, plazo y tasa", icono: "edificio", color: "violet" },
+  { ruta: "/panel/herramientas/comision", nombre: "Comisión", sub: "Lo que cobra Fortius, con IVA", icono: "pago", color: "green" },
+  { ruta: "/panel/herramientas/formatos", nombre: "Contratos y formatos", sub: "Por preguntas, con la hoja a la vista", icono: "contrato", color: "gray" },
 ];
 
 const INDICE = "/panel/herramientas";
 
 /**
- * Marco de Herramientas. Teléfono: el índice es la lista (y los trabajos sueltos); cada herramienta abre su pantalla con «volver».
- * Escritorio: la lista a la izquierda y la herramienta elegida al centro. J y K cambian de herramienta.
+ * Marco de Herramientas con el orden del modelo visual («Inmuebles»): la lista en su columna (barra de 52 px y la elegida
+ * en azul sólido) y la herramienta a la derecha con su barra y tarjetas de renglones. Teléfono: el índice es la lista
+ * (y los trabajos sueltos); cada herramienta abre su pantalla con «volver». J y K cambian de herramienta.
  * El asunto (?asunto=…) y el inmueble (?inmueble=…) se conservan al cambiar de herramienta.
  */
 export function MarcoHerramientas({ children }: { children: ReactNode }) {
@@ -48,19 +52,20 @@ function Marco({ children }: { children: ReactNode }) {
   }
   return (
     <ConAsuntoDeLaCuenta alQuitar={quitarAsunto}>
-      <div className="pn-her" data-indice={indice}>
-        <section className="pn-her-lista" aria-label="Herramientas">
-          <h1>Herramientas</h1>
-          <div className="pn-her-lista-cuerpo">
+      <div className="as-dos her-dos" data-det={!indice}>
+        <section className="as-lista" aria-label="Herramientas">
+          <div className="as-lado">
+            <div className="as-fila as-cab">
+              <h1 className="as-h1-lista">Herramientas</h1>
+              <span className="as-cab-n" aria-label={`${HERRAMIENTAS.length} herramientas`}>{HERRAMIENTAS.length}</span>
+            </div>
             <ParaElAsunto />
-            <Tarjeta style={{ overflow: "hidden" }}>
-              <Filas actual={actual} indice={indice} />
-            </Tarjeta>
+            <Filas actual={actual} indice={indice} />
             <TrabajosSueltos />
+            <div className="as-pie-teclas" aria-hidden><kbd>J</kbd><kbd>K</kbd> cambiar de herramienta</div>
           </div>
-          <div className="pn-her-pie"><kbd className="pn-kbd">J</kbd> <kbd className="pn-kbd">K</kbd> cambiar de herramienta</div>
         </section>
-        <div className="pn-her-main">{children}</div>
+        <section className="as-det" aria-label="Herramienta">{children}</section>
       </div>
     </ConAsuntoDeLaCuenta>
   );
@@ -71,11 +76,11 @@ function ParaElAsunto() {
   const ctx = useAsuntoDeLaCuenta();
   if (!ctx?.asunto) return null;
   return (
-    <div className="pn-her-asunto" role="status">
-      <Icono nombre="asu" tamano={18} />
+    <div className="her-ban" role="status">
+      <Icono nombre="asu" tamano={16} />
       <span><b>{ctx.asunto.folio}</b> {ctx.asunto.nombre}</span>
-      <Link href={`/panel/asuntos/${ctx.asunto.id}`} className="pn-her-asunto-ir">Volver</Link>
-      <button type="button" className="pn-iconbtn" aria-label="Trabajar sin asunto" onClick={ctx.quitar}><Icono nombre="x" tamano={16} /></button>
+      <Link href={`/panel/asuntos/${ctx.asunto.id}`} className="as-btn as-gho her-ban-ir">Volver</Link>
+      <button type="button" className="as-btn as-gho as-ico" aria-label="Trabajar sin asunto" title="Trabajar sin asunto" onClick={ctx.quitar}><Icono nombre="x" tamano={15} /></button>
     </div>
   );
 }
@@ -99,33 +104,51 @@ function Filas({ actual, indice }: { actual: string; indice: boolean }) {
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
   }, [actual, router, sufijo]);
-  return HERRAMIENTAS.map((h) => {
-    const cuerpo = (
-      <>
-        <span className="pn-her-ti" aria-hidden><Icono nombre={h.icono} tamano={20} /></span>
-        <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-          <span className="pn-her-nombre">{h.nombre}</span>
-          <span className="pn-her-sub">{h.sub}</span>
-        </span>
-        <Gesto nombre="derecha" tamano={18} className="pn-her-flecha" aria-hidden />
-      </>
-    );
-    // En el índice del teléfono nada está elegido; en escritorio, la primera.
-    const elegida = h.ruta === actual && !indice;
-    return (
-      <Link key={h.ruta} href={`${h.ruta}${sufijo}`} className="pn-her-fila" aria-current={elegida ? "page" : undefined} data-elegida-escritorio={h.ruta === actual || undefined}>{cuerpo}</Link>
-    );
-  });
+  return (
+    <nav className="as-items" aria-label="Herramientas">
+      {HERRAMIENTAS.map((h) => {
+        // En el índice del teléfono nada está elegido; en escritorio, la primera.
+        const elegida = h.ruta === actual && !indice;
+        return (
+          <Link key={h.ruta} href={`${h.ruta}${sufijo}`} className="as-it her-it" aria-current={elegida ? "page" : undefined} data-elegida-escritorio={h.ruta === actual || undefined}>
+            <Cuadro icono={h.icono} color={h.color} />
+            <span className="as-it-c"><b>{h.nombre}</b><small>{h.sub}</small></span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
 }
 
-/** Cabecera de una herramienta: en el teléfono lleva «volver»; en escritorio solo el título. */
-export function CabeceraHerramienta({ titulo }: { titulo: string }) {
+/** Datos de una herramienta para su encabezado (color, ícono y la línea de abajo). */
+export const herramientaDe = (ruta: string) => HERRAMIENTAS.find((h) => h.ruta === ruta);
+
+/**
+ * La barra de 52 px de una herramienta: en el teléfono lleva «‹ Herramientas»; a la derecha, si se trabaja para un asunto,
+ * su folio. Debajo, el encabezado del modelo: el ícono, el nombre de 24 px y para qué sirve.
+ */
+export function CabeceraHerramienta({ titulo, ruta }: { titulo: string; ruta: string }) {
   const params = useSearchParams();
+  const ctx = useAsuntoDeLaCuenta();
   const sufijo = params.toString() ? `?${params.toString()}` : "";
+  const h = herramientaDe(ruta);
   return (
-    <div className="pn-her-cab">
-      <Link href={`${INDICE}${sufijo}`} className="pn-iconbtn" aria-label="Volver a Herramientas" style={{ width: 44, height: 44 }}><Gesto nombre="izquierda" tamano={20} /></Link>
-      <h2>{titulo}</h2>
-    </div>
+    <>
+      <div className="cp-barra her-barra">
+        <Link href={`${INDICE}${sufijo}`} className="as-btn as-gho as-atras" aria-label="Volver a Herramientas"><Icono nombre="at" tamano={16} />Herramientas</Link>
+        <span className="as-sp" />
+        <span className="as-m her-donde">
+          <Icono nombre={ctx?.asunto ? "asu" : "file"} tamano={14} />
+          {ctx?.asunto ? `Para ${ctx.asunto.folio}` : "Sin asunto · queda en Trabajos sueltos"}
+        </span>
+      </div>
+      <div className="fm-cab fm-cab-av her-cab">
+        {h ? <Cuadro icono={h.icono} color={h.color} /> : null}
+        <div>
+          <h2 className="fm-h1">{titulo}</h2>
+          {h ? <p className="as-m">{h.sub}</p> : null}
+        </div>
+      </div>
+    </>
   );
 }

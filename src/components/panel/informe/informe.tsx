@@ -23,6 +23,8 @@ import { Dibujo } from "../documento/captura";
 import "../asunto/asunto.css";
 import "../formatos/captura.css";
 import "../documento/documento.css";
+import "../fichas/modelo.css";
+import "./informe.css";
 
 type Render = (doc: Documento) => Promise<Maqueta>;
 
@@ -155,9 +157,9 @@ export function InformeParaElCliente({ asuntoId }: { asuntoId: string }) {
               <button type="button" className="as-btn as-gho" style={{ alignSelf: "flex-start" }} onClick={() => cambiar({ en_que_va: material.propuesta })}><Icono nombre="rayo" tamano={16} />Usar el texto sugerido</button>
             ) : null}
 
-            <div>
-              <p className="as-sub" style={{ padding: "0 2px 6px" }}>Qué lleva</p>
-              <div className="as-card">
+            <div className="fm-grupo">
+              <div className="fm-t">Qué lleva</div>
+              <div className="fm-card inf-partes">
                 {PARTES_INFORME.filter((p) => (p !== "actividad" || material.actividad.length > 0)).map((p) => {
                   const lista = renglones(p);
                   const puesta = opciones.partes.includes(p);
@@ -186,7 +188,7 @@ export function InformeParaElCliente({ asuntoId }: { asuntoId: string }) {
                   );
                 })}
               </div>
-              <p className="as-m dc-texto" style={{ paddingTop: 6 }}>Una parte sin contenido no sale en la hoja. Nunca lleva notas internas ni nombres de interesados.</p>
+              <p className="as-m dc-texto inf-nota">Una parte sin contenido no sale en la hoja. Nunca lleva notas internas ni nombres de interesados.</p>
             </div>
 
             <Desplegable etiqueta="Repetir" valor={opciones.cada ?? ""} vacio="No se repite" alElegir={(v) => cambiar({ cada: v || null })}

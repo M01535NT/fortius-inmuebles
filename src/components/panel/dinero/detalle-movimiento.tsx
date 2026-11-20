@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+import { Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo, formatoMonto, montoANumero } from "@/components/panel/kit/campo";
 import { Desplegable } from "@/components/panel/kit/desplegable";
-import { Tarjeta } from "@/components/panel/kit/lista";
 import { diaLargo } from "@/lib/panel/calendario";
 import { dinero } from "@/lib/panel/datos/dinero";
 import {
@@ -21,8 +21,8 @@ const ESTADO_CERRADO = { entregado: "Entregado al propietario", reembolsado: "Re
  * «Registrar entrega» en un apartado (pasa al historial) o «Registrar cobro» en una comisión o un gasto (parcial permitido,
  * nunca más de lo que falta). Todo con Deshacer. `pedirCobro` cambia cuando se pulsa P: lleva el foco al monto.
  */
-export function DetalleMovimiento({ m, asunto, alCambiar, pedirCobro }: {
-  m: Movimiento; asunto: { titulo: string; id: string } | null; alCambiar: (m: Movimiento) => void; pedirCobro: number;
+export function DetalleMovimiento({ m, alCambiar, pedirCobro }: {
+  m: Movimiento; alCambiar: (m: Movimiento) => void; pedirCobro: number;
 }) {
   const { avisar } = useAvisos();
   const falta = faltaDe(m);
@@ -97,61 +97,62 @@ export function DetalleMovimiento({ m, asunto, alCambiar, pedirCobro }: {
     : apartado ? { etiqueta: "En resguardo", valor: m.monto } : { etiqueta: "Falta cobrar", valor: falta };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 4 }}>
-      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-muted)" }}>{NOMBRE_TIPO[m.tipo]}</span>
-      <div className="pn-din-big">
-        <span className="pn-din-sl">{cifra.etiqueta}</span>
-        <span className="pn-din-dv">{dinero(cifra.valor, m.moneda)}</span>
-      </div>
-      <Tarjeta className="pn-din-lineas">
-        {lineas.map((l) => <div key={l.k} className="pn-din-ln"><span>{l.k}</span><span>{l.v}</span></div>)}
-      </Tarjeta>
+    <>
+      <section className="fm-grupo" aria-label={NOMBRE_TIPO[m.tipo]}>
+        <div className="fm-t">{NOMBRE_TIPO[m.tipo]}</div>
+        <div className="fm-card">
+          <div className="fm-big"><span>{cifra.etiqueta}</span><b>{dinero(cifra.valor, m.moneda)}</b></div>
+          {lineas.map((l) => <div key={l.k} className="fm-dato"><span className="fm-k">{l.k}</span><b className="fm-num">{l.v}</b></div>)}
+          {apartado || m.comprobante ? (
+            <div className="fm-dato">
+              <span className="fm-k">Comprobante</span>
+              <span className={m.comprobante ? "fm-v" : "fm-v pn-tono-aviso"}>{m.comprobante ? m.comprobante.nombre : "Falta el comprobante"}</span>
+              {m.comprobante
+                ? <button type="button" className="as-btn din-mini" onClick={() => void verComprobante()}>Ver</button>
+                : <button type="button" className="as-btn din-mini" aria-disabled={ocupado || undefined} onClick={() => { if (!ocupado) entrada.current?.click(); }}><Icono nombre="subir" tamano={14} />Subir comprobante</button>}
+              <input ref={entrada} type="file" accept={TIPOS_COMPROBANTE.join(",")} hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void agregarComprobante(f); }} />
+            </div>
+          ) : null}
+        </div>
+      </section>
 
-      {apartado || m.comprobante ? (
-        <div className="pn-din-archivo">
-          <span className={m.comprobante ? undefined : "pn-tono-aviso"}>{m.comprobante ? `Comprobante: ${m.comprobante.nombre}` : "Falta el comprobante"}</span>
-          {m.comprobante
-            ? <Boton variante="secundario" onClick={() => void verComprobante()}>Ver</Boton>
-            : <Boton variante="secundario" deshabilitado={ocupado} onClick={() => entrada.current?.click()}>Subir comprobante</Boton>}
-          <input ref={entrada} type="file" accept={TIPOS_COMPROBANTE.join(",")} hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void agregarComprobante(f); }} />
+      {!cerrado && apartado ? (
+        <div className="din-acciones">
+          <Boton deshabilitado={ocupado}
+            onClick={() => void hacer({ accion: "entregar", version: m.version }, "Apartado entregado: pasó al historial", (nuevo) => ({ accion: "reabrir", version: nuevo.version }))}>
+            Registrar entrega
+          </Boton>
         </div>
       ) : null}
 
-      {!cerrado && apartado ? (
-        <Boton bloque style={{ minHeight: 48 }} deshabilitado={ocupado}
-          onClick={() => void hacer({ accion: "entregar", version: m.version }, "Apartado entregado: pasó al historial", (nuevo) => ({ accion: "reabrir", version: nuevo.version }))}>
-          Registrar entrega
-        </Boton>
-      ) : null}
-
       {!cerrado && !apartado ? (
-        <form onSubmit={(e) => { e.preventDefault(); cobrar(); }} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <h3 className="pn-grupo" style={{ margin: 0 }}>Registrar cobro</h3>
-          <div ref={campoMonto}>
-            <Campo etiqueta="Monto cobrado" dinero inputMode="decimal" value={monto} onChange={(e) => setMonto(formatoMonto(e.target.value))} autoComplete="off"
-              ayuda={m.cobrado > 0 ? `Falta ${dinero(falta, m.moneda)} de ${dinero(m.monto, m.moneda)}` : "Puede ser un cobro parcial."} />
+        <form className="fm-grupo" aria-label="Registrar cobro" onSubmit={(e) => { e.preventDefault(); cobrar(); }}>
+          <div className="fm-t">Registrar cobro</div>
+          <div className="fm-card fm-form">
+            <div ref={campoMonto}>
+              <Campo etiqueta="Monto cobrado" dinero inputMode="decimal" value={monto} onChange={(e) => setMonto(formatoMonto(e.target.value))} autoComplete="off"
+                ayuda={m.cobrado > 0 ? `Falta ${dinero(falta, m.moneda)} de ${dinero(m.monto, m.moneda)}` : "Puede ser un cobro parcial."} />
+            </div>
+            <Desplegable etiqueta="Forma de pago" valor={forma} alElegir={(v) => { if (v) setForma(v); }} opciones={FORMAS_PAGO} />
           </div>
-          <Desplegable etiqueta="Forma de pago" valor={forma} alElegir={(v) => { if (v) setForma(v); }} opciones={FORMAS_PAGO} />
-          <Boton type="submit" bloque style={{ minHeight: 48 }} deshabilitado={ocupado} aria-keyshortcuts="P">Registrar cobro</Boton>
+          <div className="din-acciones"><Boton type="submit" deshabilitado={ocupado} aria-keyshortcuts="P">Registrar cobro</Boton></div>
         </form>
       ) : null}
 
-      {cerrado && apartado ? (
-        <Boton variante="secundario" deshabilitado={ocupado}
-          onClick={() => void hacer({ accion: "reabrir", version: m.version }, "El apartado volvió a «Por entregar»")}>
-          Regresar a «Por entregar»
-        </Boton>
-      ) : null}
+      {error ? <p role="alert" className="pn-tono-error din-error">{error}</p> : null}
 
-      {error ? <p role="alert" className="pn-tono-error" style={{ margin: 0, fontSize: 14 }}>{error}</p> : null}
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {asunto ? <a className="pn-btn pn-btn-secundario" href={`/panel/asuntos?ver=${encodeURIComponent(asunto.id)}`}>Abrir el asunto</a> : null}
-        <Boton variante="texto" deshabilitado={ocupado}
-          onClick={() => void hacer({ accion: "quitar", version: m.version }, "Movimiento quitado", (nuevo) => ({ accion: "restaurar", version: nuevo.version }))}>
-          Quitar
-        </Boton>
+      <div className="din-acciones">
+        {cerrado && apartado ? (
+          <Boton variante="normal" deshabilitado={ocupado}
+            onClick={() => void hacer({ accion: "reabrir", version: m.version }, "El apartado volvió a «Por entregar»")}>
+            Regresar a «Por entregar»
+          </Boton>
+        ) : null}
+        <button type="button" className="as-btn as-gho din-mini" aria-disabled={ocupado || undefined}
+          onClick={() => { if (!ocupado) void hacer({ accion: "quitar", version: m.version }, "Movimiento quitado", (nuevo) => ({ accion: "restaurar", version: nuevo.version })); }}>
+          <Icono nombre="bote" tamano={14} />Quitar
+        </button>
       </div>
-    </div>
+    </>
   );
 }

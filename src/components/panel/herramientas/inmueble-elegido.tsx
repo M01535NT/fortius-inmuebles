@@ -4,8 +4,6 @@ import { useMemo } from "react";
 
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
 import { Icono } from "@/components/panel/icons";
-import { Boton } from "@/components/panel/kit/boton";
-import { Tarjeta } from "@/components/panel/kit/lista";
 import type { Property } from "@/data/propiedades";
 import { pesos } from "@/lib/panel/herramientas";
 
@@ -45,13 +43,15 @@ export function useInmuebleDeDireccion() {
 /** Franja «Para: …» encima de la calculadora, con Quitar. */
 export function ParaInmueble({ elegido, alQuitar }: { elegido: InmuebleElegido; alQuitar: () => void }) {
   return (
-    <Tarjeta style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 8px 10px 14px" }}>
-      <Icono nombre="edificio" tamano={18} />
-      <span style={{ flex: 1, minWidth: 0, display: "grid" }}>
-        <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{elegido.titulo}</span>
-        <span className="pn-sub" style={{ margin: 0, fontSize: 13 }}>{elegido.codigo}{elegido.precio ? ` · ${pesos(elegido.precio)}` : ""}</span>
-      </span>
-      <Boton variante="texto" onClick={alQuitar}>Quitar</Boton>
-    </Tarjeta>
+    <section className="fm-grupo" aria-label="Para el inmueble">
+      <div className="fm-t">Para el inmueble</div>
+      <div className="fm-card">
+        <div className="as-ren her-para">
+          <Icono nombre="edif" tamano={16} />
+          <span className="as-ren-c"><b>{elegido.titulo}</b><span>{elegido.codigo}{elegido.precio ? ` · ${pesos(elegido.precio)}` : ""}</span></span>
+          <button type="button" className="as-btn as-gho her-acc-btn" onClick={alQuitar}>Quitar</button>
+        </div>
+      </div>
+    </section>
   );
 }

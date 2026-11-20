@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useColeccion } from "@/components/panel/datos/use-coleccion";
-import { Gesto, Icono } from "@/components/panel/icons";
+import { Icono } from "@/components/panel/icons";
 import { Boton } from "@/components/panel/kit/boton";
 import { Campo } from "@/components/panel/kit/campo";
 import { Desplegable, DesplegableFecha } from "@/components/panel/kit/desplegable";
@@ -96,19 +96,12 @@ export function DetalleTramite({ t, persona, inmueble, documentos, tareas, ocupa
   const todasListas = v.modo === "partes" && v.partes.length > 0 && v.partes.every((p) => p.estado === "listo");
 
   return (
-    <div style={{ display: "grid", gap: 16, marginTop: 8 }}>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <Boton variante="secundario" onClick={() => setNuevaTarea((x) => !x)} aria-expanded={nuevaTarea} aria-keyshortcuts="T">
-          <Gesto nombre="mas" tamano={18} />Tarea
-        </Boton>
-        <Boton variante="secundario" onClick={() => setAvance((x) => !x)} aria-expanded={avance} aria-keyshortcuts="R">
-          <Icono nombre="mensaje" tamano={18} aria-hidden />Avance al propietario
-        </Boton>
-      </div>
+    <div className="tra-detalle">
       {nuevaTarea ? <NuevaTarea hoy={hoy} ocupado={ocupado} alGuardar={a.alTarea} alCerrar={() => setNuevaTarea(false)} /> : null}
       {avance ? <Avance t={t} v={v} persona={persona} firma={firma} alEnviado={(m) => { a.alAvanceEnviado(m); setAvance(false); }} alCerrar={() => setAvance(false)} /> : null}
 
-      <section aria-label="Pasos" style={{ display: "grid", gap: 12 }}>
+      <section aria-label={v.modo === "ruta" ? "Pasos" : "Partes"} className="tra-seccion">
+        <div className="fm-t"><span>{v.modo === "ruta" ? "Pasos" : "Partes"}</span>{v.modo === "ruta" ? <span className="fm-t-n">{Math.min(t.pasoActual, pasos.length)} de {pasos.length}</span> : null}</div>
         {t.espera ? <Espera t={t} hoy={hoy} ocupado={ocupado} abierto={responder} alAbrir={setResponder} alResponder={a.alResponder} alQuitar={a.alQuitarEspera} /> : null}
         {v.porConfirmar ? <p className="pn-tra-confirmar">Pasos por confirmar con la fuente oficial</p> : null}
         {todasListas && t.estado === "en_curso" ? (

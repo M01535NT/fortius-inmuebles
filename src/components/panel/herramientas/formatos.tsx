@@ -4,14 +4,12 @@ import { useMemo, useState } from "react";
 
 import { Gesto, Icono } from "@/components/panel/icons";
 import { useAvisos } from "@/components/panel/kit/avisos";
-import { Boton } from "@/components/panel/kit/boton";
-import { Campo } from "@/components/panel/kit/campo";
 import { Desplegable } from "@/components/panel/kit/desplegable";
-import { Tarjeta } from "@/components/panel/kit/lista";
 import { FORMATOS } from "@/lib/formatos/catalog";
 import { empezarTrabajo } from "@/lib/panel/documentos/api";
 
 import { useAsuntoDeLaCuenta } from "./guardar";
+import { DatosCuenta } from "./resultado";
 
 /**
  * Grupos del catálogo en Herramientas. Son solo para encontrar rápido; ninguno es un orden obligatorio
@@ -60,35 +58,35 @@ export function CatalogoFormatos() {
   const grupos = useMemo(() => GRUPOS.map((g) => ({ ...g, ids: g.ids.filter((id) => !q || sinAcentos(`${id} ${titulo(id)}`).includes(q)) })).filter((g) => g.ids.length), [q]);
   const levantamiento = !q || sinAcentos("04 levantamiento").includes(q) || LEVANTAMIENTOS.some((l) => sinAcentos(l.etiqueta).includes(q));
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <p className="pn-sub" style={{ margin: 0 }}>
+    <div className="her-cuenta">
+      <p className="as-m her-ley">
         {ctx?.asunto ? `Se llena con lo que ya sabe ${ctx.asunto.folio} y queda en sus documentos.` : "Sin asunto queda en Trabajos sueltos; después se pasa a su asunto."}
       </p>
-      <Campo etiqueta="Buscar un formato" type="search" placeholder="Contrato, recibo, entrevista…" value={busca} onChange={(e) => setBusca(e.target.value)} />
+      <label className="as-buscar her-buscar">
+        <Icono nombre="bus" tamano={15} />
+        <input type="search" placeholder="Buscar un formato: contrato, recibo, entrevista…" aria-label="Buscar un formato" value={busca} onChange={(e) => setBusca(e.target.value)} />
+      </label>
       {grupos.map((g) => (
-        <section key={g.titulo} className="pn-her-grupo" aria-label={g.titulo}>
-          <h3>{g.titulo}</h3>
-          <Tarjeta style={{ overflow: "hidden" }}>
+        <section key={g.titulo} className="fm-grupo" aria-label={g.titulo}>
+          <div className="fm-t"><span>{g.titulo}</span><span className="fm-t-n">{g.ids.length}</span></div>
+          <div className="fm-card">
             {g.ids.map((id) => (
-              <button key={id} type="button" className="pn-her-fila" disabled={empezando !== null} onClick={() => empezar(id)}>
-                <span className="pn-her-ti" aria-hidden><Icono nombre={g.titulo === "Contratos" ? "contrato" : "file"} tamano={20} /></span>
-                <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span className="pn-her-nombre">{titulo(id)}</span>
-                  <span className="pn-her-sub">{empezando === id ? "Abriendo…" : `Formato ${id}`}</span>
-                </span>
-                <Gesto nombre="derecha" tamano={18} className="pn-her-flecha" aria-hidden />
+              <button key={id} type="button" className="fm-dato her-fila" disabled={empezando !== null} onClick={() => empezar(id)}>
+                <Icono nombre={g.titulo === "Contratos" ? "contrato" : "file"} tamano={16} />
+                <span className="fm-v">{titulo(id)}</span>
+                <span className="as-m her-fila-n">{empezando === id ? "Abriendo…" : id}</span>
+                <Gesto nombre="derecha" tamano={15} className="her-fila-f" aria-hidden />
               </button>
             ))}
-          </Tarjeta>
+          </div>
         </section>
       ))}
       {levantamiento ? (
-        <section className="pn-her-grupo" aria-label="Levantamiento">
-          <h3>Levantamiento</h3>
+        <DatosCuenta titulo="Levantamiento">
           <Desplegable etiqueta="Según el tipo de inmueble" valor="" vacio="Elegir el tipo" opciones={LEVANTAMIENTOS} alElegir={(v) => v && empezar(v)} />
-        </section>
+        </DatosCuenta>
       ) : null}
-      {!grupos.length && !levantamiento ? <p className="pn-sub">Ningún formato se llama así.</p> : null}
+      {!grupos.length && !levantamiento ? <p className="as-m her-ley">Ningún formato se llama así.</p> : null}
     </div>
   );
 }
@@ -98,16 +96,21 @@ export function OpinionDeValor() {
   const { empezar, empezando } = useEmpezarFormato();
   const ctx = useAsuntoDeLaCuenta();
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Tarjeta className="pn-her-res">
-        <div className="pn-her-big"><span>Opinión de valor comercial</span><span style={{ fontSize: 22 }}>Por preguntas, con la hoja a la vista</span></div>
-        <div className="pn-her-ln"><span>Comparables, ajustes y valor</span><b>Formato 07</b></div>
-        <div className="pn-her-ln"><span>Dónde queda</span><b>{ctx?.asunto ? `Documentos de ${ctx.asunto.folio}` : "Trabajos sueltos"}</b></div>
-      </Tarjeta>
-      <Boton variante="primario" bloque style={{ minHeight: 48 }} deshabilitado={empezando !== null} onClick={() => empezar("07")}>
-        {empezando ? "Abriendo…" : "Empezar la opinión de valor"}
-      </Boton>
-      <p className="pn-her-leyenda">Es una opinión, no un avalúo. Se puede hacer antes de que el cliente contrate y pasarla después a su asunto.</p>
+    <div className="her-cuenta">
+      <section className="fm-grupo" aria-label="Opinión de valor comercial">
+        <div className="fm-t">Opinión de valor comercial</div>
+        <div className="fm-card">
+          <div className="fm-dato"><span className="fm-k">Cómo se hace</span><span className="fm-v">Por preguntas, con la hoja a la vista</span></div>
+          <div className="fm-dato"><span className="fm-k">Lleva</span><span className="fm-v">Comparables, ajustes y valor · formato 07</span></div>
+          <div className="fm-dato"><span className="fm-k">Dónde queda</span><span className="fm-v">{ctx?.asunto ? `Documentos de ${ctx.asunto.folio}` : "Trabajos sueltos"}</span></div>
+        </div>
+        <div className="her-empezar">
+          <button type="button" className="as-btn as-pri her-acc-btn" aria-disabled={empezando !== null || undefined} onClick={() => { if (empezando === null) void empezar("07"); }}>
+            <Icono nombre="precio" tamano={14} />{empezando ? "Abriendo…" : "Empezar la opinión de valor"}
+          </button>
+        </div>
+      </section>
+      <p className="as-m her-ley">Es una opinión, no un avalúo. Se puede hacer antes de que el cliente contrate y pasarla después a su asunto.</p>
     </div>
   );
 }
