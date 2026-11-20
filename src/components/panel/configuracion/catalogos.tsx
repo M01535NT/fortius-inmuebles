@@ -59,7 +59,7 @@ export function SeccionCatalogos() {
     // Se ve al instante; si la base no lo acepta, vuelve como estaba.
     cat.poner({ ...k, valores: nuevo.map((v, i) => ({ ...v, orden: (i + 1) * 10 })) });
     try {
-      await ordenarCatalogo(k.clave, nuevo.map((v) => v.id));
+      await ordenarCatalogo(k.clave, nuevo.map((v) => ({ id: v.id, version: v.version })));
       void cat.recargar();
     } catch (e) { cat.poner(antes); fallo(e, "No se guardó el orden."); }
   };
