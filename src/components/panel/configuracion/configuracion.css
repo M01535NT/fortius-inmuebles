@@ -156,7 +156,7 @@
 .panel-root .pn-seg-estado { display: inline-flex; align-items: center; gap: 6px; }
 .panel-root .pn-seg-estado > svg { flex: none; color: var(--ink-muted); }
 .panel-root .pn-seg-estado[data-activa="true"] > svg { color: var(--exito); }
-.panel-root .pn-seg-pasos { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--ink); }
+.panel-root .pn-seg-pasos { margin: 0; padding-left: 20px; list-style: decimal; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--ink); }
 /* El QR siempre sobre blanco, también en oscuro: las apps lo leen mejor así. */
 .panel-root .pn-seg-qr { align-self: center; width: 176px; height: 176px; padding: 8px; border-radius: 10px; background: #fff; border: 1px solid var(--border); }
 .panel-root .pn-seg-secreto { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; letter-spacing: 0.04em; }

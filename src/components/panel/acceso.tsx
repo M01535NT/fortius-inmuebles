@@ -68,7 +68,7 @@ export function Acceso({ fijarClave = false, errorInicial = null, alTerminarClav
   }
 
   const titulo = paso === "codigo" ? "Código de verificación" : paso === "fijar" ? "Elige tu contraseña" : paso === "recuperar" ? "Recupera tu acceso" : "Entra al panel";
-  const boton = paso === "codigo" ? "Verificar" : paso === "fijar" ? "Guardar contraseña" : paso === "recuperar" ? "Enviar enlace" : "Entrar";
+  const boton = paso === "codigo" ? "Verificar" : paso === "fijar" ? "Guardar contraseña" : paso === "recuperar" ? (enviado ? "Enviar otra vez" : "Enviar enlace") : "Entrar";
 
   return (
     <main className="pn-acceso">
@@ -93,9 +93,8 @@ export function Acceso({ fijarClave = false, errorInicial = null, alTerminarClav
             <label className="pn-campo">Correo
               <input type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} autoComplete="username" maxLength={254} required autoFocus={paso === "recuperar"} />
             </label>
-            {paso === "entrar" ? <CampoClave etiqueta="Contraseña" valor={clave} alCambiar={setClave} /> : (
-              <p className="pn-acceso-nota">Te mandamos un enlace para elegir una contraseña nueva.</p>
-            )}
+            {paso === "entrar" ? <CampoClave etiqueta="Contraseña" valor={clave} alCambiar={setClave} />
+              : enviado ? null : <p className="pn-acceso-nota">Te mandamos un enlace para elegir una contraseña nueva.</p>}
           </>
         )}
         {error ? <p className="pn-error" role="alert"><Icono nombre="alerta" tamano={14} aria-hidden />{error}</p> : null}
