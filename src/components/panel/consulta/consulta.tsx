@@ -683,7 +683,10 @@ function AgregarRenglon({ etiqueta, alAgregar }: { etiqueta: string; alAgregar: 
   );
 }
 
-/** Otras personas del caso (la titular, los hermanos…), con su papel, sin salir de la consulta. */
+/**
+ * Otras personas del caso (la titular, los hermanos…), con su papel, sin salir de la consulta. Cada una se corrige con el
+ * lápiz (hallazgo 21): sus datos suben a la forma y «Guardar» la cambia en su lugar.
+ */
 function OtrasPersonas({ lista, alCambiar }: { lista: OtraPersona[]; alCambiar: (l: OtraPersona[]) => void }) {
   const [nombre, setNombre] = useState("");
   const cat = useCatalogos();
@@ -693,14 +696,24 @@ function OtrasPersonas({ lista, alCambiar }: { lista: OtraPersona[]; alCambiar: 
   const papel = papeles.some((o) => o.valor === elegido) ? elegido : papeles[0]?.valor ?? elegido;
   const [pais, setPais] = useState("+52");
   const [numero, setNumero] = useState("");
+  const [editando, setEditando] = useState<number | null>(null);
   const listo = nombre.trim().length > 0;
+  const limpiar = () => { setNombre(""); setNumero(""); setPais("+52"); setEditando(null); };
+  function corregir(i: number) {
+    const p = lista[i];
+    if (!p) return;
+    setEditando(i); setNombre(p.nombre); setPapel(p.papel); setPais(p.pais ?? "+52"); setNumero(p.numero ?? "");
+  }
   function agregar() {
     if (!listo) return;
-    alCambiar([...lista, {
-      nombre: nombre.trim().slice(0, 160), papel,
+    // Al corregir se conserva lo demás que ya tenía (como «Falleció»); el teléfono se toma de la forma.
+    const previa = editando !== null ? lista[editando] : undefined;
+    const nueva: OtraPersona = {
+      nombre: nombre.trim().slice(0, 160), papel, ...(previa?.fallecida ? { fallecida: true } : {}),
       ...(numero.trim() ? { pais, numero: numero.trim() } : {}),
-    }]);
-    setNombre(""); setNumero("");
+    };
+    alCambiar(editando !== null ? lista.map((p, j) => (j === editando ? nueva : p)) : [...lista, nueva]);
+    limpiar();
   }
   const resumen = lista.length ? lista.map((p) => p.nombre.split(" ")[0]).join(", ") : "Nadie más";
   return (
@@ -708,10 +721,11 @@ function OtrasPersonas({ lista, alCambiar }: { lista: OtraPersona[]; alCambiar: 
       {lista.length ? (
         <ul className="cs-docs">
           {lista.map((p, i) => (
-            <li key={`${p.nombre}-${i}`} className="cs-doc cs-persona">
+            <li key={`${p.nombre}-${i}`} className="cs-doc cs-persona" data-editando={editando === i ? "" : undefined}>
               <span className="as-av" aria-hidden>{iniciales(p.nombre)}</span>
               <span className="cs-doc-n">{p.nombre}<span className="as-m">{[cat.etiqueta("papel", p.papel), p.fallecida ? "Falleció" : p.numero ? `${p.pais} ${p.numero}` : ""].filter(Boolean).join(" · ")}</span></span>
-              <Boton variante="fantasma" soloIcono icono="x" className="cs-doc-x" aria-label={`Quitar a ${p.nombre}`} onClick={() => alCambiar(lista.filter((_, j) => j !== i))} />
+              <Boton variante="fantasma" soloIcono icono="lapiz" className="cs-doc-x" aria-label={`Corregir a ${p.nombre}`} onClick={() => corregir(i)} />
+              <Boton variante="fantasma" soloIcono icono="x" className="cs-doc-x" aria-label={`Quitar a ${p.nombre}`} onClick={() => { if (editando !== null) limpiar(); alCambiar(lista.filter((_, j) => j !== i)); }} />
             </li>
           ))}
         </ul>
@@ -724,7 +738,8 @@ function OtrasPersonas({ lista, alCambiar }: { lista: OtraPersona[]; alCambiar: 
         <CampoTelefono etiqueta="Teléfono (opcional)" pais={pais} numero={numero} alCambiarPais={setPais} alCambiarNumero={setNumero} />
         {/* «Falleció» no va aquí: es un dato más de la ficha de la persona (decisión del 18/11). */}
         <div className="as-fila as-fin">
-          <Boton type="submit" variante="normal" icono="mas" deshabilitado={!listo}>Agregar</Boton>
+          {editando !== null ? <Boton variante="fantasma" onClick={limpiar}>Cancelar</Boton> : null}
+          <Boton type="submit" variante="normal" icono={editando !== null ? "ok" : "mas"} deshabilitado={!listo}>{editando !== null ? "Guardar" : "Agregar"}</Boton>
         </div>
       </form>
     </Plegable>
@@ -748,15 +763,26 @@ function DialogoCierre({ abierto, alCerrar, alGuardar }: {
   );
 }
 
+/**
+ * El motivo de «No procede» se elige de su catálogo (hallazgo 22), con una nota opcional. Se guarda como un solo texto
+ * («No es de lo que hacemos. Quería un abogado penal»); ninguno de los dos es obligatorio.
+ */
 function FormaCierre({ como, alCerrar, alGuardar }: { como: "contacto" | "no_procede"; alCerrar: () => void; alGuardar: (como: "contacto" | "no_procede", valor: string) => void }) {
+  const cat = useCatalogos();
   const [valor, setValor] = useState(como === "contacto" ? sumarDias(14) : "");
+  const [motivo, setMotivo] = useState("");
   const listo = como === "no_procede" || /^\d{4}-\d{2}-\d{2}$/.test(valor);
+  const texto = () => como === "contacto" ? valor.trim()
+    : [motivo ? cat.etiqueta("motivo_no_procede", motivo) : "", valor.trim()].filter(Boolean).join(". ").slice(0, 1000);
   return (
-    <form className="as-form" onSubmit={(e) => { e.preventDefault(); if (!listo) return; alCerrar(); alGuardar(como, valor.trim()); }}>
+    <form className="as-form" onSubmit={(e) => { e.preventDefault(); if (!listo) return; alCerrar(); alGuardar(como, texto()); }}>
       {como === "contacto" ? (
         <CampoFecha etiqueta="Volver a llamarle el" valor={valor} alElegir={(f) => setValor(f ?? "")} autoFocus />
       ) : (
-        <Campo etiqueta="Motivo (opcional)" value={valor} maxLength={1000} onChange={(e) => setValor(e.target.value)} autoFocus />
+        <>
+          <Desplegable etiqueta="Motivo" valor={motivo} vacio="Sin decir" opciones={cat.opciones("motivo_no_procede", motivo)} alElegir={setMotivo} />
+          <Campo etiqueta="Nota (opcional)" value={valor} maxLength={900} onChange={(e) => setValor(e.target.value)} />
+        </>
       )}
       <div className="as-fila as-fin">
         <Boton variante="normal" onClick={alCerrar}>Cancelar</Boton>

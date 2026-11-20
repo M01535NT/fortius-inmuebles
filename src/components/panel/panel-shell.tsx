@@ -198,6 +198,7 @@ function Armazon({ children }: { children: ReactNode }) {
   const secciones = useMemo(() => seccionesPara(esDirector), [esDirector]);
   const iniciales = (sesion?.name ?? sesion?.email ?? "?").split(/[\s@.]+/).filter((p) => /^\p{L}/u.test(p)).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
   const activa = activaEn(ruta);
+  const capturando = ruta === CONSULTA.ruta || ruta.startsWith(`${CONSULTA.ruta}/`);
   const enBarra = (slugs: readonly string[]) => slugs.map((slug) => secciones.find((s) => s.slug === slug)).filter((s): s is Seccion => Boolean(s));
   const antes = enBarra(BARRA_TELEFONO.antes);
   const despues = enBarra(BARRA_TELEFONO.despues);
@@ -245,14 +246,15 @@ function Armazon({ children }: { children: ReactNode }) {
         </aside>
         <main className="pn-main" id="pn-contenido" tabIndex={-1}>{children}</main>
         <BuscarOCrear key={paleta.abierta ? `a-${paleta.texto}` : "c"} abierta={paleta.abierta} textoInicial={paleta.texto} alCerrar={() => setPaleta({ abierta: false, texto: "" })} />
-        <nav className="pn-barra" aria-label="Secciones">
+        {/* Hallazgo 25: mientras se captura una consulta no hay barra de secciones; «Abrir asunto» queda solo abajo. */}
+        {capturando ? null : <nav className="pn-barra" aria-label="Secciones">
           {antes.map(ligaBarra)}
           <Link href={CONSULTA.ruta} className="pn-barra-mas" aria-label="Nueva consulta" aria-current={ruta.startsWith(CONSULTA.ruta) ? "page" : undefined}>
             <Icono nombre="mas" tamano={22} />
           </Link>
           {despues.map(ligaBarra)}
           <MenuMas secciones={fuera} activo={enMas} />
-        </nav>
+        </nav>}
       </div>
       </ProveedorRecordatorios>
     </ProveedorBarra>

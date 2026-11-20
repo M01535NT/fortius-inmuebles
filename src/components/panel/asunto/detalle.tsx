@@ -396,25 +396,17 @@ export function DetalleAsunto({ id }: { id: string }) {
 
       {/* Fallo 4: un asunto cerrado enseña el resultado del cierre (arriba), no lo que seguía. */}
       {!cerrado && s && tareaSig ? (
-        <div className={enPagina ? "cp-sigue" : "as-sigue"}>
-          {enPagina ? <span className="cp-sigue-e"><Icono nombre="rayo" tamano={14} aria-hidden />Lo que sigue</span> : (
-            <button type="button" className="as-ckb" aria-label={`Marcar hecha: ${s.titulo}`}
-              onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: tareaSig.id, version: tareaSig.version, estado: "hecha" }), "Tarea hecha",
-                () => leerAsunto(a.id).then((x) => { const t = x.tareas.find((y) => y.id === tareaSig.id); return t ? cambiar(a.id, "tareas", { id: t.id, version: t.version, estado: "pendiente" }) : undefined; }))}>
-              <span className="as-ck" />
-            </button>
-          )}
+        <div className="cp-sigue">
+          <span className="cp-sigue-e"><Icono nombre="rayo" tamano={14} aria-hidden />Lo que sigue</span>
           <div className="as-sigue-c">
             <p className="as-q">{s.titulo}</p>
             <p className="as-m">{cat.etiqueta("quien_tarea", s.quien)} · <span className={s.fecha && diasHasta(s.fecha) < 0 ? "as-bad" : ""}>{fechaCorta(s.fecha, s.hora)}</span></p>
           </div>
-          {enPagina ? (
-            <Boton variante="primario" icono="ok" aria-label={`Marcar hecha: ${s.titulo}`} onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: tareaSig.id, version: tareaSig.version, estado: "hecha" }), "Tarea hecha",
+          <Boton variante="primario" icono="ok" aria-label={`Marcar hecha: ${s.titulo}`} onClick={() => void hacer(() => cambiar(a.id, "tareas", { id: tareaSig.id, version: tareaSig.version, estado: "hecha" }), "Tarea hecha",
               () => leerAsunto(a.id).then((x) => { const t = x.tareas.find((y) => y.id === tareaSig.id); return t ? cambiar(a.id, "tareas", { id: t.id, version: t.version, estado: "pendiente" }) : undefined; }))}>Hecha</Boton>
-          ) : null}
           <DropdownMenu>
-            <DropdownMenuTrigger className={enPagina ? "pn-btn pn-btn-fantasma" : "as-btn as-gho as-ico"} title="Posponer" aria-label="Posponer">
-              <Icono nombre="reloj" tamano={enPagina ? 16 : 18} />{enPagina ? <span>Posponer</span> : null}
+            <DropdownMenuTrigger className="pn-btn pn-btn-fantasma" title="Posponer" aria-label="Posponer">
+              <Icono nombre="reloj" tamano={16} /><span>Posponer</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>Posponer</DropdownMenuLabel>
@@ -427,7 +419,7 @@ export function DetalleAsunto({ id }: { id: string }) {
           </DropdownMenu>
         </div>
       ) : cerrado ? null : (
-        <form className={enPagina ? "cp-sigue cp-sigue-falta" : "as-sigue as-sigue-falta"} onSubmit={(e) => {
+        <form className="cp-sigue cp-sigue-falta" onSubmit={(e) => {
           e.preventDefault();
           const t = siguienteNuevo.trim();
           if (!t) return;
@@ -488,6 +480,7 @@ export function DetalleAsunto({ id }: { id: string }) {
         alGuardar={(t, f) => cambio({ en_espera: true, espera_motivo: t || null, espera_hasta: f ?? null }, "En espera", { en_espera: false })} />
       <DialogoCierre abierto={cierreElegido !== null} titulo={`Cerrar: ${resultado(cierreElegido ?? primerLogrado).toLowerCase()}`}
         equipo={companeros.length ? companeros : equipo} capto={a.capto_id} vendio={a.vendio_id} alCerrar={() => setDialogo(null)}
+        conQuien={logrado(cierreElegido ?? primerLogrado) && a.encargos.includes("comercializar")}
         alGuardar={(d) => cambio(
           { en_que_va: "cerrado", resultado: cierreElegido ?? primerLogrado, motivo_cierre: d.motivo, capto_id: d.capto_id, vendio_id: d.vendio_id },
           "Asunto cerrado",

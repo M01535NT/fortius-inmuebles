@@ -113,3 +113,10 @@
 .panel-root .cp-ap-c span { font-size: 13px; }
 .panel-root .cp-ap:not(.cp-ap-mas) > svg:last-child { display: none; }
 .panel-root .cp-ap-mas { min-height: 40px; font-size: 13px; }
+
+/* En el teléfono, «Lo que sigue» es el mismo de la computadora: el texto arriba y «Hecha» y «Posponer» abajo, de 44 px. */
+@media (max-width: 900px) {
+  .panel-root .cp-sigue .as-sigue-c { flex-basis: 100%; }
+  .panel-root .cp-sigue:not(.cp-sigue-falta) .pn-btn { flex: 1 1 0; height: 44px; min-height: 44px; margin-top: 8px; font-size: 14px; }
+  .panel-root .cp-sigue-falta .as-inp { height: 44px; }
+}

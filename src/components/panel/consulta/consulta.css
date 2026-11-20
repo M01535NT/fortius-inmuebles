@@ -75,6 +75,8 @@ label.cs-doc-acc { cursor: pointer; display: inline-grid; place-items: center; }
 .cs-quitados:focus-visible { outline: 2px solid var(--accent); }
 .cs-persona { min-height: 48px; }
 .cs-persona .as-av { width: 30px; height: 30px; font-size: 11px; }
+.cs-persona[data-editando] { background: var(--accent-soft); border-radius: var(--r-md); }
+.cs-persona-nueva .as-g2 { grid-template-columns: minmax(0, 1fr); }
 .cs-agregar { display: flex; align-items: center; gap: 10px; padding: 0 6px 0 8px; min-height: 36px; color: var(--ink-faint); border-radius: var(--r-md); }
 .cs-agregar:focus-within { background: var(--card); box-shadow: 0 0 0 1px var(--accent); }
 .cs-inp-plano { flex: 1; border: 0; background: none; height: 34px; padding: 0; color: var(--ink); font: inherit; font-size: 14px; outline: none; }
@@ -206,13 +208,13 @@ label.cs-doc-acc { cursor: pointer; display: inline-grid; place-items: center; }
   .cs-doc { min-height: 44px; }
 }
 @media (max-width: 640px) {
-  .cs-in { padding: 0 12px calc(160px + env(safe-area-inset-bottom, 0px)); }
+  .cs-in { padding: 0 12px calc(96px + env(safe-area-inset-bottom, 0px)); }
   /* Sin desenfoque: el desenfoque haría que «Abrir asunto» quedara fijo a la barra y no a la pantalla. */
   .cs-barra { min-height: 60px; gap: 4px; background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
-  /* «Abrir asunto», fijo abajo a todo lo ancho, encima de la barra de secciones y fuera de la zona del gesto. */
+  /* «Abrir asunto», fijo abajo a todo lo ancho y fuera de la zona del gesto. Mientras se captura no hay barra de secciones. */
   .cs-barra .cs-abrir {
     position: fixed; z-index: 19; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
-    bottom: calc(70px + env(safe-area-inset-bottom, 0px)); height: 50px; border-radius: var(--r-lg); font-size: 15.5px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px)); height: 50px; border-radius: var(--r-lg); font-size: 15.5px;
     box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 28%, transparent);
   }
   .cs-estado-t, .cs-ocultar-tel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

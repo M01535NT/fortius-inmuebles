@@ -14,11 +14,11 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/panel/ui/dropdown-menu";
 import {
-  cargarEjemplos, diasHasta, EN_QUE_VA, fechaCorta, type EnQueVa,
+  cargarEjemplos, diasHasta, fechaCorta,
 } from "@/lib/panel/asuntos/api";
 import { useSession } from "@/lib/panel/legado/sesion";
 
-import { useAsuntosFiltrados, useFiltrosAsuntos, VISTA_ASUNTOS, VISTAS_ASUNTOS, vistaDe, type VistaAsuntos } from "./filtros";
+import { queDe, useAsuntosFiltrados, useFiltrosAsuntos, VISTA_ASUNTOS, VISTAS_ASUNTOS, vistaDe, type VistaAsuntos } from "./filtros";
 import { Pildora } from "./pildora";
 import { useAsuntos } from "./proveedor";
 import { DialogoTexto } from "./ventana";
@@ -50,8 +50,7 @@ export function MenuVistasGuardadas({ compacto = false }: { compacto?: boolean }
   const aplicada = vistas.find((v) => JSON.stringify(v.filtros) === JSON.stringify(filtros));
   const usarVista = (v: VistaGuardada) => {
     setQ(v.filtros.q ?? "");
-    const w = v.filtros.que ?? "";
-    setQue(w === "favoritos" || (EN_QUE_VA as readonly string[]).includes(w) ? (w as EnQueVa | "favoritos") : "");
+    setQue(queDe(v.filtros.que));
     setLleva(v.filtros.lleva ?? "");
   };
   const guardarVistas = (lista: VistaGuardada[], aviso: string) => {
