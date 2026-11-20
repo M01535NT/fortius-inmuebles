@@ -138,6 +138,61 @@ label.cs-doc-acc { cursor: pointer; display: inline-grid; place-items: center; }
   .cs-lado { position: static; padding: 14px 16px 24px; background: color-mix(in srgb, var(--bg) 55%, var(--card)); border-left: 1px solid var(--border); }
 }
 @keyframes cs-baja { from { transform: translateY(-16px); opacity: 0; } }
+
+/*
+ * Medidas del modelo visual (Consulta.dc.html): letra de 13 px; rótulos de 11 px en gris («Quién llama», «Qué pasa»,
+ * «Preguntas · 3 de 6», «Documentos · 1 de 4»); los datos en renglones de 33 px con su línea abajo; botones de la barra
+ * de 30 px; la columna de apoyo sobre el gris del lienzo.
+ */
+.panel-root .cs-in { font-size: 13px; }
+.panel-root .cs-rotulo, .panel-root .cs-hoja .pn-bloque-t, .panel-root .cs-lado .pn-plegable-cab {
+  font-size: 11px; font-weight: 600; color: var(--ink-muted); letter-spacing: 0;
+}
+.panel-root .cs-rotulo { display: block; margin-bottom: -16px; cursor: text; }
+.panel-root .cs-quien { font-size: 15px; font-weight: 500; letter-spacing: -0.005em; min-height: 22px; }
+.panel-root .cs-hoja .pn-bloque-t { min-height: 22px; }
+.panel-root .cs-hoja .pn-bloque-t > svg { display: none; }
+.panel-root .cs-hoja .pn-bloque-t .pn-cuenta { margin-left: -4px; color: var(--ink-muted); font-weight: 600; }
+.panel-root .cs-tab { font-size: 11px; }
+.panel-root .cs-hoja .pn-prop { min-height: 33px; border-bottom: 1px solid var(--linea-suave); }
+.panel-root .cs-hoja .pn-prop-e { font-size: 13px; }
+.panel-root .cs-hoja .pn-prop-e > svg { display: none; }
+.panel-root .cs-hoja .pn-prop-v :is(.pn-control, input) { font-size: 13px; }
+.panel-root .cs-preguntas { padding-top: 12px; border-top: 0; }
+.panel-root .cs-que { font-size: 15px; }
+.panel-root .cs-barra :is(.pn-btn) { height: 30px; min-height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; }
+.panel-root .cs-barra .pn-btn-fantasma:not(.pn-btn-icono) { border: 1px solid var(--border-strong); background: var(--card); color: var(--ink); font-weight: 500; }
+.panel-root .cs-barra .pn-btn-icono { width: 30px; padding: 0; }
+.panel-root .cs-atajo { margin-left: 4px; padding: 0 5px; border-radius: 5px; background: rgb(255 255 255 / 0.22); font: inherit; font-size: 11px; font-weight: 500; }
+.panel-root .cs-lado .pn-plegable-cab > svg:first-child { display: none; }
+.panel-root .cs-lado .pn-plegable-res { font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.panel-root .cs-doc { min-height: 30px; font-size: 13px; }
+@media (min-width: 1101px) {
+  .panel-root .cs-lado { background: var(--bg); padding: 14px 18px 24px; }
+  /* La hoja del modelo mide 860 px con su columna de apoyo de 260 px; aquí un poco más ancha para que quepan los documentos. */
+  .panel-root .cs-in { max-width: 940px; }
+  .panel-root .cs-dos { grid-template-columns: minmax(0, 1fr) 280px; }
+  .panel-root .cs-hoja.pn-superficie { padding: 20px 24px 24px; }
+  .panel-root .cs-que { min-height: 72px; }
+  .panel-root .cs-que:focus, .panel-root .cs-que:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent-soft); }
+}
+.panel-root .cs-hoja .pn-bloque-t { gap: 0; }
+/* «· 3 de 6» va pegado al rótulo; la clase es la misma que la de la cuenta del menú, así que se le quita aquel aspecto. */
+.panel-root .cs-hoja .pn-bloque-t .pn-cuenta {
+  display: inline; width: auto; min-height: 0; margin: 0 0 0 4px; padding: 0; border-radius: 0; background: none; cursor: default; font-size: 11px;
+}
+@media (max-width: 900px) {
+  .panel-root .cs-in { font-size: 15px; }
+  .panel-root .cs-quien { font-size: 20px; font-weight: 600; }
+  .panel-root .cs-barra .pn-btn { height: 44px; min-height: 44px; }
+  .panel-root .cs-barra .pn-btn-icono { width: 44px; }
+  .panel-root .cs-hoja .pn-prop { min-height: 44px; }
+  .panel-root .cs-hoja .pn-prop-e, .panel-root .cs-hoja .pn-prop-v :is(.pn-control, input) { font-size: 15px; }
+  .panel-root .cs-atajo, .panel-root .cs-tab { display: none; }
+}
+@media (max-width: 640px) {
+  .panel-root .cs-barra .cs-abrir { height: 50px; min-height: 50px; border-radius: var(--r-lg); font-size: 15.5px; }
+}
 @media (prefers-reduced-motion: reduce) { .cs-in { animation: none; } }
 
 @media (max-width: 1100px) {

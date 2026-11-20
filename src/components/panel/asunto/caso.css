@@ -78,3 +78,38 @@
 .cp-ap-mas { min-height: 48px; padding-left: 16px; gap: 18px; color: var(--ink-muted); font-size: 14px; }
 .cp-ap-mas > svg:last-child { color: inherit; }
 @media (prefers-reduced-motion: reduce) { .cp-ap, .cp-ap > svg:last-child { transition: none; } .cp-ap:active { transform: none; } }
+
+/*
+ * Medidas del modelo visual (Main.dc.html): letra de 13 px; botones de la barra de 30 px con esquinas de 8 px; la línea
+ * bajo el nombre separada por puntos; «Lo que sigue» con «Hecha» y «Posponer» juntos; los apartados en renglones de
+ * cuadro de 26 px, sin flecha (el renglón entero abre).
+ */
+.panel-root .cp { font-size: 13px; padding-top: 0; gap: 16px; }
+.panel-root .cp-barra { gap: 8px; }
+.panel-root .cp-barra :is(.pn-btn, .as-pil) { height: 30px; min-height: 30px; padding: 0 10px; border-radius: 8px; font-size: 13px; font-weight: 500; }
+.panel-root .cp-barra .as-pil { border-color: var(--border-strong); }
+.panel-root .cp-barra .pn-btn:not(.pn-btn-fantasma) { border-color: var(--border-strong); background: var(--card); color: var(--ink); }
+.panel-root .cp-barra .pn-btn-icono { width: 30px; padding: 0; }
+.panel-root .cp-barra .as-num { color: var(--ink-muted); letter-spacing: 0; }
+.panel-root .cp-cab { gap: 6px; padding-top: 6px; }
+.panel-root .cp-meta { gap: 2px 0; }
+.panel-root .cp-meta > * + *::before { content: "·"; margin: 0 6px; color: var(--ink-muted); }
+.panel-root .cp-meta .as-pill { font-weight: 400; }
+.panel-root .cp-meta .as-pil { height: auto; margin: 0; padding: 0; border: 0; border-radius: 4px; font-weight: 400; }
+.panel-root .cp-meta .as-pil > svg:last-child { opacity: 0; transition: opacity 120ms; }
+.panel-root .cp-meta .as-pil:is(:hover, :focus-visible, [data-state="open"]) { background: none; color: var(--ink); }
+.panel-root .cp-meta .as-pil:is(:hover, :focus-visible, [data-state="open"]) > svg:last-child { opacity: 1; }
+.panel-root .cp-sigue-e { font-size: 11px; }
+.panel-root .cp-sigue .as-q { font-size: 15px; }
+.panel-root .cp-sigue .as-m { font-size: 13px; }
+.panel-root .cp-sigue .pn-btn { height: 30px; min-height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; }
+.panel-root .cp-sigue .pn-btn-fantasma { border: 1px solid var(--border-strong); background: var(--card); font-weight: 500; }
+.panel-root .cp-sigue { padding: 12px 16px; gap: 2px 8px; }
+.panel-root .cp-sigue .as-sigue-c { flex: 1 1 160px; }
+@container caso (max-width: 620px) { .panel-root .cp-sigue .as-sigue-c { flex-basis: 160px; } }
+.panel-root .cp-ap { gap: 10px; min-height: 0; padding: 10px 14px; }
+.panel-root .cp-ap .as-tile { width: 26px; height: 26px; border-radius: 7px; }
+.panel-root .cp-ap-c b { font-size: 13px; }
+.panel-root .cp-ap-c span { font-size: 13px; }
+.panel-root .cp-ap:not(.cp-ap-mas) > svg:last-child { display: none; }
+.panel-root .cp-ap-mas { min-height: 40px; font-size: 13px; }

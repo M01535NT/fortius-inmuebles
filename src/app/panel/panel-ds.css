@@ -62,7 +62,7 @@
 .pn-side { position: sticky; top: 0; height: 100dvh; flex: none; width: 232px; z-index: 30; }
 .pn-side[data-mini="true"] { width: 64px; }
 .pn-side-in {
-  height: 100%; width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 14px 10px;
+  height: 100%; width: 100%; display: flex; flex-direction: column; gap: 2px; padding: 12px 10px;
   padding-left: max(10px, env(safe-area-inset-left, 0px)); background: var(--side); border-right: 1px solid var(--border); overflow-y: auto;
 }
 .pn-side[data-mini="true"][data-abierto="true"] .pn-side-in {
@@ -70,7 +70,7 @@
   animation: pn-menu-abre 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @keyframes pn-menu-abre { from { opacity: 0.6; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
-.pn-side-top { display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 4px 8px 12px; }
+.pn-side-top { display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 0 6px 8px; }
 .pn-side-top .pn-lbl { flex: 1; display: inline-flex; align-items: center; }
 .pn-side .pn-mark { display: none; margin: 0 auto; }
 .pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-lbl,
@@ -89,7 +89,7 @@
 .pn-iconbtn:hover { background: var(--fill); color: var(--ink); }
 /* Buscar: cuadro blanco con borde, como en el boceto. */
 .pn-busca {
-  display: flex; align-items: center; gap: 8px; width: 100%; height: 30px; padding: 0 8px; margin: 0 0 2px;
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 30px; padding: 0 8px; margin: 0;
   border: 1px solid var(--border); border-radius: 7px; background: var(--card); color: var(--ink-muted); font-size: 13px; cursor: pointer; text-align: left;
 }
 .pn-busca:hover { border-color: var(--border-strong); }
@@ -106,7 +106,7 @@
   position: relative; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: 7px;
   color: var(--ink); font-size: 13px; font-weight: 450; white-space: nowrap;
 }
-.pn-link > svg { color: var(--ink-muted); }
+.pn-link > svg { flex: none; color: var(--ink-muted); }
 .pn-link:hover { background: var(--fill); }
 .pn-link[aria-current="page"] { background: var(--side-on); font-weight: 600; }
 .pn-link[aria-current="page"] > svg { color: var(--accent); }
@@ -120,15 +120,20 @@ button.pn-sec { cursor: pointer; }
 /* Recientes: los últimos asuntos abiertos, con el cuadrito de su encargo. */
 .pn-recientes { display: flex; flex-direction: column; gap: 2px; min-height: 0; }
 .pn-reciente .pn-txt { overflow: hidden; text-overflow: ellipsis; }
-/* Cuenta al pie del menú. */
+/* Cuenta al pie del menú (modelo visual): «Moisés · Director» en una línea gris de 12 px; el menú se abre con un clic. */
 .pn-cuenta {
-  margin-top: auto; display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: 8px;
-  background: none; color: var(--ink-muted); font: inherit; cursor: pointer; text-align: left;
+  margin-top: auto; display: flex; align-items: center; gap: 6px; width: 100%; min-height: 30px; padding: 6px 8px 2px; border: 0; border-radius: 7px;
+  background: none; color: var(--ink-muted); font: inherit; font-size: 12px; cursor: pointer; text-align: left;
 }
-.pn-cuenta:hover { background: var(--fill); }
-.pn-cuenta-c { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
-.pn-cuenta-n { color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pn-cuenta-c small { color: var(--ink-faint); font-size: 12px; }
+.pn-cuenta:hover { background: var(--fill); color: var(--ink); }
+.pn-cuenta .pn-av { display: none; }
+.pn-side[data-mini="true"]:not([data-abierto="true"]) .pn-cuenta .pn-av { display: inline-flex; }
+.pn-cuenta-c { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-cuenta-n { font-weight: 450; }
+.pn-cuenta-ch { display: inline-flex; opacity: 0; transition: opacity 120ms; }
+.pn-cuenta:hover .pn-cuenta-ch, .pn-cuenta:focus-visible .pn-cuenta-ch, .pn-cuenta[data-state="open"] .pn-cuenta-ch { opacity: 1; }
+/* El número del renglón deja su lugar al asa de arrastre cuando el ratón pasa encima. */
+.pn-item-fila:hover .pn-nav-n, .pn-item-fila:focus-within .pn-nav-n { visibility: hidden; }
 .pn-av { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11.5px; font-weight: 650; }
 .pn-main { flex: 1; min-width: 0; }
 .pn-pagina { max-width: 1040px; margin: 0 auto; padding: 22px max(24px, env(safe-area-inset-right, 0px)) 80px max(24px, env(safe-area-inset-left, 0px)); }

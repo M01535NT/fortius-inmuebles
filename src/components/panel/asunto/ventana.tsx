@@ -156,6 +156,8 @@ export function Ventana({ abierta, alCerrar, alRegresar, anterior, titulo, subti
             <div className="as-win-c"><CtxRegreso.Provider value={setInterno}>{children}</CtxRegreso.Provider></div>
             {notas?.abiertas && notas.contenido ? <aside className="as-lat" aria-label="Notas del asunto">{notas.contenido}</aside> : null}
           </div>
+          {/* Pie del inspector (modelo visual): lo que hace el teclado. */}
+          {inspector ? <div className="as-win-pie" aria-hidden>Esc cierra</div> : null}
         </D.Content>
       </D.Portal>
     </D.Root>

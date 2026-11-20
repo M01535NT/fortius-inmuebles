@@ -20,6 +20,7 @@ type Opcion = Entrada & { icono: NombreIcono; ruta: string; iniciales?: boolean 
 
 const IR_A: Opcion[] = [
   ...[...SECCIONES, CONFIGURACION].map((s) => ({ id: `ir-${s.slug}`, titulo: s.nombre, grupo: "Ir a" as const, icono: s.icono, ruta: s.ruta, claves: [s.resumen] })),
+  { id: "ir-bandeja", titulo: "Bandeja", grupo: "Ir a" as const, icono: "descargar", ruta: "/panel/bandeja", claves: ["archivos", "subir", "fotos", "documentos que llegan"] },
   { id: "ir-credito", titulo: "Crédito hipotecario", grupo: "Ir a" as const, icono: "costos", ruta: "/panel/herramientas/credito", claves: ["mensualidad", "hipoteca", "enganche", "calculadora"] },
   { id: "ir-comision", titulo: "Comisión", grupo: "Ir a" as const, icono: "precio", ruta: "/panel/herramientas/comision", claves: ["iva", "propietario", "calculadora"] },
 ];
@@ -193,18 +194,21 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
             <button type="button" id="pn-op-tarea" role="option" aria-selected={actual === 0} className="pn-paleta-op" onClick={() => elegir(0)} onMouseMove={() => setActiva(0)}
               aria-label={`Crear la tarea en ${destino?.nombre ?? "su asunto"}: ${linea.pastillas.map((p) => `${p.k} ${p.v}`).join(", ")}`}>
               <span className="pn-paleta-ini pn-paleta-ini-acento" aria-hidden><Gesto nombre="mas" tamano={16} /></span>
-              <span className="pn-paleta-tarea">
-                {linea.pastillas.map((p) => <span key={p.k} className="pn-chp"><i>{p.k}</i><b>{p.v}</b></span>)}
-                {!linea.fecha ? <span className="pn-paleta-nota">Sin día</span> : null}
+              {/* Modelo visual: «Tarea: Llamar a Laura» y, abajo, lo que se leyó de la línea y en qué asunto queda. */}
+              <span className="pn-paleta-txt">
+                <span className="pn-paleta-tarea-t">{linea.pastillas[0] ? `${linea.pastillas[0].k}: ${linea.pastillas[0].v}` : texto.trim()}</span>
+                <small>
+                  {[...linea.pastillas.slice(1).map((p) => p.v), ...(!linea.fecha ? ["Sin día"] : []), ...(destino && candidatos.length <= 1 ? [`en ${destino.nombre}`] : [])].join(" · ")}
+                </small>
               </span>
-              <kbd className="pn-kbd pn-solo-escritorio" aria-hidden>{guardando ? "…" : "Enter"}</kbd>
+              <kbd className="pn-kbd pn-solo-escritorio" aria-hidden>{guardando ? "…" : "↩"}</kbd>
             </button>
             {candidatos.length > 1 ? (
               <div className="pn-paleta-donde">
                 <Desplegable etiqueta="En qué asunto" valor={destino?.id ?? ""} vacio="Elige el asunto" alElegir={(v) => setElegido(v)}
                   opciones={candidatos.map((a) => ({ valor: a.id, etiqueta: a.nombre }))} />
               </div>
-            ) : destino ? <p className="pn-paleta-nota pn-paleta-donde">En {destino.nombre}</p> : null}
+            ) : null}
           </li>
         ) : null}
         {lista.length === 0 && !conTarea ? (
@@ -222,6 +226,7 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
                   <span>{o.titulo}</span>
                   {o.detalle ? <small>{o.detalle}</small> : null}
                 </span>
+                {i === actual ? <kbd className="pn-kbd pn-solo-escritorio" aria-hidden>↩</kbd> : null}
               </button>
             </li>
           );
@@ -231,7 +236,7 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
         {!texto.trim() ? "" : total === 0 ? "Sin resultados" : total === 1 ? "1 resultado" : `${total} resultados`}
       </p>
       <div className="pn-paleta-pie">
-        <span className="pn-solo-escritorio" aria-hidden><kbd className="pn-kbd">↑</kbd> <kbd className="pn-kbd">↓</kbd> moverse · <kbd className="pn-kbd">Enter</kbd> abrir o crear</span>
+        <span className="pn-solo-escritorio" aria-hidden>↑ ↓ moverse · ↩ abrir o crear · Esc cierra</span>
       </div>
     </div>
   );

@@ -29,6 +29,8 @@ import { DialogoCierre } from "./cierre";
 import { ContenidoApartado, iconoPropio, nombreApartado, resumenApartado } from "./apartados";
 import { NotasDelAsunto, type FiltroNotas } from "./notas";
 import { faltaCobrar } from "./honorarios";
+import { hechoDe } from "./situacion";
+import { NOMBRE_DE_QUIEN, NOMBRE_QUIERE } from "@/lib/backend/consultas-contrato";
 import { olvidarGuias } from "../biblioteca/guias";
 
 const NOMBRE_VISTA: Record<Vista, string> = { lista: "Lista", tabla: "Tabla", galeria: "Galería", texto: "Texto" };
@@ -55,6 +57,18 @@ const fila = (a: Asunto): FilaAsunto => ({
 });
 
 const POSPONER = [["Mañana", 1], ["En 3 días", 3], ["En una semana", 7], ["En un mes", 30]] as const;
+
+/**
+ * Lo que va en la línea bajo el nombre después del encargo (modelo visual: «Venta · En sucesión · Lo lleva…»): qué quiere
+ * y de quién es, tal como se anotó en Situación o en la consulta. Cómo llegó (llamada, sitio…) no viaja con el asunto.
+ */
+function datosDeLaLinea(a: Asunto): string[] {
+  const quiere = hechoDe(a, "que_quiere"), deQuien = hechoDe(a, "de_quien");
+  return [
+    typeof quiere === "string" ? NOMBRE_QUIERE[quiere as keyof typeof NOMBRE_QUIERE] : undefined,
+    typeof deQuien === "string" && deQuien !== "suyo" && deQuien !== "no_sabe" ? NOMBRE_DE_QUIEN[deQuien as keyof typeof NOMBRE_DE_QUIEN] : undefined,
+  ].filter((t): t is string => Boolean(t));
+}
 
 /** Si la lista de asuntos se ve junto al asunto abierto («si» o «no»). La lee también el marco de Asuntos. */
 export const LISTA_JUNTO = "fortius-panel-lista-junto";
@@ -332,15 +346,17 @@ export function DetalleAsunto({ id }: { id: string }) {
 
       <div className={enPagina ? "cp-cab" : "as-titulo"}>
         <h1 className={enPagina ? "cp-h1" : "as-h1"}>{a.nombre}</h1>
+        {/* Modelo visual: una línea gris con qué encargaron, qué quiere, de quién es y quién lo lleva, separada por puntos. */}
         <div className={enPagina ? "cp-meta" : "as-fila as-pills"}>
-          {a.encargos.map((e) => <span key={e} className="as-pill"><Icono nombre={iconoEncargo(e)[0]} tamano={12} />{encargo(e)}</span>)}
+          {a.encargos.map((e) => <span key={e} className="as-pill">{enPagina ? null : <Icono nombre={iconoEncargo(e)[0]} tamano={12} />}{encargo(e)}</span>)}
+          {enPagina ? datosDeLaLinea(a).map((t) => <span key={t} className="as-pill">{t}</span>) : null}
           {cerrado && a.resultado ? <span className={`as-pill ${logrado(a.resultado) ? "as-pill-ok" : "as-pill-bad"}`}>{resultado(a.resultado)}</span> : null}
-          {a.en_espera ? <span className="as-pill as-pill-warn"><Icono nombre="reloj" tamano={12} />En espera{a.espera_hasta ? ` hasta ${fechaCorta(a.espera_hasta).toLowerCase()}` : ""}</span> : null}
+          {a.en_espera ? <span className="as-pill as-pill-warn">{enPagina ? null : <Icono nombre="reloj" tamano={12} />}En espera{a.espera_hasta ? ` hasta ${fechaCorta(a.espera_hasta).toLowerCase()}` : ""}</span> : null}
           {director && equipo.length > 1 ? (
-            <Pildora etiqueta="Quién lo lleva" icono="users" valor={a.responsable_id}
+            <Pildora etiqueta="Quién lo lleva" icono={enPagina ? undefined : "users"} valor={a.responsable_id} titulo={enPagina ? `Lo lleva ${nombreDe(a.responsable_id)}` : undefined}
               opciones={equipo.map((m) => ({ valor: m.id, etiqueta: m.nombre }))}
               alElegir={(v) => { if (v !== a.responsable_id) void cambio({ responsable_id: v }, `Ahora lo lleva ${nombreDe(v)}`, { responsable_id: a.responsable_id }); }} />
-          ) : <span className="as-pill"><Icono nombre="users" tamano={12} />{nombreDe(a.responsable_id)}</span>}
+          ) : <span className="as-pill">{enPagina ? `Lo lleva ${nombreDe(a.responsable_id)}` : <><Icono nombre="users" tamano={12} />{nombreDe(a.responsable_id)}</>}</span>}
         </div>
         {a.en_espera && a.espera_motivo ? <p className="as-m">{a.espera_motivo}</p> : null}
         {cerrado && a.motivo_cierre ? <p className="as-m">{a.motivo_cierre}</p> : null}

@@ -447,7 +447,7 @@ export function PantallaConsulta() {
         ) : null}
         <DropdownMenu>
           <DropdownMenuTrigger className="pn-btn pn-btn-fantasma" aria-label="Cerrar sin asunto">
-            <span className="cs-ocultar-tel">Sin asunto</span><Icono nombre="down" tamano={14} aria-hidden />
+            <span className="cs-ocultar-tel">Cerrar sin asunto</span><Icono nombre="down" tamano={14} aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onSelect={() => setDialogo("contacto")}><Icono nombre="users" tamano={16} />Guardar como contacto</DropdownMenuItem>
@@ -455,15 +455,16 @@ export function PantallaConsulta() {
           </DropdownMenuContent>
         </DropdownMenu>
         <Boton variante="primario" icono="ok" className="cs-abrir" onClick={() => void abrir()} deshabilitado={abriendo} title="Abrir asunto (Ctrl + Enter)">
-          {abriendo ? "Abriendo…" : "Abrir asunto"}
+          {abriendo ? "Abriendo…" : "Abrir asunto"}<kbd className="cs-atajo" aria-hidden>Ctrl ↩</kbd>
         </Boton>
       </header>
 
       <div className="cs-dos">
         {/* La hoja: quién llama y qué pasa al frente, luego las preguntas como renglones «dato: valor». */}
         <section className="pn-superficie cs-hoja" aria-label="Consulta">
-          {/* «Quién llama» como título de la hoja: un nombre completo cabe sin cortarse (hallazgo 7). */}
-          <textarea className="cs-quien" rows={1} value={b.quien_nombre} maxLength={160} autoFocus autoComplete="off" placeholder="Quién llama" aria-label="Quién llama"
+          {/* «Quién llama» con su rótulo chico arriba (modelo visual); un nombre completo cabe sin cortarse (hallazgo 7). */}
+          <label htmlFor="cs-quien" className="cs-rotulo">Quién llama</label>
+          <textarea id="cs-quien" className="cs-quien" rows={1} value={b.quien_nombre} maxLength={160} autoFocus autoComplete="off" placeholder="Nombre de quien llama"
             onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
             onChange={(e) => cambiar((x) => ({ ...x, quien_nombre: e.target.value.replace(/\s*\n\s*/g, " ") }))} />
           <div className="pn-props cs-contacto">
@@ -492,7 +493,7 @@ export function PantallaConsulta() {
           </div>
 
           <div className="cs-preguntas">
-            <div className="pn-bloque-t"><Icono nombre="lista" tamano={15} aria-hidden />Preguntas<span className="pn-cuenta">{contestadas} de 7</span></div>
+            <div className="pn-bloque-t"><Icono nombre="lista" tamano={15} aria-hidden />Preguntas<span className="pn-cuenta">· {contestadas} de 7</span><span className="as-sp" /><kbd className="pn-kbd cs-tab" aria-hidden title="Tab pasa a la siguiente pregunta">Tab</kbd></div>
             <div className="pn-props">
               <Propiedad icono="rayo" etiqueta="Qué quiere">
                 {(id) => <Seleccion id={id} valor={d.que_quiere ?? ""} vacio="Sin decir" opciones={ops(QUIERE, NOMBRE_QUIERE)} alElegir={(v) => ponDato("que_quiere", v as typeof QUIERE[number] | "")} />}

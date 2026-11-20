@@ -125,21 +125,21 @@ export function Inicio() {
   const otrosDelEquipo = equipo.filter((m) => m.id !== yo || director);
 
   return (
-    <div className="db-pagina in-pagina">
-      <div className="db-top">
-        <div>
-          <h1>Inicio</h1>
-          <p className="db-sub">{datos ? fechaLarga(datos.hoy) : " "}</p>
-        </div>
+    <div className="in-raiz">
+      {/* Barra de 52 px como las del modelo visual: el título, el día y, a la derecha, de quién ver y «Nueva consulta». */}
+      <div className="in-barra">
+        <h1>Inicio</h1>
+        <span className="in-dia">{datos ? fechaLarga(datos.hoy) : ""}</span>
         <span className="as-sp" />
         {director && equipo.length > 1 ? (
-          <div className="db-filtro">
+          <div className="db-filtro in-filtro">
             <Desplegable etiqueta="De quién" valor={de} vacio="Todo el equipo" alElegir={setDe}
               opciones={equipo.map((m) => ({ valor: m.id, etiqueta: m.id === yo ? `${m.nombre} (yo)` : m.nombre }))} />
           </div>
         ) : null}
-        <Link href="/panel/consulta" className="as-btn as-pri"><Icono nombre="tel" tamano={16} />Nueva consulta</Link>
+        <Link href="/panel/consulta" className="as-btn as-pri in-nueva"><Icono nombre="tel" tamano={15} />Nueva consulta</Link>
       </div>
+    <div className="db-pagina in-pagina">
 
       {error ? <div className="as-vacio"><Icono nombre="alerta" tamano={24} /><b>{error}</b><button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button></div> : null}
       {!v && !error ? <div className="as-cargando" aria-label="Cargando"><span /><span /><span /></div> : null}
@@ -299,6 +299,7 @@ export function Inicio() {
         inicial={recordar ? `Hola${recordar.para ? ` ${saludo(recordar.para.nombre)}` : ""}, ¿cómo va «${recordar.titulo}»?${recordar.fecha ? ` Quedamos en tenerlo el ${fechaLarga(recordar.fecha).toLowerCase()}.` : ""} Gracias.` : ""}
         alCerrar={() => setRecordar(null)}
         alEnviar={() => { const t = recordar; if (t) void hacer(() => cambiar(t.asunto_id, "tareas", { id: t.id, version: t.version, recordar: true }), "Se le recordó: volver a preguntar en 3 días"); }} />
+    </div>
     </div>
   );
 }
