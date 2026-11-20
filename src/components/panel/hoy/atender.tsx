@@ -12,7 +12,7 @@ import { enlaceWhatsApp } from "@/lib/panel/datos/consultas";
 import type { ItemHoy } from "@/lib/panel/datos/hoy-atender";
 import { opcionesPosponer, type OpcionPosponer } from "@/lib/panel/datos/posponer";
 
-const rutaAsunto = (id: string) => `/panel/asuntos?ver=${encodeURIComponent(id)}`;
+const rutaAsunto = (id: string) => `/admin/asuntos?ver=${encodeURIComponent(id)}`;
 const ICONO: Record<ItemHoy["clase"], NombreIcono> = { tarea: "expediente", consulta: "mensaje", tramite: "escritura", contrato: "alerta", cobro: "precio", fecha: "cita" };
 
 /** Se pospone una tarea (con hora: «Esta tarde · 17:00») o una solicitud del sitio (solo el día: vuelve a Hoy ese día). */

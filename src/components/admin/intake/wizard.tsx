@@ -56,16 +56,16 @@ export function NewOperationWizard() {
 
   const step = !interviewId ? null : !interview ? 0 : interview.estado === "borrador" ? 3 : 4;
   return <Surface className="flex min-h-[100dvh] flex-1 flex-col">
-    {step === null ? <ContactSteps onStarted={started => { setGuard({ dirty: false, busy: false }); setInterview(started); setFresh(true); router.replace(`/admin/operaciones/nueva?${new URLSearchParams({ entrevista: started.id, ...demandSeed(params) })}`, { scroll: false }); }} onGuard={onGuard} />
+    {step === null ? <ContactSteps onStarted={started => { setGuard({ dirty: false, busy: false }); setInterview(started); setFresh(true); router.replace(`/admin-anterior/operaciones/nueva?${new URLSearchParams({ entrevista: started.id, ...demandSeed(params) })}`, { scroll: false }); }} onGuard={onGuard} />
       : <div className={s.shell}>
         <Header step={step === 0 ? 3 : step} intent={interview?.intencion} />
         <div className={s.frame}>
           <StepsNav step={step === 0 ? 3 : step} intent={interview?.intencion} />
           <div className={s.main}>
             {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
-              : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre asunto">Fortius representa al propietario: quien compra o renta se guarda como interesado.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
-              : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble. Prepara la entrevista desde el asunto.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir el asunto</Link>}</div>
-              : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} seed={demandSeed(params)} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
+              : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre asunto">Fortius representa al propietario: quien compra o renta se guarda como interesado.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin-anterior/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
+              : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble. Prepara la entrevista desde el asunto.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin-anterior/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir el asunto</Link>}</div>
+              : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} seed={demandSeed(params)} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin-anterior"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
               : <DoneStep interview={interview!} fresh={fresh} />}
           </div>
         </div>
@@ -77,7 +77,7 @@ function Header({ step, intent }: { step: number; intent?: IntakeIntent | null }
   const WIZARD_STEPS = wizardSteps(intent);
   return <div className={s.top}>
     <div className={s.topRow}>
-      <Link href="/admin" className={s.close} aria-label={`Salir de ${INTAKE_TITLE}`}><span className={s.closeIcon}><X size={18} aria-hidden="true" /></span>{INTAKE_TITLE}</Link>
+      <Link href="/admin-anterior" className={s.close} aria-label={`Salir de ${INTAKE_TITLE}`}><span className={s.closeIcon}><X size={18} aria-hidden="true" /></span>{INTAKE_TITLE}</Link>
       <span className="flex items-center gap-3"><span className={cn(s.hint, "hidden sm:inline")}>Se guarda solo mientras capturas</span><span className={s.meta}>Paso {step} de {WIZARD_STEPS.length}</span></span>
     </div>
     <div className={s.progress}>
@@ -230,8 +230,8 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
             <span className={s.dot} aria-hidden="true" /><span className="flex flex-col gap-0.5"><strong>{choice.title}</strong><span className="text-sm text-muted-foreground">{choice.description}</span></span>
           </button>)}
         </div>
-        <p className="text-sm text-muted-foreground">¿Ya tienes todos los datos? <Link href="/admin/operaciones?nuevo=1" className="font-semibold text-foreground underline underline-offset-4">Alta rápida, sin entrevista</Link></p>
-        {director && <p className="text-sm text-muted-foreground">¿Un inmueble que el asesor ya trae con contrato firmado? <Link href="/admin/operaciones?heredado=1#inventario-heredado" className="font-semibold text-foreground underline underline-offset-4">Inventario heredado</Link></p>}
+        <p className="text-sm text-muted-foreground">¿Ya tienes todos los datos? <Link href="/admin-anterior/operaciones?nuevo=1" className="font-semibold text-foreground underline underline-offset-4">Alta rápida, sin entrevista</Link></p>
+        {director && <p className="text-sm text-muted-foreground">¿Un inmueble que el asesor ya trae con contrato firmado? <Link href="/admin-anterior/operaciones?heredado=1#inventario-heredado" className="font-semibold text-foreground underline underline-offset-4">Inventario heredado</Link></p>}
         {pending.length > 0 && <div className="xl:hidden"><PendingCard pending={pending} /></div>}
       </> : <>
         <h1 className={s.title}>¿Quién es?</h1>
@@ -295,6 +295,6 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
 function PendingCard({ pending }: { pending: OperationalInterview[] }) {
   return <Card as="div" className="flex flex-col gap-2 p-4 text-sm">
     <p className="font-semibold">También tienes {pending.length === 1 ? "una entrevista" : `${pending.length} entrevistas`} por terminar.</p>
-    <ul className="flex flex-col gap-1">{pending.slice(0, 5).map(p => <li key={p.id}><Link className="inline-flex min-h-9 items-center font-semibold text-[var(--primary-text)] underline underline-offset-4" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(p.id)}`}>{p.contacto.nombre} · {intentTitle(p.intencion)}</Link></li>)}</ul>
+    <ul className="flex flex-col gap-1">{pending.slice(0, 5).map(p => <li key={p.id}><Link className="inline-flex min-h-9 items-center font-semibold text-[var(--primary-text)] underline underline-offset-4" href={`/admin-anterior/operaciones/nueva?entrevista=${encodeURIComponent(p.id)}`}>{p.contacto.nombre} · {intentTitle(p.intencion)}</Link></li>)}</ul>
   </Card>;
 }

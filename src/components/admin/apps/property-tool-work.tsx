@@ -36,7 +36,7 @@ export function PropertyToolWork({ slug, precio, moneda }: { slug: string; preci
       : runs.length === 0 ? <p className="text-sm text-muted-foreground">Todavía no hay cálculos guardados para este inmueble. Lo que guardes desde aquí aparecerá en esta lista.</p>
       : <ul className="flex flex-col divide-y divide-border">{runs.map(run => <li key={run.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
         <div className="min-w-0"><p className="font-semibold [overflow-wrap:anywhere]">{run.title}</p><p className="text-xs text-muted-foreground">{getApp(run.slug)?.title ?? run.slug} · {humanDateTime(run.updatedAt)}</p></div>
-        <Link className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4" href={`/admin/apps/${run.slug}?abrir=${encodeURIComponent(run.id)}`} aria-label={`Abrir ${run.title}`}>Abrir</Link>
+        <Link className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4" href={`/admin-anterior/apps/${run.slug}?abrir=${encodeURIComponent(run.id)}`} aria-label={`Abrir ${run.title}`}>Abrir</Link>
       </li>)}</ul>}
   </Card>;
 }

@@ -106,7 +106,7 @@ export function DocumentosSinExpediente() {
 
   const grupos = gruposDeFormatos();
   return <div className="flex flex-col gap-6">
-    <Link href="/admin/herramientas" className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium underline-offset-4 hover:underline"><ArrowLeft size={16} aria-hidden="true" />Más</Link>
+    <Link href="/admin-anterior/herramientas" className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium underline-offset-4 hover:underline"><ArrowLeft size={16} aria-hidden="true" />Más</Link>
     <PageHeader title="Documentos sueltos" description="Cualquier formato en blanco o lleno con los datos que dé el cliente, sin abrir un asunto." />
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 

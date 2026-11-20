@@ -150,8 +150,8 @@ export function InterestedDone({ intent, lead }: { intent: Intent; lead: Lead })
       <dt>Lo que sigue</dt><dd>Sus visitas y ofertas van en el asunto del propietario. Si firma, queda como contraparte.</dd>
     </dl></Card>
     <div className="flex flex-wrap items-center gap-3">
-      <ButtonLink variant="primary" href={`/admin/leads/${encodeURIComponent(lead.id)}`}>Ver su ficha<ArrowRight size={16} aria-hidden="true" /></ButtonLink>
-      <Link href="/admin" className="font-semibold text-foreground underline-offset-4 hover:underline">Volver a Hoy</Link>
+      <ButtonLink variant="primary" href={`/admin-anterior/leads/${encodeURIComponent(lead.id)}`}>Ver su ficha<ArrowRight size={16} aria-hidden="true" /></ButtonLink>
+      <Link href="/admin-anterior" className="font-semibold text-foreground underline-offset-4 hover:underline">Volver a Hoy</Link>
     </div>
   </div>;
 }

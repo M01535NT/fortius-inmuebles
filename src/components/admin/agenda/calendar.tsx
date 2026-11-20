@@ -285,7 +285,7 @@ export function AgendaCalendar() {
           <span className={s.gutter}>Sin hora</span>
           {semana.map(fecha => <ul key={fecha} className={s.allDayCell} aria-label={`Sin hora el ${dayLabel(fecha)}`}>
             {eventos.filter(e => e.fecha === fecha && !e.hora).map(e => <li key={e.id}><button type="button" className={cn(s.chip, e.tipo === "visita" && s.chipVisit)} aria-label={`Ver evento: ${e.titulo}`} onClick={() => openEvent(e)}>{e.titulo}</button></li>)}
-            {tareas.filter(t => t.vence === fecha).map(t => <li key={t.id}><Link className={cn(s.chip, s.chipTask)} href={`/admin/tareas/${encodeURIComponent(t.id)}`}>Tarea: {t.titulo}</Link></li>)}
+            {tareas.filter(t => t.vence === fecha).map(t => <li key={t.id}><Link className={cn(s.chip, s.chipTask)} href={`/admin-anterior/tareas/${encodeURIComponent(t.id)}`}>Tarea: {t.titulo}</Link></li>)}
             {followups.filter(f => f.fecha === fecha).map(f => <li key={f.id}><Link className={cn(s.chip, s.chipTask)} href={f.href}>Seguimiento: {f.personName}</Link></li>)}
           </ul>)}
         </div>
@@ -340,7 +340,7 @@ export function AgendaCalendar() {
 
       <aside className="flex min-w-0 flex-col gap-4" aria-label="También este día">
         {tareasDelDia.length > 0 && <section aria-label="Vencimientos de tareas" className={s.sideCard}><h3>Tareas que vencen este día</h3>
-          <ul>{tareasDelDia.map(t => { const refs = resolveRefs(t, calendarContext); return <li key={t.id}><Link href={`/admin/tareas/${t.id}`} className={s.link}><RefMedia refs={refs} size={32} /><span className="flex min-w-0 flex-col"><span>{t.titulo}</span><span className="text-xs text-muted-foreground">{TASK_STATUSES[t.estado]}</span></span></Link></li>; })}</ul>
+          <ul>{tareasDelDia.map(t => { const refs = resolveRefs(t, calendarContext); return <li key={t.id}><Link href={`/admin-anterior/tareas/${t.id}`} className={s.link}><RefMedia refs={refs} size={32} /><span className="flex min-w-0 flex-col"><span>{t.titulo}</span><span className="text-xs text-muted-foreground">{TASK_STATUSES[t.estado]}</span></span></Link></li>; })}</ul>
         </section>}
         {contactosDelDia.length > 0 && <section aria-label="Próximos contactos" className={s.sideCard}><h3>Seguimientos previstos este día</h3>
           <ul>{contactosDelDia.map(f => <li key={f.id}><Link href={f.href} className={s.link}><Avatar name={f.personName} size={32} /><span className="flex min-w-0 flex-col"><span>{f.personName}</span><span className="text-xs text-muted-foreground">{followupLabel(f)} · {asesores.find(a => a.id === f.asesorId)?.nombre ?? "Sin asesor"}</span></span></Link></li>)}</ul>

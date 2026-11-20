@@ -43,7 +43,7 @@ export function PasarAAsunto({ run, onClose }: { run: AppRun; onClose: () => voi
       const { adjuntos: _fotos, ...data } = (fresh.input.data ?? {}) as Record<string, unknown>;
       void _fotos;
       const { documento } = await apiRequest<{ documento: { id: string } }>(`/api/admin/expedientes/${encodeURIComponent(target)}/formatos`, "POST", { formatoId: fresh.input.formatoId, data });
-      router.push(`/admin/operaciones/${encodeURIComponent(target)}?documento=${encodeURIComponent(documento.id)}`);
+      router.push(`/admin-anterior/operaciones/${encodeURIComponent(target)}?documento=${encodeURIComponent(documento.id)}`);
     } catch (cause) { setError(errorMessage(cause)); setBusy(false); }
   }
 

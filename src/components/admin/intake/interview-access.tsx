@@ -105,8 +105,8 @@ export function InterviewAccess({
           className={btnPrimary}
           href={
             current
-              ? "/admin/operaciones/nueva?entrevista=" + encodeURIComponent(current.id)
-              : "/admin/operaciones/nueva?" + q
+              ? "/admin-anterior/operaciones/nueva?entrevista=" + encodeURIComponent(current.id)
+              : "/admin-anterior/operaciones/nueva?" + q
           }
         >
           {current

@@ -207,7 +207,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
   const documentos: Fila[] = [
     ...sueltos.map(d => ({ id: `s${d.id}`, nombre: d.titulo, detalle: "De la persona", origen: "Recibido", fecha: d.created_at, clase: "recibido" as const, href: `/api/admin/bandeja-vieja/${d.id}/descargar` })),
     ...(op ? archivos.filter(a => !a.deleted_at).map(a => ({ id: `a${a.id}`, nombre: a.titulo, detalle: "Del asunto", origen: "Recibido", fecha: a.created_at, clase: "recibido" as const, href: `/api/admin/archivos-cliente/${a.id}/descargar` })) : []),
-    ...(op ? borradores.map(d => ({ id: `f${d.id}`, nombre: tituloFormato(d.formato_id), detalle: "Del asunto", origen: "Hecho aquí", version: `Versión ${d.version}`, fecha: d.updated_at, clase: "hecho" as const, href: `/admin/operaciones/${op.id}?documento=${d.id}` })) : []),
+    ...(op ? borradores.map(d => ({ id: `f${d.id}`, nombre: tituloFormato(d.formato_id), detalle: "Del asunto", origen: "Hecho aquí", version: `Versión ${d.version}`, fecha: d.updated_at, clase: "hecho" as const, href: `/admin-anterior/operaciones/${op.id}?documento=${d.id}` })) : []),
   ].sort((x, y) => y.fecha.localeCompare(x.fecha));
   const visibles = documentos.filter(d => tab === "todos" || (tab === "recibidos") === (d.clase === "recibido"));
 
@@ -220,7 +220,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
   const guia = op?.flujo?.ruta === "arrendador" ? "renta" : "venta";
   const digits = (persona?.telefono ?? "").replace(/\D/g, "");
   const wa = digits.length === 10 ? `52${digits}` : digits;
-  const opHref = op ? `/admin/operaciones/${op.id}` : "";
+  const opHref = op ? `/admin-anterior/operaciones/${op.id}` : "";
   const ref = `${row.kind === "cliente" ? "clienteId" : "leadId"}=${encodeURIComponent(row.id)}`;
 
   // Sus inmuebles: los de sus asuntos (los suyos o los que busca), los que el asesor agregó como de su interés y aquel por el que preguntó.
@@ -285,10 +285,10 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
       <div className={b.actions}>
         {digits && <ButtonLink href={`tel:${digits}`}><Phone size={16} aria-hidden />Llamar</ButtonLink>}
         {digits && <ButtonLink href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"><MessageCircle size={16} aria-hidden />WhatsApp</ButtonLink>}
-        <ButtonLink variant="primary" href={`/admin/agenda?nueva=1&${ref}`}><CalendarPlus size={16} aria-hidden />Agendar</ButtonLink>
+        <ButtonLink variant="primary" href={`/admin-anterior/agenda?nueva=1&${ref}`}><CalendarPlus size={16} aria-hidden />Agendar</ButtonLink>
         <ActionsMenu label="Más acciones" actions={[
           ...(op ? [{ label: "Crear un documento", onSelect: () => { router.push(`${opHref}?tab=documentos`); } }] : []),
-          { label: "Nueva tarea", onSelect: () => { router.push(`/admin/agenda?tab=tareas&nueva=1&${ref}`); } },
+          { label: "Nueva tarea", onSelect: () => { router.push(`/admin-anterior/agenda?tab=tareas&nueva=1&${ref}`); } },
           { label: "Abrir la ficha completa", onSelect: () => { router.push(row.href); } },
           { label: bloqueo ? `Eliminar · ${bloqueo}` : "Eliminar", icon: <Trash2 size={18} aria-hidden />, danger: true, separated: true, disabled: !!bloqueo, onSelect: () => { void eliminar(); } },
         ]} />
@@ -314,8 +314,8 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
           </div>
           <div className={b.stepFoot}>
             {op ? <Link href={opHref} className={`${b.onDark} ${s.onDarkLink}`}>Abrir el asunto</Link>
-              : <Link href={row.kind === "cliente" ? `/admin/operaciones/nueva?clienteId=${encodeURIComponent(row.id)}` : row.href} className={`${b.onDark} ${s.onDarkLink}`}>{row.kind === "cliente" ? "Abrir un asunto" : "Atender a esta persona"}</Link>}
-            <Link href={`/admin/agenda?tab=tareas&nueva=1&${ref}`} className={`${b.onDark} ${s.onDarkLink}`} data-quiet="true">Anotar en qué quedamos</Link>
+              : <Link href={row.kind === "cliente" ? `/admin-anterior/operaciones/nueva?clienteId=${encodeURIComponent(row.id)}` : row.href} className={`${b.onDark} ${s.onDarkLink}`}>{row.kind === "cliente" ? "Abrir un asunto" : "Atender a esta persona"}</Link>}
+            <Link href={`/admin-anterior/agenda?tab=tareas&nueva=1&${ref}`} className={`${b.onDark} ${s.onDarkLink}`} data-quiet="true">Anotar en qué quedamos</Link>
           </div>
         </section>
 
@@ -325,7 +325,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
           </div>
           {inmuebles.length ? <div className={s.pinm}>
             {inmuebles.map(({ p, papel, quitable }) => { const estado = propertyState(p); return <div key={p.slug} className={s.pwrap}>
-              <Link href={`/admin/propiedades/${encodeURIComponent(p.slug)}/editar`} className={s.pcard}>
+              <Link href={`/admin-anterior/propiedades/${encodeURIComponent(p.slug)}/editar`} className={s.pcard}>
                 <Thumb src={p.galeria[0]?.src} size={96} className={s.pthumb} />
                 <span className={s.ptext}><b>{p.titulo}</b><span className={s.price}>{formatPrecio(p.precio)}</span><span className={s.pmeta}><Pill size="sm" tone={estado.strong ? "warn" : "muted"}>{estado.label}</Pill><span>{papel}</span></span></span>
               </Link>
@@ -342,7 +342,7 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
             </Select></div>}
           </div>
           <div className={s.ops}>
-            {operaciones.map(o => { const { stages, current } = stageTrack(o, today); const inm = o.propiedad_slug ? tituloInmueble(o.propiedad_slug) : undefined; return <Link key={o.id} href={`/admin/operaciones/${o.id}`} className={s.oprow}>
+            {operaciones.map(o => { const { stages, current } = stageTrack(o, today); const inm = o.propiedad_slug ? tituloInmueble(o.propiedad_slug) : undefined; return <Link key={o.id} href={`/admin-anterior/operaciones/${o.id}`} className={s.oprow}>
               <span className={s.opmain}><StageRail total={stages.length} current={current} /><span className={s.opline}><b>{current + 1} · {stages[current]?.label ?? etapaDe(o)}</b>{inm && <> · {inm}</>}</span></span>
               <span className={s.sub}>{o.folio}</span>
             </Link>; })}
@@ -353,8 +353,8 @@ function Perfil({ row, sub, persona, asesor, operaciones, propiedades, tareas, e
           <div className={s.sechead}><h3 id="persona-documentos">Documentos</h3><Pill size="sm" tone="muted">{documentos.length}</Pill>
             {esCliente && <><Button onClick={() => input.current?.click()} disabled={subiendo}><Upload size={16} aria-hidden />{subiendo ? "Guardando…" : "Agregar archivo"}</Button>
               <input ref={input} type="file" multiple hidden accept={ACEPTA.join(",")} aria-label={`Agregar archivos al perfil de ${row.name}`} onChange={event => { void agregar([...(event.target.files ?? [])]); event.target.value = ""; }} /></>}
-            {op ? <CreateDocument where={`el asunto ${op.folio}`} exists={id => borradores.some(d => d.formato_id === id)} onCreate={id => router.push(`/admin/operaciones/${op.id}?crear=${id}`)} />
-              : esCliente && persona && <ButtonLink href={`/admin/operaciones?nuevo=1&clienteId=${encodeURIComponent(persona.id)}`}><Plus size={16} aria-hidden />Abrir un asunto para sus documentos</ButtonLink>}
+            {op ? <CreateDocument where={`el asunto ${op.folio}`} exists={id => borradores.some(d => d.formato_id === id)} onCreate={id => router.push(`/admin-anterior/operaciones/${op.id}?crear=${id}`)} />
+              : esCliente && persona && <ButtonLink href={`/admin-anterior/operaciones?nuevo=1&clienteId=${encodeURIComponent(persona.id)}`}><Plus size={16} aria-hidden />Abrir un asunto para sus documentos</ButtonLink>}
             <Segmented label="Mostrar documentos" value={tab} onChange={setTab} options={[{ id: "todos", label: "Todos" }, { id: "recibidos", label: "Recibidos" }, { id: "hechos", label: "Hechos aquí" }]} /></div>
           {docsError && <p className={b.hint} role="status">No se pudieron cargar los documentos de la persona. <button type="button" className="underline" onClick={() => setVuelta(n => n + 1)}>Reintentar</button></p>}
           {visibles.length ? <>

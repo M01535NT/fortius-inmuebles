@@ -56,13 +56,13 @@ export function personTimeline({ notes = [], events, tasks, records = [], offers
   const upcoming: TimelineItem[] = [], past: TimelineItem[] = [];
   for (const event of events) {
     const kind = event.tipo === "visita" ? "Visita" as const : "Cita" as const;
-    const href = `/admin/agenda?fecha=${event.fecha}&evento=${encodeURIComponent(event.id)}`;
+    const href = `/admin-anterior/agenda?fecha=${event.fecha}&evento=${encodeURIComponent(event.id)}`;
     const sort = `${event.fecha} ${event.hora ?? ""}`;
     if (event.fecha >= today) upcoming.push({ id: `e:${event.id}`, kind, text: event.titulo, when: stepDate(event.fecha, today, event.hora).label, href, sort });
     else past.push({ id: `e:${event.id}`, kind, text: event.titulo, when: humanDay(event.fecha), href, sort });
   }
   for (const task of tasks) {
-    const href = `/admin/tareas/${encodeURIComponent(task.id)}`;
+    const href = `/admin-anterior/tareas/${encodeURIComponent(task.id)}`;
     if (isTaskOpen(task)) {
       const date = task.vence ? stepDate(task.vence, today) : null;
       upcoming.push({ id: `t:${task.id}`, kind: "Tarea", text: task.titulo, when: date?.label ?? "Sin fecha", late: date?.late, href, sort: task.vence ?? "9999" });

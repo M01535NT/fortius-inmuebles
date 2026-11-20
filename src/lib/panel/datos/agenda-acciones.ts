@@ -23,7 +23,7 @@ export function rutaNuevaCita(d: { tipo?: EventoTipo; inmueble?: string; persona
   if (d.inmueble) q.set("inmueble", d.inmueble);
   if (d.persona) q.set("persona", d.persona);
   if (d.asunto) q.set("asunto", d.asunto);
-  return `/panel/agenda?${q.toString()}`;
+  return `/admin/agenda?${q.toString()}`;
 }
 
 /** Lo que trae la dirección para la cita nueva; null si no trae nada que elegir (se abre la línea vacía). */

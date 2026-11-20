@@ -180,8 +180,8 @@ export function tituloArchivo(nombre: string): string {
   return (base || "Documento").slice(0, 240);
 }
 
-export const rutaAsunto = (id: string) => `/panel/asuntos?ver=${encodeURIComponent(id)}`;
-export const rutaInmueble = (p: Pick<Property, "codigo" | "slug">) => `/panel/inmuebles?ver=${encodeURIComponent(p.codigo || p.slug)}`;
+export const rutaAsunto = (id: string) => `/admin/asuntos?ver=${encodeURIComponent(id)}`;
+export const rutaInmueble = (p: Pick<Property, "codigo" | "slug">) => `/admin/inmuebles?ver=${encodeURIComponent(p.codigo || p.slug)}`;
 
 export function textoGuardadoAsunto(a: Pick<FilaAsunto, "titulo" | "folio">, persona?: string): string {
   const donde = a.folio ? `${a.titulo} (${a.folio})` : a.titulo;

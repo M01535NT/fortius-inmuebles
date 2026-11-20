@@ -197,7 +197,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     { label: "Eliminar asunto", icon: <Trash2 size={16} aria-hidden="true" />, onSelect: () => void removeFromPanel() },
   ];
   // Asuntos ya no se filtra por etapa (titular, 15/11/2026): «Volver» regresa a la lista completa.
-  const back = "/admin/operaciones";
+  const back = "/admin-anterior/operaciones";
   const tabs = <Tabs orientation={tab === "sigue" ? "horizontal" : "vertical"} className={tab === "sigue" ? s.footTabs : s.navyTabs} idPrefix="operacion" label="Secciones del asunto" value={tab} onChange={id => void changeTab(id)} items={tabItems} />;
 
   return <Surface className={s.screen}>
@@ -206,12 +206,12 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     {["compra", "arrendatario"].includes(op.flujo?.ruta ?? "") && <div className="mb-4"><Notice title="Asunto histórico">Asunto de comprador o arrendatario anterior al cambio; se conserva completo. Los interesados nuevos van en Contactos.</Notice></div>}
     <div className={s.split}>
       <StagePanel op={view} today={today} docs={docs} checklist={checklist} compact={tab !== "sigue"} back={back}
-        who={{ name: client?.nombre ?? op.folio, wants, href: client ? `/admin/clientes/${encodeURIComponent(client.id)}` : undefined }}
+        who={{ name: client?.nombre ?? op.folio, wants, href: client ? `/admin-anterior/clientes/${encodeURIComponent(client.id)}` : undefined }}
         tags={tags}
         photo={op.propiedad_slug ? property?.galeria[0]?.src ?? null : undefined}
         facts={[property?.titulo, property && property.precio.modalidad === "publico" ? `precio ${formatPrecio(property.precio)}` : undefined, adviser ? `responsable ${adviser.nombre}` : undefined].filter((x): x is string => !!x)}
         adviser={adviser?.nombre}
-        person={client ? { name: client.nombre, role, digits, email: client.email, href: `/admin/clientes/${encodeURIComponent(client.id)}` } : undefined}
+        person={client ? { name: client.nombre, role, digits, email: client.email, href: `/admin-anterior/clientes/${encodeURIComponent(client.id)}` } : undefined}
         onOpenStages={focus => setStagesOpen({ focus })} menu={menu}>
         {tab !== "sigue" && tabs}
       </StagePanel>
@@ -252,7 +252,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
 }
 
 function BackLink() {
-  return <Link href="/admin/operaciones" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold"><ChevronLeft size={16} aria-hidden="true" />Asuntos</Link>;
+  return <Link href="/admin-anterior/operaciones" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold"><ChevronLeft size={16} aria-hidden="true" />Asuntos</Link>;
 }
 
 /** COR-24: desde cuándo está el contrato y qué falta revisar para publicar. */

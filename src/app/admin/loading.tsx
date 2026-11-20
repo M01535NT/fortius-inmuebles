@@ -1,10 +1,12 @@
-export default function AdminLoading() {
+import "@/components/panel/asunto/asunto.css";
+import "@/components/panel/asunto/vistas.css";
+
+/** Mientras abre una pantalla: el marco del modelo visual (barra de 52 px vacía) y las líneas de carga debajo. */
+export default function CargandoPanel() {
   return (
-    <main className="min-h-[70vh] bg-background px-5 py-32 text-foreground">
-      <div className="mx-auto max-w-[1280px]" role="status" aria-live="polite">
-        <p className="text-sm text-muted-foreground">Cargando</p>
-        <p className="display-title mt-4 text-3xl md:text-4xl">Preparando la información…</p>
-      </div>
-    </main>
+    <div className="as-vista">
+      <div className="as-vbar" aria-hidden />
+      <div className="as-cargando" aria-busy="true" aria-label="Cargando la pantalla"><span /><span /><span /><span /></div>
+    </div>
   );
 }

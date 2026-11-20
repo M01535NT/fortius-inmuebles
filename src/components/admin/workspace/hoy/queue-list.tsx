@@ -31,10 +31,10 @@ export type RowHelpers = {
 
 /** Qué dice el botón de cada fila, según a dónde lleva. */
 export function actionOf(item: QueueItem) {
-  if (item.href.startsWith("/admin/operaciones")) return "Abrir asunto";
-  if (item.href.startsWith("/admin/tareas")) return "Abrir tarea";
+  if (item.href.startsWith("/admin-anterior/operaciones")) return "Abrir asunto";
+  if (item.href.startsWith("/admin-anterior/tareas")) return "Abrir tarea";
   if (item.kind === "informe") return "Preparar";
-  if (item.href.startsWith("/admin/clientes") || item.href.startsWith("/admin/leads") || item.href.startsWith("/admin/contactos")) return "Abrir ficha";
+  if (item.href.startsWith("/admin-anterior/clientes") || item.href.startsWith("/admin-anterior/leads") || item.href.startsWith("/admin-anterior/contactos")) return "Abrir ficha";
   return "Abrir";
 }
 

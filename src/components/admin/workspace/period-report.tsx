@@ -58,12 +58,12 @@ export function PeriodReport() {
     !["Pendiente", "Cancelado"].includes(e.estado) && checked?.eventos.some(c => c.id === e.id && c.vigente && !c.controles.length)) ?? [];
   const offers = commercialEvents.filter(e => e.actividad === "Oferta");
   const closures = commercialEvents.filter(e => e.actividad === "Cierre" && e.estado !== "Rechazado" && e.base === "Comprobado" && !!e.evidencia);
-  const leadLink = (id: string, label: string) => ({ id, label, href: `/admin/leads/${id}` });
+  const leadLink = (id: string, label: string) => ({ id, label, href: `/admin-anterior/leads/${id}` });
   const kpis = [
     { title: "Prospectos recibidos", value: String(now.received), compare: compareCount(now.received, before?.received), items: metrics.leads.map(l => leadLink(l.id, l.nombre)) },
     { title: "Prospectos atendidos", value: String(now.attended), compare: compareCount(now.attended, before?.attended), items: metrics.leads.filter(l => l.firstContactedAt || l.estado !== "nuevo").map(l => leadLink(l.id, l.nombre)) },
     { title: "Primera atención promedio", value: hours(now.responseHours), compare: compareHours(now.responseHours, before ? before.responseHours : undefined), items: metrics.responses.map(r => leadLink(r.lead.id, `${r.lead.nombre} · ${hours(r.hours)}`)) },
-    { title: "Visitas agendadas", value: String(now.visits), compare: compareCount(now.visits, before?.visits), items: metrics.visits.map(e => ({ id: e.id, label: `${e.titulo} · ${humanDate(e.fecha)}`, href: `/admin/agenda?fecha=${e.fecha}&evento=${e.id}` })) },
+    { title: "Visitas agendadas", value: String(now.visits), compare: compareCount(now.visits, before?.visits), items: metrics.visits.map(e => ({ id: e.id, label: `${e.titulo} · ${humanDate(e.fecha)}`, href: `/admin-anterior/agenda?fecha=${e.fecha}&evento=${e.id}` })) },
   ];
   return <section className={s.block} aria-labelledby="report-period">
     <h2 id="report-period" className="text-xl font-semibold">Resultados del periodo</h2>
@@ -119,7 +119,7 @@ export function PeriodReport() {
                 <ul className="mt-2 space-y-2 text-sm">{group.rows.map(e => <li key={e.id} className="break-words">{book.data.oportunidades.find(o => o.id === e.oportunidad)?.nombre} · {humanDate(e.fecha)}<p>{e.detalle}</p></li>)}</ul>
               </div>)}
             </div>
-            <ButtonLink href={`/admin/control-comercial?cartera=${book.id}`} className="self-start">Abrir cartera</ButtonLink>
+            <ButtonLink href={`/admin-anterior/control-comercial?cartera=${book.id}`} className="self-start">Abrir cartera</ButtonLink>
           </>}
         </div>
       </details>

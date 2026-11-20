@@ -54,7 +54,7 @@ export function GuideStepTab({ op, onSave, clientName }: { op: OperationRecord; 
       const tramiteId = uid();
       await upsert(db.tramites, nuevoTramite({ id: tramiteId, acreedor: guia.acreedor ?? "banco", titulo: clientName ? `Cancelación · ${clientName}` : `Cancelación · ${op.folio}`,
         clienteId: op.cliente_id, asesorId: op.asesor_id, propiedadSlug: op.propiedad_slug ?? undefined, expedienteId: op.id }), null);
-      router.push(`/admin/tramites?id=${encodeURIComponent(tramiteId)}`);
+      router.push(`/admin-anterior/tramites?id=${encodeURIComponent(tramiteId)}`);
     } catch (cause) { setError(saveError(cause)); setBusy(false); }
   }
 
@@ -74,7 +74,7 @@ export function GuideStepTab({ op, onSave, clientName }: { op: OperationRecord; 
     {guia.clave === "cancelacion_hipoteca" ? <div className="flex flex-col gap-2">
       <p className="m-0 text-sm">Los pasos se cierran en el trámite, con sus pendientes y documentos; este riel lo sigue solo.</p>
       {tramites.length
-        ? tramites.map(t => <ButtonLink key={t.id} variant="primary" className="self-start" href={`/admin/tramites?id=${encodeURIComponent(t.id)}`}>Abrir el trámite</ButtonLink>)
+        ? tramites.map(t => <ButtonLink key={t.id} variant="primary" className="self-start" href={`/admin-anterior/tramites?id=${encodeURIComponent(t.id)}`}>Abrir el trámite</ButtonLink>)
         : <Button variant="primary" className="self-start" disabled={busy} onClick={() => void openTramite()}>{busy ? "Abriendo…" : "Empezar el trámite"}</Button>}
     </div> : <div className="flex flex-wrap items-end gap-2">
       {!last && <Button variant="primary" disabled={busy} onClick={() => void moveTo(paso + 1)}>{busy ? "Guardando…" : `Pasar a «${etapas[paso + 1]}»`}</Button>}

@@ -169,7 +169,7 @@ export function DetalleAsunto({ id }: { id: string }) {
     return (
       <div className="as-in"><div className="as-vacio-lista" role="alert"><p>{error}</p>
         {/no te toca/.test(error)
-          ? <button type="button" className="as-btn" onClick={() => router.push("/panel/asuntos")}>Ir a tus asuntos</button>
+          ? <button type="button" className="as-btn" onClick={() => router.push("/admin/asuntos")}>Ir a tus asuntos</button>
           : <button type="button" className="as-btn" onClick={() => void cargar()}>Reintentar</button>}</div></div>
     );
   }
@@ -200,7 +200,7 @@ export function DetalleAsunto({ id }: { id: string }) {
       const n = await continuarAsunto(a.id);
       await recargar();
       avisar(`Asunto nuevo ${n.folio}: con las mismas personas, inmuebles y documentos`);
-      router.push(`/panel/asuntos/${n.id}`);
+      router.push(`/admin/asuntos/${n.id}`);
     } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo terminar."); }
   })();
 
@@ -259,7 +259,7 @@ export function DetalleAsunto({ id }: { id: string }) {
           <Boton variante="fantasma" soloIcono icono="lista" aria-label={listaVisible === "si" ? "Ocultar la lista de asuntos" : "Mostrar la lista de asuntos"}
             aria-pressed={listaVisible === "si"} onClick={() => ponerLista(listaVisible === "si" ? "no" : "si")} />
         ) : null}
-        <Link href="/panel/asuntos" className={enPagina ? "cp-miga" : "as-btn as-gho as-atras"}>{enPagina ? null : <Icono nombre="at" tamano={16} />}Asuntos</Link>
+        <Link href="/admin/asuntos" className={enPagina ? "cp-miga" : "as-btn as-gho as-atras"}>{enPagina ? null : <Icono nombre="at" tamano={16} />}Asuntos</Link>
         {enPagina ? <span className="cp-miga-sep" aria-hidden>/</span> : null}
         <span className="as-m as-num">{a.folio}</span>
         {a.es_ejemplo ? <Etiqueta>Ejemplo</Etiqueta> : null}
@@ -278,9 +278,9 @@ export function DetalleAsunto({ id }: { id: string }) {
             ) : null}
             <DropdownMenuItem onSelect={() => irA("honorarios")}><Icono nombre="pago" tamano={16} />Cobro</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => router.push(`/panel/herramientas/formatos?asunto=${a.id}`)}><Icono nombre="contrato" tamano={16} />Contrato o formato</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => router.push(`/panel/herramientas/valor?asunto=${a.id}`)}><Icono nombre="calc" tamano={16} />Herramienta</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => router.push(`/panel/informe/${a.id}`)}><Icono nombre="file" tamano={16} />Informe para el cliente</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push(`/admin/herramientas/formatos?asunto=${a.id}`)}><Icono nombre="contrato" tamano={16} />Contrato o formato</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push(`/admin/herramientas/valor?asunto=${a.id}`)}><Icono nombre="calc" tamano={16} />Herramienta</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push(`/admin/informe/${a.id}`)}><Icono nombre="file" tamano={16} />Informe para el cliente</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <BotonFavorito tipo="asunto" id={a.id} nombre={a.nombre} className={enPagina ? "pn-btn pn-btn-fantasma pn-btn-icono" : "as-btn as-ico"} />
@@ -331,7 +331,7 @@ export function DetalleAsunto({ id }: { id: string }) {
                 await mandarAEliminados(a);
                 quitarReciente(a.id);
                 await recargar();
-                router.push("/panel/asuntos");
+                router.push("/admin/asuntos");
                 avisar("Se mandó a Eliminados", director ? {
                   etiqueta: "Deshacer",
                   alAccionar: () => void mandarAEliminados({ id: a.id, version: a.version + 1 }, true).then(() => recargar(), (e: unknown) => avisar(e instanceof Error ? e.message : "No se pudo deshacer.")),

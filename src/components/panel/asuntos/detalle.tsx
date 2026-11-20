@@ -244,15 +244,15 @@ function AvisosDelAsunto({ expedienteId, avisos, alVerDocumentos }: { expediente
   const resumen = [lista.length === 1 ? "1 aviso" : `${lista.length} avisos`, legales.length ? (legales.length === 1 ? "1 legal" : `${legales.length} legales`) : null, lista[0]?.texto].filter(Boolean).join(" · ");
 
   const accionar = async (a: AvisoAsunto) => {
-    if (a.clave === "hipoteca") { router.push("/panel/tramites"); return; }
+    if (a.clave === "hipoteca") { router.push("/admin/tramites"); return; }
     if (!a.documento) { alVerDocumentos(); return; }
-    if (a.documento.id) { router.push(`/panel/formatos/${a.documento.id}`); return; }
+    if (a.documento.id) { router.push(`/admin/formatos/${a.documento.id}`); return; }
     // El levantamiento pide el tipo de inmueble: se elige en «Crear documento» de la pestaña Documentos.
     if (a.documento.formato === "04") { alVerDocumentos(); return; }
     setOcupado(a.clave);
     try {
       const d = await crearDocumento(expedienteId, a.documento.formato);
-      router.push(`/panel/formatos/${d.id}`);
+      router.push(`/admin/formatos/${d.id}`);
     } catch (e) {
       avisar(e instanceof Error ? e.message : "No se pudo crear. Vuelve a intentarlo.");
       setOcupado(null);

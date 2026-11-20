@@ -50,7 +50,7 @@ export function Equipo() {
         {barra}
         <div className="as-vacio">
           <Icono nombre="escudo" tamano={26} /><b>Solo el director ve el Equipo</b>
-          <Link className="as-btn" href="/panel"><Icono nombre="casa" tamano={16} />Ir a Inicio</Link>
+          <Link className="as-btn" href="/admin"><Icono nombre="casa" tamano={16} />Ir a Inicio</Link>
         </div>
       </div>
     );
@@ -66,7 +66,7 @@ export function Equipo() {
         <div className="as-ban as-ban-esp">
           <Icono nombre="globo" tamano={18} />
           <span>{datos.sin_asignar === 1 ? "1 solicitud del sitio espera" : `${datos.sin_asignar} solicitudes del sitio esperan`} a que la pases a alguien.</span>
-          <Link className="as-btn" href="/panel">Ver en Inicio</Link>
+          <Link className="as-btn" href="/admin">Ver en Inicio</Link>
         </div>
       ) : null}
 
@@ -83,7 +83,7 @@ export function Equipo() {
                 {m.sin_paso ? <span className="as-pill as-pill-warn">{m.sin_paso} sin siguiente paso</span> : null}
                 {m.solicitudes ? <span className="as-pill as-pill-acc"><Icono nombre="globo" tamano={12} />{plural(m.solicitudes, "solicitud", "solicitudes")}</span> : null}
               </span>
-              <Link className="pn-btn eq-ver" href={`/panel/asuntos?de=${m.id}`} aria-label={`Ver los asuntos de ${m.nombre}`}><Icono nombre="asu" tamano={15} />Ver</Link>
+              <Link className="pn-btn eq-ver" href={`/admin/asuntos?de=${m.id}`} aria-label={`Ver los asuntos de ${m.nombre}`}><Icono nombre="asu" tamano={15} />Ver</Link>
             </div>
             <div className="eq-cifras">
               <div className="eq-cifra"><b>{m.asuntos}</b><span>Asuntos</span></div>

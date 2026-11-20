@@ -48,7 +48,7 @@ export function MarcoAjustes({ actual, abierta, children }: { actual: ClaveAjust
   const [q, setQ] = useState("");
   const t = sinAcentos(q.trim());
   const coincide = (i: Item) => !t || sinAcentos(`${i.nombre} ${i.buscar}`).includes(t);
-  const ir = (c: ClaveAjuste) => router.push(`/panel/configuracion?ver=${c}`, { scroll: false });
+  const ir = (c: ClaveAjuste) => router.push(`/admin/configuracion?ver=${c}`, { scroll: false });
 
   return (
     <div className="aj" data-det={abierta}>
@@ -77,7 +77,7 @@ export function MarcoAjustes({ actual, abierta, children }: { actual: ClaveAjust
         {!t || sinAcentos("eliminados recuperar borrado").includes(t) ? (
           <div className="aj-grupo">
             <div className="aj-grp">Otros</div>
-            <Link href="/panel/eliminados" className="aj-it" aria-current={actual === "eliminados" ? "page" : undefined}>
+            <Link href="/admin/eliminados" className="aj-it" aria-current={actual === "eliminados" ? "page" : undefined}>
               <Icono nombre="bote" tamano={15} />Eliminados<Icono nombre="ch" tamano={14} className="aj-ch" aria-hidden />
             </Link>
           </div>
@@ -90,7 +90,7 @@ export function MarcoAjustes({ actual, abierta, children }: { actual: ClaveAjust
       </nav>
 
       <main className="aj-main">
-        <Link href="/panel/configuracion" className="as-btn as-gho as-atras aj-atras"><Icono nombre="at" tamano={16} />Configuración</Link>
+        <Link href="/admin/configuracion" className="as-btn as-gho as-atras aj-atras"><Icono nombre="at" tamano={16} />Configuración</Link>
         {children}
       </main>
     </div>

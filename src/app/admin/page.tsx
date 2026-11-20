@@ -1,6 +1,6 @@
-"use client";
-import { HoyScreen } from "@/components/admin/workspace/hoy";
+import { Inicio } from "@/components/panel/inicio/inicio";
 
-export default function AdminDashboard() {
-  return <HoyScreen />;
+/** Inicio del panel nuevo (etapa 8): lo que hay que atender hoy, la semana y lo que falta cobrar. */
+export default function PaginaInicio() {
+  return <Inicio />;
 }

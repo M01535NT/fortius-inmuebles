@@ -28,7 +28,7 @@ const tono = (dias: number): Vence["tono"] => (dias < 0 ? "error" : dias <= 7 ? 
 export function venceDe(v: { id: string; fecha: string; titulo: string; detalle: string; href?: string; expedienteId?: string }, hoy: Date): Vence | null {
   const dias = diasDesde(hoy, v.fecha);
   if (dias === null) return null;
-  const href = v.href ?? (v.expedienteId ? `/panel/asuntos?ver=${encodeURIComponent(v.expedienteId)}` : undefined);
+  const href = v.href ?? (v.expedienteId ? `/admin/asuntos?ver=${encodeURIComponent(v.expedienteId)}` : undefined);
   return { id: v.id, titulo: v.titulo, detalle: [cuando(dias, v.fecha), v.detalle].filter(Boolean).join(" · "), dias, tono: tono(dias), href };
 }
 

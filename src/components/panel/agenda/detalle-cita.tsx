@@ -68,7 +68,7 @@ export function DetalleCita({ ev, empalme, hoy, cliente, lead, inmueble, asunto,
         <div className="pn-dato" style={{ cursor: "default" }}>
           <span className="pn-av" aria-hidden>{iniciales(nombre)}</span>
           {/* La cita todavía guarda la persona de la lista vieja: se busca por su nombre en el Directorio. */}
-          <Link href={cliente ? `/panel/directorio?q=${encodeURIComponent(cliente.nombre?.trim() || cliente.telefono || "")}` : rutaConsulta(lead?.id ?? "")} style={{ flex: 1, minWidth: 0, display: "grid", gap: 1, color: "inherit", textDecoration: "none" }}>
+          <Link href={cliente ? `/admin/directorio?q=${encodeURIComponent(cliente.nombre?.trim() || cliente.telefono || "")}` : rutaConsulta(lead?.id ?? "")} style={{ flex: 1, minWidth: 0, display: "grid", gap: 1, color: "inherit", textDecoration: "none" }}>
             <b style={{ fontSize: 15 }}>{nombre}</b>
             <span style={{ fontSize: 13, color: "var(--ink-muted)" }}>{telefono || (cliente ? "Persona" : "Consulta")}</span>
           </Link>
@@ -87,7 +87,7 @@ export function DetalleCita({ ev, empalme, hoy, cliente, lead, inmueble, asunto,
         </div>
       ) : null}
       {asunto ? (
-        <Link className="pn-dato" href={`/panel/asuntos?ver=${encodeURIComponent(asunto.id)}`}>
+        <Link className="pn-dato" href={`/admin/asuntos?ver=${encodeURIComponent(asunto.id)}`}>
           <span className="pn-av" aria-hidden style={{ borderRadius: "var(--r-md)" }}><Icono nombre="expediente" tamano={18} /></span>
           <span style={{ flex: 1, minWidth: 0, display: "grid", gap: 1 }}>
             <span style={{ fontSize: 13, color: "var(--ink-muted)" }}>Asunto</span>

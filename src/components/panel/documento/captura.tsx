@@ -65,7 +65,7 @@ export function CapturaPorPreguntas({ id, volver }: { id: string; volver: string
   const zonas = useRef(new Map<string, HTMLButtonElement>());
   const pregunta = useRef<HTMLDivElement>(null);
   const firmado = useRef<HTMLInputElement>(null);
-  const regreso = volver && volver.startsWith("/panel") ? volver : abierto?.asunto ? `/panel/asuntos/${abierto.asunto.id}` : "/panel/herramientas";
+  const regreso = volver && volver.startsWith("/admin") ? volver : abierto?.asunto ? `/admin/asuntos/${abierto.asunto.id}` : "/admin/herramientas";
 
   const cargar = useCallback(() => abrirTrabajo(id).then((x) => { setAbierto(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo abrir.")), [id]);
   useEffect(() => { void cargar(); }, [cargar]);

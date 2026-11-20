@@ -82,7 +82,7 @@ function row(kind: "lead" | "cliente", person: Lead | Cliente, verb: string | un
   const date = step?.date ? stepDate(step.date, today, step.time) : null;
   return {
     id: person.id, kind, name: person.nombre, phone: person.telefono,
-    href: kind === "lead" ? `/admin/leads/${encodeURIComponent(person.id)}` : `/admin/clientes/${encodeURIComponent(person.id)}`,
+    href: kind === "lead" ? `/admin-anterior/leads/${encodeURIComponent(person.id)}` : `/admin-anterior/clientes/${encodeURIComponent(person.id)}`,
     // Hueco vacío en lugar de relleno («Por preguntar», «Zona por definir», «Sin siguiente paso», C40).
     wants: wants(person, verb) ?? "",
     zone: person.zona?.trim() ?? "",

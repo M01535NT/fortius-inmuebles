@@ -13,7 +13,7 @@ export function HistoryLink({
   return session?.role === "admin" ? (
     <Link
       className={btnGhost}
-      href={`/admin/historial?${new URLSearchParams({ collection, record: id })}`}
+      href={`/admin-anterior/historial?${new URLSearchParams({ collection, record: id })}`}
     >
       Historial de cambios
     </Link>

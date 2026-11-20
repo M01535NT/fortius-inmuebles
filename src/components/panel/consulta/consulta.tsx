@@ -123,7 +123,7 @@ export function PantallaConsulta() {
           const nueva = await empezarConsulta({});
           idRef.current = nueva.id;
           versionRef.current = nueva.version;
-          router.replace(`/panel/consulta?id=${nueva.id}`, { scroll: false });
+          router.replace(`/admin/consulta?id=${nueva.id}`, { scroll: false });
         }
         const r = await guardarConsulta(idRef.current, versionRef.current ?? 1, {
           quien_nombre: actual.quien_nombre,
@@ -298,7 +298,7 @@ export function PantallaConsulta() {
       guardarEleccion(idRef.current, null);
       guardarRespaldo(null);
       avisar("Asunto abierto con su persona, su inmueble y su lista");
-      router.push(`/panel/asuntos/${a.id}`);
+      router.push(`/admin/asuntos/${a.id}`);
     } catch (e) {
       // Se vuelve a leer la consulta (su versión vigente) para que el siguiente intento no choque otra vez.
       const alDia = await releer();
@@ -320,7 +320,7 @@ export function PantallaConsulta() {
         avisar("Consulta cerrada: no procede");
       }
       guardarRespaldo(null);
-      router.push("/panel");
+      router.push("/admin");
     } catch (e) {
       avisar(e instanceof Error ? e.message : "No se pudo cerrar la consulta");
     }
@@ -387,7 +387,7 @@ export function PantallaConsulta() {
     bRef.current = VACIO;
     setB(VACIO); setCargas([]); setCerrada(null); setEstado("vacia");
     setClaveGuardada(""); setParecidas([]); setEleccion(null);
-    router.replace("/panel/consulta", { scroll: false });
+    router.replace("/admin/consulta", { scroll: false });
   }
 
   // ── Pantalla ────────────────────────────────────────────────────────────────────────────────────────
@@ -401,7 +401,7 @@ export function PantallaConsulta() {
           <Cuadro icono={esAsunto ? "asu" : "ok"} color={esAsunto ? "blue" : "gray"} />
           <p><b>{esAsunto ? "Esta consulta ya abrió su asunto." : cerrada === "contacto" ? "Esta consulta quedó como contacto." : "Esta consulta se cerró: no procede."}</b></p>
           <div className="as-fila">
-            {esAsunto ? <BotonEnlace variante="primario" href={`/panel/asuntos/${cerrada}`}>Ir al asunto</BotonEnlace> : null}
+            {esAsunto ? <BotonEnlace variante="primario" href={`/admin/asuntos/${cerrada}`}>Ir al asunto</BotonEnlace> : null}
             <Boton variante="normal" icono="mas" onClick={nuevaConsulta}>Nueva consulta</Boton>
           </div>
         </div>
@@ -425,7 +425,7 @@ export function PantallaConsulta() {
     <div className="cs-in">
       {/* Barra fija: cerrar, cómo va el guardado y la única acción azul («Abrir asunto»). Ctrl+Enter también abre. */}
       <header className="cs-barra">
-        <BotonEnlace href="/panel" variante="fantasma" soloIcono icono="x" aria-label="Cerrar la consulta" title="Cerrar (queda guardada)" />
+        <BotonEnlace href="/admin" variante="fantasma" soloIcono icono="x" aria-label="Cerrar la consulta" title="Cerrar (queda guardada)" />
         <h1 className="cs-h1">Consulta</h1>
         <span className="cs-estado" data-mal={malEstado || undefined} role="status"><i aria-hidden /><span className="cs-estado-t">{textoEstado[estado]}</span></span>
         <span className="as-sp" />
@@ -437,7 +437,7 @@ export function PantallaConsulta() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Seguir con…</DropdownMenuLabel>
               {otrasSinTerminar.map((a) => (
-                <DropdownMenuItem key={a.id} onSelect={() => { guardarRespaldo(null); router.push(`/panel/consulta?id=${a.id}`); }}>
+                <DropdownMenuItem key={a.id} onSelect={() => { guardarRespaldo(null); router.push(`/admin/consulta?id=${a.id}`); }}>
                   <Icono nombre="tel" tamano={16} />
                   <span className="cs-sin">{a.quien_nombre.trim() || "Sin nombre"}<span className="as-m">{haceCuanto(a.updated_at)}</span></span>
                 </DropdownMenuItem>

@@ -29,17 +29,17 @@ import s from "./guided-nav.module.css";
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>; match: string[] };
 export const MAIN_NAV: NavItem[] = [
-  { href: "/admin", label: "Hoy", icon: House, match: [] },
+  { href: "/admin-anterior", label: "Hoy", icon: House, match: [] },
   // FLX-01 (RP-58, RP-101): la Bandeja va después de Hoy; lo que llega se guarda ahí sin llenar nada.
-  { href: "/admin/bandeja", label: "Bandeja", icon: Inbox, match: ["/admin/bandeja"] },
-  { href: "/admin/operaciones", label: "Asuntos", icon: Columns3, match: ["/admin/operaciones"] },
-  { href: "/admin/contactos", label: "Contactos", icon: Contact, match: ["/admin/contactos", "/admin/leads", "/admin/clientes"] },
+  { href: "/admin-anterior/bandeja", label: "Bandeja", icon: Inbox, match: ["/admin-anterior/bandeja"] },
+  { href: "/admin-anterior/operaciones", label: "Asuntos", icon: Columns3, match: ["/admin-anterior/operaciones"] },
+  { href: "/admin-anterior/contactos", label: "Contactos", icon: Contact, match: ["/admin-anterior/contactos", "/admin-anterior/leads", "/admin-anterior/clientes"] },
   // FLX (titular, 14/11/2026): Personas, lista y perfil en una pantalla, va junto a Contactos.
-  { href: "/admin/personas", label: "Personas", icon: UserRoundCheck, match: ["/admin/personas"] },
-  { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin/propiedades"] },
+  { href: "/admin-anterior/personas", label: "Personas", icon: UserRoundCheck, match: ["/admin-anterior/personas"] },
+  { href: "/admin-anterior/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin-anterior/propiedades"] },
   // Boceto «desde cero» (14/11/2026): «Agenda» y después Trámites, justo antes de Herramientas.
-  { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
-  { href: "/admin/tramites", label: "Trámites", icon: Route, match: ["/admin/tramites"] },
+  { href: "/admin-anterior/agenda", label: "Agenda", icon: CalendarDays, match: ["/admin-anterior/agenda", "/admin-anterior/tareas"] },
+  { href: "/admin-anterior/tramites", label: "Trámites", icon: Route, match: ["/admin-anterior/tramites"] },
 ];
 /** Busca una sección por su dirección: así agregar una entrada no desacomoda el celular. */
 function mainNav(href: string): NavItem {
@@ -47,34 +47,34 @@ function mainNav(href: string): NavItem {
   if (!item) throw new Error(`Sección del menú inexistente: ${href}`);
   return item;
 }
-/** Herramientas: un solo acceso a las 17. «/admin/notas» lleva a Hoy (DEC-42). */
-export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas"] };
+/** Herramientas: un solo acceso a las 17. «/admin-anterior/notas» lleva a Hoy (DEC-42). */
+export const TOOLS_NAV: NavItem = { href: "/admin-anterior/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin-anterior/herramientas", "/admin-anterior/apps", "/admin-anterior/notas"] };
 /** Administración (solo administrador). Sitio web y Reportes agrupan sus páginas en pestañas (ver AdminFrame). */
 export const ADMIN_NAV: Array<{ href: string; label: string; match: string[] }> = [
-  { href: "/admin/asesores", label: "Equipo", match: ["/admin/asesores"] },
-  { href: "/admin/contenido", label: "Sitio web", match: ["/admin/contenido", "/admin/blog", "/admin/archivos"] },
-  { href: "/admin/reportes", label: "Reportes", match: ["/admin/reportes", "/admin/control-comercial"] },
-  { href: "/admin/historial", label: "Historial", match: ["/admin/historial"] },
+  { href: "/admin-anterior/asesores", label: "Equipo", match: ["/admin-anterior/asesores"] },
+  { href: "/admin-anterior/contenido", label: "Sitio web", match: ["/admin-anterior/contenido", "/admin-anterior/blog", "/admin-anterior/archivos"] },
+  { href: "/admin-anterior/reportes", label: "Reportes", match: ["/admin-anterior/reportes", "/admin-anterior/control-comercial"] },
+  { href: "/admin-anterior/historial", label: "Historial", match: ["/admin-anterior/historial"] },
   { href: PAPELERA.href, label: PAPELERA.nombre, match: [PAPELERA.href] },
-  { href: "/admin/configuracion", label: "Configuración", match: ["/admin/configuracion"] },
+  { href: "/admin-anterior/configuracion", label: "Configuración", match: ["/admin-anterior/configuracion"] },
 ];
 /** «Más» de la barra inferior del celular: Herramientas, Administración y Mi perfil. */
-export const MORE_NAV: NavItem = { href: TOOLS_NAV.href, label: "Más", icon: LayoutGrid, match: [...TOOLS_NAV.match, ...ADMIN_NAV.flatMap(item => item.match), "/admin/perfil", "/admin/sistema"] };
+export const MORE_NAV: NavItem = { href: TOOLS_NAV.href, label: "Más", icon: LayoutGrid, match: [...TOOLS_NAV.match, ...ADMIN_NAV.flatMap(item => item.match), "/admin-anterior/perfil", "/admin-anterior/sistema"] };
 /** Administración en el menú lateral (solo el director): abre Equipo y se marca en todas sus páginas. */
-export const ADMIN_ENTRY: NavItem = { href: ADMIN_NAV[0].href, label: "Administración", icon: ShieldCheck, match: [...ADMIN_NAV.flatMap(item => item.match), "/admin/sistema"] };
+export const ADMIN_ENTRY: NavItem = { href: ADMIN_NAV[0].href, label: "Administración", icon: ShieldCheck, match: [...ADMIN_NAV.flatMap(item => item.match), "/admin-anterior/sistema"] };
 /** «+ Nuevo» (C08): cinco altas en un menú corto. `action` avisa a la pantalla destino por `fortius:quick-create`. */
 export const QUICK_CREATE: Array<{ label: string; href: string; action: "" | "prospecto" | "tarea" | "visita"; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }> }> = [
-  { label: INTAKE_TITLE, href: "/admin/operaciones/nueva", action: "", icon: Contact },
-  { label: "Nuevo perfil", href: "/admin/personas?nuevo=1", action: "", icon: UserPlus },
-  { label: "Nuevo asunto", href: "/admin/operaciones/nueva?intencion=vender", action: "", icon: Plus },
-  { label: "Nuevo inmueble", href: "/admin/propiedades/nueva", action: "", icon: Building2 },
-  { label: "Nueva tarea", href: "/admin/agenda?tab=tareas&nueva=1", action: "tarea", icon: ClipboardList },
-  { label: "Agendar visita", href: "/admin/agenda?nueva=1", action: "visita", icon: CalendarPlus },
-  { label: "Agregar archivo", href: "/admin/bandeja", action: "", icon: Inbox },
+  { label: INTAKE_TITLE, href: "/admin-anterior/operaciones/nueva", action: "", icon: Contact },
+  { label: "Nuevo perfil", href: "/admin-anterior/personas?nuevo=1", action: "", icon: UserPlus },
+  { label: "Nuevo asunto", href: "/admin-anterior/operaciones/nueva?intencion=vender", action: "", icon: Plus },
+  { label: "Nuevo inmueble", href: "/admin-anterior/propiedades/nueva", action: "", icon: Building2 },
+  { label: "Nueva tarea", href: "/admin-anterior/agenda?tab=tareas&nueva=1", action: "tarea", icon: ClipboardList },
+  { label: "Agendar visita", href: "/admin-anterior/agenda?nueva=1", action: "visita", icon: CalendarPlus },
+  { label: "Agregar archivo", href: "/admin-anterior/bandeja", action: "", icon: Inbox },
 ];
 
 export function isNavActive(pathname: string, item: { href: string; match: string[] }) {
-  if (item.href === "/admin") return pathname === "/admin";
+  if (item.href === "/admin-anterior") return pathname === "/admin-anterior";
   return item.match.some(prefix => pathname === prefix || pathname.startsWith(prefix + "/"));
 }
 
@@ -92,10 +92,10 @@ export function SideNav({ pathname, role, user, onLogout, search }: { pathname: 
     <item.icon size={18} aria-hidden={true} /><span className={s.naviLabel}>{item.label}</span>{count > 0 && <Count value={count} />}{item === ADMIN_ENTRY && <ChevronRight size={14} aria-hidden={true} className={s.naviMore} />}
   </Link>;
   return <header className={s.side} aria-label="Barra del panel">
-    <Link href="/admin" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className={s.logoFull} /><BrandMark variant="symbol" className={s.logoCompact} /></Link>
+    <Link href="/admin-anterior" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className={s.logoFull} /><BrandMark variant="symbol" className={s.logoCompact} /></Link>
     <div className={s.sideTools}>{search}</div>
     <nav aria-label="Módulos del panel" className={s.navlist}>
-      {MAIN_NAV.map(item => link(item, item.href === "/admin" ? pending : 0))}
+      {MAIN_NAV.map(item => link(item, item.href === "/admin-anterior" ? pending : 0))}
       <span className={s.navsep} aria-hidden="true" />
       {link(TOOLS_NAV)}
       {role === "admin" && link(ADMIN_ENTRY)}
@@ -141,7 +141,7 @@ function AccountMenu({ pathname, role, user, onLogout }: { pathname: string; rol
     </PopoverTrigger>
     <PopoverContent id="admin-account-menu" side="top" align="start" aria-label="Cuenta y sesión" className={cn(s.pop, s.popFloat)}>
       <p className={s.popHead}><span className="truncate font-semibold">{user.name}</span><span className="text-xs text-muted-foreground">{roleLabel(role)}</span></p>
-      <Link href="/admin/perfil" className={cn(s.link, s.sub)} aria-current={pathname.startsWith("/admin/perfil") ? "page" : undefined} onClick={close}><UserRound size={18} aria-hidden="true" />Mi perfil</Link>
+      <Link href="/admin-anterior/perfil" className={cn(s.link, s.sub)} aria-current={pathname.startsWith("/admin-anterior/perfil") ? "page" : undefined} onClick={close}><UserRound size={18} aria-hidden="true" />Mi perfil</Link>
       {role === "admin" && <Link href={ADMIN_NAV[0].href} className={cn(s.link, s.sub)} aria-current={ADMIN_NAV.some(item => isNavActive(pathname, item)) ? "page" : undefined} onClick={close}><ShieldCheck size={18} aria-hidden="true" />Administración</Link>}
       <DocumentLink href="/" className={cn(s.link, s.sub)}><ExternalLink size={18} aria-hidden="true" />Ver sitio</DocumentLink>
       <div className={cn(s.link, s.sub, "cursor-default hover:bg-transparent")}><Moon size={18} aria-hidden="true" /><span className="flex-1">Modo oscuro</span><ThemeToggle className="h-9 w-9 rounded-[8px]" /></div>
@@ -154,17 +154,17 @@ function AccountMenu({ pathname, role, user, onLogout }: { pathname: string; rol
 /** Encabezado del celular: logotipo, búsqueda y la cuenta. */
 export function MobileHeader({ search, user }: { search: React.ReactNode; user: User }) {
   return <header className={cn(s.mobileHead, "admin-mobile-header")}>
-    <Link href="/admin" aria-label="Fortius Inmuebles, ir a Hoy" className="flex items-center"><BrandMark variant="compact" className="h-7 w-28" /></Link>
+    <Link href="/admin-anterior" aria-label="Fortius Inmuebles, ir a Hoy" className="flex items-center"><BrandMark variant="compact" className="h-7 w-28" /></Link>
     <div className="flex items-center gap-1">
       {search}
-      <Link href="/admin/perfil" aria-label={`Mi perfil, ${user.name}`} className="inline-flex h-11 w-11 items-center justify-center rounded-full"><Avatar name={user.name} src={user.avatar} size={36} /></Link>
+      <Link href="/admin-anterior/perfil" aria-label={`Mi perfil, ${user.name}`} className="inline-flex h-11 w-11 items-center justify-center rounded-full"><Avatar name={user.name} src={user.avatar} size={36} /></Link>
     </div>
   </header>;
 }
 
 export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathname: string; menuOpen: boolean; onMenu: () => void; menuButton: React.Ref<HTMLButtonElement> }) {
   const pending = usePendingCount();
-  const [hoy, operaciones, contactos] = ["/admin", "/admin/operaciones", "/admin/contactos"].map(mainNav);
+  const [hoy, operaciones, contactos] = ["/admin-anterior", "/admin-anterior/operaciones", "/admin-anterior/contactos"].map(mainNav);
   const tab = (item: NavItem, badge = 0) => {
     const active = !menuOpen && isNavActive(pathname, item);
     return <Link href={item.href} className={s.tab} aria-current={active ? "page" : undefined}>
@@ -180,7 +180,7 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
 }
 
 export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: User; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
-  const [bandeja, personas, inmuebles, agenda, tramites] = ["/admin/bandeja", "/admin/personas", "/admin/propiedades", "/admin/agenda", "/admin/tramites"].map(mainNav);
+  const [bandeja, personas, inmuebles, agenda, tramites] = ["/admin-anterior/bandeja", "/admin-anterior/personas", "/admin-anterior/propiedades", "/admin-anterior/agenda", "/admin-anterior/tramites"].map(mainNav);
   const events = useCollection(db.eventos);
   const today = operationalDate();
   const visits = events.filter(event => event.tipo === "visita" && event.fecha === today).length;
@@ -209,7 +209,7 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
     <div className={s.menuGroup}>
       <div className={s.menuRow}><Moon size={20} aria-hidden="true" /><span className="flex-1">Modo oscuro</span><ThemeToggle /></div>
       <div className={s.menuRow}><List size={20} aria-hidden="true" /><span className="flex-1">Densidad</span><DensityToggle /></div>
-      {row("/admin/perfil", "Mi perfil", <UserRound size={20} aria-hidden="true" />, pathname.startsWith("/admin/perfil"))}
+      {row("/admin-anterior/perfil", "Mi perfil", <UserRound size={20} aria-hidden="true" />, pathname.startsWith("/admin-anterior/perfil"))}
       <DocumentLink href="/" className={s.menuRow} onClick={onNavigate}><ExternalLink size={20} aria-hidden="true" /><span className="flex-1">Ver sitio</span></DocumentLink>
       <AsyncButton type="button" onClick={onLogout} className={s.menuRow}><LogOut size={20} aria-hidden="true" />Cerrar sesión</AsyncButton>
     </div>

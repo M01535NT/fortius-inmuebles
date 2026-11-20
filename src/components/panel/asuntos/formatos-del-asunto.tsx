@@ -44,7 +44,7 @@ export function FormatosDelAsunto({ expedienteId, operacion }: { expedienteId: s
     setAviso("");
     try {
       const d = await crearDocumento(expedienteId, formatoId);
-      router.push(`/panel/formatos/${d.id}`);
+      router.push(`/admin/formatos/${d.id}`);
     } catch (e) {
       setAviso(e instanceof Error ? e.message : "No se pudo crear. Vuelve a intentarlo.");
       setCreando(false);
@@ -61,7 +61,7 @@ export function FormatosDelAsunto({ expedienteId, operacion }: { expedienteId: s
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 4 }}>
             {docs.map((d) => (
               <li key={d.id}>
-                <Link href={`/panel/formatos/${d.id}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, minHeight: 44, alignItems: "center", padding: "0 8px", borderRadius: 4, color: "var(--ink)", textDecoration: "none" }}>
+                <Link href={`/admin/formatos/${d.id}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, minHeight: 44, alignItems: "center", padding: "0 8px", borderRadius: 4, color: "var(--ink)", textDecoration: "none" }}>
                   <span>{d.formato_id} · {tituloFormato(d.formato_id)}</span>
                   <span className="pn-sub" style={{ margin: 0, whiteSpace: "nowrap" }}>{diaLargo(d.updated_at.slice(0, 10))}</span>
                 </Link>

@@ -7,7 +7,7 @@ import type { PersonaDirectorio } from "@/lib/backend/directorio-contrato";
 import type { Lead } from "@/lib/domain/records";
 
 const caja = { display: "grid", gap: 10, padding: 12, border: "1px solid var(--border)", borderRadius: "var(--r-lg)" } as const;
-const rutaFicha = (id: string) => `/panel/directorio?id=${encodeURIComponent(id)}`;
+const rutaFicha = (id: string) => `/admin/directorio?id=${encodeURIComponent(id)}`;
 const soloDigitos = (s: string | null | undefined) => (s ?? "").replace(/\D/g, "");
 
 /** La ficha del Directorio que ya tiene su mismo teléfono (últimos 10 dígitos) o su correo. Solo para avisar. */

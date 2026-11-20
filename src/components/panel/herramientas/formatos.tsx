@@ -39,8 +39,8 @@ export function useEmpezarFormato() {
     try {
       const asunto = ctx?.asunto ?? null;
       const id = await empezarTrabajo({ clase: "formato", tipo, asunto_id: asunto?.id ?? null });
-      const volver = asunto ? `/panel/asuntos/${asunto.id}${apartado && /^[a-z_]{1,20}$/.test(apartado) ? `?ver=${apartado}` : ""}` : "/panel/herramientas";
-      router.push(`/panel/documento/${id}?volver=${encodeURIComponent(volver)}`);
+      const volver = asunto ? `/admin/asuntos/${asunto.id}${apartado && /^[a-z_]{1,20}$/.test(apartado) ? `?ver=${apartado}` : ""}` : "/admin/herramientas";
+      router.push(`/admin/documento/${id}?volver=${encodeURIComponent(volver)}`);
     } catch (e) {
       avisar(e instanceof Error ? e.message : "No se pudo empezar");
       setEmpezando(null);

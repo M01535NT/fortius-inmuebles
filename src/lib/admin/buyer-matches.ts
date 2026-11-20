@@ -24,8 +24,8 @@ const CLIENT_INTENT: Partial<Record<Cliente["tipo"], "comprar" | "rentar" | "inv
 /** Prospectos sin convertir y clientes que buscan comprar, rentar o invertir. */
 export function seekersFrom(leads: Lead[], clients: Cliente[]): Seeker[] {
   const fromLeads = leads.filter(l => !l.clienteId && l.estado !== "descartado" && l.estado !== "cerrado")
-    .map(l => ({ id: l.id, kind: "lead" as const, nombre: l.nombre, telefono: l.telefono, email: l.email, zona: l.zona, tipoPropiedad: l.tipoPropiedad, perfil: l.perfil, asesorId: l.asesorId, href: `/admin/leads/${encodeURIComponent(l.id)}` }));
-  const fromClients = clients.map(c => ({ id: c.id, kind: "cliente" as const, nombre: c.nombre, telefono: c.telefono, email: c.email, zona: c.zona, tipoPropiedad: c.tipoPropiedad, perfil: c.perfil?.operacion ? c.perfil : { ...c.perfil, operacion: CLIENT_INTENT[c.tipo] }, asesorId: c.asesorId, href: `/admin/clientes/${encodeURIComponent(c.id)}` }));
+    .map(l => ({ id: l.id, kind: "lead" as const, nombre: l.nombre, telefono: l.telefono, email: l.email, zona: l.zona, tipoPropiedad: l.tipoPropiedad, perfil: l.perfil, asesorId: l.asesorId, href: `/admin-anterior/leads/${encodeURIComponent(l.id)}` }));
+  const fromClients = clients.map(c => ({ id: c.id, kind: "cliente" as const, nombre: c.nombre, telefono: c.telefono, email: c.email, zona: c.zona, tipoPropiedad: c.tipoPropiedad, perfil: c.perfil?.operacion ? c.perfil : { ...c.perfil, operacion: CLIENT_INTENT[c.tipo] }, asesorId: c.asesorId, href: `/admin-anterior/clientes/${encodeURIComponent(c.id)}` }));
   return [...fromLeads, ...fromClients].filter(s => ["comprar", "rentar", "invertir"].includes(s.perfil?.operacion ?? ""));
 }
 

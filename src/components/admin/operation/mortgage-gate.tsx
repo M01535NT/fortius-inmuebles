@@ -24,8 +24,8 @@ export function MortgageGateNotice({ operationId, operacion, stage, next, blocke
     if (!blocked && !nearSignature) return null;
     return <Notice tone={blocked ? undefined : "info"} className={className} title="La firma espera la cancelación de hipoteca"
       actions={abiertos.length
-        ? abiertos.slice(0, 3).map(t => <ButtonLink key={t.id} href={`/admin/tramites?id=${encodeURIComponent(t.id)}`}>{abiertos.length > 1 ? `Abrir «${t.titulo}»` : "Abrir el trámite"}</ButtonLink>)
-        : <ButtonLink href="/admin/tramites">Ver los trámites</ButtonLink>}>
+        ? abiertos.slice(0, 3).map(t => <ButtonLink key={t.id} href={`/admin-anterior/tramites?id=${encodeURIComponent(t.id)}`}>{abiertos.length > 1 ? `Abrir «${t.titulo}»` : "Abrir el trámite"}</ButtonLink>)
+        : <ButtonLink href="/admin-anterior/tramites">Ver los trámites</ButtonLink>}>
       {blocked
         ? <p>Antes de la firma, la cancelación de hipoteca de esta venta debe quedar inscrita en el Registro Público. Si se firma sin ella, lo decide el director en el trámite, con su motivo.</p>
         : <p>La cancelación de hipoteca de esta venta aún no está inscrita en el Registro Público. Puedes pasar a la firma; quedará anotado en el historial. Si se firma sin ella, el director lo registra en el trámite, con su motivo.</p>}
@@ -33,7 +33,7 @@ export function MortgageGateNotice({ operationId, operacion, stage, next, blocke
     </Notice>;
   }
   if (autorizados.length && nearSignature) return <Notice tone="info" className={className} title="Se firma sin la cancelación inscrita"
-    actions={<ButtonLink href={`/admin/tramites?id=${encodeURIComponent(autorizados[0].id)}`}>Abrir el trámite</ButtonLink>}>
+    actions={<ButtonLink href={`/admin-anterior/tramites?id=${encodeURIComponent(autorizados[0].id)}`}>Abrir el trámite</ButtonLink>}>
     {autorizados.map(t => <p key={t.id}>El director lo autorizó{t.firmaSinCancelacion?.autorizadoEl ? ` el ${fecha(t.firmaSinCancelacion.autorizadoEl)}` : ""}: {t.firmaSinCancelacion?.motivo}</p>)}
   </Notice>;
   return null;

@@ -88,7 +88,7 @@ export function SettingsTab({ op, all, today, onSave, onReplaced, onDirtyChange 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" variant="primary" disabled={!dirty || busy}>{busy ? "Guardando…" : "Guardar ajustes"}</Button>
         {dirty && <Button variant="ghost" disabled={busy} onClick={() => { setFlow(original); setProperty(op.propiedad_slug ?? ""); setDate(op.fecha_objetivo ?? ""); setError(""); }}>Descartar cambios</Button>}
-        <Link href={`/admin/agenda?expediente=${encodeURIComponent(op.id)}`} className="text-sm font-semibold underline underline-offset-4">Programar una cita</Link>
+        <Link href={`/admin-anterior/agenda?expediente=${encodeURIComponent(op.id)}`} className="text-sm font-semibold underline underline-offset-4">Programar una cita</Link>
         {notice && <span role="status" className="text-sm text-muted-foreground">{notice}</span>}
       </div>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

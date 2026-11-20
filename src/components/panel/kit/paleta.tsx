@@ -20,15 +20,15 @@ type Opcion = Entrada & { icono: NombreIcono; ruta: string; iniciales?: boolean 
 
 const IR_A: Opcion[] = [
   ...[...SECCIONES, CONFIGURACION].map((s) => ({ id: `ir-${s.slug}`, titulo: s.nombre, grupo: "Ir a" as const, icono: s.icono, ruta: s.ruta, claves: [s.resumen] })),
-  { id: "ir-credito", titulo: "Crédito hipotecario", grupo: "Ir a" as const, icono: "costos", ruta: "/panel/herramientas/credito", claves: ["mensualidad", "hipoteca", "enganche", "calculadora"] },
-  { id: "ir-comision", titulo: "Comisión", grupo: "Ir a" as const, icono: "precio", ruta: "/panel/herramientas/comision", claves: ["iva", "propietario", "calculadora"] },
+  { id: "ir-credito", titulo: "Crédito hipotecario", grupo: "Ir a" as const, icono: "costos", ruta: "/admin/herramientas/credito", claves: ["mensualidad", "hipoteca", "enganche", "calculadora"] },
+  { id: "ir-comision", titulo: "Comisión", grupo: "Ir a" as const, icono: "precio", ruta: "/admin/herramientas/comision", claves: ["iva", "propietario", "calculadora"] },
 ];
 
 /** Lo que se crea desde cualquier pantalla. Un asunto nace de una consulta. */
 const CREAR: Opcion[] = [
-  { id: "crear-consulta", titulo: "Nueva consulta", grupo: "Crear", icono: "llamada", ruta: "/panel/consulta", claves: ["llamada", "asunto", "cliente", "whatsapp", "nuevo"] },
-  { id: "crear-inmueble", titulo: "Inmueble nuevo", grupo: "Crear", icono: "edificio", ruta: "/panel/inmuebles?nuevo=1", claves: ["casa", "departamento", "terreno", "propiedad"] },
-  { id: "crear-persona", titulo: "Persona en el Directorio", grupo: "Crear", icono: "cliente", ruta: "/panel/directorio", claves: ["contacto", "cliente", "persona nueva"] },
+  { id: "crear-consulta", titulo: "Nueva consulta", grupo: "Crear", icono: "llamada", ruta: "/admin/consulta", claves: ["llamada", "asunto", "cliente", "whatsapp", "nuevo"] },
+  { id: "crear-inmueble", titulo: "Inmueble nuevo", grupo: "Crear", icono: "edificio", ruta: "/admin/inmuebles?nuevo=1", claves: ["casa", "departamento", "terreno", "propiedad"] },
+  { id: "crear-persona", titulo: "Persona en el Directorio", grupo: "Crear", icono: "cliente", ruta: "/admin/directorio", claves: ["contacto", "cliente", "persona nueva"] },
 ];
 
 const iniciales = (t: string) => t.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
@@ -86,7 +86,7 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
     const nombresEn = new Map<string, string[]>();
     for (const p of indice.personas) for (const a of p.asuntos) nombresEn.set(a, [...(nombresEn.get(a) ?? []), p.nombre]);
     const asuntos: Opcion[] = indice.asuntos.map((a) => ({
-      id: `a-${a.id}`, titulo: a.nombre, grupo: "Asuntos", icono: "asu", ruta: `/panel/asuntos/${a.id}`,
+      id: `a-${a.id}`, titulo: a.nombre, grupo: "Asuntos", icono: "asu", ruta: `/admin/asuntos/${a.id}`,
       detalle: [a.folio, a.cerrado ? "Cerrado" : null].filter(Boolean).join(" · "), claves: [a.folio, ...(nombresEn.get(a.id) ?? [])],
     }));
     const personas: Opcion[] = indice.personas.map((p) => {
@@ -94,13 +94,13 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
       const uno = suyos.length === 1 ? suyos[0] : null;
       return {
         id: `p-${p.id}`, titulo: p.nombre, grupo: "Personas", icono: "cliente", iniciales: true,
-        ruta: uno ? `/panel/asuntos/${uno.id}?ver=personas&persona=${p.id}` : `/panel/directorio?q=${encodeURIComponent(p.nombre)}`,
+        ruta: uno ? `/admin/asuntos/${uno.id}?ver=personas&persona=${p.id}` : `/admin/directorio?q=${encodeURIComponent(p.nombre)}`,
         detalle: [p.telefono, uno ? uno.nombre : suyos.length ? `${suyos.length} asuntos` : "Sin asunto"].filter(Boolean).join(" · "),
         claves: [p.telefono ?? "", (p.telefono ?? "").replace(/\D/g, ""), p.correo ?? ""],
       };
     });
     const inmuebles: Opcion[] = indice.inmuebles.map((i) => ({
-      id: `i-${i.id}`, titulo: i.nombre, grupo: "Inmuebles", icono: "edificio", ruta: `/panel/inmuebles?id=${i.id}`,
+      id: `i-${i.id}`, titulo: i.nombre, grupo: "Inmuebles", icono: "edificio", ruta: `/admin/inmuebles?id=${i.id}`,
       detalle: [i.folio, i.colonia].filter(Boolean).join(" · "), claves: [i.folio, i.colonia ?? ""],
     }));
     return [...asuntos, ...personas, ...inmuebles];
@@ -110,12 +110,12 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
   const atajos = useMemo<Opcion[]>(() => {
     const fav: Opcion[] = (panel.favoritos ?? []).map((f) => ({
       id: `f-${f.id}`, titulo: f.nombre, grupo: "Favoritos" as const, icono: "estrella" as const,
-      ruta: f.tipo === "asunto" ? `/panel/asuntos/${f.id}` : `/panel/inmuebles?id=${f.id}`,
+      ruta: f.tipo === "asunto" ? `/admin/asuntos/${f.id}` : `/admin/inmuebles?id=${f.id}`,
       detalle: f.tipo === "asunto" ? asuntoDe.get(f.id)?.folio : indice?.inmuebles.find((x) => x.id === f.id)?.folio,
     }));
     const vistos = new Set((panel.favoritos ?? []).map((f) => f.id));
     const rec: Opcion[] = leerRecientes(recientesTexto).filter((r) => !vistos.has(r.id))
-      .map((r) => ({ id: `r-${r.id}`, titulo: r.nombre, grupo: "Recientes" as const, icono: "reloj" as const, ruta: `/panel/asuntos/${r.id}` }));
+      .map((r) => ({ id: `r-${r.id}`, titulo: r.nombre, grupo: "Recientes" as const, icono: "reloj" as const, ruta: `/admin/asuntos/${r.id}` }));
     return [...fav, ...rec];
   }, [panel.favoritos, asuntoDe, indice, recientesTexto]);
 
@@ -147,7 +147,7 @@ function Contenido({ alCerrar, textoInicial }: { alCerrar: () => void; textoInic
       });
       alCerrar();
       avisar(`Tarea en ${destino.nombre}${linea.fecha ? `: ${fechaCorta(linea.fecha, linea.hora).toLowerCase()}` : ""}`, {
-        etiqueta: "Abrir", alAccionar: () => router.push(`/panel/asuntos/${destino.id}?ver=plan`),
+        etiqueta: "Abrir", alAccionar: () => router.push(`/admin/asuntos/${destino.id}?ver=plan`),
       });
     } catch (e) {
       avisar(e instanceof Error ? e.message : "No se creó la tarea. Vuelve a intentarlo.");

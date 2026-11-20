@@ -48,14 +48,14 @@ function PlazaUnits({ slug, units }: { slug: string; units: Property[] }) {
           <h2 id="locales-plaza" className="text-lg font-semibold">Locales de esta plaza</h2>
           <p className="text-sm text-muted-foreground">Un local que se vende o renta aparte es otro inmueble, con su asunto y folio. La plaza completa se trabaja aquí.</p>
         </div>
-        <Link href={`/admin/propiedades/nueva?conjunto=${encodeURIComponent(slug)}`} className={btnGhost}>Agregar un local de esta plaza</Link>
+        <Link href={`/admin-anterior/propiedades/nueva?conjunto=${encodeURIComponent(slug)}`} className={btnGhost}>Agregar un local de esta plaza</Link>
       </div>
       {units.length ? (
         <ul className="divide-y divide-border">
           {units.map((unit) => (
             <li key={unit.slug} className="flex flex-wrap items-center justify-between gap-2 py-2">
               <span className="min-w-0"><span className="font-semibold">{unit.titulo}</span> <span className="tabular-nums text-xs text-muted-foreground">{unit.codigo}</span></span>
-              <span className="flex items-center gap-3 text-sm text-muted-foreground">{TIPO_LABELS[unit.tipo]} · {unit.publicada ? "Publicado" : "Sin publicar"}<Link href={`/admin/propiedades/${encodeURIComponent(unit.slug)}/editar`} className="font-semibold text-foreground underline underline-offset-4">Abrir</Link></span>
+              <span className="flex items-center gap-3 text-sm text-muted-foreground">{TIPO_LABELS[unit.tipo]} · {unit.publicada ? "Publicado" : "Sin publicar"}<Link href={`/admin-anterior/propiedades/${encodeURIComponent(unit.slug)}/editar`} className="font-semibold text-foreground underline underline-offset-4">Abrir</Link></span>
             </li>
           ))}
         </ul>
@@ -96,7 +96,7 @@ export function PropertyFile({ slug, initialTab = "ficha" }: { slug: string; ini
     <div className="space-y-6">
       <PageHeader title="Inmueble no encontrado." />
       <EmptyState title="Este inmueble no está en el inventario." />
-      <Link href="/admin/propiedades" className={btnGhost}>Volver al inventario</Link>
+      <Link href="/admin-anterior/propiedades" className={btnGhost}>Volver al inventario</Link>
     </div>
   );
 

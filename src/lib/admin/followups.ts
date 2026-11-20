@@ -29,12 +29,12 @@ export function projectFollowups(leads: Lead[], clientes: Cliente[], dossiers?: 
   for (const cliente of clientes) {
     const fecha = cliente.perfil?.proximoContacto;
     // C-53: la tarea de siguiente paso creada cuando era prospecto también cubre al cliente convertido.
-    if (fecha && !onTasks.has(`cliente:${cliente.id}`) && !(cliente.leadId && onTasks.has(`lead:${cliente.leadId}`))) followups.push({ id: `cliente:${cliente.id}`, kind: "cliente", personId: cliente.id, personName: cliente.nombre, asesorId: cliente.asesorId, fecha, href: `/admin/clientes/${encodeURIComponent(cliente.id)}`, ...(dossiers ? { status: clientStatus(cliente.id, dossiers) } : {}) });
+    if (fecha && !onTasks.has(`cliente:${cliente.id}`) && !(cliente.leadId && onTasks.has(`lead:${cliente.leadId}`))) followups.push({ id: `cliente:${cliente.id}`, kind: "cliente", personId: cliente.id, personName: cliente.nombre, asesorId: cliente.asesorId, fecha, href: `/admin-anterior/clientes/${encodeURIComponent(cliente.id)}`, ...(dossiers ? { status: clientStatus(cliente.id, dossiers) } : {}) });
   }
   for (const lead of leads) {
     const fecha = lead.perfil?.proximoContacto;
     if (!fecha || onTasks.has(`lead:${lead.id}`) || lead.clienteId || convertedLeadIds.has(lead.id) || lead.estado === "cerrado" || lead.estado === "descartado") continue;
-    followups.push({ id: `lead:${lead.id}`, kind: "lead", personId: lead.id, personName: lead.nombre, asesorId: lead.asesorId, fecha, href: `/admin/leads/${encodeURIComponent(lead.id)}`, ...(dossiers ? { status: leadStatus(lead, dossiers) } : {}) });
+    followups.push({ id: `lead:${lead.id}`, kind: "lead", personId: lead.id, personName: lead.nombre, asesorId: lead.asesorId, fecha, href: `/admin-anterior/leads/${encodeURIComponent(lead.id)}`, ...(dossiers ? { status: leadStatus(lead, dossiers) } : {}) });
   }
   return followups.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.personName.localeCompare(b.personName));
 }

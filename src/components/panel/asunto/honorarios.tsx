@@ -233,7 +233,7 @@ function Contrato({ a, hacer }: { a: Asunto; hacer: Hacer }) {
             <DropdownMenuTrigger className="as-btn">{doc ? "Opciones" : "Cargar"}<Icono nombre="down" tamano={14} /></DropdownMenuTrigger>
             <DropdownMenuContent className="min-w-56">
               {doc?.archivos[0] ? <DropdownMenuItem asChild><a href={urlArchivo(a.id, doc.archivos[0].id)} target="_blank" rel="noopener noreferrer"><Icono nombre="ojo" tamano={16} />Ver</a></DropdownMenuItem> : null}
-              <DropdownMenuItem asChild><Link href={`/panel/herramientas/formatos?asunto=${a.id}&ver=honorarios`}><Icono nombre="lapiz" tamano={16} />Hacer el contrato aquí</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href={`/admin/herramientas/formatos?asunto=${a.id}&ver=honorarios`}><Icono nombre="lapiz" tamano={16} />Hacer el contrato aquí</Link></DropdownMenuItem>
               <DropdownMenuItem onSelect={() => archivo.current?.click()}><Icono nombre="subir" tamano={16} />Cargar el contrato firmado</DropdownMenuItem>
               {doc && !firmado ? (
                 <DropdownMenuItem onSelect={() => void hacer(() => cambiar(a.id, "documentos", { id: doc.id, version: doc.version, paso: "firmado", estado: "recibido" }), "Contrato firmado")}>

@@ -42,7 +42,7 @@ const NO_ESTA = "Este archivo ya no está en la Bandeja del servidor. Vuelve a s
 type Servidor = "leyendo" | "si" | "no" | "fallo";
 
 /**
- * En espera: la ruta /panel/bandeja no la muestra hasta que exista su tabla en la base (hoy guardaría en los expedientes y la
+ * En espera: la ruta /admin/bandeja no la muestra hasta que exista su tabla en la base (hoy guardaría en los expedientes y la
  * papelera del panel provisional). Se conserva para retomarla en su paso.
  *
  * Bandeja (PN-06, primer corte): se suben varios archivos a la carga temporal privada y cada uno espera «Por confirmar»

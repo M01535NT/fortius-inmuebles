@@ -35,7 +35,7 @@ export function EventDetail({ evento, eventos, tareas, followups, context, today
   const openTasks = tareas.filter(t => same(t)).sort((a, b) => (a.vence ?? "9999").localeCompare(b.vence ?? "9999")).slice(0, 3);
   const contact = followups.find(f => (f.kind === "cliente" && f.personId === refs.cliente?.id) || (f.kind === "lead" && f.personId === refs.lead?.id));
   const photo = propertyPhoto(refs.propiedad);
-  const primary = refs.expediente ? { href: `/admin/operaciones/${encodeURIComponent(refs.expediente.id)}`, label: "Abrir asunto" }
+  const primary = refs.expediente ? { href: `/admin-anterior/operaciones/${encodeURIComponent(refs.expediente.id)}`, label: "Abrir asunto" }
     : refs.person ? { href: refs.person.href, label: `Ver a ${refs.person.name.split(" ")[0]}` } : null;
   return <Sheet open={!!evento} onClose={onClose} title={e.titulo} description={`${EVENTO_TIPO_LABELS[e.tipo]} · ${dayTitle(e.fecha)}${e.hora ? ` · ${e.hora}` : " · Sin hora"}`}
     footer={<>
@@ -46,16 +46,16 @@ export function EventDetail({ evento, eventos, tareas, followups, context, today
       {e.fecha < today ? <Pill tone="muted">Ya pasó</Pill> : <Pill tone={visit ? "info" : "neutral"}><CalendarDays size={14} aria-hidden="true" />Hoy</Pill>}
     </div>}
     {refs.propiedad && (photo
-      ? <Link href={`/admin/propiedades/${encodeURIComponent(refs.propiedad.slug)}/editar`} className={s.detailPhoto} aria-label={`Inmueble: ${refs.propiedad.titulo}`}>
+      ? <Link href={`/admin-anterior/propiedades/${encodeURIComponent(refs.propiedad.slug)}/editar`} className={s.detailPhoto} aria-label={`Inmueble: ${refs.propiedad.titulo}`}>
         <Thumb src={photo} ratio="16 / 9" />
         <span className={s.detailPhotoCaption}>{refs.propiedad.titulo}</span>
       </Link>
-      : <Link href={`/admin/propiedades/${encodeURIComponent(refs.propiedad.slug)}/editar`} className={s.detailProperty} aria-label={`Inmueble: ${refs.propiedad.titulo}`}>
+      : <Link href={`/admin-anterior/propiedades/${encodeURIComponent(refs.propiedad.slug)}/editar`} className={s.detailProperty} aria-label={`Inmueble: ${refs.propiedad.titulo}`}>
         <Thumb size={48} icon={<Building2 size={20} aria-hidden="true" />} /><span>{refs.propiedad.titulo}</span>
       </Link>)}
     <dl className={s.detailList}>
       {refs.person && <div><dt>Con</dt><dd><Link href={refs.person.href} className={s.who}><Avatar name={refs.person.name} size={28} />{refs.person.name}<span className="text-muted-foreground">· {refs.person.role}</span></Link></dd></div>}
-      {refs.expediente && <div><dt>Asunto</dt><dd><Link href={`/admin/operaciones/${encodeURIComponent(refs.expediente.id)}`}>Asunto: {refs.expediente.folio}</Link></dd></div>}
+      {refs.expediente && <div><dt>Asunto</dt><dd><Link href={`/admin-anterior/operaciones/${encodeURIComponent(refs.expediente.id)}`}>Asunto: {refs.expediente.folio}</Link></dd></div>}
       {refs.asesor && <div><dt>Asesor</dt><dd><span className={s.who}><Avatar name={refs.asesor.nombre} src={adviserPhoto(refs.asesor)} size={28} />{refs.asesor.nombre}</span></dd></div>}
       {e.notas && <div><dt>Notas</dt><dd className="whitespace-pre-wrap">{e.notas}</dd></div>}
     </dl>
@@ -64,7 +64,7 @@ export function EventDetail({ evento, eventos, tareas, followups, context, today
       {nextEvent || openTasks.length || contact ? <ul>
         {nextEvent && <li><CalendarDays size={18} aria-hidden="true" /><span><b>{nextEvent.titulo}</b><small>{humanDate(nextEvent.fecha, today)}{nextEvent.hora ? ` · ${nextEvent.hora}` : ""}</small></span></li>}
         {contact && <li><Phone size={18} aria-hidden="true" /><span><Link href={contact.href}>Volver a contactar</Link><small>{humanDate(contact.fecha, today)}</small></span></li>}
-        {openTasks.map(t => <li key={t.id}><CheckCircle2 size={18} aria-hidden="true" /><span><Link href={`/admin/tareas/${encodeURIComponent(t.id)}`}>{t.titulo}</Link><small>{t.vence ? humanDate(t.vence, today) : "Sin fecha"}</small></span></li>)}
+        {openTasks.map(t => <li key={t.id}><CheckCircle2 size={18} aria-hidden="true" /><span><Link href={`/admin-anterior/tareas/${encodeURIComponent(t.id)}`}>{t.titulo}</Link><small>{t.vence ? humanDate(t.vence, today) : "Sin fecha"}</small></span></li>)}
       </ul> : <p className="text-sm text-muted-foreground">Nada más agendado con {refs.person ? refs.person.name : "este asunto"}.</p>}
     </section>}
   </Sheet>;

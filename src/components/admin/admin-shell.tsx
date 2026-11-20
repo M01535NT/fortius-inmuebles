@@ -379,7 +379,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const name = session.name || session.email.split("@")[0];
   const user = { name, email: session.email, initials: name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join("").toUpperCase(), avatar: session.avatar };
   // Nueva operación ocupa toda la pantalla: sin menú, migas ni barra inferior; se sale con la ×.
-  const focus = pathname === "/admin/operaciones/nueva";
+  const focus = pathname === "/admin-anterior/operaciones/nueva";
   // COR-23: Equipo, Sitio web, Reportes, Historial y Configuración son del director (la base lo hace valer).
   // C-80: Eliminados está en el menú del director, pero el asesor la abre para restaurar sus operaciones.
   const directorOnly = session.role !== "admin" && ADMIN_NAV.some(item => item.href !== PAPELERA.href && isNavActive(pathname, item));
@@ -405,7 +405,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div role="alert" className="max-w-[640px] space-y-3 rounded-[var(--radius-card)] border border-[var(--card-edge)] bg-card p-6">
               <h1 className="text-xl font-semibold">Esta sección la administra el director</h1>
               <p className="text-sm text-muted-foreground">Si necesitas un cambio aquí, pídelo al director.</p>
-              <Link href="/admin" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4">Volver a Hoy</Link>
+              <Link href="/admin-anterior" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4">Volver a Hoy</Link>
             </div>
           ) : (
             children

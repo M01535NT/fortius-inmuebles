@@ -44,7 +44,7 @@ export function VistaAmplia({ vista }: { vista: Exclude<VistaAsuntos, "lista"> }
         {director && opcionesLleva.length > 2 ? <Pildora etiqueta="Quién lo lleva" valor={lleva} opciones={opcionesLleva} alElegir={setLleva} /> : null}
         <Pildora etiqueta="Qué ver" valor={que} opciones={opcionesQue} alElegir={setQue} titulo={que ? undefined : "Filtrar"} />
         <MenuVistasGuardadas />
-        <BotonEnlace href="/panel/consulta" variante="primario" icono="tel" className="as-vnueva">Nueva consulta</BotonEnlace>
+        <BotonEnlace href="/admin/consulta" variante="primario" icono="tel" className="as-vnueva">Nueva consulta</BotonEnlace>
       </div>
       {error && !asuntos ? (
         <div className="as-vacio-lista" role="alert">
@@ -134,7 +134,7 @@ function Tablero({ lista }: { lista: FilaAsunto[] }) {
             {suyas.map((a) => {
               const s = a.siguiente;
               return (
-                <Link key={a.id} href={`/panel/asuntos/${a.id}`} className="as-tj" draggable data-arrastra={arrastra?.id === a.id || undefined}
+                <Link key={a.id} href={`/admin/asuntos/${a.id}`} className="as-tj" draggable data-arrastra={arrastra?.id === a.id || undefined}
                   onDragStart={(e) => { e.dataTransfer.setData("text/plain", a.id); e.dataTransfer.effectAllowed = "move"; setArrastra(a); }}
                   onDragEnd={() => { setArrastra(null); setSobre(null); }}>
                   <b>{a.nombre}</b>
@@ -185,7 +185,7 @@ function Tiempo({ lista }: { lista: FilaAsunto[] }) {
           const s = a.siguiente!;
           const c = columna(s.fecha!);
           return (
-            <Link key={a.id} href={`/panel/asuntos/${a.id}`} className="as-ti-fila" data-renglon="">
+            <Link key={a.id} href={`/admin/asuntos/${a.id}`} className="as-ti-fila" data-renglon="">
               <span className="as-ti-nombre">
                 <b>{a.nombre}</b>
                 <small><span data-tono={tono(s.fecha)}>{fechaCorta(s.fecha, s.hora)}</span> · {s.titulo}</small>
@@ -201,7 +201,7 @@ function Tiempo({ lista }: { lista: FilaAsunto[] }) {
         <section className="as-ti-sin" aria-label="Sin fecha">
           <h2>Sin fecha <span>{sinFecha.length}</span></h2>
           {sinFecha.map((a) => (
-            <Link key={a.id} href={`/panel/asuntos/${a.id}`} className="as-ti-sin-it" data-renglon="">
+            <Link key={a.id} href={`/admin/asuntos/${a.id}`} className="as-ti-sin-it" data-renglon="">
               <b>{a.nombre}</b>
               <small>{datosDe(a)} · {a.siguiente ? `${a.siguiente.titulo} · sin fecha` : <span data-tono="tarde">Sin siguiente paso</span>}</small>
             </Link>

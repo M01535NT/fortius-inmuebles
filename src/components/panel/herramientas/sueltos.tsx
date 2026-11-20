@@ -45,7 +45,7 @@ export function TrabajosSueltos() {
             </>
           );
           return t.clase === "formato"
-            ? <Link key={t.id} href={`/panel/documento/${t.id}?volver=${encodeURIComponent("/panel/herramientas")}`} className="as-it her-it">{cuerpo}</Link>
+            ? <Link key={t.id} href={`/admin/documento/${t.id}?volver=${encodeURIComponent("/admin/herramientas")}`} className="as-it her-it">{cuerpo}</Link>
             : <button key={t.id} type="button" className="as-it her-it" onClick={() => setAbierto(t)}>{cuerpo}</button>;
         })}
       </div>

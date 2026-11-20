@@ -7,7 +7,7 @@ export type Seccion = {
   icono: NombreIcono;
   etapa: number;
   resumen: string;
-  /** Ruta dentro de /panel. Inicio es la raíz. */
+  /** Ruta dentro de /admin. Inicio es la raíz. */
   ruta: string;
   /** Solo la ve el director. */
   soloDirector?: boolean;
@@ -15,23 +15,23 @@ export type Seccion = {
 
 /** Orden del boceto aprobado. El asesor lo puede cambiar arrastrando. */
 export const SECCIONES: readonly Seccion[] = [
-  { slug: "inicio", nombre: "Inicio", icono: "casa", etapa: 8, resumen: "Lo que hay que atender hoy y esta semana.", ruta: "/panel" },
-  { slug: "asuntos", nombre: "Asuntos", icono: "asu", etapa: 2, resumen: "Todos los trabajos, abiertos y cerrados.", ruta: "/panel/asuntos" },
-  { slug: "inmuebles", nombre: "Inmuebles", icono: "edif", etapa: 4, resumen: "El inventario y lo que sale en el sitio.", ruta: "/panel/inmuebles" },
-  { slug: "directorio", nombre: "Directorio", icono: "users", etapa: 7, resumen: "Las personas, con el asunto de cada una.", ruta: "/panel/directorio" },
-  { slug: "biblioteca", nombre: "Biblioteca", icono: "lib", etapa: 7, resumen: "Listas de qué pedir y planes de qué hacer.", ruta: "/panel/biblioteca" },
-  { slug: "herramientas", nombre: "Herramientas", icono: "calc", etapa: 6, resumen: "Opinión de valor, cálculos y contratos sueltos.", ruta: "/panel/herramientas" },
-  { slug: "equipo", nombre: "Equipo", icono: "band", etapa: 9, resumen: "Cómo va cada asesor.", ruta: "/panel/equipo", soloDirector: true },
+  { slug: "inicio", nombre: "Inicio", icono: "casa", etapa: 8, resumen: "Lo que hay que atender hoy y esta semana.", ruta: "/admin" },
+  { slug: "asuntos", nombre: "Asuntos", icono: "asu", etapa: 2, resumen: "Todos los trabajos, abiertos y cerrados.", ruta: "/admin/asuntos" },
+  { slug: "inmuebles", nombre: "Inmuebles", icono: "edif", etapa: 4, resumen: "El inventario y lo que sale en el sitio.", ruta: "/admin/inmuebles" },
+  { slug: "directorio", nombre: "Directorio", icono: "users", etapa: 7, resumen: "Las personas, con el asunto de cada una.", ruta: "/admin/directorio" },
+  { slug: "biblioteca", nombre: "Biblioteca", icono: "lib", etapa: 7, resumen: "Listas de qué pedir y planes de qué hacer.", ruta: "/admin/biblioteca" },
+  { slug: "herramientas", nombre: "Herramientas", icono: "calc", etapa: 6, resumen: "Opinión de valor, cálculos y contratos sueltos.", ruta: "/admin/herramientas" },
+  { slug: "equipo", nombre: "Equipo", icono: "band", etapa: 9, resumen: "Cómo va cada asesor.", ruta: "/admin/equipo", soloDirector: true },
 ] as const;
 
 /** La consulta: se abre con «Nueva consulta» (Inicio, Asuntos y el botón del centro en el teléfono). No va en el menú. */
 export const CONSULTA: Seccion = {
-  slug: "consulta", nombre: "Nueva consulta", icono: "tel", etapa: 3, resumen: "Lo que cuenta quien llama, mientras habla.", ruta: "/panel/consulta",
+  slug: "consulta", nombre: "Nueva consulta", icono: "tel", etapa: 3, resumen: "Lo que cuenta quien llama, mientras habla.", ruta: "/admin/consulta",
 };
 
 /** Tu perfil y la apariencia. Se abre desde tu cuenta, al pie del menú. */
 export const CONFIGURACION: Seccion = {
-  slug: "configuracion", nombre: "Configuración", icono: "llave", etapa: 9, resumen: "Tu perfil y la apariencia.", ruta: "/panel/configuracion",
+  slug: "configuracion", nombre: "Configuración", icono: "llave", etapa: 9, resumen: "Tu perfil y la apariencia.", ruta: "/admin/configuracion",
 };
 
 /** Barra del teléfono (boceto): Inicio, Asuntos, el botón de nueva consulta al centro, Inmuebles y «Más». */
@@ -42,6 +42,6 @@ export function seccionesPara(esDirector: boolean): Seccion[] {
 }
 
 export function seccionPorRuta(ruta: string): Seccion | undefined {
-  if (ruta === "/panel") return SECCIONES[0];
-  return [...SECCIONES, CONSULTA, CONFIGURACION].find((s) => s.ruta !== "/panel" && (ruta === s.ruta || ruta.startsWith(s.ruta + "/")));
+  if (ruta === "/admin") return SECCIONES[0];
+  return [...SECCIONES, CONSULTA, CONFIGURACION].find((s) => s.ruta !== "/admin" && (ruta === s.ruta || ruta.startsWith(s.ruta + "/")));
 }

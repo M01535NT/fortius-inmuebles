@@ -131,7 +131,7 @@ export function queueFromLeads(items: NewLeadItem[], viewer?: { admin: boolean; 
   });
 }
 export function queueFromInterviews(interviews: OperationalInterview[]): QueueItem[] {
-  return interviews.map(interview => ({ id: `entrevista:${interview.id}`, kind: "entrevista", who: interview.contacto?.nombre || "Contacto sin nombre", text: interviewSummary(interview), late: false, href: `/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.id)}`, sort: interview.updated_at ?? "" }));
+  return interviews.map(interview => ({ id: `entrevista:${interview.id}`, kind: "entrevista", who: interview.contacto?.nombre || "Contacto sin nombre", text: interviewSummary(interview), late: false, href: `/admin-anterior/operaciones/nueva?entrevista=${encodeURIComponent(interview.id)}`, sort: interview.updated_at ?? "" }));
 }
 export function queueFromExpiry(items: ExpiryItem[]): QueueItem[] {
   return items.map(item => ({ id: item.id, kind: item.kind === "Contrato" ? "contrato" : "licencia", who: item.meta, text: item.text, when: shortDate(item.date), late: item.late, href: item.href, sort: item.date }));
@@ -188,7 +188,7 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today,
       pick = { ...base, reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "" };
     }
     const property = names.property(dossier.propiedad_slug);
-    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, propertySlug: dossier.propiedad_slug, detail: [pick.requirement, property, processStageText(dossier.etapa, flow, today, dossier.inicial)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
+    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, propertySlug: dossier.propiedad_slug, detail: [pick.requirement, property, processStageText(dossier.etapa, flow, today, dossier.inicial)].filter(Boolean).join(" · "), href: `/admin-anterior/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
   }
   // Quien tiene una operación activa la sigue por su operación, no por el «próximo contacto» del perfil (C40).
   const withOperation = new Set(dossiers.filter(active).map(d => d.cliente_id).filter(Boolean));
@@ -235,16 +235,16 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
   const items: UpcomingItem[] = [];
   for (const task of tasks.filter(t => isTaskOpen(t) && inRange(t.vence))) {
     const d = dossierOf(task.expedienteId);
-    items.push({ id: `tarea:${task.id}`, date: task.vence!, kind: "Tarea", text: task.titulo, meta: d ? label(d) : names.property(task.propiedadSlug) ?? "Sin asunto", href: `/admin/tareas/${encodeURIComponent(task.id)}` });
+    items.push({ id: `tarea:${task.id}`, date: task.vence!, kind: "Tarea", text: task.titulo, meta: d ? label(d) : names.property(task.propiedadSlug) ?? "Sin asunto", href: `/admin-anterior/tareas/${encodeURIComponent(task.id)}` });
   }
   for (const d of dossiers.filter(active)) {
     for (const [key, r] of Object.entries(d.flujo?.requisitos ?? {}) as Array<[RequirementKey, NonNullable<OperationWorkflow["requisitos"][RequirementKey]>]>) {
-      if (r.estado === "revisado" && inRange(r.vigenteHasta)) items.push({ id: `vigencia:${d.id}:${key}`, date: r.vigenteHasta!, kind: "Vence", text: requirementName(key, d.flujo?.ruta), meta: label(d), href: `/admin/operaciones/${encodeURIComponent(d.id)}` });
+      if (r.estado === "revisado" && inRange(r.vigenteHasta)) items.push({ id: `vigencia:${d.id}:${key}`, date: r.vigenteHasta!, kind: "Vence", text: requirementName(key, d.flujo?.ruta), meta: label(d), href: `/admin-anterior/operaciones/${encodeURIComponent(d.id)}` });
     }
     if (reports && ownerReportApplies(d.etapa, d.flujo)) {
       const last = lastOwnerReport(d.flujo, reports[d.id]);
       const next = last ? addMonths(last, 1) : undefined;
-      if (inRange(next)) items.push({ id: `informe:${d.id}`, date: next!, kind: "Informe", text: "Informe mensual al propietario", meta: `${label(d)} · se cumple el mes`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` });
+      if (inRange(next)) items.push({ id: `informe:${d.id}`, date: next!, kind: "Informe", text: "Informe mensual al propietario", meta: `${label(d)} · se cumple el mes`, href: `/admin-anterior/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` });
     }
   }
   return items.sort((a, b) => a.date.localeCompare(b.date) || a.kind.localeCompare(b.kind) || a.text.localeCompare(b.text, "es"));
@@ -254,7 +254,7 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
 export function overdueReports({ dossiers, reports, names, today }: { dossiers: TodayDossier[]; reports: Record<string, string>; names: Names; today: string }) {
   return dossiers.filter(d => active(d) && ownerReportApplies(d.etapa, d.flujo)).map(d => ({ d, status: ownerReportStatus(lastOwnerReport(d.flujo, reports[d.id]), today) }))
     .filter(({ status }) => status.estado !== "al_dia")
-    .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? "Sin inmueble vinculado", status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
+    .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? "Sin inmueble vinculado", status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin-anterior/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
 }
 
 /** Fechas del contrato de intermediación (09, o 21 en la renta) que entrega /api/admin/vencimientos. */
@@ -277,7 +277,7 @@ export function expiryItems({ contracts, dossiers, names, today }: { contracts: 
     const d = dossiers.find(x => x.id === contract.expedienteId);
     if (!d || !active(d)) continue;
     const who = names.client(d.cliente_id) ?? names.property(d.propiedad_slug) ?? d.folio;
-    const href = `/admin/operaciones/${encodeURIComponent(d.id)}`;
+    const href = `/admin-anterior/operaciones/${encodeURIComponent(d.id)}`;
     if (contract.fin && CONTRACT_STAGES.includes(d.etapa ?? "captacion")) {
       const left = daysBetween(today, contract.fin);
       if (left <= 30) items.push({ id: `contrato:${d.id}`, date: contract.fin, kind: "Contrato", late: left < 0, href,
@@ -340,7 +340,7 @@ export function unattendedLeads({ leads, properties, me, admin, now, hours = FIR
       const since = minutes < 60 ? `${l.reabiertoEl ? "Regresó" : "Llegó"} hace ${Math.max(1, minutes)} min` : minutes < 48 * 60 ? `Lleva ${Math.floor(minutes / 60)} h sin respuesta` : `Lleva ${Math.floor(minutes / 1440)} días sin respuesta`;
       const interest = property ? `Le interesa ${property.titulo}` : l.mensaje?.trim() ? `«${l.mensaje.trim().slice(0, 80)}${l.mensaje.trim().length > 80 ? "…" : ""}»` : l.zona ? `Busca en ${l.zona}` : "Dejó sus datos";
       const owner = responsible ? adviserName?.(responsible) : undefined;
-      return { id: l.id, who: l.nombre, detail: admin ? `${interest} · ${owner ? `le toca a ${owner}` : "sin asesor: te toca a ti"}` : interest, since, late: minutes >= hours * 60, href: `/admin/leads/${encodeURIComponent(l.id)}`, ...(responsible ? { responsible } : {}), ...(owner ? { responsibleName: owner } : {}), forDirector: !responsible };
+      return { id: l.id, who: l.nombre, detail: admin ? `${interest} · ${owner ? `le toca a ${owner}` : "sin asesor: te toca a ti"}` : interest, since, late: minutes >= hours * 60, href: `/admin-anterior/leads/${encodeURIComponent(l.id)}`, ...(responsible ? { responsible } : {}), ...(owner ? { responsibleName: owner } : {}), forDirector: !responsible };
     })
     .filter(item => admin || (!!me && item.responsible === me));
 }

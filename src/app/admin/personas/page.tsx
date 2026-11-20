@@ -1,7 +1,17 @@
-import { PersonasApp } from "@/components/admin/personas/personas-app";
+import { redirect } from "next/navigation";
 
-// FLX: Personas, lista y perfil en una sola pantalla (boceto del 14/11/2026). `?id=cliente:<id>` o `?id=lead:<id>` abre a esa persona; `?nuevo=1` abre «Nuevo perfil».
-export default async function PersonasPage({ searchParams }: { searchParams: Promise<{ id?: string | string[]; nuevo?: string | string[] }> }) {
-  const { id, nuevo } = await searchParams;
-  return <PersonasApp initialId={typeof id === "string" ? id : null} initialNuevo={nuevo === "1"} />;
+/**
+ * Personas ya vive en el Directorio (una sola pantalla de gente). Los enlaces viejos `/admin/personas?ver=<id>` siguen
+ * sirviendo: abren el Directorio con esa ficha y, con `?q=`, ya filtrado.
+ */
+export default async function Personas({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const p = await searchParams;
+  const uno = (v: string | string[] | undefined) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const id = uno(p.ver) ?? uno(p.id);
+  const q = uno(p.q);
+  const destino = new URLSearchParams();
+  if (id) destino.set("id", id);
+  if (q) destino.set("q", q);
+  const s = destino.toString();
+  redirect(s ? `/admin/directorio?${s}` : "/admin/directorio");
 }

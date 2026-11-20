@@ -114,11 +114,11 @@ export function Inicio() {
   const atender = async (s: SolicitudInicio) => {
     try {
       const r = await atenderSolicitud(s);
-      if (r.consulta_id) router.push(`/panel/consulta?id=${r.consulta_id}`);
+      if (r.consulta_id) router.push(`/admin/consulta?id=${r.consulta_id}`);
     } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo abrir."); await cargar(); }
   };
   const nuevoAsunto = async (p: ContactoInicio) => {
-    try { const c = await empezarConsulta({ persona_id: p.id }); router.push(`/panel/consulta?id=${c.id}`); }
+    try { const c = await empezarConsulta({ persona_id: p.id }); router.push(`/admin/consulta?id=${c.id}`); }
     catch (e) { avisar(e instanceof Error ? e.message : "No se pudo empezar la consulta."); }
   };
   const nombreDe = (id: string | null) => (id ? (equipo.find((m) => m.id === id) ?? companeros.find((m) => m.id === id))?.nombre ?? "Otra persona" : null);
@@ -137,7 +137,7 @@ export function Inicio() {
               opciones={equipo.map((m) => ({ valor: m.id, etiqueta: m.id === yo ? `${m.nombre} (yo)` : m.nombre }))} />
           </div>
         ) : null}
-        <Link href="/panel/consulta" className="as-btn as-pri in-nueva"><Icono nombre="tel" tamano={15} />Nueva consulta</Link>
+        <Link href="/admin/consulta" className="as-btn as-pri in-nueva"><Icono nombre="tel" tamano={15} />Nueva consulta</Link>
       </div>
     <div className="db-pagina in-pagina">
 
@@ -180,7 +180,7 @@ export function Inicio() {
                           ) : null}
                           {s.asunto_id && s.interesado_id ? (
                             <DropdownMenuItem asChild>
-                              <Link href={`/panel/asuntos/${s.asunto_id}?ver=interesados`}><Icono nombre="users" tamano={16} />Ver en Interesados</Link>
+                              <Link href={`/admin/asuntos/${s.asunto_id}?ver=interesados`}><Icono nombre="users" tamano={16} />Ver en Interesados</Link>
                             </DropdownMenuItem>
                           ) : null}
                           {director && otrosDelEquipo.length ? (
@@ -272,7 +272,7 @@ export function Inicio() {
               {v.vencen.map((d) => {
                 const n = diasHasta(d.vence_el);
                 return (
-                  <Link key={d.id} className="as-ren" href={`/panel/asuntos/${d.asunto_id}?ver=documentos`}>
+                  <Link key={d.id} className="as-ren" href={`/admin/asuntos/${d.asunto_id}?ver=documentos`}>
                     <Cuadro icono="file" color="teal" chico />
                     <span className="as-ren-c"><b>{d.nombre}</b><span>{d.asunto}</span></span>
                     <span className={`as-pill ${n < 0 ? "as-pill-bad" : "as-pill-warn"}`}>{n < 0 ? "Venció" : "Vence"} {fechaCorta(d.vence_el).toLowerCase()}</span>
@@ -285,7 +285,7 @@ export function Inicio() {
 
           <Bloque icono="pago" color="green" titulo="Por cobrar" cuenta={v.cobrar.length} vacio="Nada por cobrar.">
             {v.cobrar.map((c) => (
-              <Link key={c.asunto_id} className="as-ren" href={`/panel/asuntos/${c.asunto_id}?ver=honorarios`}>
+              <Link key={c.asunto_id} className="as-ren" href={`/admin/asuntos/${c.asunto_id}?ver=honorarios`}>
                 <span className="as-ren-c"><b>{c.nombre}</b><span>{c.folio}</span></span>
                 <span className="as-num in-monto">{(Object.entries(c.falta) as [Moneda, number][]).map(([m, n]) => dinero(n, m)).join(" + ")}</span>
                 <Icono nombre="ch" tamano={16} />
@@ -318,7 +318,7 @@ function ParaTi({ items, visto, nombreDe, alVer }: { items: ParaTiInicio[]; vist
       <div className="as-card in-card">
         {items.slice(0, 12).map((x) => {
           const nuevo = esNuevo(x);
-          const href = x.asunto_id ? `/panel/asuntos/${x.asunto_id}${x.clase === "asignada" ? "?ver=plan" : ""}` : "/panel/asuntos";
+          const href = x.asunto_id ? `/admin/asuntos/${x.asunto_id}${x.clase === "asignada" ? "?ver=plan" : ""}` : "/admin/asuntos";
           const quien = nombreDe(x.de);
           const contenido = (
             <>
@@ -361,7 +361,7 @@ function Tarea({ t, alHacer, detalle, pildora, extra }: { t: TareaInicio; alHace
   return (
     <div className="as-t in-t" data-est="pendiente">
       <button type="button" className="as-ckb" aria-label={`Marcar hecha: ${t.titulo}`} onClick={() => alHacer(t)}><span className="as-ck" /></button>
-      <Link className="as-tb in-tb" href={`/panel/asuntos/${t.asunto_id}?ver=${t.clase === "visita" ? "interesados" : "plan"}`}>
+      <Link className="as-tb in-tb" href={`/admin/asuntos/${t.asunto_id}?ver=${t.clase === "visita" ? "interesados" : "plan"}`}>
         <span className="as-n">{t.titulo}</span>
         <span className="as-m">{detalle ?? (t.quien === "fortius" ? t.asunto.nombre : `${t.asunto.nombre} · ${cat.etiqueta("quien_tarea", t.quien)}`)}</span>
       </Link>

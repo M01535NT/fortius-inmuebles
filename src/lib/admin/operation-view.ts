@@ -24,7 +24,7 @@ type Review = NonNullable<OperationWorkflow["requisitos"][RequirementKey]>;
 
 export function operationHref(id: string, query?: Record<string, string>) {
   const search = query ? new URLSearchParams(query).toString() : "";
-  return `/admin/operaciones/${encodeURIComponent(id)}${search ? `?${search}` : ""}`;
+  return `/admin-anterior/operaciones/${encodeURIComponent(id)}${search ? `?${search}` : ""}`;
 }
 /** Venta, renta e inversión siguen la guía; administración y otras conservan el seguimiento simple. */
 export const isGuided = (op: Pick<OperationRecord, "operacion">) => ["venta", "renta", "inversion"].includes(op.operacion);
@@ -415,7 +415,7 @@ export function stageTools(op: OperationRecord, today: string) {
   const flow = flowOf(op), { phase } = routeStages(op, today);
   const tools = phase ? PHASE_TOOLS[phase] : ROUTE_TOOLS[flow.ruta] ?? [];
   // Comparables es la opinión de valor suelta (07): no se liga a la operación.
-  return tools.map(([slug, label]) => ({ slug, label, href: slug === "comparables" ? COMPARABLES_HREF : `/admin/apps/${slug}?expedienteId=${encodeURIComponent(op.id)}` }));
+  return tools.map(([slug, label]) => ({ slug, label, href: slug === "comparables" ? COMPARABLES_HREF : `/admin-anterior/apps/${slug}?expedienteId=${encodeURIComponent(op.id)}` }));
 }
 
 /** El contrato se captura después de terminar la verificación (decisión del titular, 15/10/2026). */

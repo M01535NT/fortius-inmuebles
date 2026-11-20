@@ -166,7 +166,7 @@ export function PropertyList() {
   const attention = pendientes.length;
   return <GuidedPage title="Inmuebles" subtitle={`${properties.length} ${properties.length === 1 ? "inmueble" : "inmuebles"} · ${published} ${published === 1 ? "publicado" : "publicados"}`} actions={<>
     {properties.length > 0 && !demand && <SelectToggle selection={selection} noun="inmuebles" />}
-    <ButtonLink href="/admin/propiedades/nueva" variant="primary"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
+    <ButtonLink href="/admin-anterior/propiedades/nueva" variant="primary"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
   </>}>
     {viewError && <p role="alert" className="m-0 text-sm text-destructive">{viewError}</p>}
     {undoError && <p role="alert" className="m-0 text-sm text-destructive">{undoError}</p>}
@@ -205,7 +205,7 @@ export function PropertyList() {
     </Disclosure>}
 
     {demand ? <DemandView groups={groups} />
-      : properties.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.inmuebles, kind: "empezar" }} title="Todavía no hay inmuebles" steps={["Agrégalo aquí o al terminar la entrevista con el propietario.", "Sube sus fotos y completa la ficha.", "Publícalo en el sitio cuando el propietario lo autorice."]} action={<ButtonLink href="/admin/propiedades/nueva">Agregar inmueble</ButtonLink>}>Los inmuebles que Fortius vende o renta. Solo lo que publicas aparece en el sitio.</EmptyBox>
+      : properties.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.inmuebles, kind: "empezar" }} title="Todavía no hay inmuebles" steps={["Agrégalo aquí o al terminar la entrevista con el propietario.", "Sube sus fotos y completa la ficha.", "Publícalo en el sitio cuando el propietario lo autorice."]} action={<ButtonLink href="/admin-anterior/propiedades/nueva">Agregar inmueble</ButtonLink>}>Los inmuebles que Fortius vende o renta. Solo lo que publicas aparece en el sitio.</EmptyBox>
       : shown.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.inmuebles, kind: "buscar" }} title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
       : <>
         {view === "filas" && <div className={s.listHead} data-pick={selection.on || undefined} aria-hidden="true"><span>Inmueble</span><span>Avance</span><span>Personas</span><span className="text-right">Precio</span><span>Estado</span></div>}
@@ -238,7 +238,7 @@ function PropertyItem({ row, view, index, today, selection, offer, onOpen, onNav
   const slug = encodeURIComponent(p.slug);
   const menu = <ActionsMenu label={`Opciones de ${p.titulo}`} triggerClassName={s.kebab} actions={[
     { label: "Abrir ficha rápida", onSelect: onOpen },
-    ...(scope.edit ? [{ label: "Editar ficha", onSelect: () => onNavigate(`/admin/propiedades/${slug}/editar`) }, { label: "Llaves y compradores", onSelect: () => onNavigate(`/admin/propiedades/${slug}/seguimiento`) }] : []),
+    ...(scope.edit ? [{ label: "Editar ficha", onSelect: () => onNavigate(`/admin-anterior/propiedades/${slug}/editar`) }, { label: "Llaves y compradores", onSelect: () => onNavigate(`/admin-anterior/propiedades/${slug}/seguimiento`) }] : []),
     { label: "Ver en el sitio", onSelect: () => { window.open(`/inventario/${slug}`, "_blank", "noopener"); } },
   ]} />;
   const price = <PrecioEnFila property={p} editable={scope.edit && p.precio.modalidad !== "consulta"} offer={offer} />;

@@ -60,7 +60,7 @@ export function ListaInmuebles() {
   const cargar = useCallback(() => leerInmuebles().then((x) => { setTodos(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")), []);
   useEffect(() => { leerInmuebles().then((x) => { setTodos(x); setError(null); }, (e: unknown) => setError(e instanceof Error ? e.message : "No se pudo cargar.")); }, []);
 
-  const abrir = (id: string | null) => router.replace(id ? `/panel/inmuebles?id=${id}` : "/panel/inmuebles", { scroll: false });
+  const abrir = (id: string | null) => router.replace(id ? `/admin/inmuebles?id=${id}` : "/admin/inmuebles", { scroll: false });
   const ver = useMemo(() => (todos ?? []).filter((i) => pasa(i, filtro)), [todos, filtro]);
   const sel = (todos ?? []).filter((i) => elegidos.has(i.id));
   const actual = todos?.find((i) => i.id === abierto) ?? null;
@@ -144,7 +144,7 @@ export function ListaInmuebles() {
                 const linea = [i.tipo ? cat.etiqueta("tipo_inmueble", i.tipo) : null, precioTexto(i.precio, i.moneda, i.operacion), i.publicado ? "Publicado" : null].filter(Boolean).join(" · ");
                 const globo = [i.colonia, medios || "Sin fotos", i.publicado ? null : "Sin publicar", i.es_ejemplo ? "Ejemplo" : null].filter(Boolean).join(" · ");
                 return (
-                  <Link key={i.id} href={`/panel/inmuebles?id=${i.id}`} replace scroll={false} className="as-it in-it" data-renglon=""
+                  <Link key={i.id} href={`/admin/inmuebles?id=${i.id}`} replace scroll={false} className="as-it in-it" data-renglon=""
                     aria-current={i.id === abierto ? "page" : undefined} data-elegido={elegido || undefined} title={globo}
                     onClick={(e) => {
                       if (seleccionando || e.shiftKey || e.metaKey || e.ctrlKey) { e.preventDefault(); alternar(i.id); }
@@ -177,7 +177,7 @@ export function ListaInmuebles() {
           </div>
         )}
       </section>
-      <DialogoNuevo abierto={nuevo} alCerrar={() => { setNuevo(false); if (params.get("nuevo")) router.replace("/panel/inmuebles", { scroll: false }); }} alCrear={async (d) => {
+      <DialogoNuevo abierto={nuevo} alCerrar={() => { setNuevo(false); if (params.get("nuevo")) router.replace("/admin/inmuebles", { scroll: false }); }} alCrear={async (d) => {
         try {
           const x = await nuevoInmueble(d);
           avisar(`Inmueble ${x.folio} creado con su asunto de captación`);

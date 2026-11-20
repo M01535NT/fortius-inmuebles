@@ -32,7 +32,7 @@ export function DoneStep({ interview, fresh }: { interview: OperationalInterview
   const owner = isOwnerIntent(interview.intencion), correction = !!interview.anterior_id;
   const property = properties.find(p => p.slug === interview.propiedad_slug);
   const who = clients.find(c => c.id === interview.cliente_id)?.nombre ?? interview.contacto.nombre;
-  const href = interview.expediente_id ? `/admin/operaciones/${encodeURIComponent(interview.expediente_id)}` : null;
+  const href = interview.expediente_id ? `/admin-anterior/operaciones/${encodeURIComponent(interview.expediente_id)}` : null;
   const answered = visibleFields(interview.intencion, interview.respuestas).filter(f => interview.respuestas[f.key]?.trim());
   const heading = React.useRef<HTMLHeadingElement>(null);
   React.useEffect(() => { heading.current?.focus(); }, []);
@@ -49,14 +49,14 @@ export function DoneStep({ interview, fresh }: { interview: OperationalInterview
     </dl></div>
     <div className="flex flex-wrap items-center gap-3">
       {href && <ButtonLink variant="primary" href={href}>Abrir el asunto<ArrowRight size={16} aria-hidden="true" /></ButtonLink>}
-      <Link href="/admin" className="font-semibold text-foreground underline-offset-4 hover:underline">Volver a Hoy</Link>
+      <Link href="/admin-anterior" className="font-semibold text-foreground underline-offset-4 hover:underline">Volver a Hoy</Link>
     </div>
     <Card as="div" className="p-5"><Fold summary="Ver las respuestas de la entrevista" triggerClassName="font-semibold">
       <dl className={s.answers}>{answered.map(f => <div key={f.key}><dt>{f.label}</dt><dd className="[overflow-wrap:anywhere]">{f.options ? optionLabel(f, interview.respuestas[f.key]) : interview.respuestas[f.key]}</dd></div>)}</dl>
     </Fold>
     <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-      {interview.expediente_id && <Link className="font-semibold underline underline-offset-4" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, clienteId: interview.cliente_id ?? "", expedienteId: interview.expediente_id })}`}>Corregir la entrevista</Link>}
-      {interview.anterior_id && <Link className="font-semibold underline underline-offset-4" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.anterior_id)}`}>Ver la entrevista anterior</Link>}
+      {interview.expediente_id && <Link className="font-semibold underline underline-offset-4" href={`/admin-anterior/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, clienteId: interview.cliente_id ?? "", expedienteId: interview.expediente_id })}`}>Corregir la entrevista</Link>}
+      {interview.anterior_id && <Link className="font-semibold underline underline-offset-4" href={`/admin-anterior/operaciones/nueva?entrevista=${encodeURIComponent(interview.anterior_id)}`}>Ver la entrevista anterior</Link>}
     </div></Card>
   </div>;
 }

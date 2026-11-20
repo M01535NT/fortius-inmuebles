@@ -36,7 +36,7 @@ function SheetBody({ data, today, offer, onClose }: { data: SheetData; today: st
   const { property: p, adviser, owner, op, pendiente } = data;
   const scope = usePropertyScope(p);
   const slug = encodeURIComponent(p.slug);
-  const edit = `/admin/propiedades/${slug}/editar`, followup = `/admin/propiedades/${slug}/seguimiento`;
+  const edit = `/admin-anterior/propiedades/${slug}/editar`, followup = `/admin-anterior/propiedades/${slug}/seguimiento`;
   const photos = p.galeria.slice(0, 3);
   const items = (Object.keys(PREP_ITEMS) as PrepItem[]).map(item => ({ item, estado: prepState(p, item).estado }));
   const missing = items.filter(x => x.estado !== "listo" && x.estado !== "no_aplica");

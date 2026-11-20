@@ -11,13 +11,13 @@ export type Command = { id: string; label: string; detail: string; href: string;
 export type CommandSource = { quick: ReadonlyArray<{ label: string; href: string }>; nav: ReadonlyArray<{ label: string; href: string }>; admin: ReadonlyArray<{ label: string; href: string }> };
 
 /** Quien busca con el nombre anterior (operación, DEC-64) o con «expediente» llega a Asuntos. */
-const alias = (href: string) => href.startsWith("/admin/operaciones") ? " operacion operaciones expediente" : "";
+const alias = (href: string) => href.startsWith("/admin-anterior/operaciones") ? " operacion operaciones expediente" : "";
 
 export function commandsFor(role: string | undefined, source: CommandSource): Command[] {
   return [
     ...source.quick.map(item => ({ id: `nuevo:${item.href}`, label: item.label, detail: "Crear", href: item.href, words: `nuevo nueva crear agregar alta${alias(item.href)}` })),
     ...source.nav.map(item => ({ id: `ir:${item.href}`, label: `Ir a ${item.label}`, detail: "Ir", href: item.href, words: `ir abrir ver${alias(item.href)}` })),
-    { id: "ir:/admin/perfil", label: "Ir a Mi perfil", detail: "Ir", href: "/admin/perfil", words: "cuenta contraseña foto" },
+    { id: "ir:/admin-anterior/perfil", label: "Ir a Mi perfil", detail: "Ir", href: "/admin-anterior/perfil", words: "cuenta contraseña foto" },
     ...(role === "admin" ? source.admin.map(item => ({ id: `ir:${item.href}`, label: `Ir a ${item.label}`, detail: "Administración", href: item.href, words: "ir abrir ver administrar" })) : []),
   ];
 }
@@ -33,7 +33,7 @@ export const filterCommands = (commands: readonly Command[], query: string) =>
   query.trim() ? commands.filter(command => matchesQuery(`${command.label} ${command.words ?? ""}`, query)) : [];
 
 /** Rutas de registro que cuentan como «abiertas» para Recientes. */
-const RECORD = [/^\/admin\/propiedades\/[^/]+\/editar$/, /^\/admin\/leads\/[^/]+$/, /^\/admin\/clientes\/[^/]+$/, /^\/admin\/tareas\/[^/]+$/, /^\/admin\/operaciones\/[0-9a-f-]{36}$/i];
+const RECORD = [/^\/admin-anterior\/propiedades\/[^/]+\/editar$/, /^\/admin-anterior\/leads\/[^/]+$/, /^\/admin-anterior\/clientes\/[^/]+$/, /^\/admin-anterior\/tareas\/[^/]+$/, /^\/admin-anterior\/operaciones\/[0-9a-f-]{36}$/i];
 export const RECENT_LIMIT = 5;
 export function isRecordPath(path: string) { return RECORD.some(pattern => pattern.test(path)) && !/\/(nueva|nuevo)(\/|$)/.test(path); }
 export function pushRecent(recent: readonly string[], path: string) {

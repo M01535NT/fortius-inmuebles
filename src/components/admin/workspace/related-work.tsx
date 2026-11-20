@@ -98,12 +98,12 @@ export function RelatedWork({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">Seguimiento conectado</h2>
         <div className="flex flex-wrap gap-2">
-          <Link className={btnGhost} href={`/admin/agenda?tab=tareas&nueva=1&${query}`}>
+          <Link className={btnGhost} href={`/admin-anterior/agenda?tab=tareas&nueva=1&${query}`}>
             Crear tarea relacionada
           </Link>
           <Link
             className={btnGhost}
-            href={`/admin/agenda?nueva=1&${query}`}
+            href={`/admin-anterior/agenda?nueva=1&${query}`}
           >
             Agendar visita
           </Link>
@@ -168,7 +168,7 @@ export function RelatedWork({
           {duplicates.map((d) => (
             <Link
               key={d.id}
-              href={leadId ? `/admin/leads/${d.id}` : `/admin/clientes/${d.id}`}
+              href={leadId ? `/admin-anterior/leads/${d.id}` : `/admin-anterior/clientes/${d.id}`}
               className="mt-2 block underline"
             >
               {d.nombre}
@@ -179,7 +179,7 @@ export function RelatedWork({
       {property && (
         <Link
           className="inline-flex min-h-11 items-center text-sm text-foreground underline underline-offset-4"
-          href={`/admin/propiedades/${property}/editar`}
+          href={`/admin-anterior/propiedades/${property}/editar`}
         >
           {properties.find((p) => p.slug === property)?.titulo ??
             "Abrir inmueble relacionado"}
@@ -195,7 +195,7 @@ export function RelatedWork({
               <Link
                 key={l.id}
                 className="block py-2 text-sm underline"
-                href={`/admin/leads/${l.id}`}
+                href={`/admin-anterior/leads/${l.id}`}
               >
                 {l.nombre}
               </Link>
@@ -209,7 +209,7 @@ export function RelatedWork({
               <Link
                 key={c.id}
                 className="block py-2 text-sm underline"
-                href={`/admin/clientes/${c.id}`}
+                href={`/admin-anterior/clientes/${c.id}`}
               >
                 {c.nombre}
               </Link>
@@ -227,7 +227,7 @@ export function RelatedWork({
               <li key={t.id}>
                 <Link
                   className="block break-words py-2 text-sm hover:underline"
-                  href={`/admin/tareas/${t.id}`}
+                  href={`/admin-anterior/tareas/${t.id}`}
                 >
                   {t.titulo}
                   <span className="block text-xs text-muted-foreground">
@@ -252,7 +252,7 @@ export function RelatedWork({
               <li key={e.id}>
                 <Link
                   className="block break-words py-2 text-sm hover:underline"
-                  href={`/admin/agenda?fecha=${e.fecha}&evento=${e.id}`}
+                  href={`/admin-anterior/agenda?fecha=${e.fecha}&evento=${e.id}`}
                 >
                   {e.titulo}
                   <span className="block text-xs text-muted-foreground">
@@ -281,7 +281,7 @@ export function RelatedWork({
             <Link
               key={d.id}
               className="inline-flex min-h-11 items-center pr-4 text-sm underline"
-              href={`/admin/operaciones/${encodeURIComponent(d.id)}`}
+              href={`/admin-anterior/operaciones/${encodeURIComponent(d.id)}`}
             >
               {d.folio}
             </Link>

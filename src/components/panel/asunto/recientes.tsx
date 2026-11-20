@@ -43,7 +43,7 @@ export function Favoritos({ contraido }: { contraido: boolean }) {
     <nav aria-label="Favoritos" className="pn-recientes">
       <p className="pn-sec">Favoritos</p>
       {lista.map((f) => {
-        const href = f.tipo === "asunto" ? `/panel/asuntos/${f.id}` : `/panel/inmuebles?id=${f.id}`;
+        const href = f.tipo === "asunto" ? `/admin/asuntos/${f.id}` : `/admin/inmuebles?id=${f.id}`;
         return (
           <Link key={`${f.tipo}-${f.id}`} href={href} className="pn-link pn-reciente" aria-current={ruta === href ? "page" : undefined}>
             <span className="pn-fav-ico" aria-hidden><Icono nombre={f.tipo === "asunto" ? "estrella" : "casa"} tamano={15} /></span>
@@ -66,7 +66,7 @@ export function Recientes({ contraido }: { contraido: boolean }) {
     <nav aria-label="Recientes" className="pn-recientes">
       <p className="pn-sec">Recientes</p>
       {lista.map((r) => (
-        <Link key={r.id} href={`/panel/asuntos/${r.id}`} className="pn-link pn-reciente" aria-current={ruta === `/panel/asuntos/${r.id}` ? "page" : undefined}>
+        <Link key={r.id} href={`/admin/asuntos/${r.id}`} className="pn-link pn-reciente" aria-current={ruta === `/admin/asuntos/${r.id}` ? "page" : undefined}>
           <Cuadro icono={r.icono} color={r.color} chico />
           <span className="pn-txt">{r.nombre}</span>
         </Link>

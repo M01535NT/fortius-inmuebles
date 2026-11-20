@@ -308,7 +308,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
     try {await upsertPropiedad(property, version);}catch(cause){if(cause instanceof AdminApiError && cause.status===409)setConflict(true);throw cause;}
     setDirty(false);
     try {sessionStorage.removeItem(`fortius:property-draft:${session?.id??"anonymous"}:${initial?.slug??"new"}`);}catch{}
-    router.push("/admin/propiedades");
+    router.push("/admin-anterior/propiedades");
   }
 
 
@@ -963,7 +963,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
         {/* En celular la barra va compacta: estado y Cancelar en una línea, los dos botones en otra; «Ir a sección» solo con más ancho (arriba están las secciones). */}
         <div className="flex items-center justify-between gap-2">
           <p role="status" className="min-w-0 text-sm font-semibold">{dirty ? "Cambios sin guardar" : "Sin cambios pendientes"} · {initial?.publicada ? "Publicado" : "Borrador"}</p>
-          <Button variant="ghost" className="shrink-0" onClick={async () => {if(!dirty || await confirmAction("Hay cambios sin guardar. ¿Salir del editor?"))router.push("/admin/propiedades");}}>Cancelar</Button>
+          <Button variant="ghost" className="shrink-0" onClick={async () => {if(!dirty || await confirmAction("Hay cambios sin guardar. ¿Salir del editor?"))router.push("/admin-anterior/propiedades");}}>Cancelar</Button>
         </div>
         <div className="flex flex-wrap items-end gap-2 sm:gap-3">
           <nav aria-label="Secciones del inmueble" className="hidden min-w-0 sm:block sm:min-w-[12rem] sm:flex-1 lg:basis-full">

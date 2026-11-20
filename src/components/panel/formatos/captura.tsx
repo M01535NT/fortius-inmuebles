@@ -57,7 +57,7 @@ async function bytes(url: string) {
 export function CapturaFormato({ id, folio, asunto, volver }: { id: string; folio: string; asunto?: string; volver?: string | null }) {
   const { avisar } = useAvisos();
   const router = useRouter();
-  const regreso = rutaDeRegreso(volver) ?? "/panel/formatos";
+  const regreso = rutaDeRegreso(volver) ?? "/admin/formatos";
   // Llenar uno por uno (pensado para el teléfono): los espacios en el orden de la hoja, con Anterior y Siguiente.
   const [lista, setLista] = useState<{ zonas: Zona[]; i: number; soloFalta: boolean } | null>(null);
   const [doc, setDoc] = useState<DocumentoFormato | null>(null);
@@ -567,7 +567,7 @@ function ListaFaltan({ faltan, zonaDe, alIr }: { faltan: string[]; zonaDe: (l: s
 
 /** La X (o «‹ Formatos» en el teléfono) regresa a donde se estaba. Con algo escrito sin guardar, primero lo guarda. */
 function BotonCerrar({ href, alCerrar, conTexto }: { href: string; alCerrar?: () => void; conTexto?: boolean }) {
-  const enAsunto = href.startsWith("/panel/asuntos");
+  const enAsunto = href.startsWith("/admin/asuntos");
   const aDonde = enAsunto ? "al asunto" : "a Formatos";
   return (
     <Link href={href} className={conTexto ? "pn-captura-volver" : "pn-captura-cerrar"} aria-label={conTexto ? undefined : `Cerrar y volver ${aDonde}`}

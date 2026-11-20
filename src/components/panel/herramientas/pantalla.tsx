@@ -16,7 +16,7 @@ const TITULOS: Record<Cual | "valor" | "formatos", string> = {
 export function PantallaHerramienta({ cual }: { cual: Cual | "valor" | "formatos" }) {
   return (
     <div className="cp fm-col her-col">
-      <Suspense fallback={null}><CabeceraHerramienta titulo={TITULOS[cual]} ruta={`/panel/herramientas/${cual}`} /></Suspense>
+      <Suspense fallback={null}><CabeceraHerramienta titulo={TITULOS[cual]} ruta={`/admin/herramientas/${cual}`} /></Suspense>
       <Suspense fallback={<Cargando lineas={3} etiqueta="Cargando" />}>
         {cual === "valor" ? <OpinionDeValor /> : cual === "formatos" ? <CatalogoFormatos /> : <ConInmueble cual={cual} />}
       </Suspense>

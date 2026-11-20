@@ -98,11 +98,11 @@ export function SelectorVista() {
   const ruta = usePathname();
   const router = useRouter();
   const [guardada, ponerVista] = usePreferencia(VISTA_ASUNTOS, "lista");
-  const conAsunto = ruta.startsWith("/panel/asuntos/");
+  const conAsunto = ruta.startsWith("/admin/asuntos/");
   const valor: VistaAsuntos = conAsunto ? "lista" : vistaDe(guardada);
   return (
     <BotonesDeVista etiqueta="Ver los asuntos como" valor={valor} opciones={VISTAS_ASUNTOS}
-      alElegir={(v) => { ponerVista(v === "lista" ? null : v); if (conAsunto && v !== "lista") router.push("/panel/asuntos"); }} />
+      alElegir={(v) => { ponerVista(v === "lista" ? null : v); if (conAsunto && v !== "lista") router.push("/admin/asuntos"); }} />
   );
 }
 
@@ -134,7 +134,7 @@ export function ListaAsuntos() {
         {asuntos ? <span className="as-cab-n" aria-label={`${lista.length} asuntos`}>{lista.length}</span> : null}
         <span className="as-sp" />
         <SelectorVista />
-        <BotonEnlace href="/panel/consulta" variante="fantasma" icono="mas" soloIcono aria-label="Nueva consulta" title="Nueva consulta" className="as-cab-mas" />
+        <BotonEnlace href="/admin/consulta" variante="fantasma" icono="mas" soloIcono aria-label="Nueva consulta" title="Nueva consulta" className="as-cab-mas" />
       </div>
       <label className="as-buscar">
         <Icono nombre="bus" tamano={16} />
@@ -173,7 +173,7 @@ export function ListaAsuntos() {
             // Fallo 4: cerrado, el renglón dice cómo se cerró, no lo que seguía.
             const s = a.en_que_va === "cerrado" ? null : a.siguiente;
             const n = s?.fecha ? diasHasta(s.fecha) : null;
-            const actual = ruta === `/panel/asuntos/${a.id}`;
+            const actual = ruta === `/admin/asuntos/${a.id}`;
             // Hallazgo 40: en el renglón solo van «en qué va» y la fecha. Quién lo lleva y si es de ejemplo quedan en el
             // globo y para el lector de pantalla.
             const extra = [director ? `Lo lleva ${nombreDe(a.responsable_id)}` : null, a.es_ejemplo ? "Ejemplo" : null].filter(Boolean).join(" · ");
@@ -182,7 +182,7 @@ export function ListaAsuntos() {
             const queSigue = s ? s.titulo : a.en_que_va === "cerrado" ? `Cerrado: ${cat.etiqueta("resultado_cierre", a.resultado ?? "se_logro").toLowerCase()}` : "Sin siguiente paso";
             const globo = [cat.etiqueta("en_que_va", a.en_que_va), extra].filter(Boolean).join(" · ");
             return (
-              <Link key={a.id} href={`/panel/asuntos/${a.id}`} className="as-it" data-renglon="" aria-current={actual ? "page" : undefined} title={globo}>
+              <Link key={a.id} href={`/admin/asuntos/${a.id}`} className="as-it" data-renglon="" aria-current={actual ? "page" : undefined} title={globo}>
                 <span className="as-it-c">
                   <b>{a.nombre}</b>
                   <small data-falta={!s && a.en_que_va !== "cerrado" ? "" : undefined}>

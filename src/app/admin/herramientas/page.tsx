@@ -1,13 +1,6 @@
-"use client";
-import { GuidedPage } from "@/components/admin/workspace/guided-page";
-import { AppsCatalog, CatalogActions } from "@/components/admin/apps/catalog";
+import { PantallaHerramienta } from "@/components/panel/herramientas/pantalla";
 
-/*
-  Herramientas (SIM-15, C45): solo el catálogo. La pestaña «Documentos» se retiró: un folio se
-  busca con el buscador del panel y los documentos se abren desde su operación. «Administración»
-  va junto al título (dirección B del boceto «Más», 14/11/2026). El título dice lo mismo que su entrada
-  del menú, «Herramientas» (C56); «Más» queda solo en la barra inferior del celular.
-*/
-export default function HerramientasPage() {
-  return <GuidedPage title="Herramientas" subtitle="Herramientas para trabajar sin abrir un asunto." actions={<CatalogActions />}><AppsCatalog /></GuidedPage>;
+/** Herramientas: en el teléfono el marco muestra solo la lista; en escritorio, la lista y la primera herramienta. */
+export default function Herramientas() {
+  return <PantallaHerramienta cual="valor" />;
 }

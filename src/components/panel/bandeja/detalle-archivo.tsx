@@ -168,7 +168,7 @@ export function DetalleArchivo({ archivo, url, datos, anterior, alGuardar, alQui
             {porQueNo ? <span id={`pq-${archivo.id}`} className="pn-sub" style={{ margin: 0 }}>{porQueNo}</span> : null}
             {/* Se abre en otra pestaña para no perder lo que espera en la Bandeja; al volver, la lista de asuntos se lee de nuevo. */}
             {!ocupado && !motivo && clase === "persona" && elegido && !deLaPersona.length ? (
-              <a href="/panel/asuntos" target="_blank" rel="noopener" className="pn-btn pn-btn-secundario">Abrir un asunto en otra pestaña</a>
+              <a href="/admin/asuntos" target="_blank" rel="noopener" className="pn-btn pn-btn-secundario">Abrir un asunto en otra pestaña</a>
             ) : null}
           </div>
           <button type="button" className="fx-linkbtn" disabled={ocupado} onClick={() => { if (!ocupado) alQuitar(); }}>Quitar de la Bandeja</button>

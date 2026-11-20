@@ -12,10 +12,10 @@ import { diaLargo } from "@/lib/panel/calendario";
 export type Enlace = { id: string; texto: string; detalle?: string; href: string };
 export type GrupoRelacionado = { titulo: string; enlaces: Enlace[] };
 
-export const rutaPersona = (id: string) => `/panel/directorio?id=${encodeURIComponent(id)}`;
-export const rutaConsulta = (id: string) => `/panel/consultas?ver=${encodeURIComponent(id)}`;
-export const rutaCita = (id: string) => `/panel/agenda?cita=${encodeURIComponent(id)}`;
-export const rutaInmueble = (codigo: string) => `/panel/inmuebles?ver=${encodeURIComponent(codigo)}`;
+export const rutaPersona = (id: string) => `/admin/directorio?id=${encodeURIComponent(id)}`;
+export const rutaConsulta = (id: string) => `/admin/consultas?ver=${encodeURIComponent(id)}`;
+export const rutaCita = (id: string) => `/admin/agenda?cita=${encodeURIComponent(id)}`;
+export const rutaInmueble = (codigo: string) => `/admin/inmuebles?ver=${encodeURIComponent(codigo)}`;
 
 /** Últimos 10 dígitos: así «+52 664 123 4567» y «6641234567» son el mismo teléfono. */
 export function mismoTelefono(a?: string, b?: string): boolean {

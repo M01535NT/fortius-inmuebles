@@ -29,8 +29,8 @@ export function resolveRefs(refs: References, ctx: AgendaContext): ResolvedRefs 
   const cliente = ctx.clientes.find(row => row.id === (refs.clienteId ?? expediente?.cliente_id));
   const propiedad = ctx.propiedades.find(row => row.slug === (refs.propiedadSlug ?? expediente?.propiedad_slug));
   const asesor = ctx.asesores.find(row => row.id === (refs.asesorId ?? expediente?.asesor_id));
-  const person = cliente ? { name: cliente.nombre, href: `/admin/clientes/${encodeURIComponent(cliente.id)}`, role: "Cliente" }
-    : lead ? { name: lead.nombre, href: `/admin/leads/${encodeURIComponent(lead.id)}`, role: "Prospecto" } : undefined;
+  const person = cliente ? { name: cliente.nombre, href: `/admin-anterior/clientes/${encodeURIComponent(cliente.id)}`, role: "Cliente" }
+    : lead ? { name: lead.nombre, href: `/admin-anterior/leads/${encodeURIComponent(lead.id)}`, role: "Prospecto" } : undefined;
   return { lead, cliente, propiedad, expediente, asesor, person };
 }
 
@@ -52,10 +52,10 @@ export function RefLinks({ refs, className }: { refs: ResolvedRefs; className?: 
   const { lead, cliente, propiedad, expediente, asesor } = refs;
   if (!lead && !cliente && !propiedad && !expediente && !asesor) return null;
   return <span className={cn(s.context, className)}>
-    {lead && <Link href={`/admin/leads/${encodeURIComponent(lead.id)}`}>{lead.nombre}</Link>}
-    {cliente && <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`}>Cliente: {cliente.nombre}</Link>}
-    {propiedad && <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`}>{propiedad.titulo}</Link>}
-    {expediente && <Link href={`/admin/operaciones/${encodeURIComponent(expediente.id)}`}>Asunto: {expediente.folio}</Link>}
+    {lead && <Link href={`/admin-anterior/leads/${encodeURIComponent(lead.id)}`}>{lead.nombre}</Link>}
+    {cliente && <Link href={`/admin-anterior/clientes/${encodeURIComponent(cliente.id)}`}>Cliente: {cliente.nombre}</Link>}
+    {propiedad && <Link href={`/admin-anterior/propiedades/${encodeURIComponent(propiedad.slug)}/editar`}>{propiedad.titulo}</Link>}
+    {expediente && <Link href={`/admin-anterior/operaciones/${encodeURIComponent(expediente.id)}`}>Asunto: {expediente.folio}</Link>}
     {asesor && <span className={s.who}><Avatar name={asesor.nombre} src={adviserPhoto(asesor)} size={18} />{asesor.nombre}</span>}
   </span>;
 }

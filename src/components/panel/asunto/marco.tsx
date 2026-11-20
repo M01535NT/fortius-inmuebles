@@ -21,7 +21,7 @@ import { VistaAmplia } from "./vistas";
  */
 export function MarcoAsuntos({ children }: { children: ReactNode }) {
   const ruta = usePathname();
-  const conAsunto = ruta.startsWith("/panel/asuntos/");
+  const conAsunto = ruta.startsWith("/admin/asuntos/");
   const [lista] = usePreferencia(LISTA_JUNTO, "si");
   const [guardada] = usePreferencia(VISTA_ASUNTOS, "lista");
   const director = useSession()?.role === "admin";

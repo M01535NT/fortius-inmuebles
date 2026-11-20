@@ -55,7 +55,7 @@ export function captureHref(group: { intent: DemandIntent; tipo?: string; zona?:
   const params = new URLSearchParams({ intencion: group.intent === "rentar" ? "arrendar" : "vender" });
   if (group.zona) params.set("zona", group.zona);
   if (group.tipo) params.set("tipo", group.tipo);
-  return `/admin/operaciones/nueva?${params}`;
+  return `/admin-anterior/operaciones/nueva?${params}`;
 }
 
 /**

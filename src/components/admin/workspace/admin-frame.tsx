@@ -13,11 +13,11 @@ import { PAPELERA } from "@/components/admin/papelera/textos";
   Sitio web y Reportes reúnen varias páginas en pestañas.
 */
 const ORDER = ["Equipo", "Reportes", "Sitio web", "Historial", PAPELERA.nombre, "Configuración", "Mi perfil"];
-const INDEX = [...ADMIN_NAV.map(item => ({ href: item.href, label: item.label, match: item.match })), { href: "/admin/perfil", label: "Mi perfil", match: ["/admin/perfil"] }]
+const INDEX = [...ADMIN_NAV.map(item => ({ href: item.href, label: item.label, match: item.match })), { href: "/admin-anterior/perfil", label: "Mi perfil", match: ["/admin-anterior/perfil"] }]
   .sort((a, b) => ORDER.indexOf(a.label) - ORDER.indexOf(b.label));
 const SECTIONS = {
-  sitio: { label: "Sitio web", items: [{ href: "/admin/contenido", label: "Textos del sitio" }, { href: "/admin/blog", label: "Blog" }, { href: "/admin/archivos", label: "Archivos" }] },
-  reportes: { label: "Reportes", items: [{ href: "/admin/reportes", label: "Reportes" }, { href: "/admin/control-comercial", label: "Seguimiento comercial" }] },
+  sitio: { label: "Sitio web", items: [{ href: "/admin-anterior/contenido", label: "Textos del sitio" }, { href: "/admin-anterior/blog", label: "Blog" }, { href: "/admin-anterior/archivos", label: "Archivos" }] },
+  reportes: { label: "Reportes", items: [{ href: "/admin-anterior/reportes", label: "Reportes" }, { href: "/admin-anterior/control-comercial", label: "Seguimiento comercial" }] },
 };
 
 export function AdminFrame({ section, children }: { section?: keyof typeof SECTIONS; children: React.ReactNode }) {

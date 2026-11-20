@@ -23,7 +23,7 @@ export function PropertyCreateDocument({ slug }: { slug: string }) {
     return () => { alive = false; };
   }, [slug]);
   if (ops === null) return null;
-  if (!ops.length) return <ButtonLink href={`/admin/operaciones?nuevo=1&inmueble=${encodeURIComponent(slug)}`}><Plus size={16} aria-hidden="true" />Abrir un asunto para sus documentos</ButtonLink>;
+  if (!ops.length) return <ButtonLink href={`/admin-anterior/operaciones?nuevo=1&inmueble=${encodeURIComponent(slug)}`}><Plus size={16} aria-hidden="true" />Abrir un asunto para sus documentos</ButtonLink>;
   return <CreateDocument where={`el asunto ${ops[0].folio}`} targets={ops.map(o => ({ id: o.id, label: `${o.folio}${o.unidad ? ` · ${o.unidad}` : ""}` }))}
-    onCreate={(formato, target) => router.push(`/admin/operaciones/${encodeURIComponent(target ?? ops[0].id)}?crear=${formato}`)} />;
+    onCreate={(formato, target) => router.push(`/admin-anterior/operaciones/${encodeURIComponent(target ?? ops[0].id)}?crear=${formato}`)} />;
 }

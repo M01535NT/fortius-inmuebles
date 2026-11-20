@@ -41,6 +41,6 @@ export const FINANCIAL_APPS = new Set(["hipoteca", "gastos-compra", "neto-propie
 export const COMMERCIAL_APPS = new Set(["ficha-comercial", "comparables", "ofertas", "informe-propietario", "cotizador", "revisor-expediente"]);
 
 /** Comparables es la opinión de valor (07) sin operación (HER-05): mismo cálculo, no un segundo motor. */
-export const COMPARABLES_HREF = "/admin/apps/documentos?formato=07&seccion=comparables";
+export const COMPARABLES_HREF = "/admin-anterior/apps/documentos?formato=07&seccion=comparables";
 /** Destino de cada tarjeta del catálogo. */
-export const appHref = (slug: string) => slug === "comparables" ? COMPARABLES_HREF : `/admin/apps/${slug}`;
+export const appHref = (slug: string) => slug === "comparables" ? COMPARABLES_HREF : `/admin-anterior/apps/${slug}`;

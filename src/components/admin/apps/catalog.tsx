@@ -28,11 +28,11 @@ type Entry = { key: string; href: string; title: string; text: string; icon: Rea
    el alta de un inmueble de otra inmobiliaria (PUB-02, RP-95), con su autorización escrita, y los
    trámites por pasos (TRA-01). */
 const EXTRA: Record<AppGroup, Entry[]> = {
-  Documentos: [{ key: "opinion", href: "/admin/apps/documentos?formato=07", title: "Opinión de valor", text: "Con los datos que dé el cliente, sin abrir un asunto.", icon: <Building2 size={18} strokeWidth={1.6} aria-hidden="true" /> },
+  Documentos: [{ key: "opinion", href: "/admin-anterior/apps/documentos?formato=07", title: "Opinión de valor", text: "Con los datos que dé el cliente, sin abrir un asunto.", icon: <Building2 size={18} strokeWidth={1.6} aria-hidden="true" /> },
     // TRA-01: trámites aparte de la venta, por pasos; también en el menú lateral (14/11/2026).
-    { key: "tramites", href: "/admin/tramites", title: "Trámites", text: "Cancelación de hipoteca paso a paso, con documentos, notas y el avance para el propietario.", icon: <Route size={18} strokeWidth={1.6} aria-hidden="true" /> }],
+    { key: "tramites", href: "/admin-anterior/tramites", title: "Trámites", text: "Cancelación de hipoteca paso a paso, con documentos, notas y el avance para el propietario.", icon: <Route size={18} strokeWidth={1.6} aria-hidden="true" /> }],
   Calcular: [],
-  Presentar: [{ key: "compartido", href: "/admin/propiedades/nueva?origen=compartido", title: "Inmueble compartido", text: "De otra inmobiliaria, con su autorización para publicarlo.", icon: <Link2 size={18} strokeWidth={1.6} aria-hidden="true" /> }],
+  Presentar: [{ key: "compartido", href: "/admin-anterior/propiedades/nueva?origen=compartido", title: "Inmueble compartido", text: "De otra inmobiliaria, con su autorización para publicarlo.", icon: <Link2 size={18} strokeWidth={1.6} aria-hidden="true" /> }],
 };
 const GROUP_TITLE: Record<AppGroup, string> = { Documentos: "Documentos", Calcular: "Calcular", Presentar: "Presentar y publicar" };
 
@@ -76,7 +76,7 @@ export function AppsCatalog() {
   };
   const grupos = APP_GROUPS.map(group => ({ group, items: entries(group).filter(entry => matchesQuery(`${entry.title} ${entry.text} ${GROUP_TITLE[group]}`, query)) }));
   const todas = APP_GROUPS.flatMap(group => entries(group));
-  const secciones = [...MAIN_NAV.filter(item => item.href !== "/admin"), ...(session?.role === "admin" ? [ADMIN_ENTRY] : [])]
+  const secciones = [...MAIN_NAV.filter(item => item.href !== "/admin-anterior"), ...(session?.role === "admin" ? [ADMIN_ENTRY] : [])]
     .filter(item => matchesQuery(item.label, query));
   const recent = recientes.map(href => todas.find(entry => entry.href === href)).filter((entry): entry is Entry => !!entry);
   const hay = grupos.some(g => g.items.length) || secciones.length > 0;
@@ -146,7 +146,7 @@ export function AppsCatalog() {
         <summary>Trabajos de herramientas retiradas</summary>
         <ul>{RETIRED_APPS.map(app => <li key={app.slug}>
           <div className="min-w-0"><p className="font-semibold">{app.title}</p><p className="text-sm text-muted-foreground">{"home" in app ? app.home : ""}</p></div>
-          <ButtonLink variant="ghost" href={`/admin/apps/${app.slug}`} aria-label={`Ver trabajos guardados de ${app.title}`}>Ver trabajos guardados</ButtonLink>
+          <ButtonLink variant="ghost" href={`/admin-anterior/apps/${app.slug}`} aria-label={`Ver trabajos guardados de ${app.title}`}>Ver trabajos guardados</ButtonLink>
         </li>)}</ul>
       </details>
     </footer>

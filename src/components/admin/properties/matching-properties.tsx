@@ -21,7 +21,7 @@ export function MatchingProperties({ seeker }: { seeker: Seeker }) {
     <div className={f.groupHead}><h2 id={`coincidencias-${seeker.id}`}>Inmuebles que le pueden servir</h2><p>{matches.length ? `${matches.length} publicados` : "Ninguno por ahora"}</p></div>
     {matches.length ? <ul className="flex flex-col gap-2">{matches.map(({ property, reasons }) => {
       const notice = lastNotice(property, seeker);
-      return <li key={property.slug}><Link href={`/admin/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=compradores`} className="flex min-h-11 items-center gap-3 rounded-[10px] border border-border p-3 hover:bg-secondary">
+      return <li key={property.slug}><Link href={`/admin-anterior/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=compradores`} className="flex min-h-11 items-center gap-3 rounded-[10px] border border-border p-3 hover:bg-secondary">
         <Thumb src={property.galeria[0]?.src} size={44} icon={<Building2 size={18} aria-hidden="true" />} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{property.titulo}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{[formatPrecio(property.precio), ...reasons].join(" · ")}</small></span>
         {priceDroppedSince(property, notice) ? <Pill size="sm" tone="warn">Bajó de precio</Pill> : <Pill size="sm" tone={notice ? "success" : "brand"}>{notice ? "Avisado" : "Por avisar"}</Pill>}

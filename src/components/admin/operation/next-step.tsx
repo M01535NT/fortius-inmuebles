@@ -227,7 +227,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       } else {
         title = "Esperando la revisión del abogado";
         text = "Cuando responda, completa la tarea y sigue el levantamiento.";
-        action = <ButtonLink variant="primary" href={`/admin/tareas/${encodeURIComponent(now.task.id)}`}>Abrir la tarea<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
+        action = <ButtonLink variant="primary" href={`/admin-anterior/tareas/${encodeURIComponent(now.task.id)}`}>Abrir la tarea<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
       }
     } else if (now.kind === "decision02") {
       title = now.action === "pausa" ? "La entrevista dice: pausar" : "La entrevista dice: referir";
@@ -283,7 +283,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
         ? <li key="abogado" className={s.docWait}>
           <StateIcon state={item.task ? "recibido" : "pendiente"} done={item.done} />
           <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong>Revisión del abogado</strong><span className="text-sm text-muted-foreground">{item.done ? "Hecha. Ya puedes seguir con el levantamiento." : item.task ? "Pedida. El levantamiento espera su respuesta." : item.condition ? `Mencionó: ${item.condition.toLowerCase()}. Va antes del levantamiento.` : "La entrevista pide evaluar el asunto antes del levantamiento."}</span></span>
-          {item.task && <Link className="text-sm font-semibold underline underline-offset-4" href={`/admin/tareas/${encodeURIComponent(item.task.id)}`}>Ver la tarea</Link>}
+          {item.task && <Link className="text-sm font-semibold underline underline-offset-4" href={`/admin-anterior/tareas/${encodeURIComponent(item.task.id)}`}>Ver la tarea</Link>}
         </li>
         : item.kind === "inicio"
         ? <li key={item.step} className={s.docWait}>
@@ -387,7 +387,7 @@ function PropertyPiece({ op, property, interview, className, onLink }: { op: Ope
         <span className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{property.direccionAproximada || property.zona}{` · ${photos === 0 ? "sin fotos" : photos === 1 ? "1 foto" : `${photos} fotos`}`}</span>
       </span>
     </div>
-    <span><ButtonLink href={`/admin/propiedades/${encodeURIComponent(property.slug)}/editar`}>Ver ficha</ButtonLink></span>
+    <span><ButtonLink href={`/admin-anterior/propiedades/${encodeURIComponent(property.slug)}/editar`}>Ver ficha</ButtonLink></span>
   </section>;
 }
 
@@ -541,7 +541,7 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <h2 className={s.pieceTitle}>Próxima tarea</h2>
       {next ? <>
-        <span className="flex min-w-0 flex-col gap-0.5"><span className={cn("text-sm", late ? s.lateText : "text-muted-foreground")}>{next.vence ? `${late ? "Venció el " : next.vence === today ? "Hoy · " : ""}${weekdayDate(next.vence)} ${shortDate(next.vence).split(" ")[1]}` : "Sin fecha"}</span><Link href={`/admin/tareas/${encodeURIComponent(next.id)}`} className={s.taskTitle}>{next.titulo}</Link></span>
+        <span className="flex min-w-0 flex-col gap-0.5"><span className={cn("text-sm", late ? s.lateText : "text-muted-foreground")}>{next.vence ? `${late ? "Venció el " : next.vence === today ? "Hoy · " : ""}${weekdayDate(next.vence)} ${shortDate(next.vence).split(" ")[1]}` : "Sin fecha"}</span><Link href={`/admin-anterior/tareas/${encodeURIComponent(next.id)}`} className={s.taskTitle}>{next.titulo}</Link></span>
         {!editing && <div className={s.taskActions}><Button disabled={busy} onClick={() => void finish()}><Check size={16} aria-hidden="true" />Hecha</Button><button type="button" className={s.linkButton} onClick={() => { setDate(next.vence ?? ""); setEditing(true); }}>Cambiar fecha</button></div>}
         {editing && <div className="flex flex-col gap-2"><span className="flex flex-col gap-1.5 text-sm"><span>Nueva fecha</span><DateField aria-label="Nueva fecha" required value={date} onChange={setDate} disabled={busy} /></span><div className="flex gap-2"><Button variant="primary" disabled={busy || !date} onClick={() => void changeDate()}>Guardar fecha</Button><Button variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancelar</Button></div></div>}
       </> : <form onSubmit={create} className="flex flex-col gap-3">
@@ -570,7 +570,7 @@ function Declared({ op, interview }: { op: OperationRecord; interview: Operation
       {interview.respuestas.condiciones && <><dt>Notas de la llamada</dt><dd className="whitespace-pre-line">{interview.respuestas.condiciones}</dd></>}
     </dl>
     <p className="mt-3 text-sm text-muted-foreground">Si no coinciden, corrige la ficha y registra el acuerdo. Los documentos generados no cambian.</p>
-    {op.propiedad_slug && <Link className="mt-2 inline-block text-sm font-semibold underline underline-offset-4" href={`/admin/propiedades/${encodeURIComponent(op.propiedad_slug)}/editar`}>Revisar la ficha del inmueble</Link>}
+    {op.propiedad_slug && <Link className="mt-2 inline-block text-sm font-semibold underline underline-offset-4" href={`/admin-anterior/propiedades/${encodeURIComponent(op.propiedad_slug)}/editar`}>Revisar la ficha del inmueble</Link>}
   </Fold></Card>;
 }
 
@@ -636,7 +636,7 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
         <Button disabled={lock} onClick={() => setForm(null)}>Cancelar</Button>
       </span>
     </form> : <span className="flex flex-wrap gap-2">
-      <ButtonLink href={`/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(op.id)}`}>Preparar informe del mes</ButtonLink>
+      <ButtonLink href={`/admin-anterior/apps/informe-propietario?expedienteId=${encodeURIComponent(op.id)}`}>Preparar informe del mes</ButtonLink>
       <Button disabled={lock} onClick={abrir}>Registrar entrega</Button>
     </span>}
     {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
@@ -667,20 +667,20 @@ function VisitsAndOffers({ op, today, documents }: { op: OperationRecord; today:
   }
   return <Card className="flex flex-col gap-4 p-5" aria-label="Visitas y ofertas del inmueble">
     <h2 className="m-0 flex items-center gap-2 text-base"><CalendarDays size={18} aria-hidden="true" />Visitas y ofertas del inmueble</h2>
-    {signer && <p className="text-sm">Contraparte: <Link className="font-semibold underline underline-offset-4" href={`/admin/leads/${encodeURIComponent(op.flujo!.contraparteLeadId!)}`}>{signer}</Link> (interesado que firma con el propietario).</p>}
+    {signer && <p className="text-sm">Contraparte: <Link className="font-semibold underline underline-offset-4" href={`/admin-anterior/leads/${encodeURIComponent(op.flujo!.contraparteLeadId!)}`}>{signer}</Link> (interesado que firma con el propietario).</p>}
     <div className="grid gap-5 sm:grid-cols-2">
       <div className="flex flex-col gap-2 text-sm"><p className="font-semibold">Próximas visitas</p>
-        {upcoming.length ? <ul className="flex flex-col gap-1">{upcoming.slice(0, 5).map(e => <li key={e.id}><Link className="underline" href={`/admin/agenda?fecha=${e.fecha}&evento=${encodeURIComponent(e.id)}`}>{e.titulo}</Link> · {shortDate(e.fecha)}{e.hora ? ` ${e.hora}` : ""}{who(e.leadId) ? ` · ${who(e.leadId)}` : ""}</li>)}</ul> : <p className="text-muted-foreground">{op.propiedad_slug ? "Sin visitas próximas en la agenda." : "Vincula el inmueble para ver sus visitas."}</p>}
+        {upcoming.length ? <ul className="flex flex-col gap-1">{upcoming.slice(0, 5).map(e => <li key={e.id}><Link className="underline" href={`/admin-anterior/agenda?fecha=${e.fecha}&evento=${encodeURIComponent(e.id)}`}>{e.titulo}</Link> · {shortDate(e.fecha)}{e.hora ? ` ${e.hora}` : ""}{who(e.leadId) ? ` · ${who(e.leadId)}` : ""}</li>)}</ul> : <p className="text-muted-foreground">{op.propiedad_slug ? "Sin visitas próximas en la agenda." : "Vincula el inmueble para ver sus visitas."}</p>}
         <p className="text-muted-foreground">{past.length ? `${past.length} ${past.length === 1 ? "visita anterior" : "visitas anteriores"}; la última el ${shortDate(past[past.length - 1].fecha)}. Registra el resultado de cada una en el formato 13.` : "Sin visitas anteriores."}</p>
-        <Link className="font-semibold underline underline-offset-4" href={`/admin/agenda?expediente=${encodeURIComponent(op.id)}`}>Agendar una visita</Link>
+        <Link className="font-semibold underline underline-offset-4" href={`/admin-anterior/agenda?expediente=${encodeURIComponent(op.id)}`}>Agendar una visita</Link>
       </div>
       <div className="flex flex-col gap-2 text-sm"><p className="font-semibold">Ofertas comparadas</p>
         {offers === undefined ? <p className="text-muted-foreground">Consultando ofertas…</p> : offers === null ? <p className="text-muted-foreground">No se pudieron consultar las ofertas.</p> : offers.length ? <ul className="flex flex-col gap-1">{offers.slice(0, 5).map(run => <li key={run.id}>{run.title} · {shortDate(run.updatedAt)}{run.context?.expedienteId && run.context.expedienteId !== op.id ? " · del comprador" : ""}</li>)}</ul> : <p className="text-muted-foreground">Sin ofertas comparadas.</p>}
         {offerDocs.length ? <ul className="flex flex-col gap-2">{offerDocs.map(d => { const owner = offerOwner(leads, d.id), fecha = (d.updated_at ?? today).slice(0, 10), options = owner && !candidates.some(c => c.id === owner.id) ? [owner, ...candidates] : candidates; return <li key={d.id} className="flex flex-col gap-1">
-          <span>Oferta por escrito (14) · {shortDate(fecha)}{owner ? <> · de <Link className="font-semibold underline underline-offset-4" href={`/admin/leads/${encodeURIComponent(owner.id)}`}>{owner.nombre}</Link></> : ""}</span>
+          <span>Oferta por escrito (14) · {shortDate(fecha)}{owner ? <> · de <Link className="font-semibold underline underline-offset-4" href={`/admin-anterior/leads/${encodeURIComponent(owner.id)}`}>{owner.nombre}</Link></> : ""}</span>
           {options.length ? <span className="flex flex-col gap-1"><span className="text-muted-foreground">¿De quién es esta oferta?</span><OfferOwner value={owner?.id ?? ""} people={options} onPick={async value => { if (value) await link(d.id, fecha, value); else if (owner) await upsert(db.leads, withoutOffer(owner, d.id), db.leads.version(owner)); }} /></span> : !owner && <span className="text-muted-foreground">Para ligarla, relaciona al interesado con el inmueble o agenda su visita.</span>}
         </li>; })}</ul> : <p className="text-muted-foreground">Sin oferta por escrito (formato 14) en el expediente.</p>}
-        <Link className="font-semibold underline underline-offset-4" href={`/admin/apps/ofertas?expedienteId=${encodeURIComponent(op.id)}`}>Comparar una oferta</Link>
+        <Link className="font-semibold underline underline-offset-4" href={`/admin-anterior/apps/ofertas?expedienteId=${encodeURIComponent(op.id)}`}>Comparar una oferta</Link>
       </div>
     </div>
   </Card>;

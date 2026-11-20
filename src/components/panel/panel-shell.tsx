@@ -70,11 +70,11 @@ function Acceso() {
   );
 }
 
-const activaEn = (ruta: string) => (s: Seccion) => (s.ruta === "/panel" ? ruta === "/panel" : ruta === s.ruta || ruta.startsWith(s.ruta + "/"));
+const activaEn = (ruta: string) => (s: Seccion) => (s.ruta === "/admin" ? ruta === "/admin" : ruta === s.ruta || ruta.startsWith(s.ruta + "/"));
 
 /*
  * La Bandeja sale del menú, de la barra del teléfono, del buscador y de los conteos hasta su paso: su tabla todavía no
- * existe en la base. La ruta /panel/bandeja se queda con un aviso; su código sigue en components/panel/bandeja.
+ * existe en la base. La ruta /admin/bandeja se queda con un aviso; su código sigue en components/panel/bandeja.
  */
 
 /** El número junto a cada sección (modelo visual): lo que te toca en Inicio y los asuntos abiertos. */
@@ -223,7 +223,7 @@ function Armazon({ children }: { children: ReactNode }) {
         >
           <div className="pn-side-in">
             <div className="pn-side-top">
-              <Link href="/panel" className="pn-lbl" aria-label="Inicio"><Logo alto={18} /></Link>
+              <Link href="/admin" className="pn-lbl" aria-label="Inicio"><Logo alto={18} /></Link>
               <span className="pn-mark" aria-hidden><Logo alto={24} solo="o" /></span>
               {abierto ? (
                 <button type="button" className="pn-navbtn pn-lbl" style={{ flex: "none" }} onClick={alternar}

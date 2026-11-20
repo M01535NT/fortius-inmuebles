@@ -52,8 +52,8 @@ export function inboxItems({ tasks, notes, me, visible, now }: { tasks: readonly
     // Quien se menciona a sí mismo no se avisa.
     if (note.autorId ? note.autorId === me.userId : !!note.autor && myName.has(fold(note.autor.trim()))) continue;
     let where: string | undefined, href: string;
-    if (note.propiedadSlug) { where = visible.property(note.propiedadSlug); href = `/admin/propiedades/${encodeURIComponent(note.propiedadSlug)}/editar?notas=1`; }
-    else if (note.expedienteId) { where = note.clienteId ? visible.client(note.clienteId) : "un asunto"; href = `/admin/operaciones/${encodeURIComponent(note.expedienteId)}?notas=1`; }
+    if (note.propiedadSlug) { where = visible.property(note.propiedadSlug); href = `/admin-anterior/propiedades/${encodeURIComponent(note.propiedadSlug)}/editar?notas=1`; }
+    else if (note.expedienteId) { where = note.clienteId ? visible.client(note.clienteId) : "un asunto"; href = `/admin-anterior/operaciones/${encodeURIComponent(note.expedienteId)}?notas=1`; }
     else continue;
     // Si no puedes ver el inmueble o la persona, la nota no es para ti.
     if (!where) continue;
@@ -63,7 +63,7 @@ export function inboxItems({ tasks, notes, me, visible, now }: { tasks: readonly
     const history = task.historial ?? [];
     const created = history.find(entry => entry.accion === "creada");
     const assignedToMe = !!me.asesorId && task.asesorId === me.asesorId;
-    const href = `/admin/tareas/${encodeURIComponent(task.id)}`;
+    const href = `/admin-anterior/tareas/${encodeURIComponent(task.id)}`;
     if (assignedToMe && isTaskOpen(task) && created && created.actorId !== me.userId && created.fecha >= since)
       items.push({ key: `asignacion:${task.id}`, kind: "asignacion", title: "Te asignaron una tarea", text: task.titulo, at: created.fecha, href });
     if (!assignedToMe && created?.actorId !== me.userId) continue;

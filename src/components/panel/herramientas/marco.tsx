@@ -18,16 +18,16 @@ type Herramienta = { ruta: string; nombre: string; sub: string; icono: NombreIco
 
 /** Las herramientas (SPEC.md, sección 9). Cada una sirve con o sin asunto. */
 export const HERRAMIENTAS: readonly Herramienta[] = [
-  { ruta: "/panel/herramientas/valor", nombre: "Opinión de valor", sub: "Comparables y valor, por preguntas", icono: "precio", color: "blue" },
-  { ruta: "/panel/herramientas/isr", nombre: "Cálculo de ISR", sub: "Por la venta, con su artículo y fecha", icono: "balanza", color: "indigo" },
-  { ruta: "/panel/herramientas/compra", nombre: "Gastos del comprador", sub: "ISAI, Registro, notaría y crédito", icono: "costos", color: "teal" },
-  { ruta: "/panel/herramientas/venta", nombre: "Gastos del vendedor", sub: "Comisión, cancelación e ISR", icono: "venta", color: "orange" },
-  { ruta: "/panel/herramientas/credito", nombre: "Crédito", sub: "Mensualidad según enganche, plazo y tasa", icono: "edificio", color: "violet" },
-  { ruta: "/panel/herramientas/comision", nombre: "Comisión", sub: "Lo que cobra Fortius, con IVA", icono: "pago", color: "green" },
-  { ruta: "/panel/herramientas/formatos", nombre: "Contratos y formatos", sub: "Por preguntas, con la hoja a la vista", icono: "contrato", color: "gray" },
+  { ruta: "/admin/herramientas/valor", nombre: "Opinión de valor", sub: "Comparables y valor, por preguntas", icono: "precio", color: "blue" },
+  { ruta: "/admin/herramientas/isr", nombre: "Cálculo de ISR", sub: "Por la venta, con su artículo y fecha", icono: "balanza", color: "indigo" },
+  { ruta: "/admin/herramientas/compra", nombre: "Gastos del comprador", sub: "ISAI, Registro, notaría y crédito", icono: "costos", color: "teal" },
+  { ruta: "/admin/herramientas/venta", nombre: "Gastos del vendedor", sub: "Comisión, cancelación e ISR", icono: "venta", color: "orange" },
+  { ruta: "/admin/herramientas/credito", nombre: "Crédito", sub: "Mensualidad según enganche, plazo y tasa", icono: "edificio", color: "violet" },
+  { ruta: "/admin/herramientas/comision", nombre: "Comisión", sub: "Lo que cobra Fortius, con IVA", icono: "pago", color: "green" },
+  { ruta: "/admin/herramientas/formatos", nombre: "Contratos y formatos", sub: "Por preguntas, con la hoja a la vista", icono: "contrato", color: "gray" },
 ];
 
-const INDICE = "/panel/herramientas";
+const INDICE = "/admin/herramientas";
 
 /**
  * Marco de Herramientas con el orden del modelo visual («Inmuebles»): la lista en su columna (barra de 52 px y la elegida
@@ -79,7 +79,7 @@ function ParaElAsunto() {
     <div className="her-ban" role="status">
       <Icono nombre="asu" tamano={16} />
       <span><b>{ctx.asunto.folio}</b> {ctx.asunto.nombre}</span>
-      <Link href={`/panel/asuntos/${ctx.asunto.id}`} className="as-btn as-gho her-ban-ir">Volver</Link>
+      <Link href={`/admin/asuntos/${ctx.asunto.id}`} className="as-btn as-gho her-ban-ir">Volver</Link>
       <button type="button" className="as-btn as-gho as-ico" aria-label="Trabajar sin asunto" title="Trabajar sin asunto" onClick={ctx.quitar}><Icono nombre="x" tamano={15} /></button>
     </div>
   );

@@ -2,21 +2,21 @@ import type { Zona } from "@/lib/formatos/documento/pdf";
 import { catalogo, type EntradaCatalogo } from "@/lib/panel/datos/formatos";
 
 /**
- * Llegar y volver de Formatos (PN-06, AUD-05): desde un asunto se abre `/panel/formatos?asunto=<id>&formato=<id>`
+ * Llegar y volver de Formatos (PN-06, AUD-05): desde un asunto se abre `/admin/formatos?asunto=<id>&formato=<id>`
  * y la ventana de captura recibe `?volver=<ruta>` para que la X regrese a donde se estaba.
  */
 
 /** Solo rutas internas del panel: nada de otro sitio (`//x`, `https:`) ni barras invertidas. */
 export function rutaDeRegreso(volver: string | null | undefined): string | null {
   if (!volver) return null;
-  if (!/^\/panel(\/|\?|$)/.test(volver) || volver.startsWith("//") || /[\\\s]/.test(volver)) return null;
+  if (!/^\/admin(\/|\?|$)/.test(volver) || volver.startsWith("//") || /[\\\s]/.test(volver)) return null;
   return volver.slice(0, 300);
 }
 
-export const rutaAsunto = (id: string) => `/panel/asuntos?ver=${encodeURIComponent(id)}`;
+export const rutaAsunto = (id: string) => `/admin/asuntos?ver=${encodeURIComponent(id)}`;
 export function rutaCaptura(documentoId: string, volver?: string | null): string {
   const r = rutaDeRegreso(volver);
-  return `/panel/formatos/${encodeURIComponent(documentoId)}${r ? `?volver=${encodeURIComponent(r)}` : ""}`;
+  return `/admin/formatos/${encodeURIComponent(documentoId)}${r ? `?volver=${encodeURIComponent(r)}` : ""}`;
 }
 
 /** La entrada del catálogo de un formato y, si es un levantamiento, su tipo (04B → entrada 04 con tipo 04B). */

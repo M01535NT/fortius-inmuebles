@@ -55,7 +55,7 @@ function byPerson(items: QueueItem[]) {
   return [...groups.values()];
 }
 /** El asunto al que lleva un pendiente (no cuenta «Nuevo asunto» desde una entrevista). */
-const asuntoOf = (item: QueueItem) => /^\/admin\/operaciones\/(?!nueva\b)([^/?#]+)/.exec(item.href)?.[1];
+const asuntoOf = (item: QueueItem) => /^\/admin-anterior\/operaciones\/(?!nueva\b)([^/?#]+)/.exec(item.href)?.[1];
 /** Prospecto nuevo o seguimiento de contacto: se revisan en Personas. */
 const isPersonItem = (item: QueueItem) => item.kind === "nuevo" || item.kind === "seguimiento";
 /** Lo mínimo de la operación que necesita el riel para saber su etapa. */
@@ -95,7 +95,7 @@ export function HoyScreen() {
   const nextEvent = events.filter(e => e.fecha > today && e.fecha <= week[6]).sort((a, b) => a.fecha.localeCompare(b.fecha) || (a.hora ?? "99").localeCompare(b.hora ?? "99"))[0];
   const upcoming = upcomingItems({ tasks, dossiers: dossiers ?? [], reports, names, today });
   const weekItems = (day: string) => [
-    ...events.filter(e => e.fecha === day).sort((a, b) => (a.hora ?? "99").localeCompare(b.hora ?? "99")).map(e => ({ id: `evento:${e.id}`, text: e.titulo, time: e.hora, meta: e.tipo === "visita" ? "Visita" : "Cita", href: `/admin/agenda?fecha=${day}&evento=${encodeURIComponent(e.id)}`, visit: e.tipo === "visita" })),
+    ...events.filter(e => e.fecha === day).sort((a, b) => (a.hora ?? "99").localeCompare(b.hora ?? "99")).map(e => ({ id: `evento:${e.id}`, text: e.titulo, time: e.hora, meta: e.tipo === "visita" ? "Visita" : "Cita", href: `/admin-anterior/agenda?fecha=${day}&evento=${encodeURIComponent(e.id)}`, visit: e.tipo === "visita" })),
     ...upcoming.filter(item => item.date === day).map(item => ({ id: item.id, text: item.text, time: undefined, meta: item.meta, href: item.href, visit: false })),
     ...expiring.filter(item => item.date === day).map(item => ({ id: item.id, text: item.kind === "Contrato" ? "Vence el contrato de servicio" : "Vence la licencia estatal", time: undefined, meta: item.meta, href: item.href, visit: false })),
   ];
@@ -203,7 +203,7 @@ export function HoyScreen() {
             <h3 id="hoy-cola" className="sr-only">Lo siguiente</h3>
             <strong className={s.emptyTitle}>Nada espera por ti.</strong>
             <span className={s.rowText}>{inProgress.length ? "Cada asunto tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: el asunto se crea al terminarla."}</span>
-            {!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nuevo asunto</ButtonLink>}
+            {!inProgress.length && <ButtonLink href="/admin-anterior/operaciones/nueva" variant="primary" className="mt-2 self-start">Nuevo asunto</ButtonLink>}
           </section>
           : <>
             {lateTotal > 0 && <>
@@ -218,8 +218,8 @@ export function HoyScreen() {
             </>}
             {/* Hoy no crece con el volumen: el resto se revisa en Asuntos, que pone arriba lo vencido y tiene filtros. */}
             {(moreAsuntos || morePeople) && <div className={s.moreLinks}>
-              {moreAsuntos && <ButtonLink href="/admin/operaciones" variant="ghost" className={s.more}>{asuntosTotal === 1 ? "Ver el asunto" : `Ver los ${asuntosTotal} asuntos`}</ButtonLink>}
-              {morePeople && <ButtonLink href="/admin/personas" variant="ghost" className={s.more}>{peopleTotal === 1 ? "Ver a la persona por atender" : `Ver a las ${peopleTotal} personas por atender`}</ButtonLink>}
+              {moreAsuntos && <ButtonLink href="/admin-anterior/operaciones" variant="ghost" className={s.more}>{asuntosTotal === 1 ? "Ver el asunto" : `Ver los ${asuntosTotal} asuntos`}</ButtonLink>}
+              {morePeople && <ButtonLink href="/admin-anterior/personas" variant="ghost" className={s.more}>{peopleTotal === 1 ? "Ver a la persona por atender" : `Ver a las ${peopleTotal} personas por atender`}</ButtonLink>}
             </div>}
           </>}
         {done.from === "dia" && <DoneMessage done={done} />}
@@ -229,7 +229,7 @@ export function HoyScreen() {
     <div className={s.side}>
       <TodayBlock tasks={dayTasks} agenda={agenda} today={today} nextEvent={nextEvent} names={names} leads={leads} photo={photo} done={done} />
 
-      <Section id="hoy-semana" title="Próximos 7 días" className={s.weekBox} action={weekCount > 0 ? <span className={s.meta}>{weekCount}</span> : more("/admin/agenda", "Ver agenda")}>
+      <Section id="hoy-semana" title="Próximos 7 días" className={s.weekBox} action={weekCount > 0 ? <span className={s.meta}>{weekCount}</span> : more("/admin-anterior/agenda", "Ver agenda")}>
         {weekList.length ? <ul className={s.week} aria-label="Próximos 7 días, por día">{weekList.flatMap(({ day, items }) => items.map((item, i) => <li key={item.id} className={s.day}>
           <span className={s.dayBadge} aria-hidden="true">{i === 0 && <><span className={s.dayName}>{weekdayDate(day).slice(0, 3)}</span><span className={s.dayNum}>{Number(day.slice(8))}</span></>}</span>
           <Link href={item.href} className={s.dayItem}>
@@ -285,11 +285,11 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo, done
   // La raya de «Ahora» va después de la última cita que ya empezó.
   const nowAt = now === null ? -1 : agenda.filter(event => (event.hora ?? "99") <= now).length;
   const nowLine = <li key="ahora" className={s.nowRow} aria-hidden="true"><span className={s.nowTime}>Ahora</span><span className={s.nowLine} /></li>;
-  return <Section id="hoy-hoy" title="Agenda de hoy" count={agenda.length + open.length || undefined} className={s.todayBox} action={more("/admin/agenda", "Ver semana")}>
+  return <Section id="hoy-hoy" title="Agenda de hoy" count={agenda.length + open.length || undefined} className={s.todayBox} action={more("/admin-anterior/agenda", "Ver semana")}>
     <div className={s.todayCard} onClickCapture={completer.guardClick}>
       {empty ? <div className={s.agendaEmpty}>
         <p className={s.note}>Sin citas ni tareas hoy</p>
-        {nextEvent && <Link href={`/admin/agenda?fecha=${nextEvent.fecha}&evento=${encodeURIComponent(nextEvent.id)}`} className={s.nextEvent}>
+        {nextEvent && <Link href={`/admin-anterior/agenda?fecha=${nextEvent.fecha}&evento=${encodeURIComponent(nextEvent.id)}`} className={s.nextEvent}>
           <Thumb src={photo(nextEvent.propiedadSlug)} size={56} icon={<Building2 size={22} aria-hidden="true" />} />
           <span className="flex min-w-0 flex-col gap-0.5"><small className="text-muted-foreground">La siguiente: {weekdayDate(nextEvent.fecha)}{nextEvent.hora ? ` · ${nextEvent.hora}` : ""}{nextEvent.tipo === "visita" ? " · Visita" : ""}</small><strong className="[overflow-wrap:anywhere]">{nextEvent.titulo}</strong></span>
         </Link>}
@@ -297,28 +297,28 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo, done
         {agenda.length > 0 && <ul className={s.agenda} aria-label="Citas de hoy">{agenda.slice(0, AGENDA_ROWS).flatMap((event, i) => {
           const visit = event.tipo === "visita";
           const context = [names.client(event.clienteId) ?? leads.find(l => l.id === event.leadId)?.nombre, names.property(event.propiedadSlug)].filter(text => text && text !== event.titulo).join(" · ");
-          const item = <li key={event.id} className="contents"><Link href={`/admin/agenda?fecha=${today}&evento=${encodeURIComponent(event.id)}`} className={cn(s.event, visit && s.visit)}>
+          const item = <li key={event.id} className="contents"><Link href={`/admin-anterior/agenda?fecha=${today}&evento=${encodeURIComponent(event.id)}`} className={cn(s.event, visit && s.visit)}>
             <time className={s.time}>{event.hora ?? "—"}</time>
             <span className="flex min-w-0 flex-col gap-0.5"><strong className={s.eventTitle}>{event.titulo}</strong>{(visit || context) && <small className={s.dayMeta}>{visit ? ["Visita", context].filter(Boolean).join(" · ") : context}</small>}</span>
           </Link></li>;
           return i === nowAt ? [nowLine, item] : [item];
         }).concat(nowAt === Math.min(agenda.length, AGENDA_ROWS) ? [nowLine] : [])}</ul>}
-        {agenda.length > AGENDA_ROWS && <span className={s.moreRow}>{more(`/admin/agenda?fecha=${today}`, `Ver las ${agenda.length} citas`)}</span>}
+        {agenda.length > AGENDA_ROWS && <span className={s.moreRow}>{more(`/admin-anterior/agenda?fecha=${today}`, `Ver las ${agenda.length} citas`)}</span>}
         {tasks.length > 0 && <div className={cn(s.tasks, agenda.length > 0 && s.tasksAfterAgenda)}>
           <p className={s.tasksHead}><span>Tareas</span><span className={s.meta}>{finished} de {tasks.length} hechas</span></p>
           <ul className="flex flex-col" aria-label="Tareas de hoy">{shown.map(task => {
             const isOpen = isTaskOpen(task);
             return <li key={task.id} className={s.task}>
               <TaskCheck task={task} done={completer} where="agenda" className={s.taskCheck} />
-              <span className="flex min-w-0 flex-col gap-0.5"><Link href={`/admin/tareas/${encodeURIComponent(task.id)}`} className={cn("[overflow-wrap:anywhere]", !isOpen && s.doneText)}>{task.titulo}</Link><small className={cn(s.dayMeta, isOpen && task.vence! < today && s.lateText)}>{task.vence === today ? "Hoy" : `Vencida desde el ${shortDate(task.vence!)}`}</small></span>
+              <span className="flex min-w-0 flex-col gap-0.5"><Link href={`/admin-anterior/tareas/${encodeURIComponent(task.id)}`} className={cn("[overflow-wrap:anywhere]", !isOpen && s.doneText)}>{task.titulo}</Link><small className={cn(s.dayMeta, isOpen && task.vence! < today && s.lateText)}>{task.vence === today ? "Hoy" : `Vencida desde el ${shortDate(task.vence!)}`}</small></span>
             </li>;
           })}</ul>
-          {tasks.length > TASK_ROWS && more("/admin/agenda?tab=tareas", `Ver las ${tasks.length} tareas`)}
+          {tasks.length > TASK_ROWS && more("/admin-anterior/agenda?tab=tareas", `Ver las ${tasks.length} tareas`)}
         </div>}
       </>}
       <div className={s.todayFoot}>
-        <Link href="/admin/agenda?tab=tareas&nueva=1" className={s.add}><Plus size={16} aria-hidden="true" />Agregar tarea</Link>
-        <Link href="/admin/agenda?nueva=1" className={s.add}><Plus size={16} aria-hidden="true" />Agendar</Link>
+        <Link href="/admin-anterior/agenda?tab=tareas&nueva=1" className={s.add}><Plus size={16} aria-hidden="true" />Agregar tarea</Link>
+        <Link href="/admin-anterior/agenda?nueva=1" className={s.add}><Plus size={16} aria-hidden="true" />Agendar</Link>
       </div>
     </div>
     {completer.from === "agenda" && <DoneMessage done={completer} />}

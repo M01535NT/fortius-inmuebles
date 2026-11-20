@@ -102,12 +102,12 @@ export function useTodayQueue({ maxAge = 0 }: { maxAge?: number } = {}) {
   const lateReports = dossiers && reports ? overdueReports({ dossiers, reports, names, today }) : [];
   const lateKeys: QueueItem[] = properties.flatMap(p => openKeyLoans(p.llaves).filter(loan => keyLoanLate(loan, today, toDay)).map(loan => ({
     id: `llaves:${p.slug}:${loan.id}`, kind: "llaves" as const, who: p.titulo, text: `Las llaves las tiene ${loan.persona} desde el ${shortDate(toDay(loan.salida))}`, detail: loan.motivo || undefined, when: `Debían volver el ${shortDate(keyDueDate(loan, toDay))}`, late: true, propertySlug: p.slug, sort: loan.salida,
-    href: `/admin/propiedades/${encodeURIComponent(p.slug)}/seguimiento?seccion=llaves`,
+    href: `/admin-anterior/propiedades/${encodeURIComponent(p.slug)}/seguimiento?seccion=llaves`,
   })));
   const notices: QueueItem[] = pendingNotices(properties, seekersFrom(leads, clients)).map(({ property, pending }) => ({
     id: `aviso:${property.slug}`, kind: "aviso" as const, who: property.titulo, late: false, propertySlug: property.slug, sort: property.titulo,
     text: `${pending.some(m => priceDroppedSince(property, lastNotice(property, m.seeker))) ? "Bajó de precio · " : ""}${pending.length === 1 ? `Le puede servir a ${pending[0].seeker.nombre}` : `Le puede servir a ${pending[0].seeker.nombre} y ${pending.length - 1} más`}`,
-    href: `/admin/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=compradores`,
+    href: `/admin-anterior/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=compradores`,
   }));
   // La cola única: cada pendiente una sola vez, lo vencido primero (C47).
   const queue = dossiers === undefined ? [] : sortQueue([...queueFromWaiting(waiting), ...queueFromLeads(newLeads, who ? { admin: who.administrador, me: who.asesorId } : undefined), ...queueFromInterviews(interviews ?? []), ...queueFromExpiry(expiring), ...queueFromReports(lateReports), ...lateKeys, ...notices]);

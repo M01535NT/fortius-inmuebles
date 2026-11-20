@@ -63,26 +63,26 @@ export function ProveedorRecordatorios({ children }: { children: ReactNode }) {
           if (t.fecha !== d.hoy || !t.hora) continue;
           const [h, m] = t.hora.split(":").map(Number);
           const falta = h * 60 + m - minHoy;
-          if (falta >= 0 && falta <= 60) avisar(`cita-${t.id}-${t.fecha}`, `A las ${t.hora}: ${t.titulo}`, "Es en menos de una hora.", t.asunto_id ? `/panel/asuntos/${t.asunto_id}?ver=plan` : "/panel", ya);
+          if (falta >= 0 && falta <= 60) avisar(`cita-${t.id}-${t.fecha}`, `A las ${t.hora}: ${t.titulo}`, "Es en menos de una hora.", t.asunto_id ? `/admin/asuntos/${t.asunto_id}?ver=plan` : "/admin", ya);
         }
       }
       if (avisos.consultas) {
         for (const s of d.solicitudes) {
           const clave = `sol-${s.id}`;
-          if (soloMarcar) ya.add(clave); else avisar(clave, "Solicitud nueva del sitio", s.nombre || "Sin nombre", "/panel", ya);
+          if (soloMarcar) ya.add(clave); else avisar(clave, "Solicitud nueva del sitio", s.nombre || "Sin nombre", "/admin", ya);
         }
       }
       if (avisos.asignados) {
         for (const x of d.paraTi) {
           const clave = `pt-${x.id}`;
-          if (soloMarcar) ya.add(clave); else avisar(clave, x.clase === "mencion" ? "Te mencionaron" : "Te dejaron una tarea", x.texto.slice(0, 140), "/panel", ya);
+          if (soloMarcar) ya.add(clave); else avisar(clave, x.clase === "mencion" ? "Te mencionaron" : "Te dejaron una tarea", x.texto.slice(0, 140), "/admin", ya);
         }
       }
       if (avisos.vencimientos) {
         const vencidas = d.tareas.filter((t) => t.fecha < d.hoy).length;
         if (vencidas || d.documentos) {
           const partes = [vencidas ? `${vencidas} pendiente${vencidas === 1 ? "" : "s"} con fecha pasada` : "", d.documentos ? `${d.documentos} documento${d.documentos === 1 ? "" : "s"} por vencer o vencido${d.documentos === 1 ? "" : "s"}` : ""].filter(Boolean);
-          avisar(`dia-${d.hoy}`, "Lo que se te pasó", partes.join(" y ") + ".", "/panel", ya);
+          avisar(`dia-${d.hoy}`, "Lo que se te pasó", partes.join(" y ") + ".", "/admin", ya);
         }
       }
       anotarAvisados(ya);

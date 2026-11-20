@@ -126,7 +126,7 @@ function Tasks() {
         <RefMedia refs={resolveRefs(task, refsContext)} size={40} className="mt-0.5 hidden sm:inline-block" />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-          <h3 className="m-0 min-w-0 text-base font-semibold"><Link className={"inline-flex min-h-11 items-center [overflow-wrap:anywhere] hover:underline" + (open ? "" : " text-muted-foreground line-through")} href={`/admin/tareas/${task.id}`}>{task.titulo}</Link></h3>
+          <h3 className="m-0 min-w-0 text-base font-semibold"><Link className={"inline-flex min-h-11 items-center [overflow-wrap:anywhere] hover:underline" + (open ? "" : " text-muted-foreground line-through")} href={`/admin-anterior/tareas/${task.id}`}>{task.titulo}</Link></h3>
           <InlineDate label={`Fecha de «${task.titulo}»`} value={task.vence} tone={open && date?.late ? "late" : undefined} display={!date ? "Sin fecha" : !date.late ? date.label : open ? overdueText(task.vence, today) : humanDate(task.vence, today)} onSave={value => patchTask(task.id, { vence: value || undefined })} />
         </div>
         {task.descripcion && <p className="line-clamp-2 break-words text-sm text-muted-foreground">{task.descripcion}</p>}
@@ -153,11 +153,11 @@ function Tasks() {
       <div className="flex flex-wrap gap-2">{filtered.length > 0 && <SelectToggle selection={selection} noun="tareas" />}<Button variant={creating ? "secondary" : "primary"} aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</Button></div>
     </div>
     {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : clientes.find(c => c.id === (ask.kind === "operacion" ? ask.clienteId : ask.id))?.nombre} onClose={() => setAsk(null)} />}
-    {captureMounted && <section hidden={!creating} className="min-w-0" aria-label="Nueva tarea"><h2 className="mb-4 text-xl font-[600] tracking-[-0.015em]">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
+    {captureMounted && <section hidden={!creating} className="min-w-0" aria-label="Nueva tarea"><h2 className="mb-4 text-xl font-[600] tracking-[-0.015em]">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin-anterior/tareas/${saved.id}`); return saved; }} /></section>}
     <section aria-label="Filtros de tareas" className="min-w-0 space-y-3">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
       <Field label="Buscar tareas" htmlFor="tasks-search"><input id="tasks-search" className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Título o descripción" /></Field>
-      <Field label="Vencimiento" htmlFor="tasks-due"><FilterSelect id="tasks-due" value={due} onChange={(value) => { const next = new URLSearchParams(params.toString()); next.set("vence", value); next.set("tab", "tareas"); router.replace(`/admin/agenda?${next}`, { scroll: false }); }}
+      <Field label="Vencimiento" htmlFor="tasks-due"><FilterSelect id="tasks-due" value={due} onChange={(value) => { const next = new URLSearchParams(params.toString()); next.set("vence", value); next.set("tab", "tareas"); router.replace(`/admin-anterior/agenda?${next}`, { scroll: false }); }}
         items={[["todas", "Todas las fechas"], ["vencidas", "Vencidas"], ["hoy", "Hoy"], ["proximas", "Próximos 7 días"], ["sin-fecha", "Sin fecha"]]} /></Field>
       </div>
       <Collapsible className="min-w-0 rounded-[var(--radius-control)] border border-border px-3">

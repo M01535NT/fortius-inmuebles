@@ -144,7 +144,7 @@ export function Directorio() {
   const ver = useMemo(() => delEquipo.filter((p) => pasa(p, filtro) && coincide(p, q.trim())), [delEquipo, filtro, q]);
   const sinSeguimiento = delEquipo.filter((p) => pasa(p, "sin_seg")).length;
   const actual = todas?.find((p) => p.id === abierta) ?? null;
-  const abrir = (id: string | null) => router.replace(id ? `/panel/directorio?id=${id}` : "/panel/directorio", { scroll: false });
+  const abrir = (id: string | null) => router.replace(id ? `/admin/directorio?id=${id}` : "/admin/directorio", { scroll: false });
 
   const hacer = async (accion: () => Promise<unknown>, aviso: string) => {
     try { await accion(); avisar(aviso); }
@@ -154,13 +154,13 @@ export function Directorio() {
   const nuevoAsunto = async (p: Pick<PersonaDirectorio, "id">) => {
     try {
       const c = await empezarConsulta({ persona_id: p.id });
-      router.push(`/panel/consulta?id=${c.id}`);
+      router.push(`/admin/consulta?id=${c.id}`);
     } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo empezar la consulta."); }
   };
   const nuevaPersona = async () => {
     try {
       const c = await empezarConsulta({});
-      router.push(`/panel/consulta?id=${c.id}`);
+      router.push(`/admin/consulta?id=${c.id}`);
     } catch (e) { avisar(e instanceof Error ? e.message : "No se pudo empezar la consulta."); }
   };
   const opcionesFiltro = [
@@ -182,7 +182,7 @@ export function Directorio() {
           : p.lo_que_sigue ? `Sigue: ${p.lo_que_sigue}${cuando}`
             : `Sin asunto${p.volver_a_llamar ? ` · llamarle${cuando}` : ""}`;
     renglones.push(
-      <Link key={p.id} href={`/panel/directorio?id=${p.id}`} replace scroll={false} className="as-it pe-it" data-renglon=""
+      <Link key={p.id} href={`/admin/directorio?id=${p.id}`} replace scroll={false} className="as-it pe-it" data-renglon=""
         aria-current={p.id === abierta ? "page" : undefined} title={[telefono(p), p.nota].filter(Boolean).join(" · ") || undefined}>
         <span className="fm-av" aria-hidden>{p.clase === "persona" ? iniciales(p.nombre) : <Icono nombre="edif" tamano={14} />}</span>
         <span className="as-it-c">
@@ -522,7 +522,7 @@ function FichaDirectorio({ p, director, hacer, alCambio, alVolver, alNuevoAsunto
         grupo(`${p.asuntos.length} asunto${p.asuntos.length === 1 ? "" : "s"}`, p.asuntos.length ? p.asuntos.map((a) => {
           const [icono, color] = iconoEncargo(a.encargos[0]);
           return (
-            <Link key={a.id} href={`/panel/asuntos/${a.id}?ver=personas`} className="as-ren pe-asunto" data-cerrado={a.cerrado || undefined}>
+            <Link key={a.id} href={`/admin/asuntos/${a.id}?ver=personas`} className="as-ren pe-asunto" data-cerrado={a.cerrado || undefined}>
               <Cuadro icono={icono} color={color} chico />
               <span className="as-ren-c"><b>{a.nombre}</b><span>{a.folio} · {a.papeles.map((x) => cat.etiqueta("papel", x)).join(", ")}{a.cerrado ? " · cerrado" : ""}</span></span>
               <Icono nombre="ch" tamano={16} />

@@ -289,7 +289,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, fot
             <span className={s.tbx}>{x.estado === "completada" && <Check size={11} aria-hidden />}</span>
             <span><span className={s.tt}>{x.titulo}</span><span className={s.ts}>{x.vence ? shortDate(x.vence) : "Sin fecha"} · en Hoy</span></span>
           </button>)}
-          {[...citas].sort((a, b) => (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? ""))).map(c => <Link key={c.id} href={`/admin/agenda?fecha=${c.fecha}`} className={s.todo}>
+          {[...citas].sort((a, b) => (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? ""))).map(c => <Link key={c.id} href={`/admin-anterior/agenda?fecha=${c.fecha}`} className={s.todo}>
             <span className={s.tbx} style={{ borderRadius: 6 }}><CalendarDays size={11} aria-hidden /></span>
             <span><span className={s.tt}>{c.titulo}</span><span className={s.ts}>{shortDate(c.fecha)}{c.hora ? ` · ${c.hora}` : ""} · en la agenda</span></span>
           </Link>)}

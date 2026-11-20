@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
-import { Archivo } from "next/font/google";
+import { Inter } from "next/font/google";
 
-import { AdminShell } from "@/components/admin/admin-shell";
-import "./panel-base.css";
-import "./panel-uplift.css";
+import { PanelShell } from "@/components/panel/panel-shell";
+import "./panel-ds.css";
+import "./panel-kit.css";
+import "./panel-shadcn.css";
 
-// Misma Archivo que el layout raíz, pero precargada solo en las rutas del panel.
-const archivo = Archivo({
-  subsets: ["latin"],
-  axes: ["wdth"],
-  variable: "--font-archivo",
-  display: "swap",
-});
+// Letra del boceto aprobado: Inter. Solo se carga en el panel nuevo.
+const letra = Inter({ subsets: ["latin"], variable: "--font-panel", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Panel", template: "%s | Panel Fortius" },
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${archivo.variable} admin-root`}><AdminShell>{children}</AdminShell></div>;
+export default function PanelLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className={letra.variable}>
+      <PanelShell>{children}</PanelShell>
+    </div>
+  );
 }

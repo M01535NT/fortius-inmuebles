@@ -333,7 +333,7 @@ function FichaEnAsunto({ a, p, hacer, cuantas, alVerNotas }: { a: Asunto; p: Per
       ) : (
         <div className="as-card">
           {otros.length ? otros.map((x) => (
-            <Link key={x.id} href={`/panel/asuntos/${x.id}`} className="as-ren">
+            <Link key={x.id} href={`/admin/asuntos/${x.id}`} className="as-ren">
               <Icono nombre="asu" tamano={16} />
               <span className="as-ren-c"><b>{x.nombre}</b><span>{x.folio} · {x.papeles.map((v) => cat.etiqueta("papel", v)).join(", ")}{x.cerrado ? " · cerrado" : ""}</span></span>
               <Icono nombre="ch" tamano={16} />

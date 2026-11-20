@@ -57,7 +57,7 @@ export function InformeParaElCliente({ asuntoId }: { asuntoId: string }) {
   const [ocupado, setOcupado] = useState(false);
   const [hecho, setHecho] = useState<InformeHecho | null>(null);
   const [mensaje, setMensaje] = useState(false);
-  const regreso = `/panel/asuntos/${asuntoId}`;
+  const regreso = `/admin/asuntos/${asuntoId}`;
 
   useEffect(() => {
     let vivo = true;

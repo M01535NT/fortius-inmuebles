@@ -18,7 +18,7 @@ import type { Tramite } from "@/lib/tramites";
 export type ClaseVence = "tramite" | "cobro" | "fecha" | "contrato";
 export type Vencimiento = VenceDia & { clase: ClaseVence };
 
-const RUTA_DINERO = "/panel/dinero";
+const RUTA_DINERO = "/admin/dinero";
 const esFecha = (f: string | null | undefined): f is string => Boolean(f && /^\d{4}-\d{2}-\d{2}/.test(f));
 
 /** Trámites en curso con espera: el día de volver a preguntar. */

@@ -67,8 +67,8 @@ export function ContactPreview({ row, lead, client, tasks, events, today, blocki
   ].filter((text): text is string => typeof text === "string" && text.trim().length > 0);
   const mine = (ref: { leadId?: string; clienteId?: string }) => lead ? ref.leadId === lead.id : ref.clienteId === client!.id;
   const activity = [
-    ...tasks.filter(t => isTaskOpen(t) && mine(t)).map(t => ({ id: `t${t.id}`, when: t.vence ? stepDate(t.vence, today) : null, text: t.titulo, kind: "Tarea", href: `/admin/tareas/${encodeURIComponent(t.id)}`, sort: t.vence ?? "9999" })),
-    ...events.filter(e => mine(e) && e.fecha >= today).map(e => ({ id: `e${e.id}`, when: stepDate(e.fecha, today, e.hora), text: e.titulo, kind: e.tipo === "visita" ? "Visita" : "Cita", href: `/admin/agenda?fecha=${e.fecha}&evento=${encodeURIComponent(e.id)}`, sort: `${e.fecha} ${e.hora ?? ""}` })),
+    ...tasks.filter(t => isTaskOpen(t) && mine(t)).map(t => ({ id: `t${t.id}`, when: t.vence ? stepDate(t.vence, today) : null, text: t.titulo, kind: "Tarea", href: `/admin-anterior/tareas/${encodeURIComponent(t.id)}`, sort: t.vence ?? "9999" })),
+    ...events.filter(e => mine(e) && e.fecha >= today).map(e => ({ id: `e${e.id}`, when: stepDate(e.fecha, today, e.hora), text: e.titulo, kind: e.tipo === "visita" ? "Visita" : "Cita", href: `/admin-anterior/agenda?fecha=${e.fecha}&evento=${encodeURIComponent(e.id)}`, sort: `${e.fecha} ${e.hora ?? ""}` })),
   ].sort((a, b) => a.sort.localeCompare(b.sort)).slice(0, 5);
   // C-54: las tres notas más recientes, por fecha (se guardan de la más nueva a la más vieja).
   const notes = [...(lead?.notas ?? client?.leadOriginal?.notas ?? [])].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 3);

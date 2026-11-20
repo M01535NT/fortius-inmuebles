@@ -176,7 +176,7 @@ export function OperationsBoard() {
   }
   function replaceSearch(next: URLSearchParams) {
     const search = next.toString();
-    router.replace(search ? `/admin/operaciones?${search}` : "/admin/operaciones", { scroll: false });
+    router.replace(search ? `/admin-anterior/operaciones?${search}` : "/admin-anterior/operaciones", { scroll: false });
   }
   async function restore(op: OperationRecord) {
     if (!await confirmAction(`¿Restaurar el asunto ${op.folio}? Volverá a Asuntos con sus documentos y tareas.`)) return;
@@ -195,7 +195,7 @@ export function OperationsBoard() {
         <h1 className={s.head1}>{deleted ? `${PAPELERA.operaciones} · ${PAPELERA.nombre}` : "Asuntos"}</h1>
         {records && <p className={s.finding}>{deleted ? `${records.length} ${records.length === 1 ? "asunto" : "asuntos"} que puedes restaurar` : <>{active.length} en curso.{lateCount > 0 && <> <b className={s.late}>{lateCount === 1 ? "1 tiene algo vencido" : `${lateCount} tienen algo vencido`}</b>{waitingCount > lateCount ? ` y ${waitingCount - lateCount} más ${waitingCount - lateCount === 1 ? "espera" : "esperan"} algo de ti.` : "."}</>}{lateCount === 0 && waitingCount > 0 && ` ${waitingCount === 1 ? "1 espera" : `${waitingCount} esperan`} algo de ti.`}</>}</p>}
       </div>
-      {!deleted && !!records?.length && <ButtonLink variant="primary" href="/admin/operaciones/nueva" className={s.newOp}><Plus size={16} aria-hidden="true" />Nuevo asunto</ButtonLink>}
+      {!deleted && !!records?.length && <ButtonLink variant="primary" href="/admin-anterior/operaciones/nueva" className={s.newOp}><Plus size={16} aria-hidden="true" />Nuevo asunto</ButtonLink>}
     </header>
     {error && <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 text-sm text-destructive"><span>{error}</span>{records === null && <Button onClick={() => setAttempt(n => n + 1)}>Reintentar</Button>}</div>}
     {notice && <p role="status" className="mb-4 text-sm">{notice}</p>}
@@ -203,7 +203,7 @@ export function OperationsBoard() {
 
     {deleted ? <DeletedList records={records} names={names} onRestore={op => void restore(op)} />
       : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando asuntos…</p>
-      : records !== null && records.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Todavía no hay asuntos" steps={["Atiende a la persona con «Nuevo asunto».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: el asunto se crea solo y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nuevo asunto</ButtonLink>}>Un asunto reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
+      : records !== null && records.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Todavía no hay asuntos" steps={["Atiende a la persona con «Nuevo asunto».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: el asunto se crea solo y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin-anterior/operaciones/nueva">Nuevo asunto</ButtonLink>}>Un asunto reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
           {admin && me && <Segmented label="Asuntos que se muestran" options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} value={scope} onChange={setScope} />}
@@ -243,7 +243,7 @@ export function OperationsBoard() {
         <div className="mt-4"><InheritedCreate onDirtyChange={setInheritDirty} taken={new Set((records ?? []).filter(op => op.propiedad_slug && ["captacion", "arrendador"].includes(op.flujo?.ruta ?? "") && op.flujo?.estado !== "descartada").map(op => op.propiedad_slug!))} /></div>
       </Card>}
       {/* NAV-13: lo eliminado se recupera en la papelera única; «?eliminadas=1» sigue funcionando. */}
-      <Link href={deleted ? "/admin/operaciones" : PAPELERA.href} className="inline-flex min-h-11 items-center self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a los asuntos en curso" : PAPELERA.enlace}</Link>
+      <Link href={deleted ? "/admin-anterior/operaciones" : PAPELERA.href} className="inline-flex min-h-11 items-center self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a los asuntos en curso" : PAPELERA.enlace}</Link>
     </footer>
   </Surface>;
 }

@@ -146,7 +146,7 @@ export function FichaInmueble({ id, alCambiar, nombreDe: dado, enColumna, alVolv
           <DropdownMenuContent align="end">
             {enlace ? <DropdownMenuItem asChild><a href={enlace} target="_blank" rel="noopener noreferrer"><Icono nombre="globo" tamano={16} />Ver en el sitio</a></DropdownMenuItem> : null}
             <DropdownMenuItem onSelect={() => setPestana("sitio")}><Icono nombre="globo" tamano={16} />{i.publicado ? "Publicado · cambiar en Sitio" : "Publicar en Sitio"}</DropdownMenuItem>
-            {i.asunto ? <DropdownMenuItem asChild><Link href={`/panel/asuntos/${i.asunto.id}`}><Icono nombre="asu" tamano={16} />Ir a su asunto</Link></DropdownMenuItem> : null}
+            {i.asunto ? <DropdownMenuItem asChild><Link href={`/admin/asuntos/${i.asunto.id}`}><Icono nombre="asu" tamano={16} />Ir a su asunto</Link></DropdownMenuItem> : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

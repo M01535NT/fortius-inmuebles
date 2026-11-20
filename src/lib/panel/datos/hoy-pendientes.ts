@@ -10,7 +10,7 @@ import type { Tramite } from "@/lib/tramites";
  * Dinero: lo que falta por cobrar con comisión anotada, solo si no es cero.
  */
 
-export const rutaTramite = (id: string) => `/panel/tramites?ver=${encodeURIComponent(id)}`;
+export const rutaTramite = (id: string) => `/admin/tramites?ver=${encodeURIComponent(id)}`;
 
 export function tramitesDeHoy(tramites: readonly Tramite[], personas: readonly Cliente[], hoy: string): FilaTramite[] {
   return tramites

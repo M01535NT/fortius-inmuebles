@@ -32,7 +32,7 @@ function priceHref(slug: string, { precio, moneda, inmueble }: PriceLink) {
   if (precio && precio > 0 && (!moneda || moneda === "MXN")) query.set("precio", String(Math.round(precio * 100) / 100));
   if (inmueble) query.set("inmueble", inmueble);
   const text = query.toString();
-  return `/admin/apps/${slug}${text ? `?${text}` : ""}`;
+  return `/admin-anterior/apps/${slug}${text ? `?${text}` : ""}`;
 }
 /** Enlace a la hipoteca con el precio puesto (desde un inmueble o el presupuesto de un prospecto). */
 export const hipotecaHref = (link: PriceLink) => priceHref("hipoteca", link);
