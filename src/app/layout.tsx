@@ -74,7 +74,8 @@ const defaultMetadata: Metadata = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const pathname = (await headers()).get("x-fortius-inmuebles-pathname") ?? "/";
-  const content = pathname.startsWith("/admin") || pathname.startsWith("/panel")
+  // Cubre /admin (panel) y /admin-anterior (el provisional, en reserva).
+  const content = pathname.startsWith("/admin")
     ? null
     : await getPublicContent().catch(() => {
         console.error("[public-shell] Contenido público no disponible.");
@@ -95,7 +96,7 @@ export async function generateMetadata(): Promise<Metadata> {
   dark mode (12/11/2026). The panel keeps light unless chosen. Runs inline before
   paint to avoid a flash.
 */
-const themeInit = `(function(){try{var s=localStorage.getItem("fortius-inmuebles-theme");var p=location.pathname;var admin=p==="/admin"||p.indexOf("/admin/")===0||p==="/panel"||p.indexOf("/panel/")===0;if(s==="dark"||(s===null&&!admin&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
+const themeInit = `(function(){try{var s=localStorage.getItem("fortius-inmuebles-theme");var p=location.pathname;var admin=p==="/admin"||p.indexOf("/admin/")===0||p==="/admin-anterior"||p.indexOf("/admin-anterior/")===0;if(s==="dark"||(s===null&&!admin&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
 export default async function RootLayout({
   children,
@@ -106,9 +107,10 @@ export default async function RootLayout({
   const requestHeaders = await headers();
   const pathname = requestHeaders.get("x-fortius-inmuebles-pathname") ?? "/";
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
-  // El panel nuevo (/panel) usa el mismo cascarón limpio que el viejo: sin encabezado ni pie del sitio público.
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/panel" || pathname.startsWith("/panel/");
-  // La piel nueva es solo del sitio: ni /admin ni /panel.
+  // El panel (/admin) y el provisional en reserva (/admin-anterior) usan el cascarón limpio: sin encabezado ni pie del sitio público.
+  // /panel ya no se pinta: redirige a /admin (next.config.ts).
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/admin-anterior" || pathname.startsWith("/admin-anterior/");
+  // La piel nueva es solo del sitio: ni /admin ni /admin-anterior.
   const isSitio = !isAdmin;
   const settings = isAdmin
     ? null

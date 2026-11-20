@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const publicStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+// Secciones del panel provisional que el panel nuevo no tiene (más las direcciones viejas que el provisional
+// todavía redirige). Las que existen en los dos (agenda, bandeja, configuración, herramientas, personas, trámites)
+// abren el panel nuevo.
+const SOLO_PROVISIONAL = [
+  "apps", "archivos", "asesores", "ayuda", "blog", "calendario", "clientes", "contactos", "contenido", "control-comercial",
+  "documentos", "entrevistas", "expedientes", "historial", "leads", "notas", "operaciones", "papelera", "perfil", "proceso",
+  "propiedades", "reportes", "sistema", "tareas",
+].join("|");
 const nextConfig: NextConfig = {
   // No anunciar la pila en cada respuesta.
   poweredByHeader: false,
@@ -39,19 +47,26 @@ const nextConfig: NextConfig = {
       { source: "/zonas", destination: "/inventario", permanent: true },
       { source: "/zonas/:zona", destination: "/inventario", permanent: true },
       { source: "/descargas/checklist-venta-mnt.pdf", destination: "/descargas/checklist-venta-fortius.pdf", permanent: true },
+      // El cambio (etapa D): el panel nuevo vive en /admin. Las direcciones guardadas de /panel llegan a la misma
+      // pantalla con sus parámetros. Temporales (307) mientras exista la reserva, para poder volver atrás sin caché.
+      { source: "/panel", destination: "/admin", permanent: false },
+      { source: "/panel/:resto+", destination: "/admin/:resto+", permanent: false },
+      // Lo que solo existe en el provisional sigue abriendo en su reserva, /admin-anterior, con la misma ruta.
+      { source: `/admin/:seccion(${SOLO_PROVISIONAL})`, destination: "/admin-anterior/:seccion", permanent: false },
+      { source: `/admin/:seccion(${SOLO_PROVISIONAL})/:resto+`, destination: "/admin-anterior/:seccion/:resto+", permanent: false },
       // Panel guiado (Fase 2): las listas viejas viven ahora en secciones con pestañas; las fichas de detalle no cambian.
-      { source: "/admin/expedientes", destination: "/admin/operaciones", permanent: false },
+      { source: "/admin-anterior/expedientes", destination: "/admin-anterior/operaciones", permanent: false },
       // Fase 4: cada operación tiene su propia dirección y las páginas de etapa son columnas del tablero.
-      { source: "/admin/operaciones", has: [{ type: "query" as const, key: "expediente", value: "(?<id>[0-9a-fA-F-]{36})" }], destination: "/admin/operaciones/:id", permanent: false },
+      { source: "/admin-anterior/operaciones", has: [{ type: "query" as const, key: "expediente", value: "(?<id>[0-9a-fA-F-]{36})" }], destination: "/admin-anterior/operaciones/:id", permanent: false },
       ...Object.entries({ preparacion: "verificacion-precio", promocion: "publicacion-seguimiento", negociacion: "visitas-ofertas", cierre: "cierre-entrega", postventa: "cierre-entrega" })
-        .map(([legacy, slug]) => ({ source: `/admin/proceso/${legacy}`, destination: `/admin/operaciones?etapa=${slug}`, permanent: false })),
-      { source: "/admin/proceso/:etapa", destination: "/admin/operaciones?etapa=:etapa", permanent: false },
-      { source: "/admin/leads", destination: "/admin/contactos", permanent: false },
-      { source: "/admin/clientes", destination: "/admin/contactos?tab=clientes", permanent: false },
-      { source: "/admin/calendario", destination: "/admin/agenda", permanent: false },
-      { source: "/admin/tareas", destination: "/admin/agenda?tab=tareas", permanent: false },
-      { source: "/admin/apps", destination: "/admin/herramientas", permanent: false },
-      { source: "/admin/documentos", destination: "/admin/herramientas", permanent: false },
+        .map(([legacy, slug]) => ({ source: `/admin-anterior/proceso/${legacy}`, destination: `/admin-anterior/operaciones?etapa=${slug}`, permanent: false })),
+      { source: "/admin-anterior/proceso/:etapa", destination: "/admin-anterior/operaciones?etapa=:etapa", permanent: false },
+      { source: "/admin-anterior/leads", destination: "/admin-anterior/contactos", permanent: false },
+      { source: "/admin-anterior/clientes", destination: "/admin-anterior/contactos?tab=clientes", permanent: false },
+      { source: "/admin-anterior/calendario", destination: "/admin-anterior/agenda", permanent: false },
+      { source: "/admin-anterior/tareas", destination: "/admin-anterior/agenda?tab=tareas", permanent: false },
+      { source: "/admin-anterior/apps", destination: "/admin-anterior/herramientas", permanent: false },
+      { source: "/admin-anterior/documentos", destination: "/admin-anterior/herramientas", permanent: false },
     ];
   },
   images: {

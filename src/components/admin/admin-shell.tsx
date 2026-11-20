@@ -387,6 +387,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="admin-workspace flex min-h-[100dvh] flex-col bg-background md:flex-row [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       {!focus && <SideNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch variant="field" />} />}
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Etapa D: este es el panel provisional en su dirección de reserva. Un enlace normal (documento nuevo) lleva al panel nuevo. */}
+        {!focus && (
+          <p className="flex min-h-11 flex-wrap items-center justify-center gap-x-2 border-b border-[var(--card-edge)] bg-muted px-4 text-sm text-muted-foreground">
+            <span>Panel anterior</span>
+            <span aria-hidden="true">·</span>
+            <a href="/admin" className="inline-flex min-h-11 items-center font-semibold text-foreground underline underline-offset-4">Ir al panel nuevo</a>
+          </p>
+        )}
         {!focus && <MobileHeader user={user} search={<WorkspaceSearch />} />}
         <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
         {/* La llave por persona: si entra otra tras vencer la sesión, la pantalla anterior no se conserva. */}

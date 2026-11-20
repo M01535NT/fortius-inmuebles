@@ -1,8 +1,8 @@
 @import "tailwindcss";
 @import "./tailwind-tema.css";
 @import "tw-animate-css";
-/* Las utilidades exclusivas del panel se generan en src/app/admin/panel-base.css. */
-@source not "./admin";
+/* Las utilidades exclusivas del provisional se generan en src/app/admin-anterior/panel-base.css. */
+@source not "./admin-anterior";
 @source not "../components/admin";
 
 /* Sitio público (30/10/2026): layout.tsx define --font-public (Schibsted Grotesk) solo fuera del panel; el panel cae en Archivo. */
